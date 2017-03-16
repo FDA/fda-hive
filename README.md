@@ -20,7 +20,7 @@ HIVE implements the sophisticated handshake protocols with existing large scale 
 NIH/NCBI to easily and verifiably download large amounts of reference genomic or sequence read data on
 behalf of users.
 
-- **Computations:** Unlike many virtual computing environments, HIVE virtualiz es services, not processes:
+- **Computations:** Unlike many virtual computing environments, HIVE virtualizes services, not processes:
 it provides computations as a service by introducing agnostic abstraction layer between hardware, software
 and the computational tasks requested by users. The novel paradigm of relocating computations closer to the
 data, instead of moving data to computing cores has proven to be the key for optimal flow of tasks and data
