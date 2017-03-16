@@ -61,7 +61,7 @@ idx DnaProfXProc::OnExecute(idx req)
     } else {
         logOut(eQPLogType_Error, "Unknown algorithm %s\n", algorithm ? algorithm : "unspecified");
         reqSetInfo(req,eQPInfoLevel_Error,"Unknown algorithm %s", algorithm ? algorithm : "unspecified");
-        profx->qp->reqSetInfo(profx->qp->reqId, profx->qp->eQPInfoLevel_Error, "request %"DEC" was submitted with unknown algorithm %s", profx->qp->reqId, algorithm ? algorithm : "unspecified");
+        profx->qp->reqSetInfo(profx->qp->reqId, profx->qp->eQPInfoLevel_Error, "request %" DEC " was submitted with unknown algorithm %s", profx->qp->reqId, algorithm ? algorithm : "unspecified");
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0; // error
     }
@@ -81,16 +81,16 @@ idx DnaProfXProc::OnExecute(idx req)
     // Determine the system type (i.e. Linux)
     cfgStr(&profx->resourceRoot, 0, "qm.resourceRoot");
 
-    profx->workDir.printf("profx-%"DEC, reqId);;
+    profx->workDir.printf("profx-%" DEC, reqId);;
     sDir::makeDir(profx->workDir.ptr());
     if (!sDir::exists(profx->workDir.ptr())) {
-        profx->qp->reqSetInfo(profx->qp->reqId, profx->qp->eQPInfoLevel_Error, "request %"DEC" could not create working directory %s", profx->qp->reqId, profx->workDir.ptr() ? profx->workDir.ptr() : "unspecified");
+        profx->qp->reqSetInfo(profx->qp->reqId, profx->qp->eQPInfoLevel_Error, "request %" DEC " could not create working directory %s", profx->qp->reqId, profx->workDir.ptr() ? profx->workDir.ptr() : "unspecified");
         reqSetStatus(req, eQPReqStatus_SysError);
         return 0;
     }
 
     if (!sDir::exists(profx->resourceRoot.ptr())) {
-        profx->qp->reqSetInfo(profx->qp->reqId, profx->qp->eQPInfoLevel_Error, "request %"DEC" could not find resource Root %s", profx->qp->reqId, profx->resourceRoot.ptr() ? profx->resourceRoot.ptr() : "unspecified");
+        profx->qp->reqSetInfo(profx->qp->reqId, profx->qp->eQPInfoLevel_Error, "request %" DEC " could not find resource Root %s", profx->qp->reqId, profx->resourceRoot.ptr() ? profx->resourceRoot.ptr() : "unspecified");
         reqSetStatus(req, eQPReqStatus_SysError);
         return 0;
     }
@@ -153,7 +153,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaProfXProc backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-profx",argv[0]));
+    DnaProfXProc backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-profx",argv[0]));
     return (int)backend.run(argc,argv);
 }
 

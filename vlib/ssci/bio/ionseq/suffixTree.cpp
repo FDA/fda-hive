@@ -208,7 +208,7 @@ bool SuffixTree::insert(const char *str, idx len)
         k = canNum;
         out.cut(0);
         printInfo(&out);
-        ::printf("\niter: %"DEC, iter+1);
+        ::printf("\niter: %" DEC, iter+1);
         ::printf("\n%s", out.ptr());
     }
 
@@ -375,15 +375,15 @@ void SuffixTree::printAllEdges(sStr *out){
         if (val && *val >= 0){
             TreeEdge *e = edgeArray.ptr(*val);
 
-            out->printf("%"DEC"\t\t%"DEC, e->startNode, e->endNode);
-            out->printf("\t\t%"DEC"\t%"DEC"\t\t%"DEC"\t\t", nodeArray[e->endNode], e->startStringPos, e->endStringPos);
+            out->printf("%" DEC "\t\t%" DEC, e->startNode, e->endNode);
+            out->printf("\t\t%" DEC "\t%" DEC "\t\t%" DEC "\t\t", nodeArray[e->endNode], e->startStringPos, e->endStringPos);
             ++count;
             idx head = (inputLength > e->endStringPos) ? e->endStringPos : inputLength;
             out->add(inputString.ptr(e->startStringPos), head+1);
             out->addString("\n", 1);
         }
     }
-    out->printf("Total edges: %"DEC, count);
+    out->printf("Total edges: %" DEC, count);
 }
 
 void SuffixTree::movetoClosestParent(LastPosTree *lastPos){
@@ -396,7 +396,7 @@ void SuffixTree::movetoClosestParent(LastPosTree *lastPos){
 
         if (e->startNode == -1){
             lastPos->print(&inputString);
-//            ::printf("rootNode:%"DEC" startIndex:%"DEC" %c", lastPos->rootNode, lastPos->startIndex, inputString[lastPos->startIndex]);
+//            ::printf("rootNode:%" DEC " startIndex:%" DEC " %c", lastPos->rootNode, lastPos->startIndex, inputString[lastPos->startIndex]);
         }
 
         idx labelLength = e->endStringPos - e->startStringPos;
@@ -499,22 +499,22 @@ bool SuffixTree::search(const char *searchString, idx stringlen)
 
     if (e->startNode != -1){
         while (i < stringlen){
-            ::printf("Search:\tEdge:%"DEC" %"DEC" : %c %c I: %"DEC"\n", e->startNode, e->endNode, inputString.ptr(e->startStringPos)[0], inputString.ptr(e->endStringPos)[0], i);
+            ::printf("Search:\tEdge:%" DEC " %" DEC " : %c %c I: %" DEC "\n", e->startNode, e->endNode, inputString.ptr(e->startStringPos)[0], inputString.ptr(e->endStringPos)[0], i);
 
             iter = 0;
 
             while (e->endStringPos >= e->startStringPos + iter){
-                ::printf("Search:\tmatching %c %c at index: %"DEC"\n", inputString.ptr(e->startStringPos + iter)[0], searchString[i+iter+1], e->startStringPos+iter);
+                ::printf("Search:\tmatching %c %c at index: %" DEC "\n", inputString.ptr(e->startStringPos + iter)[0], searchString[i+iter+1], e->startStringPos+iter);
 
                 if (inputString.ptr(e->startStringPos + iter)[0] == searchString[i+iter+1]){
                     ++iter;
                     if (i + iter + 1 >= stringlen){
-                        ::printf("Search:\tWe have a match ending at %"DEC"\n", e->startStringPos + iter - 1);
+                        ::printf("Search:\tWe have a match ending at %" DEC "\n", e->startStringPos + iter - 1);
                         return true;
                     }
                 }
                 else {
-                    ::printf("Search:\tMatch not found, matched only up to index: %"DEC"\n", i + iter);
+                    ::printf("Search:\tMatch not found, matched only up to index: %" DEC "\n", i + iter);
                     return false;
                 }
             }
@@ -524,7 +524,7 @@ bool SuffixTree::search(const char *searchString, idx stringlen)
             e = findEdge(e->endNode, searchString[i+iter+1]);
 
             if (e->startNode == -1){
-                ::printf("Search:\tMatch not found, matched only up to: %"DEC" %c\n", i + iter, searchString[i+iter+1]);
+                ::printf("Search:\tMatch not found, matched only up to: %" DEC " %c\n", i + iter, searchString[i+iter+1]);
                 return false;
             }
 
@@ -532,7 +532,7 @@ bool SuffixTree::search(const char *searchString, idx stringlen)
         }
     }
 
-    ::printf("Search:\tMatched %"DEC" %s", iter, searchString);
+    ::printf("Search:\tMatched %" DEC " %s", iter, searchString);
     return true;
 
 }

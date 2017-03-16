@@ -142,7 +142,7 @@ bool CmdLoadSNPprofile::init(const char * op_name, sVariant * arg)
                 csv_file.init(thumb_path.ptr(), sMex::fReadonly);
                 if( csv_file.ok() && csv_file.length() && findCsvStartLen(&csv_pos, &csv_len, csv_file, sub) ) {
                     tbl_name = "SNPthumb.csv";
-                    idx_suffix.printf(0, "iSub-%"DEC, sub);
+                    idx_suffix.printf(0, "iSub-%" DEC, sub);
                     is_thumb = true;
                 }
             }
@@ -152,10 +152,10 @@ bool CmdLoadSNPprofile::init(const char * op_name, sVariant * arg)
             csv_file.init(csv_path.ptr(), sMex::fReadonly);
             if( csv_file.ok() && csv_file.length() && findCsvStartLen(&csv_pos, &csv_len, csv_file, sub) ) {
                 tbl_name = "SNPprofile.csv";
-                idx_suffix.printf(0, "iSub-%"DEC, sub);
+                idx_suffix.printf(0, "iSub-%" DEC, sub);
             }
         }
-    } else if( obj->getFilePathname(csv_path, "SNPprofile-%"DEC".csv", sub ) ) {
+    } else if( obj->getFilePathname(csv_path, "SNPprofile-%" DEC ".csv", sub ) ) {
         // check if it's an old profiler with per-subject files
         tbl_name = sFilePath::nextToSlash(csv_path.ptr());
         csv_file.destroy();
@@ -171,7 +171,7 @@ bool CmdLoadSNPprofile::init(const char * op_name, sVariant * arg)
     }
 
     if( csv_pos < 0 ) {
-        _ctx.logError("loadSNPprofile command: object %s doesn't have snp table for subject %"DEC, obj_id.print(), sub);
+        _ctx.logError("loadSNPprofile command: object %s doesn't have snp table for subject %" DEC, obj_id.print(), sub);
         return false;
     }
 
@@ -182,11 +182,11 @@ bool CmdLoadSNPprofile::init(const char * op_name, sVariant * arg)
                     \"col\": { \"name\": \"Position\" }, \
                     \"dense\": false, \
                     \"minValue\": 1, \
-                    \"maxValue\": { \"formula\": \"input_obj.refSeqLen(%"DEC")\" } \
+                    \"maxValue\": { \"formula\": \"input_obj.refSeqLen(%" DEC ")\" } \
                 }, \
                 \"add\": [ \
-                    { \"col\": { \"name\": \"Reference\" }, \"value\": %"DEC" }, \
-                    { \"col\": { \"name\": \"Letter\" }, \"value\": { \"formula\": \"input_obj.refSeqLetter(%"DEC",cur_abscissa_val)\" } }, \
+                    { \"col\": { \"name\": \"Reference\" }, \"value\": %" DEC " }, \
+                    { \"col\": { \"name\": \"Letter\" }, \"value\": { \"formula\": \"input_obj.refSeqLetter(%" DEC ",cur_abscissa_val)\" } }, \
                     { \"col\": { \"name\": \"Consensus\" }, \"value\": \"A\" }, \
                     { \"col\": \"*\", \"value\": 0 } \
                 ] \

@@ -250,7 +250,7 @@ bool sUsrProc::propSync(sUsrProcReq& ur)
         idx res;
         if( propGet(i, ur, res) ) {
             char strBuf[64];
-            sprintf(strBuf, "%"DEC, res);
+            sprintf(strBuf, "%" DEC, res);
             const char * strBufPtr = strBuf;
             q += TParent::propSet(sm_prop[i], (const char**) 0, &strBufPtr, 1, false);
         }
@@ -281,7 +281,7 @@ idx sUsrProc::createProcesForsubmission(sQPrideBase * qp , sVar * pForm , sUsr *
 
         /*
     if( procObjs.dim() > 1 ) {
-        sUsrFolder * sub = inbox->createSubFolder("submission %"DEC, req);
+        sUsrFolder * sub = inbox->createSubFolder("submission %" DEC, req);
         if( sub ) {
             inbox->reset(sub);
         }

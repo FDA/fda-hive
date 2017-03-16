@@ -84,15 +84,15 @@ namespace slib
             for ( idx i =0 ; i< clkDic.dim() ; ++i ){
                 Element * el=clkDic.ptr(i);
                 const char * id=(const char  *)clkDic.id(i);
-                if(out)out->printf("%"DEC",%s,%.2lf/%"DEC"/%.2lf\n",i,id,el->microseconds*(1.e-6),el->counter,el->microseconds*1./el->counter);
-                else ::printf("%"DEC",%s,%.2lf/%"DEC"/%.2lf\n",i,id,el->microseconds*(1.e-6),el->counter,el->microseconds*1./el->counter);
+                if(out)out->printf("%" DEC ",%s,%.2lf/%" DEC "/%.2lf\n",i,id,el->microseconds*(1.e-6),el->counter,el->microseconds*1./el->counter);
+                else ::printf("%" DEC ",%s,%.2lf/%" DEC "/%.2lf\n",i,id,el->microseconds*(1.e-6),el->counter,el->microseconds*1./el->counter);
                 sum+=el->microseconds;
             }
             time_t tt;
             time(&tt);
             struct tm & t = *localtime(&tt);
-            if(out)out->printf("\n%"DEC"/%"DEC"/%"DEC" %"DEC":%"DEC":%"DEC" \n", (idx)t.tm_mday, (idx)t.tm_mon + 1,    (idx)t.tm_year + 1900, (idx)t.tm_hour, (idx)t.tm_min, (idx)t.tm_sec);
-            else ::printf("\n%"DEC"/%"DEC"/%"DEC" %"DEC":%"DEC":%"DEC" \n", (idx)t.tm_mday, (idx)t.tm_mon + 1,    (idx)t.tm_year + 1900, (idx)t.tm_hour, (idx)t.tm_min, (idx)t.tm_sec);
+            if(out)out->printf("\n%" DEC "/%" DEC "/%" DEC " %" DEC ":%" DEC ":%" DEC " \n", (idx)t.tm_mday, (idx)t.tm_mon + 1,    (idx)t.tm_year + 1900, (idx)t.tm_hour, (idx)t.tm_min, (idx)t.tm_sec);
+            else ::printf("\n%" DEC "/%" DEC "/%" DEC " %" DEC ":%" DEC ":%" DEC " \n", (idx)t.tm_mday, (idx)t.tm_mon + 1,    (idx)t.tm_year + 1900, (idx)t.tm_hour, (idx)t.tm_min, (idx)t.tm_sec);
 
             if(out)out->printf("\n%.2lf total\n\n",sum*(1.e-6));
             else ::printf("\n%.2lf total\n\n",sum*(1.e-6));

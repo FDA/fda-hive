@@ -90,9 +90,9 @@ idx sText::categoryListParseCsv(sTabular * tbl, sVec < idx > * rowSet, sDic < sD
                     real val=0;sscanf(ppcl,"%lf",&val);
                     for( irg=0; irg<numCatVec[iCol].dim() && val>(real)numCatVec[iCol][irg] ; ++irg) ;
                     sStr l;
-                    if(irg==0)l.printf("<%"DEC,numCatVec[iCol][0]);
-                    else if(irg==numCatVec[iCol].dim() )l.printf(">%"DEC,numCatVec[iCol][irg-1]);
-                    else l.printf("]%"DEC"-%"DEC"]",numCatVec[iCol][irg-1],numCatVec[iCol][irg]);
+                    if(irg==0)l.printf("<%" DEC,numCatVec[iCol][0]);
+                    else if(irg==numCatVec[iCol].dim() )l.printf(">%" DEC,numCatVec[iCol][irg-1]);
+                    else l.printf("]%" DEC "-%" DEC "]",numCatVec[iCol][irg-1],numCatVec[iCol][irg]);
                     cur=pcolset->set(l.ptr());
                 }else {
                     cur=pcolset->set(ppcl);
@@ -176,9 +176,9 @@ idx sText::categoryListParseCsv(sStr * flbuf , const char * src, idx , sDic < sD
                             real val=0;sscanf(ppcl,"%lf",&val);
                             for( irg=0; irg<numCatVec[icol].dim() && val>(real)numCatVec[icol][irg] ; ++irg) ;
                             sStr l;
-                            if(irg==0)l.printf("<%"DEC,numCatVec[icol][0]);
-                            else if(irg==numCatVec[icol].dim() )l.printf(">%"DEC,numCatVec[icol][irg-1]);
-                            else l.printf("]%"DEC"-%"DEC"]",numCatVec[icol][irg-1],numCatVec[icol][irg]);
+                            if(irg==0)l.printf("<%" DEC,numCatVec[icol][0]);
+                            else if(irg==numCatVec[icol].dim() )l.printf(">%" DEC,numCatVec[icol][irg-1]);
+                            else l.printf("]%" DEC "-%" DEC "]",numCatVec[icol][irg-1],numCatVec[icol][irg]);
                             cur=pcolset->set(l.ptr());
                         }else {
                             cur=pcolset->set(ppcl,ppclen);
@@ -248,8 +248,8 @@ void sText::categoryListOut(sStr * str, sDic < sDic < sVec < idx > >  > * lcolse
             sVec < idx > * curset=pcolset->ptr(ic);
         
             for( idx is=0; is<curset->dim() ; ++is) {
-                if(ids)str->printf("%s[%"DEC"]  ", static_cast<const char *>(ids->id((*curset)[is])), (*curset)[is]);
-                else str->printf("%"DEC"  ", (*curset)[is]);
+                if(ids)str->printf("%s[%" DEC "]  ", static_cast<const char *>(ids->id((*curset)[is])), (*curset)[is]);
+                else str->printf("%" DEC "  ", (*curset)[is]);
             }
             str->printf("\n");        
         }

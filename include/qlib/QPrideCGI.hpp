@@ -72,14 +72,14 @@ namespace slib
                 sStr t;
                 const char * p=formValue(prop, &t, 0, iObj);
                 idx ival=defaultValue;
-                if(p)sscanf(p,"%"DEC,&ival);
+                if(p)sscanf(p,"%" DEC,&ival);
                 return ival;
             }
             idx formUValue(const char * prop, udx defaultValue=0, idx iObj=0){
                 sStr t;
                 const char * p=formValue(prop, &t, 0, iObj);
                 udx uval=defaultValue;
-                if(p)sscanf(p,"%"UDEC,&uval);
+                if(p)sscanf(p,"%" UDEC,&uval);
                 return uval;
             }
             real formRValue(const char * prop, real defaultValue=0, idx iObj=0){
@@ -148,7 +148,7 @@ namespace slib
             virtual bool OnInit(void)
             {
                 if( !procCGI_qapp )
-                    procCGI_qapp = new sQPrideCGI("config=qapp.cfg"__,svcName, sApp::argc, sApp::argv, sApp::envp, stdin, true, true);
+                    procCGI_qapp = new sQPrideCGI("config=qapp.cfg" __,svcName, sApp::argc, sApp::argv, sApp::envp, stdin, true, true);
                 return procCGI_qapp->OnInit();
             }
 

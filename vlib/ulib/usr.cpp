@@ -97,8 +97,8 @@ const char* sUsr::encodeSID(sStr & sid, sStr & buf)
 {
     time_t t = time(0);
     udx gmt_time = mktime(gmtime(&t));
-    sStr str("q%"UDEC"|%"DEC"|%"UDEC"|%"UDEC, m_SID, m_SIDrnd, m_Id, gmt_time);
-    str.printf("|%"UDEC, sAlgo::algo_murmurHash64(str.ptr(1), str.length() - 1, 32, 0, gmt_time));
+    sStr str("q%" UDEC "|%" DEC "|%" UDEC "|%" UDEC, m_SID, m_SIDrnd, m_Id, gmt_time);
+    str.printf("|%" UDEC, sAlgo::algo_murmurHash64(str.ptr(1), str.length() - 1, 32, 0, gmt_time));
     idx pos = buf.length();
     sMex cryptbin;
     idx cryptlen = sBlockCrypto::encrypt(&cryptbin, sBlockCrypto::eAES256_HMACSHA256, str.ptr(1), str.length() - 1, getKey(), sLen(getKey()));
@@ -111,7 +111,7 @@ const char* sUsr::encodeSID(sStr & sid, sStr & buf)
         if( e && e[0] ) {
             sid.printf("%s", e);
         } else {
-            sid.printf("r%"UDEC"%"UDEC, static_cast<udx>(rand()), gmt_time);
+            sid.printf("r%" UDEC "%" UDEC, static_cast<udx>(rand()), gmt_time);
         }
     }
     buf.printf("@%s", sid.ptr());
@@ -218,18 +218,18 @@ sSql* sUsr::pdb(bool initIfUndefined) const
             udx debug;
         } cfg;
         sString::SectVar cfgVars[] = {
-            { 0, "[HIVE]"_"db"__, "%s="HIVE_DB, "%s", &cfg.db },
-            { 0, "[HIVE]"_"server"__, "%s="HIVE_DB_HOST, "%s", &cfg.server },
-            { 0, "[HIVE]"_"user"__, "%s="HIVE_DB_USER, "%s", &cfg.user },
-            { 0, "[HIVE]"_"pass"__, "%s="HIVE_DB_PWD, "%s", &cfg.pass },
-            { 0, "[HIVE]"_"debug"__, "%"UDEC"=0", "%s", &cfg.debug }
+            { 0, "[HIVE]" _ "db" __, "%s=" HIVE_DB, "%s", &cfg.db },
+            { 0, "[HIVE]" _ "server" __, "%s=" HIVE_DB_HOST, "%s", &cfg.server },
+            { 0, "[HIVE]" _ "user" __, "%s=" HIVE_DB_USER, "%s", &cfg.user },
+            { 0, "[HIVE]" _ "pass" __, "%s=" HIVE_DB_PWD, "%s", &cfg.pass },
+            { 0, "[HIVE]" _ "debug" __, "%" UDEC "=0", "%s", &cfg.debug }
         };
         const char* cfgs[] = { "hive.cfg", "~/hive.cfg", "qapp.cfg", "~/qapp.cfg", "~/.my.cnf"};
         for(idx i = 0; i < sDim(cfgs); ++i) {
             sFil inp(cfgs[i], sFil::fReadonly);
             if( inp.length() ) {
                 sStr rst;
-                sString::cleanMarkup(&rst, inp, inp.length(), "//"_"/*"__, "\n"_"*/"__, "\n", 0, false, false, true);
+                sString::cleanMarkup(&rst, inp, inp.length(), "//" _ "/*" __, "\n" _ "*/" __, "\n", 0, false, false, true);
                 sString::xscanSect(rst.ptr(), rst.length(), cfgVars, sDim(cfgVars));
                 if( sm_cfg_db.connect(cfg.db, cfg.server, cfg.user, cfg.pass) == sSql::eConnected ) {
                     break;
@@ -300,7 +300,7 @@ void sUsr::session(udx sid, udx uid, idx key, const char* ipaddr)
     }
     if( uid == 0 ) {
         if( sid != 0 ) {
-            audit(eUserAuditLogin, __func__, "sessionID='%"UDEC"'; rnd='%"DEC"'; result='expired?'", sid, key);
+            audit(eUserAuditLogin, __func__, "sessionID='%" UDEC "'; rnd='%" DEC "'; result='expired?'", sid, key);
         }
         loginAsGuest();
     }
@@ -312,7 +312,7 @@ void sUsr::batch(const char * ipaddr)
         time_t t = time(0);
         const udx now = mktime(gmtime(&t));
         sSql::sqlProc* p = db().Proc("sp_user_login");
-        sStr log("forked from %"UDEC"%s%s", m_SID, ipaddr ? " " : "", ipaddr ? ipaddr : "");
+        sStr log("forked from %" UDEC "%s%s", m_SID, ipaddr ? " " : "", ipaddr ? ipaddr : "");
         p->Add(Id()).Add(log).Add(now).Add(true);
         sVarSet tbl;
         p->getTable(&tbl);
@@ -322,7 +322,7 @@ void sUsr::batch(const char * ipaddr)
         } else {
             err.printf(0, "Persistent session cannot be established, try again later");
         }
-        audit(eUserAuditLogin, __func__, "sessionID='%"UDEC"'; user_id=%"UDEC"; rnd='%"DEC"'; source='%s'; result='%s'", m_SID, Id(), m_SIDrnd, ipaddr, err ? err.ptr() : "ok");
+        audit(eUserAuditLogin, __func__, "sessionID='%" UDEC "'; user_id=%" UDEC "; rnd='%" DEC "'; source='%s'; result='%s'", m_SID, Id(), m_SIDrnd, ipaddr, err ? err.ptr() : "ok");
     }
 }
 
@@ -401,8 +401,8 @@ sUsr::ELoginResult sUsr::login(const char * email, const char * pswd, const udx 
             sStr upgraded_pp;
             if( checkPassword(pp, 0, pswd, email, t.val(0, t.colId("userID")), &upgraded_pp) ) {
                 if( upgraded_pp.length() ) {
-                    db().execute("UPDATE UPUser SET pswd='%s', modifTm = CURRENT_TIMESTAMP WHERE userID=%"UDEC, upgraded_pp.ptr(), t.uval(0, t.colId("userID")));
-                    audit(eUserAuditLogin, "upgrade_password", "userID=%"UDEC"; from='%s'; to='%s'", t.uval(0, t.colId("userID")), pp, upgraded_pp.ptr());
+                    db().execute("UPDATE UPUser SET pswd='%s', modifTm = CURRENT_TIMESTAMP WHERE userID=%" UDEC, upgraded_pp.ptr(), t.uval(0, t.colId("userID")));
+                    audit(eUserAuditLogin, "upgrade_password", "userID=%" UDEC "; from='%s'; to='%s'", t.uval(0, t.colId("userID")), pp, upgraded_pp.ptr());
                     pp = upgraded_pp.ptr();
                 }
             } else {
@@ -452,7 +452,7 @@ sUsr::ELoginResult sUsr::login(const char * email, const char * pswd, const udx 
         }
         delete p;
     }
-    audit(eUserAuditLogin, __func__, "email='%s'; sessionID='%"UDEC"'; rnd='%"DEC"'; source='%s'; result='%"DEC, email, m_SID, m_SIDrnd, ipaddr, (idx)status);
+    audit(eUserAuditLogin, __func__, "email='%s'; sessionID='%" UDEC "'; rnd='%" DEC "'; source='%s'; result='%" DEC, email, m_SID, m_SIDrnd, ipaddr, (idx)status);
     return status;
 }
 
@@ -464,7 +464,7 @@ void sUsr::logout(const char * ipaddr)
     p->Add(m_Id).Add(m_SID).Add(now);
     p->execute();
     delete p;
-    audit(eUserAuditLogin, __func__, "source='%s'; result='%"UDEC": %s'", ipaddr, db().Get_errno(), db().Get_error().ptr());
+    audit(eUserAuditLogin, __func__, "source='%s'; result='%" UDEC ": %s'", ipaddr, db().Get_errno(), db().Get_error().ptr());
     loginAsGuest();
 }
 
@@ -605,7 +605,7 @@ bool sUsr::init(udx userId)
                         m_membership.printf("%s,", usr.val(ir, 0));
                         const char * curSlash;
                         sStr t;
-                        for(curSlash = sString::skipWords(p + 1, 0, 1, "/"__); curSlash; curSlash = sString::skipWords(curSlash + 1, 0, 1, "/"__)) {
+                        for(curSlash = sString::skipWords(p + 1, 0, 1, "/" __); curSlash; curSlash = sString::skipWords(curSlash + 1, 0, 1, "/" __)) {
                             t.cut(0);
                             t.add(p, curSlash - p);
                             t.add0();
@@ -621,7 +621,7 @@ bool sUsr::init(udx userId)
                     }
                     // direct membership rule
                     m_membership.cut(-1);
-                    m_membership.printf(") AND (p.flags & %"UDEC") = 0) OR ", (udx)(eFlagInheritDown | eFlagInheritUp));
+                    m_membership.printf(") AND (p.flags & %" UDEC ") = 0) OR ", (udx)(eFlagInheritDown | eFlagInheritUp));
                     // inherit down
                     m_membership.printf("((g.groupPath in (");
                     for(idx i = 0; i < parDic.dim(); ++i) {
@@ -630,10 +630,10 @@ bool sUsr::init(udx userId)
                         }
                         m_membership.printf("'%s'", (const char *)(parDic.id(i)));
                     }
-                    m_membership.printf(")) AND (p.flags & %"UDEC") != 0)", (udx)eFlagInheritDown);
+                    m_membership.printf(")) AND (p.flags & %" UDEC ") != 0)", (udx)eFlagInheritDown);
                     if( directParents ) {
                         // inherit up
-                        m_membership.printf(" OR ((%s) AND (p.flags & %"UDEC") != 0) )", directParents.ptr(), (udx)eFlagInheritUp);
+                        m_membership.printf(" OR ((%s) AND (p.flags & %" UDEC ") != 0) )", directParents.ptr(), (udx)eFlagInheritUp);
                     }
                 }
             }
@@ -774,12 +774,12 @@ bool sUsr::groupActivate(idx groupId)
 {
     bool res = false;
     sVarSet t;
-    db().getTable(&t, "SELECT is_active_fg FROM UPGroup WHERE groupID = %"UDEC,  groupId);
+    db().getTable(&t, "SELECT is_active_fg FROM UPGroup WHERE groupID = %" UDEC,  groupId);
     if( t.rows == 1 ) {
         if( !t.uval(0, 0) ) {
-            db().execute("UPDATE UPGroup SET is_active_fg = TRUE WHERE groupID = %"UDEC, groupId);
+            db().execute("UPDATE UPGroup SET is_active_fg = TRUE WHERE groupID = %" UDEC, groupId);
             t.empty();
-            db().getTable(&t, "SELECT is_active_fg, groupPath FROM UPGroup WHERE groupID = %"UDEC, groupId);
+            db().getTable(&t, "SELECT is_active_fg, groupPath FROM UPGroup WHERE groupID = %" UDEC, groupId);
             if( t.rows == 1 && t.uval(0, 0) ) {
                 err.printf(0, "Group membership '%s' activation successful", t.val(0, 1));
                 res = true;
@@ -791,9 +791,9 @@ bool sUsr::groupActivate(idx groupId)
             res = true;
         }
     } else {
-        err.printf(0, "group id %"UDEC" is not found", groupId);
+        err.printf(0, "group id %" UDEC " is not found", groupId);
     }
-    audit(eUserAuditAdmin, __func__, "groupID='%"UDEC"'; result='%s'", groupId, !res ? err.ptr() : "ok");
+    audit(eUserAuditAdmin, __func__, "groupID='%" UDEC "'; result='%s'", groupId, !res ? err.ptr() : "ok");
     return res;
 }
 
@@ -820,7 +820,7 @@ bool sUsr::groupCreate(const char* name, const char* abbr, const char* parent)
             }
             if( !res ) {
 #ifdef _DEBUG
-                err.printf("SQL error: [%"UDEC"] '%s'", db().Get_errno(), db().Get_error().ptr());
+                err.printf("SQL error: [%" UDEC "] '%s'", db().Get_errno(), db().Get_error().ptr());
 #endif
                 updateAbandon();
             }
@@ -844,7 +844,7 @@ bool sUsr::contact(const char * from_email, const char * subject, const char * b
         }
         sUsrEmail eml(admin, adminEmail, (subject && subject[0]) ? subject : "No subject", msg);
     }
-    audit(eUserAuditAdmin, __func__, "sessionID='%"UDEC"'; user_id=%"UDEC"; from='%s'; result='%s'", m_SID, Id(), from_email, err ? err.ptr() : "ok");
+    audit(eUserAuditAdmin, __func__, "sessionID='%" UDEC "'; user_id=%" UDEC "; from='%s'; result='%s'", m_SID, Id(), from_email, err ? err.ptr() : "ok");
     return err;
 }
 
@@ -862,7 +862,7 @@ udx sUsr::addPasswordResetID(const char* email)
         } else {
             sUsr admin("qpride");
             udx r = rand(), r1 = rand();
-            db().execute("UPDATE UPUser SET pswd_reset_id = IF(pswd_reset_id = %"UDEC", %"UDEC", %"UDEC") WHERE email = '%s' AND `type` = 'user'", r, r1, r, tmp.ptr());
+            db().execute("UPDATE UPUser SET pswd_reset_id = IF(pswd_reset_id = %" UDEC ", %" UDEC ", %" UDEC ") WHERE email = '%s' AND `type` = 'user'", r, r1, r, tmp.ptr());
             t.empty();
             db().getTable(&t, "SELECT pswd_reset_id FROM UPUser WHERE email = '%s' AND `type` = 'user'",  tmp.ptr());
             if( t.rows == 1 && (t.uval(0, 0) == r || t.uval(0, 0) == r1) ) {
@@ -874,7 +874,7 @@ udx sUsr::addPasswordResetID(const char* email)
     } else {
         err.printf(0, "Email address %s is not recognized.", email);
     }
-    audit(eUserAuditAdmin, __func__, "email='%s'; pswd_reset_id=%"UDEC"; result='%s'", email, pswd_reset_id, err ? err.ptr() : "ok");
+    audit(eUserAuditAdmin, __func__, "email='%s'; pswd_reset_id=%" UDEC "; result='%s'", email, pswd_reset_id, err ? err.ptr() : "ok");
     return err ? 0 : pswd_reset_id;
 }
 
@@ -891,7 +891,7 @@ bool sUsr::sendForgotten(const char* baseURL, const char* email)
             sUsr admin("qpride");
             sStr body("%s %s,\n\n"
                       "To complete your request to reset password click the link below:\n"
-                      "%s?cmd=pswdSet&login=%s&pswd=%"UDEC"&x=%"UDEC"\n"
+                      "%s?cmd=pswdSet&login=%s&pswd=%" UDEC "&x=%" UDEC "\n"
                       "\nHIVE Team.\n", t.val(0, 0), t.val(0, 1), baseURL, t.val(0, 2), t.uval(0, 3), (udx)(time(0) + 24 * 60 * 60));
             sUsrEmail eml(admin, email, "HIVE password notification", body.ptr());
         } else {
@@ -924,7 +924,7 @@ sUsr::ELoginResult sUsr::token(const char * email, sStr & token)
             udx r = 0;
             while(r == 0) { // Repeat to make sure new value is set
                 r = rand();
-                db().execute("UPDATE UPUser SET pswd_reset_id = IF(pswd_reset_id = %"UDEC", NULL, %"UDEC") WHERE email = '%s' AND `type` = 'user'", r, r, tmp.ptr());
+                db().execute("UPDATE UPUser SET pswd_reset_id = IF(pswd_reset_id = %" UDEC ", NULL, %" UDEC ") WHERE email = '%s' AND `type` = 'user'", r, r, tmp.ptr());
                 t.empty();
                 db().getTable(&t, "SELECT pswd_reset_id, userID FROM UPUser WHERE email = '%s' AND `type` = 'user'",  tmp.ptr());
                 r = (t.rows == 1 && t.cols == 2) ? t.uval(0, 0) : 0;
@@ -938,7 +938,7 @@ sUsr::ELoginResult sUsr::token(const char * email, sStr & token)
             res = token ? eUserOperational : eUserNotFound;
         }
     }
-    audit(eUserAuditLogin, "piv-auth", "email='%s'; result='%"UDEC"'", email, (udx)res);
+    audit(eUserAuditLogin, "piv-auth", "email='%s'; result='%" UDEC "'", email, (udx)res);
     return res;
 }
 
@@ -994,7 +994,7 @@ bool sUsr::passwordReset(const char* email, udx pswd_reset_id, const char * mod,
     if( pswd_reset_id ) {
         sVarSet t;
         sStr tmp;
-        db().getTable(&t, "SELECT userID, is_active_fg, is_email_valid_fg FROM UPUser WHERE email = '%s' AND pswd_reset_id = %"UDEC" AND `type` = 'user'",
+        db().getTable(&t, "SELECT userID, is_active_fg, is_email_valid_fg FROM UPUser WHERE email = '%s' AND pswd_reset_id = %" UDEC " AND `type` = 'user'",
             db().protect(tmp, email), pswd_reset_id);
         if(t.rows == 1 && t.uval(0, 0) && t.uval(0, 1) && t.uval(0, 2) ) {
             userId = t.uval(0, 0);
@@ -1014,7 +1014,7 @@ bool sUsr::passwordReset(udx userId, const char * mod, const char * mod1)
     bool res = false;
     if( passwordCheckQuality(mod, mod1) ) {
         sVarSet t;
-        db().getTable(&t, "SELECT pswd, email FROM UPUser WHERE userID = %"UDEC, userId);
+        db().getTable(&t, "SELECT pswd, email FROM UPUser WHERE userID = %" UDEC, userId);
         if( t.rows == 1 ) {
             const char * cur_hash = t.val(0, 0);
             const char * email = t.val(0, 1);
@@ -1022,10 +1022,10 @@ bool sUsr::passwordReset(udx userId, const char * mod, const char * mod1)
             bool password_reused = false;
 
             if( idx num_keep_old = db().ivalue("SELECT val FROM QPCfg WHERE par = 'user.pswdKeepOldQty'", 0) ) {
-                sStr userID_str("%"UDEC, userId);
+                sStr userID_str("%" UDEC, userId);
                 hashes_buf.printf(0, "'%s ", cur_hash);
                 idx cur_hash_pos = 1; // skips initial quote
-                db().svalue(hashes_buf, "SELECT pswd_prev_list FROM UPUser WHERE userID = %"UDEC, userId); // whitespace-delimeted list of hashes, most recent is first
+                db().svalue(hashes_buf, "SELECT pswd_prev_list FROM UPUser WHERE userID = %" UDEC, userId); // whitespace-delimeted list of hashes, most recent is first
                 for(idx ihash = 0; ihash < num_keep_old; ihash++) {
                     idx ws = strspn(hashes_buf.ptr(cur_hash_pos), hash_seps); // skip any whitespace
                     idx cur_hash_len = strcspn(hashes_buf.ptr(cur_hash_pos + ws), hash_seps);
@@ -1047,7 +1047,7 @@ bool sUsr::passwordReset(udx userId, const char * mod, const char * mod1)
             } else {
                 sStr tmp;
                 db().execute("UPDATE UPUser SET pswd='%s', logCount = IF(logCount <= 0, 1, logCount), pswd_reset_id = NULL, "
-                             "pswd_changed = NOW(), pswd_prev_list=%s, modifTm = CURRENT_TIMESTAMP WHERE userID=%"UDEC, sPassword::encodePassword(tmp, mod), hashes_buf.ptr(), userId);
+                             "pswd_changed = NOW(), pswd_prev_list=%s, modifTm = CURRENT_TIMESTAMP WHERE userID=%" UDEC, sPassword::encodePassword(tmp, mod), hashes_buf.ptr(), userId);
                 res = true;
             }
         }
@@ -1105,12 +1105,12 @@ idx sUsr::update(const bool isnew, const char * email, const char * password, co
                                         lemail, m_IsAdmin ? 0 : 1, lfirstName, llastName);
                 userId = db().uvalue(0, "SELECT userID FROM UPUser WHERE email = '%s' AND `type` = 'user'", lemail);
                 if( userId ) {
-                    sStr tmp("%"UDEC, userId);
+                    sStr tmp("%" UDEC, userId);
                     tmp.add0(2);
                     const char * pswd = sPassword::encodePassword(tmp, newpass1);
-                    db().execute("UPDATE UPUser SET pswd = '%s', pswd_changed = NOW() WHERE userID = %"UDEC, pswd, userId);
+                    db().execute("UPDATE UPUser SET pswd = '%s', pswd_changed = NOW() WHERE userID = %" UDEC, pswd, userId);
                     // create a personal group (flag = -1) for new user
-                    db().execute("insert into UPGroup (userID, flags, is_active_fg, groupPath) values(%"UDEC", -1, TRUE, '/everyone/users/%s')", userId, lemail);
+                    db().execute("insert into UPGroup (userID, flags, is_active_fg, groupPath) values(%" UDEC ", -1, TRUE, '/everyone/users/%s')", userId, lemail);
                     if( !db().HasFailed() ) {
                         log.printf("new_user='%s'; ", email);
                         sendEmailValidation(baseURL, email, firstName, lastName);
@@ -1118,7 +1118,7 @@ idx sUsr::update(const bool isnew, const char * email, const char * password, co
                     } else {
                         err.printf(0, "Registration failed, please, come back later!");
 #if _DEBUG
-                        err.printf(" mysql: %"UDEC" '%s'", db().Get_errno(), db().Get_error().ptr());
+                        err.printf(" mysql: %" UDEC " '%s'", db().Get_errno(), db().Get_error().ptr());
 #endif
                         break;
                     }
@@ -1145,16 +1145,16 @@ idx sUsr::update(const bool isnew, const char * email, const char * password, co
     if( !err ) {
         if( result && firstName && firstName[0] && strcmp(m_First, firstName) != 0 ) {
             log.addString("old_first='");
-            db().svalue(log, "SELECT first_name FROM UPUser WHERE userID = %"UDEC, userId);
+            db().svalue(log, "SELECT first_name FROM UPUser WHERE userID = %" UDEC, userId);
             log.addString("'; ");
-            db().execute("update UPUser set first_name = '%s', modifTm = CURRENT_TIMESTAMP where userID = %"UDEC, lfirstName, userId);
+            db().execute("update UPUser set first_name = '%s', modifTm = CURRENT_TIMESTAMP where userID = %" UDEC, lfirstName, userId);
             result = !db().HasFailed();
         }
         if( result && lastName && lastName[0] && strcmp(m_Last, lastName) != 0 ) {
             log.addString("old_last='");
-            db().svalue(log, "SELECT last_name FROM UPUser WHERE userID = %"UDEC, userId);
+            db().svalue(log, "SELECT last_name FROM UPUser WHERE userID = %" UDEC, userId);
             log.addString("'; ");
-            db().execute("update UPUser set last_name = '%s', modifTm = CURRENT_TIMESTAMP where userID = %"UDEC, llastName, userId);
+            db().execute("update UPUser set last_name = '%s', modifTm = CURRENT_TIMESTAMP where userID = %" UDEC, llastName, userId);
             result = !db().HasFailed();
         }
         if( result && groups.dim() ) {
@@ -1163,14 +1163,14 @@ idx sUsr::update(const bool isnew, const char * email, const char * password, co
             sStr g;
             sString::printfIVec(&g, &groups, ",");
             // delete unselected
-            db().execute("DELETE FROM UPGroup WHERE userID = %"UDEC" AND flags != -1 AND groupPath NOT IN (SELECT CONCAT(first_name, '%s') FROM UPUser WHERE userID IN (%s))", userId, lemail, g.ptr());
+            db().execute("DELETE FROM UPGroup WHERE userID = %" UDEC " AND flags != -1 AND groupPath NOT IN (SELECT CONCAT(first_name, '%s') FROM UPUser WHERE userID IN (%s))", userId, lemail, g.ptr());
             result = !db().HasFailed();
             if( result ) {
                 // insert new but ignore existing
                 db().execute("INSERT INTO UPGroup (userID, flags, is_active_fg, groupPath) "
-                         "SELECT %"UDEC", 0, FALSE, CONCAT(first_name, '%s') FROM UPUser WHERE userID IN (%s) AND userID NOT IN ("
+                         "SELECT %" UDEC ", 0, FALSE, CONCAT(first_name, '%s') FROM UPUser WHERE userID IN (%s) AND userID NOT IN ("
                            "SELECT userID FROM UPUser WHERE first_name IN ("
-                                "SELECT SUBSTRING(groupPath, 1, LENGTH(groupPath) - LENGTH('%s')) FROM UPGroup WHERE userID = %"UDEC" AND flags != -1 AND groupPath IN ("
+                                "SELECT SUBSTRING(groupPath, 1, LENGTH(groupPath) - LENGTH('%s')) FROM UPGroup WHERE userID = %" UDEC " AND flags != -1 AND groupPath IN ("
                                        "SELECT CONCAT(first_name, '%s') FROM UPUser WHERE userID in(%s))))"
                         , userId, lemail, g.ptr(), lemail, userId, lemail, g.ptr());
                 result = !db().HasFailed();
@@ -1199,7 +1199,7 @@ const char* sUsr::groupList(bool inactive) const
 {
     static sStr buf;
     buf.cut0cut();
-    return db().svalue(buf, "SELECT GROUP_CONCAT(userID) FROM UPUser WHERE `type` = 'group' AND CONCAT(first_name, '%s') IN (SELECT groupPath FROM UPGroup WHERE userID = %"UDEC" AND is_active_fg IN (%s))",
+    return db().svalue(buf, "SELECT GROUP_CONCAT(userID) FROM UPUser WHERE `type` = 'group' AND CONCAT(first_name, '%s') IN (SELECT groupPath FROM UPGroup WHERE userID = %" UDEC " AND is_active_fg IN (%s))",
         m_Email.ptr(), m_Id, inactive ? "TRUE, FALSE" : "TRUE");
 }
 
@@ -1247,9 +1247,9 @@ sRC sUsr::objCreate(sHiveId & out_id, const char* type_name, const udx in_domain
                     if( db().HasFailed() ) {
                         // Serious DB failure that should not happen - need to log with details
                         // fprintf needed because a DB connection failure or deadlock might cause QPride()->logOut() to fail too
-                        fprintf(stderr, "objCreate() DB error %"UDEC": %s\n", db().Get_errno(), db().Get_error().ptr());
+                        fprintf(stderr, "objCreate() DB error %" UDEC ": %s\n", db().Get_errno(), db().Get_error().ptr());
                         if( QPride() ) {
-                            QPride()->logOut(sQPrideBase::eQPLogType_Error, "objCreate() DB error %"UDEC": %s", db().Get_errno(), db().Get_error().ptr());
+                            QPride()->logOut(sQPrideBase::eQPLogType_Error, "objCreate() DB error %" UDEC ": %s", db().Get_errno(), db().Get_error().ptr());
                         }
                     }
                     rc.set(sRC::eCreating, sRC::eObject, sRC::eOperation, sRC::eFailed);
@@ -1507,13 +1507,13 @@ void sUsr::permPrettyScanf(const char * group, const char * view, const char* sp
     }
     *perm = ePermNone;
     if( sperm && sperm[0] ) {
-        sStr fmt("%%b=%"HEX"|browse=%x|read=%x|write=%x|exec=%x|del=%x|admin=%x|share=%x|download=%x;",
+        sStr fmt("%%b=%" HEX "|browse=%x|read=%x|write=%x|exec=%x|del=%x|admin=%x|share=%x|download=%x;",
             *perm, ePermCanBrowse, ePermCanRead, ePermCanWrite, ePermCanExecute, ePermCanDelete, ePermCanAdmin, ePermCanShare, ePermCanDownload);
         sString::xscanf(sperm, fmt, perm);
     }
     *flags = eFlagNone;
     if( sflags && sflags[0] ) {
-        sStr fmt("%%b=%"HEX"|allow=0|active=0|deny=%x|down=%x|up=%x|hold=%x|revoke=%x;",
+        sStr fmt("%%b=%" HEX "|allow=0|active=0|deny=%x|down=%x|up=%x|hold=%x|revoke=%x;",
             *flags, eFlagRestrictive, eFlagInheritDown, eFlagInheritUp, eFlagOnHold, eFlagRevoked);
         sString::xscanf(sflags, fmt, flags);
     }
@@ -1575,9 +1575,9 @@ bool sUsr::setPermission(udx groupId, const sHiveId & objHiveId, udx permission,
     sStr perm_log;
     permPrettyPrint(perm_log, permission, flags);
     if( sLen(forObjID) ) {
-        audit(eUserAuditAdmin, __func__, "groupID='%"UDEC"'; objID='%s'; forObjID='%s'; view=%s; perm='%s'; result='%s'", groupId, objHiveId.print(), forObjID, viewId ? viewId->print() : "", perm_log.ptr(), ok ? "ok" : "failed");
+        audit(eUserAuditAdmin, __func__, "groupID='%" UDEC "'; objID='%s'; forObjID='%s'; view=%s; perm='%s'; result='%s'", groupId, objHiveId.print(), forObjID, viewId ? viewId->print() : "", perm_log.ptr(), ok ? "ok" : "failed");
     } else {
-        audit(eUserAuditAdmin, __func__, "groupID='%"UDEC"'; objID='%s'; view=%s; perm='%s'; result='%s'", groupId, objHiveId.print(), viewId ? viewId->print() : "", perm_log.ptr(), ok ? "ok" : "failed");
+        audit(eUserAuditAdmin, __func__, "groupID='%" UDEC "'; objID='%s'; view=%s; perm='%s'; result='%s'", groupId, objHiveId.print(), viewId ? viewId->print() : "", perm_log.ptr(), ok ? "ok" : "failed");
     }
     return ok;
 }
@@ -1637,7 +1637,7 @@ class TPropCtx
         }
         bool hasError(idx pos = 0) const
         {
-            return log && sString::searchSubstring(log.ptr(pos), 0, "\nerr."__, sNotIdx, 0, false) != 0;
+            return log && sString::searchSubstring(log.ptr(pos), 0, "\nerr." __, sNotIdx, 0, false) != 0;
         }
         std::auto_ptr<sUsrQueryEngine> qengine;
         const sUsr & user;
@@ -2271,7 +2271,7 @@ class TProp
                                 for(idx i = 0; i < pobj->perm.dim(); ++i) {
                                     TPropObj::TPerm pp = pobj->perm[i];
                                     if( !ctx.user.setPermission(pp.groupId, obj->Id(), pp.perm, pp.flags, &pp.viewId) ) {
-                                        ctx.log.printf("\nerr.%s._file=cannot set permissions for group %"UDEC, (const char *)(all.id(o)), pp.groupId);
+                                        ctx.log.printf("\nerr.%s._file=cannot set permissions for group %" UDEC, (const char *)(all.id(o)), pp.groupId);
                                     }
                                 }
                             }
@@ -2618,16 +2618,16 @@ bool sUsr::copy2res(sUsrObjRes & res) const
                                 return false;
                             }
                         } else if( strcasecmp(&nm[1], "perm") == 0 ) {
-                            const char * path = tmp.printf(0, "1.%"DEC, ++pid);
+                            const char * path = tmp.printf(0, "1.%" DEC, ++pid);
                             tmp.add0(2);
                             const char * val;
                             if( use_type_upobj ) {
                                 sHiveId vw(db().resultUValue(7), db().resultUValue(8));
-                                val = tmp.printf("%"UDEC",%s,", db().resultUValue(4), vw ? vw.print() : "");
+                                val = tmp.printf("%" UDEC ",%s,", db().resultUValue(4), vw ? vw.print() : "");
                                 permPrettyPrint(tmp, db().resultUValue(6), db().resultUValue(5));
                             } else {
                                 const udx vw = db().resultUValue(5);
-                                val = tmp.printf("%"UDEC",%s,", db().resultUValue(4), vw ? db().resultValue(5) : "");
+                                val = tmp.printf("%" UDEC ",%s,", db().resultUValue(4), vw ? db().resultValue(5) : "");
                                 permPrettyPrint(tmp, db().resultUValue(7), db().resultUValue(6));
                             }
                             res.add(*p, nm, path, sLen(path), val, sLen(val));
@@ -2663,7 +2663,7 @@ udx sUsr::objsLowLevel(const char * type_names, const char * obj_filter_sql, con
         return 0;
     }
     static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
-    SRCHDBG("SEARCH QUERY %s%s FROM type(s): '%s' WHERE [[%s]] AND [[%s]] LIMIT %"UDEC", %"UDEC" with%s total\n", prop_name_csv ? prop_name_csv : "NULL", permissions ? " +flag:_perm" : "", type_names, obj_filter_sql ? obj_filter_sql : "", prop_filter_sql ? prop_filter_sql : "", start, count, total_qty ? "" : "out");
+    SRCHDBG("SEARCH QUERY %s%s FROM type(s): '%s' WHERE [[%s]] AND [[%s]] LIMIT %" UDEC ", %" UDEC " with%s total\n", prop_name_csv ? prop_name_csv : "NULL", permissions ? " +flag:_perm" : "", type_names, obj_filter_sql ? obj_filter_sql : "", prop_filter_sql ? prop_filter_sql : "", start, count, total_qty ? "" : "out");
     std::auto_ptr<sSql::sqlProc> p(getProc(use_type_upobj ? "sp_obj_get_v4_1" : "sp_obj_get_v3"));
     if( total_qty ) {
         *total_qty = 0;
@@ -2827,7 +2827,7 @@ udx sUsr::objs2(const char* type_names, sUsrObjRes & res, udx * total_qty, const
                 v_flt.shrink00();
                 v_flt.printf("'");
                 if( pv && pv[0] ) {
-                    v_flt.printf(" AND f.value %s"OBJCMP" '", not_pv ? OBJNOT : "");
+                    v_flt.printf(" AND f.value %s" OBJCMP " '", not_pv ? OBJNOT : "");
                     db().protect(v_flt, pv);
                     v_flt.shrink00();
                     v_flt.printf("'");
@@ -2839,13 +2839,13 @@ udx sUsr::objs2(const char* type_names, sUsrObjRes & res, udx * total_qty, const
             if( v_flt ) {
                 v_flt.addString(" OR ");
             }
-            v_flt.printf("((f.value %s"OBJCMP" '", not_pv ? OBJNOT : "");
+            v_flt.printf("((f.value %s" OBJCMP " '", not_pv ? OBJNOT : "");
             db().protect(v_flt, pv);
             v_flt.shrink00();
-            v_flt.printf("') OR (CHAR(o.domainID USING ASCII) %s"OBJCMP" '", not_pv ? OBJNOT : "");
+            v_flt.printf("') OR (CHAR(o.domainID USING ASCII) %s" OBJCMP " '", not_pv ? OBJNOT : "");
             db().protect(v_flt, pv);
             v_flt.shrink00();
-            v_flt.printf("') OR (o.objID %s"OBJCMP" '", not_pv ? OBJNOT : "");
+            v_flt.printf("') OR (o.objID %s" OBJCMP " '", not_pv ? OBJNOT : "");
             db().protect(v_flt, pv);
             v_flt.shrink00();
             v_flt.printf("'))");
@@ -2890,7 +2890,7 @@ void sUsr::propBulk(sVec<sHiveId> & ids, sVarSet & list, const char* view_name, 
         } else {
             // truncate list to fit into MEDIUMTEXT storeproc param
             for(idx i = 0; i < ids.dim() && idcsv.length() < ((2 << 24) - 20); ++i) {
-                idcsv.printf(",%"UDEC, ids[i].objId());
+                idcsv.printf(",%" UDEC, ids[i].objId());
             }
         }
         const bool hasBrief = filter00 && (sString::compareChoice("_brief", filter00, 0, true, 0, true) != sNotIdx);
@@ -3247,7 +3247,7 @@ idx sUsr::exportUsrGrp4Ion(sJSONPrinter & out)
     out.addKey("users");
     out.startObject();
     for(idx ir = 0; ir < utbl.rows; ir++) {
-        out.addKey(buf.printf(0, "u%"DEC, utbl.ival(ir, utbl.colId("userID"))));
+        out.addKey(buf.printf(0, "u%" DEC, utbl.ival(ir, utbl.colId("userID"))));
         out.startObject();
         out.addKeyValue("_type", "hc_user");
         out.addKeyValue("_id", "$newid()");
@@ -3335,7 +3335,7 @@ idx sUsr::exportUsrGrp4Ion(sJSONPrinter & out)
             }
         }
 
-        out.addKey(buf.printf(0, "g%"DEC, gtbl.ival(ir, gtbl.colId("groupID"))));
+        out.addKey(buf.printf(0, "g%" DEC, gtbl.ival(ir, gtbl.colId("groupID"))));
         out.startObject();
         out.addKeyValue("_type", "hc_group");
         out.addKeyValue("_id", "$newid()");
@@ -3363,11 +3363,11 @@ idx sUsr::exportUsrGrp4Ion(sJSONPrinter & out)
                     continue;
                 } else {
                     // branch child
-                    out.addValue(buf.printf(0, "$root.groups.g%"DEC, gtbl.ival(jr, gtbl.colId("groupID"))));
+                    out.addValue(buf.printf(0, "$root.groups.g%" DEC, gtbl.ival(jr, gtbl.colId("groupID"))));
                 }
             } else {
                 // leaf child
-                out.addValue(buf.printf(0, "$root.users.u%"DEC, gtbl.ival(jr, gtbl.colId("userID"))));
+                out.addValue(buf.printf(0, "$root.users.u%" DEC, gtbl.ival(jr, gtbl.colId("userID"))));
             }
         }
         out.endArray();
@@ -3507,7 +3507,7 @@ void sUsrObjRes::json(const sUsr & user, const sUsrObjRes::IdIter & it, sJSONPri
                     const char * grp_perm_pretty_print = getValue(tbl);
                     udx num_group = 0;
                     int num_group_nbytes = 0;
-                    if( sscanf(grp_perm_pretty_print, "%"UDEC",,%n", &num_group, &num_group_nbytes) ) {
+                    if( sscanf(grp_perm_pretty_print, "%" UDEC ",,%n", &num_group, &num_group_nbytes) ) {
                         permPretty2JSON(printer, num_group, 0, grp_perm_pretty_print + num_group_nbytes);
                     }
                     tbl = getNext(tbl);

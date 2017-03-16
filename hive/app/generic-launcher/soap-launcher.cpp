@@ -44,7 +44,7 @@ class SOAPLauncherProc: public DnaGenericLauncherProc
         {
             //regExpResultList.printf("*.csv");
             //cmdLineTemplate.printf("cat $(pathfasta(.query as intlist,\"*.vioseqlist\"))");
-            //pathFunctions00="path"_"pathfasta"_"pathfastq"__;
+            //pathFunctions00="path" _ "pathfasta" _ "pathfastq" __;
 
 
             return DnaGenericLauncherProc::OnExecute(req);
@@ -56,6 +56,6 @@ int main(int argc, const char * argv[])
 {
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
-    SOAPLauncherProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "soap-launcher", argv[0]));
+    SOAPLauncherProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "soap-launcher", argv[0]));
     return (int) backend.run(argc, argv);
 }

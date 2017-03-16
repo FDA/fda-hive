@@ -120,13 +120,13 @@ void sClust::printNewick(sStr * out, sClust::NodePrintfCallback func, void * par
         /*else if(inode>=(idx)baseDim) { 
             if(dodist)
                 out->printf(":"realFormat,*ptr(inode));
-            ;//out->printf("%"DEC"",inode);
+            ;//out->printf("%" DEC "",inode);
         }*/
         else { // normal nodes 
             if(func )
                 func(out, this, inode, par);
             else 
-                out->printf("%"DEC"",inode);
+                out->printf("%" DEC "",inode);
             if(dodist)
                 out->printf(":%lf",ptr(inode)->obj);
         }
@@ -240,12 +240,12 @@ void sClust::printListed(sStr * out, sClust::NodePrintfCallback func, void * par
     }
     else {
         for(idx k=0,inode=baseDim; inode<dim() ; ++inode){
-            out->printf("%"DEC"=>",inode);//out->printf("branch%"DEC"",inode+1-baseDim);
+            out->printf("%" DEC "=>",inode);//out->printf("branch%" DEC "",inode+1-baseDim);
             sLst<idx> & children=ptr(inode)->out;
             for( idx i=0; i<children.dim(); ++ i ) {
                 k=children[i];
-                if( k<baseDim ) out->printf( " %"DEC"->",  k );//out->printf( " leave%"DEC"",  k+1 );
-                else out->printf( " %"DEC"=>", k);//out->printf( " branch%"DEC"", k+1-baseDim );
+                if( k<baseDim ) out->printf( " %" DEC "->",  k );//out->printf( " leave%" DEC "",  k+1 );
+                else out->printf( " %" DEC "=>", k);//out->printf( " branch%" DEC "", k+1-baseDim );
             }
             if(dodist)
                 out->printf(" %lf",ptr(k)->obj);
@@ -259,7 +259,7 @@ void sClust::clusterHierarchically(idx transpose, idx distmethod, idx clustmetho
     real * distmat=computeDistanceMatrix( transpose, distmethod, rows, cols, actmat , 0);
 /*    
     FILE * fp=fopen ("c.mtx","r") ;
-    fscanf(fp,"%"DEC"",&rows);
+    fscanf(fp,"%" DEC "",&rows);
     real * distmat=(real*)malloc(rows*(rows+1)/2*sizeof(real));
     for(idx i=0; i<rows*(rows+1)/2; ++ i) {
         fscanf(fp,"%f",&distmat[i]);
@@ -277,31 +277,31 @@ void sClust::clusterMethod(const char * format, idx * pDstMethod, idx * pClsMeth
     struct clsMethod{ int method;const char * def00;} ;
 
     static clsMethod mts[]={
-        {-1,"////"__},
-        {sClust_LINKAGE_WARD,"ward"__},
-        {sClust_LINKAGE_MIN,"single"_"min"_"sl"__},
-        {sClust_LINKAGE_MAX,"complete"_"max"__},
-        {sClust_LINKAGE_AVERAGE_UNWEIGHTED,"average"_"avr"__},
-        {sClust_LINKAGE_AVERAGE_WEIGHTED,"averageW"_"avrW"__},
-        {sClust_LINKAGE_CENTROID,"centroid"__},
-        {sClust_LINKAGE_MEDIAN,"median"__},
-        {sClust_LINKAGE_NEIGHBORJOINING,"neighborjoining"_"nj"__}
+        {-1,"////" __},
+        {sClust_LINKAGE_WARD,"ward" __},
+        {sClust_LINKAGE_MIN,"single" _ "min" _ "sl" __},
+        {sClust_LINKAGE_MAX,"complete" _ "max" __},
+        {sClust_LINKAGE_AVERAGE_UNWEIGHTED,"average" _ "avr" __},
+        {sClust_LINKAGE_AVERAGE_WEIGHTED,"averageW" _ "avrW" __},
+        {sClust_LINKAGE_CENTROID,"centroid" __},
+        {sClust_LINKAGE_MEDIAN,"median" __},
+        {sClust_LINKAGE_NEIGHBORJOINING,"neighborjoining" _ "nj" __}
     };
     
     static clsMethod dts[]={
-        {-1,"////"__},
-        {sClust_DISTANCE_EUCLIDIAN,"euclidian"_"metric"__},
-        {sClust_DISTANCE_CITIBLOCK,"citiblock"_"manhattan"__},
-        {sClust_DISTANCE_MINIMAX,"chebyshev"_"minimax"__},
-        {sClust_DISTANCE_MINKOVSKI,"minkovski"_"LP"__},
-        //{sClust_DISTANCE_QUADRATIC,"quadratic"__},
-        {sClust_DISTANCE_CANBERRA,"canberra"__},
-        {sClust_DISTANCE_PEARSON,"pearson"_"linear"__},
-        {sClust_DISTANCE_PEARSONUNCENTERED,"pearsonU"_"linearU"__},
-        {sClust_DISTANCE_PEARSONSQUARED,"pearson2"_"linear2"__},
-        {sClust_DISTANCE_SPEARMAN,"spearman"__},
-        //{sClust_DISTANCE_COSINE,"cosine"__},
-        {sClust_DISTANCE_GIVEN,"given"__}
+        {-1,"////" __},
+        {sClust_DISTANCE_EUCLIDIAN,"euclidian" _ "metric" __},
+        {sClust_DISTANCE_CITIBLOCK,"citiblock" _ "manhattan" __},
+        {sClust_DISTANCE_MINIMAX,"chebyshev" _ "minimax" __},
+        {sClust_DISTANCE_MINKOVSKI,"minkovski" _ "LP" __},
+        //{sClust_DISTANCE_QUADRATIC,"quadratic" __},
+        {sClust_DISTANCE_CANBERRA,"canberra" __},
+        {sClust_DISTANCE_PEARSON,"pearson" _ "linear" __},
+        {sClust_DISTANCE_PEARSONUNCENTERED,"pearsonU" _ "linearU" __},
+        {sClust_DISTANCE_PEARSONSQUARED,"pearson2" _ "linear2" __},
+        {sClust_DISTANCE_SPEARMAN,"spearman" __},
+        //{sClust_DISTANCE_COSINE,"cosine" __},
+        {sClust_DISTANCE_GIVEN,"given" __}
     };
 
     const char * clustmethod=format;
@@ -333,7 +333,7 @@ void sClust::clusterMethod(const char * format, idx * pDstMethod, idx * pClsMeth
         if(dmethod==sClust_DISTANCE_MINKOVSKI){
             idx k;
             for(k=0; isalpha(distmethod[k]); ++k);
-            sscanf(distmethod+k,"%"DEC"",&dmethod);
+            sscanf(distmethod+k,"%" DEC "",&dmethod);
             dmethod*=-1;
         }else if(dmethod==sClust_DISTANCE_SPEARMAN){
             rankbased=1;
@@ -666,7 +666,7 @@ void sClust::clusterLinkage(idx method, idx dim , real * array )
             dist( isel, i ) = di ;
         }
         
-        //printf("%"DEC"=%"DEC" %"DEC" (%"DEC" %"DEC")\n", inode, imsel, jmsel, isel, jsel);
+        //printf("%" DEC "=%" DEC " %" DEC " (%" DEC " %" DEC ")\n", inode, imsel, jmsel, isel, jsel);
         //debugPrintArr(dim,array,map);
 
     }

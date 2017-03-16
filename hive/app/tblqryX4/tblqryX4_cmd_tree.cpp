@@ -127,7 +127,7 @@ bool TreeCommand::compute(sTabular * tbl)
 
 
     sStr pathT;
-    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://"OUTFILE,0,0);
+    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTFILE,0,0);
     _ctx.qproc().reqDataPath(_ctx.outReqID(),OUTFILE,&pathT);
     sFile::remove(pathT);
     sFil out(pathT);

@@ -67,7 +67,7 @@ char * sSql::protect(sStr & to, const char* from, udx length)
     if( !from ) {
         to.add0();
     } else if( status != eConnected ) {
-        sString::searchAndReplaceStrings(&to, from, length, "'"__, "''"__, 0, false);
+        sString::searchAndReplaceStrings(&to, from, length, "'" __, "''" __, 0, false);
     } else {
         to.add(0, 4 * length);
         to.cut(pos + mysql_real_escape_string(conDB, to.ptr(pos), from, (unsigned long) length));
@@ -94,7 +94,7 @@ char * sSql::protectName(sStr & to, const char * from, udx length)
         length = sLen(from);
     }
     to.addString("`", 1);
-    sString::searchAndReplaceStrings(&to, from, length, "`"__, "``"__, 0, false);
+    sString::searchAndReplaceStrings(&to, from, length, "`" __, "``" __, 0, false);
     to.shrink00();
     to.addString("`", 1);
     return to.ptr(pos);
@@ -352,9 +352,9 @@ char * sSql::exprInList(sStr& to, const char* domid_expr, const char* objid_expr
                 }
                 if( domain_id ) {
                     if( negate ) {
-                        to.printf("%s(%s != %"UDEC" OR %s IS NULL OR ", i ? " AND " : "", domid_expr, domain_id, domid_expr);
+                        to.printf("%s(%s != %" UDEC " OR %s IS NULL OR ", i ? " AND " : "", domid_expr, domain_id, domid_expr);
                     } else {
-                        to.printf("%s(%s = %"UDEC" AND ", i ? " OR " : "", domid_expr, domain_id);
+                        to.printf("%s(%s = %" UDEC " AND ", i ? " OR " : "", domid_expr, domain_id);
                     }
                 } else {
                     if( negate ) {
@@ -400,7 +400,7 @@ bool sSql::hasError(void)
     m_mysql_errno = mysql_errno(conDB);
     if( m_mysql_errno ) {
         m_mysql_error.printf(0, "%s", mysql_error(conDB));
-        errB.printf(0, "Error %"UDEC": %s\n", m_mysql_errno, m_mysql_error.ptr());
+        errB.printf(0, "Error %" UDEC ": %s\n", m_mysql_errno, m_mysql_error.ptr());
         MYSQLDBG("%s", errB.ptr());
     } else {
         errB.cut0cut();
@@ -435,7 +435,7 @@ idx sSql::realConnect(void)
         udx port = 0;
         char* p = sString::next00(s.ptr());
         if( p ) {
-            sscanf(p, "%"UDEC, &port);
+            sscanf(p, "%" UDEC, &port);
         }
         if( mysql_real_connect(conDB, s.ptr(), user, pass, db, (unsigned int) port, 0, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS) ) {
             status = eConnected;
@@ -453,7 +453,7 @@ idx sSql::connect(const char * db, const char * serverlist, const char * user, c
     status =eDisconnected;
     //if(multistatement)conDB->set_option(new mysqlpp::MultiStatementsOption(true));
     errB.cut(0);
-    if(!serverlist)serverlist="localhost"__;
+    if(!serverlist)serverlist="localhost" __;
     ofsDB=dataB.length(); dataB.add(db,sLen(db)+1);
     ofsUser=dataB.length(); dataB.add(user,sLen(user)+1);
     ofsPasswd=dataB.length(); dataB.add(pass,sLen(pass)+1);
@@ -474,14 +474,14 @@ idx sSql::connect(const char * db, const char * serverlist, const char * user, c
 }
 
 sString::SectVar sSql::gSetVars[]={
-    {0,"[QPride]"_"db"__,"%s=sSql_db","%s",&sSql::gSet.db},
-    {0,"[QPride]"_"server"__,"%s=localhost","%s",&sSql::gSet.server},
-    {0,"[QPride]"_"user"__,"%s=sSql_user","%s",&sSql::gSet.user},
-    {0,"[QPride]"_"pass"__,"%s=sSql_password","%s",&sSql::gSet.pass},
-    {0,"[QPride]"_"permanent"__,"%n=0^false^true;",0,&sSql::gSet.permanent},
-    {0,"[QPride]"_"pageSize"__,"%"DEC"=20","%s",&sSql::gSet.pageSize},
-    {0,"[QPride]"_"rndTbl"__,"%s=random","%s",&sSql::gSet.rndTbl},
-    {0,"[QPride]"_"debug"__,"%"DEC"=0",0,&sSql::gSet.debug},
+    {0,"[QPride]" _ "db" __,"%s=sSql_db","%s",&sSql::gSet.db},
+    {0,"[QPride]" _ "server" __,"%s=localhost","%s",&sSql::gSet.server},
+    {0,"[QPride]" _ "user" __,"%s=sSql_user","%s",&sSql::gSet.user},
+    {0,"[QPride]" _ "pass" __,"%s=sSql_password","%s",&sSql::gSet.pass},
+    {0,"[QPride]" _ "permanent" __,"%n=0^false^true;",0,&sSql::gSet.permanent},
+    {0,"[QPride]" _ "pageSize" __,"%" DEC "=20","%s",&sSql::gSet.pageSize},
+    {0,"[QPride]" _ "rndTbl" __,"%s=random","%s",&sSql::gSet.rndTbl},
+    {0,"[QPride]" _ "debug" __,"%" DEC "=0",0,&sSql::gSet.debug},
     {0}
     };
 sSql::gSettings sSql::gSet={"sSql_db","localhost","sSql_user","sSql_password",1,50,"random",0};
@@ -510,7 +510,7 @@ idx sSql::connect(const char * filenm, const char *) // , bool multistatement
     }
     if( inp.ok() && inp.length() ) {
         sStr rst;
-        sString::cleanMarkup(&rst, inp.ptr(), inp.length(), "//"_"/*"__, "\n"_"*/"__, "\n", 0, false, false, true);
+        sString::cleanMarkup(&rst, inp.ptr(), inp.length(), "//" _ "/*" __, "\n" _ "*/" __, "\n", 0, false, false, true);
         sString::xscanSect(rst.ptr(), rst.length(), gSetVars);
     }
     return connect(gSet.db, gSet.server, gSet.user, gSet.pass);
@@ -573,7 +573,7 @@ static bool isMysqlDeadlock(udx err)
 // for testing purposes - set sSql object's state as if a deadlock had been detected
 void sSql::pretendDeadlock()
 {
-    MYSQLDBG("Pretending a deadlock has occurred (transaction level %"UDEC")", m_in_transaction);
+    MYSQLDBG("Pretending a deadlock has occurred (transaction level %" UDEC ")", m_in_transaction);
     m_mysql_errno = ER_LOCK_DEADLOCK;
     m_mysql_error.cutAddString(0, "Deadlock found when trying to get lock; try restarting transaction");
     m_had_deadlocked = true;
@@ -595,7 +595,7 @@ bool sSql::exec(const char * sql)
         // they may either go into the failed transaction, or be executed in
         // auto-commit mode as new transactions, depending on exactly when an
         // automatic server-side rollback happens. Both alternatives are bad.
-        MYSQLDBG("In deadlocked transaction (level %"UDEC") - refusing query until rollback", m_in_transaction);
+        MYSQLDBG("In deadlocked transaction (level %" UDEC ") - refusing query until rollback", m_in_transaction);
         return false;
     }
 
@@ -612,7 +612,7 @@ bool sSql::exec(const char * sql)
         mysql_query(conDB, sql);
         m_mysql_errno = mysql_errno(conDB);
         if( isMysqlDeadlock(m_mysql_errno) ) {
-            MYSQLDBG("Deadlock detected, mysql error code %"UDEC, m_mysql_errno);
+            MYSQLDBG("Deadlock detected, mysql error code %" UDEC, m_mysql_errno);
             m_had_deadlocked = true;
         } else if( m_in_transaction == 0 ) {
             m_had_deadlocked = false;
@@ -620,7 +620,7 @@ bool sSql::exec(const char * sql)
         if( !m_had_deadlocked || m_in_transaction > 0 ) {
             break;
         }
-        MYSQLDBG("Retrying deadlocked query, attempt %"DEC"/%"DEC, i, max_deadlock_retries);
+        MYSQLDBG("Retrying deadlocked query, attempt %" DEC "/%" DEC, i, max_deadlock_retries);
         sTime::randomSleep(max_deadlock_wait_usec);
     }
     return !hasError();
@@ -679,7 +679,7 @@ idx sSql::getTable(const char * sql, sVarSet * mresult, sMex * blb)
         if( !m_mysql_errno && moreRes > 0 ) {
             hasError();
         } else {
-            MYSQLDBG("rows: %"DEC" cols: %"DEC" cells: %"DEC"%s", mresult ? mresult->rows : -1, mresult ? mresult->cols : -1, totCnt, mresult ? ((mresult->rows * mresult->cols != totCnt) ? " RESULT IS NOT SQUARE" : "") : "");
+            MYSQLDBG("rows: %" DEC " cols: %" DEC " cells: %" DEC "%s", mresult ? mresult->rows : -1, mresult ? mresult->cols : -1, totCnt, mresult ? ((mresult->rows * mresult->cols != totCnt) ? " RESULT IS NOT SQUARE" : "") : "");
         }
 //PERF_END();
     }
@@ -716,7 +716,7 @@ bool sSql::resultNext(void)
 {
     if( m_res ) {
 #if _DEBUG
-        MYSQLDBG("result %p done %"DEC" rows read", m_res, sSql_row_count);
+        MYSQLDBG("result %p done %" DEC " rows read", m_res, sSql_row_count);
         sSql_row_count = 0;
 #endif
         mysql_free_result((MYSQL_RES*)m_res);
@@ -729,7 +729,7 @@ bool sSql::resultNext(void)
     }
     m_res = mysql_store_result((MYSQL *) dbConn);
     if( m_res ) {
-        MYSQLDBG("result %p stored %"DEC" columns", m_res, (idx)(mysql_num_fields((MYSQL_RES*) m_res)));
+        MYSQLDBG("result %p stored %" DEC " columns", m_res, (idx)(mysql_num_fields((MYSQL_RES*) m_res)));
         MYSQL_FIELD * field = 0;
         while( (field = mysql_fetch_field((MYSQL_RES*) m_res)) ) {
             idx * cid = m_res_ids.setString(field->name, field->name_length);
@@ -770,7 +770,7 @@ idx sSql::resultColId(const char * const name)
 const char * sSql::resultValue(idx col, const char * defval /* = 0 */, idx * value_len/* = 0 */)
 {
     if( m_res && col >= 0 && col < m_res_ids.dim() ) {
-        //MYSQLDBG("col%"DEC" value '%s'", col, ((MYSQL_ROW)m_res_row)[col]);
+        //MYSQLDBG("col%" DEC " value '%s'", col, ((MYSQL_ROW)m_res_row)[col]);
         if( value_len && m_res_lengths ) {
             *value_len = ((unsigned long*)m_res_lengths)[col];
         }
@@ -807,7 +807,7 @@ idx sSql::ivalue(idx defval, const char * sqlfmt, ...)
 idx sSql::ivalue(const char * sql, idx defval)
 {
     idx ret=defval;
-    sscanfTable(sql, "%"DEC, &ret, 1);
+    sscanfTable(sql, "%" DEC, &ret, 1);
     return ret;
 }
 
@@ -820,7 +820,7 @@ udx sSql::uvalue(udx defval, const char * sqlfmt, ...)
 udx sSql::uvalue(const char * sql, udx defval)
 {
     udx ret = defval;
-    sscanfTable(sql, "%"UDEC, &ret, 1);
+    sscanfTable(sql, "%" UDEC, &ret, 1);
     return ret;
 }
 
@@ -857,7 +857,7 @@ time_t sSql::time_value(time_t defval, const char * sqlfmt, ...)
 time_t sSql::time_value(const char * sql, time_t defval)
 {
     time_t ret = defval;
-    sscanfTable(sql, "%"UDEC, &ret, 1);
+    sscanfTable(sql, "%" UDEC, &ret, 1);
     return ret;
 }
 
@@ -950,7 +950,7 @@ idx sSql::outTblSql(sStr * str,const char * tblnm, const char * fields, const ch
     }
     else {
         sString::searchAndReplaceSymbols(&fld,fields,0,",","-",0,false,true,false);
-        sString::searchAndReplaceStrings(str,fld.ptr(),0,","__,"//"__,0,false);
+        sString::searchAndReplaceStrings(str,fld.ptr(),0,"," __,"//" __,0,false);
     }
     return cnt;
 }
@@ -982,13 +982,13 @@ idx sSql::parseFromCSV(const char * tblnm, const char * collist, const char * co
         sql.printf(" values (");
         if(rowprfx)sql.printf("%s,",rowprfx);
 
-        sStr bfr;sString::searchAndReplaceStrings(&bfr,line,0,","__," // "__,0,true); // do handle correctly emptynesses ,,
-        sString::searchAndReplaceStrings(bfr.ptr(),0,"//"_,0,0,true);
+        sStr bfr;sString::searchAndReplaceStrings(&bfr,line,0,"," __," // " __,0,true); // do handle correctly emptynesses ,,
+        sString::searchAndReplaceStrings(bfr.ptr(),0,"//" _,0,0,true);
         for( icol=0, p=bfr.ptr(); p ;  p=sString::next00(p) , ++icol) {
             if(icol)sql.printf(",");
             if(collistquote[icol]=='1')sql.printf("'");
             sStr tmp;
-            sString::searchAndReplaceStrings(&tmp,p,0,"\'"_"\""__,"\\\'"_"\\\""__,0,false);
+            sString::searchAndReplaceStrings(&tmp,p,0,"\'" _ "\"" __,"\\\'" _ "\\\"" __,0,false);
             sString::cleanEnds(tmp.ptr(),0,sString_symbolsBlank,true);
             //sString::cleanEnds(&tmp,p,0,sString_symbolsBlank,true);
             if(tmp.length())sql.printf("%s",tmp.ptr());
@@ -1144,14 +1144,14 @@ char * sSql::Schema::searchSql(sStr * srchSql, const char * srch,const char * an
 
     if( isAny ) {
         tmp.printf("any has ");
-        sString::searchAndReplaceStrings(&tmp,srch,0," "_"\n"_"\r\n"__," and any has "__,0,false);
+        sString::searchAndReplaceStrings(&tmp,srch,0," " _ "\n" _ "\r\n" __," and any has " __,0,false);
     }else ++srch;
-    sString::cleanEnds(&tmp, srch,0, ":"sString_symbolsBlank, true);
+    sString::cleanEnds(&tmp, srch,0, ":" sString_symbolsBlank, true);
     sString::searchAndReplaceSymbols(tmp.ptr(),0, sString_symbolsBlank, 0,0,true,true,true);
 
     sVec< sStr > fltrset; fltrset.add(ligschema->dim());
-    const char  * opList = "is"_"has"_"isnt"_"hasnt"_"range"_;
-    const char  * opSQL = "="_"like"_"!="_"not like "_"range"_;
+    const char  * opList = "is" _ "has" _ "isnt" _ "hasnt" _ "range" _;
+    const char  * opSQL = "=" _ "like" _ "!=" _ "not like " _ "range" _;
     idx opNum=0,iTblD=1;
 
     for( const char * par=tmp.ptr(), *combine=0; par ; par=sString::next00(combine)){
@@ -1164,7 +1164,7 @@ char * sSql::Schema::searchSql(sStr * srchSql, const char * srch,const char * an
             //const char * prf="";
             const char * suff=(ishas) ? "%" : "";
         char * Vval=sString::next00(op); if(!Vval)break;
-        sString::cleanEnds(Vval, 0, "\'\""sString_symbolsBlank, true);
+        sString::cleanEnds(Vval, 0, "\'\"" sString_symbolsBlank, true);
         const char * val;
         if(strcmp((const char *)Vval,(const char *)"-")==0)val="";else val=Vval;
 
@@ -1248,7 +1248,7 @@ char * sSql::Schema::searchSql(sStr * srchSql, const char * srch,const char * an
                     sStr old;if(srchSql->ptr())old.printf("%s",srchSql->ptr());
                     srchSql->printf(0,"select %s from (%s ",ligschema->idCol,old.ptr());
                     //if(strcmp(par,"any")!=0)srchSql->printf("group by %s ",ligschema->idCol);
-                    srchSql->printf(") T%"DEC" where %s in (%s) ",iTblD, ligschema->idCol, loc.ptr());
+                    srchSql->printf(") T%" DEC " where %s in (%s) ",iTblD, ligschema->idCol, loc.ptr());
                     iTblD+=2;
                 }
             }
@@ -1272,7 +1272,7 @@ char * sSql::Schema::dumpSql(sStr * dmp, const char * fltr, const char * fldlst)
     if(!fldlst)return 0;
 
     sString::cleanEnds(&tmp, fldlst,0, sString_symbolsBlank, true);
-    sString::searchAndReplaceSymbols(tmp.ptr(),0, ","sString_symbolsBlank, 0,0,true,true,true);
+    sString::searchAndReplaceSymbols(tmp.ptr(),0, "," sString_symbolsBlank, 0,0,true,true,true);
 
     dmp->printf("select ");
     const char * par; idx ivis;
@@ -1348,9 +1348,9 @@ idx sSql::Schema::ensureIDRow(sSql * ligFam, idx recID,const char * tblnm)
     sSql::Schema * ligschema=this;
     //sStr sql;
     idx recIN=0;
-    //ligFam->sscanfTable( sql.printf(0,"select %s from %s where recID=%"DEC"",ligschema->idCol,tblnm,recID),"%"DEC"",&recIN);
-    recIN=ligFam->ivalue(0,"select %s from %s where recID=%"DEC"",ligschema->idCol,tblnm,recID);
-    //if(!recIN){ligFam->execute(sql.printf(0,"insert into %s (%s) values (%"DEC")",tblnm,ligschema->idCol,recID));}
-    if(!recIN)ligFam->execute("insert into %s (%s) values (%"DEC")",tblnm,ligschema->idCol,recID);
+    //ligFam->sscanfTable( sql.printf(0,"select %s from %s where recID=%" DEC "",ligschema->idCol,tblnm,recID),"%" DEC "",&recIN);
+    recIN=ligFam->ivalue(0,"select %s from %s where recID=%" DEC "",ligschema->idCol,tblnm,recID);
+    //if(!recIN){ligFam->execute(sql.printf(0,"insert into %s (%s) values (%" DEC ")",tblnm,ligschema->idCol,recID));}
+    if(!recIN)ligFam->execute("insert into %s (%s) values (%" DEC ")",tblnm,ligschema->idCol,recID);
     return recIN;
 }

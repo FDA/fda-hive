@@ -128,7 +128,7 @@ bool KaplanMeierCommand::compute(sTabular * tbl)
     // Note that if something crashes, tblqry will pick up the OLD output file
     // Note that responses seem to be cached, so tblqry needs to be reloaded
     sStr t2;
-    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://"OUTFILE,0,0);
+    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTFILE,0,0);
     _ctx.qproc().reqDataPath(_ctx.outReqID(),OUTFILE,&t2);
     sFile::remove(t2);
     sFil dateFile(t2);
@@ -220,7 +220,7 @@ bool KaplanMeierCommand::compute(sTabular * tbl)
     // Debug proportions and durations
     for (idx i = 0; i < proportions.dim(); i++) {
 
-        dateFile.printf("%"DEC,durations[i]);
+        dateFile.printf("%" DEC,durations[i]);
         dateFile.printf(",");
         dateFile.printf("%f",proportions[i]);
         dateFile.printf("\n");
@@ -287,7 +287,7 @@ static sVec < idx > parseDate (char * date) {
     month[2] = date[4];
     month[3] = 0;
 
-    static const char * months = "JAN"_"FEB"_"MAR"_"APR"_"MAY"_"JUN"_"JUL"_"AUG"_"SEP"_"OCT"_"NOV"_"DEC"_;
+    static const char * months = "JAN" _ "FEB" _ "MAR" _ "APR" _ "MAY" _ "JUN" _ "JUL" _ "AUG" _ "SEP" _ "OCT" _ "NOV" _ "DEC" _;
     idx mthIdx = -1;
 
     sString::compareChoice(month, months, &mthIdx, true, 0, false);

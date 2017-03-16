@@ -83,7 +83,7 @@ bool qlang::Parser::parse(const sStr &s, idx flags)
 
 void qlang::Parser::setError(const char *s, idx line, idx col)
 {
-    _error.printf(0, "%"DEC":%"DEC": %s", line, col, s);
+    _error.printf(0, "%" DEC ":%" DEC ": %s", line, col, s);
     if (!_buf)
         return;
 

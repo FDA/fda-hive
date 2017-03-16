@@ -222,7 +222,7 @@ class DnaAlignX
             workDir.cut0cut(0);
             qp.cfgStr(&workDir, 0, "qm.tempDirectory");
             if( workDir ) {
-                workDir.printf("%s-qry-%"DEC"/%s", qp.svc.name, qp.reqId, algo ? algorithm.ptr() : "");
+                workDir.printf("%s-qry-%" DEC "/%s", qp.svc.name, qp.reqId, algo ? algorithm.ptr() : "");
             }
             return workDir;
         }
@@ -321,7 +321,7 @@ class DnaAlignXBlastProteinPackager: public DnaAlignXBlastOutput
             for(const char * p = subjectFile00; p; p = sString::next00(p), ++cnt) {
                 // Add check to see if there is any regex if not then skip; to avoid database call if no regex
                 // look for files with specific extension in outPath which has result file prefix in it like /tmp/blastx
-                sStr dst, src("%s%"DEC".%s", getWorkDir(true), cnt, resultExtension()); // ex: blastx123.blast_out
+                sStr dst, src("%s%" DEC ".%s", getWorkDir(true), cnt, resultExtension()); // ex: blastx123.blast_out
                 sFilePath flnm(src, "req-%%flnm");
                 if( !qp.reqAddFile(dst, flnm) || !sFile::rename(src, dst) ) {
                     qp.reqSetInfo(qp.reqId, qp.eQPInfoLevel_Warning, "Failed to save slice output");
@@ -336,7 +336,7 @@ class DnaAlignXBlastProteinPackager: public DnaAlignXBlastOutput
         {
             idx cnt = 0;
             for(const char * p = subjectFile00; p; p = sString::next00(p), ++cnt) {
-                sFilePath buf(getWorkDir(true), "req-%%flnm%"DEC".%s", cnt, resultExtension());
+                sFilePath buf(getWorkDir(true), "req-%%flnm%" DEC ".%s", cnt, resultExtension());
                 qp.grpDataPaths(qp.grpId, buf, &paths, qp.vars.value("serviceName"), " ");
             }
             return paths;
@@ -557,7 +557,7 @@ class DnaAlignXTophat: public DnaAlignXSAMOutput
             // pickup accepted_hits.bam into reqData
             idx cnt = 0;
             for(const char * p = subjectFile00; p; p = sString::next00(p), ++cnt) {
-                sStr pathT("%s%"DEC"/accepted_hits_sorted.bam", getWorkDir(true), cnt);
+                sStr pathT("%s%" DEC "/accepted_hits_sorted.bam", getWorkDir(true), cnt);
                 pathT.add0(2);
                 const char * dst = qp.reqAddFile(pathT, _bam);
                 if( !sFile::rename(pathT, dst) ) {
@@ -579,7 +579,7 @@ class DnaAlignXTophat: public DnaAlignXSAMOutput
 ////            if( Sub.dim() > 1000000 ) {
 ////                sStr tempSubDir;
 ////                cfgStr(&tempSubDir, 0, "qm.tempDirectory");
-////                tempSubDir.printf("%"DEC"-%s", reqId, "subids.dic");
+////                tempSubDir.printf("%" DEC "-%s", reqId, "subids.dic");
 ////                subIds.init(tempSubDir);
 ////            }
 //            // Create dictionary for Sub Id's

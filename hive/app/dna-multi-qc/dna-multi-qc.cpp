@@ -326,7 +326,7 @@ idx DnaMQCProc::OnExecute(idx req)
         }
         out.addString("pos, mean-2stdev, mean, mean+2stdev, numFiles, max, min, highOutliers, lowOutliers, #reads\n");
         for (idx i = 0; i < posData.dim(); ++i){
-            out.printf("%"DEC",%0.4lf,%0.4lf,%0.4lf,%"DEC",%0.4lf,%0.4lf,\"", posData[i].pos,
+            out.printf("%" DEC ",%0.4lf,%0.4lf,%0.4lf,%" DEC ",%0.4lf,%0.4lf,\"", posData[i].pos,
                 posData[i].meanQual - 2*posData[i].stDev, posData[i].meanQual, posData[i].meanQual + 2*posData[i].stDev,
                 posData[i].fp.dim(), posData[i].max, posData[i].min);
             bool firstOutlier = true;
@@ -356,7 +356,7 @@ idx DnaMQCProc::OnExecute(idx req)
                     else{out.printf(",%s", names00.ptr(posData[i].fp[j].first.second)); }
                 }
             }
-            out.printf("\",%"DEC"\n",posData[i].reads);
+            out.printf("\",%" DEC "\n",posData[i].reads);
         }
     }
 
@@ -387,10 +387,10 @@ idx DnaMQCProc::OnExecute(idx req)
                        "%0.4lf,%0.4lf,"
                        "%0.4lf,%0.4lf,"
                        "%0.4lf,%0.4lf,"
-                       "%0.4lf,%"DEC","
-                       "%"DEC",%"DEC","
-                       "%"DEC",%"DEC","
-                       "%0.4lf,%"DEC"\n",
+                       "%0.4lf,%" DEC ","
+                       "%" DEC ",%" DEC ","
+                       "%" DEC ",%" DEC ","
+                       "%0.4lf,%" DEC "\n",
                 names00.ptr(fData[o].nameKey),
                 fData[o].proportions[0], fData[o].qualities[0],
                 fData[o].proportions[1], fData[o].qualities[1],
@@ -417,7 +417,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
-    DnaMQCProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-multi-qc", argv[0]));
+    DnaMQCProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-multi-qc", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

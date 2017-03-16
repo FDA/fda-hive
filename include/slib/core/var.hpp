@@ -179,7 +179,7 @@ namespace slib
         {
             idx vval=defVal;
             const char * val=value(name);
-            if(val)sscanf(val,"%"DEC,&vval);
+            if(val)sscanf(val,"%" DEC,&vval);
             return vval;
         }
         udx uvalue(const char* name, udx defVal = 0) const
@@ -187,7 +187,7 @@ namespace slib
             const char* val = value(name);
             if(val) {
                 udx vval=defVal;
-                sscanf(val, "%"UDEC, &vval);
+                sscanf(val, "%" UDEC, &vval);
                 return vval;
             }
             return defVal;
@@ -235,7 +235,7 @@ namespace slib
                 //    break;
                 const char * psize = p + sLen(p) + 1;
                 idx size = 0;
-                sscanf(psize, "%"DEC, &size);
+                sscanf(psize, "%" DEC, &size);
                 const char * val0 = psize + sLen(psize) + 1, *val = val0;
                 ttt.cut(0);
                 for(idx i = 0; val < list00 + lenmax && i < size; ++val, ++i) {
@@ -263,7 +263,7 @@ namespace slib
                 buf->printf("%s", nm);
                 buf->addSeparator(sep);
                 const sMex::Pos * p = ptr(i);
-                buf->printf("%"DEC, p->size);
+                buf->printf("%" DEC, p->size);
                 buf->addSeparator(sep);
                 const char * val = (const char *) sDic<sMex::Pos>::mex()->ptr(p->pos);
                 if( nocode ) {

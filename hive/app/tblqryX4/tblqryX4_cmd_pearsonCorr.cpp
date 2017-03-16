@@ -189,7 +189,7 @@ static void getListOfColumns(sVec < idx > & colSet, sReorderedTabular & reordere
 
     /// commented by VSim
     ///char p [16];
-    ///sprintf (p, "0-%"DEC, tbl->cols()-1);
+    ///sprintf (p, "0-%" DEC, tbl->cols()-1);
     ///sString::scanRangeSet(p,0,&(colSet1),0ll,0ll,0ll);
     idx * ip = colSet.add(reordered_table.cols()-1);
     for(idx ic=1; ic<reordered_table.cols(); ++ic){
@@ -362,9 +362,9 @@ bool PearsonCorrCommand::compute(sTabular * tbl)
 
     // preparing the dimension of the heatmap: width, height
     char p [16], r [16];
-    sprintf (p, "0-%"DEC, colSet1.dim()-1);
+    sprintf (p, "0-%" DEC, colSet1.dim()-1);
     sString::scanRangeSet(p,0,&(heatmapColSet),0ll,0ll,0ll);
-    sprintf (r, "0-%"DEC, colSet2.dim()-1);
+    sprintf (r, "0-%" DEC, colSet2.dim()-1);
     sString::scanRangeSet(r,0,&(heatmapRowSet),0ll,0ll,0ll);
 
     // Setting another output result file to the request id

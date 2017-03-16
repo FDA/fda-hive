@@ -57,7 +57,7 @@ static const char * propTypeNames =
     "url"_
     "obj"_
     "password"_
-    "file"__;
+    "file" __;
 
 #define PROP_TYPE_DEFAULT eUsrObjProp_invalid
 
@@ -318,7 +318,7 @@ public:
     virtual bool sanityCheck()
     {
         if( !isInitialized() ) {
-            fprintf(stderr, "%s:%u: ERROR: uninitialized sUsrObjTypeField: object type '%s', prop #%"DEC"\n", __FILE__, __LINE__, getObjTypeName(), _defs_index);
+            fprintf(stderr, "%s:%u: ERROR: uninitialized sUsrObjTypeField: object type '%s', prop #%" DEC "\n", __FILE__, __LINE__, getObjTypeName(), _defs_index);
             return false;
         }
 
@@ -415,7 +415,7 @@ public:
             return;
 
 #ifdef _DEBUG_OBJ_FIELD_TYPE
-        fprintf(stderr, "Marking object type '%s' prop '%s' (row %"DEC", defs_index %"DEC") as decorative\n", getObjTypeName(), name(), _row, _defs_index);
+        fprintf(stderr, "Marking object type '%s' prop '%s' (row %" DEC ", defs_index %" DEC ") as decorative\n", getObjTypeName(), name(), _row, _defs_index);
 #endif
 
         _flattened_decor = true;
@@ -630,14 +630,14 @@ public:
     virtual const char * printDump(sStr & out)
     {
         idx start = out.length();
-        out.printf("{ type_index: %"DEC", defs_index: %"DEC", row: %"DEC", parent: { index: %"DEC", name: '%s' },\n", _obj_type_index, _defs_index, _row, _parent, _parent >= 0 ? parent()->name() : 0);
+        out.printf("{ type_index: %" DEC ", defs_index: %" DEC ", row: %" DEC ", parent: { index: %" DEC ", name: '%s' },\n", _obj_type_index, _defs_index, _row, _parent, _parent >= 0 ? parent()->name() : 0);
         out.printf("  name: '%s', type: %d, type_name: '%s', multi: %s, flattened_multi: %s, global_multi: %s, optional: %s\n", name(), type(), typeName(), TRUEFALSE(isMulti()), TRUEFALSE(flattenedMulti()), TRUEFALSE(globalMulti()), TRUEFALSE(isOptional()));
 
         idx count = 0;
         out.printf("  children: [");
         for( idx i=0; i<_children.dim(); i++ ) {
             if( TFieldDef * child = getChild(i) ) {
-                out.printf("%s{index: %"DEC", name: '%s'}", count ? ", " : "", child->_defs_index, child->name());
+                out.printf("%s{index: %" DEC ", name: '%s'}", count ? ", " : "", child->_defs_index, child->name());
                 count++;
             }
         }
@@ -646,7 +646,7 @@ public:
         out.printf("],\n  flattened_children: [");
         for( idx i=0; i<_flattened_children.dim(); i++ ) {
             if( TFieldDef * child = getFlattenedChild(i) ) {
-                out.printf("%s{index: %"DEC", name: '%s'}", count ? ", " : "", child->_defs_index, child->name());
+                out.printf("%s{index: %" DEC ", name: '%s'}", count ? ", " : "", child->_defs_index, child->name());
                 count++;
             }
         }
@@ -898,7 +898,7 @@ bool TTypeDef::inherit()
                             } else if( p && *p ) {
                                 // replace $(prop) with $(use_prop)
                                 idx pos = buf.length();
-                                sString::searchAndReplaceStrings(&buf, p, 0, "$("__, prefix, 0, true);
+                                sString::searchAndReplaceStrings(&buf, p, 0, "$(" __, prefix, 0, true);
                                 p = buf.ptr(pos);
                             }
                             props.addCol(p);
@@ -1686,14 +1686,14 @@ const sUsrObjPropsTree* sUsrObjType::propsTree(const sUsr & usr, const char* vie
                     if( piparent_def ) {
                         TTypeDef * parent_def = TTypeDef::find(*piparent_def);
                         if( parent_def ) {
-                            path_str.printf(0, "%s.%"DEC, type_type.prop("parent")->orderString(), ip);
+                            path_str.printf(0, "%s.%" DEC, type_type.prop("parent")->orderString(), ip);
                             def->props_tree_table.addRow().addCol(id_str.ptr()).addCol("parent").addCol(path_str.ptr()).addCol(parent_def->id.print());
                         }
                     }
                 }
                 for(idx ir=0; ir<props_table.rows; ir++) {
                     for(idx it=0; it<type_type_fields.dim(); it++) {
-                        path_str.printf(0, "%s.%"DEC, type_type.prop("fields")->orderString(), ir);
+                        path_str.printf(0, "%s.%" DEC, type_type.prop("fields")->orderString(), ir);
                         def->props_tree_table.addRow().addCol(id_str.ptr()).addCol(name_buf.ptr(type_type_fields[it].name_offset)).addCol(path_str.ptr()).addCol(props_table.val(ir, type_type_fields[it].icol));
                     }
                 }

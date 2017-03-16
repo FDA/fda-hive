@@ -268,11 +268,11 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                         if(!annotEl->myAnnotPtr()) {
                             if( annotId ) {
 
-                               //::printf("%"DEC" %s %s \n ",runNumber, seqID, annotId);
+                               //::printf("%" DEC " %s %s \n ",runNumber, seqID, annotId);
                                //annotEl->myAnnotPtr= VioAnnotList.set(annotId);
                                 annotEl->setMyAnnotPtr(VioAnnotList, annotId);
                                 sStr path;
-                                ann.getFilePathname00(path, ".vioannot"__);
+                                ann.getFilePathname00(path, ".vioannot" __);
                                 annotEl->myAnnotPtr()->init(path, sMex::fReadonly);
                             }
                         }
@@ -343,7 +343,7 @@ idx algoAnnotMapperProc::OnExecute(idx req)
 
                             for( idx is=0; is< cntId; ++is) {
                                 if(prv==idPtr[is]){
-                                    //::printf("%"DEC" %s %s \n ",runNumber, buf.ptr(0), annotId);
+                                    //::printf("%" DEC " %s %s \n ",runNumber, buf.ptr(0), annotId);
                                     continue;
                                 }
                                 // Read the seqID into buf
@@ -360,7 +360,7 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                     }
                 }
                 //runNumber +=1;
-                //::printf("%"DEC" %s %s \n ",runNumber, seqID, annotId);
+                //::printf("%" DEC " %s %s \n ",runNumber, seqID, annotId);
                 idx cntRanges= 0;
                 idx * indexRangePtr=0;
                 if(annotEl->isProfiler){
@@ -371,7 +371,7 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                     bool oldStyle=false;
                     if(!annotEl->fil->ok() ) {
                         sStr path;
-                        annotEl->pann->getFilePathname(path, "SNPprofile-%"DEC".csv",mySeqID);
+                        annotEl->pann->getFilePathname(path, "SNPprofile-%" DEC ".csv",mySeqID);
                         oldStyle=true;
                         prof= new sFil(path,sMex::fReadonly);
                         if(!prof->ok()){
@@ -521,7 +521,7 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                                             hit0 = BM[ipos/64] & (((idx)1) << (ipos%64));
                                         }
                                         if (hit0)
-                                            fprintf(stderr, "    hit BM%"DEC" pos %"DEC"\n", BM->dim(), ipos);
+                                            fprintf(stderr, "    hit BM%" DEC " pos %" DEC "\n", BM->dim(), ipos);
                                     }
 #endif
                                     bm[ipos/64] |= ((idx)1)<<(ipos%64) ;
@@ -575,7 +575,7 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                 }
             }
             //BMref.cut(cntBM);
-            //::printf(" cntSatisfactory %"DEC"\n",cntSatisfactory);
+            //::printf(" cntSatisfactory %" DEC "\n",cntSatisfactory);
 
         } // End loop for annotation blocks
 
@@ -595,7 +595,7 @@ idx algoAnnotMapperProc::OnExecute(idx req)
 
       /*  for ( idx ipos=0; ipos<cntBM; ++ ipos) {
             if(  bm[ipos/64] & ((idx)1)<<(ipos%64) ){
-               rangeFile.printf("\"%s\",%"DEC",%"DEC"\n",seqID,ipos,ipos);
+               rangeFile.printf("\"%s\",%" DEC ",%" DEC "\n",seqID,ipos,ipos);
             }
             prvmode=mode;
             if(cntMaxOut!=sNotIdx && outputed>=cntMaxOut)
@@ -612,7 +612,7 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                     start=ipos;
                 } else{
                     end=ipos-1;
-                    rangeFile.printf("\"%s\",%"DEC",%"DEC",%"DEC"\n",seqID,start,end,end-start+1);
+                    rangeFile.printf("\"%s\",%" DEC ",%" DEC ",%" DEC "\n",seqID,start,end,end-start+1);
                     ++outputed;
                 }
             }
@@ -627,7 +627,7 @@ idx algoAnnotMapperProc::OnExecute(idx req)
 
         if(mode==1 ) {
             end=cntBM-1;
-            rangeFile.printf("\"%s\",%"DEC",%"DEC",%"DEC"\n",seqID,start,end,end-start+1);
+            rangeFile.printf("\"%s\",%" DEC ",%" DEC ",%" DEC "\n",seqID,start,end,end-start+1);
         }
 
         if (iSub) {
@@ -660,7 +660,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    algoAnnotMapperProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "algo-annotMapper", argv[0]));
+    algoAnnotMapperProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "algo-annotMapper", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

@@ -327,7 +327,7 @@ static void useSysSlashes(char * buf, idx buf_len)
         sys_slash00[0] = sDir::sysSep;
         sys_slash00[1] = sys_slash00[2] = 0;
 
-        sString::searchAndReplaceSymbols(buf, buf_len, "/"__, sys_slash00, 0, true, false, false, false);
+        sString::searchAndReplaceSymbols(buf, buf_len, "/" __, sys_slash00, 0, true, false, false, false);
     }
 }
 
@@ -362,7 +362,7 @@ const char * sStorageScheme::printPathSuffix(sStr & out, const char * uri, idx l
     udx levelId = id.objId();
     for(udx ilevel = 0; ilevel < print_path_suffix_max_levels; ++ilevel) {
         udx curLevel = levelId % print_path_suffix_level_base;
-        out.printf("%03"UDEC"%c", curLevel, sDir::sysSep);
+        out.printf("%03" UDEC "%c", curLevel, sDir::sysSep);
         levelId /= print_path_suffix_level_base;
     }
     id.print(out);
@@ -411,7 +411,7 @@ const char * sStorageScheme::printPathSuffix(char * buf_out, idx buf_out_len, co
     udx levelId = id.objId();
     for(udx ilevel = 0; ilevel < print_path_suffix_max_levels; ++ilevel) {
         udx curLevel = levelId % print_path_suffix_level_base;
-        buf_pos += snprintf(buf_out + buf_pos, buf_out_len - buf_pos, "%03"UDEC"%c", curLevel, sDir::sysSep);
+        buf_pos += snprintf(buf_out + buf_pos, buf_out_len - buf_pos, "%03" UDEC "%c", curLevel, sDir::sysSep);
         if( buf_pos + 1 >= buf_out_len ) {
             // buffer is too short
             buf_out[0] = 0;

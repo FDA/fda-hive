@@ -455,7 +455,7 @@ idx sViosam::convertVarScan2OutputintoCSV(const char * varscanFile, const char *
         //-------------------------------------
         // Print row in HIVE file
         //-------------------------------------
-        csvFileContent.printf("%"DEC",%s,%s,%s,%"DEC",%"DEC",%"DEC",%"DEC",0,0,%"DEC",%"DEC",%"DEC",%"DEC",0,0,%.2lf,%.2lf,%.2lf,%.2lf\n",
+        csvFileContent.printf("%" DEC ",%s,%s,%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",0,0,%" DEC ",%" DEC ",%" DEC ",%" DEC ",0,0,%.2lf,%.2lf,%.2lf,%.2lf\n",
             refId,refPosStr.ptr(), refNucleotideStr.ptr(), consensusNucleotideStr.ptr(), countACGT[0], countACGT[1], countACGT[2], countACGT[4], totalCount,
             countForward, countReverse, quality, freqACGT[0], freqACGT[1],freqACGT[2],freqACGT[3]); //A,C,G,T
     }
@@ -506,7 +506,7 @@ idx sViosam::convertVCFintoCSV(const char * vcfFile, const char * csvFileTmplt, 
                     continue;
                 }
                 idx idSubptr;
-                sscanf(refIdStr.ptr(), "%"DEC, &idSubptr);
+                sscanf(refIdStr.ptr(), "%" DEC, &idSubptr);
                 if (idSubptr==sNotIdx || idSubptr<0) {
                     buf = skipUntilEOL(buf, lastPos);
                     continue;
@@ -579,7 +579,7 @@ idx sViosam::convertVCFintoCSV(const char * vcfFile, const char * csvFileTmplt, 
                 strncpy(dpvalStr.ptr(), dps+3, dpe-dps-3);
                 dpvalStr.add0(dpe-dps-3+1);
 
-                idx dpval; sscanf(dpvalStr.ptr(), "%"DEC, &dpval);
+                idx dpval; sscanf(dpvalStr.ptr(), "%" DEC, &dpval);
                 if (dpval==sNotIdx || dpval<1) {
                     buf = skipUntilEOL(buf, lastPos);
                     continue;
@@ -621,7 +621,7 @@ idx sViosam::convertVCFintoCSV(const char * vcfFile, const char * csvFileTmplt, 
                 sVec <idx> dpIdx(sMex::fSetZero); dpIdx.add(4);
                 idx dpCounter = 0;
                 for( const char * onedp=dp4valStrZ.ptr(); onedp; onedp=sString::next00(onedp)) {
-                    sscanf(onedp, "%"DEC, &(dpIdx[dpCounter]));
+                    sscanf(onedp, "%" DEC, &(dpIdx[dpCounter]));
                     ++dpCounter;
                 }
                 idx refCount = dpIdx[0] + dpIdx[1];
@@ -656,7 +656,7 @@ idx sViosam::convertVCFintoCSV(const char * vcfFile, const char * csvFileTmplt, 
                     //sStr seqIDtoPrint;
                     //sString::escapeForCSV(seqIDtoPrint, Sub->id(refNum));
 
-                    csvFileContent.printf("%"DEC",%s,%s,%s,%"DEC",%"DEC",%"DEC",%"DEC",0,0,%"DEC",%"DEC",%"DEC",%s,0,0,%.2lf,%.2lf,%.2lf,%.2lf\n",
+                    csvFileContent.printf("%" DEC ",%s,%s,%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",0,0,%" DEC ",%" DEC ",%" DEC ",%s,0,0,%.2lf,%.2lf,%.2lf,%.2lf\n",
                         refNum,refPosStr.ptr(), refLetterStr.ptr(), consensusLettersStr.ptr(), dpLetCnt[0], dpLetCnt[1], dpLetCnt[2], dpLetCnt[3],
                         totDP, forwardCount, reverseCount, quaStr.ptr(), freq[0],freq[1],freq[2],freq[3]); //A,C,G,T
                 }
@@ -743,7 +743,7 @@ idx sViosam::ParseAlignment(const char * fileContent, idx filesize, sVioDB &db ,
         if (!idSubptr){  // There is nothing in the dictionary, or return value is 0
             char *p = strstr(idSubStr.ptr(), "HIVESEQID=");
             if (p){  // If there is a HIVESEQID=, get it in idSubptr
-                sscanf(p+10,"%"DEC"", idSubptr);
+                sscanf(p+10,"%" DEC "", idSubptr);
             }
             else // There is no HIVESEQ
                 idSubptr = &iAl;
@@ -1016,10 +1016,10 @@ idx sViosam::convertVioaltIntoSam(sBioal *bioal, idx subId, sBioseq *Qry, sBiose
 
                 sStr subIDStrNoSpace;
                 sString::searchAndReplaceSymbols(&subIDStrNoSpace, Sub->id(i), 0, " ", "", 0, true, true, false, true);
-                SAMFile.printf("@SQ\tSN:%s\tLN:%"DEC"\n", subIDStrNoSpace.ptr(), len);
+                SAMFile.printf("@SQ\tSN:%s\tLN:%" DEC "\n", subIDStrNoSpace.ptr(), len);
             } else {
                 // Print using just the HIVE seq ID numbers
-                SAMFile.printf("@SQ\tSN:%"DEC"\tLN:%"DEC"\n", i + 1, len);
+                SAMFile.printf("@SQ\tSN:%" DEC "\tLN:%" DEC "\n", i + 1, len);
             }
 
             // Maintain track of the reads that have alignments for the next loop
@@ -1059,10 +1059,10 @@ idx sViosam::convertVioaltIntoSam(sBioal *bioal, idx subId, sBioseq *Qry, sBiose
 
                 sStr subIDStrNoSpace;
                 sString::searchAndReplaceSymbols(&subIDStrNoSpace, subIDStr.ptr(idstart), 0, " ", "", 0, true, true, false, true);
-                SAMFile.printf("@SQ\tSN:%s\tLN:%"DEC"\n", subIDStrNoSpace.ptr(), len);
+                SAMFile.printf("@SQ\tSN:%s\tLN:%" DEC "\n", subIDStrNoSpace.ptr(), len);
             } else {
                 // Print using just the HIVE seq ID numbers
-                SAMFile.printf("@SQ\tSN:%"DEC"\tLN:%"DEC"\n", i + 1, len);
+                SAMFile.printf("@SQ\tSN:%" DEC "\tLN:%" DEC "\n", i + 1, len);
             }
             */
         }
@@ -1095,7 +1095,7 @@ idx sViosam::convertVioaltIntoSam(sBioal *bioal, idx subId, sBioseq *Qry, sBiose
                 subIDStr.printf(0, "%s", subIDStrNoSpace.ptr());
             } else {
                 // Print the subject IDs as HIVE seq numbers
-                subIDStr.printf(0, "%"DEC, igenome + 1);
+                subIDStr.printf(0, "%" DEC, igenome + 1);
             }
 
             if (originalrefIds){
@@ -1129,12 +1129,12 @@ idx sViosam::convertVioaltIntoSam(sBioal *bioal, idx subId, sBioseq *Qry, sBiose
             // Spaces are not allowed in SAM format for reference ID
             sStr subIDStrNoSpace;
             sString::searchAndReplaceSymbols(&subIDStrNoSpace, subIDStr.ptr(idstart), 0, " ", 0, 0, true, true, false, true);
-            SAMFile.printf("@SQ\tSN:%s\tLN:%"DEC"\n", subIDStrNoSpace.ptr(), len);
+            SAMFile.printf("@SQ\tSN:%s\tLN:%" DEC "\n", subIDStrNoSpace.ptr(), len);
             subIDStr.printf(0, "%s", subIDStrNoSpace.ptr());
         } else {
             // Print the subject IDs as HIVE seq numbers
-            SAMFile.printf("@SQ\tSN:%"DEC"\tLN:%"DEC"\n", subId + 1, len);
-            subIDStr.printf(0, "%"DEC, subId + 1);
+            SAMFile.printf("@SQ\tSN:%" DEC "\tLN:%" DEC "\n", subId + 1, len);
+            subIDStr.printf(0, "%" DEC, subId + 1);
         }
 
         // get the start and the total count of alignments
@@ -1234,14 +1234,14 @@ idx sViosam::vioaltIteratorFunction(sBioal * bioal, sBioal::ParamsAlignmentItera
                 if( dcounter ) {
                     // There were previous deletions recorded.  Since insertion now found:
                     // Write deletions to stream
-                    CIGAR.printf("%"DEC"D", dcounter);
+                    CIGAR.printf("%" DEC "D", dcounter);
                     // Reset deletion counter since deletions have now been recorded
                     dcounter = 0;
                 }
                 if( mcounter ) {
                     // There were previous match/mismatch recorded.  Since insertion now found:
                     // Write match/mismatches to stream.
-                    CIGAR.printf("%"DEC"M", mcounter);
+                    CIGAR.printf("%" DEC "M", mcounter);
                     // Reset match/mismatch counter since they have now been recorded
                     mcounter = 0;
                 }
@@ -1255,14 +1255,14 @@ idx sViosam::vioaltIteratorFunction(sBioal * bioal, sBioal::ParamsAlignmentItera
                 if( icounter ) {
                     // There were previous insertions recorded.  Since deletion now found:
                     // Write insertions to stream.
-                    CIGAR.printf("%"DEC"I", icounter);
+                    CIGAR.printf("%" DEC "I", icounter);
                     // Reset insertion counter since insertions have been recorded
                     icounter = 0;
                 }
                 if( mcounter ) {
                     // There were previous match/mismatch recorded.  Since deletion now found:
                     // Write match/mismatches to stream.
-                    CIGAR.printf("%"DEC"M", mcounter);
+                    CIGAR.printf("%" DEC "M", mcounter);
                     // Reset match/mismatch counter since they have been recorded
                     mcounter = 0;
                 }
@@ -1277,14 +1277,14 @@ idx sViosam::vioaltIteratorFunction(sBioal * bioal, sBioal::ParamsAlignmentItera
                 if( icounter ) { // Check for previous unrecorded insertions.
                     // There were previous insertion(s).
                     // Write insertions since match/mismatch now found.
-                    CIGAR.printf("%"DEC"I", icounter);
+                    CIGAR.printf("%" DEC "I", icounter);
                     // Reset insertions counter since they were recorded
                     icounter = 0;
                 }
                 if( dcounter ) {
                     // There were previous deletion(s).
                     // Write deletions since match/mismatch now found
-                    CIGAR.printf("%"DEC"D", dcounter);
+                    CIGAR.printf("%" DEC "D", dcounter);
                     // Reset deletion counter since they were recorded
                     dcounter = 0;
                 }
@@ -1303,11 +1303,11 @@ idx sViosam::vioaltIteratorFunction(sBioal * bioal, sBioal::ParamsAlignmentItera
     // Only one of these should be true (i.e. have recorded unrecorded).
 
     if( icounter )
-        CIGAR.printf("%"DEC"I", icounter);
+        CIGAR.printf("%" DEC "I", icounter);
     if( dcounter )
-        CIGAR.printf("%"DEC"D", dcounter);
+        CIGAR.printf("%" DEC "D", dcounter);
     if( mcounter )
-        CIGAR.printf("%"DEC"M", mcounter);
+        CIGAR.printf("%" DEC "M", mcounter);
 
     // Generate the read sequence from the 2 bit data.
     const char * qry = bioal->Qry->seq(hdr->idQry()); // Generate qry variable
@@ -1365,7 +1365,7 @@ idx sViosam::vioaltIteratorFunction(sBioal * bioal, sBioal::ParamsAlignmentItera
 
     if( param->userPointer ){ //if param->originalrefIds==false, print numeric ID instead of original string id
         for(idx ii=0; ii<rptCnt; ii++){
-//            param->str->printf("%"DEC"_%"DEC"\t%"DEC"\t", hdr->idQry(), ii, samflags);
+//            param->str->printf("%" DEC "_%" DEC "\t%" DEC "\t", hdr->idQry(), ii, samflags);
             param->str->addNum(hdr->idQry());
             param->str->add("_",1);
             param->str->addNum(ii);
@@ -1378,7 +1378,7 @@ idx sViosam::vioaltIteratorFunction(sBioal * bioal, sBioal::ParamsAlignmentItera
             param->str->add("\t",1);
             param->str->addNum(hdr->score());
             param->str->add("\t",1);
-//            param->str->printf("\t%"DEC"\t%"DEC"\t", hdr->subStart() + uncompressMM[0] + 1, hdr->score());
+//            param->str->printf("\t%" DEC "\t%" DEC "\t", hdr->subStart() + uncompressMM[0] + 1, hdr->score());
             param->str->add(CIGAR.ptr(), CIGAR.length());
             param->str->add("\t*\t0\t0\t", 7);
             param->str->add(queryATGCsequence.ptr(), queryATGCsequence.length());
@@ -1407,21 +1407,21 @@ idx sViosam::vioaltIteratorFunction(sBioal * bioal, sBioal::ParamsAlignmentItera
         //
         idx qryidlen = sString::copyUntil(&qryIDStrNoSpace, qryid, 0, " ");
         for(idx ii=0; ii<rptCnt; ii++){
-            //param->str->printf("%s_%"DEC"\t%"DEC"\t%s\t%"DEC"\t%"DEC"\t%s\t*\t0\t0\t%s\t*\n", qryIDStrNoSpace.ptr(), ii, samflags, subIDStrNoSpace.ptr(), hdr->subStart() + uncompressMM[0] + 1, hdr->score(), CIGAR.ptr(), queryATGCsequence.ptr());
+            //param->str->printf("%s_%" DEC "\t%" DEC "\t%s\t%" DEC "\t%" DEC "\t%s\t*\t0\t0\t%s\t*\n", qryIDStrNoSpace.ptr(), ii, samflags, subIDStrNoSpace.ptr(), hdr->subStart() + uncompressMM[0] + 1, hdr->score(), CIGAR.ptr(), queryATGCsequence.ptr());
             param->str->add(qryIDStrNoSpace.ptr(), qryidlen);
             param->str->add("_",1);
             param->str->addNum(ii);
             param->str->add("\t",1);
             param->str->addNum(samflags);
             param->str->add("\t",1);
-//            param->str->printf("_%"DEC"\t%"DEC"\t", ii, samflags);
+//            param->str->printf("_%" DEC "\t%" DEC "\t", ii, samflags);
             param->str->add(subIDStrNoSpace.ptr(),subidlen);
             param->str->add("\t",1);
             param->str->addNum(hdr->subStart() + uncompressMM[0] + 1);
             param->str->add("\t",1);
             param->str->addNum(hdr->score());
             param->str->add("\t",1);
-//            param->str->printf("\t%"DEC"\t%"DEC"\t", hdr->subStart() + uncompressMM[0] + 1, hdr->score());
+//            param->str->printf("\t%" DEC "\t%" DEC "\t", hdr->subStart() + uncompressMM[0] + 1, hdr->score());
             param->str->add(CIGAR.ptr(), CIGAR.length());
             param->str->add("\t*\t0\t0\t", 7);
             param->str->add(queryATGCsequence.ptr(), queryATGCsequence.length());
@@ -1593,7 +1593,7 @@ idx sViosam::convertSNPintoVCF(sBioseqSNP::SNPRecord * snpRecord, sBioseqSNP::Pa
             // Record the number of occurrences for allele [i]
             if(alleleFrequency.length() > 0)
                 alleleFrequency.printf(",");
-            alleleFrequency.printf("%"DEC"", snpRecord->atgc[i]);
+            alleleFrequency.printf("%" DEC "", snpRecord->atgc[i]);
 
             // snpRecord->atgc[i] is allele frequency
             // calculate allele frequency percentage
@@ -1766,8 +1766,8 @@ idx sViosam::convertSNPintoVCF(sBioseqSNP::SNPRecord * snpRecord, sBioseqSNP::Pa
     if( alt.length() > 0 ){
         // Arbitrary cutoff of 10% threshold for delete and insert coverage.
         if (CG.length() == 2)
-            params->str->printf("%s\t%"UDEC"\t.\t%s\t%s\t%"DEC"\tPASS\tDP=%"DEC";AC=%s;AF=%s;CG=%s\n", params->chrName.ptr(), position, ref.ptr(), alt.ptr(), quality, coverageCount, alleleFrequency.ptr(), alleleFreqPercentage.ptr(), CG.ptr());
-        else params->str->printf("%s\t%"UDEC"\t.\t%s\t%s\t%"DEC"\tPASS\tDP=%"DEC";AC=%s;AF=%s\n", params->chrName.ptr(), position, ref.ptr(), alt.ptr(), quality, coverageCount, alleleFrequency.ptr(), alleleFreqPercentage.ptr());
+            params->str->printf("%s\t%" UDEC "\t.\t%s\t%s\t%" DEC "\tPASS\tDP=%" DEC ";AC=%s;AF=%s;CG=%s\n", params->chrName.ptr(), position, ref.ptr(), alt.ptr(), quality, coverageCount, alleleFrequency.ptr(), alleleFreqPercentage.ptr(), CG.ptr());
+        else params->str->printf("%s\t%" UDEC "\t.\t%s\t%s\t%" DEC "\tPASS\tDP=%" DEC ";AC=%s;AF=%s\n", params->chrName.ptr(), position, ref.ptr(), alt.ptr(), quality, coverageCount, alleleFrequency.ptr(), alleleFreqPercentage.ptr());
     }
     return 1;
 }

@@ -38,7 +38,7 @@ typedef enum
 {
     eFileHiveAl, eFileVioal, eFileLast = sNotIdx
 } ETypeList;
-const char * const typeList00 = ".hiveal"_".vioal"_"alignment.hiveal"__;
+const char * const typeList00 = ".hiveal" _ ".vioal" _ "alignment.hiveal" __;
 
 sHiveal * sHiveal::parse (const char * filename, sUsr * luser )
 {
@@ -48,7 +48,7 @@ sHiveal * sHiveal::parse (const char * filename, sUsr * luser )
     sStr list,dst,d;
 
     //sString::searchAndReplaceStrings(&dst,filename,0, sString_symbolsEndline, 0,0,false );
-    sString::searchAndReplaceSymbols(&dst,filename,0,";"sString_symbolsEndline,0,0,true,true,false, false);
+    sString::searchAndReplaceSymbols(&dst,filename,0,";" sString_symbolsEndline,0,0,true,true,false, false);
     for ( const char * ff=dst; ff ; ff=sString::next00(ff) ) {
         expandHiveal( &list, ff);
     }
@@ -57,8 +57,8 @@ sHiveal * sHiveal::parse (const char * filename, sUsr * luser )
     for ( const char * s, *p=list; p ; p=sString::next00(p) ) {
         d.cut(0);sString::searchAndReplaceSymbols(&d,p,0,",",0,0,true,true,false, false);
         const char * locFilename=d.ptr(0);
-        idx locStart=1;s=sString::next00(locFilename);if(s)sscanf(s,"%"DEC,&locStart);
-        idx locEnd=0;s=sString::next00(s);if(s)sscanf(s,"%"DEC,&locEnd);
+        idx locStart=1;s=sString::next00(locFilename);if(s)sscanf(s,"%" DEC,&locStart);
+        idx locEnd=0;s=sString::next00(s);if(s)sscanf(s,"%" DEC,&locEnd);
         digestFile(locFilename ,locStart,locEnd, true);
     }
     return this;
@@ -198,7 +198,7 @@ void sHiveal::registerBioal (sBioal * bioal, const char * filename, idx alStart,
 sBioseq::EBioMode sHiveal::parseMode(const char * filename, bool isSub) {
     sStr list,dst,d;
 
-    sString::searchAndReplaceSymbols(&dst,filename,0,";"sString_symbolsEndline,0,0,true,true,false, false);
+    sString::searchAndReplaceSymbols(&dst,filename,0,";" sString_symbolsEndline,0,0,true,true,false, false);
     for ( const char * ff=dst; ff ; ff=sString::next00(ff) ) {
         expandHiveal( &list, ff);
     }
@@ -210,8 +210,8 @@ sBioseq::EBioMode sHiveal::parseMode(const char * filename, bool isSub) {
     for ( const char * s, *p=list; p ; p=sString::next00(p) ) {
         d.cut(0);sString::searchAndReplaceSymbols(&d,p,0,",",0,0,true,true,false, false);
         const char * locFilename=d.ptr(0);
-        idx locStart=1;s=sString::next00(locFilename);if(s)sscanf(s,"%"DEC,&locStart);
-        idx locEnd=0;s=sString::next00(s);if(s)sscanf(s,"%"DEC,&locEnd);
+        idx locStart=1;s=sString::next00(locFilename);if(s)sscanf(s,"%" DEC,&locStart);
+        idx locEnd=0;s=sString::next00(s);if(s)sscanf(s,"%" DEC,&locEnd);
 
         bioal = getBioal(locFilename, selfman);
         if(bioal &&  sBioseq::isBioModeLong( isSub?bioal->getSubMode():bioal->getQryMode() ) )
@@ -250,16 +250,16 @@ idx sHiveal::expandHiveal( sStr * buf, const char * filename , idx alStart, idx 
         const char * locFilename = d.ptr();
         idx locStart=0;
         s=sString::next00(locFilename);
-        if(s && sscanf(s,"%"DEC,&locStart)){
+        if(s && sscanf(s,"%" DEC,&locStart)){
             alStart = locStart;
         }
         idx locEnd=0;
         s=s ? sString::next00(s):0;
-        if(s && sscanf(s,"%"DEC,&locEnd)){
+        if(s && sscanf(s,"%" DEC,&locEnd)){
             alEnd = locEnd;
         }
 
-        buf->printf("%s,%"DEC",%"DEC,flnm.ptr(0),alStart,alEnd);
+        buf->printf("%s,%" DEC ",%" DEC,flnm.ptr(0),alStart,alEnd);
         buf->addSeparator(separ);
         return 1;
     }
@@ -268,7 +268,7 @@ idx sHiveal::expandHiveal( sStr * buf, const char * filename , idx alStart, idx 
     sFil hiveseqcontent(flnm,sMex::fReadonly);
     if(!hiveseqcontent)return 0;
 
-    sString::searchAndReplaceSymbols(&dst,hiveseqcontent.ptr(),hiveseqcontent.length(), ";"sString_symbolsEndline,0,0,true,false,false, false);
+    sString::searchAndReplaceSymbols(&dst,hiveseqcontent.ptr(),hiveseqcontent.length(), ";" sString_symbolsEndline,0,0,true,false,false, false);
 
     idx cntParsed=0,firstShift=alStart-1;
     for ( const char * p=dst; p; p=sString::next00(p)) {
@@ -278,10 +278,10 @@ idx sHiveal::expandHiveal( sStr * buf, const char * filename , idx alStart, idx 
 
         idx locStart = 0;
         s = sString::next00(locFilename);
-        sscanf(s, "%"DEC, &locStart);
+        sscanf(s, "%" DEC, &locStart);
         idx locEnd = 0;
         s = sString::next00(s);
-        sscanf(s, "%"DEC, &locEnd);
+        sscanf(s, "%" DEC, &locEnd);
 
         idx rStart=locStart+firstShift;
 

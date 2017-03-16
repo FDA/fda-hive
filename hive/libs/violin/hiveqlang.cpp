@@ -108,7 +108,7 @@ class sHiveContext_tax_id_info: public qlang::BuiltinFunction
             if( !ctx.ensureTaxIon() || !checkNArgs(ctx, nargs, 1, 1) ) {
                 return false;
             }
-            sStr tax_id_buf("%"UDEC, args->asUInt());
+            sStr tax_id_buf("%" UDEC, args->asUInt());
             const char * tax_result = ctx.getTaxIon()->getTaxIdInfo(tax_id_buf.ptr(), tax_id_buf.length());
             idx tax_result_len = sLen(tax_result);
             if( !tax_result || !tax_result_len ) {

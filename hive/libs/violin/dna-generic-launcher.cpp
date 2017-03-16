@@ -39,7 +39,7 @@
 
 bool DnaGenericLauncherProc::cleanObjectIDs(sStr &t, sVariant *args, sVec <idx> &objids) {
     sStr t1;
-    sString::searchAndReplaceStrings(&t1, args[0].asString(), 0, "obj"__, " " __, 0, true);
+    sString::searchAndReplaceStrings(&t1, args[0].asString(), 0, "obj" __, " " __, 0, true);
     sString::searchAndReplaceSymbols(&t, t1.ptr(), 0, "[]", 0, 0, true, true, true, true);
     sString::scanRangeSet(t.ptr(), 0, &objids, 0, 0, 0);
     return false;
@@ -47,7 +47,7 @@ bool DnaGenericLauncherProc::cleanObjectIDs(sStr &t, sVariant *args, sVec <idx> 
 
 bool DnaGenericLauncherProc::cleanObjectIDs(sStr &t, sVariant *args, sVec <sHiveId> &objids) {
     sStr t1;
-    sString::searchAndReplaceStrings(&t1, args[0].asString(), 0, "obj"__, " " __, 0, true);
+    sString::searchAndReplaceStrings(&t1, args[0].asString(), 0, "obj" __, " " __, 0, true);
     sString::searchAndReplaceSymbols(&t, t1.ptr(), 0, "[]", 0, 0, true, true, true, true);
     sHiveId::parseRangeSet(objids, t.ptr());
     return false;
@@ -110,7 +110,7 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
         if( sBioseq::isBioModeLong( modearg ) ) {
             biomode = sBioseq::eBioModeLong;
         } else if ( !sBioseq::isBioModeShort( modearg ) ) {
-            logOut(eQPLogType_Error, "Unknown biomode: %"DEC, modearg);
+            logOut(eQPLogType_Error, "Unknown biomode: %" DEC, modearg);
             return false;
         }
 
@@ -137,7 +137,7 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
         if(concatenate) {
             for(idx i = 0; i < objids.dim(); ++i) {
                 if(i)objIdConcated.printf(";");
-                objIdConcated.printf("%"DEC, objids[i].objId());
+                objIdConcated.printf("%" DEC, objids[i].objId());
             }
             objids.cut(1);
         }
@@ -167,7 +167,7 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
             } else if( namefile && *namefile ) {
                 nameForObj.printf("%s",namefile); // ^0xAAAAAAAA
                 if(objids.dim()>1) {
-                    nameForObj.printf("%"DEC,i);
+                    nameForObj.printf("%" DEC,i);
                 }
                 nameForObj.printf(".%s", extension);
             } else {
@@ -176,7 +176,7 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
                     sString::searchAndReplaceSymbols(&nameForObj,objIdConcated,0,";","_",0,true,true,false,true);
                     nameForObj.shrink00();
                 } else {
-                    nameForObj.printf("%"DEC, objids[i].objId()); // ^0xAAAAAAAA
+                    nameForObj.printf("%" DEC, objids[i].objId()); // ^0xAAAAAAAA
                 }
                 nameForObj.printf(".%s", extension);
             }
@@ -206,7 +206,7 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
                     Qry.parse( objIdConcated, biomode);
                 }
                 else {
-                    Qry.parse(t.printf(0,"%"DEC,objids[i].objId()), biomode);
+                    Qry.parse(t.printf(0,"%" DEC,objids[i].objId()), biomode);
                 }
                 if( Qry.dim() == 0 ) {
                     continue;
@@ -282,7 +282,7 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
         for(idx i = 0; i < objids.dim(); ++i){
 
             sHiveal hiveal(user);
-            hiveal.parse(t.printf(0,"%"DEC,objids[i]));
+            hiveal.parse(t.printf(0,"%" DEC,objids[i]));
             sBioal * bioal=&hiveal;
             sHiveId _tmpID(objids[i], 0);
 
@@ -326,11 +326,11 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
             if ( namefile && *namefile ) {
                 nameForObj.printf("%s",namefile); // ^0xAAAAAAAA
                 if(objids.dim()>1) {
-                    nameForObj.printf("%"DEC,i);
+                    nameForObj.printf("%" DEC,i);
                 }
             } else {
                 nameForObj.printf("o_");
-                nameForObj.printf("%"DEC, objids[i]); // ^0xAAAAAAAA
+                nameForObj.printf("%" DEC, objids[i]); // ^0xAAAAAAAA
             }
             nameForObj.printf(".%s", extension); // Now has the full directory and name
 
@@ -428,11 +428,11 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
             if ( namefile && *namefile ) {
                 nameForObj.printf("%s",namefile); // ^0xAAAAAAAA
                 if(objids.dim()>1) {
-                    nameForObj.printf("%"DEC,i);
+                    nameForObj.printf("%" DEC,i);
                 }
             } else {
                 nameForObj.printf("o_");
-                nameForObj.printf("%"DEC, objids[i]); // ^0xAAAAAAAA
+                nameForObj.printf("%" DEC, objids[i]); // ^0xAAAAAAAA
             }
             nameForObj.printf(".%s", extension); // Now has the full directory and name
 
@@ -536,7 +536,7 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
             //if( !filesDumped.find(newpath) ) {
                 //sFile::remove(newpath);
                 //sStr objid;
-                //objid.printf("%"DEC"",objids[i]);
+                //objid.printf("%" DEC "",objids[i]);
                 sUsrObj ufile(*(user), objids[i]);
                 if (ufile.Id()) {
                     //srcbuf.cut0cut();
@@ -633,7 +633,7 @@ bool DnaGenericLauncherProc::dispatcher_callback(sVariant &result, const qlang::
             //if( !filesDumped.find(newpath) ) {
                 //sFile::remove(newpath);
                 //sStr objid;
-                //objid.printf("%"DEC"",objids[i]);
+                //objid.printf("%" DEC "",objids[i]);
                 sUsrObj ufile(*(user), objids[i]);
 //                if ( !ufile.Id()){
 //                    logOut(eQPLogType_Info, "Object %s not found or access denied", objids[i].print());

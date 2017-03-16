@@ -44,7 +44,7 @@ sDll::Proc sDll::loadProc (const char * dll, const char * proc)
     }
     if( !*phDll ) {
         if( (*phDll = dllopen(dll))==0 ){ // try the name as it comes 
-            sFilePath dlnam(dll,"%%pathx"sDll_FlnmExtension);// then try fully qualified name 
+            sFilePath dlnam(dll,"%%pathx" sDll_FlnmExtension);// then try fully qualified name 
             *phDll = dllopen(dlnam); // load this library 
         } 
         if( !*phDll)return 0; 

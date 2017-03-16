@@ -35,93 +35,93 @@
 dmArchiver::TKnownTypes dmArchiver::m_knownTypes[] = {
     // files which can create multiple objects from its data
     {
-        "prop-auto-detect"__,
+        "prop-auto-detect" __,
         dmLib::eNone,
-        "prop"__,
+        "prop" __,
         0 },
     {
-        "hivepack"__,
+        "hivepack" __,
         dmLib::eNone,
-        "hivepack"__,
+        "hivepack" __,
         0 },
     // normal types
     {
-        "nuc-read"__,
+        "nuc-read" __,
         dmLib::eZip,
-        "fasta"_"fa"_"fas"_"fsa"_"fna"_"fq"_"fastq"__,
+        "fasta" _ "fa" _ "fas" _ "fsa" _ "fna" _ "fq" _ "fastq" __,
         0 },
     {
-        "nuc-read"__,
+        "nuc-read" __,
         dmLib::eNone,
-        "vioseq2"_"hiveseq"__,
+        "vioseq2" _ "hiveseq" __,
         0 },
     {
-        "nuc-read"_"svc-align-dnaseq"__, // order is important for workflow!
+        "nuc-read" _ "svc-align-dnaseq" __, // order is important for workflow!
         dmLib::eZip,
-        "sam"__,
-        ""_"status,5\nsubmitter,dna-hexagon&cmdMode=dna-hexagon"__ },
+        "sam" __,
+        "" _ "status,5\nsubmitter,dna-hexagon&cmdMode=dna-hexagon" __ },
     {
-        "image"__,
+        "image" __,
         dmLib::eNone,
-        "jpg"_"jpeg"_"bmp"_"pcx"_"gif"_"png"_"tiff"_"tif"_"tga"_"img"_"ico"_"svg"__,
+        "jpg" _ "jpeg" _ "bmp" _ "pcx" _ "gif" _ "png" _ "tiff" _ "tif" _ "tga" _ "img" _ "ico" _ "svg" __,
         0 },
     {
-        "viodb"__,
+        "viodb" __,
         dmLib::eNone,
-        "viodb"__,
+        "viodb" __,
         0 },
     {
-        "algorithm-script"__,
+        "algorithm-script" __,
         dmLib::eNone,
-        "ash"__,
+        "ash" __,
         0 },
     {
-        "genome"_"svc-align-multiple"__, // order is important for workflow!
+        "genome" _ "svc-align-multiple" __, // order is important for workflow!
         dmLib::eZip,
-        "ma"__,
-        ""_"status,5\nsubmitter,dna-hexagon&cmdMode=mafft"__ },
+        "ma" __,
+        "" _ "status,5\nsubmitter,dna-hexagon&cmdMode=mafft" __ },
     {
-        "genome"_"u-ionAnnot"__,
+        "genome" _ "u-ionAnnot" __,
         dmLib::eZip,
-        "gb"_"gbk"_"gbff"__,
+        "gb" _ "gbk" _ "gbff" __,
         0 },
     {
-        "u-idList"__,
+        "u-idList" __,
         dmLib::eNone,
-        "genelist"__,
+        "genelist" __,
         0 },
     {
-        "u-ionExpress"__,
+        "u-ionExpress" __,
         dmLib::eNone,
-        "ion"__,
+        "ion" __,
         0 },
     {
-        "excel-file"__,
+        "excel-file" __,
         dmLib::eNone,
-        "xls"_"xlsx"__,
+        "xls" _ "xlsx" __,
         0 },
     {
-        "csv-table"__,
+        "csv-table" __,
         dmLib::eNone,
-        "csv"__,
+        "csv" __,
         0 },
     {
-        "tsv-table"__,
+        "tsv-table" __,
         dmLib::eNone,
-        "tsv"_"tab"__,
+        "tsv" _ "tab" __,
         0 },
     {
-        "prot-seq"__,
+        "prot-seq" __,
         dmLib::eZip,
-        "faa"__,
+        "faa" __,
         0 },
     {
-        "target_library"__,
+        "target_library" __,
         dmLib::eZip,
-        "bt2"__,
+        "bt2" __,
         0 },
     {
-        "u-file"__,
+        "u-file" __,
         dmLib::eNone, // dmLib::eUnspecified,
         0,
         0 } // list terminator and default type!
@@ -172,7 +172,7 @@ void dmArchiver::setFormatHint(const char * dataType)
 
 void dmArchiver::setFolder(sUsrFolder & folder)
 {
-    setVar("folder", "%"UDEC, folder.Id().objId());
+    setVar("folder", "%" UDEC, folder.Id().objId());
 }
 
 void dmArchiver::setSubject(const char * subject)
@@ -190,7 +190,7 @@ static const char * const g_run_screenname = "run_screen";
 //static
 void dmArchiver::setDepth(sQPrideBase & qp, udx max_depth)
 {
-    qp.reqSetData(qp.grpId, g_depth_name, "%"UDEC, max_depth);
+    qp.reqSetData(qp.grpId, g_depth_name, "%" UDEC, max_depth);
 }
 //static
 udx dmArchiver::getDepth(sQPrideBase & qp)
@@ -199,7 +199,7 @@ udx dmArchiver::getDepth(sQPrideBase & qp)
     qp.reqGetData(qp.grpId, g_depth_name, &lvar);
     udx dflt = ~0;
     if(lvar) {
-        sscanf(lvar, "%"UDEC, &dflt);
+        sscanf(lvar, "%" UDEC, &dflt);
     }
     return dflt;
 }
@@ -207,7 +207,7 @@ udx dmArchiver::getDepth(sQPrideBase & qp)
 //static
 void dmArchiver::setIndexFlag(sQPrideBase & qp, idx flag)
 {
-    qp.reqSetData(qp.grpId, g_run_index_name, "%"DEC, flag);
+    qp.reqSetData(qp.grpId, g_run_index_name, "%" DEC, flag);
 }
 
 //static
@@ -217,7 +217,7 @@ idx dmArchiver::getIndexFlag(sQPrideBase & qp)
     qp.reqGetData(qp.grpId, g_run_index_name, &lvar);
     idx dflt = 1;
     if(lvar) {
-        sscanf(lvar, "%"DEC, &dflt);
+        sscanf(lvar, "%" DEC, &dflt);
     }
     return dflt;
 }
@@ -225,7 +225,7 @@ idx dmArchiver::getIndexFlag(sQPrideBase & qp)
 //static
 void dmArchiver::setQCFlag(sQPrideBase & qp, idx flag)
 {
-    qp.reqSetData(qp.grpId, g_run_qc_name, "%"DEC, flag);
+    qp.reqSetData(qp.grpId, g_run_qc_name, "%" DEC, flag);
 }
 
 //static
@@ -235,7 +235,7 @@ idx dmArchiver::getQCFlag(sQPrideBase & qp)
     qp.reqGetData(qp.grpId, g_run_qc_name, &lvar);
     idx dflt = 1;
     if(lvar) {
-        sscanf(lvar, "%"DEC, &dflt);
+        sscanf(lvar, "%" DEC, &dflt);
     }
     return dflt;
 }
@@ -243,7 +243,7 @@ idx dmArchiver::getQCFlag(sQPrideBase & qp)
 //static
 void dmArchiver::setScreenFlag(sQPrideBase & qp, idx flag)
 {
-    qp.reqSetData(qp.grpId, g_run_screenname, "%"DEC, flag);
+    qp.reqSetData(qp.grpId, g_run_screenname, "%" DEC, flag);
 }
 
 //static
@@ -253,7 +253,7 @@ idx dmArchiver::getScreenFlag(sQPrideBase & qp)
     qp.reqGetData(qp.grpId, g_run_screenname, &lvar);
     idx dflt = 1;
     if(lvar) {
-        sscanf(lvar, "%"DEC, &dflt);
+        sscanf(lvar, "%" DEC, &dflt);
     }
     return dflt;
 }

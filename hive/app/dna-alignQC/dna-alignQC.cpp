@@ -72,7 +72,7 @@ idx DnaAlignQC::OnExecute(idx req)
     // Get the alignment object
     sStr pathAl, buffer;
     sUsrFile aligner(alignerIDs[0], user);
-    aligner.getFilePathname00(pathAl, "alignment.hiveal"_"alignment.vioal"__);
+    aligner.getFilePathname00(pathAl, "alignment.hiveal" _ "alignment.vioal" __);
 
     sHiveal hiveal(user, pathAl);
 
@@ -166,7 +166,7 @@ idx DnaAlignQC::OnExecute(idx req)
 
         idx tailflag = 0;  // mark the last query position
 
-        ::printf("% "DEC, iter);
+        ::printf("%" DEC, iter);
 
         idx qrypos = 0;
 
@@ -230,7 +230,7 @@ idx DnaAlignQC::OnExecute(idx req)
 //                // Do not print anything, as we are not interested in query
 //                if( icounter ) {
 //                    // Report the insertion information
-//                    outInfo.printf("%"DEC",%"DEC",ins:%s\n", is, is, aux.ptr(1));
+//                    outInfo.printf("%" DEC ",%" DEC ",ins:%s\n", is, is, aux.ptr(1));
 //                    aux.cut(0);
 //                }
 //                if( !dcounter ) {
@@ -245,7 +245,7 @@ idx DnaAlignQC::OnExecute(idx req)
 //                // print the insertion
 //                if( dcounter ) {
 //                    // Report the deletion information
-//                    outInfo.printf("%"DEC",%"DEC",del:%s\n", is - dcounter, is - 1, aux.ptr(1));
+//                    outInfo.printf("%" DEC ",%" DEC ",del:%s\n", is - dcounter, is - 1, aux.ptr(1));
 //                    aux.cut(0);
 //                }
 //                dcounter = 0;
@@ -259,20 +259,20 @@ idx DnaAlignQC::OnExecute(idx req)
 //            else {
 //                if( icounter ) {
 //                    // Report the insertion information
-//                    outInfo.printf("%"DEC",%"DEC",ins:%s\n", is, is, aux.ptr(1));
+//                    outInfo.printf("%" DEC ",%" DEC ",ins:%s\n", is, is, aux.ptr(1));
 //                    aux.cut(0);
 //                    icounter = 0;
 //                }
 //                if( dcounter ) {
 //                    // Report the deletion information
-//                    outInfo.printf("%"DEC",%"DEC",del:%s\n", is - dcounter, is - 1, aux.ptr(1));
+//                    outInfo.printf("%" DEC ",%" DEC ",del:%s\n", is - dcounter, is - 1, aux.ptr(1));
 //                    aux.cut(0);
 //                    dcounter = 0;
 //                }
 //                // print the correct base
 //                bool missmatch = (iq < 0 || (!isSameBase(chS, chQ) && chS != 'N'));
 //                if( missmatch ) {
-//                    outInfo.printf("%"DEC",%"DEC",mut:%c=>%c\n", is, is, chQ, chS);
+//                    outInfo.printf("%" DEC ",%" DEC ",mut:%c=>%c\n", is, is, chQ, chS);
 //                    aux.cut(0);
 //                }
 //                l1.printf("%c", missmatch ? tolower(chS) : toupper(chS));
@@ -338,25 +338,25 @@ idx DnaAlignQC::OnExecute(idx req)
 //    outfile3.printf("Query Position,Deletion1,Deletion2,Deletion3+");
     for (idx i = 0; i < datasize; i++){
         if (i!=0){
-            outfile1.printf("\n%"DEC",%"DEC, i, dataContainer[i].matchdata[0]);
+            outfile1.printf("\n%" DEC ",%" DEC, i, dataContainer[i].matchdata[0]);
             outfile1.printf(",%.4f", (float)(dataContainer[i].matchdata[0]*100)/dataContainer[i].count);
         }
-        outfile2.printf("\n%"DEC",%"DEC, i, dataContainer[i].insertion);
+        outfile2.printf("\n%" DEC ",%" DEC, i, dataContainer[i].insertion);
         for (idx j = 0; j < 3; j++){
-            outfile2.printf(",%"DEC, dataContainer[i].deletion[j]);
+            outfile2.printf(",%" DEC, dataContainer[i].deletion[j]);
         }
-//        outfile3.printf("\n%"DEC,i);
+//        outfile3.printf("\n%" DEC,i);
 //        for (idx j = 0; j < 3; j++){
-//            outfile3.printf(",%"DEC, dataContainer[i].deletion[j]);
+//            outfile3.printf(",%" DEC, dataContainer[i].deletion[j]);
 //        }
     }
     outfile4.printf("Left Tail Length,Frequency");
     for (idx i = 0; i < leftsize; i++){
-        outfile4.printf("\n%"DEC",%"DEC, i, lefttail[i]);
+        outfile4.printf("\n%" DEC ",%" DEC, i, lefttail[i]);
     }
     outfile5.printf("Right Tail Length,Frequency");
     for (idx i = 0; i < rightsize; i++){
-        outfile5.printf("\n%"DEC",%"DEC, i, righttail[i]);
+        outfile5.printf("\n%" DEC ",%" DEC, i, righttail[i]);
     }
 
     reqProgress(numAligns, 100, 100);
@@ -373,6 +373,6 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DnaAlignQC backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-alignQC", argv[0]));
+    DnaAlignQC backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-alignQC", argv[0]));
     return (int) backend.run(argc, argv);
 }

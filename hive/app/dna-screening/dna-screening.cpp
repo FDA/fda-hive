@@ -190,8 +190,8 @@ idx censuScopeProc::launchAlignment(idx isBlast, const char * hqrylist, const ch
         svc->setVar("produceRandomReadsForNT", "1");
         svc->setVar("maxMissQueryPercent", "10");
         svc->setVar("evalueFilter", "1e-6");
-        svc->setVar("seedSize", "%"DEC, wordSize);
-        svc->setVar("filterNs", "%"DEC, filterNs);
+        svc->setVar("seedSize", "%" DEC, wordSize);
+        svc->setVar("filterNs", "%" DEC, filterNs);
         svc->setVar("keepAllMatches","1");//i want to keep best first match
         svc->setVar("keepRefNs", "1");
         svc->setVar("qrybiomode", "1");
@@ -205,11 +205,11 @@ idx censuScopeProc::launchAlignment(idx isBlast, const char * hqrylist, const ch
 
     if( svc ) {
         //will take whole file as one slice
-//        svc->setVar("slice", "%"UDEC, sIdxMax);
+//        svc->setVar("slice", "%" UDEC, sIdxMax);
 
         idx slice = formIValue("chunk_size", 4000);
 
-        svc->setVar("slice", "%"DEC, slice);
+        svc->setVar("slice", "%" DEC, slice);
         svc->setVar("query", "%s", hqrylist);
         svc->setVar("subject", "%s", sublist);
         svc->setVar("alignSelector", alignSelector);
@@ -223,13 +223,13 @@ idx censuScopeProc::launchAlignment(idx isBlast, const char * hqrylist, const ch
         if (deepScanning){
             Sample = sIdxMax;
         }
-        svc->setVar("maxNumberQuery", "%"DEC, Sample);
+        svc->setVar("maxNumberQuery", "%" DEC, Sample);
 
         reqsubmitAlgorithm = svc->launch(*user, grpId, 0, priority);
-        logOut(eQPLogType_Info, "Submitted %s request %"DEC"\n", svc->getSvcName(), reqsubmitAlgorithm);
+        logOut(eQPLogType_Info, "Submitted %s request %" DEC "\n", svc->getSvcName(), reqsubmitAlgorithm);
         if( reqsubmitAlgorithm ) {
             grpAssignReqID(reqsubmitAlgorithm, reqId, 0);
-            logOut(eQPLogType_Info, "BLAST %"DEC" PROCESS HAS BEEN LAUNCHED Submitted %s request %"DEC"\n", reqsubmitAlgorithm, svc->getSvcName(), reqId);
+            logOut(eQPLogType_Info, "BLAST %" DEC " PROCESS HAS BEEN LAUNCHED Submitted %s request %" DEC "\n", reqsubmitAlgorithm, svc->getSvcName(), reqId);
         }
 
     }
@@ -252,7 +252,7 @@ idx censuScopeProc::curateTextBasedFile (sDic<idx> *taxCnt,sDic<idx> *accCnt, sH
     tbl.setFile(pathFile.ptr());
     tbl.parseOptions().colsep = separator;
     tbl.parse(); //(flags, " ", "\r\n", "\"", 0, 0, sIdxMax, sIdxMax, 1, 1, offset);
-    const char *unTax = "-1"__;
+    const char *unTax = "-1" __;
     idx *unCnt = taxCnt->set(unTax);
     *unCnt = 0;
     if (accCnt){
@@ -303,7 +303,7 @@ idx censuScopeProc::CurateResult(sDic<idx> *taxCnt,sDic<idx> *accCnt, const char
     }
     else {
         sUsrFile aligner(alignObjId, user);
-        aligner.getFilePathname00(primPathAl, "alignment.hiveal"_"alignment.vioal"__);
+        aligner.getFilePathname00(primPathAl, "alignment.hiveal" _ "alignment.vioal" __);
         aligner.propGet00("subject", &subject, ";");
         sublist = subject.ptr(0);
         samplesize = -1;
@@ -317,7 +317,7 @@ idx censuScopeProc::CurateResult(sDic<idx> *taxCnt,sDic<idx> *accCnt, const char
     idx chunk = 0;
     //we have some files which is result from running blast against a random samples
     //ok, we want to parse them and accumulate the result
-    const char *unTax = "-1"__;
+    const char *unTax = "-1" __;
 
     idx *unCnt = taxCnt->set(unTax);
     *unCnt = 0;
@@ -454,7 +454,7 @@ idx censuScopeProc::OnExecute(idx req)
                 reqLock(lockStringkey, &reqLockedby);
                 if (req != reqLockedby){
                     // Report waiting for another request and exit as DONE
-                    logOut(eQPLogType_Info, "Waiting for %s request: %"DEC" \n", dnascreening.getSvcName(), reqLockedby);
+                    logOut(eQPLogType_Info, "Waiting for %s request: %" DEC " \n", dnascreening.getSvcName(), reqLockedby);
                     reqProgress(0, 100, 100);
                     reqSetStatus(req, eQPReqStatus_Done);
                     return 0;
@@ -526,7 +526,7 @@ idx censuScopeProc::OnExecute(idx req)
             return 0;
         } else if( cntNotDone > 0 ) {
             // WE ALREADY LAUNCH ALIGNMENT AND WE ARE WAITING FOR THE FINISH
-            logOut(eQPLogType_Info, "Waiting for %s %"DEC" requests \n", svcName, cntNotDone);
+            logOut(eQPLogType_Info, "Waiting for %s %" DEC " requests \n", svcName, cntNotDone);
             //sleepSeconds(10);
             reqProgress(0, 10, 100);
             reqReSubmit(req, 60);
@@ -662,6 +662,6 @@ int main(int argc, const char * argv[])
 {
     sStr tmp;
     sApp::args(argc, argv);
-    censuScopeProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-screening", argv[0]));
+    censuScopeProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-screening", argv[0]));
     return (int) backend.run(argc, argv);
 }

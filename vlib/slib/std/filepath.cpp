@@ -50,7 +50,7 @@ char * sFilePath::vmakeName(idx cutlen, const char * tmplt, const char * formatD
     const char * lastSlash=strrchr(tmplt,'/');if(!lastSlash)lastSlash=strrchr(tmplt,'\\');
     const char * lastDot=strrchr(lastSlash ? lastSlash : tmplt,'.');
     idx len=sLen(tmplt),llen;
-    #define mIs(_v_type)    !strncmp(fmt+is,"%"_v_type,(llen=sLen("%"_v_type)))
+    #define mIs(_v_type)    !strncmp(fmt+is,"%" _v_type,(llen=sLen("%" _v_type)))
 
     idx is=0; // destination and source position
     struct stat fst;sSet(&fst);
@@ -100,7 +100,7 @@ char * sFilePath::vmakeName(idx cutlen, const char * tmplt, const char * formatD
                 {first=lastDot ? lastDot+1 : last;}
             else if( mIs("st_size") ) {
                 if(fst.st_mode&S_IFDIR){sprintf(tbuf,"/");}
-                else {sprintf(tbuf,"%"DEC,(idx)(fst.st_size) );}
+                else {sprintf(tbuf,"%" DEC,(idx)(fst.st_size) );}
             }
             else if( mIs("st_atime") )
                 {sprintf(tbuf,"%s",ctime(&fst.st_atime));}
@@ -242,7 +242,7 @@ char * sFilePath::processPath(sFile::pid pid, bool justdir)
         char buf[128];
         if( !pid )
             pid = getpid();
-        sprintf(buf, "/proc/%"DEC"/exe", pid);
+        sprintf(buf, "/proc/%" DEC "/exe", pid);
         reslt[sMax<idx>(0, readlink(buf, reslt, sSizeMax))] = 0;
     #endif
 

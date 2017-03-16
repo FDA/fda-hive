@@ -732,7 +732,7 @@ const char * sString::escapeForCSV(sStr & dst, const char * src, idx len/*=0*/)
         dst.add0cut();
     } else if (needEscape) {
         dst.add("\"", 1);
-        sString::searchAndReplaceStrings(&dst, src, len, "\""__, "\"\""__, 0, true);
+        sString::searchAndReplaceStrings(&dst, src, len, "\"" __, "\"\"" __, 0, true);
         dst.shrink00();
         dst.add("\"", 1);
         dst.add0cut();
@@ -753,7 +753,7 @@ const char * sString::unescapeFromCSV(sStr & dst, const char * src, idx len/*=0*
     if (len == 0 || (len == 2 && src[0] == '"' && src[1] == '"')) {
         dst.add0cut();
     } else if (len > 2 && src[0] == '"' && src[len-1] == '"') {
-        sString::searchAndReplaceStrings(&dst, src+1, len-2, "\"\""__, "\""__, 0, true);
+        sString::searchAndReplaceStrings(&dst, src+1, len-2, "\"\"" __, "\"" __, 0, true);
         dst.shrink00();
     } else {
         dst.add(src, len);

@@ -95,11 +95,11 @@ namespace slib
         }
         sVarSet& addCol(idx value)
         {
-            return printCol("%"DEC, value);
+            return printCol("%" DEC, value);
         }
         sVarSet& addCol(udx value)
         {
-            return printCol("%"UDEC, value);
+            return printCol("%" UDEC, value);
         }
         sVarSet& addCol(bool value)
         {
@@ -203,7 +203,7 @@ namespace slib
         {
             const char* p = val(irow, icol);
             if( p ) {
-                sscanf(p, "%"DEC, &default_value);
+                sscanf(p, "%" DEC, &default_value);
             }
             return default_value;
         }
@@ -211,7 +211,7 @@ namespace slib
         {
             const char* p = val(irow, icol);
             if( p ) {
-                sscanf(p, "%"UDEC, &default_value);
+                sscanf(p, "%" UDEC, &default_value);
             }
             return default_value;
         }
@@ -253,7 +253,7 @@ namespace slib
                     if( c < cntColNames && colNames && colNames[c] && colNames[c][0] ) {
                         sString::escapeForCSV(dst, colNames[c]);
                     } else {
-                        dst.printf("col%"DEC, c + 1);
+                        dst.printf("col%" DEC, c + 1);
                     }
                 }
                 dst.printf("\n");
@@ -267,7 +267,7 @@ namespace slib
                         const char* p = (const char* )m_names.id(c, &sz);
                         sString::escapeForCSV(dst, p, sz);
                     } else {
-                        dst.printf("col%"DEC, c + 1);
+                        dst.printf("col%" DEC, c + 1);
                     }
                 }
                 dst.printf("\n");
@@ -290,8 +290,8 @@ namespace slib
                 dst.printf("null");
             } else if( size > 0 ) {
                 sString::searchAndReplaceStrings(&dst, p, size,
-                    "\""_"\\"_"/"_"\b"_"\f"_"\n"_"\r"_"\t"__,
-                    "\\\""_"\\\\"_"\\/"_"\\b"_"\\f"_"\\n"_"\\r"_"\\t"__, 0, true);
+                    "\"" _ "\\" _ "/" _ "\b" _ "\f" _ "\n" _ "\r" _ "\t" __,
+                    "\\\"" _ "\\\\" _ "\\/" _ "\\b" _ "\\f" _ "\\n" _ "\\r" _ "\\t" __, 0, true);
             } else {
                 dst.add0cut();
             }
@@ -313,7 +313,7 @@ namespace slib
                 if( r > 0 ) {
                     dst.printf(",");
                 }
-                dst.printf("%s", cntColNames ? NL INDENT"{"NL : "["NL);
+                dst.printf("%s", cntColNames ? NL INDENT "{" NL : "[" NL);
                 for(idx c = 0; c < cols; ++c) {
                     if( c > 0 ) {
                         dst.printf(",%s", cntColNames ? NL : "");
@@ -324,7 +324,7 @@ namespace slib
                             if( c < cntColNames && colNames[c] && colNames[c][0] ) {
                                 escape4JSON(tmp, colNames[c], strlen(colNames[c]));
                             } else {
-                                tmp.printf("col%"UDEC, c + 1);
+                                tmp.printf("col%" UDEC, c + 1);
                             }
                         } else if( cntColNames < 0 ) {
                             if( c < m_names.dim() ) {
@@ -332,7 +332,7 @@ namespace slib
                                 const char* p = (const char*) m_names.id(c, &sz);
                                 escape4JSON(tmp, p, sz);
                             } else {
-                                tmp.printf("col%"UDEC, c + 1);
+                                tmp.printf("col%" UDEC, c + 1);
                             }
                         }
                         dst.printf(INDENT INDENT"\"%s\":", tmp.ptr());

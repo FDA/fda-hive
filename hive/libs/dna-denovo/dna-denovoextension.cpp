@@ -409,7 +409,7 @@ void DnaDenovoAssembly::printSequenceID(sFil * outFile, idx position, sBioseq *v
 {
     sStr tempout;
     if( printFromQuery == true ) {
-        tempout.printf("\n>%s: %"DEC" (%"DEC")  len=%"DEC" sumcov=%.2lf\n", seqid ? seqid : "Sequence" , position, seqOrder[position].isValid, seqOrder[position].contiglen, seqOrder[position].thickness);
+        tempout.printf("\n>%s: %" DEC " (%" DEC ")  len=%" DEC " sumcov=%.2lf\n", seqid ? seqid : "Sequence" , position, seqOrder[position].isValid, seqOrder[position].contiglen, seqOrder[position].thickness);
         for(idx p = 0; p < seqOrder[position].contiglen; p++)
             BioseqTree::printlet(&tempout, seqB(vio, position, p));
         tempout.printf("\n");
@@ -977,7 +977,7 @@ idx DnaDenovoAssembly::dnaDenovoExtension(sBioseq &Qry, BioseqTree &tree)
         return 0;
     }
 
-    qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Info, "Contig Extension Algorithm: second stage with %"DEC" sequences", uniqueCount);
+    qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Info, "Contig Extension Algorithm: second stage with %" DEC " sequences", uniqueCount);
 
     idx nodepos, nodecount, nextseq, flag;
     sVec<idx> nodes;

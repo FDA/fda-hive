@@ -45,10 +45,10 @@ using namespace slib::qlang;
 bool SourceLocation::print(sStr &s) const
 {
     if (_line >= 0) {
-        s.printf("at %"DEC":%"DEC, _line, _col);
+        s.printf("at %" DEC ":%" DEC, _line, _col);
         return true;
     } else if (_col >= 0) {
-        s.printf("at col %"DEC, _col);
+        s.printf("at col %" DEC, _col);
         return true;
     }
     return false;
@@ -939,22 +939,22 @@ bool BuiltinFunction::checkNArgs(Context &ctx, idx nargs, idx min, idx max) cons
 {
     if (max < 0) {
         if (nargs < min) {
-            ctx.setError(EVAL_SYNTAX_ERROR, "%s requires at least %"DEC" arguments", getName(), min);
+            ctx.setError(EVAL_SYNTAX_ERROR, "%s requires at least %" DEC " arguments", getName(), min);
             return false;
         }
     } else if (min < 0) {
         if (nargs > max) {
-            ctx.setError(EVAL_SYNTAX_ERROR, "%s requires at most %"DEC" arguments", getName(), max);
+            ctx.setError(EVAL_SYNTAX_ERROR, "%s requires at most %" DEC " arguments", getName(), max);
             return false;
         }
     } else if (max == min) {
         if (nargs < min || nargs > max) {
-            ctx.setError(EVAL_SYNTAX_ERROR, "%s requires exactly %"DEC" arguments", getName(), min);
+            ctx.setError(EVAL_SYNTAX_ERROR, "%s requires exactly %" DEC " arguments", getName(), min);
             return false;
         }
     } else {
         if (nargs < min || nargs > max) {
-            ctx.setError(EVAL_SYNTAX_ERROR, "%s requires at between %"DEC" and %"DEC" arguments", getName(), min, max);
+            ctx.setError(EVAL_SYNTAX_ERROR, "%s requires at between %" DEC " and %" DEC " arguments", getName(), min, max);
             return false;
         }
     }
@@ -1102,7 +1102,7 @@ public:
                 continue;
             } else if( args[i].isList() ) {
                 if( !result.append(args[i]) ) {
-                    ctx.setError(EVAL_OTHER_ERROR, "%s failed to append argument #%"DEC" to topic", getName(), i + 1);
+                    ctx.setError(EVAL_OTHER_ERROR, "%s failed to append argument #%" DEC " to topic", getName(), i + 1);
                     return false;
                 }
             } else {
@@ -1272,7 +1272,7 @@ protected:
             sString::searchAndReplaceSymbols(&out, tmp, tmp.length(), "(),: \t\r\n", "_", 0, true, false, false, false);
             out.shrink00();
         } else {
-            out.printf("%"DEC, x);
+            out.printf("%" DEC, x);
         }
         return 0;
     }
@@ -1509,7 +1509,7 @@ public:
             if (nargs) {
                 sVariant tmp;
                 if (!static_cast<CallableWrapper*>(args[0].asData())->call(tmp, ctx, &elt, NULL, 0)) {
-                    ctx.setError(EVAL_OTHER_ERROR, "%s call to argument on topic list element #%"DEC" failed", getName(), i);
+                    ctx.setError(EVAL_OTHER_ERROR, "%s call to argument on topic list element #%" DEC " failed", getName(), i);
                     return false;
                 }
                 elt = tmp;
@@ -1627,7 +1627,7 @@ public:
             topic->getElt(i, topicElt);
             for (idx j=0; j<nargs; j++) {
                 if (!static_cast<CallableWrapper*>(args[j].asData())->call(argResult, ctx, &topicElt, NULL, 0)) {
-                    ctx.setError(EVAL_OTHER_ERROR, "%s call to argument #%"DEC" on topic list element #%"DEC" failed", getName(), j+1, i);
+                    ctx.setError(EVAL_OTHER_ERROR, "%s call to argument #%" DEC " on topic list element #%" DEC " failed", getName(), j+1, i);
                     return false;
                 }
                 if (!argResult.asBool())
@@ -1665,7 +1665,7 @@ public:
         sVariant argResult;
         for (idx i=0; i<topic->dim(); i++) {
             if (!static_cast<CallableWrapper*>(args[0].asData())->call(argResult, ctx, topic->getListElt(i), NULL, 0)) {
-                ctx.setError(EVAL_OTHER_ERROR, "%s: call to argument on topic list element #%"DEC" failed", getName(), i);
+                ctx.setError(EVAL_OTHER_ERROR, "%s: call to argument on topic list element #%" DEC " failed", getName(), i);
                 return false;
             }
             result.setInt(i+1);
@@ -2019,7 +2019,7 @@ public:
         sVariant argResult;
         for (idx i=0; i<topic->dim(); i++) {
             if (!static_cast<CallableWrapper*>(args[0].asData())->call(argResult, ctx, topic->getListElt(i), NULL, 0)) {
-                ctx.setError(EVAL_OTHER_ERROR, "%s: call to argument on topic list element #%"DEC" failed", getName(), i);
+                ctx.setError(EVAL_OTHER_ERROR, "%s: call to argument on topic list element #%" DEC " failed", getName(), i);
                 return false;
             }
             result.push(argResult);
@@ -2262,7 +2262,7 @@ public:
         for (idx i=1; i<topic->dim(); i++) {
             topic->getElt(i, argsReduce[1]);
             if (!static_cast<CallableWrapper*>(args[0].asData())->call(resultReduce, ctx, NULL, argsReduce, 2)) {
-                ctx.setError(EVAL_OTHER_ERROR, "%s: call to argument on topic list element #%"DEC" failed", getName(), i);
+                ctx.setError(EVAL_OTHER_ERROR, "%s: call to argument on topic list element #%" DEC " failed", getName(), i);
                 return false;
             }
             argsReduce[0] = resultReduce;
@@ -2332,7 +2332,7 @@ public:
         argsCmp[1] = *(param->lst->getListElt(i1));
 
         if (!static_cast<CallableWrapper*>(param->cmp->asData())->call(resultCmp, param->ctx, NULL, argsCmp, 2)) {
-            param->ctx.setError(EVAL_OTHER_ERROR, "builtin sort() function: call to argument on list elements #%"DEC" and #%"DEC" failed", i0, i1);
+            param->ctx.setError(EVAL_OTHER_ERROR, "builtin sort() function: call to argument on list elements #%" DEC " and #%" DEC " failed", i0, i1);
             return 0;
         }
 

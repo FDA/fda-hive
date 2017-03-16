@@ -69,7 +69,7 @@ namespace slib {
             {
                 sStr log;
                 outlog = outlog ? outlog : &log;
-                logOut(eQPLogType_Info, "Parsing property table '%s' %"DEC" bytes", file_location, sFile::size(file_location));
+                logOut(eQPLogType_Info, "Parsing property table '%s' %" DEC " bytes", file_location, sFile::size(file_location));
                 sVec<sHiveId> uids;
                 sDic<sHiveId> nmap;
                 new_ids_map = new_ids_map ? new_ids_map : &nmap;
@@ -229,7 +229,7 @@ namespace slib {
                 sCatTabular all;
                 all.pushSubTable(&props1, false);
                 all.pushSubTable(&props2, false);
-                logOut(eQPLogType_Debug, "Property for obj %s rows %"DEC" cols %"DEC, obj.Id().print(), all.rows(), all.cols());
+                logOut(eQPLogType_Debug, "Property for obj %s rows %" DEC " cols %" DEC, obj.Id().print(), all.rows(), all.cols());
                 for(idx ir = 0; ir < all.rows(); ++ir) {
                     if( all.cell(ir, 0, 0) ) {
                         sStr buf1, buf2;
@@ -250,7 +250,7 @@ namespace slib {
             {
                 if( progress >= 0 ) {
                     // save intermediate data
-                    reqSetData(reqId, "progress", "%"DEC, progress);
+                    reqSetData(reqId, "progress", "%" DEC, progress);
                     if( objects.dim() ) {
                         reqSetData(reqId, "objects", objects.mex());
                         reqSetData(reqId, "objects_props", TObjsProp::props.mex());
@@ -261,7 +261,7 @@ namespace slib {
                     if( !final ) {
                         return false;
                     }
-                    sscanf(final, "%"DEC, &progress);
+                    sscanf(final, "%" DEC, &progress);
                 }
                 // wait for all in group to finish
                 bool keepSrc = false;
@@ -275,7 +275,7 @@ namespace slib {
                         // some are not done yet
                         reqReSubmit(reqId, 60);
                         reqProgress(-1, 99, 100);
-                        logOut(eQPLogType_Debug, "waiting for %"DEC" to finish ", r[ri].reqID);
+                        logOut(eQPLogType_Debug, "waiting for %" DEC " to finish ", r[ri].reqID);
                         return true;
                     }
                     // do not cleanup download area in case smth on hold or went wrong
@@ -429,7 +429,7 @@ idx dmArchiverProc::OnExecute(idx req)
                     sDic<sHiveId>  new_ids_map;
                     success = loadProp(req, 0, curFile->location(), curFile->path(), &new_ids_map);
                     if( success ) {
-                        reqSetInfo(req, eQPInfoLevel_Info, "Loaded %"DEC" object(s) from %s", new_ids_map.dim(), curFile->path());
+                        reqSetInfo(req, eQPInfoLevel_Info, "Loaded %" DEC " object(s) from %s", new_ids_map.dim(), curFile->path());
                     }
                     objType00 = 0;
                     break;
@@ -478,7 +478,7 @@ idx dmArchiverProc::OnExecute(idx req)
                             if( cnt == 0 ) {
                                 reqSetInfo(req, eQPInfoLevel_Error, "Package is empty");
                             } else {
-                                reqSetInfo(req, eQPInfoLevel_Info, "Loaded %"DEC" objects from package", cnt);
+                                reqSetInfo(req, eQPInfoLevel_Info, "Loaded %" DEC " objects from package", cnt);
                             }
                         }
                     }
@@ -538,7 +538,7 @@ idx dmArchiverProc::OnExecute(idx req)
                     if( objs.dim() ) {
                         objs[0].Id().print(src, true);
                     } else {
-                        src.printf("%"DEC, grpId);
+                        src.printf("%" DEC, grpId);
                     }
                     // this property is not that important to fail the object
                     obj->propSet("base_tag", src.ptr());
@@ -572,7 +572,7 @@ idx dmArchiverProc::OnExecute(idx req)
                             sourceFile.cut(0);
                             fobj->getFile(sourceFile);
                         } else {
-                            logOut(eQPLogType_Info, "%s request submission %"DEC" %s", cmp.getSvcName(), rcmp, rcmp ? "submitted" : "failed");
+                            logOut(eQPLogType_Info, "%s request submission %" DEC " %s", cmp.getSvcName(), rcmp, rcmp ? "submitted" : "failed");
                         }
                     }
                 }
@@ -651,7 +651,7 @@ idx dmArchiverProc::OnExecute(idx req)
                     // fobj pointer is invalid after this point
                     if( svc.get() ) {
                         prev_reqid = svc->launch(*user, grpId);
-                        logOut(eQPLogType_Info, "%s request %s: %"DEC, svc->getSvcName(), prev_reqid ? "submitted" : "failed", prev_reqid);
+                        logOut(eQPLogType_Info, "%s request %s: %" DEC, svc->getSvcName(), prev_reqid ? "submitted" : "failed", prev_reqid);
                     } else if( !svc_set ) {
                         reqSetInfo(req, eQPInfoLevel_Error, "Internal error (%d)", __LINE__);
                         logOut(eQPLogType_Info, "Failed to allocate service launcher for '%s'", objType);
@@ -695,7 +695,7 @@ idx dmArchiverProc::OnExecute(idx req)
             return 0;
         }
     }
-    logOut(eQPLogType_Info, "Successfully processed %"UDEC" of %"UDEC" files", good_files, DM.dim());
+    logOut(eQPLogType_Info, "Successfully processed %" UDEC " of %" UDEC " files", good_files, DM.dim());
     _folder.reset();
     const idx prgs = good_files * (100. / DM.dim());
     reqProgress(-1, sMin(prgs, (idx)100) - 10, 100); // (100 - 10)%
@@ -708,6 +708,6 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
-    dmArchiverProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dmArchiver", argv[0]));
+    dmArchiverProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dmArchiver", argv[0]));
     return (int) backend.run(argc, argv);
 }

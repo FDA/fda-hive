@@ -291,7 +291,7 @@ const char * sTaxIon::getTaxIdsByName (const char *name, idx limit, sStr *taxRes
     }
     sStr trbuf;
     trbuf.printf (0, "\
-        o=search.taxid_name(name='regex:%s')[:%"DEC"]; \
+        o=search.taxid_name(name='regex:%s')[:%" DEC "]; \
         print(o.taxid,o.name);", name, limit);
     ts.traverseFieldSeparator=",";
     ts.traverseRecordSeparator="";

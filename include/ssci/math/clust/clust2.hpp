@@ -109,7 +109,7 @@ namespace slib
                     out.addString(buf.ptr());
                 }
             } else {
-                out.printf("%"DEC, i);
+                out.printf("%" DEC, i);
             }
         }
 
@@ -263,7 +263,7 @@ namespace slib
                 idx x = -1, y = -1;
                 peekNext(&x, &y);
 #ifdef _DEBUG_CLUST
-                printf("Merging clusters %"DEC" and %"DEC"\n", x, y);
+                printf("Merging clusters %" DEC " and %" DEC "\n", x, y);
                 dump();
 #endif
 
@@ -373,10 +373,10 @@ namespace slib
             }
             printf("Tree raw:\n");
             for (idx i=0; i<_npoints; i++) {
-                printf("%"DEC":(d:%g; i:%"DEC") ", i, _tree[i].obj.dist, _tree[i].in[0]);
+                printf("%" DEC ":(d:%g; i:%" DEC ") ", i, _tree[i].obj.dist, _tree[i].in[0]);
             }
             for (idx i=_npoints; i<_tree.dim(); i++) {
-                printf("%"DEC":(d:%g; i:%"DEC", o:%"DEC",%"DEC") ", i, _tree[i].obj.dist, _tree[i].in[0], _tree[i].out[0], _tree[i].out[1]);
+                printf("%" DEC ":(d:%g; i:%" DEC ", o:%" DEC ",%" DEC ") ", i, _tree[i].obj.dist, _tree[i].in[0], _tree[i].out[0], _tree[i].out[1]);
             }
             printf("\n");
             printf("Newick:\n");
@@ -424,7 +424,7 @@ namespace slib
                         minxd = d;
                     }
     #ifdef _DEBUG_CLUST
-                    printf("x=%"DEC" (nearest=%"DEC"), y=%"DEC", min_nearest=%"DEC", mind=%g, minxd=%g, d=%g\n", x, _nearest[x], y, _min, mind, minxd, d);
+                    printf("x=%" DEC " (nearest=%" DEC "), y=%" DEC ", min_nearest=%" DEC ", mind=%g, minxd=%g, d=%g\n", x, _nearest[x], y, _min, mind, minxd, d);
     #endif
                 }
                 if (minxd < mind) {
@@ -494,9 +494,9 @@ namespace slib
             printf("Nearest:\n");
             for (idx x=0; x<_npoints; x++) {
                 real d = _nearest[x] >= 0 ? dist(x, _nearest[x]) : NAN;
-                printf("%"DEC"->%"DEC" (%g) ", x, _nearest[x], d);
+                printf("%" DEC "->%" DEC " (%g) ", x, _nearest[x], d);
             }
-            printf("\nBest: %"DEC"\n\n", _min);
+            printf("\nBest: %" DEC "\n\n", _min);
         }
     #endif
 
@@ -608,12 +608,12 @@ namespace slib
             sHierarchicalClustering::dump();
     #ifdef _DEBUG_HEAP
             for (idx x=0; x<_npoints; x++) {
-                printf("Nearest heap for %"DEC": ", x);
+                printf("Nearest heap for %" DEC ": ", x);
                 _nearest[x].dump();
                 printf("\n");
             }
     #endif
-            printf("Best: %"DEC"\n\n\n", _min);
+            printf("Best: %" DEC "\n\n\n", _min);
         }
     #endif
 
@@ -688,7 +688,7 @@ namespace slib
                         continue;
                     real weight = getWeight(x, y);
 #ifdef _DEBUG_CLUST
-                    printf("Weight of clusters %"DEC" and %"DEC" is %g\n", x, y, weight);
+                    printf("Weight of clusters %" DEC " and %" DEC " is %g\n", x, y, weight);
 #endif
                     if (weight < minWeight) {
                         minWeight = weight;
@@ -840,7 +840,7 @@ namespace slib
 
                 real weight = getWeight(x, y);
 #ifdef _DEBUG_CLUST
-                printf("Weight of clusters %"DEC" and %"DEC" is %g\n", x, y, weight);
+                printf("Weight of clusters %" DEC " and %" DEC " is %g\n", x, y, weight);
 #endif
                 if (weight < minWeight) {
                     minWeight = weight;

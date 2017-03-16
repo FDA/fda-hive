@@ -163,7 +163,7 @@ bool ExecContext::parseForm()
             dmDnaCgi dna_cgi(_proc, dataCmd);
             dna_cgi.setSessionID(_proc.pForm);
             _waiting_for_req = dna_cgi.launch(*_proc.user, _proc.reqId);
-            logInfo("launched dna.cgi?%s as request %"DEC, dataCmd, _waiting_for_req);
+            logInfo("launched dna.cgi?%s as request %" DEC, dataCmd, _waiting_for_req);
             if( _waiting_for_req <= 0 ) {
                 logError("Failed to launch dna.cgi?%s", dataCmd);
                 return false;
@@ -174,7 +174,7 @@ bool ExecContext::parseForm()
             buf.cut(0);
             dataInfo.print(buf, sVariant::eJSON);
             _proc.reqSetData(_proc.reqId, dataInfoName, buf.mex());
-            logInfo("Waiting for dna.cgi subrequest %"DEC, _waiting_for_req);
+            logInfo("Waiting for dna.cgi subrequest %" DEC, _waiting_for_req);
             return false;
         } else {
             sJSONParser json_parser;
@@ -188,7 +188,7 @@ bool ExecContext::parseForm()
             sVariant * pval = json_parser.result().getDicElt("dataID");
             _waiting_for_req = pval ? pval->asInt() : 0;
             if( _waiting_for_req <= 0 ) {
-                logError("Unexpected dataID=%"DEC" in read data-info.json", _waiting_for_req);
+                logError("Unexpected dataID=%" DEC " in read data-info.json", _waiting_for_req);
                 return false;
             }
 
@@ -198,20 +198,20 @@ bool ExecContext::parseForm()
                 case sQPrideBase::eQPReqStatus_Running:
                 case sQPrideBase::eQPReqStatus_Suspended:
                     // suspend and wait
-                    logInfo("Still waiting for dna.cgi subrequest %"DEC, _waiting_for_req);
+                    logInfo("Still waiting for dna.cgi subrequest %" DEC, _waiting_for_req);
                     return false;
                 case sQPrideBase::eQPReqStatus_Done:
                     // subrequest is done, we can continue!
-                    buf.printf(0, "%"DEC, _waiting_for_req);
+                    buf.printf(0, "%" DEC, _waiting_for_req);
                     _proc.pForm->inp("dataID", buf.ptr());
                     pval = json_parser.result().getDicElt("tbl");
                     _proc.pForm->inp("tbl", pval ? pval->asString() : 0);
-                    logDebug("dna.cgi subrequest done; setting dataID=%"DEC" and tbl=%s", _waiting_for_req, pval ? pval->asString() : "");
+                    logDebug("dna.cgi subrequest done; setting dataID=%" DEC " and tbl=%s", _waiting_for_req, pval ? pval->asString() : "");
                     _waiting_for_req = 0;
                     break;
                 default:
                     // some sort of error or unknown code
-                    logError("dna.cgi subrequest %"DEC" failed or was killed", _waiting_for_req);
+                    logError("dna.cgi subrequest %" DEC " failed or was killed", _waiting_for_req);
                     _waiting_for_req = 0;
                     return false;
             }

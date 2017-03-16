@@ -48,7 +48,7 @@ namespace slib {
 
         Basic usage:
         \code
-            sStorageScheme s = new sStorageScheme("foo"_"bar"__); // to handle "foo://" and "bar://" uris
+            sStorageScheme s = new sStorageScheme("foo" _ "bar" __); // to handle "foo://" and "bar://" uris
             s->addRoot("/mnt/foobar1");
             s->addRoot("/mnt/foobar2");
             s->updateRootsUsability();

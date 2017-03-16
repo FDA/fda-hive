@@ -70,11 +70,11 @@ class dmDownloaderProc: public sQPrideProc
             dmDownloaderProc * dp = static_cast<dmDownloaderProc *>(cbparam);
             if( dp ) {
 #if _DEBUG
-                fprintf(stderr, "%s: downloaded %"DEC" of %"DEC" bytes\n", __func__, bytes, dp->m_currFileSize);
+                fprintf(stderr, "%s: downloaded %" DEC " of %" DEC " bytes\n", __func__, bytes, dp->m_currFileSize);
 #endif
                 if(dp->reqProgress(dp->m_totalBytes + bytes, bytes, dp->m_currFileSize) == 0 ) {
 #if _DEBUG
-                    fprintf(stderr, "%s: stopped download %"DEC"\n", __func__, dp->reqId);
+                    fprintf(stderr, "%s: stopped download %" DEC "\n", __func__, dp->reqId);
 #endif
                     return 0; // interrupted
                 }
@@ -97,7 +97,7 @@ idx dmDownloaderProc::OnExecute(idx req)
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
-    outDir.printf("%"UDEC, req);
+    outDir.printf("%" UDEC, req);
 
     if( !objs.dim() ) {
         logOut(eQPLogType_Error, "missing request object: obj.dim() == 0");
@@ -137,7 +137,7 @@ idx dmDownloaderProc::OnExecute(idx req)
         return 0;
     }
     for(idx r = 0; r < uris.rows; ++r) {
-        logOut(eQPLogType_Info, "uri %"DEC" '%s','%s','%s'\n", r, uris.val(r, 0), uris.val(r, 1), uris.val(r, 2));
+        logOut(eQPLogType_Info, "uri %" DEC " '%s','%s','%s'\n", r, uris.val(r, 0), uris.val(r, 1), uris.val(r, 2));
     }
     // determine the geometry of the list and our chunk
     udx chunkSize = formUValue("download_concurrency");
@@ -149,7 +149,7 @@ idx dmDownloaderProc::OnExecute(idx req)
     if( myEnd > uris.rows ) {
         myEnd = uris.rows;
     }
-    logOut(eQPLogType_Info, "processing part %"DEC" of %"DEC" rows from %"DEC" to %"DEC" \n", reqSliceId + 1, reqSliceCnt, myStart + 1, myEnd);
+    logOut(eQPLogType_Info, "processing part %" DEC " of %" DEC " rows from %" DEC " to %" DEC " \n", reqSliceId + 1, reqSliceCnt, myStart + 1, myEnd);
     m_totalBytes = 0;
     dmRemoteFile remContent(progressCB, this, svc.lazyReportSec / 2);
 
@@ -166,7 +166,7 @@ idx dmDownloaderProc::OnExecute(idx req)
                 reqSetInfo(req, eQPInfoLevel_Error, "No dropboxes defined for this user.");
                 continue;
             }
-            sString::extractSubstring(&whichDropBox, ptr, 0, 2, "/"__, false, false);
+            sString::extractSubstring(&whichDropBox, ptr, 0, 2, "/" __, false, false);
             sHiveId dropbox_id(whichDropBox);
             if( const sUsrObjRes::TObjProp * dropbox_prop = dropboxList.get(dropbox_id) ) {
                 const char * dropbox_path = 0;
@@ -195,7 +195,7 @@ idx dmDownloaderProc::OnExecute(idx req)
         ptr = objectId;
         // compose a complete url from parts
         sStr url("%s://%s", protocol, objectId);
-        sStr destFile("%s_%04"UDEC"/", outDir.ptr(), i + 1);
+        sStr destFile("%s_%04" UDEC "/", outDir.ptr(), i + 1);
         if( !sDir::makeDir(destFile) ) {
             logOut(eQPLogType_Error, "mkdir failed '%s'\n", destFile.ptr());
             reqSetInfo(req, eQPInfoLevel_Error, "Internal error %u", __LINE__);
@@ -250,7 +250,7 @@ idx dmDownloaderProc::OnExecute(idx req)
         }
         // launch a service which would futher process the file into an object
         if( length ) {
-            logOut(eQPLogType_Info, "Downloaded '%s://%s' into '%s' %"DEC" bytes\n", protocol, objectId, destFile.ptr(), sFile::size(destFile));
+            logOut(eQPLogType_Info, "Downloaded '%s://%s' into '%s' %" DEC " bytes\n", protocol, objectId, destFile.ptr(), sFile::size(destFile));
             dmArchiver arch(*this, destFile, url, 0, destfilename);
             arch.addObjProperty("hierarchy", "%s", formValue("hierarchy", 0, ""));
             arch.addObjProperty("category", "%s", formValue("category", 0, ""));
@@ -261,7 +261,7 @@ idx dmDownloaderProc::OnExecute(idx req)
             arch.setQCFlag(*this, objs[0].propGetBool("qc_Downloader"));
             arch.setScreenFlag(*this, objs[0].propGetBool("screen_Downloader"));
             idx req = arch.launch(*user, grpId);
-            logOut(eQPLogType_Info, "Launching dmArchiver request %"DEC"\n", req);
+            logOut(eQPLogType_Info, "Launching dmArchiver request %" DEC "\n", req);
             m_totalBytes += length;
         } else {
 #if !_DEBUG
@@ -288,7 +288,7 @@ idx dmDownloaderProc::OnExecute(idx req)
 idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
 {
     sStr u;
-    sString::searchAndReplaceStrings(&u, uri, 0, "://"__, 0, 1, false);
+    sString::searchAndReplaceStrings(&u, uri, 0, "://" __, 0, 1, false);
     const char * db = u.ptr(5); //skip ncbi_ prefix, it was tested in caller for it, see above
     const char * id = sString::next00(db);
 
@@ -329,9 +329,9 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
     } else if( len == 0 ) {
         logOut(eQPLogType_Error, "elink response is empty for %s\n", uri);
     } else {
-        sString::cleanMarkup(&strError, httpContent, len, "<ERROR>"__, "</ERROR>"__, 0, 0, true, false, true);
-        sString::cleanMarkup(&query_key, httpContent, len, "<QueryKey>"__, "</QueryKey>"__, 0, 0, true, false, true);
-        sString::cleanMarkup(&webenv, httpContent, len, "<WebEnv>"__, "</WebEnv>"__, 0, 0, true, false, true);
+        sString::cleanMarkup(&strError, httpContent, len, "<ERROR>" __, "</ERROR>" __, 0, 0, true, false, true);
+        sString::cleanMarkup(&query_key, httpContent, len, "<QueryKey>" __, "</QueryKey>" __, 0, 0, true, false, true);
+        sString::cleanMarkup(&webenv, httpContent, len, "<WebEnv>" __, "</WebEnv>" __, 0, 0, true, false, true);
         if( strError.length() > 0 && *strError.ptr(1) ) {
             logOut(eQPLogType_Error, "elink response error: '%s' for %s\n", strError.ptr(1), uri);
         } else {
@@ -369,8 +369,8 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
         } else {
             sStr searchresult;
             strError.cut(0);
-            sString::cleanMarkup(&searchresult, httpContent, len, "<Count>"__, "</Count>"__, 0, 0, true, false, true);
-            sString::cleanMarkup(&strError, httpContent, len, "<ERROR>"__, "</ERROR>"__, 0, 0, true, false, true);
+            sString::cleanMarkup(&searchresult, httpContent, len, "<Count>" __, "</Count>" __, 0, 0, true, false, true);
+            sString::cleanMarkup(&strError, httpContent, len, "<ERROR>" __, "</ERROR>" __, 0, 0, true, false, true);
             if( strError.length() > 0 && *strError.ptr(1) ) {
                 logOut(eQPLogType_Error, "esearch response error: '%s' for %s\n", strError.ptr(1), uri);
             } else {
@@ -394,18 +394,18 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
         bool retry = false;
         for(idx i = 0; i < count; i += chunk) {
             const idx max = (i + chunk > count) ? count - i : chunk;
-            sStr chunkfile("%s-%03"DEC"-to-%03"DEC"%s", destPrefix.ptr(), i, i + max - 1, suffix.ptr());
+            sStr chunkfile("%s-%03" DEC "-to-%03" DEC "%s", destPrefix.ptr(), i, i + max - 1, suffix.ptr());
             if( !sFile::exists(chunkfile) ) {
-                sStr url("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=%s&WebEnv=%s&query_key=%s&retmode=text&rettype=%s&retstart=%"DEC"&retmax=%"DEC"",
+                sStr url("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=%s&WebEnv=%s&query_key=%s&retmode=text&rettype=%s&retstart=%" DEC "&retmax=%" DEC "",
                         database.ptr(), webenv.ptr(), query_key.ptr(), rettype.ptr(), i, max);
-                logOut(eQPLogType_Info, "Downloading: try %"DEC", from %03"DEC" to %03"DEC", url '%s'\n", attempt, i, i + max - 1, url.ptr());
+                logOut(eQPLogType_Info, "Downloading: try %" DEC ", from %03" DEC " to %03" DEC ", url '%s'\n", attempt, i, i + max - 1, url.ptr());
                 sRC rc = remContent.getFile(chunkfile, 0, 0, "%s", url.ptr());
                 if( !rc ) {
                     idx gis = countSequenceRecords(chunkfile);
                     if( gis ) {
                         countgi += gis;
                     } else {
-                        logOut(eQPLogType_Info, "Downloaded empty file of %"DEC" bytes? try %"DEC", from %03"DEC" to %03"DEC"\n", sFile::size(chunkfile), attempt, i, i + max - 1);
+                        logOut(eQPLogType_Info, "Downloaded empty file of %" DEC " bytes? try %" DEC ", from %03" DEC " to %03" DEC "\n", sFile::size(chunkfile), attempt, i, i + max - 1);
                         sFile::remove(chunkfile);
                         retry |= true;
                     }
@@ -426,7 +426,7 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
     sFile::remove(finalConcat);
     for(idx i = 0; i < count; i += chunk) {
         const idx max = (i + chunk > count) ? count - i : chunk;
-        sStr chunkfile("%s-%03"DEC"-to-%03"DEC"%s", destPrefix.ptr(), i, i + max - 1, suffix.ptr());
+        sStr chunkfile("%s-%03" DEC "-to-%03" DEC "%s", destPrefix.ptr(), i, i + max - 1, suffix.ptr());
         if( sFile::exists(chunkfile) ) {
             if( !sFile::copy(chunkfile, finalConcat, true) ) {
                 logOut(eQPLogType_Error, "Cannot append chunk to all '%s' += '%s', disk space?\n", finalConcat.ptr(), chunkfile.ptr());
@@ -459,7 +459,7 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
                 destPrefix.printf("%s", suffix.ptr());
             }
         } else {
-            reqSetInfo(reqId, eQPInfoLevel_Error, "Couldn't download all %"DEC" sequences for '%s' in database '%s'", count, id, database.ptr());
+            reqSetInfo(reqId, eQPInfoLevel_Error, "Couldn't download all %" DEC " sequences for '%s' in database '%s'", count, id, database.ptr());
         }
     }
     return sFile::size(destPrefix);
@@ -475,7 +475,7 @@ int main(int argc, const char * argv[])
 {
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
-    dmDownloaderProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dmDownloader", argv[0]));
+    dmDownloaderProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dmDownloader", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

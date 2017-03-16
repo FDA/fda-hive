@@ -66,90 +66,90 @@ enum {
 
 const idx sCalc::_defPrecendence[]={
   // basics
-    ePrecAssignment,ePrecAssignment, //":="_"?="_
+    ePrecAssignment,ePrecAssignment, //":=" _ "?=" _
 
     // comparison operations
-    ePrecComparison,ePrecComparison,// "=="_      "="_
-    ePrecComparison, //"!="_
-    ePrecComparison,ePrecComparison,// ">="_      ">"_      
-    ePrecComparison,ePrecComparison, // "<="_      "<"_
+    ePrecComparison,ePrecComparison,// "==" _      "=" _
+    ePrecComparison, //"!=" _
+    ePrecComparison,ePrecComparison,// ">=" _      ">" _      
+    ePrecComparison,ePrecComparison, // "<=" _      "<" _
 
     // logic operations
-    ePrecLogic, // "&&"_  // " and "_
-    ePrecLogic, // "||"_ // " or "_    
-    ePrecLogic,  // "!"_  // " not "_   
+    ePrecLogic, // "&&" _  // " and " _
+    ePrecLogic, // "||" _ // " or " _    
+    ePrecLogic,  // "!" _  // " not " _   
 
     // bit operations 
-    ePrecBitwise, ePrecBitwise, // "<<"_      ">>"_
-    ePrecBitwise, // "~"_
-    ePrecBitwise, // "&"_
-    ePrecBitwise, // "|"_
-    ePrecBitwise, // "^"_
+    ePrecBitwise, ePrecBitwise, // "<<" _      ">>" _
+    ePrecBitwise, // "~" _
+    ePrecBitwise, // "&" _
+    ePrecBitwise, // "|" _
+    ePrecBitwise, // "^" _
     
     // math operations 
-    ePrecAdditive, // "+"_
-    ePrecAdditive, // "-"_
-    ePrecMultiplicative, // "*"_
-    ePrecMultiplicative, // "/"_
-    ePrecMultiplicative, // "%"_
+    ePrecAdditive, // "+" _
+    ePrecAdditive, // "-" _
+    ePrecMultiplicative, // "*" _
+    ePrecMultiplicative, // "/" _
+    ePrecMultiplicative, // "%" _
     
     
     // execution level operations
-    ePrecParenthesis,ePrecParenthesis, // "("_       ")"_
-    //ePrecParenthesis,ePrecParenthesis, // "["_       "]"_
-    ePrecParenthesis,ePrecParenthesis, // "{"_       "}"_
+    ePrecParenthesis,ePrecParenthesis, // "(" _       ")" _
+    //ePrecParenthesis,ePrecParenthesis, // "[" _       "]" _
+    ePrecParenthesis,ePrecParenthesis, // "{" _       "}" _
 
 
     // syntaxical level 
-    ePrecQuotations,ePrecQuotations, // "\""_          "'"_
-    ePrecFunctional,ePrecFunctional, // ","_           ";"_
+    ePrecQuotations,ePrecQuotations, // "\"" _          "'" _
+    ePrecFunctional,ePrecFunctional, // "," _           ";" _
         
 
-    ePrecNone, // " "__;
+    ePrecNone, // " " __;
 };
 
 const char * sCalc::_defaultTokenizingSymbols=
     // basics
-    ":="_"?="_
+    ":=" _ "?=" _
 
     // comparison operations
-    "=="_      "="_
-    "!="_
-    ">="_      ">"_      
-    "<="_      "<"_
+    "==" _      "=" _
+    "!=" _
+    ">=" _      ">" _      
+    "<=" _      "<" _
 
     // logic operations
-    "&&"_ // " and "_   
-    "||"_ // " or "_    
-    "!"_  // " not "_   
+    "&&" _ // " and " _   
+    "||" _ // " or " _    
+    "!" _  // " not " _   
 
     // bit operations 
-    "<<"_      ">>"_
-    "~"_
-    "&"_
-    "|"_
-    "^"_
+    "<<" _      ">>" _
+    "~" _
+    "&" _
+    "|" _
+    "^" _
     
     // math operations 
-    "+"_
-    "-"_
-    "*"_
-    "/"_
-    "%"_
+    "+" _
+    "-" _
+    "*" _
+    "/" _
+    "%" _
     
     
     // execution level operations
-    "("_       ")"_
-    //"["_       "]"_
-    "{"_       "}"_
+    "(" _       ")" _
+    //"[" _       "]" _
+    "{" _       "}" _
 
 
     // syntaxical level 
-    "\""_          "'"_
-    ","_           ";"_
+    "\"" _          "'" _
+    "," _           ";" _
         
 
-    " "__;
+    " " __;
 
 const char * sCalc::_defaultNonTokenizingSymbols=0;
 
@@ -237,7 +237,7 @@ idx sCalc::_tokenize(const char * phrase, idx phraselen)
             it->precendence = nym!=sNotIdx ? _lgprec [nym] : ePrecValues ;
             if( dig && (*dig=='\"' || *dig=='\'' || *dig=='{' || *dig=='}')){
                 it->status|=Lexem::fQuoted;
-                sString::searchAndReplaceStrings(dst,0,"\\n"_"\\r"_"\\t"__,"\n"_"\r"_"\t"__,0,false);
+                sString::searchAndReplaceStrings(dst,0,"\\n" _ "\\r" _ "\\t" __,"\n" _ "\r" _ "\t" __,0,false);
             }
         }
         if( dig && (*dig=='\"' || *dig=='\'' || *dig=='{' || *dig=='}')) {
@@ -541,7 +541,7 @@ idx sCalc::variablesCallback(idx cur, idx )
 
 
 
-const char * sCalc::symbText="equal"_"equal"_"inequal"_"hasnt"_"has"_"concat"_"after"_"before"_"repeat"_"permute"_"subrand"__;
+const char * sCalc::symbText="equal" _ "equal" _ "inequal" _ "hasnt" _ "has" _ "concat" _ "after" _ "before" _ "repeat" _ "permute" _ "subrand" __;
                              // 0     1    2     3      4       5
 idx sCalc::textCallback(idx cur, idx )
 {
@@ -564,8 +564,8 @@ idx sCalc::textCallback(idx cur, idx )
     
     // choices
     idx num=sNotIdx;
-    //const char * lchoices="=="_"="_"!="_"hasnt"_"has"_"+"__;
-                         // 0     1    2     3      4       5
+    //const char * lchoices="==" _ "=" _ "!=" _ "hasnt" _ "has" _ "+" __;
+                         //  0      1      2       3        4      5
     // find what to do 
     idx fndLen=sString::compareChoice(ct,symbText,&num,1,0);
     if( fndLen==sNotIdx )
@@ -596,7 +596,7 @@ idx sCalc::textCallback(idx cur, idx )
         cont(cur-1,0,"%s %s %s",cont(cur-1),cont(cur),cont(cur+1)); //concatenate the content 
         del(cur+1);del(cur);--cur; // delete the last two 
         if(num<=eHas) {
-            data(cur,0,"%"DEC,res); // set the result 
+            data(cur,0,"%" DEC,res); // set the result 
             _lxit[cur].type= Lexem::fLogical; // the result type 
             _lxit[cur].status|=Lexem::fReady; // mark as done 
             return cur+1;
@@ -658,15 +658,15 @@ idx sCalc::textCallback(idx cur, idx )
     return cur+1;
 }
 
-const char * sCalc::symbLogic="&&"_"and"_"||"_"or"_"!"_"not"__;
-                                // 0     1      2     3     4    5
+const char * sCalc::symbLogic="&&" _ "and" _ "||" _ "or" _ "!" _ "not" __;
+                             // 0     1      2        3     4      5
 
 idx sCalc::logicCallback(idx cur, idx )
 {
     char * ct=cont(cur);
     idx res=0;
     idx num=sNotIdx;
-//    const char * lchoices="&&"_"and"_"||"_"or"_"!"_"not"__;
+//    const char * lchoices="&&" _ "and" _ "||" _ "or" _ "!" _ "not" __;
                                 // 0     1      2     3     4    5
     
     // find what operation it is 
@@ -683,7 +683,7 @@ idx sCalc::logicCallback(idx cur, idx )
         res= ( !p || atoi( p )!=0 ) ? 0 : 1;
         cont(cur,0,"%s %s",cont(cur),cont(cur+1));
         del(cur+1);
-        data(cur,0,"%"DEC,res); // set the result 
+        data(cur,0,"%" DEC,res); // set the result 
         _lxit[cur].status|=Lexem::fReady;
         _lxit[cur].type=Lexem::fLogical;
         return cur+1;
@@ -708,13 +708,13 @@ idx sCalc::logicCallback(idx cur, idx )
     // set the lower item and remove two following
     cont(cur-1,0,"%s %s %s",cont(cur-1),cont(cur),cont(cur+1)); //concatenate the content 
     del(cur+1);del(cur);--cur; // delete the last two 
-    data(cur,0,"%"DEC,res); // set the result 
+    data(cur,0,"%" DEC,res); // set the result 
     _lxit[cur].status|=Lexem::fReady; // mark as done 
     _lxit[cur].type=Lexem::fLogical; // the result type 
     return cur+1;
 }
 
-const char * sCalc::symbMath="~"_ "+"_ "-"_ "*"_ "/"_ "%"_ "=="_"="_ "!="_ ">="_ ">"_ "<="_ "<"_ "<<"_ ">>"_ "&"_ "|"_ "^"__;
+const char * sCalc::symbMath="~" _ "+" _ "-" _ "*" _ "/" _ "%" _ "==" _ "=" _ "!=" _ ">=" _ ">" _ "<=" _ "<" _ "<<" _ ">>" _ "&" _ "|" _ "^" __;
                             // 0     1     2     3     4     5     6     7     8      9      10    11     12    13     14     15    16    17
 
 idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
@@ -725,7 +725,7 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
     idx wrk=0;
     stage =eMathLast;
 
-//    const char * lchoices="~"_ "+"_ "-"_ "*"_ "/"_ "%"_ "=="_"="_ "!="_ ">="_ ">"_ "<="_ "<"_ "<<"_ ">>"_ "&"_ "|"_ "^"__;
+//    const char * lchoices="~" _ "+" _ "-" _ "*" _ "/" _ "%" _ "==" _ "=" _ "!=" _ ">=" _ ">" _ "<=" _ "<" _ "<<" _ ">>" _ "&" _ "|" _ "^" __;
                                 // 0     1     2     3     4     5     6     7     8      9      10    11     12    13     14     15    16    17
 
     // quoted ... something we do deal with math 
@@ -736,7 +736,7 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
     // find what operation it is 
     if( sString::compareChoice(ct,symbMath,&num,1,0)==sNotIdx ) {
         if(ct[0]=='0' && (ct[1]=='x' || ct[1]=='X') ){ // see if this is a hexadecimal ?  && strchr("0123456789ABCDEFabcdef",ct[2]) 
-            idx hexVal=0;wrk=sscanf(ct+2,"%"HEX,&hexVal);
+            idx hexVal=0;wrk=sscanf(ct+2,"%" HEX,&hexVal);
             res=(double)hexVal;
         }
         else {
@@ -867,11 +867,11 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
 
 
 
-const char * sCalc::symbMathFunc="lg10"_"lg2"_"ln"_"abs"_
-    "plus"_"minus"_"neg"_"mult"_"div"_"inv"_"pow"_"exp"_"log"_
-    "cos"_"acos"_"sin"_"asin"_"tan"_"atan"_"floor"_"ceiling"_
-    "sum"_"min"_"max"_"sigma"_"RMS"_"mean"_
-        "irand"_"rand"_
+const char * sCalc::symbMathFunc="lg10" _ "lg2" _ "ln" _ "abs" _
+    "plus" _ "minus" _ "neg" _ "mult" _ "div" _ "inv" _ "pow" _ "exp" _ "log" _
+    "cos" _ "acos" _ "sin" _ "asin" _ "tan" _ "atan" _ "floor" _ "ceiling" _
+    "sum" _ "min" _ "max" _ "sigma" _ "RMS" _ "mean" _
+        "irand" _ "rand" _
     __;
 
 idx sCalc::mathFuncCallback(idx cur, idx )
@@ -965,7 +965,7 @@ idx sCalc::mathFuncCallback(idx cur, idx )
         for(idx ir=0; ir< funval; ++ir) {
                 outval=(rmax-rmin+(num==fIRandom ? 1 : 0 ))*rand()/RAND_MAX+rmin;
                 //if(num==fIRandom)out.printf("%s"DEC, ir ? " " : "" , (idx)(outval>rmax  ? rmax : outval));
-                if(num==fIRandom)out.printf("%s%"DEC, ir ? " " : "" , (idx)(outval>rmax  ? rmax : outval));
+                if(num==fIRandom)out.printf("%s%" DEC, ir ? " " : "" , (idx)(outval>rmax  ? rmax : outval));
                 else out.printf("%s""%lf", ir ? " " : "" , outval);
 
         }
@@ -1069,7 +1069,7 @@ char * sCalc::debugPrint(const char * t)
     for(idx i=0; i < _lxit.dim() ; ++i){
         Lexem * it=_lxit.ptr(i);
         if(subLevel)for(idx k=0; k<subLevel; ++k) str.printf("    ");
-        str.printf("%"DEC") %2"HEX" %s '%s' '%s'\n", i, it->type, it->status&Lexem::fReady ? "done" : "todo" ,(char*)_mex.ptr(it->content), it->data ? (char*)_mex.ptr(it->data) : "");
+        str.printf("%" DEC ") %2" HEX " %s '%s' '%s'\n", i, it->type, it->status&Lexem::fReady ? "done" : "todo" ,(char*)_mex.ptr(it->content), it->data ? (char*)_mex.ptr(it->data) : "");
     }
     return str.ptr();
 }

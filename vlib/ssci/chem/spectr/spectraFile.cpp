@@ -487,65 +487,65 @@ idx sSpctr::computeBaseline(const char * srcsfx, const char * dstsfx)
  return dst.dim();
  }
  */
-const char * sSpctr::_config_lst = ""__;
+const char * sSpctr::_config_lst = "" __;
 bool sSpctr::inputParams(const char * configFile)
 {
 
     sString::SectVar cfgVars[]={
 
 
-        {0,"[Algorithm]"_"DualOutput"__,"%n=0",0,&dualOutput},
+        {0,"[Algorithm]" _ "DualOutput" __,"%n=0",0,&dualOutput},
 
-        {"/Spectrum","[Spectrum]"_"Resolution"__,"%lf=0.05>1e-2<0.5","%g",&allStp,99},
-        {"/Spectrum","[Spectrum]"_"TopPeakNum"__,"%d=41","%d",&allTopI[0]},
-        {"/Spectrum","[Spectrum]"_"TopPeakNum2"__,"%d=5","%d",&allTopI[1]},
-        {"/Spectrum","[Spectrum]"_"TopPeakNum3"__,"%d=7","%d",&allTopI[2]},
-        {"/Spectrum","[Spectrum]"_"TopPeakNum4"__,"%d=13","%d",&allTopI[3]},
-        {"/Spectrum","[Spectrum]"_"TopPeakNum5"__,"%d=27","%d",&allTopI[4]},
+        {"/Spectrum","[Spectrum]" _ "Resolution" __,"%lf=0.05>1e-2<0.5","%g",&allStp,99},
+        {"/Spectrum","[Spectrum]" _ "TopPeakNum" __,"%d=41","%d",&allTopI[0]},
+        {"/Spectrum","[Spectrum]" _ "TopPeakNum2" __,"%d=5","%d",&allTopI[1]},
+        {"/Spectrum","[Spectrum]" _ "TopPeakNum3" __,"%d=7","%d",&allTopI[2]},
+        {"/Spectrum","[Spectrum]" _ "TopPeakNum4" __,"%d=13","%d",&allTopI[3]},
+        {"/Spectrum","[Spectrum]" _ "TopPeakNum5" __,"%d=27","%d",&allTopI[4]},
 
-        {"/Smoothing","[SavGol]"_"Left Points"__,"%d=4>2<10","%d",&savgol.left,8},
-        {"/Smoothing","[SavGol]"_"Right Points"__,"%d=4>2<10","%d",&savgol.right,8},
-        {"/Smoothing","[SavGol]"_"Degree Polynomial"__,"%d=8>4<20","%d",&savgol.degree,16},
+        {"/Smoothing","[SavGol]" _ "Left Points" __,"%d=4>2<10","%d",&savgol.left,8},
+        {"/Smoothing","[SavGol]" _ "Right Points" __,"%d=4>2<10","%d",&savgol.right,8},
+        {"/Smoothing","[SavGol]" _ "Degree Polynomial" __,"%d=8>4<20","%d",&savgol.degree,16},
 
-        {"/Denoising","[Wavlet]"_"Daubechies"__,"%n=20^DAUB4=4^DAUB12=12^DAUB20=20;","%d",&wavlet.daubNum},
-        {"/Denoising","[Wavlet]"_"Underrepresented frequency filter"__,"%lf=66>0<100;","%g",&wavlet.fracPercent},
+        {"/Denoising","[Wavlet]" _ "Daubechies" __,"%n=20^DAUB4=4^DAUB12=12^DAUB20=20;","%d",&wavlet.daubNum},
+        {"/Denoising","[Wavlet]" _ "Underrepresented frequency filter" __,"%lf=66>0<100;","%g",&wavlet.fracPercent},
 
-            {0,"[FFT]"_"Daubechies"__,"%n=20^DAUB4^DAUB12^DAUB20;","%d",&fft.daubNum},
-            {0,"[FFT]"_"Min"__,"%d=10>1","%d",&fft.fftMin},
-            {0,"[FFT]"_"Max"__,"%n=1000000^UNLIMITED=1000000>1;","%d",&fft.fftMax},
+            {0,"[FFT]" _ "Daubechies" __,"%n=20^DAUB4^DAUB12^DAUB20;","%d",&fft.daubNum},
+            {0,"[FFT]" _ "Min" __,"%d=10>1","%d",&fft.fftMin},
+            {0,"[FFT]" _ "Max" __,"%n=1000000^UNLIMITED=1000000>1;","%d",&fft.fftMax},
 
-        {"/Baseline","[Baseline]"_"Maximum Accepted Frequency"__,"%d=100>0<1000","%d",&baseline.maxFreq},
-        {"/Baseline","[Baseline]"_"Threshold Intensity"__,"%lf=0>0<100","%g",&baseline.thresholdPercent},
-
-
-        {"/Miscelaneous","[Misc]"_"Excel"__,"%s=excel.exe","%s",&misc.excel},
+        {"/Baseline","[Baseline]" _ "Maximum Accepted Frequency" __,"%d=100>0<1000","%d",&baseline.maxFreq},
+        {"/Baseline","[Baseline]" _ "Threshold Intensity" __,"%lf=0>0<100","%g",&baseline.thresholdPercent},
 
 
-        {"/Filter","[Filter]"_"categoryUse"__,"%n=0;",0,&filter.iCateg},
-        {"/Filter","[Filter]"_"filterFrequency"__,"%lf=10>0<100","%lf%%",&filter.filterFrequency},
-        {"/Filter","[Filter]"_"filterANDOR1"__,"%n=0^AND^OR;",0,&filter.andor1},
-        {"/Filter","[Filter]"_"filterIntensity"__,"%lf=10>0<1000","%lf",&filter.filterIntensity},
-        {"/Filter","[Filter]"_"filterANDOR2"__,"%n=0^AND^OR;",0,&filter.andor2},
-        {"/Filter","[Filter]"_"filterTProb"__,"%lf=0.0>0<1","%lf",&filter.filterTProb},
-
-        {"/LDA","[LDA]"_"categoryUse"__,"%n=0;",0,&lda.iCateg},
-        {"/LDA","[LDA]"_"Axis 1"__,"%n=0^First^Second^Third^Fourth^Fifth^Sixth^Seventh^Eighth^Nineth^Tenth;",0,&lda.ax1},
-        {"/LDA","[LDA]"_"Axis 2"__,"%n=1^First^Second^Third^Fourth^Fifth^Sixth^Seventh^Eighth^Nineth^Tenth;",0,&lda.ax2},
-        {"/LDA","[LDA]"_"Axis 3"__,"%n=2^First^Second^Third^Fourth^Fifth^Sixth^Seventh^Eighth^Nineth^Tenth;",0,&lda.ax3},
-        {"/LDA","[LDA]"_"Regularization"__,"%lf=0.01>0.001<1;",0,&lda.regulAlpha},
-        {"/LDA","[LDA]"_"bootSpace"__,"%d=-3>-20<20",0,&lda.bootSpace},
-        {"/LDA","[LDA]"_"maxIter"__,"%d=1>1<1000",0,&lda.maxIter},
-
-        {"/LDA","[LDA]"_"Show Clusters"__,"%b=1|Show Mesh|Show Wireframe|Smoothed|Original Data;",0,&lda.showMesh},
-        {"/LDA","[LDA]"_"Transparency"__,"%d=128>0<255;",0,&lda.meshTransparency},
-        {"/LDA","[LDA]"_"Accuracy"__,"%d=50>20<100;",0,&lda.meshSteps},
-        {"/LDA","[LDA]"_"Diffusion"__,"%lf=0.05>0.01<0.3;",0,&lda.meshDiffusion},
-        {"/LDA","[LDA]"_"Coloration"__,"%n=0^Single Color^Color By Z;",0,&lda.meshColoration},
-        {"/LDA","[LDA]"_"SymbolSize"__,"%d=4>1<10",0,&lda.symbolSize},
+        {"/Miscelaneous","[Misc]" _ "Excel" __,"%s=excel.exe","%s",&misc.excel},
 
 
-            {0,"[LearnSet]"__,"%S",0,&coding.learn},
-            {0,"[CheckSet]"__,"%S",0,&coding.check},
+        {"/Filter","[Filter]" _ "categoryUse" __,"%n=0;",0,&filter.iCateg},
+        {"/Filter","[Filter]" _ "filterFrequency" __,"%lf=10>0<100","%lf%%",&filter.filterFrequency},
+        {"/Filter","[Filter]" _ "filterANDOR1" __,"%n=0^AND^OR;",0,&filter.andor1},
+        {"/Filter","[Filter]" _ "filterIntensity" __,"%lf=10>0<1000","%lf",&filter.filterIntensity},
+        {"/Filter","[Filter]" _ "filterANDOR2" __,"%n=0^AND^OR;",0,&filter.andor2},
+        {"/Filter","[Filter]" _ "filterTProb" __,"%lf=0.0>0<1","%lf",&filter.filterTProb},
+
+        {"/LDA","[LDA]" _ "categoryUse" __,"%n=0;",0,&lda.iCateg},
+        {"/LDA","[LDA]" _ "Axis 1" __,"%n=0^First^Second^Third^Fourth^Fifth^Sixth^Seventh^Eighth^Nineth^Tenth;",0,&lda.ax1},
+        {"/LDA","[LDA]" _ "Axis 2" __,"%n=1^First^Second^Third^Fourth^Fifth^Sixth^Seventh^Eighth^Nineth^Tenth;",0,&lda.ax2},
+        {"/LDA","[LDA]" _ "Axis 3" __,"%n=2^First^Second^Third^Fourth^Fifth^Sixth^Seventh^Eighth^Nineth^Tenth;",0,&lda.ax3},
+        {"/LDA","[LDA]" _ "Regularization" __,"%lf=0.01>0.001<1;",0,&lda.regulAlpha},
+        {"/LDA","[LDA]" _ "bootSpace" __,"%d=-3>-20<20",0,&lda.bootSpace},
+        {"/LDA","[LDA]" _ "maxIter" __,"%d=1>1<1000",0,&lda.maxIter},
+
+        {"/LDA","[LDA]" _ "Show Clusters" __,"%b=1|Show Mesh|Show Wireframe|Smoothed|Original Data;",0,&lda.showMesh},
+        {"/LDA","[LDA]" _ "Transparency" __,"%d=128>0<255;",0,&lda.meshTransparency},
+        {"/LDA","[LDA]" _ "Accuracy" __,"%d=50>20<100;",0,&lda.meshSteps},
+        {"/LDA","[LDA]" _ "Diffusion" __,"%lf=0.05>0.01<0.3;",0,&lda.meshDiffusion},
+        {"/LDA","[LDA]" _ "Coloration" __,"%n=0^Single Color^Color By Z;",0,&lda.meshColoration},
+        {"/LDA","[LDA]" _ "SymbolSize" __,"%d=4>1<10",0,&lda.symbolSize},
+
+
+            {0,"[LearnSet]" __,"%S",0,&coding.learn},
+            {0,"[CheckSet]" __,"%S",0,&coding.check},
 
         {0, 0}
     };
@@ -554,10 +554,10 @@ bool sSpctr::inputParams(const char * configFile)
     if( strstr(configFile, ".lst") ) {
         sFil inp(configFile, sFil::fReadonly);
         if( inp.length() )
-            sString::cleanMarkup(&rst, inp.ptr(), inp.length(), "//"_"/*"__, "\n"_"*/"__, "\n", 0, false, false, true);
+            sString::cleanMarkup(&rst, inp.ptr(), inp.length(), "//" _ "/*" __, "\n" _ "*/" __, "\n", 0, false, false, true);
     }
     if( !rst.length() ) {
-        sString::cleanMarkup(&rst, sSpctr::_config_lst, sLen(sSpctr::_config_lst), "//"_"/*"__, "\n"_"*/"__, "\n", 0, false, false, true);
+        sString::cleanMarkup(&rst, sSpctr::_config_lst, sLen(sSpctr::_config_lst), "//" _ "/*" __, "\n" _ "*/" __, "\n", 0, false, false, true);
     }
 
     // clean comments

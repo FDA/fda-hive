@@ -277,7 +277,7 @@ idx sTree::generateTree (sStr & out,sVec < idx > * columnsToUse, sVec <idx > * r
 
     idx cnt = horizontal ? dist_cb_param.rowCnt : dist_cb_param.colCnt; // count of objToUse
 
-    print_bench("to setup %"DEC" items (%s)", cnt, horizontal ? "horizontal" : "vertical");
+    print_bench("to setup %" DEC " items (%s)", cnt, horizontal ? "horizontal" : "vertical");
 
     sHierarchicalClustering * nj;
     if( jMethod==FAST ) {

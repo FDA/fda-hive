@@ -100,7 +100,7 @@ bool CollapseWithStatCommand::compute(sTabular * tbl)
             out.cut(0);
             reordered.printCell(out,r,colSetImg[c]);
 #if _DEBUG
-            fprintf(stderr, "(%"DEC",%"DEC") -> %s\n", r, colSetImg[c], out.ptr(0));
+            fprintf(stderr, "(%" DEC ",%" DEC ") -> %s\n", r, colSetImg[c], out.ptr(0));
 #endif
             outTabular->setVal(r,c,out.ptr());
         }

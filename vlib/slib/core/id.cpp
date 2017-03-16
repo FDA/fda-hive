@@ -378,9 +378,9 @@ const char * sHiveId::print(sStr & out, bool domain_id_as_url/*=false*/) const
             out.printf("%s.", dombuf);
         }
     }
-    out.printf("%"UDEC, _obj_id);
+    out.printf("%" UDEC, _obj_id);
     if( _ion_id ) {
-        out.printf(".%"UDEC, _ion_id);
+        out.printf(".%" UDEC, _ion_id);
     }
     return out.ptr(startLen);
 }
@@ -410,9 +410,9 @@ idx sHiveId::print(char * out, bool domain_id_as_url/*=false*/) const
         }
     }
     if( _ion_id ) {
-        ret += sprintf(out, "%"UDEC".%"UDEC, _obj_id, _ion_id);
+        ret += sprintf(out, "%" UDEC ".%" UDEC, _obj_id, _ion_id);
     } else {
-        ret += sprintf(out, "%"UDEC, _obj_id);
+        ret += sprintf(out, "%" UDEC, _obj_id);
     }
     return ret;
 }
@@ -422,7 +422,7 @@ const char * sHiveId::printSQL(sStr & out, const char * prefix /* = 0 */, bool n
     const char * p1 = prefix ? prefix : "";
     const char * p2 = prefix ? "." : "";
     idx pos = out.pos();
-    out.printf("(%s%sdomainID=%"UDEC" AND %s%sobjID=%"UDEC")", p1, p2, _domain_id, p1, p2, _obj_id);
+    out.printf("(%s%sdomainID=%" UDEC " AND %s%sobjID=%" UDEC ")", p1, p2, _domain_id, p1, p2, _obj_id);
     return out.ptr(pos);
 }
 

@@ -68,7 +68,7 @@ class DnaAlignParser: public sQPrideProc
                     return 0;
                 }
                 if( statreqStatus < eQPReqStatus_Suspended ) {
-                    logOut(eQPLogType_Debug, "Waiting for request: %"DEC, reqtoWaitFor);
+                    logOut(eQPLogType_Debug, "Waiting for request: %" DEC, reqtoWaitFor);
                     reqReSubmit(req, 60);
                     return 0;
                 }
@@ -143,7 +143,7 @@ class DnaAlignParser: public sQPrideProc
                     if( Sub.dim() > 1000000 ) {
                         sStr tempSubDir;
                         cfgStr(&tempSubDir, 0, "qm.tempDirectory");
-                        tempSubDir.printf("%"DEC"-%s", reqId, "subids.dic");
+                        tempSubDir.printf("%" DEC "-%s", reqId, "subids.dic");
                         subIds.init(tempSubDir);
                     }
                     // Create dictionary for Sub Id's
@@ -154,7 +154,7 @@ class DnaAlignParser: public sQPrideProc
                         if( cntFound < 0 ) {
                             errmsg.printf(0, "One or more reference ids were not resolved using reference list provided");
                         } else if( cntFound != Qry.dim() ) { // should they??
-                            errmsg.printf("Number of reads %"DEC" do not correlate with number of alignments %"DEC, Qry.dim(), cntFound);
+                            errmsg.printf("Number of reads %" DEC " do not correlate with number of alignments %" DEC, Qry.dim(), cntFound);
                             cntFound = -3;
                         }
                     } else if( strcmp(ext, "blast_out") == 0 ) {
@@ -167,7 +167,7 @@ class DnaAlignParser: public sQPrideProc
                     }
                 }
             }
-            logOut(eQPLogType_Debug, "Parsed %"DEC" alignments", cntFound);
+            logOut(eQPLogType_Debug, "Parsed %" DEC " alignments", cntFound);
             if( cntFound == -3 ) {
                 // No error, just report the message
                 reqSetInfo(req, eQPInfoLevel_Info, "%s%s", filename.ptr(), errmsg.ptr());
@@ -236,6 +236,6 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DnaAlignParser backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-align-parser", argv[0]));
+    DnaAlignParser backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-align-parser", argv[0]));
     return (int) backend.run(argc, argv);
 }

@@ -65,7 +65,7 @@ namespace slib {
                 if( QP->reqId )
                     QP->reqProgress(QP->reqId,0,items, 0, -1);
                 else
-                    QP->printf("Processed items: %"DEC,items);
+                    QP->printf("Processed items: %" DEC,items);
                 return 1;
             }
         public:

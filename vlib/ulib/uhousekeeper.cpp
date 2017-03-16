@@ -43,7 +43,7 @@ sRC sUsrHousekeeper::findObjsForPurge(const sUsr & admin, sVec<PurgedObj> & objs
 
     sVarSet objs_tbl;
     // FIXME : switch to hardExpiration
-    admin.db().getTable(&objs_tbl, "SELECT domainID, objID, ionID, creatorID FROM UPObj WHERE softExpiration IS NOT NULL AND DATEDIFF(NOW(), softExpiration) >= %"UDEC" ORDER BY softExpiration LIMIT %"UDEC, max_age_days, max_cnt);
+    admin.db().getTable(&objs_tbl, "SELECT domainID, objID, ionID, creatorID FROM UPObj WHERE softExpiration IS NOT NULL AND DATEDIFF(NOW(), softExpiration) >= %" UDEC " ORDER BY softExpiration LIMIT %" UDEC, max_age_days, max_cnt);
 
     const idx objs_initial_dim = objs.dim();
     objs.add(objs_tbl.rows);
@@ -61,7 +61,7 @@ sRC sUsrHousekeeper::findObjsForPurge(const sUsr & admin, sVec<PurgedObj> & objs
     sQPrideBase * qp = admin.QPride();
     if( qp ) {
         objs_buf.add0();
-        qp->logOut(sQPrideBase::eQPLogType_Trace, "sUsrHousekeeper::findObjsForPurge() found %"DEC" object(s): %s", objs_tbl.rows, objs_buf.ptr());
+        qp->logOut(sQPrideBase::eQPLogType_Trace, "sUsrHousekeeper::findObjsForPurge() found %" DEC " object(s): %s", objs_tbl.rows, objs_buf.ptr());
     }
 
     return sRC::zero;
@@ -94,7 +94,7 @@ sRC sUsrHousekeeper::findReqsForPurge(const sUsr & admin, sVec<PurgedReq> & reqs
             buf.addString(reqs_tbl.val(ir, 0));
         }
         buf.add0();
-        qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::findReqsForPurge() found %"DEC" requests: %s", reqs_tbl.rows, buf.ptr());
+        qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::findReqsForPurge() found %" DEC " requests: %s", reqs_tbl.rows, buf.ptr());
     }
 
     const idx reqs_initial_dim = reqs.dim();
@@ -130,7 +130,7 @@ sRC sUsrHousekeeper::findReqsForPurge(const sUsr & admin, sVec<PurgedReq> & reqs
 
     if( qp ) {
         sync_success_buf.add0();
-        qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::findReqsForPurge() synced %"DEC" process object(s): %s", sync_success_cnt, sync_success_buf.ptr());
+        qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::findReqsForPurge() synced %" DEC " process object(s): %s", sync_success_cnt, sync_success_buf.ptr());
     }
 
     return rc;
@@ -163,7 +163,7 @@ sRC sUsrHousekeeper::purgeObjs(sUsr & admin, const sVec<PurgedObj> & objs)
 
     if( qp ) {
         purged_success_buf.add0();
-        qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::purgeObjs() deleted %"DEC" object(s) : %s", purged_success_cnt, purged_success_buf.ptr());
+        qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::purgeObjs() deleted %" DEC " object(s) : %s", purged_success_cnt, purged_success_buf.ptr());
     }
 
     return sRC::zero;
@@ -188,7 +188,7 @@ sRC sUsrHousekeeper::purgeReqs(const sUsr & admin, const sVec<PurgedReq> & reqs)
 
     sStr reqs_buf;
     for(idx i=0; i < reqs.dim(); i++) {
-        reqs_buf.printf("%s%"UDEC, i ? "," : "", reqs[i].req_id);
+        reqs_buf.printf("%s%" UDEC, i ? "," : "", reqs[i].req_id);
     }
     reqs_buf.add0();
 
@@ -196,12 +196,12 @@ sRC sUsrHousekeeper::purgeReqs(const sUsr & admin, const sVec<PurgedReq> & reqs)
     p.Add("*").Add(reqs.dim()).Add("delete").Add(uses_qpsvc);
     if( p.execute() ) {
         if( qp ) {
-            qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::purgeReqs() deleted %"DEC" request(s) : %s", reqs.dim(), reqs_buf.ptr());
+            qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::purgeReqs() deleted %" DEC " request(s) : %s", reqs.dim(), reqs_buf.ptr());
         }
         return sRC::zero;
     } else {
         if( qp ) {
-            qp->logOut(sQPrideBase::eQPLogType_Error, "sUsrHousekeeper::purgeReqs() failed to delete %"DEC" request(s) : %s", reqs.dim(), reqs_buf.ptr());
+            qp->logOut(sQPrideBase::eQPLogType_Error, "sUsrHousekeeper::purgeReqs() failed to delete %" DEC " request(s) : %s", reqs.dim(), reqs_buf.ptr());
         }
         return sRC(sRC::eExecuting, sRC::eDatabase, sRC::eCommand, sRC::eFailed);
     }
@@ -363,7 +363,7 @@ class NameMaskMatcher
                     out.addString("'");
                     break;
                 case eMatchReq:
-                    out.printf(0, "request %"DEC, _req);
+                    out.printf(0, "request %" DEC, _req);
                     break;
                 case eMatchObj:
                     out.addString("object ");
@@ -437,7 +437,7 @@ sRC sUsrHousekeeper::purgeTempFiles(const sUsr & admin, const sVec<PurgedObj> & 
                     if( cur_time > 0 && atime > 0 && atime < cur_time - cleanup_secs ) {
                         if( sFile::remove(filepath) || sDir::removeDir(filepath, true) ) {
                             buf.cut(0);
-                            qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::purgeTempFiles() : deleted '%s' for age (atime %s < now - %"DEC" days)", filepath, sString::printDateTime(buf, atime), cleanup_days);
+                            qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::purgeTempFiles() : deleted '%s' for age (atime %s < now - %" DEC " days)", filepath, sString::printDateTime(buf, atime), cleanup_days);
                         } else {
                             qp->logOut(sQPrideBase::eQPLogType_Error, "sUsrHousekeeper::purgeTempFiles() : failed to delete '%s'", filepath);
                             rc = sRC(sRC::eRemoving, sRC::eFile, sRC::eOperation, sRC::eFailed);

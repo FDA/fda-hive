@@ -383,7 +383,7 @@ bool ExecContext::loadFileObject(idx loader_handle, InputTableSource * source)
     sTxtTbl * tbl = newCSVorVCF(tblDataPath, tblIdxPath, tblDataPath, 0, 0, opts);
     if( !tbl ) {
         if( _waiting_for_req ) {
-            logDebug("Index for table %s for object %s locked by request %"DEC, tblDataPath.ptr(), objIDStr.ptr(), _waiting_for_req);
+            logDebug("Index for table %s for object %s locked by request %" DEC, tblDataPath.ptr(), objIDStr.ptr(), _waiting_for_req);
         } else {
 #ifdef _DEBUG
             // Don't show storage paths to user!
@@ -421,25 +421,25 @@ bool ExecContext::loadRequestFile(idx loader_handle, InputTableSource * source)
     const char * tblname = getLoaderTblSourceString(source->tblname_index);
 
     if( !_proc.reqAuthorized(source->data_req_id) ) {
-        logError("Not authorized to read request %"UDEC" data", source->data_req_id);
+        logError("Not authorized to read request %" UDEC " data", source->data_req_id);
         return false;
     }
 
     if( const char * idx_suffix = getLoaderTblSourceString(source->idx_suffix_index) ) {
-        tblIdxName.printf("req%"DEC"-%s.%s.idx2", source->data_req_id, tblname, idx_suffix);
+        tblIdxName.printf("req%" DEC "-%s.%s.idx2", source->data_req_id, tblname, idx_suffix);
     } else {
-        tblIdxName.printf("req%"DEC"-%s.idx2", source->data_req_id, tblname);
+        tblIdxName.printf("req%" DEC "-%s.idx2", source->data_req_id, tblname);
     }
     _proc.cfgPath(tblIdxPath, 0, tblIdxName, "tblqryx.tableRepository");
 
     if( source->data_is_grp ) {
         if( !_proc.grpGetData(source->data_req_id, tblname, &tblFil, true, 0, &tblFilTime) ) {
-            logError("Request group %"UDEC" doesn't have table %s", source->data_req_id, tblname);
+            logError("Request group %" UDEC " doesn't have table %s", source->data_req_id, tblname);
             return false;
         }
     } else {
         if( !_proc.reqGetData(source->data_req_id, tblname, &tblFil, true, &tblFilTime) ) {
-            logError("Request %"UDEC" doesn't have table %s", source->data_req_id, tblname);
+            logError("Request %" UDEC " doesn't have table %s", source->data_req_id, tblname);
             return false;
         }
     }
@@ -463,15 +463,15 @@ bool ExecContext::loadRequestFile(idx loader_handle, InputTableSource * source)
     sTxtTbl * tbl = newCSVorVCF(tblname, tblIdxPath, 0, &tblFil, tblFilTime, opts);
     if( !tbl ) {
         if( _waiting_for_req ) {
-            logDebug("Index for table %s for request %"UDEC" locked by request %"UDEC, tblname, source->data_req_id, _waiting_for_req);
+            logDebug("Index for table %s for request %" UDEC " locked by request %" UDEC, tblname, source->data_req_id, _waiting_for_req);
         } else {
-            logError("Failed to parse table %s for request %"UDEC, tblname, source->data_req_id);
+            logError("Failed to parse table %s for request %" UDEC, tblname, source->data_req_id);
         }
         return false;
     }
 
 #ifdef _DEBUG
-    fprintf(stderr, "Loading table %s for request %"UDEC" (index file %s)\n", tblname, source->data_req_id, tblIdxPath.ptr(0));
+    fprintf(stderr, "Loading table %s for request %" UDEC " (index file %s)\n", tblname, source->data_req_id, tblIdxPath.ptr(0));
 #endif
 
     tbl->setTableMetadata("name", tblname);

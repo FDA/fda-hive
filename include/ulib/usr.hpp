@@ -373,7 +373,7 @@ namespace slib {
                     lclBuf.cut(0);
                     buf = &lclBuf;
                 }
-                buf->printf("%"UDEC, Id());
+                buf->printf("%" UDEC, Id());
                 return buf->ptr();
             }
             udx groupId(void) const

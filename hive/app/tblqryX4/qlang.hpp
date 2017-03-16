@@ -197,7 +197,7 @@ namespace slib {
                     sUsrObj al(*_usr, parent_proc_ids[0]);
                     if( al.Id() ) {
                         sStr parentAlignmentPath;
-                        al.getFilePathname00(parentAlignmentPath, "alignment.hiveal"_"alignment.vioal"__);
+                        al.getFilePathname00(parentAlignmentPath, "alignment.hiveal" _ "alignment.vioal" __);
                         if( parentAlignmentPath ) {
                             sHiveal hiveal(_usr);
                             sHiveseq * sub = new sHiveseq(_usr, al.propGet00("subject", 0,";"), hiveal.parseSubMode(parentAlignmentPath));

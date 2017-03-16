@@ -406,7 +406,7 @@ idx DnaHeptagon::OnExecute(idx req)
         alignerID = alignerIDs[ia];
         sUsrFile aligner(alignerID, user);
         sStr path;
-        aligner.getFilePathname00(path, "alignment.hiveal"_"alignment.vioal"__);
+        aligner.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __);
         sHiveal hiveal(user, path);
         sBioal * bioal = &hiveal;
         idx subSetDimAl = 0;
@@ -428,7 +428,7 @@ idx DnaHeptagon::OnExecute(idx req)
 
     // if profiling stage is not yet done
     sStr path;
-    aligner.getFilePathname00(path, "alignment.hiveal"_"alignment.vioal"__);
+    aligner.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __);
     sHiveal hiveal(user, path);
     sBioal * bioal = &hiveal;
     bioal=&hiveal;
@@ -552,7 +552,7 @@ idx DnaHeptagon::OnExecute(idx req)
         if(start>=dimAl){totalAls+=dimAl;continue;}
         if(end<0)break;
 
-        logOut(eQPLogType_Info,"Profiling %s from subject %"DEC"\n",reqProfPath.ptr(0),iSub );
+        logOut(eQPLogType_Info,"Profiling %s from subject %" DEC "\n",reqProfPath.ptr(0),iSub );
 
         // now determine the first and last alignments touching each particular range
         // for that we first initialize the range info for this subject
@@ -564,8 +564,8 @@ idx DnaHeptagon::OnExecute(idx req)
         }
         if( rangeCount > 1 && SP.countAAs && SP.computeAAs ) {
             SP.countAAs = 0;
-            logOut(eQPLogType_Warning,"Subject %"DEC" longer than %"DEC" limit. Amino acid calls will not be calculated\n",iSub, SP.rangeSize );
-            reqSetInfo(req, eQPInfoLevel_Warning, "Subject %"DEC" longer than %"DEC" limit. Amino acid calls will not be calculated\n",iSub, SP.rangeSize);
+            logOut(eQPLogType_Warning,"Subject %" DEC " longer than %" DEC " limit. Amino acid calls will not be calculated\n",iSub, SP.rangeSize );
+            reqSetInfo(req, eQPInfoLevel_Warning, "Subject %" DEC " longer than %" DEC " limit. Amino acid calls will not be calculated\n",iSub, SP.rangeSize);
         }
         // now loop over subjects and see each alignment's impact to each subject range
         for (idx ia=start; ia<end; ++ia) {
@@ -720,7 +720,7 @@ idx DnaHeptagon::OnExecute(idx req)
             Pinf.destroy();
             Ainf.destroy();
 
-            logOut(eQPLogType_Info,"\t %"DEC"/%"DEC": mapping alignments %"DEC"-%"DEC" to range %"DEC"-%"DEC" = %"DEC" bases at offset %"DEC" \n",irange+1,rangeCount,rangeStartIndexes[irange].iStart, rangeStartIndexes[irange].iEnd, SR.rStart, SR.rEnd, SR.posMapped , SR.ofsInFile);
+            logOut(eQPLogType_Info,"\t %" DEC "/%" DEC ": mapping alignments %" DEC "-%" DEC " to range %" DEC "-%" DEC " = %" DEC " bases at offset %" DEC " \n",irange+1,rangeCount,rangeStartIndexes[irange].iStart, rangeStartIndexes[irange].iEnd, SR.rStart, SR.rEnd, SR.posMapped , SR.ofsInFile);
         }
 
         //if( !reqProgress(cntFound, is, numAlChunks) ) {
@@ -827,15 +827,15 @@ idx DnaHeptagon::OnExecute(idx req)
                 doBreak = true;
                 break;
             }
-            tt.printf(0,"%"DEC"-%"DEC,subRanges[is].iSub,subRanges[is].iRange);
+            tt.printf(0,"%" DEC "-%" DEC,subRanges[is].iSub,subRanges[is].iRange);
 
             // the first occurence of the particular subject->range is held in profileRegions file
             SNPRange * v=profileRegions.get(tt.ptr());
             if(!v){
                 v=profileRegions.set(tt.ptr());if(!v)continue;
                 *v=subRanges[is];
-                logOut(eQPLogType_Info,"Registering subject %"DEC" range #%"DEC"\n",v->iSub,v->iRange);
-                logOut(eQPLogType_Info,"\t range %"DEC"-%"DEC" mapping %"DEC" bases from req %"DEC" file offset %"DEC"\n",v->rStart,v->rEnd,v->posMapped,subRanges[is].reqID,v->ofsInFile);
+                logOut(eQPLogType_Info,"Registering subject %" DEC " range #%" DEC "\n",v->iSub,v->iRange);
+                logOut(eQPLogType_Info,"\t range %" DEC "-%" DEC " mapping %" DEC " bases from req %" DEC " file offset %" DEC "\n",v->rStart,v->rEnd,v->posMapped,subRanges[is].reqID,v->ofsInFile);
 
                 continue;
             }
@@ -855,7 +855,7 @@ idx DnaHeptagon::OnExecute(idx req)
                 }
             }
 
-            logOut(eQPLogType_Info,"\t+range %"DEC"-%"DEC" mapping %"DEC" bases from req %"DEC" file offset %"DEC"\n",subRanges[is].rStart,subRanges[is].rEnd,subRanges[is].posMapped,subRanges[is].reqID,subRanges[is].ofsInFile);
+            logOut(eQPLogType_Info,"\t+range %" DEC "-%" DEC " mapping %" DEC " bases from req %" DEC " file offset %" DEC "\n",subRanges[is].rStart,subRanges[is].rEnd,subRanges[is].posMapped,subRanges[is].reqID,subRanges[is].ofsInFile);
 
 
             // here we determine and partial map the particular subject/range source
@@ -983,7 +983,7 @@ idx DnaHeptagon::OnExecute(idx req)
         idx rangeCount = SP.rangeSize ? (sublen-1)/SP.rangeSize+1 : 1 ;
         bool cntedSub = false;
         for( idx irange=0; irange<rangeCount ; ++irange){
-            tt.printf(0,"%"DEC"-%"DEC,iSub,irange);
+            tt.printf(0,"%" DEC "-%" DEC,iSub,irange);
             SNPRange * v=profileRegions.get(tt.ptr());
             if(v){
                 *profileRegionsAll.add()=*v;
@@ -1033,6 +1033,6 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaHeptagon backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-heptagon",argv[0]));
+    DnaHeptagon backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-heptagon",argv[0]));
     return (int)backend.run(argc,argv);
 }

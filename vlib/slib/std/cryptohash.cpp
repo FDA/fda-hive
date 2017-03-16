@@ -140,7 +140,7 @@ const char * sPassword::encodePassword(sStr & out, const char * pass, const char
 {
     idx pos = out.length();
     idx iterations = sPBKDF2_HMAC<sSHA256>::default_iterations;
-    out.printf("pbkdf2_sha256$%"DEC"$", iterations);
+    out.printf("pbkdf2_sha256$%" DEC "$", iterations);
     idx salt_pos = out.length();
     idx salt_len = sLen(salt);
     if( salt_len ) {

@@ -100,7 +100,7 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
         textScanEnd = textScan + strlen(textScan);
 
     // is it undefined
-    //isNON=sString::searchSubstring(textScan,0,"default"_"undefined"__,1,0,1) ? 1 : 0 ;
+    //isNON=sString::searchSubstring(textScan,0,"default" _ "undefined" __,1,0,1) ? 1 : 0 ;
 
     for(icnt=0, fmt=formatDescription; *fmt && textScan<=textScanEnd; ++fmt){
         if(*fmt!='%')continue;
@@ -130,8 +130,8 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
                 else { val=(idx)val;vmin=-0x7FFFFFF; vmax=0x7FFFFFF; }
                 isScanned=bufscanf(textScan,textScanEnd,pFormat,&val);
                 if(isScanned!=1) scanAfter(&wb,pFormat,fmt,(char *)&val,"=",toEndSym);                // if couldn't scan try default value
-                scanAfter(&wb,pFormat,fmt,(char *)&vmin,">",";"sString_symbolsBlank);
-                scanAfter(&wb,pFormat,fmt,(char *)&vmax,"<",";"sString_symbolsBlank);
+                scanAfter(&wb,pFormat,fmt,(char *)&vmin,">",";" sString_symbolsBlank);
+                scanAfter(&wb,pFormat,fmt,(char *)&vmax,"<",";" sString_symbolsBlank);
 
                 if( isLongLong ) {
                 } else if( isLong ) {
@@ -159,8 +159,8 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
                 double val=0, vmin=-DBL_MAX, vmax=DBL_MAX;
                 isScanned=bufscanf(textScan,textScanEnd,pFormat,&val);
                 if(isScanned!=1) scanAfter(&wb,pFormat,fmt,(char *)&val,"=",toEndSym);                // if couldn't scan try default value
-                scanAfter(&wb,pFormat,fmt,(char *)&vmin,">",";"sString_symbolsBlank);
-                scanAfter(&wb,pFormat,fmt,(char *)&vmax,"<",";"sString_symbolsBlank);
+                scanAfter(&wb,pFormat,fmt,(char *)&vmin,">",";" sString_symbolsBlank);
+                scanAfter(&wb,pFormat,fmt,(char *)&vmax,"<",";" sString_symbolsBlank);
                 if(islower(*typeOf)){
                     if( val<vmin )val=vmin; // check for minimum and maximum
                     if( val>vmax )val=vmax;
@@ -197,10 +197,10 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
                 }
                 // if couldn't find try default value otherwise get the value of the choice or it's number
                 if(!isScanned) {
-                    if(bufscanf(textScan,textScanEnd,"%"DEC,(idx *)&val)<1)
-                        scanAfter(&wb,"%"DEC,fmt,(char *)&val,"=",";^");
+                    if(bufscanf(textScan,textScanEnd,"%" DEC,(idx *)&val)<1)
+                        scanAfter(&wb,"%" DEC,fmt,(char *)&val,"=",";^");
                 }
-                else if(pItem[is]=='=') scanAfter(&wb,"%"DEC,pItem+is,(char *)&val,0,";^");
+                else if(pItem[is]=='=') scanAfter(&wb,"%" DEC,pItem+is,(char *)&val,0,";^");
                 else val=iChoice;
                 *va_arg(marker, idx * )=val;
                 } ++icnt;break;
@@ -220,7 +220,7 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
                     // if couldn't find try default value otherwise get the value of the choice or it's number
                     if(isScanned){
                         idx valScan=0;
-                        if(pItem[is]=='='){scanAfter(&wb,"%"HEX,pItem+is,(char *)&valScan,0,"|;");val|=valScan;}
+                        if(pItem[is]=='='){scanAfter(&wb,"%" HEX,pItem+is,(char *)&valScan,0,"|;");val|=valScan;}
                         else val|=(((idx)1)<<iChoice);
                     }
                     curT=_strnpbrk(curT+is,"|;",textScanEnd-(curT+is)); // next piece
@@ -229,13 +229,13 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
                     }
                 }
 
-                if(!val) scanAfter(&wb,"%"HEX,fmt,(char *)&val,"=","|;");
+                if(!val) scanAfter(&wb,"%" HEX,fmt,(char *)&val,"=","|;");
                 *va_arg(marker, idx * )=val;
                 }++icnt;break;
             default:
                 break;
         }
-        fmt=strpbrk(fmt,";"sString_symbolsBlank);
+        fmt=strpbrk(fmt,";" sString_symbolsBlank);
         textScan=_strnpbrk(textScan,sString_symbolsBlank,textScanEnd-textScan);
         if(!textScan)break;
         ++textScan;
@@ -347,7 +347,7 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
                     pItem++;
 
                     pFormat = strpbrk(pItem, "=^;"); // find the numvalue for the current choice
-                    if( pFormat && pFormat[0] == '=' && scanAfter(&wb, "%"HEX, pFormat, (char *) &iTmp, 0, "^;") ) {
+                    if( pFormat && pFormat[0] == '=' && scanAfter(&wb, "%" HEX, pFormat, (char *) &iTmp, 0, "^;") ) {
                         // read the numvalue
                     } else {
                         iTmp = (iChoice); // no numvalue - it is indexed from 0
@@ -361,8 +361,8 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
                         break;
                     } // if we have found the predefined value  copy it to return buffer
                 }
-                if(!isFnd)str->printf("%"DEC,iVal);// no match - print as a number
-                fmt = strpbrk(fmt, ";"sString_symbolsBlank);
+                if(!isFnd)str->printf("%" DEC,iVal);// no match - print as a number
+                fmt = strpbrk(fmt, ";" sString_symbolsBlank);
                 if( fmt && *fmt != ';' ) --fmt;
                 break;
 
@@ -377,7 +377,7 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
                     pItem++;
 
                     pFormat = strpbrk(pItem, "=|;"); // find the numvalue for the choice
-                    if( pFormat && pFormat[0] == '=' && scanAfter(&wb, "%"HEX, pFormat, (char *) &iTmp, 0, "|;") ) {
+                    if( pFormat && pFormat[0] == '=' && scanAfter(&wb, "%" HEX, pFormat, (char *) &iTmp, 0, "|;") ) {
                         // read the numvalue
                     } else {
                         iTmp = (((idx) 1) << iChoice); // no numvallue .. the valie is the one with index-th bit set
@@ -392,7 +392,7 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
                         isFnd = 1;
                     }
                 }
-                fmt = strpbrk(fmt, ";"sString_symbolsBlank);
+                fmt = strpbrk(fmt, ";" sString_symbolsBlank);
                 if( fmt && *fmt != ';' ) --fmt;
                 break;
 
@@ -443,13 +443,13 @@ void sString::xscanSect(const char * src, idx len,SectVar * varIO, idx cnt)
 
     for(idx iv=0; iv<cnt && varIO[iv].loc ; ++iv) {
 
-        if(varIO[iv].loc[sLen(varIO[iv].loc)+1]==0)term="["__; // the whole section is required
-        else term="["_"\n"__;
+        if(varIO[iv].loc[sLen(varIO[iv].loc)+1]==0)term="[" __; // the whole section is required
+        else term="[" _ "\n" __;
 
         // first we locate the variable in the input source
         idx st=0,en=0;
         searchStruc(src, len, varIO[iv].loc, term,&st,&en); // first we find out variable
-        if(st!=en)cleanEnds(&buf,src+st,en-st,"="sString_symbolsBlank,true); // then we clean equal signs and spaces at both ends
+        if(st!=en)cleanEnds(&buf,src+st,en-st,"=" sString_symbolsBlank,true); // then we clean equal signs and spaces at both ends
         if(!buf.length())buf.add(__,2);
 
         // now we read the values

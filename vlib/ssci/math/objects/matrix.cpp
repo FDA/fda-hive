@@ -71,7 +71,7 @@ void sMatrix::matOutput(sStr * out, void * opr, real * , idx row, idx col, bool 
             p=(const char*)(op->rows->id(row,&plen));
             titleOutput(out, p, plen, forCSV);
         } else {
-            out->printf("row_%"DEC"", row+1 );
+            out->printf("row_%" DEC "", row+1 );
         }
     }
     else if(row==-1){
@@ -80,7 +80,7 @@ void sMatrix::matOutput(sStr * out, void * opr, real * , idx row, idx col, bool 
             p=(const char*)(op->cols->id(col,&plen));
             titleOutput(out, (const char*)(op->cols->id(col)), plen, forCSV);
         } else {
-            out->printf("col_%"DEC"", col+1);
+            out->printf("col_%" DEC "", col+1);
         }
     }
 
@@ -91,8 +91,8 @@ void sMatrix::matOutput(sStr * out, void * opr, real * , idx row, idx col, bool 
 void sMatrix::matOutput(sStr * out, void * , real * , idx row, idx col)//param pVal
 {
     if(row==-1 && col==-1) out->printf("/");
-    else if(col==-1){out->printf("row_%"DEC"",row);}
-    else if(row==-1){out->printf("col_%"DEC"",col);}
+    else if(col==-1){out->printf("row_%" DEC "",row);}
+    else if(row==-1){out->printf("col_%" DEC "",col);}
     //else out->printf("%lf",*pVal);
     return ;
 }
@@ -168,7 +168,7 @@ void sMatrix::outSingleEvecSrt(sStr * out, real * evals, idx col, sDic < idx > *
     real allEval=0;for( idx ic=0; ic<cls; ++ic)allEval+=evals[ic];
 
     real prctl=100.*evals[col]/allEval;
-    out->printf("%"DEC"-vec,%lf,(%.2lf),",col+1,evals[col],prctl);
+    out->printf("%" DEC "-vec,%lf,(%.2lf),",col+1,evals[col],prctl);
     if(outshort)
         outshort->cut(0);
     //if(prctl<1)topPeaks=0;
@@ -184,11 +184,11 @@ void sMatrix::outSingleEvecSrt(sStr * out, real * evals, idx col, sDic < idx > *
             if(outshort)outshort->printf(" ");
         }
         if(pid) out->printf("%.2lf(%s)", vv*vv*100.,pid);
-        else out->printf("%.2lf(#%"DEC")", vv*vv*100.,ind[ir]);
+        else out->printf("%.2lf(#%" DEC ")", vv*vv*100.,ind[ir]);
 
         if(outshort) {
             if(pid) outshort->printf("%.lf-%s", vv*vv*100.,pid);
-            else outshort->printf("%.lf-#%"DEC"", vv*vv*100.,ind[ir]);
+            else outshort->printf("%.lf-#%" DEC "", vv*vv*100.,ind[ir]);
         }
 
         ++ip;
@@ -680,7 +680,7 @@ idx sMatrix::parseTabular(sTabular * tbl, sVec< idx > * rowSet, sVec< idx > * co
             cellResult.cut(0);tbl->printTopHeader(cellResult, iCol);
             if (cellResult && ::strcmp(cellResult.ptr(), ""))
                 *colIds->set(cellResult.ptr())=icol;
-            //else ::printf("\nERRRRRRRRRRRR %"DEC" %"DEC" \n",icol,iCol);
+            //else ::printf("\nERRRRRRRRRRRR %" DEC " %" DEC " \n",icol,iCol);
         }
         ++icol;
     }

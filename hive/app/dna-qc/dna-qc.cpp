@@ -172,7 +172,7 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
     if( !obj.get() || !obj->Id() ) {
         errmsg.printf("Object %s not found or access denied", obj->IdStr());
     } else {
-        obj->getFilePathname00(path, ".hiveseq"_".vioseqlist"_".vioseq2"__);
+        obj->getFilePathname00(path, ".hiveseq" _ ".vioseqlist" _ ".vioseq2" __);
     }
     sHiveseq hs(user, path);
     if( !errmsg ) {
@@ -229,7 +229,7 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
             }
             const char * seq = Qry.seq(ipos);
             if (!seq){
-                errmsg.printf("Empty sequence at read: %"DEC, ipos);
+                errmsg.printf("Empty sequence at read: %" DEC, ipos);
                 break;
             }
             // Calculate statistics for objId.
@@ -290,9 +290,9 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
                 Lenstats *auxlen = lenStat.ptr(ind[l]);
                 real avg =  auxlen->sum / auxlen->num;
                 if( avg < .01 ) {
-                    fp.printf("%"DEC",%"DEC",0\n", aux, auxlen->num);
+                    fp.printf("%" DEC ",%" DEC ",0\n", aux, auxlen->num);
                 } else {
-                    fp.printf("%"DEC",%"DEC",%.2lf\n", aux, auxlen->num, avg );
+                    fp.printf("%" DEC ",%" DEC ",%.2lf\n", aux, auxlen->num, avg );
                 }
                 if( !progressReport(req, l, l * 10 / lenStat.dim()) ) {
                     errmsg.printf("Killed by the user");
@@ -323,7 +323,7 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
                 }
             }
             for(idx let = 0; let < 4; ++let) {
-                fp.printf("%c,%"DEC",%.3lf\n", sBioseq::mapRevATGC[let], sumCount[let], sumCount[let] ? sumQuality[let] / (real) sumCount[let] : 0);
+                fp.printf("%c,%" DEC ",%.3lf\n", sBioseq::mapRevATGC[let], sumCount[let], sumCount[let] ? sumQuality[let] / (real) sumCount[let] : 0);
             }
         } else {
             errmsg.printf("Can't write '%s'", path.ptr());
@@ -339,15 +339,15 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
             fp.printf("pos,mindA,qualityA,maxdA,countA,mindC,qualityC,maxdC,countC,mindG,qualityG,maxdG,countG,mindT,qualityT,maxdT,countT\n");
             for(idx ipos = 0; ipos < MAXSEQLEN; ++ipos) {
                 QCstats *qcstat = quaStat.ptr(ipos);
-                fp.printf("%"DEC, ipos);
+                fp.printf("%" DEC, ipos);
                 for(idx l = 0; l < 4; ++l) {
                     real mean = Stats_mean(qcstat, l);
                     real stdev = Stats_stddev(qcstat, l);
                     if (mean == 0){
-                        fp.printf(",0,0,0,%"DEC, qcstat->cACGT[l]);
+                        fp.printf(",0,0,0,%" DEC, qcstat->cACGT[l]);
                     }
                     else {
-                        fp.printf(",%.3lf,%.3lf,%.3lf,%"DEC, mean - (stdev / 2.0), mean, mean + (stdev / 2.0), qcstat->cACGT[l]);
+                        fp.printf(",%.3lf,%.3lf,%.3lf,%" DEC, mean - (stdev / 2.0), mean, mean + (stdev / 2.0), qcstat->cACGT[l]);
                     }
 
                 }
@@ -368,7 +368,7 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
         prop_ok += obj->propSetI("len-avg", (idx)(sumLength/numLength)+0.5);
         prop_ok += obj->propSetI("bases-count", sumLength);
         if (prop_ok != 4){
-            reqSetInfo(req, eQPInfoLevel_Warning, "Failed to assign statistics properties to object Id = %"DEC, objId.objId());
+            reqSetInfo(req, eQPInfoLevel_Warning, "Failed to assign statistics properties to object Id = %" DEC, objId.objId());
         }
     }
 
@@ -382,8 +382,8 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
             sBioGenCode GenCodeData;
             for(idx i = 0; i < numAllCdTbl; i++) {
                 fp.printf("\n\"%s\"", GenCodeData.genCodes[i].nm);
-                fp.printf(",%"DEC, countHas[i]);
-                fp.printf(",%"DEC, Qry.longcount() - countHas[i]);
+                fp.printf(",%" DEC, countHas[i]);
+                fp.printf(",%" DEC, Qry.longcount() - countHas[i]);
 
                 if( !progressReport(req, i, i *10 / numAllCdTbl) ) {
                     errmsg.printf("Killed by the user");
@@ -401,8 +401,8 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
             if( fp.ok() ) {
                 fp.cut(0);
                 fp.printf("Reads,Count");
-                fp.printf("\nComplex,%"DEC, complexCnt);
-                fp.printf("\nNot Complex,%"DEC, Qry.longcount()-complexCnt);
+                fp.printf("\nComplex,%" DEC, complexCnt);
+                fp.printf("\nNot Complex,%" DEC, Qry.longcount()-complexCnt);
 
             } else {
                 errmsg.printf("Can't write '%s'", path.ptr());
@@ -443,7 +443,7 @@ idx DnaQCProc::OnExecute(idx req)
         }
     }
     else {
-        errmsg.printf("Invalid objID in %"DEC" request", req);
+        errmsg.printf("Invalid objID in %" DEC " request", req);
     }
 
 
@@ -463,6 +463,6 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
-    DnaQCProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-qc", argv[0]));
+    DnaQCProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-qc", argv[0]));
     return (int) backend.run(argc, argv);
 }

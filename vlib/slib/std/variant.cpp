@@ -125,13 +125,13 @@ struct ShortStrings
         }
 
         if (len == 1 || !s[1]) {
-//            fprintf(stderr, "Found interned '%s' == %"DEC"\n", s, (idx)(s[0]));
+//            fprintf(stderr, "Found interned '%s' == %" DEC "\n", s, (idx)(s[0]));
             return s[0];
         }
 
         idx result = interns.find(s, len) - 1;
         if (result >= 0) {
-//            fprintf(stderr, "Found interned '%s' == %"DEC"\n", s, result + 256);
+//            fprintf(stderr, "Found interned '%s' == %" DEC "\n", s, result + 256);
             return result + 256;
         }
 
@@ -1308,9 +1308,9 @@ const char * sVariant::print(sStr &s, ePrintMode mode, const Whitespace * whites
         }
         break;
     case value_INT:
-        return s.printf("%"DEC, _val.i);
+        return s.printf("%" DEC, _val.i);
     case value_UINT:
-        return s.printf("%"UDEC, _val.u);
+        return s.printf("%" UDEC, _val.u);
     case value_REAL:
         if( mode == eJSON ) {
             // JSON does not allow NaN or Infinity literals. Most JSON libraries map NaN to null literal.
@@ -1542,12 +1542,12 @@ const char * sVariant::print(sStr &s, ePrintMode mode, const Whitespace * whites
             idx hour = _val.date.timestamp / 3600;
             idx minute = _val.date.timestamp / 60 - hour * 60;
             idx second = _val.date.timestamp - 60 * (60 * hour + minute);
-            s.printf("%02"DEC":%02"DEC":%02"DEC, hour, minute, second);
+            s.printf("%02" DEC ":%02" DEC ":%02" DEC, hour, minute, second);
             if (_val.date.utc_offset != -sIdxMax) {
                 if (_val.date.utc_offset) {
                     idx offset_hour = sAbs(_val.date.utc_offset) / 3600;
                     idx offset_minute = sAbs(_val.date.utc_offset) / 60 - offset_hour * 60;
-                    s.printf("%c%02"DEC":%02"DEC, _val.date.utc_offset > 0 ? '+' : '-', offset_hour, offset_minute);
+                    s.printf("%c%02" DEC ":%02" DEC, _val.date.utc_offset > 0 ? '+' : '-', offset_hour, offset_minute);
                 } else {
                     s.addString("Z");
                 }

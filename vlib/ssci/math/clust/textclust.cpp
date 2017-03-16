@@ -359,16 +359,16 @@ const char * sTextClust::stringConsensus (sStr &out, idx iClust)
 bool sTextClust::reportPopulationInfo (sStr &out)
 {
     out.cut(0);
-    //out.printf("# There are: %"DEC" clusters in total \n", num_clusters);
-    //out.printf("# Population size: %"DEC" \n", num_population);
+    //out.printf("# There are: %" DEC " clusters in total \n", num_clusters);
+    //out.printf("# Population size: %" DEC " \n", num_population);
     out.printf("row,cluster,id%s\n", printInfo ? ",info": 0);
     sStr t1;
 
     for (idx i = 0; i< num_population; ++i){
         t1.cut(0);
         getString(t1, i);
-        out.printf ("%"DEC, i+1);
-        out.printf(",%"DEC",%s", Population.ptr(i)->cluster, t1.ptr());
+        out.printf ("%" DEC, i+1);
+        out.printf(",%" DEC ",%s", Population.ptr(i)->cluster, t1.ptr());
         if (printInfo && infoContainer){
             out.printf (",%s", sString::next00(infoContainer->ptr(0), i));
         }
@@ -381,28 +381,28 @@ bool sTextClust::reportPopulationInfo (sStr &out)
 
 bool sTextClust::reportClusterInfo (sStr &out)
 {
-    out.printf("# There are: %"DEC" clusters \n", num_clusters);
+    out.printf("# There are: %" DEC " clusters \n", num_clusters);
     out.printf("population index, count, info \n");
     sStr aux;
     for (idx i = 0; i< num_clusters; ++i){
         aux.cut(0);
-        out.printf ("%"DEC", %"DEC", %s\n", i, Clusters.ptr(i)->count, stringConsensus(aux, i));
+        out.printf ("%" DEC ", %" DEC ", %s\n", i, Clusters.ptr(i)->count, stringConsensus(aux, i));
     }
     return true;
 }
 
 bool sTextClust::reportClusterDistanceMatrix (sStr &out, idx *pmat)
 {
-    out.printf("# There are: %"DEC" clusters \n ,", num_clusters);
+    out.printf("# There are: %" DEC " clusters \n ,", num_clusters);
     for(idx i = 0; i < num_clusters; ++i) {
-        out.printf("%"DEC",", i+1 );
+        out.printf("%" DEC ",", i+1 );
     }
     *out.ptr(out.length()-1) = '\n';
     idx im = 0;
     for(idx i = 0; i < num_clusters; ++i) {
-        out.printf("%"DEC",", i+1 );
+        out.printf("%" DEC ",", i+1 );
         for(idx j = 0; j < num_clusters; ++j) {
-            out.printf("%"DEC",", pmat[im++]);
+            out.printf("%" DEC ",", pmat[im++]);
         }
         *out.ptr(out.length()-1) = '\n';
     }
@@ -422,9 +422,9 @@ bool sTextClust::reportHeatmapInfoDetail (sStr &out)
     // print Rows
     for (idx i = 1; i < 2; ++i){
         clu = Clusters.ptr(i);
-//        out.printf("cluster_%"DEC, i);
+//        out.printf("cluster_%" DEC, i);
         for (idx j = 0; j < stringLength; ++j){
-            out.printf("pos_%"DEC, j);
+            out.printf("pos_%" DEC, j);
             for (idx k = 0; k < num_alphabet; ++k){
                 val = (clu->representation[j][k] != 0) ? ((real)clu->representation[j][k] / (real)clu->count) : 0;
                 if (val < 0.001){
@@ -447,7 +447,7 @@ bool sTextClust::reportHeatmapInfoGen (sStr &out)
     // print Header
     out.printf("cluster");
     for (idx i = 0; i < stringLength; ++i){
-        out.printf(",pos_%"DEC, i);
+        out.printf(",pos_%" DEC, i);
     }
 
     out.printf("\n");
@@ -461,10 +461,10 @@ bool sTextClust::reportHeatmapInfoGen (sStr &out)
         aux.cut(0);
         clu = Clusters.ptr(i);
         stringConsensus(aux, i);
-        out.printf("\"%"DEC",%s (%"DEC")\"", i, aux.ptr(), getCountCluster(i));
+        out.printf("\"%" DEC ",%s (%" DEC ")\"", i, aux.ptr(), getCountCluster(i));
 
-//        out.printf("%"DEC, i);
-//        out.printf("cluster_%"DEC, i);
+//        out.printf("%" DEC, i);
+//        out.printf("cluster_%" DEC, i);
         tpos.cut(0);
         extractRepresentation (buf, i, &tpos);
         for (idx j = 0; j < stringLength; ++j){
@@ -498,10 +498,10 @@ bool sTextClust::reportAnnotationMap (sStr &out, bool printHeader)
 //        if (printInfo && infoContainer){
 //            out.printf ("\"%s\"", );
 //        }
-        outAux.printf(0,"%"DEC",%"DEC",%"DEC",\"id:%s;seq:%.*s\"\n", i+1, clu->offset+1, clu->offset+1 + repLen, sString::next00(infoContainer->ptr(0), i), (int)repLen, aux.ptr(0));
+        outAux.printf(0,"%" DEC ",%" DEC ",%" DEC ",\"id:%s;seq:%.*s\"\n", i+1, clu->offset+1, clu->offset+1 + repLen, sString::next00(infoContainer->ptr(0), i), (int)repLen, aux.ptr(0));
         out.add(outAux, outAux.length());
 //        sString::escapeForCSV(out, outAux, outAux.length());
-//        out.printf(",%"DEC":%.*s\n", i+1, );
+//        out.printf(",%" DEC ":%.*s\n", i+1, );
     }
     return true;
 }

@@ -78,7 +78,7 @@ namespace slib {
 
 // To add a new generic command: describe here and add an entry to TBLQRYX4_EXT_FACTORIES in tblqryX4_cmdlist.hpp
 const CmdGeneric::OpDesc CmdGeneric::_ops[] = {
-    { "generic-cmd-test", "python-run.os" SLIB_PLATFORM _"2.7"_"tblqry-generic-cmd-test.py"__, true },
+    { "generic-cmd-test", "python-run.os" SLIB_PLATFORM _"2.7" _ "tblqry-generic-cmd-test.py" __, true },
 };
 
 bool CmdGeneric::init(const char * op_name, sVariant * tqs_arg)
@@ -106,7 +106,7 @@ bool CmdGeneric::compute(sTabular * in_table)
     cmdline00.add0();
 
     cmdline00.add("-i");
-    const char * in_path = _ctx.qproc().reqAddFile(cmdline00, "req-generic-cmd-%"DEC"-in.csv", _ctx.curCmdIndex());
+    const char * in_path = _ctx.qproc().reqAddFile(cmdline00, "req-generic-cmd-%" DEC "-in.csv", _ctx.curCmdIndex());
     sFil in_fil(in_path);
     if( !in_path || !in_path[0] || !in_fil.ok() ) {
         _ctx.logError("Failed to create file for input table for %s", getName());
@@ -121,7 +121,7 @@ bool CmdGeneric::compute(sTabular * in_table)
     idx out_path_pos = -1;
     if( computesOutTable() ) {
         cmdline00.add("-o");
-        const char * out_path = _ctx.qproc().reqAddFile(cmdline00, "req-generic-cmd-%"DEC"-out.csv", _ctx.curCmdIndex());
+        const char * out_path = _ctx.qproc().reqAddFile(cmdline00, "req-generic-cmd-%" DEC "-out.csv", _ctx.curCmdIndex());
         if( !out_path || !out_path[0] ) {
             _ctx.logError("Failed to create path for output table for %s", getName());
             return false;
@@ -132,7 +132,7 @@ bool CmdGeneric::compute(sTabular * in_table)
         cmdline00.add0();
     }
 
-    cmdline00.printf("--req=%"DEC, _ctx.reqID());
+    cmdline00.printf("--req=%" DEC, _ctx.reqID());
     cmdline00.add0();
 
     for(idx i = 0; i < _tqs_arg->dim(); i++) {
@@ -165,7 +165,7 @@ bool CmdGeneric::compute(sTabular * in_table)
 
     idx retcode = sPS::execute00(cmdline00);
     if( retcode != 0 ) {
-        _ctx.logError("%s failed with error code %"DEC, getName(), retcode);
+        _ctx.logError("%s failed with error code %" DEC, getName(), retcode);
         return false;
     }
 

@@ -103,11 +103,11 @@ char * sUsrObj::getPath(sStr & path, const sHiveId & id, bool create/* = false*/
         const udx maxLevels = 2, levelBase = 1000;
         for(udx ilevel = 0; ilevel < maxLevels; ++ilevel) {
             udx curLevel = levelId % levelBase;
-            suffix.printf("%03"UDEC"/", curLevel);
+            suffix.printf("%03" UDEC "/", curLevel);
             levelId /= levelBase;
         }
         // TODO support domain!
-        suffix.printf("%"UDEC, id.objId());
+        suffix.printf("%" UDEC, id.objId());
         for(idx i = 0; i < s_roots.dim(); ++i) {
             const char * realStoragePath = sString::next00(s_roots.ptr(i)->path, -1); // random
             path.printf("%s%s/", realStoragePath, suffix.ptr());
@@ -169,7 +169,7 @@ void sUsrObj::initStorage(const char * pathList, const udx default_min_free_spac
                 *x = 0; // terminate path list
                 x = sString::next00(x);
                 if( x ) {
-                    sscanf(x, "%"UDEC, &r->min_free);
+                    sscanf(x, "%" UDEC, &r->min_free);
                 }
             }
             sString::searchAndReplaceSymbols(mpath.ptr(), 0, "|", 0, 0, true, false, false, false);
@@ -265,14 +265,14 @@ udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, 
 
                             // domainID
                             if( m_id.domainId() ) {
-                                vsql.printf("%"UDEC",", m_id.domainId());
+                                vsql.printf("%" UDEC ",", m_id.domainId());
                             } else {
                                 // UPObjField: NULL domainID means 0
                                 vsql.addString("NULL,");
                             }
 
                             // objID
-                            vsql.printf("%"UDEC",", m_id.objId());
+                            vsql.printf("%" UDEC ",", m_id.objId());
 
                             // name
                             m_usr.db().protectValue(vsql, prop);
@@ -288,7 +288,7 @@ udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, 
                                 m_usr.db().protectValue(vsql, paths[i], path_lens ? path_lens[i] : 0);
                                 vsql.addString(",");
                             } else if( !single ) {
-                                vsql.printf("'1.%"UDEC"',", chunk + i + 1);
+                                vsql.printf("'1.%" UDEC "',", chunk + i + 1);
                             } else {
                                 vsql.addString("NULL,");
                             }
@@ -303,7 +303,7 @@ udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, 
 
                             // encoding
                             if( tf->defaultEncoding() ) {
-                                vsql.printf("%"DEC",", tf->defaultEncoding());
+                                vsql.printf("%" DEC ",", tf->defaultEncoding());
                             } else {
                                 vsql.addString("NULL,");
                             }
@@ -327,9 +327,9 @@ udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, 
                                 if( m_usr.db().HasFailed() && !(is_our_transaction && m_usr.hadDeadlocked()) ) {
                                     // Serious DB failure that should not happen - need to log with details
                                     // fprintf() needed because a DB connection failure or deadlock might cause QPride()->logOut() to fail too
-                                    fprintf(stderr, "propSet() DB error %"UDEC" on objID = %s, prop = '%s' : %s\n", m_usr.db().Get_errno(), m_id.print(), prop, m_usr.db().Get_error().ptr());
+                                    fprintf(stderr, "propSet() DB error %" UDEC " on objID = %s, prop = '%s' : %s\n", m_usr.db().Get_errno(), m_id.print(), prop, m_usr.db().Get_error().ptr());
                                     if( m_usr.QPride() ) {
-                                        m_usr.QPride()->logOut(sQPrideBase::eQPLogType_Error, "propSet() DB error %"UDEC" on objID = %s, prop = '%s' : %s", m_usr.db().Get_errno(), m_id.print(), prop, m_usr.db().Get_error().ptr());
+                                        m_usr.QPride()->logOut(sQPrideBase::eQPLogType_Error, "propSet() DB error %" UDEC " on objID = %s, prop = '%s' : %s", m_usr.db().Get_errno(), m_id.print(), prop, m_usr.db().Get_error().ptr());
                                     }
                                 }
                             } else {
@@ -355,7 +355,7 @@ udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, 
                             err = false;
                             qty = 0;
     #if 0
-                            fprintf(stderr, "%s:%u - restarting deadlocked transaction, attempt %"DEC"/%"DEC"\n", __FILE__, __LINE__, itry + 1, sSql::max_deadlock_retries);
+                            fprintf(stderr, "%s:%u - restarting deadlocked transaction, attempt %" DEC "/%" DEC "\n", __FILE__, __LINE__, itry + 1, sSql::max_deadlock_retries);
     #endif
                             sTime::randomSleep(sSql::max_deadlock_wait_usec);
                             continue;
@@ -369,7 +369,7 @@ udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, 
         }
     }
     if( qty && !err && is_auditable ) {
-        m_usr.audit(sUsr::eUserAuditFull, __func__, "objID='%s'; prop='%s'; updated='%"UDEC"'", Id().print(), prop, qty);
+        m_usr.audit(sUsr::eUserAuditFull, __func__, "objID='%s'; prop='%s'; updated='%" UDEC "'", Id().print(), prop, qty);
     }
     return qty;
 }
@@ -387,7 +387,7 @@ udx sUsrObj::propDel(const char * prop, const char * group, const char * value)
     p->Add(m_id.objId()).Add((udx)ePermCanWrite).Add(prop).Add(group).Add(value);
     udx qty = p->uvalue(0);
     if( qty ) {
-        m_usr.audit(sUsr::eUserAuditFull, __func__, "objID='%s'; prop='%s'; path='%s'; value='%s'; updated='%"UDEC"'", Id().print(), prop, group ? group : "", value ? value : "", qty);
+        m_usr.audit(sUsr::eUserAuditFull, __func__, "objID='%s'; prop='%s'; path='%s'; value='%s'; updated='%" UDEC "'", Id().print(), prop, group ? group : "", value ? value : "", qty);
     }
     return qty;
 }
@@ -833,8 +833,8 @@ void sUsrObj::propEval(sUsrObjRes & res, const char * filter00) const
                             brief.shrink00();
                             brief.printf(" ");
                             tmp.cut0cut(0);
-                            sString::searchAndReplaceStrings(&tmp, b, 0, "$_(v)"__, res.getValue(tbl), 0, false);
-                            sString::searchAndReplaceStrings(&brief, tmp, 0, "$_(t)"__, getType()->title(), 0, false);
+                            sString::searchAndReplaceStrings(&tmp, b, 0, "$_(v)" __, res.getValue(tbl), 0, false);
+                            sString::searchAndReplaceStrings(&brief, tmp, 0, "$_(t)" __, getType()->title(), 0, false);
                         }
                     }
                 }
@@ -931,8 +931,8 @@ void sUsrObj::propBulk(sVarSet & src, sVarSet & dst, const char* view_name, cons
                                     brief.shrink00();
                                     brief.printf(" ");
                                     tmp.cut0cut(0);
-                                    sString::searchAndReplaceStrings(&tmp, b, 0, "$_(v)"__, src.val(r, 3 + shift), 0, false);
-                                    sString::searchAndReplaceStrings(&brief, tmp, 0, "$_(t)"__, getType()->title(), 0, false);
+                                    sString::searchAndReplaceStrings(&tmp, b, 0, "$_(v)" __, src.val(r, 3 + shift), 0, false);
+                                    sString::searchAndReplaceStrings(&brief, tmp, 0, "$_(t)" __, getType()->title(), 0, false);
                                 }
                             }
                         }
@@ -1212,13 +1212,13 @@ udx sUsrObj::fileProp(sStr& dst, bool as_csv, const char * wildcardList) const
         for(idx ie = 0; ie < fileList.dimEntries(); ie++) {
             if( as_csv ) {
                 Id().print(dst);
-                dst.printf(",_file,%"DEC",", ie);
+                dst.printf(",_file,%" DEC ",", ie);
                 sString::escapeForCSV(dst, fileList.getEntryPath(ie));
                 dst.addString("\n");
             } else {
                 dst.addString("\nprop.");
                 Id().print(dst);
-                dst.printf("._file.%"DEC"=%s", ie, fileList.getEntryPath(ie));
+                dst.printf("._file.%" DEC "=%s", ie, fileList.getEntryPath(ie));
             }
         }
     }

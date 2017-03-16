@@ -369,22 +369,22 @@ idx Scope::sweep()
 
 void Scope::print(sStr &out)
 {
-    out.printf("scope %p: #refs == %"DEC" / state == %"DEC" / type == %d\n", this, _refCount, _state, _type);
-    out.printf("\tNamespace (%"DEC"):\n", _namespace.dim());
+    out.printf("scope %p: #refs == %" DEC " / state == %" DEC " / type == %d\n", this, _refCount, _state, _type);
+    out.printf("\tNamespace (%" DEC "):\n", _namespace.dim());
     for (idx i=0; i<_namespace.dim(); i++) {
         out.printf("\t\t\"%s\"%s == ", (const char*)(_namespace.id(i)), _namespace[i].readOnly ? " (read-only)" : "");
         _namespace[i].value.print(out);
         out.printf(";\n");
     }
     if (_callables.dim()) {
-        out.printf("\tCallables (%"DEC"): ", _callables.dim());
+        out.printf("\tCallables (%" DEC "): ", _callables.dim());
         for (idx i=0; i<_callables.dim(); i++) {
             out.printf("%p ", _callables[i]);
         }
         out.printf(";\n");
     }
     if (_children.dim()) {
-        out.printf("\tChildren (%"DEC"): ", _children.dim());
+        out.printf("\tChildren (%" DEC "): ", _children.dim());
         for (idx i=0; i<_children.dim(); i++) {
             out.printf("%p ", _children[i]);
         }

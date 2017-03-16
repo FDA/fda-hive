@@ -218,7 +218,7 @@ Nary::~Nary()
 void Nary::print(sStr &s) const
 {
     Node::print(s);
-    s.printf("\tArguments (%"DEC"):", _elts.dim());
+    s.printf("\tArguments (%" DEC "):", _elts.dim());
     for (idx i=0; i<_elts.dim(); i++) {
         s.printf(" %s @ %p;", _elts[i]->getTypeName(), _elts[i]);
     }
@@ -999,7 +999,7 @@ bool FunctionCall::eval(sVariant &result, Context &ctx) const
 void FunctionCall::print(sStr &s) const
 {
     Node::print(s);
-    s.printf("\tVerb == %s @ %p; arguments (%"DEC"): ", _verb->getTypeName(), _verb, _elts.dim());
+    s.printf("\tVerb == %s @ %p; arguments (%" DEC "): ", _verb->getTypeName(), _verb, _elts.dim());
      for (idx i=0; i<_elts.dim(); i++) {
         s.printf(" %s @ %p;", _elts[i]->getTypeName(), _elts[i]);
     }
@@ -1031,7 +1031,7 @@ bool MethodCall::eval(sVariant &result, Context &ctx) const
 void MethodCall::print(sStr &s) const
 {
     Node::print(s);
-    s.printf("\tVerb == %s @ %p; topic == %s @ %p; arguments (%"DEC"): ", _verb->getTypeName(), _verb, _topic ? _topic->getTypeName() : NULL, _topic, _elts.dim());
+    s.printf("\tVerb == %s @ %p; topic == %s @ %p; arguments (%" DEC "): ", _verb->getTypeName(), _verb, _topic ? _topic->getTypeName() : NULL, _topic, _elts.dim());
      for (idx i=0; i<_elts.dim(); i++) {
         s.printf(" %s @ %p;", _elts[i]->getTypeName(), _elts[i]);
     }
@@ -1090,7 +1090,7 @@ bool DollarCall::eval(sVariant &result, Context &ctx) const
         if (_name.ptr())
             e.printf("${%s}", _name.ptr());
         else
-            e.printf("$%"DEC, _num);
+            e.printf("$%" DEC, _num);
 
         ctx.setError(getLocation(), EVAL_VARIABLE_ERROR, "undefined expression %s", e.ptr());
         return false;
@@ -1107,7 +1107,7 @@ void DollarCall::print(sStr &s) const
     if (_name.ptr())
         s.printf("${%s} call @ %p\n", _name.ptr(), this);
     else
-        s.printf("$%"DEC" call @ %p\n", _num, this);
+        s.printf("$%" DEC " call @ %p\n", _num, this);
 }
 
 bool DollarCall::isDollarCall(const char ** name, idx * num) const
@@ -1164,7 +1164,7 @@ bool Lambda::call(sVariant &result, Context &ctx, sVariant *topic, sVariant *arg
 {
     // assume that context sanity has been checked by the caller...
     if (nargs != _arglist.dim()) {
-        ctx.setError(getLocation(), EVAL_BAD_ARGS_NUMBER, "expected %"DEC" arguments, not %"DEC, _arglist.dim(), nargs);
+        ctx.setError(getLocation(), EVAL_BAD_ARGS_NUMBER, "expected %" DEC " arguments, not %" DEC, _arglist.dim(), nargs);
         return false;
     }
 
@@ -1199,7 +1199,7 @@ void Lambda::print(sStr &s) const
     if (_name)
         s.printf("\tName == \"%s\"\n", getName());
     if (_arglist.dim()) {
-        s.printf("\tParameters (%"DEC"): ", _arglist.dim());
+        s.printf("\tParameters (%" DEC "): ", _arglist.dim());
         for (idx i=0; i<_arglist.dim(); i++)
             s.printf("%s%s", i ? ", " : "", _arglist[i].ptr());
         s.printf("\n");

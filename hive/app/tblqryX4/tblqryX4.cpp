@@ -218,9 +218,9 @@ static void stripTerminalNewline(sStr & s)
 static void printDebugTable(idx istage, idx loader_handle, const sTabular * cur_table, const sTabular * prev_table = 0)
 {
     if( istage >= 0 ) {
-        fprintf(stderr, "Output table at stage %"DEC" ", istage);
+        fprintf(stderr, "Output table at stage %" DEC " ", istage);
     } else {
-        fprintf(stderr, "Input table %"DEC" ", loader_handle);
+        fprintf(stderr, "Input table %" DEC " ", loader_handle);
     }
     if( !cur_table ) {
         if( istage >= 0 && !prev_table ) {
@@ -230,7 +230,7 @@ static void printDebugTable(idx istage, idx loader_handle, const sTabular * cur_
         }
         return;
     }
-    fprintf(stderr, "(%"DEC" x %"DEC" data cells, %"DEC" header rows, %"DEC" header cols):", cur_table->rows(), cur_table->cols(), cur_table->dimTopHeader(), cur_table->dimLeftHeader());
+    fprintf(stderr, "(%" DEC " x %" DEC " data cells, %" DEC " header rows, %" DEC " header cols):", cur_table->rows(), cur_table->cols(), cur_table->dimTopHeader(), cur_table->dimLeftHeader());
     if( cur_table == prev_table ) {
         fprintf(stderr, " same as previous table\n");
         return;
@@ -250,7 +250,7 @@ static void printDebugTable(idx istage, idx loader_handle, const sTabular * cur_
         stripTerminalNewline(buf);
         if( cur_table->cols() > PRINT_DEBUG_MAX_COLS ) {
             if( irow == -cur_table->dimTopHeader() ) {
-                buf.printf(",<%"DEC" columns skipped...>", cur_table->cols() - PRINT_DEBUG_MAX_COLS);
+                buf.printf(",<%" DEC " columns skipped...>", cur_table->cols() - PRINT_DEBUG_MAX_COLS);
             } else {
                 buf.addString(",<...>");
             }
@@ -259,7 +259,7 @@ static void printDebugTable(idx istage, idx loader_handle, const sTabular * cur_
     }
 
     if( istart2 > iend1 ) {
-        fprintf(stderr, "<%"DEC" rows skipped...>\n", cur_table->rows() - PRINT_DEBUG_MAX_ROWS);
+        fprintf(stderr, "<%" DEC " rows skipped...>\n", cur_table->rows() - PRINT_DEBUG_MAX_ROWS);
     }
 
     for(idx irow = istart2; irow < iend2; irow++) {
@@ -595,7 +595,7 @@ class BuiltinTaxFunction: public BuiltinFunction
             if( !ctx.ensureTaxIon() ) {
                 return false;
             }
-            sStr tax_id_buf("%"UDEC, tax_id);
+            sStr tax_id_buf("%" UDEC, tax_id);
             const char * tax_info_txt = ctx.getTaxIon()->getTaxIdInfo(tax_id_buf.ptr(), tax_id_buf.length());
             if( !tax_info_txt || !tax_info_txt[0] ) {
                 // tax ID not found
@@ -1197,7 +1197,7 @@ bool PrintStage::op_hidecol(const sTabular * in_table, sVariant * arg)
         } else if( cols_val->isList() ) {
             for(idx i = 0; i < cols_val->dim(); i++) {
                 if( !ParseUtils::parseColsArg(icols, cols_val->getListElt(i), &out_cols, _ctx, true) ) {
-                    _ctx.logError("Invalid cols argument element %"DEC" for hidecol operation", i);
+                    _ctx.logError("Invalid cols argument element %" DEC " for hidecol operation", i);
                     return false;
                 }
             }
@@ -1250,7 +1250,7 @@ bool PrintStage::op_hidecol(const sTabular * in_table, sVariant * arg)
                 buf.cut(0);
             }
 #endif
-            _ctx.logTrace("hidecol operation: hiding column #%"DEC" (name \"%s\")", icols[i], out_cols.getName(icols[i]));
+            _ctx.logTrace("hidecol operation: hiding column #%" DEC " (name \"%s\")", icols[i], out_cols.getName(icols[i]));
             if( !out_cols.validCol(icols[i]) ) {
                 _ctx.logError("Invalid %s argument for hidecol operation", argname);
                 return false;
@@ -1335,26 +1335,26 @@ bool PrintStage::op_movecol(const sTabular * in_table, sVariant * arg)
     return true;
 }
 
-static const char * opNames = "predefine"_
-"load"_
-"ionwander"_
-"sort"_
-"inputsort"_
-"collapserows"_
-"filter"_
-"colfilter"_
-"slice"_
-"transpose"_
-"glue"_
-"setcell"_
-"definecol"_
-"insertcol"_
-"appendcol"_
-"hidecol"_
-"renamecol"_
-"movecol"_
-"rowcategory"_
-"colcategory"__;
+static const char * opNames = "predefine" _
+"load" _
+"ionwander" _
+"sort" _
+"inputsort" _
+"collapserows" _
+"filter" _
+"colfilter" _
+"slice" _
+"transpose" _
+"glue" _
+"setcell" _
+"definecol" _
+"insertcol" _
+"appendcol" _
+"hidecol" _
+"renamecol" _
+"movecol" _
+"rowcategory" _
+"colcategory" __;
 
 enum EOpName
 {
@@ -1714,7 +1714,7 @@ bool LoadStage::init(const char * op_name, sVariant * arg)
         }
         for(idx i=0; i<concat_val->dim(); i++) {
             if( !sub_init(concat_val->getListElt(i)) ) {
-                _ctx.logError("Invalid concat arg %"DEC" for %s operation", i, op_name);
+                _ctx.logError("Invalid concat arg %" DEC " for %s operation", i, op_name);
                 return false;
             }
         }
@@ -1954,12 +1954,12 @@ bool SortStage::compute(sTabular * in_table)
     return sorter.sort(reordered_table);
 }
 
-const char * SliceStage::method_names = "firstEquals"_
-"firstLessThan"_
-"firstGreaterThan"_
-"lastEquals"_
-"lastLessThan"_
-"lastGreaterThan"__;
+const char * SliceStage::method_names = "firstEquals" _
+"firstLessThan" _
+"firstGreaterThan" _
+"lastEquals" _
+"lastLessThan" _
+"lastGreaterThan" __;
 
 SliceStage::EMethod SliceStage::parseMethodName(sVariant * method_arg)
 {
@@ -2414,7 +2414,7 @@ bool GlueStage::compute(sTabular * in_table)
         idx absrow = ir + out_top_header;
         evalKey(key_val, left_def, left_table, ir);
 #if 0
-        fprintf(stderr, "Left ir=%"DEC" key=%s\n", ir, key_val.asString());
+        fprintf(stderr, "Left ir=%" DEC " key=%s\n", ir, key_val.asString());
 #endif
         if( unlikely(key_val.isNull()) ) {
             null_key_absrow = absrow;
@@ -2432,7 +2432,7 @@ bool GlueStage::compute(sTabular * in_table)
         idx absrow = -sIdxMax;
         evalKey(key_val, right_def, right_table, ir);
 #if 0
-        fprintf(stderr, "Right ir=%"DEC" key=%s\n", ir, key_val.asString());
+        fprintf(stderr, "Right ir=%" DEC " key=%s\n", ir, key_val.asString());
 #endif
         if( unlikely(key_val.isNull()) ) {
             absrow = null_key_absrow;
@@ -2609,7 +2609,7 @@ bool PrintStage::getOutValue(sVariant & result, const sTabular * in_table, idx o
         if( unlikely(!fmla->eval(result, _ctx.qlangCtx())) ) {
             // a formula failing is a non-fatal event; we log and continue
             sStr err_buf;
-            _ctx.logInfo("Failed formula on output column %"DEC", input row %"DEC": %s", out_icol, in_row, _ctx.qlangCtx().printError(err_buf));
+            _ctx.logInfo("Failed formula on output column %" DEC ", input row %" DEC ": %s", out_icol, in_row, _ctx.qlangCtx().printError(err_buf));
 
             result.setNull();
             _ctx.qlangCtx().clearError();
@@ -2801,21 +2801,21 @@ bool PrintStage::compute(sTabular * in_table)
             resolution_lim.desc = resolution_lim.start_resample_val > resolution_lim.last_resample_val;
         }
 #if _DEBUG
-        fprintf(stderr, "resolution = %"DEC" (resampling bin cnt = %"DEC")\n", out_resolution, resolution_lim.cnt_resampled_bins);
-        fprintf(stderr, "singleton first row = %"DEC"\n", resolution_lim.inrow_pre);
-        fprintf(stderr, "resample start row = %"DEC, resolution_lim.inrow_start_resample);
+        fprintf(stderr, "resolution = %" DEC " (resampling bin cnt = %" DEC ")\n", out_resolution, resolution_lim.cnt_resampled_bins);
+        fprintf(stderr, "singleton first row = %" DEC "\n", resolution_lim.inrow_pre);
+        fprintf(stderr, "resample start row = %" DEC, resolution_lim.inrow_start_resample);
         if( out_abscissa_col >= 0 ) {
-            fprintf(stderr, " (abscissa col %"DEC" start value = %g)", out_abscissa_col, resolution_lim.start_resample_val);
+            fprintf(stderr, " (abscissa col %" DEC " start value = %g)", out_abscissa_col, resolution_lim.start_resample_val);
         }
-        fprintf(stderr, "\nresample last row = %"DEC, resolution_lim.inrow_last_resample);
+        fprintf(stderr, "\nresample last row = %" DEC, resolution_lim.inrow_last_resample);
         if( out_abscissa_col >= 0 ) {
-            fprintf(stderr, " (abscissa col %"DEC" last value = %g)", out_abscissa_col, resolution_lim.last_resample_val);
+            fprintf(stderr, " (abscissa col %" DEC " last value = %g)", out_abscissa_col, resolution_lim.last_resample_val);
         }
-        fprintf(stderr, "\nsingleton last row = %"DEC"\n", resolution_lim.inrow_post);
+        fprintf(stderr, "\nsingleton last row = %" DEC "\n", resolution_lim.inrow_post);
         if( minmax_cols.dim() ) {
             fprintf(stderr, "minmax cols: ");
             for(idx imm=0; imm<minmax_cols.dim(); imm++) {
-                fprintf(stderr, "%s%"DEC"%s", imm ? ", " : "", minmax_cols[imm].out_col, minmax_main == imm ? " (main)" : "");
+                fprintf(stderr, "%s%" DEC "%s", imm ? ", " : "", minmax_cols[imm].out_col, minmax_main == imm ? " (main)" : "");
             }
             fprintf(stderr, "\n");
         }
@@ -2901,15 +2901,15 @@ bool PrintStage::compute(sTabular * in_table)
             }
 
 #ifdef _DEBUG_TBLQRY_RESOLUTION
-            fprintf(stderr, "processed resampling bin %"DEC": input rows %"DEC"...%"DEC, ibin, in_row_bin_start, in_row_next_bin_start - 1);
+            fprintf(stderr, "processed resampling bin %" DEC ": input rows %" DEC "...%" DEC, ibin, in_row_bin_start, in_row_next_bin_start - 1);
             if( out_abscissa_col >= 0 ) {
-                fprintf(stderr, ", expect abscissa column %"DEC" value range %g %s x %s %g\n", out_abscissa_col, abscissa_cur_bin, resolution_lim.desc ? ">=" : "<=", resolution_lim.desc ? ">" : "<", abscissa_next_bin);
+                fprintf(stderr, ", expect abscissa column %" DEC " value range %g %s x %s %g\n", out_abscissa_col, abscissa_cur_bin, resolution_lim.desc ? ">=" : "<=", resolution_lim.desc ? ">" : "<", abscissa_next_bin);
             } else {
                 fprintf(stderr, "\n");
             }
             for(idx imm = 0; imm < minmax_cols.dim(); imm++) {
                 MinMaxCol & mm = minmax_cols[imm];
-                fprintf(stderr, "col %"DEC" min = %s (inrow %"DEC"), max = %s (inrow %"DEC")\n", mm.out_col, mm.min_val.asString(), mm.min_in_row, mm.max_val.asString(), mm.max_in_row);
+                fprintf(stderr, "col %" DEC " min = %s (inrow %" DEC "), max = %s (inrow %" DEC ")\n", mm.out_col, mm.min_val.asString(), mm.min_in_row, mm.max_val.asString(), mm.max_in_row);
             }
 #endif
 
@@ -3088,14 +3088,14 @@ bool ExecContext::processCommands()
     for(idx ii=0; ii<_in_tables.dim(); ii++) {
         printDebugTable(-1, ii, getLoadedTable(ii), 0);
     }
-    fprintf(stderr, "Will run %"DEC" commands\n", _commands.dim());
+    fprintf(stderr, "Will run %" DEC " commands\n", _commands.dim());
 #endif
 
     idx start_clean = 0;
     sTabular * cur_table = getLoadedTable(0);
 
     for(_cur_icmd = 0; _cur_icmd < _commands.dim(); _cur_icmd++) {
-        logDebug("Running %s command (#%"DEC" of %"DEC")", _commands[_cur_icmd]->getName(), _cur_icmd, _commands.dim());
+        logDebug("Running %s command (#%" DEC " of %" DEC ")", _commands[_cur_icmd]->getName(), _cur_icmd, _commands.dim());
         if( _commands[_cur_icmd]->hasProgress() ) {
             startSubProgress();
         }
@@ -3129,7 +3129,7 @@ void printTableMetadata(sStr & out, const sTabular * tbl, OutputCategories * row
     sStr subindent("%s    ", indent);
     sStr subsubindent("%s    ", subindent.ptr());
 
-    out.printf("{\r\n%s\"columns\": {\r\n%s\"total\": %"DEC", \"header\": %"DEC", \"data\": %"DEC",\r\n%s\"types\": [", subindent.ptr(), subsubindent.ptr(), tbl->cols() + tbl->dimLeftHeader(), tbl->dimLeftHeader(), tbl->cols(), subsubindent.ptr());
+    out.printf("{\r\n%s\"columns\": {\r\n%s\"total\": %" DEC ", \"header\": %" DEC ", \"data\": %" DEC ",\r\n%s\"types\": [", subindent.ptr(), subsubindent.ptr(), tbl->cols() + tbl->dimLeftHeader(), tbl->dimLeftHeader(), tbl->cols(), subsubindent.ptr());
     for(idx i = -tbl->dimLeftHeader(); i < tbl->cols(); i++) {
         if( i > -tbl->dimLeftHeader() ) {
             out.printf(", ");
@@ -3144,7 +3144,7 @@ void printTableMetadata(sStr & out, const sTabular * tbl, OutputCategories * row
     }
 
     out.printf("\r\n%s},\r\n", subindent.ptr());
-    out.printf("%s\"rows\": {\r\n%s\"total\": %"DEC", \"header\": %"DEC", \"data\": %"DEC"", subindent.ptr(), subsubindent.ptr(), tbl->rows() + tbl->dimTopHeader(), tbl->dimTopHeader(), tbl->rows());
+    out.printf("%s\"rows\": {\r\n%s\"total\": %" DEC ", \"header\": %" DEC ", \"data\": %" DEC "", subindent.ptr(), subsubindent.ptr(), tbl->rows() + tbl->dimTopHeader(), tbl->dimTopHeader(), tbl->rows());
     if( rowcats && rowcats->dim() ) {
         out.printf(",\r\n%s", subsubindent.ptr());
         rowcats->print(out, subsubindent.ptr());
@@ -3160,7 +3160,7 @@ bool ExecContext::saveResult()
         const char * outpath = _proc.reqAddFile(outpath_buf, "_.csv");
         sFil outfil(outpath);
         if( !outpath || !outfil.ok() ) {
-            logError("Failed to create _.csv req file for request %"DEC, _out_req);
+            logError("Failed to create _.csv req file for request %" DEC, _out_req);
             return false;
         }
 
@@ -3171,7 +3171,7 @@ bool ExecContext::saveResult()
 
     if( _proc.pForm->boolvalue("arch") ) {
         const char * dstName = _proc.pForm->value("arch_dstname");
-        sStr datasource("file://%"DEC"-%s", _out_req, dstName ? dstName : "output.csv");
+        sStr datasource("file://%" DEC "-%s", _out_req, dstName ? dstName : "output.csv");
         sStr arch_src;
         _proc.reqDataPath(_out_req, "_.csv", &arch_src);
         dmArchiver arch(_proc, arch_src, datasource, "csv", dstName);
@@ -3179,7 +3179,7 @@ bool ExecContext::saveResult()
         idx arch_reqId = arch.launch(*_proc.user);
         if( !arch_reqId )
             return false;
-        if( !_proc.reqSetData(_out_req, "arch-req.txt", "%"DEC, arch_reqId) )
+        if( !_proc.reqSetData(_out_req, "arch-req.txt", "%" DEC, arch_reqId) )
             return false;
     } else {
         // repack _.csv only if not archiving to obj - otherwise, archiver won't pick up the file
@@ -3190,7 +3190,7 @@ bool ExecContext::saveResult()
         const char * metadata_outpath = _proc.reqAddFile(outpath_buf, "metadata.json");
         sFil metadata(metadata_outpath);
         if( !metadata_outpath || !metadata.ok() ) {
-            logError("Failed to create metadata.json req file for request %"DEC, _out_req);
+            logError("Failed to create metadata.json req file for request %" DEC, _out_req);
             return false;
         }
 
@@ -3223,7 +3223,7 @@ bool ExecContext::saveResult()
 idx TblQryX4::OnExecute(idx req)
 {
 #ifdef _DEBUG
-    fprintf(stderr, "qpride form for req %"DEC":\n", req);
+    fprintf(stderr, "qpride form for req %" DEC ":\n", req);
     for (idx i=0; i<pForm->dim(); i++) {
         const char * key = static_cast<const char*>(pForm->id(i));
         const char * value = pForm->value(key);
@@ -3280,6 +3280,6 @@ int main(int argc, const char * argv[])
 
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
-    TblQryX4 backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "tblqryx4", argv[0]));
+    TblQryX4 backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "tblqryx4", argv[0]));
     return (int) backend.run(argc, argv);
 }

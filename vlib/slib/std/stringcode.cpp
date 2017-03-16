@@ -279,7 +279,7 @@ idx sString::IPDigest(const char * ptr)
     int shift=0;
     for ( const char * p=ptr-1; p; p=strchr(p,'.')){
         byte=0;++p;
-        if(!sscanf(p,"%"DEC,&byte))break;
+        if(!sscanf(p,"%" DEC,&byte))break;
         byte&=0xFF;byte<<=shift;
         cgiIP|= byte;
         shift+=sizeof(char)*8;

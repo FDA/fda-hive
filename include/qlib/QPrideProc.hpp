@@ -163,7 +163,7 @@ namespace slib
                 const char * p=formValue(prop, &t, 0, iObj);
                 idx ival=defaultValue;
                 if(p){
-                    sscanf(p,"%"DEC,&ival);
+                    sscanf(p,"%" DEC,&ival);
                 }
                 return ival;
             }
@@ -173,7 +173,7 @@ namespace slib
                 const char * p = formValue(prop, &t, 0, iObj);
                 udx uval = defaultValue;
                 if( p )
-                    sscanf(p, "%"UDEC, &uval);
+                    sscanf(p, "%" UDEC, &uval);
                 return uval;
             }
             real formRValue(const char * prop, real defaultValue=0, idx iObj=0){

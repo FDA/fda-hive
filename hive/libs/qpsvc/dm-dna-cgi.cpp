@@ -34,7 +34,7 @@
 
 const char * dmDnaCgi::_svc_name = "dnaCGI";
 
-static const char * risky_names00 = "sessionID"_"debug"__;
+static const char * risky_names00 = "sessionID" _ "debug" __;
 
 dmDnaCgi::dmDnaCgi(sQPride & qp, const char * url_query_string) : sQPSvc(qp)
 {

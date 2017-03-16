@@ -518,7 +518,7 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
 
     if (tbl.cols()!=5) {
 #ifdef _DEBUG
-        ::printf("\n!!! table has %"DEC" columns more than expected number (5 columns) !!!\n",tbl.cols());
+        ::printf("\n!!! table has %" DEC " columns more than expected number (5 columns) !!!\n",tbl.cols());
         sStr buf;
         ::printf("%s\n", tbl.printCSV(buf));
 #endif
@@ -577,15 +577,15 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
         compositeKey.addString(seq,seqLen);
         compositeKey.addString(",",1);
         //compositeKey.addString(start,startLen);
-        compositeKey.printf("%"DEC"",startVar.asInt());
+        compositeKey.printf("%" DEC "",startVar.asInt());
         compositeKey.addString(",",1);
         if (endMax!=0 && (endVar.asInt() > endMax || (endVar.asInt()==-1 || endVar.asInt()==0))) {
-            compositeKey.printf("%"DEC"",endMax);
+            compositeKey.printf("%" DEC "",endMax);
         }
         else {
-            compositeKey.printf("%"DEC"",endVar.asInt());
+            compositeKey.printf("%" DEC "",endVar.asInt());
         }
-        //compositeKey.printf("%"DEC"",endVar.asInt());
+        //compositeKey.printf("%" DEC "",endVar.asInt());
         curStart = startVar.asInt();
         if (curStart != prvStart){
              prvStart = curStart;

@@ -47,8 +47,8 @@ enum enumIonCommands
 };
 
 //const char * listIonCommands=
-//    "ionncbiTax"_"ionTaxInfo"_"ionTaxDownInfo"_
-//    "ionAnnotInfo"_"ionAnnotIdMap"_
+//    "ionncbiTax" _ "ionTaxInfo" _ "ionTaxDownInfo" _
+//    "ionAnnotInfo" _ "ionAnnotIdMap" _
 //    _;
 
 idx extractIonQueryfromTable(sIonWander &iWander, sTxtTbl &tbl, const char *ionQuery, const char *defaultValue = 0, bool parseiWander = true)
@@ -442,7 +442,7 @@ idx DnaCGI::CmdIon(idx cmd)
                     dst.cut(0);
                     tstr.cut(0);
                     sString::searchandInvertStrings(&tstr, co2, 0, "://", "/");
-                    sString::searchAndReplaceStrings(&dst, tstr.ptr(0), tstr.length(), "root"_"/:"__, "all"_"/"__, 0, false);
+                    sString::searchAndReplaceStrings(&dst, tstr.ptr(0), tstr.length(), "root" _ "/:" __, "all" _ "/" __, 0, false);
                     *(dst.ptr(0)) = '/';
                     preOut.printf("\"%s/\",", dst.ptr(0));
                 }
@@ -473,7 +473,7 @@ idx DnaCGI::CmdIon(idx cmd)
                 co1 = sString::next00(co1);
                 co2 = sString::next00(co2);
             }
-            outBin(preOut.ptr(), preOut.length(), 0, true, "%s-%"DEC"-%s", objname.ptr(0), screenId.objId(), tablename.ptr());
+            outBin(preOut.ptr(), preOut.length(), 0, true, "%s-%" DEC "-%s", objname.ptr(0), screenId.objId(), tablename.ptr());
             return 1;
         }
         case eIonTaxInfo: {
@@ -515,7 +515,7 @@ idx DnaCGI::CmdIon(idx cmd)
 //                    *cont00 = '0';
                 sString::searchandInvertStrings(&pdst, path.ptr(0), 0, "://", "/");
                 path.cut(1);
-                sString::searchAndReplaceStrings(&path, pdst.ptr(0), pdst.length(), "root"_"/:"__, "all"_"/"__, 0, false);
+                sString::searchAndReplaceStrings(&path, pdst.ptr(0), pdst.length(), "root" _ "/:" __, "all" _ "/" __, 0, false);
                 *(path.ptr(0)) = '/';
             }
             iWander.resetCompileBuf();
@@ -540,23 +540,23 @@ idx DnaCGI::CmdIon(idx cmd)
                     printCSV(o.taxid,a.parent,a.rank,o.name);", taxidInput);
             iWander.traverseCompile(ionQuery3);
             iWander.traverse();
-            sString::searchAndReplaceStrings(&info, iWander.traverseBuf.ptr(0), iWander.traverseBuf.length(), ","__, 0, 0, false);
+            sString::searchAndReplaceStrings(&info, iWander.traverseBuf.ptr(0), iWander.traverseBuf.length(), "," __, 0, 0, false);
 
             // Generate the Output
             // taxid, parentid, rank, taxName, bioprojectID, path
             idx irow = 1;
             dataForm.printf("id,name,path,value\n");
-            dataForm.printf("%"DEC",taxid,,%s\n", irow, info.ptr(0));
+            dataForm.printf("%" DEC ",taxid,,%s\n", irow, info.ptr(0));
             const char *parentid = sString::next00(info);
-            dataForm.printf("%"DEC",parentid,,%s\n", irow, parentid);
+            dataForm.printf("%" DEC ",parentid,,%s\n", irow, parentid);
             const char *rank = sString::next00(parentid);
-            dataForm.printf("%"DEC",rank,,%s\n", irow, rank);
+            dataForm.printf("%" DEC ",rank,,%s\n", irow, rank);
             idx iname = 0;
             for(const char *p = altnames; p; p = sString::next00(p)) {
-                dataForm.printf("%"DEC",taxName,%"DEC",\"%s\"\n", irow, iname++, p);
+                dataForm.printf("%" DEC ",taxName,%" DEC ",\"%s\"\n", irow, iname++, p);
             }
-//            dataForm.printf("%"DEC",bioprojectID,,0\n", irow);
-            dataForm.printf("%"DEC",path,,%s/\n", irow, path.ptr(0));
+//            dataForm.printf("%" DEC ",bioprojectID,,0\n", irow);
+            dataForm.printf("%" DEC ",path,,%s/\n", irow, path.ptr(0));
             outHtml();
             return 1;
         }
@@ -635,7 +635,7 @@ idx DnaCGI::CmdIon(idx cmd)
                 // I will loop through all taxid's to find the common ancestor
                 const char * taxidstring = taxidList.ptr(0);
                 idx taxid = 0;
-                sscanf(taxidstring, "%"DEC, &taxid);
+                sscanf(taxidstring, "%" DEC, &taxid);
                 if( taxid == 0 ) {
                     break;
                 }
@@ -644,7 +644,7 @@ idx DnaCGI::CmdIon(idx cmd)
                 taxidstring = sString::next00(taxidstring);
                 const char *parentPath = path.ptr(0);
                 idx taxParent = 1;
-                sscanf(parentPath, "%"DEC, &taxParent);
+                sscanf(parentPath, "%" DEC, &taxParent);
 
                 sStr tmpPath;
                 for(; taxidstring && (taxParent != 1); taxidstring = sString::next00(taxidstring)) {
@@ -658,7 +658,7 @@ idx DnaCGI::CmdIon(idx cmd)
                         for(; parentPath; parentPath = sString::next00(parentPath)) {
                             idx result = sString::compareChoice(parentPath, tmpPath.ptr(0), 0, false, 0, true, 0);
                             if (result != -1){
-                                sscanf(parentPath, "%"DEC, &taxParent);
+                                sscanf(parentPath, "%" DEC, &taxParent);
                                 break;// Look
                             }
                         }
@@ -671,7 +671,7 @@ idx DnaCGI::CmdIon(idx cmd)
                 bool printFirstRow = true;
                 for(const char * taxidstring = taxidList.ptr(0); taxidstring; taxidstring = sString::next00(taxidstring)) {
                     idx taxid = 0;
-                    sscanf(taxidstring, "%"DEC, &taxid);
+                    sscanf(taxidstring, "%" DEC, &taxid);
                     if (taxid == 0){
                         continue;
                     }
@@ -782,7 +782,7 @@ idx DnaCGI::CmdIon(idx cmd)
             }
 
             tablename.addString("dnaTaxPathogenTable.csv");
-            outBin(preOut.ptr(), preOut.length(), 0, true, "%s-%"DEC"-%s", objname.ptr(0), screenId.objId(), tablename.ptr());
+            outBin(preOut.ptr(), preOut.length(), 0, true, "%s-%" DEC "-%s", objname.ptr(0), screenId.objId(), tablename.ptr());
             return 1;
         }
         case eIonAnnotInfo: {
@@ -1009,8 +1009,8 @@ idx DnaCGI::CmdIon(idx cmd)
             // Generate the Output
             dataForm.printf("id,value\n");
             dataForm.printf("taxid,%s\n", taxidInput);
-            dataForm.printf("collapse,%"DEC"\n", collapseTaxids);
-            dataForm.printf("\"#codon\",%"DEC"\n", totCnt);
+            dataForm.printf("collapse,%" DEC "\n", collapseTaxids);
+            dataForm.printf("\"#codon\",%" DEC "\n", totCnt);
             dataForm.printf("\"GC%%\",%0.2lf\n", totCnt ? (real)(gcCnt*100)/(3*totCnt) : 0);
             dataForm.printf("\"GC1%%\",%0.2lf\n", totCnt ? (real)(gc[0]*100)/(totCnt) : 0);
             dataForm.printf("\"GC2%%\",%0.2lf\n", totCnt ? (real)(gc[1]*100)/(totCnt) : 0);
@@ -1019,7 +1019,7 @@ idx DnaCGI::CmdIon(idx cmd)
             idx idlen;
             for(idx i = 0; i < codonDict.dim(); ++i) {
                 const char *id = (const char *) (codonDict.id(i, &idlen));
-                dataForm.printf("%.*s,%"DEC"\n", (int)idlen, id, *codonDict.ptr(i));
+                dataForm.printf("%.*s,%" DEC "\n", (int)idlen, id, *codonDict.ptr(i));
             }
 
             outHtml();
@@ -1124,11 +1124,11 @@ idx DnaCGI::CmdIon(idx cmd)
 
             // Validate column and value
             sStr t1val, tval, cval;
-            sString::cleanEnds(&cval, column, 0, "\""sString_symbolsBlank, true);
+            sString::cleanEnds(&cval, column, 0, "\"" sString_symbolsBlank, true);
             column = cval.ptr(0);
-            sString::cleanEnds(&tval, value, 0, "\""sString_symbolsBlank, true);
+            sString::cleanEnds(&tval, value, 0, "\"" sString_symbolsBlank, true);
             // Protect single quotes from the value
-            sString::searchAndReplaceStrings(&t1val, tval, tval.length(), "\'"__, "\\'"__, 0, true);
+            sString::searchAndReplaceStrings(&t1val, tval, tval.length(), "\'" __, "\\'" __, 0, true);
             value = t1val.ptr(0);
 
             if (boolRegex){
@@ -1249,17 +1249,17 @@ idx DnaCGI::CmdIon(idx cmd)
             CodonKnownTypes c_types[] = {
                 {
                     genomic,
-                    "genomic"__,
+                    "genomic" __,
                     'G'
                 },
                 {
                     mitochondrion,
-                    "mitochondrion"__,
+                    "mitochondrion" __,
                     'M'
                 },
                 {
                     chloroplast,
-                    "chloroplast"__,
+                    "chloroplast" __,
                     'C'
                 },
                 {
@@ -1269,12 +1269,12 @@ idx DnaCGI::CmdIon(idx cmd)
                 },
                 {
                     leucoplast,
-                    "leucoplast"__,
+                    "leucoplast" __,
                     'L'
                 },
                 {
                     chromoplast,
-                    "chromoplast"__,
+                    "chromoplast" __,
                     'O'
                 }
             };
@@ -1289,7 +1289,7 @@ idx DnaCGI::CmdIon(idx cmd)
                 refseq = 0x2
             };
             idx divisions[2] = {genbank, refseq};
-            const char *listDivision = "genbank"_"refseq"__;
+            const char *listDivision = "genbank" _ "refseq" __;
 
             sDic <idx> parents;
 
@@ -1538,7 +1538,7 @@ idx DnaCGI::CmdIonBio(idx cmd)
             return 1;
         }
         sStr parentAlignmentPath;
-        al->getFilePathname00(parentAlignmentPath, "alignment.hiveal"_"alignment.vioal"__);
+        al->getFilePathname00(parentAlignmentPath, "alignment.hiveal" _ "alignment.vioal" __);
         if( !parentAlignmentPath ) {
             return 1;
         }
@@ -1614,7 +1614,7 @@ idx DnaCGI::CmdIonBio(idx cmd)
 
             sStr mutualAlignmentPath;
             if( mutualAlignmentObj.Id() ) {
-                mutualAlignmentObj.getFilePathname00(mutualAlignmentPath,"alignment.vioalt"_"alignment.vioal"_"alignment.hiveal"__);
+                mutualAlignmentObj.getFilePathname00(mutualAlignmentPath,"alignment.vioalt" _ "alignment.vioal" _ "alignment.hiveal" __);
             }
             bool isMutAl = mutualAlignmentPath.ok();
             sHiveal mutAl(user, mutualAlignmentPath);
@@ -1651,8 +1651,8 @@ idx DnaCGI::CmdIonBio(idx cmd)
             sHiveIonSeq hi(user, ionObjIDs, ionType, fileNameTemplate);
 
             sStr ionQry1;
-            //ionQry1.printf(0, "seq=foreach($id);a=find.annot(#range,seq.1,%"DEC":%"DEC",seq.1,%"DEC":%"DEC");", pos_start, pos_start, pos_end, pos_end); // #range=possort-max
-            ionQry1.printf(0, "seq=foreach($id);a=find.annot(#range=possort-max,seq.1,%"DEC":%"DEC",seq.1,%"DEC":%"DEC");", pos_start, pos_start, pos_end, pos_end);
+            //ionQry1.printf(0, "seq=foreach($id);a=find.annot(#range,seq.1,%" DEC ":%" DEC ",seq.1,%" DEC ":%" DEC ");", pos_start, pos_start, pos_end, pos_end); // #range=possort-max
+            ionQry1.printf(0, "seq=foreach($id);a=find.annot(#range=possort-max,seq.1,%" DEC ":%" DEC ",seq.1,%" DEC ":%" DEC ");", pos_start, pos_start, pos_end, pos_end);
             ionQry1.printf("unique.1(a.record);f=%s;c=find.annot(seqID=a.seqID,record=a.record,id=f.1);", featureStatement.ptr(0));
             //ionQry1.printf("d=find.annot(record=c.record);printCSV(d.seqID,d.pos,d.type,d.id);");
             ionQry1.printf("printCSV(c.seqID,c.pos,c.type,c.id);");
@@ -1663,8 +1663,8 @@ idx DnaCGI::CmdIonBio(idx cmd)
             hi.addIonWander("seqPositionLookUp", ionQry1.ptr(0));
 
             sStr ionQry2;
-            // ionQry2.printf(0, "seq=foreach($id);a=find.annot(#range,seq.1,%"DEC":%"DEC",seq.1,%"DEC":%"DEC");", pos_start, pos_start, pos_end, pos_end); // #range=possort-max
-            ionQry2.printf(0, "seq=foreach($id);a=find.annot(#range=possort-max,seq.1,%"DEC":%"DEC",seq.1,%"DEC":%"DEC");", pos_start, pos_start, pos_end, pos_end);
+            // ionQry2.printf(0, "seq=foreach($id);a=find.annot(#range,seq.1,%" DEC ":%" DEC ",seq.1,%" DEC ":%" DEC ");", pos_start, pos_start, pos_end, pos_end); // #range=possort-max
+            ionQry2.printf(0, "seq=foreach($id);a=find.annot(#range=possort-max,seq.1,%" DEC ":%" DEC ",seq.1,%" DEC ":%" DEC ");", pos_start, pos_start, pos_end, pos_end);
             ionQry2.printf("unique.1(a.record);f=%s;c=find.annot(seqID=a.seqID,record=a.record,type=f.1);", featureStatement.ptr(0));
             //ionQry2.printf("unique.1(c.id);printCSV(c.seqID,c.pos,c.type,c.id);");
             ionQry2.printf("printCSV(c.seqID,c.pos,c.type,c.id);");

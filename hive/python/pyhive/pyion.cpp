@@ -233,7 +233,7 @@ static PyObject * TaxIon_get_tax_id_info(pyhive::TaxIon * self, PyObject * args,
     if( !PyArg_ParseTupleAndKeywords(args, kwds, "K", (char**)kwlist, &tax_id) ) {
         return 0;
     }
-    sStr buf("%"UDEC, tax_id);
+    sStr buf("%" UDEC, tax_id);
     const char * tax_result = self->ptax_ion->getTaxIdInfo(buf.ptr(), buf.length());
     idx tax_result_len = sLen(tax_result);
     if( !tax_result_len ) {

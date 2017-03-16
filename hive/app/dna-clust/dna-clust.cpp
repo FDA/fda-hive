@@ -118,7 +118,7 @@ public:
                 _summaries.resize(newsize);
             }
         }
-//printf("set @ %"DEC" : %d %d %c %c : %02x -> ", recIdx, matchFreq, matchCov, letter, consensus, (unsigned int)_buf[recIdx] << 24 >> 24);
+//printf("set @ %" DEC " : %d %d %c %c : %02x -> ", recIdx, matchFreq, matchCov, letter, consensus, (unsigned int)_buf[recIdx] << 24 >> 24);
 
         _posbuf[recIdx] |= fUsed;
 
@@ -307,7 +307,7 @@ struct SNPprofileHandleSet
 
             for( idx iref=0; iref<num_references; iref++) {
                 path_buf.cut(0);
-                if( const char * path = profiler_obj.getFilePathname(path_buf, "SNPprofile-%"DEC".csv", references[iref]) ) {
+                if( const char * path = profiler_obj.getFilePathname(path_buf, "SNPprofile-%" DEC ".csv", references[iref]) ) {
                     _hexagon_handles[iref] = _pool->declare(path, sMex::fReadonly);
                     _hexagon_noise_handles[iref] = _pool->invalidHandle();
                     proc.logOut(sQPrideBase::eQPLogType_Debug, "Added %s to pool", path);
@@ -332,18 +332,18 @@ struct SNPprofileHandleSet
                             }
                         } else {
                             path_buf.cut(0);
-                            if( const char * noise_path = profiler_obj.getFilePathname(path_buf, "NoiseIntegral-%"DEC".csv", references[iref]) ) {
+                            if( const char * noise_path = profiler_obj.getFilePathname(path_buf, "NoiseIntegral-%" DEC ".csv", references[iref]) ) {
                                 _hexagon_noise_handles[iref] = _pool->declare(noise_path, sMex::fReadonly);
                                 proc.logOut(sQPrideBase::eQPLogType_Debug, "Added %s to pool", noise_path);
                             } else {
-                                proc.logOut(sQPrideBase::eQPLogType_Warning, "Not added to pool: profiler %s does not have NoiseIntegral-%"DEC".csv", profiler_obj.Id().print(), references[iref]);
+                                proc.logOut(sQPrideBase::eQPLogType_Warning, "Not added to pool: profiler %s does not have NoiseIntegral-%" DEC ".csv", profiler_obj.Id().print(), references[iref]);
                             }
                         }
                     }
                 } else {
                     _hexagon_handles[iref] = _pool->invalidHandle();
                     _hexagon_noise_handles[iref] = _pool->invalidHandle();
-                    proc.logOut(sQPrideBase::eQPLogType_Debug, "Not added to pool: profiler %s does not have SNPprofile-%"DEC".csv", profiler_obj.Id().print(), references[iref]);
+                    proc.logOut(sQPrideBase::eQPLogType_Debug, "Not added to pool: profiler %s does not have SNPprofile-%" DEC ".csv", profiler_obj.Id().print(), references[iref]);
                 }
             }
             return ret;
@@ -416,7 +416,7 @@ struct SNPprofileHandleSet
                         _heptagon_noise_prev_iref = iref;
                     } else {
                         if( _proc ) {
-                            _proc->logOut(sQPrideBase::eQPLogType_Error, "Failed to find subject %"DEC" in noise file for heptagon %s", isub, _profiler_id.print());
+                            _proc->logOut(sQPrideBase::eQPLogType_Error, "Failed to find subject %" DEC " in noise file for heptagon %s", isub, _profiler_id.print());
                         }
                         ret = false;
                     }
@@ -428,7 +428,7 @@ struct SNPprofileHandleSet
                     sFil * fil = _pool->request(handle);
                     if( !sBioseqSNP::snpNoiseCutoffsFromIntegralCSV(fil->ptr(), fil->last(), noiseCutoffs) ) {
                         if( _proc ) {
-                            _proc->logOut(sQPrideBase::eQPLogType_Error, "Failed to parse noise file for subject %"DEC" for profiler %s", isub, _profiler_id.print());
+                            _proc->logOut(sQPrideBase::eQPLogType_Error, "Failed to parse noise file for subject %" DEC " for profiler %s", isub, _profiler_id.print());
                         }
                         ret = false;
                     }
@@ -736,11 +736,11 @@ public:
 };
 
 static const char * algorithmNames =
-    "neighbor-joining"_
-    "fast-neighbor-joining"_
-    "single-link"_
-    "complete-link"_
-    "SNPcompare"__;
+    "neighbor-joining" _
+    "fast-neighbor-joining" _
+    "single-link" _
+    "complete-link" _
+    "SNPcompare" __;
 
 enum eAlgorithms {
     eNeighborJoining = 0,
@@ -888,7 +888,7 @@ bool DnaClust::DnaClustContext::saveExaminedReferences()
 bool DnaClust::DnaClustContext::loadProfileIDs()
 {
     if (_proc.formHiveIdValues("profileID", &_profileIDs) < 0) {
-        _proc.logOut(eQPLogType_Error, "Empty profileID list for %"DEC" request; terminating\n", _req);
+        _proc.logOut(eQPLogType_Error, "Empty profileID list for %" DEC " request; terminating\n", _req);
         _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Need a non-empty list of profiling results");
         return false;
     }
@@ -898,7 +898,7 @@ bool DnaClust::DnaClustContext::loadProfileIDs()
 bool DnaClust::DnaClustContext::loadGenomeIDs()
 {
     if (_proc.formHiveIdValues("referenceID", &_genomeIDs) < 0) {
-        _proc.logOut(eQPLogType_Error, "Empty referenceID genome list for %"DEC" request; terminating\n", _req);
+        _proc.logOut(eQPLogType_Error, "Empty referenceID genome list for %" DEC " request; terminating\n", _req);
         _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Need a non-empty list of reference genomes");
         return false;
     }
@@ -1035,7 +1035,7 @@ bool DnaClust::DnaClustContext::loadAlgorithm()
     else if (!strcmp(distanceName.ptr(), "pnorm")) {
         real p = _proc.formRValue("pValue");
         if (p < 1.0) {
-            _proc.logOut(eQPLogType_Error, "Invalid pValue == %g, expected pValue >= 1.0 for %"DEC" request; terminating\n", p, _req);
+            _proc.logOut(eQPLogType_Error, "Invalid pValue == %g, expected pValue >= 1.0 for %" DEC " request; terminating\n", p, _req);
             _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Expected parameter p >= 1.0, but %g was given", p);
             return false;
         }
@@ -1067,17 +1067,17 @@ bool DnaClust::DnaClustContext::loadThreshold()
     _thresholdAny = _proc.formBoolValue("thresholdAny");
     _thresholdWindow = _proc.formIValue("thresholdWindow");
     if (_thresholdWindow < 0) {
-        _proc.logOut(eQPLogType_Error, "Invalid thresholdWindow = %"DEC", expected >= 0 for %"DEC" request; terminating\n", _thresholdWindow, _req);
-        _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Expected non-negative position range parameter, but %"DEC" was given", _thresholdWindow);
+        _proc.logOut(eQPLogType_Error, "Invalid thresholdWindow = %" DEC ", expected >= 0 for %" DEC " request; terminating\n", _thresholdWindow, _req);
+        _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Expected non-negative position range parameter, but %" DEC " was given", _thresholdWindow);
         return false;
     } else if (_thresholdWindow > 0 && !_thresholdAny) {
-        _proc.logOut(eQPLogType_Error, "If thresholdWindow > 0, expect thresholdAny to be true for %"DEC" request; terminating\n", _req);
+        _proc.logOut(eQPLogType_Error, "If thresholdWindow > 0, expect thresholdAny to be true for %" DEC " request; terminating\n", _req);
         _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Expected 'all profiles as long as one meets constraint' parameter to be enabled if a non-empty position range parameter was given");
         return false;
     }
 
 #ifdef _DEBUG
-    printf("SNP freq threshold: [%.0f%%, %.0f%%]; coverage: >= %"DEC"; thresholdAny: %s; thresholdWindow: %"DEC"\n", _iterParams.getMinThreshold()*100, _iterParams.getMaxThreshold()*100, _iterParams.getMinCoverage(), _thresholdAny?"true":"false", _thresholdWindow);
+    printf("SNP freq threshold: [%.0f%%, %.0f%%]; coverage: >= %" DEC "; thresholdAny: %s; thresholdWindow: %" DEC "\n", _iterParams.getMinThreshold()*100, _iterParams.getMaxThreshold()*100, _iterParams.getMinCoverage(), _thresholdAny?"true":"false", _thresholdWindow);
 #endif
 
     return true;
@@ -1185,19 +1185,19 @@ bool DnaClust::DnaClustContext::calcSNPCompare()
                     continue;
                 else { //if ((!it.hasSameConsensus())||(!it.hasSameTotalFreq()) || !it.hasAllMeetFreqThreshold())
                     if ((!it.hasSameConsensus())||(!it.hasSameTotalFreq()))
-                        mismatch.printf("%"DEC",%"UDEC"\r\n", _references[it.segment()], it.getSNPRecord().position);
+                        mismatch.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
                     else
-                        match.printf("%"DEC",%"UDEC"\r\n", _references[it.segment()], it.getSNPRecord().position); }
+                        match.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position); }
                 break;
             case eSNPCompareAlgorithm_FreqCutOff:
                 if (it.hasSameConsensusReference())
                     continue;
-                //nothing.printf("%"DEC",%u\r\n", subjectList[ir], it.getSNPRecord().position);
+                //nothing.printf("%" DEC ",%u\r\n", subjectList[ir], it.getSNPRecord().position);
                 else {
                     if ((!it.hasSameTotalFreq() || !it.hasAllMeetFreqThreshold()))
-                        mismatch.printf("%"DEC",%"UDEC"\r\n", _references[it.segment()], it.getSNPRecord().position);
+                        mismatch.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
                     else
-                        match.printf("%"DEC",%"UDEC"\r\n", _references[it.segment()], it.getSNPRecord().position);
+                        match.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
                 }
                 break;
             case eSNPCompareAlgorithm_Compare2Consensus:
@@ -1207,9 +1207,9 @@ bool DnaClust::DnaClustContext::calcSNPCompare()
                 //else { if ((!it.hasSame2Consensus())||(!it.hasSameTotalFreq()) || !it.hasAllMeetFreqThreshold())
                 else {
                     if ((!it.hasSame2Consensus())||(!it.hasSameTotalFreq()))
-                        mismatch.printf("%"DEC",%"UDEC"\r\n", _references[it.segment()], it.getSNPRecord().position);
+                        mismatch.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
                     else
-                        match.printf("%"DEC",%"UDEC"\r\n", _references[it.segment()], it.getSNPRecord().position);
+                        match.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
                 }
                 break;
         }
@@ -1278,7 +1278,7 @@ bool DnaClust::DnaClustContext::calcShrunk()
         for (ShrunkIter it(_iters[0], _positionLists.ptr(), _references.dim(), !_thresholdAny); it.valid(); ++it) {
             for (idx k=0; k<6; k++) {
                 sVariant columnLabel;
-                columnLabel.setSprintf("isub=%"DEC" pos=%"DEC" ", _references[it.segment()], it.getSNPRecord().position);
+                columnLabel.setSprintf("isub=%" DEC " pos=%" DEC " ", _references[it.segment()], it.getSNPRecord().position);
                 if (k<4)
                     columnLabel.append("%c", sBioseq::mapRevATGC[k]);
                 else if (k == 4)
@@ -1324,11 +1324,11 @@ bool DnaClust::DnaClustContext::calcShrunk()
             shrunkSNPClassFile->printf("\r\n");
 
 #ifdef _DEBUG
-        printf("\tShrunk %s to %"DEC" positions\n", _profileIDs[i].print(), shrunkPos);
+        printf("\tShrunk %s to %" DEC " positions\n", _profileIDs[i].print(), shrunkPos);
 #endif
         // Sanity check
         if (shrunkSize >= 0 && shrunkSize != shrunkPos) {
-            _proc.logOut(eQPLogType_Error, "Inconsistent shrunk genome lengths for %"DEC" request; terminating\n", _req);
+            _proc.logOut(eQPLogType_Error, "Inconsistent shrunk genome lengths for %" DEC " request; terminating\n", _req);
             _proc.reqSetInfo(_req, eQPInfoLevel_Error, DNA_CLUST_DEFAULT_ERROR);
             return false;
         }
@@ -1351,7 +1351,7 @@ bool DnaClust::DnaClustContext::calcShrunk()
         for (ShrunkIter it(_iters[0], _positionLists.ptr(), _references.dim(), !_thresholdAny); it.valid(); ++it, shrunkPos++) {
             for (idx k=0; k<6; k++) {
                 // Print the row label
-                shrunkSNPPosFile->printf("%"DEC",%"UDEC",", _references[it.segment()], it.getSNPRecord().position);
+                shrunkSNPPosFile->printf("%" DEC ",%" UDEC ",", _references[it.segment()], it.getSNPRecord().position);
                 if (k<4)
                     shrunkSNPPosFile->printf("%c", sBioseq::mapRevATGC[k]);
                 else if (k == 4)
@@ -1387,7 +1387,7 @@ bool DnaClust::DnaClustContext::calcClust()
     _proc.progress100End = initial_progress100Start + 0.50 * (initial_progress100End - initial_progress100Start);
 
     if (!_clust->resetDistance<real, sPooledSNPCSVFreqIter>(_iters.ptr(), _profileIDs.dim(), *_dist, reqProgressStatic, &_proc)) {
-        _proc.logOut(eQPLogType_Error, "Failed to calculate distance matrix for %"DEC" request; terminating\n", _req);
+        _proc.logOut(eQPLogType_Error, "Failed to calculate distance matrix for %" DEC " request; terminating\n", _req);
         _proc.reqSetInfo(_req, eQPInfoLevel_Error, DNA_CLUST_DEFAULT_ERROR);
         return false;
     }
@@ -1416,7 +1416,7 @@ bool DnaClust::DnaClustContext::calcClust()
 
     _proc.logOut(sQPrideBase::eQPLogType_Trace, "Calculating clustering\n");
     if (!_clust->recluster(reqProgressStatic, &_proc)) {
-        _proc.logOut(eQPLogType_Error, "Failed to calculate clusterization for %"DEC" request; terminating\n", _req);
+        _proc.logOut(eQPLogType_Error, "Failed to calculate clusterization for %" DEC " request; terminating\n", _req);
         _proc.reqSetInfo(_req, eQPInfoLevel_Error, DNA_CLUST_DEFAULT_ERROR);
         return false;
     }
@@ -1510,6 +1510,6 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaClust backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-clust",argv[0]));
+    DnaClust backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-clust",argv[0]));
     return (int)backend.run(argc,argv);
 }

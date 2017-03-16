@@ -151,6 +151,6 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
-    dmCompressorProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dmCompressor", argv[0]));
+    dmCompressorProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dmCompressor", argv[0]));
     return (int) backend.run(argc, argv);
 }

@@ -197,15 +197,15 @@ namespace slib
                         {}
 
                     sqlProc& Add(const idx value)
-                        { m_stmt.printf("%s%"DEC, m_qty++ ? ", ": "", value); return *this; }
+                        { m_stmt.printf("%s%" DEC, m_qty++ ? ", ": "", value); return *this; }
                     sqlProc& Add(const udx value)
-                        { m_stmt.printf("%s%"UDEC, m_qty++ ? ", ": "", value); return *this; }
+                        { m_stmt.printf("%s%" UDEC, m_qty++ ? ", ": "", value); return *this; }
                     sqlProc& Add(const real value, const char * fmt = "%g")
                         { if( m_qty++ ) { m_stmt.addString(", "); } m_stmt.printf(fmt, value); return *this; }
                     sqlProc& Add(const bool value)
                         { m_stmt.printf("%s%s", m_qty++ ? ", ": "", value ? "TRUE" : "FALSE"); return *this; }
                     //sqlProc& Add(const time_t value)
-                    //    { m_stmt.printf("%s%"UDEC, m_qty++ ? ", ": "", value); return *this; }
+                    //    { m_stmt.printf("%s%" UDEC, m_qty++ ? ", ": "", value); return *this; }
                     sqlProc& Add(const sStr& value)
                         { return Add(value.ptr()); }
                     sqlProc& Add(const char* value, udx value_len = 0)
@@ -286,7 +286,7 @@ namespace slib
             {
                 const char * v = resultValue(col);
                 if( v ) {
-                    sscanf(v, "%"DEC, &defval);
+                    sscanf(v, "%" DEC, &defval);
                 }
                 return defval;
             }
@@ -294,7 +294,7 @@ namespace slib
             {
                 const char * v = resultValue(col);
                 if( v ) {
-                    sscanf(v, "%"UDEC, &defval);
+                    sscanf(v, "%" UDEC, &defval);
                 }
                 return defval;
             }

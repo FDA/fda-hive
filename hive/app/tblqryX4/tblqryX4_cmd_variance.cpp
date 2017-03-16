@@ -90,7 +90,7 @@ bool VarianceCommand::compute(sTabular * tbl)
 
     if (!rowSet || rowSet.dim() == 0){
         char p[8];
-        ::sprintf(p, "0-%"DEC, tbl->rows()-1);
+        ::sprintf(p, "0-%" DEC, tbl->rows()-1);
         sString::scanRangeSet(p,0,&(rowSet),0ll,0ll,0ll);
     }
 

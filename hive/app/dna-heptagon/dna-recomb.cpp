@@ -194,7 +194,7 @@ idx DnaRecomb::OnExecute(idx req)
     aligner.propGet00("query", &query, ";");
 
     sStr path;
-    aligner.getFilePathname00(path, "alignment.hiveal"_"alignment.vioal"__);
+    aligner.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __);
     sHiveal hiveal(user, path);
     sBioal * bioal = &hiveal;
     bioal=&hiveal;
@@ -212,7 +212,7 @@ idx DnaRecomb::OnExecute(idx req)
     sStr mutualAlignmentPath;
     sUsrFile mutualAlignmentObj(mutualAlignmentID, sQPride::user);
     if( mutualAlignmentObj.Id() ) {
-        mutualAlignmentObj.getFilePathname00(mutualAlignmentPath,"alignment.vioalt"_"alignment.vioal"_"alignment.hiveal"__);
+        mutualAlignmentObj.getFilePathname00(mutualAlignmentPath,"alignment.vioalt" _ "alignment.vioal" _ "alignment.hiveal" __);
     } else {
         errS.printf("Mutual Alignment object not found or corrupted %s\n", mutualAlignmentID.print());
         logOut(eQPLogType_Error,"%s",errS.ptr());
@@ -319,7 +319,7 @@ idx DnaRecomb::OnExecute(idx req)
 
         RD.startAl = start;RD.endAl = end;RD.req = req; RD.obj = (void *)this;
         if(!SimilStack.dim()) {
-            recombName.printf(0,"file://recomb-slice-%"DEC".vioprof",reqSliceId);
+            recombName.printf(0,"file://recomb-slice-%" DEC ".vioprof",reqSliceId);
             reqSetData(req,recombName,0,0); // create and empty file for this request
             reqDataPath(req,recombName.ptr(7),&recombPath);
             sFile::remove(recombPath);
@@ -330,7 +330,7 @@ idx DnaRecomb::OnExecute(idx req)
 
         }
 
-//        logOut(eQPLogType_Error,"Computing recombinants %s from \n\tsubject %"DEC" %"DEC" alignments from %"DEC" to %"DEC" \n",recombPath.ptr(0),iSub, end-start, start, end );
+//        logOut(eQPLogType_Error,"Computing recombinants %s from \n\tsubject %" DEC " %" DEC " alignments from %" DEC " to %" DEC " \n",recombPath.ptr(0),iSub, end-start, start, end );
         cntFound+=bioal->iterateAlignments(0, start, end-start, iSub, (sBioal::typeCallbackIteratorFunction)&similCumulator, (sBioal::ParamsAlignmentIterator *) &PA);
 
         totalAls+=dimAl;
@@ -348,7 +348,7 @@ idx DnaRecomb::OnExecute(idx req)
 
     if ( !isLastInMasterGroup() ) {
         reqSetStatus(req, eQPReqStatus_Done);// change the status
-        logOut(eQPLogType_Info,"Done processing %"DEC" request for execution\n",req);
+        logOut(eQPLogType_Info,"Done processing %" DEC " request for execution\n",req);
         return 0;
     }
 
@@ -369,7 +369,7 @@ idx DnaRecomb::OnExecute(idx req)
     idx * AllAcgt_indel=AllSimcov+RD.alignLen*Sub.dim();
 
     for( idx ir=0; ir<reqList.dim(); ++ir ) {
-        recombName.printf(0,"recomb-slice-%"DEC".vioprof",ir);
+        recombName.printf(0,"recomb-slice-%" DEC ".vioprof",ir);
         recombPath.cut(0);
         reqDataPath(reqList[ir],recombName.ptr(0),&recombPath);
         sVec <idx > stack(sMex::fReadonly|sMex::fExactSize,recombPath);
@@ -415,7 +415,7 @@ idx DnaRecomb::OnExecute(idx req)
         idx most_simil_Sub = 0;
         for( idx il=0; il<RD.alignLen; ++il ){
             max_simil = 0;most_simil_Sub=0;
-            str.printf("%"DEC,il+1);
+            str.printf("%" DEC,il+1);
             for( idx is=0; is<Sub.dim(); ++is ){
                 idx ishift=is*RD.alignLen; // hdrTo->idQry is the sequential number of the subject on the map it is aligned to
 
@@ -423,7 +423,7 @@ idx DnaRecomb::OnExecute(idx req)
                     max_simil = AllSimil[ishift+il];
                     most_simil_Sub = is;
                 }
-                str.printf(",%"DEC,AllSimil[ishift+il]);
+                str.printf(",%" DEC,AllSimil[ishift+il]);
                 //AllSimcov[ishift+il]+=simcov[ishift+il];
             }
             str.printf(",%s\n",Sub.id(most_simil_Sub) );
@@ -448,7 +448,7 @@ idx DnaRecomb::OnExecute(idx req)
         idx most_cover_Sub = 0;
         for( idx il=0; il<RD.alignLen; ++il ){
             max_cover = 0;most_cover_Sub=0;
-            str.printf("%"DEC,il+1);
+            str.printf("%" DEC,il+1);
             for( idx is=0; is<Sub.dim(); ++is ){
                 idx ishift=is*RD.alignLen; // hdrTo->idQry is the sequential number of the subject on the map it is aligned to
 
@@ -456,7 +456,7 @@ idx DnaRecomb::OnExecute(idx req)
                     max_cover = AllSimil[ishift+il];
                     most_cover_Sub = is;
                 }
-                str.printf(",%"DEC,AllSimcov[ishift+il]);
+                str.printf(",%" DEC,AllSimcov[ishift+il]);
             }
             str.printf(",%s\n",Sub.id(most_cover_Sub) );
         }
@@ -480,15 +480,15 @@ idx DnaRecomb::OnExecute(idx req)
                     consLet=ch;
             }
 
-            str.printf("%"DEC",%c",il+1,(char)sBioseq::mapRevATGC[consLet]);
+            str.printf("%" DEC ",%c",il+1,(char)sBioseq::mapRevATGC[consLet]);
 
             idx tot=0;
             for( idx ch=0; ch<4; ++ch ){
                 tot+=AllAcgt_indel[il*6+ch];
-                str.printf(",%"DEC,AllAcgt_indel[il*6+ch]);
+                str.printf(",%" DEC,AllAcgt_indel[il*6+ch]);
             }
-            str.printf(",%"DEC",%"DEC,AllAcgt_indel[il*6+4],AllAcgt_indel[il*6+5]);
-            str.printf(",%"DEC,tot);
+            str.printf(",%" DEC ",%" DEC,AllAcgt_indel[il*6+4],AllAcgt_indel[il*6+5]);
+            str.printf(",%" DEC,tot);
 
             for( idx ch=0; ch<4; ++ch ){
                 real f=AllAcgt_indel[il*6+ch] ? ((real)(AllAcgt_indel[il*6+ch]))/tot : 0;
@@ -520,7 +520,7 @@ idx DnaRecomb::OnExecute(idx req)
 
     reqSetStatus(req, eQPReqStatus_Done);// change the status
     reqProgress(cntFound, 100);
-    logOut(eQPLogType_Info,"Found %"DEC" hits\n",cntFound);
+    logOut(eQPLogType_Info,"Found %" DEC " hits\n",cntFound);
 
 return 0;
 }
@@ -533,7 +533,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaRecomb backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-recomb",argv[0]));
+    DnaRecomb backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-recomb",argv[0]));
     return (int)backend.run(argc,argv);
 }
 

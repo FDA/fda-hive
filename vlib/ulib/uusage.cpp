@@ -52,7 +52,7 @@ using namespace slib;
 #define USAGEDBG_TYPE(...)
 #endif
 
-#define USAGEDBG_SQLITE do { if( _db.hasFailed() ) { fprintf(stderr, "%s:%d : SQLite error %"UDEC": %s\n", __PRETTY_FUNCTION__, __LINE__, _db.getErrno(), _db.getError()); } } while( 0 )
+#define USAGEDBG_SQLITE do { if( _db.hasFailed() ) { fprintf(stderr, "%s:%d : SQLite error %" UDEC ": %s\n", __PRETTY_FUNCTION__, __LINE__, _db.getErrno(), _db.getError()); } } while( 0 )
 #define USAGEDBG_SQLITE_TRACE(fmt, ...) fprintf(stderr, "%s:%d : " fmt "\n", __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 static const struct {
@@ -104,7 +104,7 @@ static void ionapp2csv(sTxtTbl & out_tbl, sIO & out_io, const char * ion_path, c
         out_tbl.parseOptions().comment = "# ";
         out_tbl.setBuf(out_io.ptr(), out_io.length());
         out_tbl.parse();
-        USAGEDBG_SQLITE_TRACE("%"DEC" rows read from ionapp -ionRead %s -ionExport %s", out_tbl.rows(), ion_path, relname);
+        USAGEDBG_SQLITE_TRACE("%" DEC " rows read from ionapp -ionRead %s -ionExport %s", out_tbl.rows(), ion_path, relname);
     }
 }
 
@@ -214,7 +214,7 @@ class sUsrUsage2::UsageDb
         {
             udx timestamp_udx = timestamp;
             bool timestamp_is_last = true;
-            if( _db.resultOpen("SELECT rowid FROM user_usage WHERE user_id = %"UDEC" and usage_type = %d AND tag = %"DEC" and timestamp > %"UDEC" LIMIT 1;", user_id, type, tag, timestamp_udx) ) {
+            if( _db.resultOpen("SELECT rowid FROM user_usage WHERE user_id = %" UDEC " and usage_type = %d AND tag = %" DEC " and timestamp > %" UDEC " LIMIT 1;", user_id, type, tag, timestamp_udx) ) {
                 if( _db.resultNextRow() ) {
                     timestamp_is_last = false;
                 }
@@ -224,7 +224,7 @@ class sUsrUsage2::UsageDb
             }
 
             if( timestamp_is_last ) {
-                if( _db.resultOpen("SELECT rowid, value, timestamp FROM user_usage WHERE user_id = %"UDEC" and usage_type = %d AND TAG = %"DEC" and timestamp <= %"UDEC" ORDER BY timestamp DESC LIMIT 2;", user_id, type, tag, timestamp_udx) ) {
+                if( _db.resultOpen("SELECT rowid, value, timestamp FROM user_usage WHERE user_id = %" UDEC " and usage_type = %d AND TAG = %" DEC " and timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 2;", user_id, type, tag, timestamp_udx) ) {
                     idx cnt_same_value = 0;
                     idx update_rowid = -sIdxMax;
                     if( _db.resultNextRow() ) {
@@ -248,7 +248,7 @@ class sUsrUsage2::UsageDb
                     if( cnt_same_value == 2 ) {
                         // optimization: the latest 2 entries for (user, type, tag) have the same value; we just
                         // need to update the second one's timestamp
-                        if( !_db.execute("UPDATE user_usage SET timestamp = %"UDEC" WHERE rowid = %"DEC";", timestamp_udx, update_rowid) ) {
+                        if( !_db.execute("UPDATE user_usage SET timestamp = %" UDEC " WHERE rowid = %" DEC ";", timestamp_udx, update_rowid) ) {
                             USAGEDBG_SQLITE;
                         }
                         return;
@@ -258,7 +258,7 @@ class sUsrUsage2::UsageDb
                 }
             }
 
-            if( !_db.execute("INSERT INTO user_usage (user_id, usage_type, tag, timestamp, value) VALUES(%"UDEC", %d, %"DEC", %"UDEC", %"DEC");", user_id, (int)type, tag, timestamp_udx, value) ) {
+            if( !_db.execute("INSERT INTO user_usage (user_id, usage_type, tag, timestamp, value) VALUES(%" UDEC ", %d, %" DEC ", %" UDEC ", %" DEC ");", user_id, (int)type, tag, timestamp_udx, value) ) {
                 USAGEDBG_SQLITE;
             }
         }
@@ -267,7 +267,7 @@ class sUsrUsage2::UsageDb
         {
             idx ret = sIdxMax;
             udx after_udx = after;
-            if( _db.resultOpen("SELECT timestamp FROM user_usage WHERE usage_type = %d AND tag = %"DEC" AND timestamp >= %"UDEC" ORDER BY timestamp ASC LIMIT 1;", type, tag, after_udx) ) {
+            if( _db.resultOpen("SELECT timestamp FROM user_usage WHERE usage_type = %d AND tag = %" DEC " AND timestamp >= %" UDEC " ORDER BY timestamp ASC LIMIT 1;", type, tag, after_udx) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, sIdxMax);
                 _db.resultClose();
@@ -281,7 +281,7 @@ class sUsrUsage2::UsageDb
         {
             idx ret = 0;
             udx before_udx = before;
-            if( _db.resultOpen("SELECT timestamp FROM user_usage WHERE user_id = %"UDEC" AND usage_type = %d AND tag = %"DEC" AND timestamp <= %"UDEC" ORDER BY timestamp DESC LIMIT 1;", user_id, type, tag, before_udx) ) {
+            if( _db.resultOpen("SELECT timestamp FROM user_usage WHERE user_id = %" UDEC " AND usage_type = %d AND tag = %" DEC " AND timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 1;", user_id, type, tag, before_udx) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, 0);
                 _db.resultClose();
@@ -295,7 +295,7 @@ class sUsrUsage2::UsageDb
         {
             idx ret = 0;
             udx before_udx = before;
-            if( _db.resultOpen("SELECT timestamp FROM user_usage WHERE usage_type = %d AND tag = %"DEC" AND timestamp <= %"UDEC" ORDER BY timestamp DESC LIMIT 1;", type, tag, before_udx) ) {
+            if( _db.resultOpen("SELECT timestamp FROM user_usage WHERE usage_type = %d AND tag = %" DEC " AND timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 1;", type, tag, before_udx) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, 0);
                 _db.resultClose();
@@ -338,7 +338,7 @@ class sUsrUsage2::UsageDb
             sVec<idx> iuser_list2cnt_callbacks(sMex::fExactSize|sMex::fSetZero);
             iuser_list2start_value.resize(num_user_lists);
             iuser_list2cnt_callbacks.resize(num_user_lists);
-            sStr sql("SELECT timestamp, user_id, value FROM user_usage WHERE usage_type = %d AND tag = %"DEC" AND timestamp <= %"UDEC" AND ", type, tag, to_udx);
+            sStr sql("SELECT timestamp, user_id, value FROM user_usage WHERE usage_type = %d AND tag = %" DEC " AND timestamp <= %" UDEC " AND ", type, tag, to_udx);
             sSql::exprInList(sql, "user_id", all_user_ids);
             sql.addString(" ORDER BY timestamp ASC;");
 
@@ -389,7 +389,7 @@ class sUsrUsage2::UsageDb
         idx getObjUsage(const sHiveId & id, sUsrUsage2::EUsageType type)
         {
             idx ret = 0;
-            if( _db.resultOpen("SELECT value FROM obj_usage WHERE domain_id = %"UDEC" AND obj_id = %"UDEC" AND usage_type = %d;", id.domainId(), id.objId(), type) ) {
+            if( _db.resultOpen("SELECT value FROM obj_usage WHERE domain_id = %" UDEC " AND obj_id = %" UDEC " AND usage_type = %d;", id.domainId(), id.objId(), type) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, 0);
                 _db.resultClose();
@@ -402,7 +402,7 @@ class sUsrUsage2::UsageDb
         idx getReqUsage(const udx req, sUsrUsage2::EUsageType type)
         {
             idx ret = 0;
-            if( _db.resultOpen("SELECT value FROM req_usage WHERE req_id = %"UDEC" AND usage_type = %d;", req, type) ) {
+            if( _db.resultOpen("SELECT value FROM req_usage WHERE req_id = %" UDEC " AND usage_type = %d;", req, type) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, 0);
                 _db.resultClose();
@@ -415,10 +415,10 @@ class sUsrUsage2::UsageDb
         void setObjUsage(const sHiveId & id, time_t timestamp, idx disk_usage, idx file_count)
         {
             udx timestamp_udx = timestamp;
-            if( !_db.execute("INSERT OR REPLACE INTO obj_usage (timestamp, domain_id, obj_id, usage_type, value) VALUES(%"UDEC", %"UDEC", %"UDEC", %d, %"DEC");", timestamp_udx, id.domainId(), id.objId(), sUsrUsage2::eDiskUsage, disk_usage) ) {
+            if( !_db.execute("INSERT OR REPLACE INTO obj_usage (timestamp, domain_id, obj_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %" UDEC ", %d, %" DEC ");", timestamp_udx, id.domainId(), id.objId(), sUsrUsage2::eDiskUsage, disk_usage) ) {
                 USAGEDBG_SQLITE;
             }
-            if( !_db.execute("INSERT OR REPLACE INTO obj_usage (timestamp, domain_id, obj_id, usage_type, value) VALUES(%"UDEC", %"UDEC", %"UDEC", %d, %"DEC");", timestamp_udx, id.domainId(), id.objId(), sUsrUsage2::eFileCount, file_count) ) {
+            if( !_db.execute("INSERT OR REPLACE INTO obj_usage (timestamp, domain_id, obj_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %" UDEC ", %d, %" DEC ");", timestamp_udx, id.domainId(), id.objId(), sUsrUsage2::eFileCount, file_count) ) {
                 USAGEDBG_SQLITE;
             }
         }
@@ -426,21 +426,21 @@ class sUsrUsage2::UsageDb
         void setReqUsage(const udx req, time_t timestamp, idx temp_usage)
         {
             udx timestamp_udx = timestamp;
-            if( !_db.execute("INSERT OR REPLACE INTO req_usage (timestamp, req_id, usage_type, value) VALUES(%"UDEC", %"UDEC", %d, %"DEC");", timestamp_udx, req, sUsrUsage2::eTempUsage, temp_usage) ) {
+            if( !_db.execute("INSERT OR REPLACE INTO req_usage (timestamp, req_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %d, %" DEC ");", timestamp_udx, req, sUsrUsage2::eTempUsage, temp_usage) ) {
                 USAGEDBG_SQLITE;
             }
         }
 
         void delObjUsage(const sHiveId & id)
         {
-            if( !_db.execute("DELETE FROM obj_usage WHERE domain_id = %"UDEC" AND obj_id = %"UDEC";", id.domainId(), id.objId()) ) {
+            if( !_db.execute("DELETE FROM obj_usage WHERE domain_id = %" UDEC " AND obj_id = %" UDEC ";", id.domainId(), id.objId()) ) {
                 USAGEDBG_SQLITE;
             }
         }
 
         void delReqUsage(const udx req)
         {
-            if( !_db.execute("DELETE FROM obj_usage WHERE req_id = %"UDEC";", req) ) {
+            if( !_db.execute("DELETE FROM obj_usage WHERE req_id = %" UDEC ";", req) ) {
                 USAGEDBG_SQLITE;
             }
         }
@@ -470,10 +470,10 @@ class sUsrUsage2::UsageDb
             ionapp2csv(req_usage_tbl, req_usage_io, prev_vals_ion_path, "req-usage");
 
             if( startTransaction() ) {
-                USAGEDBG_SQLITE_TRACE("Migrating %"DEC" user usage records ...", normal_rows_tbl.rows());
+                USAGEDBG_SQLITE_TRACE("Migrating %" DEC " user usage records ...", normal_rows_tbl.rows());
                 for(idx ir = 0; ir < normal_rows_tbl.rows(); ir++) {
                     if( !noCSVErrorCells(normal_rows_tbl, ir, print_buf) ) {
-                        USAGEDBG_SQLITE_TRACE("Skipping row %"DEC" : %s", ir, normal_rows_tbl.printCSV(print_buf, ir, 0, 1));
+                        USAGEDBG_SQLITE_TRACE("Skipping row %" DEC " : %s", ir, normal_rows_tbl.printCSV(print_buf, ir, 0, 1));
                         continue;
                     }
                     // time, value, user-id, usage-type, tag
@@ -485,10 +485,10 @@ class sUsrUsage2::UsageDb
 
                     addRecord(user_id, type, tag, timestamp, value);
                 }
-                USAGEDBG_SQLITE_TRACE("Migrating %"DEC" user usage end records ...", end_rows_tbl.rows());
+                USAGEDBG_SQLITE_TRACE("Migrating %" DEC " user usage end records ...", end_rows_tbl.rows());
                 for(idx ir = 0; ir < end_rows_tbl.rows(); ir++) {
                     if( !noCSVErrorCells(end_rows_tbl, ir, print_buf) ) {
-                        USAGEDBG_SQLITE_TRACE("Skipping row %"DEC" : %s", ir, end_rows_tbl.printCSV(print_buf, ir, 0, 1));
+                        USAGEDBG_SQLITE_TRACE("Skipping row %" DEC " : %s", ir, end_rows_tbl.printCSV(print_buf, ir, 0, 1));
                         continue;
                     }
                     // unhashed-time, unhashed-value, user-id, usage-type, tag
@@ -500,11 +500,11 @@ class sUsrUsage2::UsageDb
 
                     addRecord(user_id, type, tag, timestamp, value);
                 }
-                USAGEDBG_SQLITE_TRACE("done.\nMigrating %"DEC" object usage records ...", obj_usage_tbl.rows());
+                USAGEDBG_SQLITE_TRACE("done.\nMigrating %" DEC " object usage records ...", obj_usage_tbl.rows());
                 sStr id_encoded;
                 for(idx ir = 0; ir < obj_usage_tbl.rows(); ir++) {
                     if( !noCSVErrorCells(obj_usage_tbl, ir, print_buf) ) {
-                        USAGEDBG_SQLITE_TRACE("Skipping row %"DEC" : %s", ir, obj_usage_tbl.printCSV(print_buf, ir, 0, 1));
+                        USAGEDBG_SQLITE_TRACE("Skipping row %" DEC " : %s", ir, obj_usage_tbl.printCSV(print_buf, ir, 0, 1));
                         continue;
                     }
                     // obj, time, disk-usage, file-count
@@ -528,10 +528,10 @@ class sUsrUsage2::UsageDb
                         setObjUsage(id, timestamp, disk_usage, file_count);
                     }
                 }
-                USAGEDBG_SQLITE_TRACE("done.\nMigrating %"DEC" request usage records ...", req_usage_tbl.rows());
+                USAGEDBG_SQLITE_TRACE("done.\nMigrating %" DEC " request usage records ...", req_usage_tbl.rows());
                 for(idx ir = 0; ir < req_usage_tbl.rows(); ir++) {
                     if( !noCSVErrorCells(req_usage_tbl, ir, print_buf) ) {
-                        USAGEDBG_SQLITE_TRACE("Skipping row %"DEC" : %s", ir, req_usage_tbl.printCSV(print_buf, ir, 0, 1));
+                        USAGEDBG_SQLITE_TRACE("Skipping row %" DEC " : %s", ir, req_usage_tbl.printCSV(print_buf, ir, 0, 1));
                         continue;
                     }
                     // req, time, temp-usage
@@ -691,7 +691,7 @@ sRC sUsrUsage2::getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx 
         time_val.setDateTime(to);
         time_val.print(time_buf, sVariant::eUnquoted);
 
-        USAGEDBG_FUNC("user %"DEC", group %"DEC" %s", user_id, primary_group_id, time_buf.ptr());
+        USAGEDBG_FUNC("user %" DEC ", group %" DEC " %s", user_id, primary_group_id, time_buf.ptr());
     }
 #endif
 
@@ -707,24 +707,24 @@ sRC sUsrUsage2::getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx 
 
     sSql::sqlProc sql_created_objs(m_usr.db(), "sp_obj_by_time");
     values[eObjCount] = sql_created_objs.Add(user_id).Add(primary_group_id).Add((idx)(since[eObjCount])).Add((idx)to).Add("created").getTable(0);
-    USAGEDBG_TYPE(eObjCount, "%"DEC, values[eObjCount]);
+    USAGEDBG_TYPE(eObjCount, "%" DEC, values[eObjCount]);
     REPORT_PROGRESS;
 
     sSql::sqlProc sql_created_reqs(m_usr.db(), "sp_req_by_time");
     values[eReqCount] = sql_created_reqs.Add(user_id).Add((idx)(since[eReqCount])).Add((idx)to).Add("created").getTable(0);
-    USAGEDBG_TYPE(eReqCount, "%"DEC, values[eReqCount]);
+    USAGEDBG_TYPE(eReqCount, "%" DEC, values[eReqCount]);
     REPORT_PROGRESS;
 
     sVarSet modified_objs_tbl;
     sSql::sqlProc sql_modified_objs(m_usr.db(), "sp_obj_by_time");
     sql_modified_objs.Add(user_id).Add(primary_group_id).Add((idx)(since[eDiskUsage])).Add((idx)to).Add("modified").getTable(&modified_objs_tbl);
-    USAGEDBG("modifed objects : %"DEC,modified_objs_tbl.rows);
+    USAGEDBG("modifed objects : %" DEC,modified_objs_tbl.rows);
     REPORT_PROGRESS;
 
     sVarSet completed_objs_tbl;
     sSql::sqlProc sql_completed_objs(m_usr.db(), "sp_obj_by_time");
     sql_completed_objs.Add(user_id).Add(primary_group_id).Add((idx)(since[eCompletionTime])).Add((idx)to).Add("completed").getTable(&completed_objs_tbl);
-    USAGEDBG("completed objects : %"DEC, completed_objs_tbl.rows);
+    USAGEDBG("completed objects : %" DEC, completed_objs_tbl.rows);
 
     sStr path;
     sDir dir;
@@ -740,7 +740,7 @@ sRC sUsrUsage2::getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx 
         idx disk_usage = 0, file_count = 0;
 
         dir.find(sFlag(sDir::bitFiles)|sFlag(sDir::bitSubdirs)|sFlag(sDir::bitRecursive), path);
-        USAGEDBG("obj %s has %"DEC" entries in storage path %s", id.print(), dir.dimEntries(), path.ptr());
+        USAGEDBG("obj %s has %" DEC " entries in storage path %s", id.print(), dir.dimEntries(), path.ptr());
         for(idx ient=0; ient<dir.dimEntries(); ient++) {
             disk_usage += sFile::size(dir.getEntryPath(ient));
             if( !(dir.getEntryFlags(ient) & sDir::fIsDir) ) {
@@ -751,8 +751,8 @@ sRC sUsrUsage2::getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx 
 
         values[eDiskUsage] += disk_usage - _usage_db->getObjUsage(id, eDiskUsage);
         values[eFileCount] += file_count - _usage_db->getObjUsage(id, eFileCount);
-        USAGEDBG_TYPE(eDiskUsage,"obj %s has %"DEC" bytes (was %"DEC" bytes)", id.print(), disk_usage, _usage_db->getObjUsage(id, eDiskUsage));
-        USAGEDBG_TYPE(eFileCount, "obj %s has %"DEC" (was %"DEC")", id.print(), file_count, _usage_db->getObjUsage(id, eFileCount));
+        USAGEDBG_TYPE(eDiskUsage,"obj %s has %" DEC " bytes (was %" DEC " bytes)", id.print(), disk_usage, _usage_db->getObjUsage(id, eDiskUsage));
+        USAGEDBG_TYPE(eFileCount, "obj %s has %" DEC " (was %" DEC ")", id.print(), file_count, _usage_db->getObjUsage(id, eFileCount));
         _usage_db->setObjUsage(id, to, disk_usage, file_count);
     }
 
@@ -762,9 +762,9 @@ sRC sUsrUsage2::getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx 
         idx completed_time = completed_objs_tbl.ival(ir, 4);
         if( completed_time >= started_time ) {
             values[eCompletionTime] += completed_time - started_time;
-            USAGEDBG_TYPE(eCompletionTime, "obj %s has %"DEC" (started %"DEC", completed %"DEC")", id.print(), completed_time - started_time, started_time, completed_time);
+            USAGEDBG_TYPE(eCompletionTime, "obj %s has %" DEC " (started %" DEC ", completed %" DEC ")", id.print(), completed_time - started_time, started_time, completed_time);
         } else {
-            USAGEDBG_TYPE(eCompletionTime, "obj %s has started %"DEC" > completed %"DEC" - not recording", id.print(), started_time, completed_time);
+            USAGEDBG_TYPE(eCompletionTime, "obj %s has started %" DEC " > completed %" DEC " - not recording", id.print(), started_time, completed_time);
         }
     }
 
@@ -772,7 +772,7 @@ sRC sUsrUsage2::getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx 
     sVarSet finished_reqs_tbl;
     sSql::sqlProc sql_finished_reqs(m_usr.db(), "sp_req_by_time");
     sql_finished_reqs.Add(user_id).Add((idx)(since[eTempUsage])).Add((idx)to).Add("completed").getTable(&finished_reqs_tbl);
-    USAGEDBG("finished requests : %"DEC, finished_reqs_tbl.rows);
+    USAGEDBG("finished requests : %" DEC, finished_reqs_tbl.rows);
     REPORT_PROGRESS;
 
     sStr sql_buf;
@@ -784,26 +784,26 @@ sRC sUsrUsage2::getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx 
         idx done_time = finished_reqs_tbl.ival(ir, 5);
         if( taken_time > created_time ) {
             values[eWaitTime] += taken_time - created_time;
-            USAGEDBG_TYPE(eWaitTime, "req %"DEC" has %"DEC, req_id, taken_time - created_time);
+            USAGEDBG_TYPE(eWaitTime, "req %" DEC " has %" DEC, req_id, taken_time - created_time);
             idx end_time = sMax<idx>(alive_time, done_time);
             if( end_time > taken_time ) {
                 values[eRunTime] += end_time - taken_time;
-                USAGEDBG_TYPE(eRunTime, "req %"DEC" has %"DEC, req_id, end_time - taken_time);
+                USAGEDBG_TYPE(eRunTime, "req %" DEC " has %" DEC, req_id, end_time - taken_time);
             }
         }
         sVarSet req_data_tbl;
-        sql_buf.printf(0, "SELECT dataName, LENGTH(dataBlob), IF(SUBSTRING(FROM_BASE64(SUBSTRING(dataBlob, 1, 12)), 1, 7) = 'file://', FROM_BASE64(dataBlob), NULL) FROM QPData WHERE reqID = %"UDEC, req_id);
+        sql_buf.printf(0, "SELECT dataName, LENGTH(dataBlob), IF(SUBSTRING(FROM_BASE64(SUBSTRING(dataBlob, 1, 12)), 1, 7) = 'file://', FROM_BASE64(dataBlob), NULL) FROM QPData WHERE reqID = %" UDEC, req_id);
         m_usr.db().getTable(sql_buf, &req_data_tbl);
         REPORT_PROGRESS;
         idx temp_usage = 0;
         for(idx idat=0; idat<req_data_tbl.rows; idat++) {
             temp_usage += req_data_tbl.ival(idat, 1);
-            USAGEDBG_TYPE(eTempUsage, "req %"DEC" '%s' db has %"DEC, req_id, req_data_tbl.val(idat, 0), req_data_tbl.ival(idat, 1));
+            USAGEDBG_TYPE(eTempUsage, "req %" DEC " '%s' db has %" DEC, req_id, req_data_tbl.val(idat, 0), req_data_tbl.ival(idat, 1));
             const char * data_path = req_data_tbl.val(idat, 2);
             if( data_path && *data_path ) {
                 data_path += 7; // strlen("file://")
                 temp_usage += sFile::size(data_path);
-                USAGEDBG_TYPE(eTempUsage, "req %"DEC" '%s' file has %"DEC, req_id, data_path, sFile::size(data_path));
+                USAGEDBG_TYPE(eTempUsage, "req %" DEC " '%s' file has %" DEC, req_id, data_path, sFile::size(data_path));
             }
             REPORT_PROGRESS;
         }

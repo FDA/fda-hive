@@ -74,7 +74,7 @@ class QPSvcDnaAlignParser: public sQPSvc
         }
         void setParserReqid(const idx reqid)
         {
-            setVar("parser_reqid", "%"DEC, reqid);
+            setVar("parser_reqid", "%" DEC, reqid);
         }
         void setObjId(const sHiveId & objId)
         {

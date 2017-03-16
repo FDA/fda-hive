@@ -355,9 +355,9 @@ void sCGI::exportData(const char * dataname, const char * fmt, ... )
 
 idx sCGI::outSectionVa(sHtml * html, const char * sectionFmt, va_list marker)
 {
-    const char * h00 = (htmlDirs00.length() == 0) ? ""__ : htmlDirs00.ptr();
+    const char * h00 = (htmlDirs00.length() == 0) ? "" __ : htmlDirs00.ptr();
     if( !h00 ) {
-        h00 = ""__;
+        h00 = "" __;
     }
     sStr fl;
     for(const char * htmldir = h00; htmldir; htmldir = sString::next00(htmldir)) {
@@ -389,7 +389,7 @@ idx sCGI::outSectionVa(sHtml * html, const char * sectionFmt, va_list marker)
 bool sCGI::checkETag(sStr & etagBuf, idx len, idx timeStamp)
 {
     idx start = etagBuf.length();
-    etagBuf.printf("%"DEC":%"DEC, timeStamp, len);
+    etagBuf.printf("%" DEC ":%" DEC, timeStamp, len);
     const char * etagForm = pForm->value("IF_NONE_MATCH");
     return etagForm && strcmp(etagForm, etagBuf.ptr(start)) == 0;
 }
@@ -463,7 +463,7 @@ void sCGI::voutBinUncached(const void * buf, idx len, const char * etag, bool as
             headerSetContentDispositionAttachment(fn.ptr());
         }
         if( len > 0 )
-            headerSet("Content-Length", "%"DEC, len);
+            headerSet("Content-Length", "%" DEC, len);
         if( etag ) {
             headerSet("ETag", "%s", etag);
             headerSet("Cache-Control", "private, max-age=120"); // 2 minutes - see comment in outBinCached()

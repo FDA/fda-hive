@@ -48,11 +48,11 @@
     typedef long long idx;
     //! default unsigned integer type for #slib; #udx64 on 64-bit platforms, <em>unsigned int</em> on 32-bit ones
     typedef unsigned long long udx;
-    //! printf() code for #idx, e.g. printf("x = %"DEC"\n", (idx)x)
+    //! printf() code for #idx, e.g. printf("x = %" DEC "\n", (idx)x)
     #define    DEC    "lli"
-    //! printf() code for #udx, e.g. printf("x = %"UDEC"\n", (udx)x)
+    //! printf() code for #udx, e.g. printf("x = %" UDEC "\n", (udx)x)
     #define UDEC "llu"
-    //! printf() code for #udx as hex, e.g. printf("x = %"HEX"\n", (udx)x)
+    //! printf() code for #udx as hex, e.g. printf("x = %" HEX "\n", (udx)x)
     #define    HEX    "llx"
     //! wrapper for atoi() / atoll() depending on size of #idx
     #define atoidx atoll
@@ -513,9 +513,9 @@ namespace slib
     #define _sOutUp     _sOut( "}")
 
     // outputing values
-/*    inline void sOutf( const int & obj)                { _sOut("%"DEC"",obj); }
+/*    inline void sOutf( const int & obj)                { _sOut("%" DEC "",obj); }
     inline void sOutf( const bool & obj)            { _sOut("%s",obj ? "true" : "false"); }
-    inline void sOutf( const unsigned int & obj)    { _sOut("%"DEC"",obj); }
+    inline void sOutf( const unsigned int & obj)    { _sOut("%" DEC "",obj); }
     inline void sOutf( const double & obj)            { _sOut("%lf",obj); }
     inline void sOutf( const float & obj)            { _sOut("%f",obj); }
     inline void sOutf( const char & obj)            { _sOut("%c",obj); }

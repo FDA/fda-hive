@@ -183,7 +183,7 @@ idx DnaAlignmentComparator::OnExecute(idx req)
 
             if(wander) {
 
-                for(lenId=0;(!strchr("."sString_symbolsSpace,seqid[lenId]));++lenId);
+                for(lenId=0;(!strchr("." sString_symbolsSpace,seqid[lenId]));++lenId);
                 wander->setSearchTemplateVariable("$id",3,seqid,lenId);
                 wander->traverse();
                 idx *p=wander->traverseBuf.length() ? (idx * )wander->traverseBuf.ptr(0)  : 0 ;
@@ -254,7 +254,7 @@ idx DnaAlignmentComparator::OnExecute(idx req)
             if(vU&0x01)out.add(",0",2); \
             if(vU&0x02)out.add(",0",2); \
         } else { \
-            if(vU&0x01)out.printf(",%"DEC,pAlSub->hitsRpt); \
+            if(vU&0x01)out.printf(",%" DEC,pAlSub->hitsRpt); \
             if(vU&0x02)out.printf(",%.5lg",(real)pAlSub->RPKM); \
         } \
     }
@@ -297,7 +297,7 @@ idx DnaAlignmentComparator::OnExecute(idx req)
                     if( !pAlSub ){
                         out.add(",0",2);
                     } else {
-                        if(vU==1)out.printf(",%"DEC,pAlSub->hitsRpt);
+                        if(vU==1)out.printf(",%" DEC,pAlSub->hitsRpt);
                         if(vU&0x02) {
                             if( !isAllPairedEnd || vTU==1 )
                                 out.printf(",%.5lg",(real)pAlSub->RPKM);
@@ -320,7 +320,7 @@ idx DnaAlignmentComparator::OnExecute(idx req)
             sIO out;out.init(dstPath,sMex::fMapRemoveFile);
             out.printf("sequence");
             for(idx iAli=0, cntAls=alIds.dim(); iAli< cntAls; ++iAli) {
-                out.printf(",%"DEC,alIds[iAli].objId());
+                out.printf(",%" DEC,alIds[iAli].objId());
             }
             out.printf("\n");
 
@@ -373,7 +373,7 @@ idx DnaAlignmentComparator::OnExecute(idx req)
             sIO out;out.init(dstPath,sMex::fMapRemoveFile);
 
             for(idx iAli=0, cntAls=alIds.dim(); iAli< cntAls; ++iAli) {
-                out.printf("%"DEC",",alIds[iAli].objId());
+                out.printf("%" DEC ",",alIds[iAli].objId());
             }
             out.printf("count,libs");
             out.printf("\n");
@@ -405,7 +405,7 @@ idx DnaAlignmentComparator::OnExecute(idx req)
                                 out.printf("-any-,");
                         }
                     }
-                    out.printf("%"DEC",\"%s\"\n",combKeyCount[iComb], combKeySeqs[iComb].ptr());
+                    out.printf("%" DEC ",\"%s\"\n",combKeyCount[iComb], combKeySeqs[iComb].ptr());
                 }
             }
         } else {
@@ -441,7 +441,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DnaAlignmentComparator backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-alignment-comparator", argv[0]));
+    DnaAlignmentComparator backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-alignment-comparator", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

@@ -183,37 +183,37 @@ struct ProgressItem
             out->printf("\"%s\"", title);
             out->printf(",\"%s\"", parent);
             if( cnt > 1 ) {
-                out->printf(",%"DEC, cnt);
+                out->printf(",%" DEC, cnt);
             } else {
                 out->printf(",");
             }
-            out->printf(",%"DEC, reqID);
-            out->printf(",%"DEC, grpID);
-            out->printf(",%"DEC, svcID);
-            out->printf(",%"DEC, stat);
+            out->printf(",%" DEC, reqID);
+            out->printf(",%" DEC, grpID);
+            out->printf(",%" DEC, svcID);
+            out->printf(",%" DEC, stat);
             if( progress ) {
-                out->printf(",%"DEC, progress);
+                out->printf(",%" DEC, progress);
             } else {
                 out->printf(",");
             }
-            out->printf(",%"DEC, progress100 / (cnt ? cnt : 1));
-            out->printf(",%"DEC, actTm);
-            out->printf(",%"DEC, (takenTm == sIdxMax ? doneTm : takenTm));
-            out->printf(",%"DEC, doneTm);
-            out->printf(",%"DEC, waitTime);
-            out->printf(",%"DEC, doneTm - (takenTm == sIdxMax ? doneTm : takenTm));
+            out->printf(",%" DEC, progress100 / (cnt ? cnt : 1));
+            out->printf(",%" DEC, actTm);
+            out->printf(",%" DEC, (takenTm == sIdxMax ? doneTm : takenTm));
+            out->printf(",%" DEC, doneTm);
+            out->printf(",%" DEC, waitTime);
+            out->printf(",%" DEC, doneTm - (takenTm == sIdxMax ? doneTm : takenTm));
             out->printf(",%s", sQPrideBase::getLevelName(reportLevel));
             if( orderBefore ) {
-                out->printf(",%"DEC, orderBefore);
+                out->printf(",%" DEC, orderBefore);
             } else {
                 out->printf(",");
             }
             if( runningBefore ) {
-                out->printf(",%"DEC, runningBefore);
+                out->printf(",%" DEC, runningBefore);
             } else {
                 out->printf(",");
             }
-            out->printf(",%"DEC, act);
+            out->printf(",%" DEC, act);
             out->printf("\n");
         }
 };
@@ -269,7 +269,7 @@ idx sQPrideBase::reqProgressReport(sStr * group, sStr * list, idx req, idx start
             }
         }
         svc_item.update("Total Progress", sr->grpID, 0, sr->svcID, sr->takenTm, sr->actTm, sr->doneTm, sr->stat, sr->act, sr->progress, sr->progress100, waitTime, orderBefore, runningBefore, reportLevel);
-        prgList[tmp.printf(0, "__req-%"DEC, sr->reqID)].update(sr->svcName, sr->grpID, sr->reqID, sr->svcID, sr->takenTm, sr->actTm, sr->doneTm, sr->stat, sr->act, sr->progress, sr->progress100, waitTime, orderBefore, runningBefore, reportLevel);
+        prgList[tmp.printf(0, "__req-%" DEC, sr->reqID)].update(sr->svcName, sr->grpID, sr->reqID, sr->svcID, sr->takenTm, sr->actTm, sr->doneTm, sr->stat, sr->act, sr->progress, sr->progress100, waitTime, orderBefore, runningBefore, reportLevel);
         prgList["__root"].update("root", sr->grpID, rList.dim() == 1 ? sr->reqID : 0 , 0, sr->takenTm, sr->actTm, sr->doneTm, sr->stat, sr->act, sr->progress, sr->progress100, waitTime, orderBefore, runningBefore,
             reportLevel);
     }
@@ -290,7 +290,7 @@ idx sQPrideBase::reqProgressReport(sStr * group, sStr * list, idx req, idx start
         if( sIs("__req-", key) ) {
             if( svcIDs ) {
                 sStr svcID(sMex::fBlockNormal);
-                if( !svcIDs->get(svcID.printf("%"DEC, prgList[id].svcID)) ) {
+                if( !svcIDs->get(svcID.printf("%" DEC, prgList[id].svcID)) ) {
                     continue;
                 }
             }
@@ -298,7 +298,7 @@ idx sQPrideBase::reqProgressReport(sStr * group, sStr * list, idx req, idx start
         }
     }
     if( start + cnt < prgList.dim() ) {
-        list->printf("... %"DEC" more ...,root,,,,,,,,,,,,,,,,\n", prgList.dim() - start - cnt);
+        list->printf("... %" DEC " more ...,root,,,,,,,,,,,,,,,,\n", prgList.dim() - start - cnt);
     }
     return rList.dim();
 

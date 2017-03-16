@@ -339,7 +339,7 @@ static PyObject * Obj_prop_get(pyhive::Obj *self, PyObject * args, PyObject * kw
     if( strcasecmp(name, "_brief") == 0 ) {
         // _brief is special: must be fetched via propBulk since it's generated from other fields
         sVarSet brief_tbl;
-        self->uobj->propBulk(brief_tbl, 0, "_brief"__);
+        self->uobj->propBulk(brief_tbl, 0, "_brief" __);
         for(idx i=0; i<brief_tbl.rows; i++) {
             const char * row_name = brief_tbl.val(i, 1);
             if( row_name && strcmp(row_name, "_brief") == 0 ) {

@@ -82,7 +82,7 @@ real sHivealtax::calculateShannonEntropy(sDic<idx> *taxCnt, idx rankdim, idx tot
     sDic<idx> newTaxCntForThisRank;
     newTaxCntForThisRank.flagOn(sMex::fSetZero);
 
-    outString.printf("%"DEC, iteration);
+    outString.printf("%" DEC, iteration);
     // this loop is going over all ranks from species to kingdom
     for(idx ir = 0; ir < rankdim; ++ir) {
 
@@ -336,7 +336,7 @@ idx sHivealtax::reportResults(sFil * outTaxCnt, sDic<idx> *taxCnt, sFil * outGiC
                 state_confidence_interval.printf("%0.1lf", confInterval);
             }
 
-            taxFile.printf("%s,%"DEC",%0.2lf,%"DEC",%"DEC",%0.2lf,%0.3lf,%s\n", (const char *) (taxCnt->id(ind[i])), (idx) auxcensusStat->sum, (real) (auxcensusStat->sum * 100) / countTotal, auxcensusStat->min,
+            taxFile.printf("%s,%" DEC ",%0.2lf,%" DEC ",%" DEC ",%0.2lf,%0.3lf,%s\n", (const char *) (taxCnt->id(ind[i])), (idx) auxcensusStat->sum, (real) (auxcensusStat->sum * 100) / countTotal, auxcensusStat->min,
                 auxcensusStat->max, mean, stdev, state_confidence_interval.ptr());
 
         }
@@ -386,7 +386,7 @@ idx sHivealtax::reportResults(sFil * outTaxCnt, sDic<idx> *taxCnt, sFil * outGiC
             }
             const char *family_taxid = getTaxidContainer(centeric->family_taxid_pos);
             const char *leaf_taxid = getTaxidContainer(centeric->leaf_taxid_pos);
-            accFile.printf("%.*s,%s,%s,%"DEC",%0.2lf,%"DEC",%"DEC",%0.2lf,%0.3lf,%s\n", (int)acclen,accnum, leaf_taxid, family_taxid, *accCnt->ptr(ind2[i]), (real) (centeric->sum * 100) / countTotal, centeric->min, centeric->max, mean, stdev, state_confidence_interval.ptr());
+            accFile.printf("%.*s,%s,%s,%" DEC ",%0.2lf,%" DEC ",%" DEC ",%0.2lf,%0.3lf,%s\n", (int)acclen,accnum, leaf_taxid, family_taxid, *accCnt->ptr(ind2[i]), (real) (centeric->sum * 100) / countTotal, centeric->min, centeric->max, mean, stdev, state_confidence_interval.ptr());
         }
     }
     if( outTaxCnt && taxFile) {

@@ -75,7 +75,7 @@ namespace slib {
 #ifdef _DEBUG_POOL
             virtual void dump(sStr *s)
             {
-                s->printf("obj = %p, users = %"DEC", allocOrder = %"DEC", unusageOrder = %"DEC, obj, users, allocOrder, unusageOrder);
+                s->printf("obj = %p, users = %" DEC ", allocOrder = %" DEC ", unusageOrder = %" DEC, obj, users, allocOrder, unusageOrder);
             }
 #endif
         };
@@ -222,15 +222,15 @@ namespace slib {
 #ifdef _DEBUG_POOL
         virtual void dump(sStr *s)
         {
-            s->printf("Pool items (%"DEC" total):\n", dim());
+            s->printf("Pool items (%" DEC " total):\n", dim());
             for (idx i=0; i<dim(); i++) {
-                s->printf("\t%"DEC" = {", i);
+                s->printf("\t%" DEC " = {", i);
                 _pool[i]->dump(s);
                 s->printf("}\n");
             }
-            s->printf("Unused allocated queue : %"DEC" total", _unusedAllocated.dim());
+            s->printf("Unused allocated queue : %" DEC " total", _unusedAllocated.dim());
             if (_unusedAllocated.dim()) {
-                s->printf("; top = %"DEC", other = {", _unusedAllocated.peekValue());
+                s->printf("; top = %" DEC ", other = {", _unusedAllocated.peekValue());
                 bool first_other = true;
                 for (idx i=0; i<dim(); i++) {
                     if (i == _unusedAllocated.peekValue())
@@ -240,7 +240,7 @@ namespace slib {
                             first_other = false;
                         else
                             s->printf(", ");
-                        s->printf("%"DEC, i);
+                        s->printf("%" DEC, i);
                     }
                 }
                 s->printf("}");
@@ -274,7 +274,7 @@ namespace slib {
 #ifdef _DEBUG_POOL
             virtual void dump(sStr *s)
             {
-                s->printf("flnm = %s, flags = %"DEC", ", _flnm.ptr(), _flags);
+                s->printf("flnm = %s, flags = %" DEC ", ", _flnm.ptr(), _flags);
                 sAllocPool<sFil>::sAllocator<sFil>::dump(s);
             }
 #endif

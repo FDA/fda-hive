@@ -45,7 +45,7 @@ public:
 
 idx QPrideHunt::OnExecute(idx req)
 {
-    logOut(eQPLogType_Info,"Grabbed %"DEC" request for execution\n",req);
+    logOut(eQPLogType_Info,"Grabbed %" DEC " request for execution\n",req);
     idx grp=req2Grp(req);
     
     sStr data;
@@ -59,12 +59,12 @@ idx QPrideHunt::OnExecute(idx req)
         printf("-------------RETRIEVED---------------\n%s\n---------------------------------\n%s\n--------------------------\n",data.ptr(),data1.ptr());
     }
 
-    reqSetData(req, "stdout", "this is output blob for %"DEC" request", req );
-    reqSetData(req, "test.out", "testout blob for  %"DEC" request", req );
+    reqSetData(req, "stdout", "this is output blob for %" DEC " request", req );
+    reqSetData(req, "test.out", "testout blob for  %" DEC " request", req );
 
     reqSetStatus(req, eQPReqStatus_Done);// change the status
 
-    logOut(eQPLogType_Info,"Done processing %"DEC" request for execution\n",req);
+    logOut(eQPLogType_Info,"Done processing %" DEC " request for execution\n",req);
     
     return 0;
 }
@@ -81,6 +81,6 @@ int main(int argc, const char * argv[])
 {
     sApp::args(argc,argv);
     sStr tmp;
-    QPrideHunt backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"test",argv[0]));
+    QPrideHunt backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"test",argv[0]));
     backend.run(argc,argv);
 }

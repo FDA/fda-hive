@@ -125,8 +125,8 @@ class DnaHiveseqProc: public sQPrideProc
             if( !idlistFile ) {
                 errmsg->printf("No data for sequence file %s; terminating\n", idlistObjId);
             }
-//            sString::searchAndReplaceStrings(&idtemp, idlistFile, 0, ".1"__".2"__".3"__".4"__".5"__".6"__".7"__".8"__".9", ";"__, 0, 0);
-            sString::searchAndReplaceSymbols(idlistContainer, idlistFile, 0, ";"sString_symbolsEndline, 0, 0, true, true, false, false);
+//            sString::searchAndReplaceStrings(&idtemp, idlistFile, 0, ".1" __ ".2" __ ".3" __ ".4" __ ".5" __ ".6" __ ".7" __ ".8" __ ".9", ";" __, 0, 0);
+            sString::searchAndReplaceSymbols(idlistContainer, idlistFile, 0, ";" sString_symbolsEndline, 0, 0, true, true, false, false);
             return true;
         }
 
@@ -160,7 +160,7 @@ class DnaHiveseqProc: public sQPrideProc
             }
             if( keepOriginalId == false ) {
                 // short mode, a number is going to print
-                idstr.printf("%"DEC, row);
+                idstr.printf("%" DEC, row);
             } else {
                 idstr.printf("%s", seqid);
             }
@@ -230,7 +230,7 @@ class DnaHiveseqProc: public sQPrideProc
             }
 
             if( seqFlags & eAppendLength ) {
-                idstr.printf(" len=%"DEC, newseqlen);
+                idstr.printf(" len=%" DEC, newseqlen);
             }
 
             // In case revCmp, we are printing at the start position given.
@@ -255,7 +255,7 @@ bool isReversePrimerID(const char *idseq)
 {
     sStr id;
     id.printf("%s", idseq);
-    const char *revString = "rev"__;
+    const char *revString = "rev" __;
     char *pos;
 //    pos=sString::compareChoice(idseq, revString, 0, true, 0);
     pos = sString::searchSubstring(id.ptr(), id.length(), revString, 1, __, true); // ,idx lenSrc
@@ -286,7 +286,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
     if( sBioseq::isBioModeShort( modearg ) ) {
         mode = sBioseq::eBioModeShort;
     } else if ( !sBioseq::isBioModeLong( modearg ) ) {
-        logOut(eQPLogType_Error, "Unknown biomode: %"DEC, modearg);
+        logOut(eQPLogType_Error, "Unknown biomode: %" DEC, modearg);
         return false;
     }
     if( algorithms == 2 ) {
@@ -463,14 +463,14 @@ idx DnaHiveseqProc::OnExecute(idx req)
     // _/ We configure the output file
     // _/
     // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    logOut(eQPLogType_Debug, "\n Hiveseq is running fine and we have: %"DEC" sequences\n", Sub.dim());
+    logOut(eQPLogType_Debug, "\n Hiveseq is running fine and we have: %" DEC " sequences\n", Sub.dim());
     sStr errmsg;
 
     sStr hsLocation, extension, hsOutfile;
     cfgStr(&hsLocation, 0, "user.download");
-    hsLocation.printf("%"DEC"/", req);
+    hsLocation.printf("%" DEC "/", req);
     if( !sDir::makeDir(hsLocation) ) {
-        reqSetInfo(req, eQPInfoLevel_Error, "internal error %"UDEC, (udx) __LINE__);
+        reqSetInfo(req, eQPInfoLevel_Error, "internal error %" UDEC, (udx) __LINE__);
         logOut(eQPLogType_Error, "Failed to mkdir '%s'\n", hsLocation.ptr());
         return 0;
     }
@@ -482,7 +482,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
         extension.printf("fasta");
     }
 
-    hsOutfile.printf("%shs%"DEC".%s", hsLocation.ptr(), req, extension.ptr());
+    hsOutfile.printf("%shs%" DEC ".%s", hsLocation.ptr(), req, extension.ptr());
 
     // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     // _/
@@ -492,7 +492,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
     sStr namefile;
     const char *nmfile = formValue("name", &form_buf);
     if( !nmfile && *nmfile ) {
-        namefile.printf("hs-%"DEC, req);
+        namefile.printf("hs-%" DEC, req);
 
         if( algorithms == 0 ) {
             if( seqFlags & eSeqTrimming ) {
@@ -712,7 +712,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
             seqCount = dnv.getfinalCount();
 
             if( err ) {
-                errmsg.printf("contig extension error: %"DEC, err);
+                errmsg.printf("contig extension error: %" DEC, err);
             }
         } else if( algorithms == 3 ) {  // Paired End Read Collapse
 
@@ -740,7 +740,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
 
 //            sStr t1, t2;
 //            sStr tempfile;
-//            tempfile.printf("%stemp%"DEC".%s", hsLocation.ptr(), req, extension.ptr());
+//            tempfile.printf("%stemp%" DEC ".%s", hsLocation.ptr(), req, extension.ptr());
 //            sFil fptemp(tempfile);
 //            fptemp.cut(0);
 
@@ -908,9 +908,9 @@ idx DnaHiveseqProc::OnExecute(idx req)
 //                    Sub.printFastXRow(&fptemp, 1, iq, 0, seqlen1, 0, true, true, 0, 0, 0, 0);
 //                    Sub2.printFastXRow(&fptemp, 1, iq, 0, seqlen2, 0, true, true, 0, 0, 3, 0);
 //                    fptemp.printf("After the alignment, we have the next information:\n");
-//                    fptemp.printf("read1: start: %"DEC", and end: %"DEC"\n", res[0], res[1]);
-//                    fptemp.printf("read2: start: %"DEC", and end: %"DEC"\n", res[2], res[3]);
-//                    fptemp.printf("lenAlignment: %"DEC"\n", lenalign);
+//                    fptemp.printf("read1: start: %" DEC ", and end: %" DEC "\n", res[0], res[1]);
+//                    fptemp.printf("read2: start: %" DEC ", and end: %" DEC "\n", res[2], res[3]);
+//                    fptemp.printf("lenAlignment: %" DEC "\n", lenalign);
 //                    Sub.printFastXData(&fptemp, seqstr.length(), idstr, seqstr, quastr, 1);
 //                    fptemp.printf("\n\n");
                     if (keepAlignments){
@@ -965,7 +965,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
                 if( Sub.dim() > 1000000 ) {
                     sStr tempSubDir;
                     cfgStr(&tempSubDir, 0, "qm.tempDirectory");
-                    tempSubDir.printf("%"DEC"-%s", reqId, "subids.dic");
+                    tempSubDir.printf("%" DEC "-%s", reqId, "subids.dic");
                     idlist.init(tempSubDir);
                 }
 
@@ -1015,16 +1015,16 @@ idx DnaHiveseqProc::OnExecute(idx req)
                 }
                 if( seqCount < idlist.dim() || listExclusion ) {
                     if( !listExclusion ) {
-                        reqSetInfo(req, eQPInfoLevel_Info, "There are : %"DEC" Id's missing in the file\n", idlist.dim() - seqCount);
+                        reqSetInfo(req, eQPInfoLevel_Info, "There are : %" DEC " Id's missing in the file\n", idlist.dim() - seqCount);
                     }
-                    nonId.printf(0, "%shs-nonId%"DEC".txt", hsLocation.ptr(), req);
+                    nonId.printf(0, "%shs-nonId%" DEC ".txt", hsLocation.ptr(), req);
                     sFil nId(nonId);
                     if( nId.ok() ) {
                         nId.cut(0);
                         //  modify the outfile to merge the whole directory
                         hsOutfile.cut(0);
                         hsOutfile.printf("%s", hsLocation.ptr());
-                        nId.printf("# List of Id's that were not found in Process: %"DEC" \n", req);
+                        nId.printf("# List of Id's that were not found in Process: %" DEC " \n", req);
 
                         idx idmatches = 0;
                         for(idx i = 0; i < idlist.dim(); ++i) {
@@ -1037,7 +1037,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
                             }
                         }
                         if( listExclusion ) {
-                            reqSetInfo(req, eQPInfoLevel_Info, "%"DEC" Id's were not found in the file\n", idmatches);
+                            reqSetInfo(req, eQPInfoLevel_Info, "%" DEC " Id's were not found in the file\n", idmatches);
                         }
                     } else {
                         errmsg.printf("dna-hiveseq can not create Id destination file");
@@ -1116,7 +1116,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
             sStr src("hiveseq://%s", namefile.ptr());
             dmArchiver archHS(*this, hsOutfile.ptr(), src, 0, namefile.ptr());
             idx archReqId = archHS.launch(*user, grpId);
-            logOut(eQPLogType_Info, "Launching dmArchiver request %"DEC" with %"DEC" sequences\n", archReqId, seqCount);
+            logOut(eQPLogType_Info, "Launching dmArchiver request %" DEC " with %" DEC " sequences\n", archReqId, seqCount);
         }
         if( reqProgress(-1, 100, 100) ) { //Do not change status if request was stopped.
             reqSetStatus(req, eQPReqStatus_Done);
@@ -1135,7 +1135,7 @@ int main(int argc, const char *argv[], const char *envp[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DnaHiveseqProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-hiveseq", argv[0]));
+    DnaHiveseqProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-hiveseq", argv[0]));
     return (int) backend.run(argc, argv);
 
 }

@@ -262,7 +262,7 @@ public:
     const char * printDump(sStr & out)
     {
         idx start = out.length();
-        out.printf("{ dim: %"DEC", done: %"DEC", root: %s, stack: [", _stack_dim, _stack_done_dim, _val_root.asString());
+        out.printf("{ dim: %" DEC ", done: %" DEC ", root: %s, stack: [", _stack_dim, _stack_done_dim, _val_root.asString());
         if (_stack_dim) {
             out.printf("\n");
             for (idx i=0; i<_stack_dim; i++) {
@@ -486,7 +486,7 @@ static const char * ensureUniquifiedPath(sDic<idx> & path2cnt, const char * path
 
     if( idx * pcnt = path2cnt.get(path) ) {
         sStr buf;
-        buf.printf("%s.%"DEC, path, *pcnt);
+        buf.printf("%s.%" DEC, path, *pcnt);
         (*pcnt)++;
 
         idx new_path_num = 0;
@@ -1143,14 +1143,14 @@ const sUsrObjPropsNode * sUsrObjPropsNode::rpush(const char * field_name, real r
 #define INDEX_NAME_PATH(i) \
 i, TREE_ELT(i) ? TREE_ELT(i)->name() : 0, TREE_ELT(i) ? TREE_ELT(i)->path() : 0
 
-#define FMT_INDEX_NAME_PATH "{ index: %"DEC", name: \"%s\", path: \"%s\" }"
+#define FMT_INDEX_NAME_PATH "{ index: %" DEC ", name: \"%s\", path: \"%s\" }"
 
 const char * sUsrObjPropsNode::printDump(sStr & out, bool onlySelf) const
 {
     idx start = out.length();
 
-    out.printf("{ index: %"DEC", row: %"DEC", name: \"%s\", path: \"%s\", value: \"%s\"\n", _nav.self, _row, name(), path(), value());
-    out.printf("  parent: "FMT_INDEX_NAME_PATH",\n  prev_sib: "FMT_INDEX_NAME_PATH",\n  next_sib: "FMT_INDEX_NAME_PATH",\n  first_child: "FMT_INDEX_NAME_PATH",\n  last_child: "FMT_INDEX_NAME_PATH",\n  dim: %"DEC",\n  depth: %"DEC" }\n", INDEX_NAME_PATH(_nav.parent), INDEX_NAME_PATH(_nav.prev_sib), INDEX_NAME_PATH(_nav.next_sib), INDEX_NAME_PATH(_nav.first_child), INDEX_NAME_PATH(_nav.last_child), _nav.dim, _nav.depth);
+    out.printf("{ index: %" DEC ", row: %" DEC ", name: \"%s\", path: \"%s\", value: \"%s\"\n", _nav.self, _row, name(), path(), value());
+    out.printf("  parent: " FMT_INDEX_NAME_PATH ",\n  prev_sib: " FMT_INDEX_NAME_PATH ",\n  next_sib: " FMT_INDEX_NAME_PATH ",\n  first_child: " FMT_INDEX_NAME_PATH ",\n  last_child: " FMT_INDEX_NAME_PATH ",\n  dim: %" DEC ",\n  depth: %" DEC " }\n", INDEX_NAME_PATH(_nav.parent), INDEX_NAME_PATH(_nav.prev_sib), INDEX_NAME_PATH(_nav.next_sib), INDEX_NAME_PATH(_nav.first_child), INDEX_NAME_PATH(_nav.last_child), _nav.dim, _nav.depth);
 
     if (!onlySelf) {
         for (const sUsrObjPropsNode * child = firstChild(); child; child = child->nextSibling())
@@ -1362,7 +1362,7 @@ bool sUsrObjPropsTree::linkNode(idx cur_index)
                 if (_nodes[cur_index].field()->isGlobalMulti()) {
                     // warn developers that there can be multiple instances of this node, so a valid path is expected
                     // TODO: proper logging API
-                    fprintf(stderr, "%s:%u: ERROR: sUsrObjPropsNode of type '%s' value '%s' has a malformed or missing path '%s'; a path of at least %"DEC" elements was expected\n", __FILE__, __LINE__, _nodes[cur_index].name(), _nodes[cur_index].value(), _nodes[cur_index].path(), countExpectedPathElts(_nodes[cur_index].field()));
+                    fprintf(stderr, "%s:%u: ERROR: sUsrObjPropsNode of type '%s' value '%s' has a malformed or missing path '%s'; a path of at least %" DEC " elements was expected\n", __FILE__, __LINE__, _nodes[cur_index].name(), _nodes[cur_index].value(), _nodes[cur_index].path(), countExpectedPathElts(_nodes[cur_index].field()));
                 }
                 path_end = path.cut0cut();
             }
@@ -1394,7 +1394,7 @@ bool sUsrObjPropsTree::linkNode(idx cur_index)
 
 inline static idx splitPath(sVec<idx> &elts, const char * path)
 {
-    return sString::sscanfAnyVec<idx>(&elts, path, 0, 0, 0, sIdxMax, "%"DEC, ".");
+    return sString::sscanfAnyVec<idx>(&elts, path, 0, 0, 0, sIdxMax, "%" DEC, ".");
 }
 
 namespace {
@@ -1486,7 +1486,7 @@ bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx
     }
 
     if (!objType()) {
-        fprintf(stderr, "%s:%u: ERROR: object type '%s' not accessible for user '%"UDEC"'\n", __FILE__, __LINE__, parsed_type_name, _usr.Id());
+        fprintf(stderr, "%s:%u: ERROR: object type '%s' not accessible for user '%" UDEC "'\n", __FILE__, __LINE__, parsed_type_name, _usr.Id());
         return false;
     }
 
@@ -1752,7 +1752,7 @@ idx sUsrObjPropsTree::pushHelper(idx node_index, const char * field_name, const 
             if (node_path.length())
                 node_path.printf(".");
 
-            node_path.printf("%"DEC, node_path_seg);
+            node_path.printf("%" DEC, node_path_seg);
         }
 
         pnode = addNode(data.ancestorAtDepth(i)->name(), node_path.ptr());

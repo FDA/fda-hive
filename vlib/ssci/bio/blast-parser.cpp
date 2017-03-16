@@ -40,7 +40,7 @@ const char * sBioAlBlast::readVal ( char * src,const char * find, const char * f
     if(!fnd)return 0;
 
     fnd+=sLen(find);
-    fnd+= strspn(fnd, ":="sString_symbolsSpace);
+    fnd+= strspn(fnd, ":=" sString_symbolsSpace);
     sscanf(fnd,fmt,pVal);
     return fnd;
 }
@@ -91,11 +91,11 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             // walk through strings until we find the query length
             while(*ptr &&
                 (
-                    (blastOutMode == eBlastStandardOut && !readVal (buf,"Length", "%"DEC, &qryLen))
+                    (blastOutMode == eBlastStandardOut && !readVal (buf,"Length", "%" DEC, &qryLen))
                     ||
-                    (blastOutMode == eBlastProteinOut && !readVal (buf,"Length", "%"DEC, &qryLen))
+                    (blastOutMode == eBlastProteinOut && !readVal (buf,"Length", "%" DEC, &qryLen))
                     ||
-                    (blastOutMode == eBlastBlatOut && !readVal (buf,"(", "%"DEC, &qryLen))
+                    (blastOutMode == eBlastBlatOut && !readVal (buf,"(", "%" DEC, &qryLen))
                 )
                 ){
 //                buf=sString::next00(buf);
@@ -110,18 +110,18 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                 idx * pq=qry->set(t,0,&qryId);
                 if(*pq==0) {*pq=qryIdStart;}
             }else {
-                sscanf(t,"%"DEC,&qryId);
+                sscanf(t,"%" DEC,&qryId);
             }
         }
 
         if(buf[0]=='>') {
-            t.cut(0);sString::cleanEnds(&t,buf, 0,">"sString_symbolsBlank,true);
+            t.cut(0);sString::cleanEnds(&t,buf, 0,">" sString_symbolsBlank,true);
             idx subIDtemp = 0;
             if(sub){
 //                *sub->set(t,0,&subIDtemp)=(buf-fileContent);
                 *sub->set(t,0,&subIDtemp)=(idx)(ptr0-fileContent);
             }else {
-                sscanf(t,"%"DEC,&subIDtemp);
+                sscanf(t,"%" DEC,&subIDtemp);
             }
             idx * idSubptr = 0;
             sStr tid;
@@ -137,7 +137,7 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             if (!idSubptr){  // There is nothing in the dictionary, or return value is 0
                 char *p = strstr(tid.ptr(), "HIVESEQID=");
                 if (p){  // If there is a HIVESEQID=, get it in idSubptr
-                    sscanf(p+10,"%"DEC"", idSubptr);
+                    sscanf(p+10,"%" DEC "", idSubptr);
                 }
                 else // There is no HIVESEQ
                     idSubptr = &subIDtemp;
@@ -157,7 +157,7 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
 
         }
         /*else if (strncmp("ref|",buf,4)==0) {
-            t.cut(0);sString::cleanEnds(&t,buf, 0,">"sString_symbolsBlank,true);
+            t.cut(0);sString::cleanEnds(&t,buf, 0,">" sString_symbolsBlank,true);
 
             sStr s;
             idx slength = 0;
@@ -193,7 +193,7 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             char alStrand=0;
 
             // read the score and the Strand information
-            while(*ptr && !readVal (buf,"Score", "%"DEC, &alScore) ){
+            while(*ptr && !readVal (buf,"Score", "%" DEC, &alScore) ){
 //                buf=sString::next00(buf);
                 ptr = getNextLine(&Buf,ptr,fileContent+filesize-ptr);
                 buf=Buf.ptr();
@@ -205,7 +205,7 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             {
                 const char* fnd=strstr(buf,"/") ;
                 if(fnd){
-                    sscanf(fnd+1,"%"DEC,&alLength0);
+                    sscanf(fnd+1,"%" DEC,&alLength0);
                 }
             }
 
@@ -244,7 +244,7 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                     }
 
                 // read the query line
-                if( !readVal(buf,"Query","%"DEC,&num) )
+                if( !readVal(buf,"Query","%" DEC,&num) )
                     continue;
 
 
@@ -259,7 +259,7 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                 buf=Buf.ptr();
 
                 //read the sbject line
-                while( *ptr && !readVal(buf,"Sbjct","%"DEC,&num) ){
+                while( *ptr && !readVal(buf,"Sbjct","%" DEC,&num) ){
 //                    buf=sString::next00(buf);
                     ptr = getNextLine(&Buf,ptr,fileContent+filesize-ptr);
                     buf=Buf.ptr();

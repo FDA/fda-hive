@@ -174,7 +174,7 @@ char * sStr::vprintf( const char * formatDescription, va_list marker )
     }
 
     if(realLen>len){
-        ::printf("FATAL ERROR in slib: estimation of vprintfSizeOf=%"DEC"<%"DEC" has failed.\nFORMAT=\"%s\"\nRESULT=\"%s\"\n\n",len,realLen,formatDescription,cont);
+        ::printf("FATAL ERROR in slib: estimation of vprintfSizeOf=%" DEC "<%" DEC " has failed.\nFORMAT=\"%s\"\nRESULT=\"%s\"\n\n",len,realLen,formatDescription,cont);
 #ifdef SLIB32
         __asm {
             int 3;

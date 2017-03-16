@@ -96,7 +96,7 @@ void sVioDB::AddType(sVioDB::ctype type,idx relCnt,idx * relationlist,const char
         typelist_type->rels[i].typeIndex=*(relationlist+i);
         else
         typelist_type->rels[i].typeIndex=0;
-        filenamebuf.printf(0,"%s_recordRelationContainer_%s_%"DEC"",filename.ptr(), tname,i);
+        filenamebuf.printf(0,"%s_recordRelationContainer_%s_%" DEC "",filename.ptr(), tname,i);
         sVec <idx> * recordRelationContainer=recordRelationContainerArray.add(1);
         //recordRelationContainer->setflag(sMex::fSetZero|sMex::fBlockDoubling);
         recordRelationContainer->init(filenamebuf.ptr(0),sMex::fSetZero|sMex::fBlockDoubling);
@@ -271,7 +271,7 @@ bool sVioDB::deleteAllJobs(bool ifJustUnmap)
             recordRelationContainerArray[i*MaxRel+k].destroy();
 
             if(!ifJustUnmap){
-                filenamebuf.printf(0,"%s_recordRelationContainer_%s_%"DEC"",filename.ptr(), tname,k);
+                filenamebuf.printf(0,"%s_recordRelationContainer_%s_%" DEC "",filename.ptr(), tname,k);
                 sFile::remove(filenamebuf.ptr(0));
             }
         }
@@ -350,7 +350,7 @@ bool sVioDB::deleteAllJobs()
         for(idx k=0; k < MaxRel && k<recordRelationContainerArray.dim(); k++){
              recordRelationContainerArray[i*MaxRel+k].cut(0);
              recordRelationContainerArray[i*MaxRel+k].destroy();
-            filenamebuf.printf(0,"%s_recordRelationContainer_%s_%"DEC"",filename.ptr(), tname,k);
+            filenamebuf.printf(0,"%s_recordRelationContainer_%s_%" DEC "",filename.ptr(), tname,k);
             sFile::remove(filenamebuf.ptr(0));
         }
 
@@ -385,8 +385,8 @@ bool sVioDB::renameAllFiles(const char *newfilename)
         sFile::rename(filenamebuf.ptr(0), newfilenamebuf.ptr(0));
 
         for(idx k=0; k < MaxRel; k++){
-            filenamebuf.printf(0,"%s_recordRelationContainer_%s_%"DEC"",filename.ptr(), tname,k);
-            newfilenamebuf.printf(0,"%s_recordRelationContainer_%s_%"DEC"",newfilename, tname,k);
+            filenamebuf.printf(0,"%s_recordRelationContainer_%s_%" DEC "",filename.ptr(), tname,k);
+            newfilenamebuf.printf(0,"%s_recordRelationContainer_%s_%" DEC "",newfilename, tname,k);
             sFile::rename(filenamebuf.ptr(0), newfilenamebuf.ptr(0));
         }
 
@@ -469,7 +469,7 @@ bool sVioDB::Finalize(bool ifGlueTheFile)
         filenamebuf.printf(0,"%s_recordBodyContainer_%s",filename.ptr(),tname);
         if(ifGlueTheFile || !sFile::size(filenamebuf.ptr(0))) sFile::remove(filenamebuf.ptr(0));
         for(idx k=0; k < MaxRel; k++){
-            filenamebuf.printf(0,"%s_recordRelationContainer_%s_%"DEC"",filename.ptr(), tname,k);
+            filenamebuf.printf(0,"%s_recordRelationContainer_%s_%" DEC "",filename.ptr(), tname,k);
             if(ifGlueTheFile || !sFile::size(filenamebuf.ptr(0))) sFile::remove(filenamebuf.ptr(0));
         }
     }
@@ -625,7 +625,7 @@ idx * sVioDB::GetRelationPtr(idx typeindex, idx recordIndex, idx relationIndex, 
                     sStr filenamebuf;
                     recordRelationContainerArray.resize(containerPtr+1);
                     recordRelationContainer=recordRelationContainerArray.ptr(containerPtr);
-                    filenamebuf.printf(0,"%s_recordRelationContainer_%s_%"DEC"",filename.ptr(), (const char*)&typelist_type->tnameOfs,relationIndex-1);
+                    filenamebuf.printf(0,"%s_recordRelationContainer_%s_%" DEC "",filename.ptr(), (const char*)&typelist_type->tnameOfs,relationIndex-1);
                     recordRelationContainer->init(filenamebuf.ptr(0),fileOpenMode);
                 }
                 if((idx)recordRelationContainer->dim()<recordtype_type->rels[relationIndex-1].ofs-1)
@@ -794,7 +794,7 @@ idx sVioDB::concatRelationships(sVioDB * src , idx * recordOffsetsForFileTypes )
 idx sVioDB::concatFiles( const char * dstfile, const char * filenames, const char * fileMarker,  bool ifGlueTheFile, bool removeOriginals)
 {
     sStr filenames00;
-    sString::searchAndReplaceSymbols(&filenames00,filenames,0,","sString_symbolsBlank,(const char *)0,0,true,true,true,true);
+    sString::searchAndReplaceSymbols(&filenames00,filenames,0,"," sString_symbolsBlank,(const char *)0,0,true,true,true,true);
     idx icnt=0;
 
 
@@ -916,7 +916,7 @@ void sVioDB::viodDBSorter( idx typeIndexOneBased, idx * indexes, sVioDBSorterFun
 
 void * sVioDB::genericTableFileInitForVioDB(const char * fileBody, idx fileLength, const char * separtor, const char * filename)
 {
-    if (!separtor) separtor = "\t|\t"__;
+    if (!separtor) separtor = "\t|\t" __;
     sTbl * tbl=new sTbl();
     tbl->parse((char *)fileBody, fileLength, sTbl::fSeparatorIsListStrings|sTbl::fAllowEmptyCells, separtor);
     return (void*)tbl;
@@ -971,7 +971,7 @@ idx sVioDB::genericTableParserForVioDBHeaderless(void * usrObj, sVar * buf, idx 
         return sNotIdx;
 
     for ( const char * pcol=columnList00; p ; p=sString::next00(p)) {
-        idx icol; sscanf(p+3,"%"DEC,&icol);
+        idx icol; sscanf(p+3,"%" DEC,&icol);
 
         sStr c;
         idx size=0,namesize=0;
@@ -994,16 +994,16 @@ idx sVioDB::genericTableParserForVioDBHeaderlessWithRangeUnderstanding(void * us
     for ( const char * pcol=columnList00; p ; p=sString::next00(p)) {
         if(strncmp(pcol,"range",5)==0){
             idx col1,col2;
-            sscanf(pcol+5,"%"DEC",%"DEC,&col1,&col2);
+            sscanf(pcol+5,"%" DEC ",%" DEC,&col1,&col2);
             const void * cl1=tbl->cell(row,col1,&size);
             idx range[2];
-            r[0]=sscanf(cl1,"%"DEC,&cl1);
+            r[0]=sscanf(cl1,"%" DEC,&cl1);
             const void * cl2=tbl->cell(row,col2,&size);
-            r[1]=sscanf(cl2,"%"DEC,&cl2);
+            r[1]=sscanf(cl2,"%" DEC,&cl2);
             buf->inp(pcol,r,2*sizeof(idx));
         }
         else if(strncmp(pcol,"col",3)==0){
-            idx icol; sscanf(p+3,"%"DEC,&icol);
+            idx icol; sscanf(p+3,"%" DEC,&icol);
             idx size=0;
             const void * cl=tbl->cell(row,icol,&size);
             buf->inp(n.ptr(),cl,size);
@@ -1058,7 +1058,7 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
     TYPE *tPtr=0;
     // Parsing control file and reading type and relation information
 
-    const char * listCtype="eNone"_"eInt"_"eDouble"_"eString"_"eBool"_"eOther"__;
+    const char * listCtype="eNone" _ "eInt" _ "eDouble" _ "eString" _ "eBool" _ "eOther" __;
 
 
     for(idx i=1;i<cntRows;i++){
@@ -1076,7 +1076,7 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
         idx relCnt=1;
         sStr buf2;
         controlTable.get(&buf2,i,4);
-        sscanf(buf2.ptr(),"%"DEC,&relCnt);
+        sscanf(buf2.ptr(),"%" DEC,&relCnt);
         colNameMap[buf1.ptr(0)].colIndLIST.add(relCnt);
         colNameMap[buf1.ptr(0)].relIndLIST.add(relCnt);
         cPtr->relCnt = relCnt;
@@ -1093,7 +1093,7 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
         idx ctype=-1;
         controlTable.get(&buf4,i,3);
         sString::compareChoice(buf4, listCtype,&ctype,false, 0,true);
-       // sscanf(buf4.ptr(),"%"DEC,&ctype);
+       // sscanf(buf4.ptr(),"%" DEC,&ctype);
         if(ctype==-1)   ctype=1;
         tPtr->ctype=ctype;
         cPtr->ctype=ctype;

@@ -164,14 +164,14 @@ namespace sviolin
             {
                 user = usr;
 
-                const char * RankNames00 = "leaf"_
-                "species"_
-                "genus"_
-                "family"_
-                "order"_
-                "class"_
-                "phylum"_
-                "kingdom"__;
+                const char * RankNames00 = "leaf" _
+                "species" _
+                "genus" _
+                "family" _
+                "order" _
+                "class" _
+                "phylum" _
+                "kingdom" __;
 
                 const char * rankName = RankNames00;
                 for (idx i = 0; i < NUM_RANKS; i++, rankName = sString::next00(rankName)) {

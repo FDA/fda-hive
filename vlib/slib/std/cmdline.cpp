@@ -176,7 +176,7 @@ idx sCmdLine::exec(sCmdLine::exeCommand * cmds, sVar * externalVars, sStr * appl
         if( !externalVars ) {
             sString::copyUntil(&tmp,cmds[iCmd].descr,0,"/");
             sString::cleanEnds(tmp.ptr(),0,sString_symbolsBlank,true);
-            sString::searchAndReplaceSymbols(&cmdDesc,tmp.ptr(),0,"/"sString_symbolsBlank,0,0,true,true,true);
+            sString::searchAndReplaceSymbols(&cmdDesc,tmp.ptr(),0,"/" sString_symbolsBlank,0,0,true,true,true);
             tmp.cut(0);
         }
         // scan all arguments until the next command

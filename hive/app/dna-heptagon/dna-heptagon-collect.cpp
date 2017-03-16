@@ -53,9 +53,9 @@ class DnaHeptagonCollect : public sQPrideProc
     public:
         DnaHeptagonCollect(const char * defline00,const char * srv) : sQPrideProc(defline00,srv)
         {
-            fileNames00 = "Noise"_"FreqProfile"_"HistProfile"_
-                        "SNPprofile"_"AAprofile"_"ProfileInfo"_"SNPthumb"_"ThumbInfo"__;
-            fileSuffix00 = ""_"MergeL"_"MergeR"_"MergeF"__;
+            fileNames00 = "Noise" _ "FreqProfile" _ "HistProfile" _
+                        "SNPprofile" _ "AAprofile" _ "ProfileInfo" _ "SNPthumb" _ "ThumbInfo" __;
+            fileSuffix00 = "" _ "MergeL" _ "MergeR" _ "MergeF" __;
         }
         virtual idx OnExecute(idx);
 
@@ -70,7 +70,7 @@ class DnaHeptagonCollect : public sQPrideProc
         const char * fileNames00;
 
         enum eMergeStates {eNoMerge=0x01,eLeftMerge=0x02,eMaxConcat=eLeftMerge,eRightMerge=0x04,eFullMerge=0x08, eLastMerge};
-        const char * fileSuffix00;// = ""_"MergeL"_"MergeR"_"MergeF"__;
+        const char * fileSuffix00;// = ""_"MergeL" _ "MergeR" _ "MergeF" __;
 
         const char * getFileName(sStr &name, idx v_enum, idx mergestate = eNoMerge);
         const char * getFilePath(idx v_enum, idx mergeState, idx * req , bool cleanold) {
@@ -106,7 +106,7 @@ const char * DnaHeptagonCollect::getFilePath(const char * name, idx * req, bool 
     if(req)
        t_req = *req;
 
-    sStr tt("%"DEC"%s",t_req,name);
+    sStr tt("%" DEC "%s",t_req,name);
     sStr * t = filePaths->get(tt.ptr());
     if(!t) {
         t = filePaths->set(tt.ptr());
@@ -136,7 +136,7 @@ sFil * DnaHeptagonCollect::ensureFile(idx v_enum, idx mergeState, idx * p_req, i
         return 0;
     cleanold &= !(flgs&sMex::fReadonly);
     idx req = p_req?*p_req:reqId;
-    id_Name.printf("%"DEC"%s",req,name.ptr());
+    id_Name.printf("%" DEC "%s",req,name.ptr());
     sFil * fl = fileList->get(id_Name);
     if( !fl ) {
         fl = fileList->set(id_Name);
@@ -239,7 +239,7 @@ bool DnaHeptagonCollect::generateNoiseFilters(sBioseqSNP::SNPParams & SP, sHiveI
             }
         } else {
             sTbl tbl;
-            noiser.getFilePathname(pathNoiser, "%s-%"DEC".csv",sString::next00(fileNames00,eNoise),curSub+1);
+            noiser.getFilePathname(pathNoiser, "%s-%" DEC ".csv",sString::next00(fileNames00,eNoise),curSub+1);
             fl.init(pathNoiser, sMex::fReadonly);
             if( fl.length() ) {
                 tbl.parse(fl.ptr(), fl.length());
@@ -404,7 +404,7 @@ idx DnaHeptagonCollect::OnExecute(idx req)
         sVec <sBioseqSNP::SNPFreq> dst;
         if( generateIon ) {
             sStr dstIonPath;
-            const char * ionflpath = sQPrideProc::reqAddFile(dstIonPath,"ion#%"DEC"#",reqSliceId);
+            const char * ionflpath = sQPrideProc::reqAddFile(dstIonPath,"ion#%" DEC "#",reqSliceId);
             if( ionflpath ) {
                 sIonAnnot iannot(ionflpath,sMex::fMapRemoveFile);
                 idx expected_hashSize = 0;
@@ -441,8 +441,8 @@ idx DnaHeptagonCollect::OnExecute(idx req)
                             dst.cut(0);sBioseqSNP::SNPFreq * f=dst.addM(dstIn.dim());
                             memcpy(f,dstIn.ptr(0),dstIn.dim()*sizeof(sBioseqSNP::SNPFreq));
 
-                            logOut(eQPLogType_Debug,"ionizing # %"DEC" from %"DEC"\n",is,profileRegionsAll.dim());
-                            logOut(eQPLogType_Debug,"\t range %"DEC"-%"DEC" mapping %"DEC" bases from req %"DEC" file offset %"DEC"\n",ion_v->rStart,ion_v->rEnd,ion_v->posMapped,ion_v->reqID,ion_v->ofsInFile);
+                            logOut(eQPLogType_Debug,"ionizing # %" DEC " from %" DEC "\n",is,profileRegionsAll.dim());
+                            logOut(eQPLogType_Debug,"\t range %" DEC "-%" DEC " mapping %" DEC " bases from req %" DEC " file offset %" DEC "\n",ion_v->rStart,ion_v->rEnd,ion_v->posMapped,ion_v->reqID,ion_v->ofsInFile);
                             const char * ion_seq=Sub.seq(curSub);
                             if(iSubPrev!=curSub){
                             // prepare the noise
@@ -456,8 +456,8 @@ idx DnaHeptagonCollect::OnExecute(idx req)
                 }
 
             } else {
-                logOut(eQPLogType_Warning,"Failed to add ion file for %s for request %"DEC, objs[0].IdStr(), reqSliceId );
-                reqSetInfo(req, eQPInfoLevel_Warning, "Failed to add ion file for request %"DEC, reqSliceId);
+                logOut(eQPLogType_Warning,"Failed to add ion file for %s for request %" DEC, objs[0].IdStr(), reqSliceId );
+                reqSetInfo(req, eQPInfoLevel_Warning, "Failed to add ion file for request %" DEC, reqSliceId);
             }
         } else {
             iIonRanges = 0;
@@ -503,8 +503,8 @@ idx DnaHeptagonCollect::OnExecute(idx req)
                 generateNoiseFilters(SP,noiseFilterBase,noiseFilterBaseThreshold,curSub);
             }
 
-            logOut(eQPLogType_Debug,"Analyzing subject %"DEC" range #%"DEC"\n",curSub,v->iRange);
-            logOut(eQPLogType_Debug,"\t range %"DEC"-%"DEC" mapping %"DEC" bases from req %"DEC" file offset %"DEC"\n",v->rStart,v->rEnd,v->posMapped,v->reqID,v->ofsInFile);
+            logOut(eQPLogType_Debug,"Analyzing subject %" DEC " range #%" DEC "\n",curSub,v->iRange);
+            logOut(eQPLogType_Debug,"\t range %" DEC "-%" DEC " mapping %" DEC " bases from req %" DEC " file offset %" DEC "\n",v->rStart,v->rEnd,v->posMapped,v->reqID,v->ofsInFile);
 
             const char * seq=Sub.seq(curSub);
             sBioseqSNP::snpCleanTable( dst.ptr(), seq, v->rStart, dst.dim(), &SP);
@@ -825,11 +825,11 @@ idx DnaHeptagonCollect::OnExecute(idx req)
         idx profRedID=profReqIds[pi];
         sStr r1;reqDataPath(profRedID,"profile.vioprof",&r1);
         if(sFile::exists(r1.ptr()) && !sFile::remove(r1.ptr())) {
-            logOut(eQPLogType_Warning,"Failed to delete \"profile.vioprof\" file of request:%"DEC"\n",profRedID);
+            logOut(eQPLogType_Warning,"Failed to delete \"profile.vioprof\" file of request:%" DEC "\n",profRedID);
         }
         sStr r1X;reqDataPath(profRedID,"profile.vioprofX",&r1X);
         if(sFile::exists(r1X.ptr()) && !sFile::remove(r1X.ptr())) {
-            logOut(eQPLogType_Warning,"Failed to delete \"profile.vioprofX\" file of request:%"DEC"\n",profRedID);
+            logOut(eQPLogType_Warning,"Failed to delete \"profile.vioprofX\" file of request:%" DEC "\n",profRedID);
         }
     }
 #endif
@@ -846,7 +846,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaHeptagonCollect backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-heptagon-collect",argv[0]));
+    DnaHeptagonCollect backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-heptagon-collect",argv[0]));
     return (int)backend.run(argc,argv);
 }
 

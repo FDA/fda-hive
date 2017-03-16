@@ -47,7 +47,7 @@ typedef enum
     eFileVioseq,
     eFileLast
 } ETypeList;
-const char * const typeList00 = ".hiveseq"_".vioseqlist"_".sra"_".vioseq2"_".vioseq"__;
+const char * const typeList00 = ".hiveseq" _ ".vioseqlist" _ ".sra" _ ".vioseq2" _ ".vioseq" __;
 
 bool sHiveseq::parse(const char * filename, EBioMode mode, bool allowDigestFailure, const sUsr * luser)
 {
@@ -59,13 +59,13 @@ bool sHiveseq::parse(const char * filename, EBioMode mode, bool allowDigestFailu
     EBioMode tmode = mode;
     if (!isVioseqlist){
         //sString::searchAndReplaceStrings(&dst,filename,0, sString_symbolsEndline, 0,0,false );
-        sString::searchAndReplaceSymbols(&dst,filename,0,";"sString_symbolsEndline,0,0,true,true,false, false);
+        sString::searchAndReplaceSymbols(&dst,filename,0,";" sString_symbolsEndline,0,0,true,true,false, false);
         for ( const char * ff=dst; ff ; ff=sString::next00(ff) ) {
             idx isValid = expandHiveseq( &list, ff);
             if( isValid == 0 ) {
                 if( log ) {
                     log->printf("%sFailed to parse sequence object %s belonging to the following list: ", log_prefix, ff);
-                    sString::searchAndReplaceSymbols(log, filename, 0, ";"sString_symbolsEndline, ";", 0, true, true, false, false);
+                    sString::searchAndReplaceSymbols(log, filename, 0, ";" sString_symbolsEndline, ";", 0, true, true, false, false);
                     log->addString(log_suffix);
                 }
                 if( !allowDigestFailure ) {
@@ -81,7 +81,7 @@ bool sHiveseq::parse(const char * filename, EBioMode mode, bool allowDigestFailu
         list.add0(2);
     }
     else{
-        sString::searchAndReplaceSymbols(&list,filename,0,";"sString_symbolsEndline,0,0,true,true,false, false);
+        sString::searchAndReplaceSymbols(&list,filename,0,";" sString_symbolsEndline,0,0,true,true,false, false);
         list.add0(2);
         setDimVioseqlist((idx)-2);  // Initialize to -2 to identify a vioseqlist in short mode
     }
@@ -95,8 +95,8 @@ bool sHiveseq::parse(const char * filename, EBioMode mode, bool allowDigestFailu
     for ( const char * s, *p=list; p ; p=sString::next00(p) ) {
         d.cut(0);sString::searchAndReplaceSymbols(&d,p,0,",",0,0,true,true,false, false);
         const char * locFilename=d.ptr(0);
-        idx locStart=1;s=sString::next00(locFilename);if(s)sscanf(s,"%"DEC,&locStart);
-        idx locEnd=0;s=sString::next00(s);if(s)sscanf(s,"%"DEC,&locEnd);
+        idx locStart=1;s=sString::next00(locFilename);if(s)sscanf(s,"%" DEC,&locStart);
+        idx locEnd=0;s=sString::next00(s);if(s)sscanf(s,"%" DEC,&locEnd);
         if( !digestFile(locFilename ,locStart,locEnd, 0,0, true, tmode, allowDigestFailure) ) {
             digestFailure = true;
         }
@@ -180,7 +180,7 @@ bool sHiveseq::digestFile( const char * filename , idx seqStart, idx seqEnd, idx
         if(!vioseqcontent)return 0;
         sStr hlist;
         sFilePath flnmpath(filename, "%%dir/");
-        sString::searchAndReplaceStrings(&hlist,vioseqcontent.ptr(),vioseqcontent.length(),"file://"__, (flnmpath.length() > 2) ? flnmpath.ptr() : "./"__,0,false);
+        sString::searchAndReplaceStrings(&hlist,vioseqcontent.ptr(),vioseqcontent.length(),"file://" __, (flnmpath.length() > 2) ? flnmpath.ptr() : "./" __,0,false);
         sHiveseq * subhiveseq = new sHiveseq(0, 0, mode, true, false, log, log_prefix, log_suffix);
         if( subhiveseq->parse(hlist.ptr(), mode, allowSubSeqFailure) ) {
             bioseq = subhiveseq;
@@ -290,17 +290,17 @@ idx sHiveseq::expandHiveseq(sStr * buf, const char * filename, idx seqStart, idx
         const char * locFilename = d.ptr();
         idx locStart = 0;
         s = sString::next00(locFilename);
-        if( s && sscanf(s, "%"DEC, &locStart) ) {
+        if( s && sscanf(s, "%" DEC, &locStart) ) {
             seqStart = locStart;
         }
         idx locEnd = 0;
         s = s ? sString::next00(s) : 0;
-        if( s && sscanf(s, "%"DEC, &locEnd) ) {
+        if( s && sscanf(s, "%" DEC, &locEnd) ) {
             seqEnd = locEnd;
         }
 
-        buf->printf("%s,%"DEC",%"DEC",%"DEC",%"DEC, flnm.ptr(0), seqStart, seqEnd, partialRangeStart, partialRangeLen);
-        //fprintf(stderr,"%s,%"DEC",%"DEC",%"DEC",%"DEC,flnm.ptr(0),seqStart,seqEnd,partialRangeStart, partialRangeLen);
+        buf->printf("%s,%" DEC ",%" DEC ",%" DEC ",%" DEC, flnm.ptr(0), seqStart, seqEnd, partialRangeStart, partialRangeLen);
+        //fprintf(stderr,"%s,%" DEC ",%" DEC ",%" DEC ",%" DEC,flnm.ptr(0),seqStart,seqEnd,partialRangeStart, partialRangeLen);
         buf->addSeparator(separ);
         return 1;
     }
@@ -315,7 +315,7 @@ idx sHiveseq::expandHiveseq(sStr * buf, const char * filename, idx seqStart, idx
     }
 
     //sString::searchAndReplaceStrings(&dst,hiveseqcontent.ptr(),hiveseqcontent.length(), sString_symbolsEndline, 0,0,false );
-    sString::searchAndReplaceSymbols(&dst, hiveseqcontent.ptr(), hiveseqcontent.length(), ";"sString_symbolsEndline, 0, 0, true, false, false, false);
+    sString::searchAndReplaceSymbols(&dst, hiveseqcontent.ptr(), hiveseqcontent.length(), ";" sString_symbolsEndline, 0, 0, true, false, false, false);
 
     idx cntParsed = 0, firstShift = seqStart - 1;
     for(const char * p = dst; p; p = sString::next00(p)) {
@@ -325,10 +325,10 @@ idx sHiveseq::expandHiveseq(sStr * buf, const char * filename, idx seqStart, idx
 
         idx locStart = 0;
         s = sString::next00(locFilename);
-        sscanf(s, "%"DEC, &locStart);
+        sscanf(s, "%" DEC, &locStart);
         idx locEnd = 0;
         s = sString::next00(s);
-        sscanf(s, "%"DEC, &locEnd);
+        sscanf(s, "%" DEC, &locEnd);
 
         //idx rStart=locStart-shift;
         //rStart+=firstShift;

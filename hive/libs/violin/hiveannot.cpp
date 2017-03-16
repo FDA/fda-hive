@@ -53,7 +53,7 @@ void sHiveannot::InitAnnotList(sUsr * user, sVec<sVioAnnot> & annotList, sVec<sH
         if( !*annotIDListToUse->ptr(iV) )continue;
         sUsrObj obj(*user, *annotIDListToUse->ptr(iV));
         sStr path;
-        obj.getFilePathname00(path, ".vioannot"__);
+        obj.getFilePathname00(path, ".vioannot" __);
         if (!path.length()) continue;
         sVioAnnot * a = annotList.add(1);
         if( a ) {
@@ -69,13 +69,13 @@ void sHiveannot::getAnnotListFromIdAndIdType(sUsr * user, const char * idTypeToU
     for(sUsrObjRes::IdIter it = annotIDList.first(); annotIDList.has(it); annotIDList.next(it)) {
         sUsrObj obj(*user, *annotIDList.id(it));
         sStr path;
-        obj.getFilePathname00(path, ".vioannot"__);
+        obj.getFilePathname00(path, ".vioannot" __);
         if (!path.length()) continue;
         sVioAnnot a;
         a.init(path, sMex::fReadonly);
         if (a.isGBstructure()){
 #ifdef _DEBUG
-            ::printf("====> %s,%s,%"DEC"\n",obj.Id().print(), obj.propGet("name"), sFile::time(path));
+            ::printf("====> %s,%s,%" DEC "\n",obj.Id().print(), obj.propGet("name"), sFile::time(path));
 #endif
         } else {
             idx cntRanges=0;
@@ -87,7 +87,7 @@ void sHiveannot::getAnnotListFromIdAndIdType(sUsr * user, const char * idTypeToU
                     //toAdd = &a;
                 }
                 if (tableOut){ // objAnnot.Id().print(line);
-                    tableOut->printf("%s,%s,%"DEC"\n",obj.Id().print(), obj.propGet("name"), sFile::time(path)); // ,%s,%"DEC"\n", objAnnot.propGet("name"), sFile::time(anotPath));
+                    tableOut->printf("%s,%s,%" DEC "\n",obj.Id().print(), obj.propGet("name"), sFile::time(path)); // ,%s,%" DEC "\n", objAnnot.propGet("name"), sFile::time(anotPath));
                 }
             }
         }
@@ -104,7 +104,7 @@ idx sHiveannot::outInfo (sStr & output, const char * inputRangeTable, sVec< sVio
     sTxtTbl * tbl = new sTxtTbl(); // Using sTxtTbl to parse the csv table
     tbl->setBuf(filebody, crossRange.length(), 0);
     tbl->parseOptions().flags = sTblIndex::fSaveRowEnds|sTblIndex::fTopHeader|sTblIndex::fColsep00;
-    tbl->parseOptions().colsep = ","__;
+    tbl->parseOptions().colsep = "," __;
     tbl->parse();
     tbl->parseOptions().colsep = 0; // clean up dangling pointers
 
@@ -116,8 +116,8 @@ idx sHiveannot::outInfo (sStr & output, const char * inputRangeTable, sVec< sVio
         tbl->printCell(endAsString,irow,2);
 
         idx start=0, end=0;
-        sscanf(startAsString.ptr(),"%"DEC"",&start); // convert sStr to idx
-        sscanf(endAsString.ptr(),"%"DEC"",&end);
+        sscanf(startAsString.ptr(),"%" DEC "",&start); // convert sStr to idx
+        sscanf(endAsString.ptr(),"%" DEC "",&end);
 
         for (idx iannot=0; iannot<anotList.dim(); ++iannot){
             sVioAnnot * ia = anotList.ptr(iannot);
@@ -142,7 +142,7 @@ idx sHiveannot::outInfo (sStr & output, const char * inputRangeTable, sVec< sVio
   PERF_END();
 /*
 #ifdef _DEBUG
-                if (irow%10000 == 0){::printf(" row %"DEC" / %"DEC"\n ==> relationCnt = %"DEC"/%"DEC" ==> %"DEC"-%"DEC"", irow, tblRowLen,relationCnt,start,end);}
+                if (irow%10000 == 0){::printf(" row %" DEC " / %" DEC "\n ==> relationCnt = %" DEC "/%" DEC " ==> %" DEC "-%" DEC "", irow, tblRowLen,relationCnt,start,end);}
 #endif
 */
              if (!resultSize) {
@@ -155,7 +155,7 @@ idx sHiveannot::outInfo (sStr & output, const char * inputRangeTable, sVec< sVio
                      const char * idPtr,*idTypePtr;
                      ia->getIdTypeByRangeIndexAndIdIndex(resStruct[iRange].index, i, &idPtr, 0, &idTypePtr, 0);
                      if (strcmp(idTypePtr,"seqID")==0) continue;
-                     output.printf("\"%s\",%"DEC",%"DEC",annotation %"DEC",%"DEC",%"DEC",\"%s\",\"%s\"\n",reference.ptr(0),start,end,iannot+1,resStruct[iRange].ranges->start,resStruct[iRange].ranges->end,idTypePtr,idPtr);
+                     output.printf("\"%s\",%" DEC ",%" DEC ",annotation %" DEC ",%" DEC ",%" DEC ",\"%s\",\"%s\"\n",reference.ptr(0),start,end,iannot+1,resStruct[iRange].ranges->start,resStruct[iRange].ranges->end,idTypePtr,idPtr);
                  }
 
              }

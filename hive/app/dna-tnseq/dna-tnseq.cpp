@@ -377,7 +377,7 @@ idx DnaTNSeq::OnExecute(idx req)
         for(idx iSub=0, lenId; iSub<subList.dim(); ++iSub) {
             sDic < PosDef > * pSubject=subList.ptr(iSub);
             const char * id=(const char *)subList.id(iSub);
-            for(lenId=0;(!strchr("."sString_symbolsSpace,id[lenId]));++lenId);
+            for(lenId=0;(!strchr("." sString_symbolsSpace,id[lenId]));++lenId);
 
             if(wander) {
                 wander->setSearchTemplateVariable("$seqID1",7,id,lenId);
@@ -396,9 +396,9 @@ idx DnaTNSeq::OnExecute(idx req)
                     continue;
 
 
-                out.printf("%"DEC",\"%.*s\",%"DEC",%"DEC",%"DEC",%"DEC"",pd->alid,(int)lenId,id,refPos,pd->dir,pd->cntRpt,pd->len/pd->cnt);
+                out.printf("%" DEC ",\"%.*s\",%" DEC ",%" DEC ",%" DEC ",%" DEC "",pd->alid,(int)lenId,id,refPos,pd->dir,pd->cntRpt,pd->len/pd->cnt);
                 #ifdef _DEBUG
-                    ::printf("%"DEC",\"%.*s\",%"DEC",%"DEC",%"DEC",%"DEC"",pd->alid,(int)lenId,id,refPos,pd->dir,pd->cntRpt,pd->len/pd->cnt);
+                    ::printf("%" DEC ",\"%.*s\",%" DEC ",%" DEC ",%" DEC ",%" DEC "",pd->alid,(int)lenId,id,refPos,pd->dir,pd->cntRpt,pd->len/pd->cnt);
                 #endif
 
 
@@ -441,33 +441,33 @@ idx DnaTNSeq::OnExecute(idx req)
 */
                         if (start < ((pos)>>32) || start > ((pos)&0xFFFFFFFF)) {
                         #ifdef _DEBUG
-                            //::printf(" out of range \"%"DEC":%"DEC"\" ",(pos)>>32,((pos)&0xFFFFFFFF));
+                            //::printf(" out of range \"%" DEC ":%" DEC "\" ",(pos)>>32,((pos)&0xFFFFFFFF));
                         #endif
                             continue;
                         }
                         if ( ( (pos) & 0xFFFFFFFF) == 0xFFFFFFFF){  // when the pos end == 0xFFFFFFFF which is set in ion for unknown length
                             continue;
                         }
-                        //genebuf.printf("\"%.*s\",\"%.*s\",\"%"DEC":%"DEC"\"",(int)lenType,type,(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF));
+                        //genebuf.printf("\"%.*s\",\"%.*s\",\"%" DEC ":%" DEC "\"",(int)lenType,type,(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF));
 
                         //idx posWithRelationToGene=(*pRefPos)-((pos)>>32)+1;
                         idx posWithRelationToGene=refPos-((pos)>>32)+1;
                         genebuf.printf(0,"\"%.*s\"",(int)lenId,id); // genename
-                        //genebuf.printf(",\"%"DEC"->%"DEC":%"DEC"\"",posWithRelationToGene,(pos)>>32,((pos)&0xFFFFFFFF)); // start:end
-                        genebuf.printf(",\"%"DEC":%"DEC"\"",(pos)>>32,((pos)&0xFFFFFFFF)); // start:end
+                        //genebuf.printf(",\"%" DEC "->%" DEC ":%" DEC "\"",posWithRelationToGene,(pos)>>32,((pos)&0xFFFFFFFF)); // start:end
+                        genebuf.printf(",\"%" DEC ":%" DEC "\"",(pos)>>32,((pos)&0xFFFFFFFF)); // start:end
                         genebuf.add0(2);
 
                         if ( alIds.dim() > 1 && !geneList.find(genebuf.ptr(),genebuf.length())) {
                             *geneList.set(genebuf.ptr(),genebuf.length())=1;
-                            cov_heatMap_out.printf(",\"%.*s %"DEC":%"DEC"\"",(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF)); //preparing header
-                            ins_heatMap_out.printf(",\"%.*s %"DEC":%"DEC"\"",(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF)); //preparing header
+                            cov_heatMap_out.printf(",\"%.*s %" DEC ":%" DEC "\"",(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF)); //preparing header
+                            ins_heatMap_out.printf(",\"%.*s %" DEC ":%" DEC "\"",(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF)); //preparing header
                         }
 
                         if (printedGene.find(genebuf.ptr(0),genebuf.length())) { // prevent from printing the same gene over and over
                             continue;
                         }
                         *printedGene.set(genebuf.ptr(0),genebuf.length())=1;
-                        out.printf(",%"DEC,posWithRelationToGene); // start:end
+                        out.printf(",%" DEC,posWithRelationToGene); // start:end
                         out.printf(",%s",genebuf.ptr());
                         #ifdef _DEBUG
                            // ::printf(",%s",genebuf.ptr());
@@ -526,7 +526,7 @@ idx DnaTNSeq::OnExecute(idx req)
         // first elemtn iA=0 (no key value) => total
         for ( idx iA=1; iA < gsi.dim() ; ++iA )
         {
-            //gsi_out.printf("%"DEC",",*((idx *)gsi.id(iA)));
+            //gsi_out.printf("%" DEC ",",*((idx *)gsi.id(iA)));
             sDic < GeneSpecInfo > * pGSI = gsi.ptr(iA);
             for (idx iGene=0; iGene < pGSI->dim(); ++iGene) {
                 GeneSpecInfo * g = pGSI->ptr(iGene);
@@ -542,12 +542,12 @@ idx DnaTNSeq::OnExecute(idx req)
                 if (shannon <= 0) {
                     shannon = 0 ;
                 }
-                gsi_out.printf("%"DEC",%s,%"DEC",%"DEC",%"DEC",%"DEC",%.3lf\n",*((idx *)gsi.id(iA)),(const char *)pGSI->id(iGene),g->coverage,g->inserts,g->forward,g->reverse,shannon);
+                gsi_out.printf("%" DEC ",%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%.3lf\n",*((idx *)gsi.id(iA)),(const char *)pGSI->id(iGene),g->coverage,g->inserts,g->forward,g->reverse,shannon);
             }
             if (alIds.dim()>1) {
                 idx len=0;
-                cov_heatMap_out.printf("%"DEC"",*((idx *)gsi.id(iA)));
-                ins_heatMap_out.printf("%"DEC"",*((idx *)gsi.id(iA)));
+                cov_heatMap_out.printf("%" DEC "",*((idx *)gsi.id(iA)));
+                ins_heatMap_out.printf("%" DEC "",*((idx *)gsi.id(iA)));
                 for (idx iG=0; iG < geneList.dim(); ++iG) {
                     const char * gname = (const char *)geneList.id(iG,&len);
                     GeneSpecInfo * g = pGSI->get(gname,len);
@@ -556,8 +556,8 @@ idx DnaTNSeq::OnExecute(idx req)
                         ins_heatMap_out.printf(",0");
                         continue;
                     }
-                    cov_heatMap_out.printf(",%"DEC"",g->coverage);
-                    ins_heatMap_out.printf(",%"DEC"",g->inserts);
+                    cov_heatMap_out.printf(",%" DEC "",g->coverage);
+                    ins_heatMap_out.printf(",%" DEC "",g->inserts);
                 }
                 cov_heatMap_out.printf("\n");
                 ins_heatMap_out.printf("\n");
@@ -607,7 +607,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DnaTNSeq backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-tnseq", argv[0]));
+    DnaTNSeq backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-tnseq", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

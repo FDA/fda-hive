@@ -69,11 +69,11 @@ sRC dmRemoteFile::getFile(const char * filename, idx * size /* = 0 */, const cha
                         }
                     }
                     if( p ) {
-                        sscanf(p, "%"UDEC, size);
+                        sscanf(p, "%" UDEC, size);
                     }
                 }
 #if _DEBUG
-                fprintf(stderr, "Remote file's size is %"UDEC"\n", *size);
+                fprintf(stderr, "Remote file's size is %" UDEC "\n", *size);
 #endif
             }
         }
@@ -95,14 +95,14 @@ sRC dmRemoteFile::getFile(const char * filename, idx * size /* = 0 */, const cha
         sIO output;
         idx ret = sPipe::exeFS(&output, commandline, 0, m_callback, m_callbackParam, filename, m_callbackSecs);
 #if _DEBUG
-        fprintf(stderr, "%s: downloaded '%s' %"DEC"\n", __func__, filename, ret);
+        fprintf(stderr, "%s: downloaded '%s' %" DEC "\n", __func__, filename, ret);
 #endif
         if( ret == 0 ) {
             rc = sDir::size(filename) > 0 ? sRC::zero : sRC(sRC::eDownload, sRC::eFile, sRC::eSize, sRC::eZero);
         } else {
             ret = (ret >> 8) & 0xFF;
 #if _DEBUG
-        fprintf(stderr, "%s: downloaded '%s' %"DEC"\n", __func__, filename, ret);
+        fprintf(stderr, "%s: downloaded '%s' %" DEC "\n", __func__, filename, ret);
 #endif
             switch( ret ) {
                 case 2:
@@ -210,13 +210,13 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
             return false;
         }
         if( strcmp(path, cleaned) ) {
-            log.printf("%4"DEC" '%s' renamed to safe '%s'\n", level, path, cleaned.ptr());
+            log.printf("%4" DEC " '%s' renamed to safe '%s'\n", level, path, cleaned.ptr());
         }
         path = cleaned;
     }
     bool retval = true;
     if( sDir::exists(path) ) {
-        log.printf("%4"DEC" directory '%s' meta: '%s'\n", level, path, meta);
+        log.printf("%4" DEC " directory '%s' meta: '%s'\n", level, path, meta);
         sDir dir;
         // follow links only on top level since actual request to process data could consist of links
         const idx links = level ? sFlag(sDir::bitNoLinks) : 0;
@@ -245,9 +245,9 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
             decompressors.set(".tar")->printf("tar --overwrite -xvf \"%%s\"");
             decompressors.set(".zip")->printf("unzip -o \"%%s\"");
 #if HAS_SRA // more like if whole adoption is present
-            decompressors.set(".sra")->printf("sra2fastq.os"SLIB_PLATFORM" \"%%s\"");
+            decompressors.set(".sra")->printf("sra2fastq.os" SLIB_PLATFORM" \"%%s\"");
             decompressors.set(".bam")->printf("samtools view -h \"%%s\" > \"%%s.sam\"");
-            decompressors.set(".bcl")->printf("bcl2fastq2.sh.os"SLIB_PLATFORM" \"%%s\" \"%%s\"");
+            decompressors.set(".bcl")->printf("bcl2fastq2.sh.os" SLIB_PLATFORM" \"%%s\" \"%%s\"");
             // TODO decompressors.set(".fast5")->printf("poretools fastq \"%%s\" \"%%s\"");
 #endif
             decompressors.set(".hivepack-zip")->printf("unzip -o \"%%s\"");
@@ -256,7 +256,7 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
         const char * ext = strrchr(path, '.');
         sStr * dc = decompressors.get(ext);
         if( dc && _unpack_depth < _max_unpack_depth) {
-            sFilePath workDir(path, "%%dir/"DMLIB_TMP_PREFIX"%"DEC"-%%flnm/", level);
+            sFilePath workDir(path, "%%dir/" DMLIB_TMP_PREFIX "%" DEC "-%%flnm/", level);
             sDir::removeDir(workDir);
             if( sDir::makeDir(workDir) ) {
                 // only needed on rear occasion of curtain file extensions above
@@ -270,8 +270,8 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
                 idx ret = sPipe::exeFS(&io, cmdLine, 0, callb, callbd, watch, callbSecs);
                 log.printf("%s", io.ptr());
                 if( ret ) {
-                    msg.printf("(%"DEC") File '%s' corrupt or incomplete: %"DEC" bytes\n", ret, sFilePath::nextToSlash(meta), sFile::size(path));
-                    log.printf("\nDecompressing FAILED [%"DEC"] '%s'\n", ret, cmdLine.ptr());
+                    msg.printf("(%" DEC ") File '%s' corrupt or incomplete: %" DEC " bytes\n", ret, sFilePath::nextToSlash(meta), sFile::size(path));
+                    log.printf("\nDecompressing FAILED [%" DEC "] '%s'\n", ret, cmdLine.ptr());
                     sDir::removeDir(workDir);
                 } else {
                     log.printf("\nDecompressing OK '%s'\n", path);
@@ -284,7 +284,7 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
                         if( sl ) {
                             sFilePath s(meta, "%%flnmx"), q(qtyFile, "%%flnmx"), qx(qtyFile, "%%flnm");
                             if( s && ((q && strcasecmp(s, q) == 0) || (qx && strcasecmp(s, qx) == 0)) ) {
-                                log.printf("%4"DEC" dropped archive name from meta '%s' vs '%s'\n", level, s.ptr(), q.ptr());
+                                log.printf("%4" DEC " dropped archive name from meta '%s' vs '%s'\n", level, s.ptr(), q.ptr());
                                 *sl = '\0';
                             }
                         }
@@ -298,7 +298,7 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
                 }
             } else {
                 msg.printf("An error occurred while unpacking file '%s'\n", sFilePath::nextToSlash(meta));
-                log.printf("mkdir FAILED (disk free space: %"UDEC") '%s'\n", sDir::freeSpace(workDir), workDir.ptr());
+                log.printf("mkdir FAILED (disk free space: %" UDEC ") '%s'\n", sDir::freeSpace(workDir), workDir.ptr());
             }
         } else if( _collect_depth < _max_collect_depth ) {
             File * f = _list.add();
@@ -308,7 +308,7 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
                     retval = callb(callbd, f->size());
                 }
                 f->_id = _list.dim();
-                log.printf("%4"DEC" added file[%"DEC"] '%s' meta: '%s'\n", level, f->_id, path, meta);
+                log.printf("%4" DEC " added file[%" DEC "] '%s' meta: '%s'\n", level, f->_id, path, meta);
             } else {
                 log.printf("Failed to allocate File object '%s'\n", meta);
             }
@@ -321,7 +321,7 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
 void dmLib::clean(const char * path)
 {
     sDir dir;
-    dir.find(sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs), path, DMLIB_TMP_PREFIX"[0-9]-*");
+    dir.find(sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs), path, DMLIB_TMP_PREFIX "[0-9]-*");
     for(const char * p = dir; p; p = sString::next00(p)) {
         if( !sDir::removeDir(p, true) ) {
             sFile::remove(p);
@@ -433,10 +433,10 @@ bool dmLib::pack(const char * srcPath, sStr & dstPath, EPackAlgo algo, sStr * lo
         }
         if( ret ) {
             if( msg ) {
-                msg->printf("Compression failed (%"DEC"): '%s' \n", ret, sFilePath::nextToSlash(srcPath));
+                msg->printf("Compression failed (%" DEC "): '%s' \n", ret, sFilePath::nextToSlash(srcPath));
             }
             if( log ) {
-                log->printf("Compressing FAILED [%"DEC"]: '%s'\n", ret, cmd.ptr());
+                log->printf("Compressing FAILED [%" DEC "]: '%s'\n", ret, cmd.ptr());
             }
         } else if( log ) {
             log->printf("Compression done: '%s'\n", cmd.ptr());

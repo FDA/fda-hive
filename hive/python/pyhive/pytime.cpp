@@ -58,13 +58,13 @@ static PyObject * TZ_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 static PyObject* TZ_repr(pyhive::TZ * self)
 {
-    sStr buf("<pyhive.TZ %c%02"DEC"%02"DEC" at %p>", self->utc_offset < 0 ? '-' : '+', sAbs(self->utc_offset) / 3600, sAbs(self->utc_offset) % 3600, self);
+    sStr buf("<pyhive.TZ %c%02" DEC "%02" DEC " at %p>", self->utc_offset < 0 ? '-' : '+', sAbs(self->utc_offset) / 3600, sAbs(self->utc_offset) % 3600, self);
     return PyString_FromString(buf.ptr());
 }
 
 static PyObject* TZ_str(pyhive::TZ * self)
 {
-    sStr buf("%c%02"DEC"%02"DEC, self->utc_offset < 0 ? '-' : '+', sAbs(self->utc_offset) / 3600, sAbs(self->utc_offset) % 3600);
+    sStr buf("%c%02" DEC "%02" DEC, self->utc_offset < 0 ? '-' : '+', sAbs(self->utc_offset) / 3600, sAbs(self->utc_offset) % 3600);
     return PyString_FromString(buf.ptr());
 }
 

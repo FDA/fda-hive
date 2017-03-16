@@ -103,7 +103,7 @@ static bool setupPythonEnv(sPipe2 & python)
         }
 
         if( el_release == 6 || el_release == 7 ) {
-            hive_py_home.printf(".el%"DEC, el_release);
+            hive_py_home.printf(".el%" DEC, el_release);
         }
     }
 

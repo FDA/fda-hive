@@ -100,7 +100,7 @@ sQPrideBase * sQPrideBase::init(sQPrideConnection * lconnection, const char * se
     gethostname(tmpB.ptr(), (int) tmpB.length());
     vars.inp("thisHostName", tmpB.ptr());
 
-    tmpB.printf(0, "%"DEC, pid);
+    tmpB.printf(0, "%" DEC, pid);
     vars.inp("pid", tmpB.ptr());
 
     tmpB.cut(0);
@@ -275,11 +275,11 @@ bool sQPrideBase::OnLogOut(idx level, const char * message)
     if( setupLog() < 0 ) {
         time_t tt = time(0);
         struct tm & t = *localtime(&tt);
-        fprintf(stdout, "%s%d/%d/%d %d:%d:%d %"DEC"/%"DEC" %s %s // ",
+        fprintf(stdout, "%s%d/%d/%d %d:%d:%d %" DEC "/%" DEC " %s %s // ",
             promptOK ? "\n" : "", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min, t.tm_sec, jobId, pid, vars.value("serviceName"), getLevelName(level));
         if( tmCount ) {
             sTime t;
-            fprintf(stdout, "%"DEC"// ", t.time(&tmCount));
+            fprintf(stdout, "%" DEC "// ", t.time(&tmCount));
         }
         fprintf(stdout, "%s%s", message, message[sLen(message) - 1] == '\n' ? "" : "\n");
         fflush(stdout);
@@ -349,7 +349,7 @@ char * sQPrideBase::configGet(sStr * str , sVar * pForm, const char * parList, c
 {
     sStr tmpB,par00,resRepl;
     const char *varval=0;
-    const char * macroSymbolsFind00="%platform%"__;
+    const char * macroSymbolsFind00="%platform%" __;
 
     bool tryPlatforms= strstr( parList,  macroSymbolsFind00 ) ? false : true;  // if platform specific parameters are defined - we do not construct them automatically
 
@@ -397,9 +397,9 @@ char * sQPrideBase::configGet(sStr * str , sVar * pForm, const char * parList, c
 
         sStr out,in;
         idx ichunk=0;
-        //sString::searchAndReplaceStrings(&tt,varval, 0 ,"$("_")"__,(const char *)0,0,false);
-        sString::cleanMarkup(&out,varval,0,"$("__,")"__,0,0,false,false, false);
-        sString::cleanMarkup(&in,varval,0,"$("__,")"__,0,0,true,false, false);
+        //sString::searchAndReplaceStrings(&tt,varval, 0 ,"$("_")" __,(const char *)0,0,false);
+        sString::cleanMarkup(&out,varval,0,"$(" __,")" __,0,0,false,false, false);
+        sString::cleanMarkup(&in,varval,0,"$(" __,")" __,0,0,true,false, false);
 
         for( const char * chunk=out.ptr(),* tag=in.ptr(); chunk || tag; chunk=sString::next00(chunk) , tag=sString::next00(tag) , ++ichunk) {
             /*if((ichunk%2)==0){
@@ -578,7 +578,7 @@ void sQPrideBase::reqCleanTbl(idx req, const char * dataname)
         onefile.printf("%s",tblfiles.ptr(i)->ptr(0));
 
         sStr fullPath;
-        fullPath.printf("%s%"DEC"-%s",tblDir.ptr(),req,onefile.ptr());
+        fullPath.printf("%s%" DEC "-%s",tblDir.ptr(),req,onefile.ptr());
 
         sFile::remove(fullPath.ptr());
     }
@@ -693,7 +693,7 @@ bool sQPrideBase::reqSetData(idx req, const char * dataName, idx datasize, const
     if( forceFile ) {
         dataName += fpfx_sz;
     }
-    sStr path("%s%s%"DEC"-%s", fpfx, vars.value("largeDataRepository", ""), req, dataName);
+    sStr path("%s%s%" DEC "-%s", fpfx, vars.value("largeDataRepository", ""), req, dataName);
     bool retval = true;
     if( forceFile || (largeDataReposSize && datasize > sAbs(largeDataReposSize)) ) {
         if( sFile::exists(path.ptr(fpfx_sz)) ) {
@@ -743,7 +743,7 @@ bool sQPrideBase::reqRepackData(idx req, const char * dataName)
     }
 
     const char * largeDataRepository = vars.value("largeDataRepository");
-    sStr path("%s%"DEC"-%s", largeDataRepository, req, dataName);
+    sStr path("%s%" DEC "-%s", largeDataRepository, req, dataName);
     sFil fl(path.ptr(), sMex::fReadonly);
     if( fl.length() < largeDataReposSize ) {
         if( QPDB->QP_reqDataSet(req, dataName, fl.length(), fl.ptr(0)) ) {
@@ -1357,7 +1357,7 @@ idx sQPrideBase::parProgressReport(idx req, const char * blbname)
     idx percent100, progressDone=0;
 
     // hostname and threads number
-    t.printf("%s,%"DEC",%"DEC,vars.value("thisHostName"),req,thrSpc.dim());
+    t.printf("%s,%" DEC ",%" DEC,vars.value("thisHostName"),req,thrSpc.dim());
 
     //PerThread * per;
     ThreadSpecific * tr;
@@ -1365,11 +1365,11 @@ idx sQPrideBase::parProgressReport(idx req, const char * blbname)
     for( idx it=0; it<thrSpc.dim();  ++it) {
         tr=thrSpc.ptr(it);
         percent100=tr->progressDone*100/(tr->iThreadEnd-tr->iThreadStart);
-        t.printf(",%"DEC",%"DEC,tr->progressDone,percent100);
+        t.printf(",%" DEC ",%" DEC,tr->progressDone,percent100);
         progressDone+=tr->progressDone;
     }
     percent100=progressDone*100/(iJobArrEnd-iJobArrStart);
-    t.printf(",%"DEC",%"DEC,progressDone,percent100);
+    t.printf(",%" DEC ",%" DEC,progressDone,percent100);
 
     t.printf("//");
 
@@ -1619,7 +1619,7 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
             log.printf("\tresource %s@%s is up-to-date\n", rs0, service);
             continue;  // if resource is older than the file : no need to update the file
         }
-        log.printf("\tresource %s@%s %"DEC" %s to %s\n", rs0, service, src00 ? sString::cnt00(src00) : blob.length(), src00 ? "files" : "bytes", dst.ptr());
+        log.printf("\tresource %s@%s %" DEC " %s to %s\n", rs0, service, src00 ? sString::cnt00(src00) : blob.length(), src00 ? "files" : "bytes", dst.ptr());
         if( sDir::exists(dst) && !sDir::removeDir(dst, true) ) {
             log.printf("\tfailed to delete directory '%s'\n", dst.ptr());
             logHasErr = true;
@@ -1718,7 +1718,7 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
 #endif
         const idx ret = sPS::execute(rs);
         if( ret != 0 ) {
-            log.printf("\texecution returned %"DEC"\n", ret);
+            log.printf("\texecution returned %" DEC "\n", ret);
             logHasErr = true;
         }
     }

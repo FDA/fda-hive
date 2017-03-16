@@ -118,15 +118,15 @@ DnaAlignX::EIndexerMessage DnaAlignX::subjectDump(const char * subjectPath, idx 
         idx seqlen = Sub.len(iS);
 
         if( indexChunkSize && seqlen > indexChunkSize ) {
-            qp.logOut(qp.eQPLogType_Warning, "Subject sequence #%"DEC" length %"DEC" is > %s index chunk size %"DEC, iS, seqlen, algorithm.ptr(), indexChunkSize);
+            qp.logOut(qp.eQPLogType_Warning, "Subject sequence #%" DEC " length %" DEC " is > %s index chunk size %" DEC, iS, seqlen, algorithm.ptr(), indexChunkSize);
         }
         if( indexChunkSize && posInChunk > 0 && (dumpedSize + seqlen) > indexChunkSize ) {
-            //qp.logOut(qp.eQPLogType_Trace, "NEW FILE %"DEC":  posInChunk %"DEC" dumpedSize %"DEC" seqlen %"DEC, chunkCnt + 1, posInChunk, dumpedSize, seqlen);
+            //qp.logOut(qp.eQPLogType_Trace, "NEW FILE %" DEC ":  posInChunk %" DEC " dumpedSize %" DEC " seqlen %" DEC, chunkCnt + 1, posInChunk, dumpedSize, seqlen);
             faFile.destroy();
         }
         // make sure there is a file to write into
         if( !faFile.ok() ) {
-            const char * subjectFile = subjectFile00.printf("%s%s%"DEC".fa", subjectPath, algorithm.ptr(), chunkCnt);
+            const char * subjectFile = subjectFile00.printf("%s%s%" DEC ".fa", subjectPath, algorithm.ptr(), chunkCnt);
             subjectFile00.add0();
             faFile.init(subjectFile);
             if( !faFile.ok() ) {
@@ -155,12 +155,12 @@ DnaAlignX::EIndexerMessage DnaAlignX::subjectDump(const char * subjectPath, idx 
                 idx idLen = idEnd ? idEnd - id : sLen(id);
                 idx * pid = idMap.setString(id, idLen);
                 if( !pid ) {
-                    qp.logOut(qp.eQPLogType_Error, "Out of memory for id mapping: %"DEC" -> [%"DEC"]'%s'", iS, idLen, id);
+                    qp.logOut(qp.eQPLogType_Error, "Out of memory for id mapping: %" DEC " -> [%" DEC "]'%s'", iS, idLen, id);
                     return eIndexerMessage_Error;
                 }
                 *pid = iS;
             } else {
-                faFile.printf(">%"DEC"\n", iS);
+                faFile.printf(">%" DEC "\n", iS);
             }
             char * const buf = faFile.add(0, seqlenX + 1);
             sBioseq::uncompressATGC(buf, seqs, 0, seqlen, seq_line_max);
@@ -224,10 +224,10 @@ DnaAlignX::EIndexerMessage DnaAlignX::IndexSubject(sStr & subjectIndexDir)
     if( indexChunkSize > 0 ) { // append chunk size if defined
         if( indexChunkSize < (1 * 1024 * 1024L) ) {
             // can't be less than that because of the suffix text below
-            qp.logOut(qp.eQPLogType_Error, "subject chunk size too small: '%"DEC, indexChunkSize);
+            qp.logOut(qp.eQPLogType_Error, "subject chunk size too small: '%" DEC, indexChunkSize);
             return eIndexerMessage_Error;
         }
-        suffix.printf("-%"DEC"M", indexChunkSize / 1024 / 1024);
+        suffix.printf("-%" DEC "M", indexChunkSize / 1024 / 1024);
     }
     suffix.printf("%s%s", keepOriginalSubId ? "-Id" : "", keepRefNs ? "-N" : "");
     switch (subbiomode) {
@@ -312,7 +312,7 @@ DnaAlignX::EIndexerMessage DnaAlignX::IndexSubject(sStr & subjectIndexDir)
                 buf.printf(0, "%s%.*s", subjectIndexDir.ptr(), (int) plen, nm);
                 const idx sz = sFile::size(buf);
                 if( !sFile::exists(buf) || sz != *tbl.ptr(i) ) {
-                    qp.logOut(qp.eQPLogType_Debug, "Miss file '%s' %"DEC" vs %"DEC" in index file list", buf.ptr(), sz, *tbl.ptr(i));
+                    qp.logOut(qp.eQPLogType_Debug, "Miss file '%s' %" DEC " vs %" DEC " in index file list", buf.ptr(), sz, *tbl.ptr(i));
                     sFile::remove(triggerFinished);
                     break;
                 }
@@ -335,7 +335,7 @@ DnaAlignX::EIndexerMessage DnaAlignX::IndexSubject(sStr & subjectIndexDir)
         sStr subjectWriteLock("%sindex.lock", subjectIndexDir.ptr());
         idx lreq; // lock indexing directory
         if( !qp.reqLock(subjectWriteLock, &lreq) ) {
-            qp.logOut(qp.eQPLogType_Debug, "Waiting for req %"DEC" to finish indexing '%s'", lreq, subjectIndexDir.ptr());
+            qp.logOut(qp.eQPLogType_Debug, "Waiting for req %" DEC " to finish indexing '%s'", lreq, subjectIndexDir.ptr());
             reSubmitGrp(qp, lreq);
             return eIndexerMessage_Wait;
         }
@@ -346,7 +346,7 @@ DnaAlignX::EIndexerMessage DnaAlignX::IndexSubject(sStr & subjectIndexDir)
             return eIndexerMessage_Error;
         }
         reSubmitGrp(qp, lreq);
-        qp.logOut(qp.eQPLogType_Info, "Started indexing in '%s', lock %"DEC, subjectIndexDir.ptr(), lreq);
+        qp.logOut(qp.eQPLogType_Info, "Started indexing in '%s', lock %" DEC, subjectIndexDir.ptr(), lreq);
         qp.reqSetInfo(qp.reqId, qp.eQPInfoLevel_Info, "Indexing subject(s)");
         subjectIdxLockId = lreq;
         subjectFile00.empty();
@@ -373,7 +373,7 @@ DnaAlignX::EIndexerMessage DnaAlignX::IndexSubject(sStr & subjectIndexDir)
             qp.logOut(qp.eQPLogType_Info, "INDEXING: %s\n", cmdLine.ptr());
             sIO log;
             const idx execret = qp.exec(cmdLine, 0, progressWatchFilename(subjectIndexDir), &log);
-            qp.logOut(execret ? qp.eQPLogType_Error : qp.eQPLogType_Debug, "retcode %"DEC" %s", execret, log ? log.ptr() : "");
+            qp.logOut(execret ? qp.eQPLogType_Error : qp.eQPLogType_Debug, "retcode %" DEC " %s", execret, log ? log.ptr() : "");
             if( execret != 0 ) {
                 qp.logOut(qp.eQPLogType_Error, "failed to index file '%s'", p);
                 return eIndexerMessage_Error;
@@ -452,7 +452,7 @@ DnaAlignX::EIndexerMessage DnaAlignX::IndexSubject(sStr & subjectIndexDir)
             return eIndexerMessage_Error;
         }
     }
-    qp.logOut(qp.eQPLogType_Debug, "Using index id maps %"DEC" in '%s'", idMap.dim(), subjectIndexDir.ptr());
+    qp.logOut(qp.eQPLogType_Debug, "Using index id maps %" DEC " in '%s'", idMap.dim(), subjectIndexDir.ptr());
     return eIndexerMessage_Done;
 }
 
@@ -468,7 +468,7 @@ DnaAlignX::EIndexerMessage DnaAlignX::queryIndexChunk(sStr & queryFiles, idx qSt
     sStr tokenizedQueryList; //  if requested to maintain in multiple files queries will be tokenized, otherwise in one buffer
     sString::searchAndReplaceSymbols(&tokenizedQueryList, qqStr.ptr(), qqStr.length(), separateHiveseqs ? "\n;" : "\xFF", 0, 0, true, true, false, true);
     for(iq = 0, qry = tokenizedQueryList.ptr(0); qry; qry = sString::next00(qry), ++iq) {
-        sStr queryFile(separateHiveseqs ? "%s-%"DEC".fa" : "%s.fa", getWorkDir(true), iq + 1);
+        sStr queryFile(separateHiveseqs ? "%s-%" DEC ".fa" : "%s.fa", getWorkDir(true), iq + 1);
         sHiveseq * hs = QryList.set(queryFile.ptr());
         new (hs) sHiveseq(qp.user, qry, qrybiomode);
         if( !hs->dim() ) {
@@ -581,12 +581,12 @@ DnaAlignX::EIndexerMessage DnaAlignX::Align(const char * query)
         if( !qp.reqProgress(cnt, cnt, q) ) {
             return eIndexerMessage_Aborted;
         }
-        sStr cmdLine("\"%sdna-alignx.sh.os%s\" %s align %s --outPath \"%s%"DEC"\" --indexPath \"%s\" --annotationFile \"%s\" --queryFiles %s", resourceRoot.ptr(0), SLIB_PLATFORM, algorithm.ptr(),
+        sStr cmdLine("\"%sdna-alignx.sh.os%s\" %s align %s --outPath \"%s%" DEC "\" --indexPath \"%s\" --annotationFile \"%s\" --queryFiles %s", resourceRoot.ptr(0), SLIB_PLATFORM, algorithm.ptr(),
             (additionalArguments ? additionalArguments.ptr() : " "), getWorkDir(true), cnt, p, referenceAnnotationFile ? referenceAnnotationFile.ptr() : "n/a", query);
         qp.logOut(qp.eQPLogType_Info, "ALIGNMENT %s: \n%s\n\n", algorithm.ptr(), cmdLine.ptr());
         sIO log;
         const idx execret = qp.exec(cmdLine, 0, progressWatchFilename(getWorkDir()), &log, 1);
-        qp.logOut(execret ? qp.eQPLogType_Error : qp.eQPLogType_Debug, "retcode %"DEC" %s", execret, log.ptr());
+        qp.logOut(execret ? qp.eQPLogType_Error : qp.eQPLogType_Debug, "retcode %" DEC " %s", execret, log.ptr());
         if( execret ) {
             qp.reqSetInfo(qp.reqId, qp.eQPInfoLevel_Warning, "Aligner produced an error");
             qp.reqSetStatus(qp.reqId, qp.eQPReqStatus_ProgError);
@@ -604,7 +604,7 @@ idx DnaAlignX::ParseAlignment(const idx keepAllMatches, sDic<idx> * unalignedLis
     sVec<idx> alignmentMap;
     idx cnt = 0, cntFoundAll = 0;
     for(const char * p = subjectFile00; p; p = sString::next00(p), ++cnt) {
-        sStr fn("%s%"DEC".%s", getWorkDir(true), cnt, resultExtension());
+        sStr fn("%s%" DEC ".%s", getWorkDir(true), cnt, resultExtension());
         if( sFile::size(fn) ) {
             sFil fl(fn, sMex::fReadonly);
             if( !fl.ok() ) {
@@ -613,7 +613,7 @@ idx DnaAlignX::ParseAlignment(const idx keepAllMatches, sDic<idx> * unalignedLis
                 return -1;
             }
             const idx cntFound = fillAlignmentMap(fl, alignmentMap, unalignedList);
-            qp.logOut(qp.eQPLogType_Debug, "Found %"DEC" aligner results in file '%s' for %s", cntFound, fn.ptr(), algorithm.ptr());
+            qp.logOut(qp.eQPLogType_Debug, "Found %" DEC " aligner results in file '%s' for %s", cntFound, fn.ptr(), algorithm.ptr());
             cntFoundAll += cntFound;
         }
     }
@@ -644,7 +644,7 @@ idx DnaAlignX::ParseAlignment(const idx keepAllMatches, sDic<idx> * unalignedLis
             return -2;
         }
     }
-    qp.logOut(qp.eQPLogType_Debug, "Parsed %"DEC" alignments\n", alignmentMap.dim());
+    qp.logOut(qp.eQPLogType_Debug, "Parsed %" DEC " alignments\n", alignmentMap.dim());
     return cntFoundAll;
 }
 
@@ -716,7 +716,7 @@ idx DnaAlignX::FinalProcessing()
         qp.logOut(qp.eQPLogType_Debug, "FINALIZE %s: \n%s\n\n", algorithm.ptr(), cmdLine.ptr());
         sIO log;
         const idx execret = qp.exec(cmdLine, 0, progressWatchFilename(getWorkDir()), &log, 0);
-        qp.logOut(execret ? qp.eQPLogType_Error : qp.eQPLogType_Debug, "retcode %"DEC" %s", execret, log ? log.ptr() : "");
+        qp.logOut(execret ? qp.eQPLogType_Error : qp.eQPLogType_Debug, "retcode %" DEC " %s", execret, log ? log.ptr() : "");
         if( execret ) {
             return 0;
         }
@@ -916,7 +916,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DnaAlignXProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-alignx", argv[0]));
+    DnaAlignXProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-alignx", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

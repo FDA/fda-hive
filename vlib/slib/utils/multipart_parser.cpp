@@ -218,7 +218,7 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
 
             case s_part_data:
                 if( c == CR ) {
-                    multipart_log("%s %"UDEC":%"UDEC "=%"UDEC"%s", "s_part_data", mark, i - 1, i - mark, isLast ? " last" : "");
+                    multipart_log("%s %" UDEC ":%" UDEC "=%" UDEC "%s", "s_part_data", mark, i - 1, i - mark, isLast ? " last" : "");
                     EMIT_DATA_CB(part_data, buf + mark, i - mark);
                     mark = i;
                     state = s_part_data_almost_boundary;
@@ -226,7 +226,7 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
                     break;
                 }
                 if( isLast ) {
-                    multipart_log("%s %"UDEC":%"UDEC "=%"UDEC" last", "s_part_data", mark, i + 1, i - mark + 1);
+                    multipart_log("%s %" UDEC ":%" UDEC "=%" UDEC " last", "s_part_data", mark, i + 1, i - mark + 1);
                     EMIT_DATA_CB(part_data, buf + mark, i - mark + 1);
                 }
                 break;
@@ -242,7 +242,7 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
                 multipart_log("%s 1 0x%02X%s", "s_part_data_almost_boundary", (int)(lookbehind[0]), isLast ? " last" : "");
                 EMIT_DATA_CB(part_data, lookbehind, 1);
                 if( isLast ) {
-                    multipart_log("%s %"UDEC":%"UDEC "=0x%02X last", "s_part_data_almost_boundary", i, i, (int)buf[i]);
+                    multipart_log("%s %" UDEC ":%" UDEC "=0x%02X last", "s_part_data_almost_boundary", i, i, (int)buf[i]);
                     EMIT_DATA_CB(part_data, buf + i, 1);
                 }
                 state = s_part_data;
@@ -252,10 +252,10 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
 
             case s_part_data_boundary:
                 if( bnd.ptr(index)[0] != c ) {
-                    multipart_log("%s %"UDEC, "s_part_data_boundary", 2 + index);
+                    multipart_log("%s %" UDEC, "s_part_data_boundary", 2 + index);
                     EMIT_DATA_CB(part_data, lookbehind, 2 + index);
                     if( isLast ) {
-                        multipart_log("%s %"UDEC":%"UDEC "=0x%02X last", "s_part_data_boundary", i, i, (int)buf[i]);
+                        multipart_log("%s %" UDEC ":%" UDEC "=0x%02X last", "s_part_data_boundary", i, i, (int)buf[i]);
                         EMIT_DATA_CB(part_data, buf + i, 1);
                     }
                     state = s_part_data;

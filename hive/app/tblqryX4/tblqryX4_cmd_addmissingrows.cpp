@@ -260,17 +260,17 @@ bool CmdAddMissingRows::init(const char * op_name, sVariant * tqs_arg)
                         *_add_cols_args.add(1) = col_arg;
                     }
                 } else {
-                    _ctx.logError("addMissingRows command: missing col key in add arg element %"DEC, i);
+                    _ctx.logError("addMissingRows command: missing col key in add arg element %" DEC, i);
                     return false;
                 }
                 if( sVariant * value_arg = add_arg->getListElt(i)->getDicElt("value") ) {
                     ParsedParam & param = is_default ? _add_default_value : *_add_values.add(1);
-                    param_desc.printf(0, "value in add arg element %"DEC, i);
+                    param_desc.printf(0, "value in add arg element %" DEC, i);
                     if( !parseParam(param, param_desc.ptr(), value_arg) ) {
                         return false;
                     }
                 } else {
-                    _ctx.logError("addMissingRows command: missing value key in add arg element %"DEC, i);
+                    _ctx.logError("addMissingRows command: missing value key in add arg element %" DEC, i);
                     return false;
                 }
             }
@@ -510,7 +510,7 @@ bool CmdAddMissingRows::compute(sTabular * in_table)
         return 0;
     }
     idx abscissa_max_gap = _abscissa_max_gap.val.asInt() > 0 ? _abscissa_max_gap.val.asInt() : estimateAbscissaMaxGap(in_table, abscissa_col);
-    _ctx.logDebug("addMissingRows command: using %"DEC" for abscissa maxGap", abscissa_max_gap);
+    _ctx.logDebug("addMissingRows command: using %" DEC " for abscissa maxGap", abscissa_max_gap);
 
     if( !evalParam(_abscissa_min_value, "abscissa start arg") || !evalParam(_abscissa_max_value, "abscissa end arg") ) {
         return 0;
@@ -526,8 +526,8 @@ bool CmdAddMissingRows::compute(sTabular * in_table)
         abscissa_end = _abscissa_max_value.val.isNull() ? in_table->ival(in_table->rows() - 1, abscissa_col) : _abscissa_max_value.val.asInt();
     }
 
-    _ctx.logDebug("addMissingRows command: using %"DEC" for abscissa start value", abscissa_start);
-    _ctx.logDebug("addMissingRows command: using %"DEC" for abscissa end value", abscissa_end);
+    _ctx.logDebug("addMissingRows command: using %" DEC " for abscissa start value", abscissa_start);
+    _ctx.logDebug("addMissingRows command: using %" DEC " for abscissa end value", abscissa_end);
 
     _cur_abscissa_val = abscissa_start;
 
@@ -590,8 +590,8 @@ bool CmdAddMissingRows::compute(sTabular * in_table)
     idx start_row = findStartEndRow(in_table, abscissa_col, abscissa_descending, abscissa_start, true);
     idx end_row = findStartEndRow(in_table, abscissa_col, abscissa_descending, abscissa_end, false);
 
-    _ctx.logDebug("addMissingRows command: using %"DEC" for abscissa start row", start_row);
-    _ctx.logDebug("addMissingRows command: using %"DEC" for abscissa end row", end_row);
+    _ctx.logDebug("addMissingRows command: using %" DEC " for abscissa start row", start_row);
+    _ctx.logDebug("addMissingRows command: using %" DEC " for abscissa end row", end_row);
 
     if( start_row != -sIdxMax && end_row != -sIdxMax ) {
         sVariant varying_val;

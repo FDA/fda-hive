@@ -48,7 +48,7 @@ static const char * replaceCommandLineVars(sStr * dst, const char * src, idx len
     repl00.add0();
     repl00.addString(resourceRoot);
     repl00.add0(2);
-    return sString::searchAndReplaceStrings(dst, src, len, "$(svc)"_"$(resourceRoot)"__, repl00.ptr(), 0, false);
+    return sString::searchAndReplaceStrings(dst, src, len, "$(svc)" _ "$(resourceRoot)" __, repl00.ptr(), 0, false);
 }
 
 const char * replaceCommandLineArgs(sStr& proc, sStr* args, const sQPrideSrv::Service& svc, const char * resourceRoot, sUsr* user)
@@ -127,7 +127,7 @@ void sQPrideSrv::OnQuit(void)
             sStr cmd("%s -stop", m_nodeMan.ptr());
             const idx ret = sPS::execute(cmd);
             if( ret != 0 ) {
-                logOut(eQPLogType_Error, "Node man call '%s' returned %"DEC"\n", cmd.ptr(), ret);
+                logOut(eQPLogType_Error, "Node man call '%s' returned %" DEC "\n", cmd.ptr(), ret);
             }
         }
     }
@@ -142,7 +142,7 @@ bool sQPrideSrv::OnCommand(const char * command, const char * value)
         return false;
     } else if( jobIsCmd("maintain")) {
         idx x = 0;
-        sscanf(value, "%"DEC, &x);
+        sscanf(value, "%" DEC, &x);
         m_isMaintainer = x != 0;
     } else if( jobIsCmd("broadcast:")) {
         sleepMS(rand()*200/RAND_MAX);
@@ -173,7 +173,7 @@ bool sQPrideSrv::OnCommand(const char * command, const char * value)
         return OnCommandRegister(command, value);
     } else if( jobIsCmd("email")) {
         if( value && value[0] ) {
-            sscanf(value, "%"UDEC, &emailBatch);
+            sscanf(value, "%" UDEC, &emailBatch);
         }
         if( emailBatch ) {
             return OnCommandEmail(command, value);
@@ -185,7 +185,7 @@ bool sQPrideSrv::OnCommand(const char * command, const char * value)
             if( value[0] != '/' && value[0] != '\\' ) {
                 fullp.curDir();
             }
-            fullp.printf("%s.os"SLIB_PLATFORM, value);
+            fullp.printf("%s.os" SLIB_PLATFORM, value);
             if( sFile::exists(fullp) ) {
                 m_nodeMan.printf(0, "%s", fullp.ptr());
             } else {
@@ -223,14 +223,14 @@ idx sQPrideSrv::OnGrab(idx)
 #endif
     idx psRes = ps.getProcList(&all_ps, 0, true);
 #if _DEBUG
-    logOut(eQPLogType_Info, "ps qty: %"DEC"\n", all_ps.dim());
+    logOut(eQPLogType_Info, "ps qty: %" DEC "\n", all_ps.dim());
 #endif
     if( psRes >= 0 && ps.getMode() == sPS::eExec_Extern ) {
         // this is to pickup qsrv or any other local jobs in case when we run in external mode
         sPS lcl;
         psRes = lcl.getProcList(&all_ps, 0, true);
 #if _DEBUG
-        logOut(eQPLogType_Info, "ps += local qty: %"DEC"\n", all_ps.dim());
+        logOut(eQPLogType_Info, "ps += local qty: %" DEC "\n", all_ps.dim());
 #endif
     }
     if( psRes >= 0 ) {
@@ -243,9 +243,9 @@ idx sQPrideSrv::OnGrab(idx)
 #if _DEBUG
         logOut(eQPLogType_Info, "Host capacity used %f\n", usedCapacity);
         if( all_ps.dim() ) {
-            sStr pslog("ps[%"DEC"]:", all_ps.dim());
+            sStr pslog("ps[%" DEC "]:", all_ps.dim());
             for(idx i = 0; i < all_ps.dim(); ++i) {
-                pslog.printf(" %"DEC" %s,", all_ps.ptr(i)->pid, all_ps.ptr(i)->cmd);
+                pslog.printf(" %" DEC " %s,", all_ps.ptr(i)->pid, all_ps.ptr(i)->cmd);
             }
             logOut(eQPLogType_Info, "%s\n", pslog.ptr());
         }
@@ -269,9 +269,9 @@ idx sQPrideSrv::OnGrab(idx)
             }
 #if _DEBUG
             if( psProc && psProc->dim() ) {
-                sStr pslog("%s[%"DEC"]:", proc, psProc->dim());
+                sStr pslog("%s[%" DEC "]:", proc, psProc->dim());
                 for(idx i = 0; i < psProc->dim(); ++i) {
-                    pslog.printf(" %"DEC" %s,",psProc->ptr(i)->pid, psProc->ptr(i)->cmd);
+                    pslog.printf(" %" DEC " %s,",psProc->ptr(i)->pid, psProc->ptr(i)->cmd);
                 }
                 logOut(eQPLogType_Info, "%s\n", pslog.ptr());
             }
@@ -281,7 +281,7 @@ idx sQPrideSrv::OnGrab(idx)
             logOut(eQPLogType_Info, "Host capacity used %f of %f\n", usedCapacity, getHostCapacity());
         }
     } else {
-        logOut(eQPLogType_Info, "ps FAILED: %"DEC"\n", psRes);
+        logOut(eQPLogType_Info, "ps FAILED: %" DEC "\n", psRes);
     }
 
     OnCommand("soundwake", 0);
@@ -363,14 +363,14 @@ bool sQPrideSrv::OnCommandKnockout(const char *, const char *)
 
         if( ip == svcPSList[ia].dim() ) {  // this knockout candidate has been killed before
             jobsKilledBefore.vadd(1, jobs[ij].jobID);
-            sKnock.printf("\t%s[%"DEC"]\n", svcList[ia].name, jobs[ij].jobID);
+            sKnock.printf("\t%s[%" DEC "]\n", svcList[ia].name, jobs[ij].jobID);
         } else {
             pidsToKill.vadd(1, jobs[ij].pid);
-            sJob.printf("\t%s[%"DEC"/%"DEC"/%"DEC"]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
+            sJob.printf("\t%s[%" DEC "/%" DEC "/%" DEC "]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
 
             if( jobs[ij].reqID ) {
                 reqsToKill.vadd(1, jobs[ij].reqID);
-                sReq.printf("\t%s[%"DEC"]\n", svcList[ia].name, jobs[ij].reqID);
+                sReq.printf("\t%s[%" DEC "]\n", svcList[ia].name, jobs[ij].reqID);
             }
             //jobs[ij].killCnt++;
         }
@@ -418,12 +418,12 @@ bool sQPrideSrv::OnCommandKillImpolites(const char *, const char *)
         if( ip == svcPSList[ia].dim() )
             continue; // no running process corresponds to this impolite
 
-        sJob.printf("\t%s[%"DEC"/%"DEC"/%"DEC"]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
+        sJob.printf("\t%s[%" DEC "/%" DEC "/%" DEC "]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
         pidsToKill.vadd(1, jobs[ij].pid);
         jobsToKill.vadd(1, jobs[ij].jobID);
         if( jobs[ij].reqID ) {
             reqsToKill.vadd(1, jobs[ij].reqID);
-            sReq.printf("\t%s[%"DEC"]\n", svcList[ia].name, jobs[ij].reqID);
+            sReq.printf("\t%s[%" DEC "]\n", svcList[ia].name, jobs[ij].reqID);
         }
 
     }
@@ -461,11 +461,11 @@ bool sQPrideSrv::OnCommandCleanTerminated(const char *, const char *)
             continue;  // this job is still running , we do not touch it
         }
 
-        sJob.printf("\t%s[%"DEC"/%"DEC"/%"DEC"]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
+        sJob.printf("\t%s[%" DEC "/%" DEC "/%" DEC "]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
         jobsToMarkAsTerminated.vadd(1, jobs[ij].jobID);
         if( jobs[ij].reqID ) {
             reqsToMarkAsKilled.vadd(1, jobs[ij].reqID);
-            sReq.printf("\t%s[%"DEC"]\n", svcList[ia].name, jobs[ij].reqID);
+            sReq.printf("\t%s[%" DEC "]\n", svcList[ia].name, jobs[ij].reqID);
         }
 
     }
@@ -506,7 +506,7 @@ bool sQPrideSrv::OnCommandStopJobs(const char *, const char *)
         } else if( svcList[ia].isUp != 0 )
             continue;
 
-        sJob.printf("\t%s[%"DEC"/%"DEC"/%"DEC"]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
+        sJob.printf("\t%s[%" DEC "/%" DEC "/%" DEC "]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
         jobsToStop.vadd(1, jobs[ij].jobID);
 
         svcToStop[&jobs[ij].svcID] = jobs[ij].svcID;
@@ -566,13 +566,13 @@ bool sQPrideSrv::OnCommandRecover(const char *, const char *)
 
     if( killed.dim() ) {
         for(idx ii = 0; ii < killed.dim(); ++ii)
-            sKil.printf("\t%"DEC"\n", killed[ii]);
+            sKil.printf("\t%" DEC "\n", killed[ii]);
         logOut(eQPLogType_Info, " following abandoned requests have been marked as killed:\n%s\n", sKil.ptr());
     }
 
     if( recovered.dim() ) {
         for(idx ii = 0; ii < recovered.dim(); ++ii)
-            sRec.printf("\t%"DEC"\n", recovered[ii]);
+            sRec.printf("\t%" DEC "\n", recovered[ii]);
         logOut(eQPLogType_Info, " following abandoned requests have been resubmitted:\n%s\n", sRec.ptr());
     }
     return true;
@@ -593,7 +593,7 @@ void sQPrideSrv::purge(TPurgeData & data)
     if( reqListToSync.dim() ) {
         for(idx i = 0; i < reqListToSync.dim(); ++i) {
             pr.printf(",reqID");
-            reqs.printf(",%"DEC, reqListToSync[i]);
+            reqs.printf(",%" DEC, reqListToSync[i]);
         }
     }
     sDic<char> synced;
@@ -619,12 +619,12 @@ void sQPrideSrv::purge(TPurgeData & data)
         sStr purged("\t");
         for(idx i = 0; i < reqListToDelete.dim(); ++i) {
             if( !synced.get(&reqListToDelete[i], sizeof(reqListToDelete[i])) ) {
-                logOut(eQPLogType_Info, "Request %"DEC" deleted w/o properties sync\n", reqListToDelete[i]);
+                logOut(eQPLogType_Info, "Request %" DEC " deleted w/o properties sync\n", reqListToDelete[i]);
             }
             data.reqs.set(&reqListToDelete[i], sizeof(reqListToDelete[i])); //save for file cleanup in usrv
-            purged.printf("%"DEC"%s", reqListToDelete[i], ((i + 1) % 5) ? ", " : "\n\t");
+            purged.printf("%" DEC "%s", reqListToDelete[i], ((i + 1) % 5) ? ", " : "\n\t");
         }
-        logOut(eQPLogType_Info, "following %"DEC" requests have been purged:\n%s\n", reqListToDelete.dim(), purged.ptr());
+        logOut(eQPLogType_Info, "following %" DEC " requests have been purged:\n%s\n", reqListToDelete.dim(), purged.ptr());
     }
 }
 
@@ -641,7 +641,7 @@ bool sQPrideSrv::OnCommandPurge(const char *, const char *)
         purgeDir(data);
     }
     if( data.size ) {
-        logOut(eQPLogType_Info, "%"UDEC" bytes returned to storage\n", data.size);
+        logOut(eQPLogType_Info, "%" UDEC " bytes returned to storage\n", data.size);
     }
     return true;
 }
@@ -691,7 +691,7 @@ bool sQPrideSrv::OnCommandLaunch(const char *, const char *)
         sVec<idx> cntKinds;
         cntKinds.vadd(1, svcPSList[is].dim()); // the zero-th element has the total number for all parallel jobs
         for(idx ib = 1, cntThi=0; ib <= svcList[is].parallelJobs; ++ib) { // now for all parallel jobs
-            cmdline.printf(0, "jobarr %"DEC, ib - 1 + 1); // which are specified like this on a command line
+            cmdline.printf(0, "jobarr %" DEC, ib - 1 + 1); // which are specified like this on a command line
             for(ip = 0, cntThi = 0; ip < svcPSList[is].dim(); ++ip) { // count how many are there of this kind
                 if( strstr(svcPSList[is][ip].cmd + svcPSList[is][ip].args, cmdline) )
                     ++cntThi;
@@ -737,7 +737,7 @@ bool sQPrideSrv::OnCommandLaunch(const char *, const char *)
                     cmdline.cut(pos); // the file doesn't exist , cut it back to non-os specific
             }*/
             if( ib > 0 ) {
-                cmdline.printf(" jobarr %"DEC" ", ib - 1 + 1);
+                cmdline.printf(" jobarr %" DEC " ", ib - 1 + 1);
             }
             if( ps.getMode() == sPS::eExec_Extern ) {
                 cmdline.printf(" psman \"%s\" ", ps.getScript());
@@ -754,7 +754,7 @@ bool sQPrideSrv::OnCommandLaunch(const char *, const char *)
             tmp.shrink00();
             const idx log_pos = tmp.length();
 
-            logOut(eQPLogType_Info, "queue on %s for service %s: reserve %"DEC" max %"DEC" reqs %"DEC" cnt %"DEC" all %"DEC"\n", thisHost, svcList[is].name,
+            logOut(eQPLogType_Info, "queue on %s for service %s: reserve %" DEC " max %" DEC " reqs %" DEC " cnt %" DEC " all %" DEC "\n", thisHost, svcList[is].name,
                 svcList[is].activeJobReserve, maxJobOnThisMachine, svcList[is].hasReqToGrab,
                 cntKinds[ib], cntThisKindOnAllMachines);
             for(idx il = 0; cntKinds[ib] < maxJobOnThisMachine &&
@@ -774,7 +774,7 @@ bool sQPrideSrv::OnCommandLaunch(const char *, const char *)
                     tmp.printf(log_pos, "%u.log 2>&1", rand());
                 }
                 logOut(eQPLogType_Info, " launching job for service %s (capacity %f) on %s as %s\n", svcList[is].name, svcList[is].capacity, thisHost, tmp.ptr());
-                logOut(eQPLogType_Info, " there are %"DEC" pending requests and %"DEC" active reserve inquiries\n", svcList[is].hasReqToGrab,svcList[is].activeJobReserve);
+                logOut(eQPLogType_Info, " there are %" DEC " pending requests and %" DEC " active reserve inquiries\n", svcList[is].hasReqToGrab,svcList[is].activeJobReserve);
                 ps.exec(tmp);
                 currCapacity += svcList[is].capacity;
 
@@ -852,7 +852,7 @@ bool sQPrideSrv::OnCommandEmail(const char *, const char *)
         }
     }
     if( sent || failed ) {
-        logOut(eQPLogType_Info, " emails: %"UDEC" sent, %"UDEC" failed\n", sent, failed);
+        logOut(eQPLogType_Info, " emails: %" UDEC " sent, %" UDEC " failed\n", sent, failed);
     }
     return true;
 }
@@ -887,19 +887,19 @@ void sQPrideSrv::purgeDir(TPurgeData & data)
                         if( *mask ) {
                             if( data.reqs.dim() ) {
                                 sStr freq;
-                                sString::searchAndReplaceStrings(&freq, mask, 0, "@reqID@"__, "%"DEC""__, 0, true);
+                                sString::searchAndReplaceStrings(&freq, mask, 0, "@reqID@" __, "%" DEC "" __, 0, true);
                                 idx req = 0;
                                 if( sscanf(nm, freq, &req) == 1 && data.reqs.get(&req, sizeof(req)) ) {
-                                    remove.printf("req %"DEC, req);
+                                    remove.printf("req %" DEC, req);
                                 }
                             }
                             if( !remove && data.objs.dim() ) {
                                 // TODO : allow purging non-domain-0 object storage
                                 sStr fobj;
-                                sString::searchAndReplaceStrings(&fobj, mask, 0, "@objID@"__, "%"UDEC""__, 0, true);
+                                sString::searchAndReplaceStrings(&fobj, mask, 0, "@objID@" __, "%" UDEC "" __, 0, true);
                                 udx obj = 0;
                                 if( sscanf(nm, fobj, &obj) == 1 && data.objs.get(&obj, sizeof(obj)) ) {
-                                    remove.printf("obj %"UDEC, obj);
+                                    remove.printf("obj %" UDEC, obj);
                                 }
                             }
                         }
@@ -908,7 +908,7 @@ void sQPrideSrv::purgeDir(TPurgeData & data)
                 if( !remove && cleanUpSecs ) {
                     idx tm = sFile::atime(pnm);
                     if( (now - tm) > cleanUpSecs ) {
-                        remove.printf("time %"DEC" - %"DEC, now, tm);
+                        remove.printf("time %" DEC " - %" DEC, now, tm);
                     }
                 }
                 if( remove ) {
@@ -924,7 +924,7 @@ void sQPrideSrv::purgeDir(TPurgeData & data)
                 }
             }
         }
-        logOut(eQPLogType_Info, "purging '%s': %"DEC" days, masks: '%s%s'\n", plog ? plog.ptr(1) : "", data.cleanUpDays, mlog ? mlog.ptr() : "", mlog ? "/" : "");
+        logOut(eQPLogType_Info, "purging '%s': %" DEC " days, masks: '%s%s'\n", plog ? plog.ptr(1) : "", data.cleanUpDays, mlog ? mlog.ptr() : "", mlog ? "/" : "");
     }
 }
 
@@ -942,10 +942,10 @@ bool sQPrideSrv::OnCommandCapacity(const char *, const char *)
         idx total = 0;
         idx need = sysCapacityNeed(&total);
         if( need > total ) {
-            sStr cmd("%s -add %"DEC, m_nodeMan.ptr(), need - total);
+            sStr cmd("%s -add %" DEC, m_nodeMan.ptr(), need - total);
             const idx ret = sPS::execute(cmd);
             if( ret != 0 ) {
-                logOut(eQPLogType_Error, "Node man call '%s' returned %"DEC"\n", cmd.ptr(), ret);
+                logOut(eQPLogType_Error, "Node man call '%s' returned %" DEC "\n", cmd.ptr(), ret);
             }
         }
     }

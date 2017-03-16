@@ -640,7 +640,7 @@ idx algoIonAnnotMapperProc::OnExecute(idx req)
                     bool oldStyle=false;
                     if(!annotEl->fil->ok() ) {
                         sStr path;
-                        annotEl->pann->getFilePathname(path, "SNPprofile-%"DEC".csv",mySeqID);
+                        annotEl->pann->getFilePathname(path, "SNPprofile-%" DEC ".csv",mySeqID);
                         oldStyle=true;
                         prof= new sFil(path,sMex::fReadonly);
                         if(!prof->ok()){
@@ -790,7 +790,7 @@ idx algoIonAnnotMapperProc::OnExecute(idx req)
                 }
             }
             //BMref.cut(cntBM);
-            //::printf(" cntSatisfactory %"DEC"\n",cntSatisfactory);
+            //::printf(" cntSatisfactory %" DEC "\n",cntSatisfactory);
 
         } // End loop for annotation blocks
 
@@ -819,8 +819,8 @@ idx algoIonAnnotMapperProc::OnExecute(idx req)
                     start=ipos;
                 } else{
                     end=ipos-1;
-                    //rangeFile.printf("\"%.*s\",%"DEC",%"DEC",%"DEC"\n",(int)seqIDLen,seqID,start,end,end-start+1);
-                    rangeFile.printf("\"%.*s\",%"DEC",%"DEC",%"DEC"",(int)seqIDLen,seqID,start,end,end-start+1);
+                    //rangeFile.printf("\"%.*s\",%" DEC ",%" DEC ",%" DEC "\n",(int)seqIDLen,seqID,start,end,end-start+1);
+                    rangeFile.printf("\"%.*s\",%" DEC ",%" DEC ",%" DEC "",(int)seqIDLen,seqID,start,end,end-start+1);
                     outD.empty();
                     for (idx iiA=0; iiA < annotationCache.dim(); ++iiA) {
                         if (annotationCache.ptr(iiA)->isProfiler)
@@ -858,7 +858,7 @@ idx algoIonAnnotMapperProc::OnExecute(idx req)
         outD.empty();
         if(mode==1 ) {
             end=cntBM-1;
-            rangeFile.printf("\"%.*s\",%"DEC",%"DEC",%"DEC",",(int)seqIDLen,seqID,start,end,end-start+1);
+            rangeFile.printf("\"%.*s\",%" DEC ",%" DEC ",%" DEC ",",(int)seqIDLen,seqID,start,end,end-start+1);
             for (idx iiA=0; iiA < annotationCache.dim(); ++iiA) {
                 if (annotationCache.ptr(iiA)->isProfiler)
                     continue;
@@ -914,7 +914,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    algoIonAnnotMapperProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "algo-ionAnnotMapper", argv[0]));
+    algoIonAnnotMapperProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "algo-ionAnnotMapper", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

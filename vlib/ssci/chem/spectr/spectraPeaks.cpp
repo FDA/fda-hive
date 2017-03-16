@@ -140,7 +140,7 @@ void spectraPeaks::peakKnownOut(const char * nam, sVec < knownPeak > & kpl, cons
 
             //pea.printf("%lf,   %lf,   %lf,   %lf,  %.3lf", smin+allStp*kp->iMatch, s[kp->iMatch], kp->coef, kp->itgrl, kp->rmass);
             pea.printf("%lf,%lf,%lf,%lf,%.3lf", smin+allStp*kp->iMatch, s[kp->iMatch], kp->coef, kp->itgrl, kp->rmass);
-            if(peaks.satellite[kp->iGrp].shift!=0)pea.printf("%+"DEC"", peaks.satellite[kp->iGrp].shift );
+            if(peaks.satellite[kp->iGrp].shift!=0)pea.printf("%+" DEC "", peaks.satellite[kp->iGrp].shift );
             //pea.printf(",   %.3lf,   %s\r\n" , kp->rmass + peakGroup[kp->iGrp], IsoD.isoDistr.id(kp->iMol));
             pea.printf(",   %.3lf,%s\r\n" , kp->rmass + peaks.satellite[kp->iGrp].shift, (const char *)IsoD.isoDistr.id(kp->iMol));
         }
@@ -589,7 +589,7 @@ idx spectraPeaks::peaksGenerateKnown(const char * path, real allStp, real smin, 
     idx gFirstNonZero, gLastNonZero, gMaxBin,gFirsMaxBin;
     for( idx imol=0; imol<IsoD.isoDistr.dim() &&  imol<peaks.maxPeaks; ++imol) { // one by one we go over all of the isomolecules
         sStr * isoFlnm=m_tmpFiles.add(1);
-        isoFlnm->printf("%siso_%"DEC"",path, imol+1);
+        isoFlnm->printf("%siso_%" DEC "",path, imol+1);
         //m_tmpFiles.add();
 
 

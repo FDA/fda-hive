@@ -292,7 +292,7 @@ void sUsrPropSet::jsonFirstPassCb(sJSONParser::ParseNode & node, sJSONParser & p
     {
         sStr key_str;
         key_str.addString(node.key_str, node.key_str_len);
-        fprintf(stderr, "\nnode: depth = %"DEC", index = %"DEC", key = %s, val_pos == %"DEC"\n", node.depth, node.index, key_str.ptr(), node.val_pos);
+        fprintf(stderr, "\nnode: depth = %" DEC ", index = %" DEC ", key = %s, val_pos == %" DEC "\n", node.depth, node.index, key_str.ptr(), node.val_pos);
     }
 #endif
 
@@ -307,7 +307,7 @@ void sUsrPropSet::jsonFirstPassCb(sJSONParser::ParseNode & node, sJSONParser & p
             NodeLoc * comment_loc = self->_comment_loc.set(&ploc->pos, sizeof(ploc->pos));
             comment_loc->set(ploc->pos, ploc->depth, ploc->index);
 #if UPROPSET_TRACE
-            fprintf(stderr, "Repeated key; comment at val_pos == %"DEC", depth == %"DEC", index == %"DEC"\n", ploc->pos, ploc->depth, ploc->index);
+            fprintf(stderr, "Repeated key; comment at val_pos == %" DEC ", depth == %" DEC ", index == %" DEC "\n", ploc->pos, ploc->depth, ploc->index);
 #endif
         } else {
             ploc = self->_keys_tic.setString(node.key_str, node.key_str_len);
@@ -318,7 +318,7 @@ void sUsrPropSet::jsonFirstPassCb(sJSONParser::ParseNode & node, sJSONParser & p
 #if UPROPSET_TRACE
     {
         for(idx i = 0; i < self->_keys_tic.dimStack(); i++) {
-            fprintf(stderr, "stack level %"DEC": ", i);
+            fprintf(stderr, "stack level %" DEC ": ", i);
             for(idx j = 0; j < self->_keys_tic.dimLevel(i); j++) {
                 if( j ) {
                     fprintf(stderr, ", ");
@@ -329,7 +329,7 @@ void sUsrPropSet::jsonFirstPassCb(sJSONParser::ParseNode & node, sJSONParser & p
         }
         for(idx i = 0; i < self->_comment_loc.dim(); i++) {
             NodeLoc * comment_loc = self->_comment_loc.ptr(i);
-            fprintf(stderr, "comment #%"DEC": val_pos == %"DEC", depth == %"DEC", index == %"DEC"\n", i, comment_loc->pos, comment_loc->depth, comment_loc->index);
+            fprintf(stderr, "comment #%" DEC ": val_pos == %" DEC ", depth == %" DEC ", index == %" DEC "\n", i, comment_loc->pos, comment_loc->depth, comment_loc->index);
         }
     }
 #endif
@@ -374,7 +374,7 @@ void sUsrPropSet::jsonSecondPassCb(sJSONParser::ParseNode & node, sJSONParser & 
     {
         sStr key_str;
         key_str.addString(node.key_str, node.key_str_len);
-        fprintf(stderr, "\nnode: depth = %"DEC", index = %"DEC", key = %s, val_pos == %"DEC"; cur_comment = %"DEC"\n", node.depth, node.index, key_str.ptr(), node.val_pos, self->_cur_icomment);
+        fprintf(stderr, "\nnode: depth = %" DEC ", index = %" DEC ", key = %s, val_pos == %" DEC "; cur_comment = %" DEC "\n", node.depth, node.index, key_str.ptr(), node.val_pos, self->_cur_icomment);
     }
 #endif
         return;
@@ -383,7 +383,7 @@ void sUsrPropSet::jsonSecondPassCb(sJSONParser::ParseNode & node, sJSONParser & 
     {
         sStr key_str;
         key_str.addString(node.key_str, node.key_str_len);
-        fprintf(stderr, "\nnode: depth = %"DEC", index = %"DEC", key = %s, val_pos == %"DEC"; cur_comment = %"DEC"\n", node.depth, node.index, key_str.ptr(), node.val_pos, self->_cur_icomment);
+        fprintf(stderr, "\nnode: depth = %" DEC ", index = %" DEC ", key = %s, val_pos == %" DEC "; cur_comment = %" DEC "\n", node.depth, node.index, key_str.ptr(), node.val_pos, self->_cur_icomment);
     }
 #endif
     }
@@ -1021,7 +1021,7 @@ bool sUsrPropSet::readFieldNode(sJSONParser::ParseNode & node, sJSONParser & par
     fprintf(stderr, "fld,depth,imulti,multi_depth,irow,row_depth,is_flattened\n");
     for(idx i = 0; i < _field_stack.dim(); i++) {
         FieldStackElt * elt = _field_stack.ptr(i);
-        fprintf(stderr, "%s,%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%s\n", elt->fld->name(), elt->depth, elt->imulti, elt->multi_depth, elt->irow, elt->row_depth, elt->is_flattened ? "true" : "false");
+        fprintf(stderr, "%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%s\n", elt->fld->name(), elt->depth, elt->imulti, elt->multi_depth, elt->irow, elt->row_depth, elt->is_flattened ? "true" : "false");
     }
     fprintf(stderr, "\n");
 #endif
@@ -1099,7 +1099,7 @@ bool sUsrPropSet::readPermNode(sJSONParser::ParseNode & node, sJSONParser & pars
             if( node.val.i > 0 ) {
                 cur_perm.group_id = node.val.i;
             } else {
-                parser.setValueError(node, "user group ID %"DEC" is invalid", node.val.i);
+                parser.setValueError(node, "user group ID %" DEC " is invalid", node.val.i);
                 if( _flags & fInvalidUserGroupNonFatal ) {
                     sStr tmp_str;
                     fprintf(stderr, "Warning: %s", parser.printError(tmp_str));
@@ -1383,7 +1383,7 @@ bool sUsrPropSet::run(sDic<sUsrPropSet::Obj> * modified_objs/* = 0*/, udx flags/
         bool is_our_transaction = !getUpdateLevel();
         if( !updateStart() ) {
             if( _usr->db().HasFailed() ) {
-                _err.printf(0, "DB error %"UDEC" : %s", _usr->db().Get_errno(), _usr->db().Get_error().ptr());
+                _err.printf(0, "DB error %" UDEC " : %s", _usr->db().Get_errno(), _usr->db().Get_error().ptr());
             } else {
                 _err.printf(0, "Unknown DB error");
             }
@@ -1433,7 +1433,7 @@ bool sUsrPropSet::run(sDic<sUsrPropSet::Obj> * modified_objs/* = 0*/, udx flags/
                 // started the current DB transaction. After cleanup, wait a bit and retry.
                 _err.cut0cut();
 #if UPROPSET_TRACE
-                fprintf(stderr, "%s:%u - restarting deadlocked transaction, attempt %"DEC"/%"DEC"\n", __FILE__, __LINE__, itry + 1, sSql::max_deadlock_retries);
+                fprintf(stderr, "%s:%u - restarting deadlocked transaction, attempt %" DEC "/%" DEC "\n", __FILE__, __LINE__, itry + 1, sSql::max_deadlock_retries);
 #endif
                 sTime::randomSleep(sSql::max_deadlock_wait_usec);
                 continue;

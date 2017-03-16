@@ -371,12 +371,12 @@ namespace slib {
             void SetValue(const char* name, const char* value);
             void SetValue(const char* name, const idx value)
             {
-                sStr tmp("%"DEC, value);
+                sStr tmp("%" DEC, value);
                 SetValue(name, tmp.ptr());
             }
             void SetValue(const char* name, const udx value)
             {
-                sStr tmp("%"UDEC, value);
+                sStr tmp("%" UDEC, value);
                 SetValue(name, tmp.ptr());
             }
 

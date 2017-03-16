@@ -152,7 +152,7 @@ void bioproject::ParseOneline(idx idCnt, const char * buf, sStr * string, idx * 
     for(idx i=0; i<idCnt ;i++)
     {
         //const char * ptr1=line.ptr();//get the taxid
-        sscanf(ptr1,"%"DEC,id);
+        sscanf(ptr1,"%" DEC,id);
         //sFile::copy(filenamesrc,filenamedest, true);
         id = va_arg( marker, idx *);
         ptr1=sString::next00(ptr1);

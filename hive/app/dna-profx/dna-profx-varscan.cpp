@@ -56,7 +56,7 @@ idx DnaProfXvarscan::PrepareData ( sUsr& user, const char * parentIDs, const cha
     // If missing then SAMtools cannot be run
     //
     sStr path;
-    profile.getFilePathname00(path, "alignment.hiveal"_"alignment.vioal"__);
+    profile.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __);
     if (!path || (sFile::size(path.ptr())==0) ) {
         // Error: the alignment file appears to be empty
         qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "Alignments are missing or corrupted.");
@@ -110,8 +110,8 @@ idx DnaProfXvarscan::PrepareData ( sUsr& user, const char * parentIDs, const cha
     sStr samAlignmentFile;
     for (idx ii = 0; ii < Sub.dim(); ii++) {
         spath.cut(0);
-        samAlignmentFile.printf(0,"%s/alignment-%"DEC".sam", workDir, ii);
-        profile.getFilePathname(spath, "alignment-%"DEC".sam", ii);
+        samAlignmentFile.printf(0,"%s/alignment-%" DEC ".sam", workDir, ii);
+        profile.getFilePathname(spath, "alignment-%" DEC ".sam", ii);
 
         //
         // Copy the alignment file into the work directory if the SAM file already exists
@@ -141,7 +141,7 @@ idx DnaProfXvarscan::PrepareData ( sUsr& user, const char * parentIDs, const cha
         // due to requirements in the SAM format specification.  SAMtools cannot properly
         // work with reference IDs that contain spaces.
         //
-        sStr subjectFastaFile("%s/subject-%"DEC".fa", workDir, ii);
+        sStr subjectFastaFile("%s/subject-%" DEC ".fa", workDir, ii);
         sFil subjectFastaFil(subjectFastaFile.ptr());
         Sub.printFastXRow(&subjectFastaFil, false, ii, 0, 0, 0, true, false, 0, 0, 0, true, false, false, true);
 
@@ -185,11 +185,11 @@ idx DnaProfXvarscan::Profile (sIO * log, sStr * outFile, const char * workDir, s
     sStr vpath;
     bool skipHeader = false;
     for (idx i = 0; i < Sub.dim(); i++){
-        sStr subjectFastaFile("%s/subject-%"DEC".fa",workDir, i);
+        sStr subjectFastaFile("%s/subject-%" DEC ".fa",workDir, i);
 
-        //sStr cmdLine("samtoolsVCF.os"SLIB_PLATFORM" \'%s\' \'%s\'", workDir, subjectFastaFile.ptr());
+        //sStr cmdLine("samtoolsVCF.os" SLIB_PLATFORM " \'%s\' \'%s\'", workDir, subjectFastaFile.ptr());
         // Remove the OS; this is set at the script level (?)
-        sStr cmdLine("\"%sdna-profx.sh.os%s\" %s run --workDir \'%s\' --subjectFastaFile \'%s\' --subID %"DEC"", resourceRoot.ptr(), SLIB_PLATFORM, algorithm.ptr() ,workDir, subjectFastaFile.ptr(), i);
+        sStr cmdLine("\"%sdna-profx.sh.os%s\" %s run --workDir \'%s\' --subjectFastaFile \'%s\' --subID %" DEC "", resourceRoot.ptr(), SLIB_PLATFORM, algorithm.ptr() ,workDir, subjectFastaFile.ptr(), i);
 
         if(log)log->printf("RUNNING: %s\n",cmdLine.ptr());
         qp->logOut(qp->eQPLogType_Error, "Launching SAMTools Variant caller.");
@@ -197,24 +197,24 @@ idx DnaProfXvarscan::Profile (sIO * log, sStr * outFile, const char * workDir, s
         sPS::execute(cmdLine);
 
         outFile->cut(0);
-        outFile->printf("%s/SNP-%"DEC".vcf", workDir, i);
+        outFile->printf("%s/SNP-%" DEC ".vcf", workDir, i);
 
         // Copy output from working directory to object directory
         vpath.cut(0);
-        qp->reqAddFile(vpath, "SNP-%"DEC".vcf", i);
+        qp->reqAddFile(vpath, "SNP-%" DEC ".vcf", i);
         if (vpath && sFile::exists( outFile->ptr() ) &&( sFile::size( outFile->ptr() ) > 0 ) ) {
             sFile::copy( outFile->ptr() , vpath.ptr() , false);
         }
         else {
             qp->reqSetInfo(qp->reqId, qp->eQPLogType_Info, "%s", cmdLine.ptr());
-            qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "request %"DEC" failed to produce SNP.vcf file", qp->reqId);
+            qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "request %" DEC " failed to produce SNP.vcf file", qp->reqId);
             qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_ProgError);
             return 0;
         }
 
         //convert .vcf into .csv file
         sStr SNPprofileFileTmplt;
-        qp->reqAddFile(SNPprofileFileTmplt, "SNPprofile-%"DEC, i);
+        qp->reqAddFile(SNPprofileFileTmplt, "SNPprofile-%" DEC, i);
         sViosam viosam;
 
         //
@@ -223,7 +223,7 @@ idx DnaProfXvarscan::Profile (sIO * log, sStr * outFile, const char * workDir, s
         idx ret = viosam.convertVarScan2OutputintoCSV(vpath.ptr(), SNPprofileFileTmplt.ptr(), &Sub, false);
         //idx ret = viosam.convertVCFintoCSV(vpath.ptr(), SNPprofileFileTmplt.ptr(), &Sub, skipHeader);
         if (ret==0) {
-            qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "request %"DEC" could not convert VCF file into CSV format.", qp->reqId);
+            qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "request %" DEC " could not convert VCF file into CSV format.", qp->reqId);
             qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
             return 0;
         }
@@ -268,7 +268,7 @@ idx DnaProfXvarscan::Finalize (sIO * log, sStr * outFile, const char * workDir, 
     sStr ProfileChunk;
     for (idx i = 0 ;i < Sub.dim(); i++){
         ProfileChunk.cut(0);
-        qp->reqGetFile(ProfileChunk,"SNPprofile-%"DEC".csv", i);
+        qp->reqGetFile(ProfileChunk,"SNPprofile-%" DEC ".csv", i);
         sFile::copy( ProfileChunk.ptr(), SNPprofileFileTmplt.ptr() , true);
 
         // Remove profile chunk here since everything is now concatinated into SNPprofile.csv

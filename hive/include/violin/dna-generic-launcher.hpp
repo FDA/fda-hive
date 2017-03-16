@@ -39,7 +39,7 @@ class DnaGenericLauncherProc: public sQPrideGenericLauncher
     public:
         DnaGenericLauncherProc(const char * defline00, const char * srv) : sQPrideGenericLauncher(defline00, srv){
             sBioseq::initModule(sBioseq::eACGT);
-            addDispatchedFunctions00="pathfasta"_"pathfastq"_"pathsam"_"pathbam"_"pathbt2"_"pathfile"__;
+            addDispatchedFunctions00="pathfasta" _ "pathfastq" _ "pathsam" _ "pathbam" _ "pathbt2" _ "pathfile" __;
         }
         virtual bool dispatcher_callback(sVariant &result, const qlang::BuiltinFunction &funcObj, qlang::Context &ctx, sVariant *topic, sVariant *args, idx nargs,void * param);
         sDic <idx > filesDumped;

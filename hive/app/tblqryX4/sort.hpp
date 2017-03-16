@@ -117,7 +117,7 @@ namespace slib {
                     if (key_spec->getFormula()) {
                         if (unlikely(!key_spec->getFormula()->eval(_key_val_tmp_result, _ctx->qlangCtx()))) {
                             sStr err_buf;
-                            _ctx->logError("Query language error when sorting at table row %"DEC", sortkey #%"DEC": %s", irow, ival, _ctx->qlangCtx().printError(err_buf));
+                            _ctx->logError("Query language error when sorting at table row %" DEC ", sortkey #%" DEC ": %s", irow, ival, _ctx->qlangCtx().printError(err_buf));
                             _ctx->qlangCtx().clearError();
                             _err = true;
                         }
@@ -138,9 +138,9 @@ namespace slib {
 
 #if 0
                 if (val->type == KeyValue::eReal)
-                    fprintf(stderr, "Key %"DEC" for row %"DEC" is %.2f\n", ival, irow, val->val.r);
+                    fprintf(stderr, "Key %" DEC " for row %" DEC " is %.2f\n", ival, irow, val->val.r);
                 else
-                    fprintf(stderr, "Key %"DEC" for row %"DEC" is '%s'\n", ival, irow, row->buf.ptr(val->val.s));
+                    fprintf(stderr, "Key %" DEC " for row %" DEC " is '%s'\n", ival, irow, row->buf.ptr(val->val.s));
 #endif
 
                 return val;
@@ -201,13 +201,13 @@ namespace slib {
                     ret = compareKeyValues(key_row1, val1, key_row2, val2);
 #if 0
                     {
-                        fprintf(stderr, "Key #%"DEC",%"DEC" (== ", irow1, ival);
+                        fprintf(stderr, "Key #%" DEC ",%" DEC " (== ", irow1, ival);
                         if (val1->type == KeyValue::eString) {
                             fprintf(stderr, "%s", key_row1->buf.ptr(val1->val.s));
                         } else {
                             fprintf(stderr, "%g", val1->val.r);
                         }
-                        fprintf(stderr, ") %s key #%"DEC",%"DEC" (== ", ret > 0 ? ">" : ret < 0 ? "<" : "=", irow2, ival);
+                        fprintf(stderr, ") %s key #%" DEC ",%" DEC " (== ", ret > 0 ? ">" : ret < 0 ? "<" : "=", irow2, ival);
                         if (val2->type == KeyValue::eString) {
                             fprintf(stderr, "%s", key_row2->buf.ptr(val2->val.s));
                         } else {

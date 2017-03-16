@@ -437,7 +437,7 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
             rangeListForJoinAndComplement.cut(0);
             for (idx i=0; i<myRangeVec.dim(); ++i){
                 if (i) rangeListForJoinAndComplement.printf(";");
-                rangeListForJoinAndComplement.printf("%"DEC"-%"DEC"", myRangeVec.ptr(i)->start, myRangeVec.ptr(i)->end);
+                rangeListForJoinAndComplement.printf("%" DEC "-%" DEC "", myRangeVec.ptr(i)->start, myRangeVec.ptr(i)->end);
             }
             continuousRanges = true;
         }
@@ -510,7 +510,7 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
             previousRecordNum=recordNum;
             continuousRanges=0;
         } else if (fromHeader){ // for now, just put the Gi number
-            char * foundGi=sString::searchSubstring(body,0,"GI:",1,"\n"_"\r\n"__,true); // sString::searchSubstring( const char * src, idx lenSrc, const char * find00,idx occurence, const char * stopFind00,bool isCaseInSensitive) // ,idx lenSrc
+            char * foundGi=sString::searchSubstring(body,0,"GI:",1,"\n" _ "\r\n" __,true); // sString::searchSubstring( const char * src, idx lenSrc, const char * find00,idx occurence, const char * stopFind00,bool isCaseInSensitive) // ,idx lenSrc
             if (foundGi && foundGi[0] != '\n' && foundGi[0] !='\r'){
                 body=body+(foundGi-body)+3;
             }
@@ -667,7 +667,7 @@ void sVaxAnnotGB::extractLocation(const char * location, startEnd & locationExtr
     }
     if (oneExactBase == false && oneBaseBetween == false && isRange == false) {
         idx position;
-        sscanf(location, "%"DEC"", &position);
+        sscanf(location, "%" DEC "", &position);
         locationExtracted.start = locationExtracted.end = locationExtracted.max =position;
 
     }
@@ -687,8 +687,8 @@ void sVaxAnnotGB::extractLocation(const char * location, startEnd & locationExtr
                 endRaw = endRaw +1;
                 locationExtracted.exactEnd = false;
             }
-            sscanf(startRaw, "%"DEC"", &start);
-            sscanf(endRaw, "%"DEC"", &end);
+            sscanf(startRaw, "%" DEC "", &start);
+            sscanf(endRaw, "%" DEC "", &end);
             locationExtracted.start = start;
             locationExtracted.end = locationExtracted.max =end;
         }
@@ -712,7 +712,7 @@ void sVaxAnnotGB::parseJoinOrOrder(const char * textRaw, sVec < startEnd > & sta
         if (isComplement){
             myStartEnd->forward=false;
             sStr text; text.cut(0);
-            sString::cleanMarkup(&text,cmp,0,"complement("_,")"_,0,0,true,false,false);
+            sString::cleanMarkup(&text,cmp,0,"complement(" _,")" _,0,0,true,false,false);
             extractLocation(text.ptr(1),*myStartEnd,false);
         }
         else  {

@@ -418,11 +418,11 @@ idx sLang::expressionCallback(sLang * lg, sStr * ,  sCalc * xic, idx cur, idx cn
                 var=0;
                 if( lx->prth.Start!=lx->prth.End){ // this function does have a argument list declaration 
                     nam.cut(0);
-                    char * nxt=sString::extractSubstring(&nam, srchpar,0, 0,","_")"__,false, true );
+                    char * nxt=sString::extractSubstring(&nam, srchpar,0, 0,"," _ ")" __,false, true );
                     var=nam.ptr();
                     sString::cleanEnds(var,0,sString_symbolsBlank,true);
                     if(strcmp(var,"..."))srchpar=nxt; // not a variable number of arguments
-                    else { sprintf(var,"__%"DEC,cnt);if(!varg)varg=cnt;} // remember the ordinal of the first variable argument 
+                    else { sprintf(var,"__%" DEC,cnt);if(!varg)varg=cnt;} // remember the ordinal of the first variable argument 
                     ++cnt; // increment the number of arguments
                 }
                 // if(*var)continue; // and only those arguments which have formal parameter
@@ -444,8 +444,8 @@ idx sLang::expressionCallback(sLang * lg, sStr * ,  sCalc * xic, idx cur, idx cn
         
         
         // set the total number of arguments and the ordinal of first hidden variable as hidden variable called __cnt __var
-        scopeFun->setVar( "__cnt", "%"DEC, cnt) ;  // remember the total number of arguments 
-        if(varg)scopeFun->setVar( "__var", "%"DEC, varg) ;  // remember the ordinal of first variable argument
+        scopeFun->setVar( "__cnt", "%" DEC, cnt) ;  // remember the total number of arguments 
+        if(varg)scopeFun->setVar( "__var", "%" DEC, varg) ;  // remember the ordinal of first variable argument
         scopeFun->setVar( "__fun", "%s", ct) ;  // remember the total number of arguments 
             
         #ifdef DEBUGOUT 
@@ -670,8 +670,8 @@ idx sLang::exec_loop(sLang * lg, idx il)
     #endif
 
     char * inipos=0, * nexpos=0;
-    if(lex->prth.Start)inipos=sString::searchSubstring(lg->script.ptr(lex->prth.Start),0,";"__,1,")"__,0); // look for the first ';' semicolon 
-    if(inipos)nexpos=sString::searchSubstring(inipos+1,0,";"__,1,")"__,0); // look for the second ';' semicolon 
+    if(lex->prth.Start)inipos=sString::searchSubstring(lg->script.ptr(lex->prth.Start),0,";" __,1,")" __,0); // look for the first ';' semicolon 
+    if(inipos)nexpos=sString::searchSubstring(inipos+1,0,";" __,1,")" __,0); // look for the second ';' semicolon 
     
     if(inipos) {
         lg->parse( lg->script.ptr(lex->prth.Start),(idx )(inipos-lg->script.ptr(lex->prth.Start)),1); // execute the initial condition
@@ -770,7 +770,7 @@ idx sLang::exec_include(sLang * lg, idx il)
     /*
     char olddir[vFile_PATH_MAXLEN],newdir[vFile_PATH_MAXLEN];
         sFile::getCurDir(olddir,sizeof(olddir)-1); // getcwd
-    sFile::makeName(newdir, flnm, "%%"DEC"ir" );
+    sFile::makeName(newdir, flnm, "%%" DEC "ir" );
         sFile::simplifyPath(newdir, newdir);
     */
     sFilePath olddir; olddir.curDir();

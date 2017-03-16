@@ -249,19 +249,19 @@ namespace slib {
                 stringsize += libraryContainer.length();
                 if (buf){
                     buf->addString("We have:\n");
-                    buf->printf("big dictionary elements: %"DEC" using %"DEC" bytes, and \n", indexBigC.dim(), bigContainer.length());
-                    buf->printf("compressed dictionary elements: %"DEC"\n", libraryIndex.dim());
-                    buf->printf("space in compressed library: %"DEC"\n", idsCompressedTrain.length());
-                    buf->printf("avg per id compressed library: %"DEC"\n", idsCompressedTrain.length() / idIndex.dim());
+                    buf->printf("big dictionary elements: %" DEC " using %" DEC " bytes, and \n", indexBigC.dim(), bigContainer.length());
+                    buf->printf("compressed dictionary elements: %" DEC "\n", libraryIndex.dim());
+                    buf->printf("space in compressed library: %" DEC "\n", idsCompressedTrain.length());
+                    buf->printf("avg per id compressed library: %" DEC "\n", idsCompressedTrain.length() / idIndex.dim());
                     buf->addString("\n");
                     if (stats.count) {
                         // Get internal stats
                         buf->addString("Compressed Library:\n");
-                        buf->printf("  Head avg: %"DEC"\n", stats.headLength / stats.count);
-                        buf->printf("  Middle avg: %"DEC"\n", stats.middleLength / stats.count);
-                        buf->printf("  Tail avg: %"DEC"\n", stats.tailLength / stats.count);
+                        buf->printf("  Head avg: %" DEC "\n", stats.headLength / stats.count);
+                        buf->printf("  Middle avg: %" DEC "\n", stats.middleLength / stats.count);
+                        buf->printf("  Tail avg: %" DEC "\n", stats.tailLength / stats.count);
                         for (idx ib = 0; ib < stats.compBin.dim(); ++ib){
-                            buf->printf("      %"DEC" - %s\n", stats.compBin[ib], getStringfromCompressedLibrary(ib));
+                            buf->printf("      %" DEC " - %s\n", stats.compBin[ib], getStringfromCompressedLibrary(ib));
                         }
                     }
                 }

@@ -243,7 +243,7 @@ namespace slib
 //            }
 //
 //            void print(sStr *inputString){
-//                ::printf("rootNode:%"DEC" startIndex:%"DEC" %c", rootNode, startIndex, inputString->ptr(startIndex)[0]);
+//                ::printf("rootNode:%" DEC " startIndex:%" DEC " %c", rootNode, startIndex, inputString->ptr(startIndex)[0]);
 //            }
 //    };
 
@@ -308,21 +308,21 @@ namespace slib
                         idx *ival = static_cast<idx *>(edgeList.id(i, &idlen));
                         const char *str = getLetterFromWord(e->wordIndex(), 0);
 
-                        out->printf("%"DEC"\t%"DEC"\t\t%"DEC, *ival, e->from(), e->to());
-                        out->printf("\t\t%"DEC"\t\t\t%"DEC"\t\t%"DEC"\t\t", nodeArray[e->from()].getLink(), e->startIndex(), e->endIndex());
+                        out->printf("%" DEC "\t%" DEC "\t\t%" DEC, *ival, e->from(), e->to());
+                        out->printf("\t\t%" DEC "\t\t\t%" DEC "\t\t%" DEC "\t\t", nodeArray[e->from()].getLink(), e->startIndex(), e->endIndex());
                         ++count;
                         out->add(str + e->startIndex(), e->endIndex() - e->startIndex() + 1);
                         out->addString("\n", 1);
                     }
                 }
-                out->printf("Total edges: %"DEC"\n", count);
+                out->printf("Total edges: %" DEC "\n", count);
                 out->addString("nodeID\tisRoot\tisLeaf\tlink\n");
                 for (idx i = 0; i < nodeArray.dim(); ++i){
                     sNode *node = nodeArray.ptr(i);
-                    out->printf("%"DEC"\t%s\t%s\t%"DEC, node->id(), node->isroot() ? "true" : "false", node->isleaf() ? "true" : "false", node->getLink());
+                    out->printf("%" DEC "\t%s\t%s\t%" DEC, node->id(), node->isroot() ? "true" : "false", node->isleaf() ? "true" : "false", node->getLink());
                     out->addString("\n", 1);
                 }
-                out->printf("Total nodes: %"DEC"\n", nodeArray.dim());
+                out->printf("Total nodes: %" DEC "\n", nodeArray.dim());
                 if(o.length()){
                     ::printf("%s", o.ptr());
                 }

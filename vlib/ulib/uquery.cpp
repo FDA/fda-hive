@@ -41,8 +41,8 @@
 using namespace slib;
 using namespace slib::qlang;
 
-static const char *special_props00[2] = { "id"_"_type"__, "_id"_"_type"__ };
-static const char *default_props00[2] = { "id"__, "_id"__ };
+static const char *special_props00[2] = { "id" _ "_type" __, "_id" _ "_type" __ };
+static const char *default_props00[2] = { "id" __, "_id" __ };
 static const char *id_key[2] = { "id", "_id" };
 
 inline static const char * getSpecialProps00(idx flags)
@@ -568,7 +568,7 @@ static bool printMatcherSql(sStr & matcherSql, sVariant & fielddesc, sUsrTypeFie
         case sUsrTypeField::eDate:
         case sUsrTypeField::eTime:
         case sUsrTypeField::eDateTime:
-            matcherSql.printf("f.value = %"DEC, fieldval->asInt());
+            matcherSql.printf("f.value = %" DEC, fieldval->asInt());
             break;
         case sUsrTypeField::eReal:
             matcherSql.printf("f.value = %g", fieldval->asReal());
@@ -1235,12 +1235,12 @@ public:
 
                 if (elt.isHiveId()) {
                     if ((status = ctx.evalProps(eltkeys, elt, haveSummary ? &summaryOpt : NULL)) != EVAL_SUCCESS) {
-                        ctx.setError(status, "%s failed to retrieve keys for row #%"DEC, getName(), i+1);
+                        ctx.setError(status, "%s failed to retrieve keys for row #%" DEC, getName(), i+1);
                         return false;
                     }
                 } else {
                     if ((status = ctx.evalKeys(eltkeys, elt)) != EVAL_SUCCESS) {
-                        ctx.setError(status, "%s failed to retrieve keys for row #%"DEC, getName(), i+1);
+                        ctx.setError(status, "%s failed to retrieve keys for row #%" DEC, getName(), i+1);
                         return false;
                     }
                 }
@@ -1826,11 +1826,11 @@ bool sUsrInternalContext::dispatcher_callback(sVariant &result, const qlang::Bui
             if( nameSpObj ) {
                 subDirForObj.printf("%s%s/", workDir, nameSpObj);
             } else {
-                subDirForObj.printf("%s%"DEC"/", workDir, latestId.objId());
+                subDirForObj.printf("%s%" DEC "/", workDir, latestId.objId());
             }
             sDir::makeDir(subDirForObj);
 
-            //  sStr subDirForObj("%s%"DEC,workDir.ptr(),objids[i]);
+            //  sStr subDirForObj("%s%" DEC,workDir.ptr(),objids[i]);
             sStr fileNames;
             obj->propGet00("file", &fileNames);
             for(const char * ptr = fileNames.ptr(0); ptr && *ptr; ptr = sString::next00(ptr)) {
@@ -1894,7 +1894,7 @@ bool sUsrInternalContext::dispatcher_callback(sVariant &result, const qlang::Bui
                 if( namefile ) {
                     subDirForObj.printf("%s", workDir);
                 } else {
-                    subDirForObj.printf("%s%"DEC"/", workDir, latestId.objId());
+                    subDirForObj.printf("%s%" DEC "/", workDir, latestId.objId());
                     sDir::makeDir(subDirForObj);
                 }
 
@@ -1938,7 +1938,7 @@ bool sUsrInternalContext::dispatcher_callback(sVariant &result, const qlang::Bui
        const char * separator = nargs >= 3 ? args[2].asString() : " ";
 
         sStr t1;
-        sString::searchAndReplaceStrings(&t1, args[0].asString(), 0, "obj"__, " " __, 0, true);
+        sString::searchAndReplaceStrings(&t1, args[0].asString(), 0, "obj" __, " " __, 0, true);
         sStr t;
         sString::searchAndReplaceSymbols(&t, t1.ptr(), 0, "[]", 0, 0, true, true, true, true);
         sVec<sHiveId> objids;

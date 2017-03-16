@@ -150,7 +150,7 @@ bool SomCommand::compute(sTabular * tbl)
     sFil colorFile;
     colorFile.printf("row,column,red,green,blue\r\n");
         for (idx i=0; i < clr.dim(); i++)
-            colorFile.printf("%"DEC",%"DEC",%"DEC",%"DEC",%"DEC"\r\n", clr[i].point.r, clr[i].point.c, clr[i].color.r(), clr[i].color.g(), clr[i].color.b());
+            colorFile.printf("%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC "\r\n", clr[i].point.r, clr[i].point.c, clr[i].color.r(), clr[i].color.g(), clr[i].color.b());
     _ctx.qproc().reqSetData(_ctx.outReqID(), COLORFILE, colorFile.mex());
 
     sFil destGeomFile;
@@ -158,7 +158,7 @@ bool SomCommand::compute(sTabular * tbl)
     for (idx i = 0; i < rowCnt; i++)
     {
         idx iR=(rowSet && rowSet.dim()) ? rowSet[i] : i;
-        destGeomFile.printf("%"DEC",%"DEC",%"DEC"\r\n", iR,destGeom[i*2], destGeom[i*2+1]);
+        destGeomFile.printf("%" DEC ",%" DEC ",%" DEC "\r\n", iR,destGeom[i*2], destGeom[i*2+1]);
     }
     _ctx.qproc().reqSetData(_ctx.outReqID(), GEOMFILE, destGeomFile.mex());
 

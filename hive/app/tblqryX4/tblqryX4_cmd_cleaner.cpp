@@ -101,7 +101,7 @@ bool CleanerCommand::compute(sTabular * tbl)
     if (!rowSet || rowSet.dim() < 1)
     {
         char p [16];
-        sprintf (p, "0-%"DEC, tbl->rows()-1);
+        sprintf (p, "0-%" DEC, tbl->rows()-1);
         sString::scanRangeSet(p,0,&(rowSet),0ll,0ll,0ll);
     }
 
@@ -166,7 +166,7 @@ bool CleanerCommand::compute(sTabular * tbl)
                 columnsForCurCategory.vadd(1,ii);
             }
             if (ii%1000 == 0)
-                _ctx.logTrace("Current column is %"DEC"\n", ii);
+                _ctx.logTrace("Current column is %" DEC "\n", ii);
         }
 
         //tblToReturn = new sVariantTbl (columnsForCurCategory.dim());

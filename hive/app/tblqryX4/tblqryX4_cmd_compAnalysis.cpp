@@ -231,7 +231,7 @@ bool CompAnalysisCommand::compute(sTabular * tbl)
         outTabular->setVal(curRow,0,toPrint.ptr());
 
         toPrint.cut(0);
-        toPrint.printf("%"DEC, posToFinalRow[pos].dim());
+        toPrint.printf("%" DEC, posToFinalRow[pos].dim());
         outTabular->setVal(curRow,1,toPrint.ptr());
 
         sDic <idx> sub10ratio;
@@ -337,12 +337,12 @@ bool CompAnalysisCommand::compute(sTabular * tbl)
             if (x == 0)
             {
                 sub10Print.printf("%s",key);
-                ratioPrint.printf ("%"DEC, sub10ratio[x]);
+                ratioPrint.printf ("%" DEC, sub10ratio[x]);
             }
             else
             {
                 sub10Print.printf("/%s",key);
-                ratioPrint.printf ("-%"DEC, sub10ratio[x]);
+                ratioPrint.printf ("-%" DEC, sub10ratio[x]);
             }
         }
 

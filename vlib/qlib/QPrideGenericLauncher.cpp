@@ -110,7 +110,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     launcherDir.cut(0);
     cfgStr(&launcherDir, 0, "qm.genericLauncherFolder", "/tmp/");
-    launcherDir.printf("qp_generic_%"DEC"/",req);
+    launcherDir.printf("qp_generic_%" DEC "/",req);
     if( strcmp( requestStage.ptr(), "init" )==0) {
         sDir::removeDir(launcherDir,true);
         if( ! sDir::makeDir(launcherDir) ){
@@ -179,7 +179,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         sQLan->registerBuiltinStringPtr("workDir", &launcherDir);
         sQLan->registerBuiltinStringPtr("sessionID", &sessionID);
 
-        sStr platformName("os"SLIB_PLATFORM);
+        sStr platformName("os" SLIB_PLATFORM);
         sQLan->registerBuiltinStringPtr("os", &platformName);
 
         sStr url;
@@ -187,7 +187,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         sQLan->registerBuiltinStringPtr("url", &url);
 
         // associate path relevant dispatcher functions with a callback
-        registerCallbackFunctions("path"_"dirPath"_"spObjPath"__);
+        registerCallbackFunctions("path" _ "dirPath" _ "spObjPath" __);
         if( addDispatchedFunctions00 ) {
             registerCallbackFunctions(addDispatchedFunctions00);
         }
@@ -233,7 +233,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         // Limit Memory use vi Ulimit - uncomment below
         //if( defaultMemUlimit ) {
-        //    realCommandLine.printf("ulimit -m %"DEC"; ", defaultMemUlimit);
+        //    realCommandLine.printf("ulimit -m %" DEC "; ", defaultMemUlimit);
         //}
         if( prepareForLaunch(&realCommandLine, &errorMsg, &actually_inside_prepareForLaunch) ) {
             logOut(eQPLogType_Error, "%s", errorMsg.ptr());
@@ -316,12 +316,12 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
             if( !p ) {
                 continue;
             }
-            sscanf(p, "%"DEC, &prgCount);
+            sscanf(p, "%" DEC, &prgCount);
             p = sString::next00(p);
             if( !p ) {
                 continue;
             }
-            sscanf(p, "%"DEC, &prgPercent);
+            sscanf(p, "%" DEC, &prgPercent);
             p = sString::next00(p);
             if( !p ) {
                 continue;
@@ -344,7 +344,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
             }
             reqSetStatus(req, status);
         } else {
-            logOut(eQPLogType_Warning, "Oops no progress file found [iter: %"DEC"]\n",iter );
+            logOut(eQPLogType_Warning, "Oops no progress file found [iter: %" DEC "]\n",iter );
             reqProgress(0, 0, 100); // To keep alive the process!!! Do not touch
         }
         if(resubmitMode) {

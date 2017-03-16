@@ -325,14 +325,14 @@ bool sJSONPrinter::addValue(real r, const char * fmt/* = 0*/)
 bool sJSONPrinter::addValue(idx i)
 {
     ADD_SCALAR_VALUE({
-        _out->printf("%"DEC, i);
+        _out->printf("%" DEC, i);
     });
 }
 
 bool sJSONPrinter::addValue(udx u)
 {
     ADD_SCALAR_VALUE({
-        _out->printf("%"UDEC, u);
+        _out->printf("%" UDEC, u);
     });
 }
 

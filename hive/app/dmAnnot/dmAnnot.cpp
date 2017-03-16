@@ -62,19 +62,19 @@ idx dmAnnotProc::OnExecute(idx req)
         const sHiveId objID(formValue("obj"));
         const sHiveId qryID(formValue("qry"));
         if( !objID ) {
-            errmsg.printf("Invalid objID in %"DEC" request", req);
+            errmsg.printf("Invalid objID in %" DEC " request", req);
             break;
         }
         sUsrFile obj(objID, user);
         if( !obj.Id() ) {
-            errmsg.printf("Invalid obj in %"DEC" request", req);
+            errmsg.printf("Invalid obj in %" DEC " request", req);
             break;
         }
         logOut(eQPLogType_Info, "processing object %s\n", obj.Id().print());
         sStr sourceFilePath;
         formValue("sourceFilePath", &sourceFilePath, 0);
         if( !sourceFilePath ) {
-            errmsg.printf("Invalid source file path in %"DEC" request", req);
+            errmsg.printf("Invalid source file path in %" DEC " request", req);
             break;
         }
         logOut(eQPLogType_Info, "processing file '%s'\n", sourceFilePath.ptr());
@@ -176,7 +176,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    dmAnnotProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dmAnnot", argv[0]));
+    dmAnnotProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dmAnnot", argv[0]));
     return (int) backend.run(argc, argv);
 }
 
@@ -204,7 +204,7 @@ int main(int argc, const char * argv[])
                 break;
             }
             else{
-                errmsg.printf("Parser returns Error Code: %"DEC, ires);
+                errmsg.printf("Parser returns Error Code: %" DEC, ires);
                 break;
             }
         }

@@ -45,27 +45,27 @@ sVec<idx> sBioseq::mapCodeAA;
 idx sBioseq::atgcModel=-1;
 
 //sBioseq::ProtAA sBioseq::listAA[]={
-//    {"Alanine","Ala","A","GCT"_"GCC"_"GCA"_"GCG"__},
-//    {"Arginine","Arg","R","CGT"_"CGC"_"CGA"_"CGG"_"AGA"_"AGG"__},
-//    {"Asparagine","Asn","N","AAT"_"AAC"__},
-//    {"Aspartic","Asp","D","GAT"_"GAC"__},
-//    {"Cysteine","Cys","C","TGT"_"TGC"__},
-//    {"Glutamic","Glu","E","GAG"_"GAA"__},
-//    {"Glutamine","Gln","Q","CAA"_"CAG"__},
-//    {"Glycine","Gly","G","GGT"_"GGC"_"GGA"_"GGG"__},
-//    {"Histidine","His","H","CAT"_"CAC"__},
-//    {"Isoleucine","Ile","I","ATT"_"ATC"_"ATA"__},
-//    {"Leucine","Leu","L","TTA"_"TTG"_"CTT"_"CTC"_"CTA"_"CTG"__},
-//    {"Lysine","Lys","K","AAA"_"AAG"__},
-//    {"Methionine","Met","M","ATG"__},
-//    {"Phenylalanine","Phe","F","TTT"_"TTC"__},
-//    {"Proline","Pro","P","CCT"_"CCC"_"CCA"_"CCG"__},
-//    {"Serine","Ser","S","TCT"_"TCC"_"TCA"_"TCG"_"AGT"_"AGC"__},
-//    {"Threonine","Thr","T","ACT"_"ACC"_"ACA"_"ACG"__},
-//    {"Tryptophan","Trp","W","TGG"__},
-//    {"Tyrosine","Tyr","Y","TAT"_"TAC"__},
-//    {"Valine","Val","V","GTT"_"GTC"_"GTA"_"GTG"__},
-//    {"STOP","Stp","*","TAA"_"TGA"_"TAG"__},
+//    {"Alanine","Ala","A","GCT" _ "GCC" _ "GCA" _ "GCG" __},
+//    {"Arginine","Arg","R","CGT" _ "CGC" _ "CGA" _ "CGG" _ "AGA" _ "AGG" __},
+//    {"Asparagine","Asn","N","AAT" _ "AAC" __},
+//    {"Aspartic","Asp","D","GAT" _ "GAC" __},
+//    {"Cysteine","Cys","C","TGT" _ "TGC" __},
+//    {"Glutamic","Glu","E","GAG" _ "GAA" __},
+//    {"Glutamine","Gln","Q","CAA" _ "CAG" __},
+//    {"Glycine","Gly","G","GGT" _ "GGC" _ "GGA" _ "GGG" __},
+//    {"Histidine","His","H","CAT" _ "CAC" __},
+//    {"Isoleucine","Ile","I","ATT" _ "ATC" _ "ATA" __},
+//    {"Leucine","Leu","L","TTA" _ "TTG" _ "CTT" _ "CTC" _ "CTA" _ "CTG" __},
+//    {"Lysine","Lys","K","AAA" _ "AAG" __},
+//    {"Methionine","Met","M","ATG" __},
+//    {"Phenylalanine","Phe","F","TTT" _ "TTC" __},
+//    {"Proline","Pro","P","CCT" _ "CCC" _ "CCA" _ "CCG" __},
+//    {"Serine","Ser","S","TCT" _ "TCC" _ "TCA" _ "TCG" _ "AGT" _ "AGC "__},
+//    {"Threonine","Thr","T","ACT" _ "ACC" _ "ACA" _ "ACG" __},
+//    {"Tryptophan","Trp","W","TGG" __},
+//    {"Tyrosine","Tyr","Y","TAT" _ "TAC" __},
+//    {"Valine","Val","V","GTT" _ "GTC" _ "GTA" _ "GTG" __},
+//    {"STOP","Stp","*","TAA" _ "TGA" _ "TAG" __},
 //    {0},
 //};
 
@@ -74,47 +74,47 @@ static const char * Asx_AACodons[sDim(sBioGenCode::AACodons[0])] = {0};
 static const char * Glx_AACodons[sDim(sBioGenCode::AACodons[0])] = {0};
 static const char * Any_AACodons[sDim(sBioGenCode::AACodons[0])] = {0};
 static const char * Pyl_AACodons[sDim(sBioGenCode::AACodons[0])] = {
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
-    "UAG"__,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
+    "UAG" __,
     0
 };
 static const char * Sec_AACodons[sDim(sBioGenCode::AACodons[0])] = {
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
-    "UGA"__,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
+    "UGA" __,
     0
 };
 sBioseq::ProtAA sBioseq::listAA[]={
@@ -410,7 +410,7 @@ idx sBioseq::compressATGC_2Bit (sStr * buf, const char * seq, idx len, idx isext
 //
 //    for ( is=0; seq<nxt  ;  ++seq) { // && *seq!='#'
 //        // if( *seq=='\n' || *seq=='\r' || *seq=='\t' || *seq==' ' )continue;
-//        if(strchr("1234567890/"sString_symbolsBlank,*seq))continue;
+//        if(strchr("1234567890/" sString_symbolsBlank,*seq))continue;
 //
 //        let = mapATGC[(idx)(idx)(*seq)];
 //        if(let == 0xFF) continue;
@@ -493,7 +493,7 @@ idx sBioseq::compressATGC_1Byte (sStr * buf, const char * seq, idx len, idx isex
     idx is;//, ib=0, im;
     for ( is=0; seq<nxt  ;  ++seq) { // && *seq!='#'
         // if( *seq=='\n' || *seq=='\r' || *seq=='\t' || *seq==' ' )continue;
-        if(strchr("1234567890/"sString_symbolsBlank,*seq))continue;
+        if(strchr("1234567890/" sString_symbolsBlank,*seq))continue;
 
         //ib=is/4, im=(is%4)*2;
 
@@ -520,7 +520,7 @@ idx sBioseq::compressIUPAC (sStr * buf, const char * seq, idx len, idx isextensi
     bool compress = true;
     for ( is=0; seq<nxt  ;  ++seq) { // && *seq!='#'
         // if( *seq=='\n' || *seq=='\r' || *seq=='\t' || *seq==' ' )continue;
-        if(strchr("1234567890/"sString_symbolsBlank,*seq))continue;
+        if(strchr("1234567890/" sString_symbolsBlank,*seq))continue;
 
         ib=is/2, im=(is%2)*4;
         if(im==0){

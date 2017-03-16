@@ -88,16 +88,16 @@ bool decodeCookie(sUsr & usr, const char* s, udx & key, idx & key2, udx& uid, sS
         char* p = tmp.ptr();
         for(idx i = 0; p; p = sString::next00(p), ++i) {
             if( i == 0 ) {
-                ok += sscanf(p, "%"UDEC, &key) == 1 ? 1 : 0;
+                ok += sscanf(p, "%" UDEC, &key) == 1 ? 1 : 0;
             } else if( i == 1 ) {
-                ok += sscanf(p, "%"DEC, &key2);
+                ok += sscanf(p, "%" DEC, &key2);
             } else if( i == 2 ) {
-                ok += sscanf(p, "%"UDEC, &uid);
+                ok += sscanf(p, "%" UDEC, &uid);
             } else if( i == 3 ) {
-                ok += sscanf(p, "%"UDEC, &timestamp);
+                ok += sscanf(p, "%" UDEC, &timestamp);
             } else if( i == 4 ) {
                 keylen = p - tmp.ptr() - 1;
-                ok += sscanf(p, "%"UDEC, &chksum);
+                ok += sscanf(p, "%" UDEC, &chksum);
             }
         }
         time_t t = time(0);
@@ -214,7 +214,7 @@ void sUsrCGI::login(void)
                         warning("You must change your password now.");
                         sStr t("pswdSet&followTo=%s", redirectURL.ptr());
                         redirectURL.replace(t);
-                        cookieSet("preset", "%"UDEC, m_User.addPasswordResetID(email));
+                        cookieSet("preset", "%" UDEC, m_User.addPasswordResetID(email));
                         cookieSet("emailAct", "%s", email);
                     }
                     cookieSet("last_login", "%s", email);
@@ -435,7 +435,7 @@ void sUsrCGI::userGroupActivate()
         }
     } else {
         error("You must be logged in as administrator to perform this action.");
-        redirectURL.printf(0, "logout&follow=login%%26follow%%3DuserV4%%2526grpid%%253D%"UDEC, groupId);
+        redirectURL.printf(0, "logout&follow=login%%26follow%%3DuserV4%%2526grpid%%253D%" UDEC, groupId);
     }
 }
 
@@ -522,10 +522,10 @@ void sUsrCGI::passwordReset(void)
             // already filled in, and no pswd cgi param. In this case, we do not want
             // to overwrite the cookie, since empty "preset" would result in password
             // change UI instead of password reset UI.
-            cookieSet("preset", "%"UDEC, pswd_reset_id);
+            cookieSet("preset", "%" UDEC, pswd_reset_id);
         }
         if( expires ) {
-            cookieSet("xp", "%"UDEC, expires);
+            cookieSet("xp", "%" UDEC, expires);
         }
         cookieSet("emailAct", "%s", email);
     }
@@ -922,7 +922,7 @@ void sUsrCGI::objs(void)
             json_printer.addKey("page");
             json_printer.addValue(cnt);
         } else {
-            dataForm.printf("\ninfo.0.total=%"UDEC"\ninfo.0.start=%"UDEC, total_qty, from);
+            dataForm.printf("\ninfo.0.total=%" UDEC "\ninfo.0.start=%" UDEC, total_qty, from);
         }
     }
     if( is_json ) {
@@ -2018,7 +2018,7 @@ void sUsrCGI::file(void)
                         fl_buf_len = fl_ellipsized.length();
                     }
                     outBin(fl_buf, fl_buf_len, fl_buf_len == fl.length() ? sFile::time(path) : 0, true, "%s", nm.ptr());
-                    m_User.audit(sUsr::eUserAuditActions, "download", "objID='%s'; file='%s'; bytes='%"DEC"'", obj->Id().print(), nm.ptr(), fl_buf_len);
+                    m_User.audit(sUsr::eUserAuditActions, "download", "objID='%s'; file='%s'; bytes='%" DEC "'", obj->Id().print(), nm.ptr(), fl_buf_len);
                 } else {
                     error("Referred file '%s' is not found.", nm.ptr());
                 }
@@ -2184,11 +2184,11 @@ idx sUsrCGI::Cmd(const char * cmd)
         eLast
     };
 
-    const char * listCommands = "login"_"logout"_"batch"_"pswdSet"_"pswdChange"_"user"_"userSet"_"userReg"_"usrList"_"grpList"_"grpAdd"_"permset"_
-    "propspec"_"propget"_"objList"_"objQry"_"propset"_"propset2"_"propBulkSet"_"propDel"_"scast"_"sendmail"_"typeTree"_
-    "objFile"_"dropboxlist"_"userV0"_"userV1"_"userV2"_"userV3"_"forgot"_"objDel"_"inactive"_"userV4"_"mgr"_"permcopy"_"allStat"_
-    "objRemove"_"objCopy"_"objCut"_"folderCreate"_"emauth"_
-    "ionObjList"_"ionObjGet"_
+    const char * listCommands = "login" _ "logout" _ "batch" _ "pswdSet" _ "pswdChange" _ "user" _ "userSet" _ "userReg" _ "usrList" _ "grpList" _ "grpAdd" _ "permset" _
+    "propspec" _ "propget" _ "objList" _ "objQry" _ "propset" _ "propset2" _ "propBulkSet" _ "propDel" _ "scast" _ "sendmail" _ "typeTree" _
+    "objFile" _ "dropboxlist" _ "userV0" _ "userV1" _ "userV2" _ "userV3" _ "forgot" _ "objDel" _ "inactive" _ "userV4" _ "mgr" _ "permcopy" _ "allStat" _
+    "objRemove" _ "objCopy" _ "objCut" _ "folderCreate" _ "emauth" _
+    "ionObjList" _ "ionObjGet" _
     __;
 
     idx cmdnum = -1;

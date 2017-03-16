@@ -60,7 +60,7 @@ namespace slib {
                 {
                     if( f ) {
                         f->ref_cnt++;
-                        fprintf(stderr, "incref %p to %"DEC"\n", f, f->ref_cnt);
+                        fprintf(stderr, "incref %p to %" DEC "\n", f, f->ref_cnt);
                     }
                     return f;
                 }
@@ -68,7 +68,7 @@ namespace slib {
                 {
                     if( f ) {
                         f->ref_cnt--;
-                        fprintf(stderr, "decref %p to %"DEC"\n", f, f->ref_cnt);
+                        fprintf(stderr, "decref %p to %" DEC "\n", f, f->ref_cnt);
                         if( f->ref_cnt <= 0 ) {
                             delete f;
                             return 0;

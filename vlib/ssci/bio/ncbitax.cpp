@@ -37,24 +37,24 @@
 
 // keep in sync with EColumns in ncbitax.hpp!
 const char *sNCBITaxTree::columnNames =
-    "taxid"_
-    "parentid"_
-    "name"_
-    "rank"_
-    "pathname"_
-    "idpath"_
-    "childrenCnt"_
-    "matchname"_
-    "allname"_
-    "bioprojectID"_
-    "path"_
-    "matchCnt"_
-    "num"_
-    "min"_
-    "max"_
-    "mean"_
-    "stddev"_
-    "intval"__;
+    "taxid" _
+    "parentid" _
+    "name" _
+    "rank" _
+    "pathname" _
+    "idpath" _
+    "childrenCnt" _
+    "matchname" _
+    "allname" _
+    "bioprojectID" _
+    "path" _
+    "matchCnt" _
+    "num" _
+    "min" _
+    "max" _
+    "mean" _
+    "stddev" _
+    "intval" __;
 
 const char * sNCBITaxTree::printColumnNames(sStr & out, idx whatToPrint)
 {
@@ -219,7 +219,7 @@ bool sNCBITaxTree::getPathByIndex(sStr * buf, idx index, idx WhatToPrintFlags,co
                     buf->printf(" ");
                     return false;
                 }
-                else buf->printf("%"DEC"",sNCBITaxTree::getTaxIdByIndex(TaxidList[i]));
+                else buf->printf("%" DEC "",sNCBITaxTree::getTaxIdByIndex(TaxidList[i]));
             }
             else if(WhatToPrintFlags & eDefPath){
                 if(sNCBITaxTree::getNameByIndex(buf, TaxidList[i],1)){
@@ -228,7 +228,7 @@ bool sNCBITaxTree::getPathByIndex(sStr * buf, idx index, idx WhatToPrintFlags,co
                         buf->printf(" ");
                         return false;
                     }
-                    else buf->printf(":%"DEC":%"DEC"",taxid,childCnt);
+                    else buf->printf(":%" DEC ":%" DEC "",taxid,childCnt);
                 }
 
             }
@@ -294,7 +294,7 @@ idx sNCBITaxTree::getGIByIndex(idx index,sStr *buf){
             if(relationCnt>5)   buf->printf("First 5:");
             for(idx i=0; i <printSize ; i++,relationPtr++){
                 if(i>0) buf->printf("|");
-                buf->printf("%"DEC"",*relationPtr);
+                buf->printf("%" DEC "",*relationPtr);
             }
           //  buf->printf("\"");
         }
@@ -366,12 +366,12 @@ void sNCBITaxTree::printByFlags(sStr * buf, idx index, idx WhatToPrintflags, idx
     if(WhatToPrintflags & eTaxId){ 
         if(buf->length())
             buf->printf(",");    
-        buf->printf("%"DEC,sNCBITaxTree::getTaxIdByIndex(index));
+        buf->printf("%" DEC,sNCBITaxTree::getTaxIdByIndex(index));
     }
     if(WhatToPrintflags & eParent){
         if(buf->length())
             buf->printf(",");
-         buf->printf("%"DEC,sNCBITaxTree::getParentByIndex(index));
+         buf->printf("%" DEC,sNCBITaxTree::getParentByIndex(index));
     }
     if(WhatToPrintflags & eName){
         if(buf->length())
@@ -408,7 +408,7 @@ void sNCBITaxTree::printByFlags(sStr * buf, idx index, idx WhatToPrintflags, idx
     if(WhatToPrintflags & eCntChildren) {
         if(buf->length())
             buf->printf(",");
-        buf->printf("%"DEC"",sNCBITaxTree::getChildCnt(sNCBITaxTree::getTaxIdByIndex(index)));
+        buf->printf("%" DEC "",sNCBITaxTree::getChildCnt(sNCBITaxTree::getTaxIdByIndex(index)));
     }
     if(WhatToPrintflags & eMatchName){
         if(buf->length())
@@ -432,7 +432,7 @@ void sNCBITaxTree::printByFlags(sStr * buf, idx index, idx WhatToPrintflags, idx
     if(WhatToPrintflags & eProjectID){
         if(buf->length())
             buf->printf(",");
-        buf->printf("%"DEC,sNCBITaxTree::getProjIDByIndex(index));
+        buf->printf("%" DEC,sNCBITaxTree::getProjIDByIndex(index));
     }
     if(WhatToPrintflags & eDefPath) {
         if(buf->length())
@@ -447,7 +447,7 @@ void sNCBITaxTree::printByFlags(sStr * buf, idx index, idx WhatToPrintflags, idx
         if(buf->length())
             buf->printf(",");
         if (extra)
-            buf->printf("%"DEC, extra->matchCnt);
+            buf->printf("%" DEC, extra->matchCnt);
     }
     if(WhatToPrintflags & eNum){
         if(buf->length())
@@ -666,7 +666,7 @@ void sNCBITaxTree::ParseOneline(idx idCnt, const char * buf, sStr * string, idx 
     for(idx i=0; i<idCnt ;i++)
     {
         //const char * ptr1=line.ptr();//get the taxid
-        sscanf(ptr1,"%"DEC,id);
+        sscanf(ptr1,"%" DEC,id);
         //sFile::copy(filenamesrc,filenamedest, true);
         id = va_arg( marker, idx *);
         ptr1=sString::next00(ptr1);

@@ -623,7 +623,7 @@ const char * sDir::findMany(idx flags, const char * dirs, const char * flnm, con
         // extract filename
         tmp.cut(0);
         dfl.cut(0);
-        sfl = sString::extractSubstring(&tmp, sfl, 0, 0, " "_","_"\t"__, true, true);
+        sfl = sString::extractSubstring(&tmp, sfl, 0, 0, " " _ "," _ "\t" __, true, true);
         sString::cleanEnds(&dfl, tmp, 0, sString_symbolsBlank, 1);
         if( !dfl.length() )
             continue;
@@ -633,7 +633,7 @@ const char * sDir::findMany(idx flags, const char * dirs, const char * flnm, con
             // extract dirname
             tmp.cut(0);
             dst.cut(0);
-            srch = sString::extractSubstring(&tmp, srch, 0, 0, " "_","_"\t"__, 1, 1);
+            srch = sString::extractSubstring(&tmp, srch, 0, 0, " " _ "," _ "\t" __, 1, 1);
             sString::cleanEnds(&dst, tmp, 0, sString_symbolsBlank, 1);
             if( !dst.length() )
                 continue;
@@ -1050,7 +1050,7 @@ idx sDir::size(const char * dir, bool recursive /* = true */, bool follow_link /
         idx entry_flags = slt.getEntryFlags(i);
         sum += sFile::size(slt.getEntryPath(i), follow_link && !(entry_flags & fIsDangling) && !(entry_flags & fIsDuplicate));
 #ifdef _DEBUG_SDIR_SIZE
-        fprintf(stderr, "size %s == %"DEC" (%s%s%s%s)\n", slt.getEntryPath(i), sFile::size(slt.getEntryPath(i), follow_link && !(entry_flags & fIsDangling) && !(entry_flags & fIsDuplicate)), entry_flags & fIsDir ? "dir " : "", entry_flags & fIsSymLink ? "lnk " : "", entry_flags & fIsDangling ? "dgl " : "", entry_flags & fIsDuplicate ? "dup" : "");
+        fprintf(stderr, "size %s == %" DEC " (%s%s%s%s)\n", slt.getEntryPath(i), sFile::size(slt.getEntryPath(i), follow_link && !(entry_flags & fIsDangling) && !(entry_flags & fIsDuplicate)), entry_flags & fIsDir ? "dir " : "", entry_flags & fIsSymLink ? "lnk " : "", entry_flags & fIsDangling ? "dgl " : "", entry_flags & fIsDuplicate ? "dup" : "");
 #endif
     }
     return sum;
@@ -1082,7 +1082,7 @@ const char * sDir::aliasResolve(sStr & filenameResolved, const char * configFile
             sFil inp(configFile, sMex::fReadonly);
             if( inp.ok() ) {
                 sStr rst;
-                sString::cleanMarkup(&rst, inp.ptr(), inp.length(), "//"_"/*"__, "\n"_"*/"__, "\n", 0, false, false, true);
+                sString::cleanMarkup(&rst, inp.ptr(), inp.length(), "//" _ "/*" __, "\n" _ "*/" __, "\n", 0, false, false, true);
 
                 sStr redir("%s", section);
                 redir.add0(1);
@@ -1202,7 +1202,7 @@ const char * sDir::cleanUpName(const char * path, sStr & buf, bool applyToDisk /
         dot = dot < 0 ? buf.length() - 1 : dot;
         sStr ext("%s", buf.ptr(dot));
         while( exists(buf.ptr(pos)) || sFile::exists(buf.ptr(pos)) ) {
-            buf.printf(dot, "_%"UDEC"%s", ++q, ext.ptr());
+            buf.printf(dot, "_%" UDEC "%s", ++q, ext.ptr());
         }
         if( isFile && sFile::rename(path, buf.ptr(pos)) ) {
         } else if( rename(path, buf.ptr(pos)) ) {
@@ -1227,7 +1227,7 @@ const char * sDir::uniqueName(sStr & buf, const char * path, ...)
         sStr ext("%s", buf.ptr(dot));
         udx q = 0;
         while( exists(buf.ptr(pos)) || sFile::exists(buf.ptr(pos)) ) {
-            buf.printf(dot, "_%"UDEC"%s", ++q, ext.ptr());
+            buf.printf(dot, "_%" UDEC "%s", ++q, ext.ptr());
         }
     }
     return buf.length() != pos ? buf.ptr(pos) : 0;

@@ -463,7 +463,7 @@ void sFilterseq::randomizer(sBioseq &sub,const char * output, idx numReads, real
 //        }
 //        for(idx i = 0; i < sub.dim(); ++i) {
 //            real ratio = (real)sub.len(i)/totLength;
-//            ratioSettings.printf("%"DEC":%f",i,ratio);
+//            ratioSettings.printf("%" DEC ":%f",i,ratio);
 //            if(i)
 //                ratioSettings.printf(";");
 //        }
@@ -699,7 +699,7 @@ void sFilterseq::randomizer(sFil &QP, sBioseq &sub, idx numReads, real noise, id
         }
         if(isQual){ hdr.printf(0,"@");}
         else {hdr.printf(0,">");}
-        hdr.printf("%"DEC" pos=%"DEC" len=%"DEC,i,doRev?(seqStart+seqLen):(seqStart+1),seqLen);
+        hdr.printf("%" DEC " pos=%" DEC " len=%" DEC,i,doRev?(seqStart+seqLen):(seqStart+1),seqLen);
         if(doRev)hdr.printf(" REV");
         hdr.printf(" ori=%s",id);
 
@@ -718,7 +718,7 @@ void sFilterseq::randomizer(sFil &QP, sBioseq &sub, idx numReads, real noise, id
                         {
                             char init=sBioseq::mapRevATGC[(sBioseq::mapATGC[(idx)tt[0]])%4];
                             tt[0]=sBioseq::mapRevATGC[(sBioseq::mapATGC[(idx)tt[0]]+*mut)%4];
-                            hdr.printf(" mut=%"DEC"%c>%c",curpos+1,init,tt[0]);
+                            hdr.printf(" mut=%" DEC "%c>%c",curpos+1,init,tt[0]);
                         }
 //                        ++jj;
 //                    }
@@ -762,7 +762,7 @@ void sFilterseq::randomizer(sFil &QP, sBioseq &sub, idx numReads, real noise, id
             --ii;
         }
     }
-//    ::printf("Number of noisy mutations: %"DEC"\n",noisyMutations);
+//    ::printf("Number of noisy mutations: %" DEC "\n",noisyMutations);
 
 }
 

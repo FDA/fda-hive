@@ -107,7 +107,7 @@ void sQPrideProc::executeRequest(void * procthis)
 {
     sQPrideProc *pc = (sQPrideProc*) procthis;
     pc->tmExec.time();
-    sStr log("==> request %"DEC" (%"DEC", %"DEC") user %"UDEC, pc->reqId, pc->masterId, pc->grpId, pc->user ? pc->user->Id() : 0);
+    sStr log("==> request %" DEC " (%" DEC ", %" DEC ") user %" UDEC, pc->reqId, pc->masterId, pc->grpId, pc->user ? pc->user->Id() : 0);
 /*    if( pc->objs.dim() ) {
         log.printf(" proc obj[0] %s", pc->objs[0].Id().print());
         for(idx io = 0; io < pc->objs.dim(); ++io) {
@@ -121,7 +121,7 @@ void sQPrideProc::executeRequest(void * procthis)
     }
     pc->exitCode = pc->OnExecute(pc->reqId);
     idx status = pc->reqGetStatus(pc->reqId);
-    pc->logOut(eQPLogType_Info, "%s finished, returned %"DEC", status %"DEC"\n", log.ptr(), pc->exitCode, status);
+    pc->logOut(eQPLogType_Info, "%s finished, returned %" DEC ", status %" DEC "\n", log.ptr(), pc->exitCode, status);
     ++pc->loopCnt;
     pc->reqId = 0;
     if (pc->svc.runInMT > 1) { // TODO  wake my checking thread
@@ -227,7 +227,7 @@ idx sQPrideProc::OnGrab(idx forceReq)
     }
     // has request and switched to the submitting user
     if( reqId != 0 && user->init(reqGetUser(reqId)) ) {
-        psMessage("req %"DEC, reqId);
+        psMessage("req %" DEC, reqId);
         grpId = req2Grp(reqId); // group id is needed since some data may be associated not with the request but with the group
         masterId = req2Grp(reqId, 0, true);
         reqSliceCnt = 1;
@@ -457,7 +457,7 @@ idx sQPrideProc::run(idx argc, const char *argv[])
         if( reqId != 0 ) { // if we have a working thread running - we do not try to grab more
             selectSleep(sleepTimeOverride);
             if( loopCnt >= svc.maxLoops && reqId != 0 ) {
-                logOut(eQPLogType_Info, "Exit requested. Waiting for %"DEC" to finish\n", reqId);
+                logOut(eQPLogType_Info, "Exit requested. Waiting for %" DEC " to finish\n", reqId);
                 loopCnt = svc.maxLoops - 1;
             }
             if( memReport(svcName) ) {
@@ -506,12 +506,12 @@ idx sQPrideProc::run(idx argc, const char *argv[])
         if (!OnGrab()) {
             ++noGrabs;
             if (svc.noGrabExit && noGrabs >= svc.noGrabExit) {
-                logOut(eQPLogType_Trace, "Nothing to grab after %"DEC" attempts ... exiting temporarily\n", noGrabs);
+                logOut(eQPLogType_Trace, "Nothing to grab after %" DEC " attempts ... exiting temporarily\n", noGrabs);
                 break;
             }
             if (svc.noGrabDisconnect && noGrabs >= svc.noGrabDisconnect) {
                 if (tempDBConnection == false)
-                    logOut(eQPLogType_Trace, "Nothing to grab after %"DEC" attempts ... closing the DB connection temporarily\n", noGrabs);
+                    logOut(eQPLogType_Trace, "Nothing to grab after %" DEC " attempts ... closing the DB connection temporarily\n", noGrabs);
                 tempDBConnection = true;
                 dbDisconnect();
             }
@@ -533,7 +533,7 @@ idx sQPrideProc::run(idx argc, const char *argv[])
         //}
 
         if (svc.maxLoops && loopCnt >= svc.maxLoops ) {
-            logOut(eQPLogType_Trace, "Exiting after executing %"DEC" requests \n", loopCnt);
+            logOut(eQPLogType_Trace, "Exiting after executing %" DEC " requests \n", loopCnt);
             break;
         }
         flushCache();
@@ -556,12 +556,12 @@ bool sQPrideProc::memReport(const char * svcName)
     }
     jobSetMem(jobId, mem, maxMemSize);
     if( svc.maxmemSoft != 0 && mem > svc.maxmemSoft && maxmemMailSent == false ) {
-        logOut(eQPLogType_Warning, "While executing %"DEC" service '%s' used %"DEC"MB of memory (Soft=%"DEC", Hard=%"DEC")\n",
+        logOut(eQPLogType_Warning, "While executing %" DEC " service '%s' used %" DEC "MB of memory (Soft=%" DEC ", Hard=%" DEC ")\n",
             prvReqId, svcName, mem / (1024 * 1024), svc.maxmemSoft / (1024 * 1024), svc.maxmemHard / (1024 * 1024));
         maxmemMailSent = true;
     }
     if( svc.maxmemHard != 0 && mem > svc.maxmemHard ) {
-        logOut(eQPLogType_Fatal, "While executing %"DEC" service '%s' used %"DEC"MB of memory (Soft=%"DEC", Hard=%"DEC"). Hard limit reached: exiting...\n",
+        logOut(eQPLogType_Fatal, "While executing %" DEC " service '%s' used %" DEC "MB of memory (Soft=%" DEC ", Hard=%" DEC "). Hard limit reached: exiting...\n",
             prvReqId, svcName, mem / (1024 * 1024), svc.maxmemSoft / (1024 * 1024), svc.maxmemHard / (1024 * 1024));
         jobSetStatus(jobId, eQPJobStatus_ExitError);
         return true;
@@ -597,7 +597,7 @@ idx sQPrideProc::selectSleepSingle(idx slpTm)
         time_t tt;
         time(&tt);
         struct tm & t = *localtime(&tt);
-        printf("\n%"DEC"/%"DEC"/%"DEC" %"DEC":%"DEC":%"DEC" %"DEC"/%"DEC" %s > ", (idx)t.tm_mday, (idx)t.tm_mon + 1,
+        printf("\n%" DEC "/%" DEC "/%" DEC " %" DEC ":%" DEC ":%" DEC " %" DEC "/%" DEC " %s > ", (idx)t.tm_mday, (idx)t.tm_mon + 1,
                 (idx)t.tm_year + 1900, (idx)t.tm_hour, (idx)t.tm_min, (idx)t.tm_sec, (idx)jobId, (idx)pid,
                 vars.value("serviceName"));
 
@@ -692,7 +692,7 @@ idx sQPrideProc::selectSleepSingle(idx slpTm)
 
 bool sQPrideProc::executeCommand(const char * nam, const char * val)
 {
-#define jobIsCmd(_cmd) (!strcmp(nam,_cmd) || !strcmp(nam,"-"_cmd))
+#define jobIsCmd(_cmd) (!strcmp(nam,_cmd) || !strcmp(nam,"-" _cmd))
 
     if( !reqId && !dbHasLiveConnection() ) { // hot switch to live connection from the pool of DBs
         ok = dbReconnect();
@@ -723,29 +723,29 @@ bool sQPrideProc::executeCommand(const char * nam, const char * val)
     } else if( jobIsCmd("time")) {
         tmCount.time(); // set the initial clock
     } else if( jobIsCmd("sleep")) {
-        sscanf(val, "%"DEC, &sleepTimeOverride);
+        sscanf(val, "%" DEC, &sleepTimeOverride);
     } else if( jobIsCmd("stdin")) {
-        sscanf(val, "%"DEC, &doStdin);
+        sscanf(val, "%" DEC, &doStdin);
     } else if( jobIsCmd("loops")) {
-        sscanf(val, "%"DEC, &svc.maxLoops);
+        sscanf(val, "%" DEC, &svc.maxLoops);
     } else if( jobIsCmd("force")) {
         alwaysRun = true;
     } else if ( jobIsCmd("logLevel") ) {
         idx log_level = 0;
-        if( sscanf(val, "%"DEC, &log_level) == 1 ) {
+        if( sscanf(val, "%" DEC, &log_level) == 1 ) {
             setupLog(true, log_level);
         }
     } else if( jobIsCmd("reqSliceId")) {
-        sscanf(val, "%"DEC, &reqSliceId);
+        sscanf(val, "%" DEC, &reqSliceId);
     } else if( jobIsCmd("reqSliceCnt")) {
-        sscanf(val, "%"DEC, &reqSliceCnt);
+        sscanf(val, "%" DEC, &reqSliceCnt);
     } else if( jobIsCmd("grab")) {
         sVec<idx> reqList;
         sString::scanRangeSet(val, 0, &reqList, 0, 0, 0);
         for(idx i = 0; i < reqList.dim(); ++i) {
             OnGrab(reqList[i]);
         }
-        //sscanf(val, "%"DEC, &ival);
+        //sscanf(val, "%" DEC, &ival);
         //OnGrab(ival);
     } else if( jobIsCmd("trigger")) {
 
@@ -754,7 +754,7 @@ bool sQPrideProc::executeCommand(const char * nam, const char * val)
     } else if( jobIsCmd("wake")) {
         logOut(eQPLogType_Trace, "awaken\n");
     } else if( jobIsCmd("jobarr")) {
-        sscanf(val, "%"DEC, &inBundle);
+        sscanf(val, "%" DEC, &inBundle);
     } else if( jobIsCmd("start")) {
         serviceUp(0, sNotIdx );
         OnCommand("launch", 0);
@@ -834,7 +834,7 @@ idx sQPrideProc::formIValues(const char *prop, sVec<idx> *values, idx iObj)
     idx ret = -1;
     if (formValues00(prop, &buf00, 0, iObj))
         for (const char *p = buf00.ptr(); p; p = sString::next00(p), ret++)
-            sscanf(p, "%"DEC, values->add(1));
+            sscanf(p, "%" DEC, values->add(1));
     return ret;
 }
 
@@ -844,7 +844,7 @@ idx sQPrideProc::formUValues(const char *prop, sVec<udx> *values, idx iObj)
     idx ret = -1;
     if (formValues00(prop, &buf00, 0, iObj))
         for (const char *p = buf00.ptr(); p; p = sString::next00(p), ret++)
-            sscanf(p, "%"UDEC, values->add(1));
+            sscanf(p, "%" UDEC, values->add(1));
     return ret;
 }
 
@@ -943,7 +943,7 @@ idx sQPrideProc::reqProgress(idx items, idx progress, idx progressMax)
         abort_proc = !OnProgress(reqId);
         if( !abort_proc ) {
             const idx prcnt = progress2Percent(items, progress, progressMax);
-            psMessage("req %"DEC" %"DEC"%%", reqId, prcnt);
+            psMessage("req %" DEC " %" DEC "%%", reqId, prcnt);
         }
     }
     if( !abort_proc ) {
@@ -1041,7 +1041,7 @@ idx sQPrideProc::hostNumInPool(Service * svc, idx * pCntList, idx * pmaxjob)
             numHost=countThisDomain;
 
         if(col){
-            if(strcmp(p,thisHost)==0 && pmaxjob)sscanf(col,"%"DEC,pmaxjob);
+            if(strcmp(p,thisHost)==0 && pmaxjob)sscanf(col,"%" DEC,pmaxjob);
             p=col;
         }
 */
@@ -1066,12 +1066,12 @@ bool sQPrideProc::jobShouldRun(void)
     //    bundle = 1;
 
     sFilePath Proc,buf,tmp;
-    sString::searchAndReplaceStrings(&buf,svc.cmdLine,0, "$(svc)"__,svc.name,0,false);
+    sString::searchAndReplaceStrings(&buf,svc.cmdLine,0, "$(svc)" __,svc.name,0,false);
     replVar00(&tmp,buf.ptr(),buf.length());
     char * proc=Proc.procNameFromCmdLine(tmp.ptr());
 
     sVec<sPS::Stat> pi;
-    sStr t("jobarr %"DEC, inBundle);
+    sStr t("jobarr %" DEC, inBundle);
     idx psRes = 0;
     if( strcmp(svc.name, "qm") == 0 ) {
         sPS lcl;
@@ -1089,11 +1089,11 @@ bool sQPrideProc::initializeTriggerPorts(void)
         socketSelect = udp.initUDP(port);
         if (socketSelect == 0) {
             if(isProblemReported==0) {
-                logOut(eQPLogType_Info,"Cannot initiate server %s on UDP port %"DEC" in %s domain.\n", vars.value("thisHostName"), port,vars.value("thisDomain","undefined") );
+                logOut(eQPLogType_Info,"Cannot initiate server %s on UDP port %" DEC " in %s domain.\n", vars.value("thisHostName"), port,vars.value("thisDomain","undefined") );
             }
             ++isProblemReported;
         } else {
-            //logOut(eQPLogType_Trace,"Initiated server %s UDP port %"DEC" in %s domain.\n", vars.value("thisHostName"), port,vars.value("thisDomain","undefined") );
+            //logOut(eQPLogType_Trace,"Initiated server %s UDP port %" DEC " in %s domain.\n", vars.value("thisHostName"), port,vars.value("thisDomain","undefined") );
             isProblemReported=0;
         }
     }

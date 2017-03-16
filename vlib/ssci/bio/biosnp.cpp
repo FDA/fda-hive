@@ -651,36 +651,36 @@ idx sBioseqSNP::snpOutTable(sStr * out, sStr * xinf, sStr * aainf, sStr * consen
         // output ATGC coverage and compute forward/reverse/total coverage
         ++cnt;
         if(isub!=sNotIdx)
-            out->printf("%"DEC",",isub);
-        out->printf("%"DEC",%c,%c",(ir+1+substart),(char)sBioseq::mapRevATGC[refILet],consLet);  // -substart
+            out->printf("%" DEC ",",isub);
+        out->printf("%" DEC ",%c,%c",(ir+1+substart),(char)sBioseq::mapRevATGC[refILet],consLet);  // -substart
 
 
         for ( ic=0; ic<6 ; ++ic ) {
             v=line->atgcFwd[ic]+line->atgcRev[ic];
 
-            if(v)out->printf(",%"DEC,v);
+            if(v)out->printf(",%" DEC,v);
             else out->add(",0",2);
         }
 
         if( tot ) {
-            out->printf(",%"DEC, tot);
+            out->printf(",%" DEC, tot);
         } else {
             out->add(",0", 2);
         }
         if( totF ) {
-            out->printf(",%"DEC, totF);
+            out->printf(",%" DEC, totF);
         } else {
             out->add(",0", 2);
         }
         if( totR ) {
-            out->printf(",%"DEC, totR);
+            out->printf(",%" DEC, totR);
         } else {
             out->add(",0", 2);
         }
 
         idx qua = line->getAvQua();
         if( qua ) {
-            out->printf(",%"DEC, qua);
+            out->printf(",%" DEC, qua);
         } else {
             out->add(",0", 2);
         }
@@ -717,7 +717,7 @@ idx sBioseqSNP::snpOutTable(sStr * out, sStr * xinf, sStr * aainf, sStr * consen
         }
 
         if(multAlPosMatch) {
-            out->printf(",%"DEC,multAlPosMatch[2*ir+1]);
+            out->printf(",%" DEC,multAlPosMatch[2*ir+1]);
         }
         //
         if(SP->entrCutoff) {
@@ -740,7 +740,7 @@ idx sBioseqSNP::snpOutTable(sStr * out, sStr * xinf, sStr * aainf, sStr * consen
             }
         }
         if(SP->directionalityInfo && (!MinMaxParams || !MinMaxParams->isPrint) ) {
-            out->printf(",%"DEC",%"DEC",%d,%d,%d,%d,%d,%d",(totF ? (line->quaFwd())/(totF) : 0),(totR ? (line->quaRev())/(totR) : 0),line->atgcFwd[0],line->atgcFwd[1],line->atgcFwd[2],line->atgcFwd[3],line->atgcFwd[4],line->atgcFwd[5]);
+            out->printf(",%" DEC ",%" DEC ",%d,%d,%d,%d,%d,%d",(totF ? (line->quaFwd())/(totF) : 0),(totR ? (line->quaRev())/(totR) : 0),line->atgcFwd[0],line->atgcFwd[1],line->atgcFwd[2],line->atgcFwd[3],line->atgcFwd[4],line->atgcFwd[5]);
         }
         out->addString("\n");
         if( MinMaxParams && !MinMaxParams->isPrint ) {
@@ -751,20 +751,20 @@ idx sBioseqSNP::snpOutTable(sStr * out, sStr * xinf, sStr * aainf, sStr * consen
         if( extra_info ) {
             ProfilePosInfo * pine=(pinf + ir );
             if(isub!=sNotIdx) {
-                xinf->printf("%"DEC",",isub);
+                xinf->printf("%" DEC ",",isub);
             }
-            xinf->printf("%"DEC",%c", (ir + 1 + substart), (char) sBioseq::mapRevATGC[refILet]);
-            if(tot)xinf->printf(",%"DEC, pine->score/tot); else xinf->add(",0",2);
+            xinf->printf("%" DEC ",%c", (ir + 1 + substart), (char) sBioseq::mapRevATGC[refILet]);
+            if(tot)xinf->printf(",%" DEC, pine->score/tot); else xinf->add(",0",2);
 
             withIndels_tot = ( MinMaxParams && MinMaxParams->isPrint )?MinMaxParams->info.tot_withInDelsMin:withIndels_tot;
 
-            xinf->printf(",%"DEC, (tot && withIndels_tot ) ? pine->lenHistogram.cntSeq / withIndels_tot : 0);
-            xinf->printf(",%"DEC, (tot && withIndels_tot ) ? pine->lenHistogram.cntAl / withIndels_tot : 0);
-            xinf->printf(",%"DEC, (tot && withIndels_tot ) ? pine->lenHistogram.cntLeft / withIndels_tot : 0);
-            xinf->printf(",%"DEC, (tot && withIndels_tot ) ? pine->lenHistogram.cntRight / withIndels_tot : 0);
-            xinf->printf(",%"DEC, pine->lenHistogram.maxLeft );
-            xinf->printf(",%"DEC, pine->lenHistogram.maxRight );
-            xinf->printf(",%"DEC, (tot && withIndels_tot ) ? pine->lenHistogram.lenAnisotropy / withIndels_tot : 0);
+            xinf->printf(",%" DEC, (tot && withIndels_tot ) ? pine->lenHistogram.cntSeq / withIndels_tot : 0);
+            xinf->printf(",%" DEC, (tot && withIndels_tot ) ? pine->lenHistogram.cntAl / withIndels_tot : 0);
+            xinf->printf(",%" DEC, (tot && withIndels_tot ) ? pine->lenHistogram.cntLeft / withIndels_tot : 0);
+            xinf->printf(",%" DEC, (tot && withIndels_tot ) ? pine->lenHistogram.cntRight / withIndels_tot : 0);
+            xinf->printf(",%" DEC, pine->lenHistogram.maxLeft );
+            xinf->printf(",%" DEC, pine->lenHistogram.maxRight );
+            xinf->printf(",%" DEC, (tot && withIndels_tot ) ? pine->lenHistogram.lenAnisotropy / withIndels_tot : 0);
 
 
             int p_qua;
@@ -783,7 +783,7 @@ idx sBioseqSNP::snpOutTable(sStr * out, sStr * xinf, sStr * aainf, sStr * consen
                 if( !pine->quaFwdATGC[in] || !line->atgcFwd[in] )
                     xinf->printf(",0"); /// zzeerroo
                 else
-                    xinf->printf(",%"DEC, (idx)(p_qua ) );
+                    xinf->printf(",%" DEC, (idx)(p_qua ) );
             }
             for(idx in = 0; in < 4; ++in) {
                 p_qua = pine->quaRevATGC[in];
@@ -800,7 +800,7 @@ idx sBioseqSNP::snpOutTable(sStr * out, sStr * xinf, sStr * aainf, sStr * consen
                 if( !pine->quaRevATGC[in] || !line->atgcRev[in] )
                     xinf->add(",0",2); // // xinf->printf(",0"); /// zzeerroo
                 else
-                    xinf->printf(",%"DEC, (idx)(p_qua ) ); /// zzeerroo
+                    xinf->printf(",%" DEC, (idx)(p_qua ) ); /// zzeerroo
             }
             xinf->addString("\n");
             if( MinMaxParams && !MinMaxParams->isPrint) {
@@ -852,9 +852,9 @@ idx sBioseqSNP::snpOutTable(sStr * out, sStr * xinf, sStr * aainf, sStr * consen
                         if(refAA==ico)
                             continue;
                         if(isub!=sNotIdx) {
-                            aainf->printf("%"DEC",",isub);
+                            aainf->printf("%" DEC ",",isub);
                         }
-                        aainf->printf("%"DEC",%"DEC",%"DEC",%s,%s,%d,%.2lf\n", 1+ir, 1+(p), aatot, sBioseq::mappedCodon2AA(refAA)->let,sBioseq::mappedCodon2AA(ico)->let,aine->aa[ico], aine->aa[ico]*1./aatot);
+                        aainf->printf("%" DEC ",%" DEC ",%" DEC ",%s,%s,%d,%.2lf\n", 1+ir, 1+(p), aatot, sBioseq::mappedCodon2AA(refAA)->let,sBioseq::mappedCodon2AA(ico)->let,aine->aa[ico], aine->aa[ico]*1./aatot);
                     }
                 }
             }
@@ -902,7 +902,7 @@ idx sBioseqSNP::snpOutTable_version2( const char * subseq, SNPFreq * freq, idx s
 {
        static const char *ACGT_InDel[]={"A","C","G","T","Insertion","Deletion"};
        char ibuf[128]; idx ilen;
-       const char * elementToPut = "total_contig_length"_"mapped_coverage(percentage_reference)"_"average_coverage_of_contigs"_"total_number_of_contigs"_"total_length_of_the_unmapped_regions"_"unmapped_regions(percentage_reference)"_"average_coverage_of_gaps"_"total_number_of_gaps_found"__;
+       const char * elementToPut = "total_contig_length" _ "mapped_coverage(percentage_reference)" _ "average_coverage_of_contigs" _ "total_number_of_contigs" _ "total_length_of_the_unmapped_regions" _ "unmapped_regions(percentage_reference)" _ "average_coverage_of_gaps" _ "total_number_of_gaps_found" __;
 
 //       bool isFirstLined = true;
        idx cnt = 0;
@@ -1091,7 +1091,7 @@ idx sBioseqSNP::snpOutTable_version2( const char * subseq, SNPFreq * freq, idx s
 
               iannot->indexArr[2]=iannot->addRecord(sIonAnnot::eRecord,sizeof(contigsArray.ptr(lastContigArr)->start),&contigsArray.ptr(lastContigArr)->start);
 
-              //sStr contigInfo("%"DEC"",lastContigArr+1);
+              //sStr contigInfo("%" DEC "",lastContigArr+1);
              // iannot->indexArr[3]=iannot->addRecord(sIonAnnot::eType,6 ,"contig");
              // iannot->indexArr[4]=iannot->addRecord(sIonAnnot::eID, contigInfo.length() ,contigInfo.ptr(0));
               //iannot->addRelationVarg(0,iannot->indexArr,0);
@@ -1230,7 +1230,7 @@ idx sBioseqSNP::snpCountNoise(SNPFreq * freq, const char * subseq, idx substart,
                 histogramCoverage->resize(ibin+1);
                 sBioseqSNP::HistogHistog * hist=histogramCoverage->ptr(ibin);
                 if (hist) {
-                    char histType[32]; sprintf(histType, "%"DEC,v);
+                    char histType[32]; sprintf(histType, "%" DEC,v);
                     hist->countForCoverage[ic][histType]++;
                 }
             }
@@ -1259,7 +1259,7 @@ idx sBioseqSNP::snpOutHistog(sVec <HistogHistog> & histogramCoverage, real step,
             sDic<idx> & dic = hist->countForCoverage[ia];
             if( dic.dim() ) {
                 if( iSub )
-                    histProf.printf("%"DEC",", iSub);
+                    histProf.printf("%" DEC ",", iSub);
                 histProf.printf("%g,%c,\"", f, sBioseq::mapRevATGC[ia]);
                 for(idx j = 0; j < dic.dim(); ++j) {
                     const char * k = (const char *) dic.id(j);
@@ -1268,7 +1268,7 @@ idx sBioseqSNP::snpOutHistog(sVec <HistogHistog> & histogramCoverage, real step,
                         histProf.printf(",");
                     }
                     // assume k is string representing an integer (position)
-                    histProf.printf("%s,%"DEC, k, val);
+                    histProf.printf("%s,%" DEC, k, val);
                 }
                 histProf.printf("\"\n");
             }
@@ -1313,7 +1313,7 @@ idx sBioseqSNP::snpOutIntegrals(sStr & out, sDic<sVec<real> > & integrals, idx i
     }
     for(idx il=0;il<integrals.dim();++il)
     {
-        if(iSub) out.printf("%"DEC",",iSub);
+        if(iSub) out.printf("%" DEC ",",iSub);
 
         sVec<real> * intgrl = integrals.ptr(il);
         out.printf("%s",(const char *)integrals.id(il));
@@ -1355,7 +1355,7 @@ idx sBioseqSNP::snpSumNoisePrint(sStr * out, idx iSub, real noiseProfileResoluti
 
     // now print the values for the noise histogram
     for( idx ib=1; ib<maxBin; ++ib ) {
-        if(out && iSub) out->printf("%"DEC",",iSub);
+        if(out && iSub) out->printf("%" DEC ",",iSub);
         if(out)out->printf("%lg",noiseProfileResolution*ib);
         for ( idx ins=0; ins<4 ; ++ins) {
             for(idx ine=0; ine<4 ; ++ine){
@@ -1369,7 +1369,7 @@ idx sBioseqSNP::snpSumNoisePrint(sStr * out, idx iSub, real noiseProfileResoluti
                 }
 
                 idx v= (ib>=noiseVec->dim()) ? 0 : *(noiseVec->ptr(ib));
-                if(out)out->printf(",%"DEC,v);
+                if(out)out->printf(",%" DEC,v);
 
                 // also accumulate the totals on each letter combination
                 noiseSum[4*ins + ine]+=v;
@@ -1581,12 +1581,12 @@ idx sBioseqSNP::protSeqGeneration(const char * subseq, const char * subName,idx 
 void sBioseqSNP::SNPRecord::printCSV(sStr &out, idx snpCompare) const
 {
     // Position,Letter,Consensus,Count-A,Count-C,Count-G,Count-T,Count Insertions,Count Deletions,Count Total,Count Forward,Count Reverse,Quality,Entropy,SNP-Entropy,Frequency A,Frequency C,Frequency G,Frequency T
-    out.printf("%"UDEC",%c,%c,", position, letter, consensus);
+    out.printf("%" UDEC ",%c,%c,", position, letter, consensus);
     for (idx i=0; i<4; i++)
-        out.printf("%"DEC",", atgc[i]);
+        out.printf("%" DEC ",", atgc[i]);
     for (idx i=0; i<2; i++)
-        out.printf("%"DEC",", indel[i]);
-    out.printf("%"DEC",%"DEC",%"DEC",%"DEC",", countFwd+countRev, countFwd, countRev, qua);
+        out.printf("%" DEC ",", indel[i]);
+    out.printf("%" DEC ",%" DEC ",%" DEC ",%" DEC ",", countFwd+countRev, countFwd, countRev, qua);
     out.printf((entrScaled < 0.01) ? "0," : "%.2lg", entrScaled);
     out.printf((snpentrScaled < 0.01) ? "0," : "%.2lg", snpentrScaled);
     for (idx i=0; i<4; i++) {
@@ -1604,13 +1604,13 @@ void sBioseqSNP::SNPRecord::printCSV(sStr &out, idx snpCompare) const
 void sBioseqSNP::SNPRecord::printCSV_withSubject(sStr &out, idx snpCompare) const
 {
     // Reference,Position,Letter,Consensus,Count-A,Count-C,Count-G,Count-T,Count Insertions,Count Deletions,Count Total,Count Forward,Count Reverse,Quality,Entropy,SNP-Entropy,Frequency A,Frequency C,Frequency G,Frequency T
-    out.printf("%"DEC"",iSub);
-    out.printf("%"UDEC",%c,%c,", position, letter, consensus);
+    out.printf("%" DEC "",iSub);
+    out.printf("%" UDEC ",%c,%c,", position, letter, consensus);
     for (idx i=0; i<4; i++)
-        out.printf("%"DEC",", atgc[i]);
+        out.printf("%" DEC ",", atgc[i]);
     for (idx i=0; i<2; i++)
-        out.printf("%"DEC",", indel[i]);
-    out.printf("%"DEC",%"DEC",%"DEC",%"DEC",", countFwd+countRev, countFwd, countRev, qua);
+        out.printf("%" DEC ",", indel[i]);
+    out.printf("%" DEC ",%" DEC ",%" DEC ",%" DEC ",", countFwd+countRev, countFwd, countRev, qua);
     out.printf((entrScaled < 0.01) ? "0," : "%.2lg", entrScaled);
     out.printf((snpentrScaled < 0.01) ? "0," : "%.2lg", snpentrScaled);
     for (idx i=0; i<4; i++) {
@@ -1648,10 +1648,10 @@ idx sBioseqSNP::printCSV(sBioseqSNP::SNPRecord * snpRecord, sBioseqSNP::ParamsPr
 //    // Count-A,Count-C,Count-G,Count-T,Count Insertions,Count Deletions,
 //    // Count Total,Count Forward,Count Reverse,
 //    // Quality,Entropy,SNP-Entropy,Frequency A,Frequency C,Frequency G,Frequency T
-//    return (sString::bufscanf(buf, bufend, "%"UDEC",%c,%c,"
-//        "%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC","
-//        "%"DEC",%"DEC",%"DEC","
-//        "%"DEC",%lf,%lf,%*f,%*f,%*f,%*f",
+//    return (sString::bufscanf(buf, bufend, "%" UDEC ",%c,%c,"
+//        "%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ","
+//        "%" DEC ",%" DEC ",%" DEC ","
+//        "%" DEC ",%lf,%lf,%*f,%*f,%*f,%*f",
 //        &position, &letter, &consensus,
 //        atgc, atgc+1, atgc+2, atgc+3, indel, indel+1,
 //        &dummy, &countFwd, &countRev,
@@ -1831,9 +1831,9 @@ bool sBioseqSNP::SNPRecord::parseCSV_withSubject(const char *buf, const char *bu
     // Count Total,Count Forward,Count Reverse,
     // Quality,Entropy,SNP-Entropy,Frequency A,Frequency C,Frequency G,Frequency T
     return (sString::bufscanf(buf, bufend, "%u,%u,%c,%c,"
-        "%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC","
-        "%"DEC",%"DEC",%"DEC","
-        "%"DEC",%lf,%lf,%*f,%*f,%*f,%*f",
+        "%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ","
+        "%" DEC ",%" DEC ",%" DEC ","
+        "%" DEC ",%lf,%lf,%*f,%*f,%*f,%*f",
         &iSub,&position, &letter, &consensus,
         atgc, atgc+1, atgc+2, atgc+3, indel, indel+1,
         &dummy, &countFwd, &countRev,
@@ -2175,7 +2175,7 @@ bool sBioseqSNP::createAnnotationSearchIonRangeQueries(sStr & qry1 , sStr & qry2
             break;
         seqLbls.addSeparator(",");
         seqLbl = seqLbls.last();
-        seqLbls.printf("seq%"DEC,++i);
+        seqLbls.printf("seq%" DEC,++i);
         qry2.printf("%s=find.annot(id='%s', type='%s');unique.1(%s.record);",seqLbl, curId,curType,seqLbl);
     }
     qry2.printf("seq=foreach(%s);a=find.annot(#range=possort-max,seq.1,%s,seq.1,%s);", seqLbls.ptr(1), start, end);
@@ -2402,9 +2402,9 @@ idx sBioseqSNP::snpCalls(sFil * prof, const char * subseq, const char * subName,
                 }
                 else {
                     if (!SPC->isORF)
-                        snpOut->printf("\"%s\",%"DEC",NA,NA,0,0,0,0\n",SPC->hideSubjectName?"-":subName,ir+1);
+                        snpOut->printf("\"%s\",%" DEC ",NA,NA,0,0,0,0\n",SPC->hideSubjectName?"-":subName,ir+1);
                     if (SPC->isORF)
-                        snpOut->printf("\"%s\",%"DEC",NA,NA,0,0,0,0,0,0,0,NA,NA\n",SPC->hideSubjectName?"-":subName,ir+1);
+                        snpOut->printf("\"%s\",%" DEC ",NA,NA,0,0,0,0,0,0,0,NA,NA\n",SPC->hideSubjectName?"-":subName,ir+1);
                 }
 
                 SPC->minRngFreq=REAL_MAX;
@@ -2488,7 +2488,7 @@ idx sBioseqSNP::snpCalls(sFil * prof, const char * subseq, const char * subName,
                 }
 
                 if(!SPC->isORF){
-                    tmpOut.printf(0,"\"%s\",%"DEC",%c,%s,%.4lf,%"DEC",%.2lf,%"DEC"",SPC->hideSubjectName?"-":subName,ir+1,refLchar,baseMut.ptr(),vv,tot,line->entrScaled,sublen);
+                    tmpOut.printf(0,"\"%s\",%" DEC ",%c,%s,%.4lf,%" DEC ",%.2lf,%" DEC "",SPC->hideSubjectName?"-":subName,ir+1,refLchar,baseMut.ptr(),vv,tot,line->entrScaled,sublen);
 
                     if (rsID && SPC->annotList){
                        sVec < sVioAnnot::AnnotStruct > resultsForRsID;
@@ -2522,9 +2522,9 @@ idx sBioseqSNP::snpCalls(sFil * prof, const char * subseq, const char * subName,
                             else
                                 translationSource="subject is interpreted as ORF";
                             if(SPC->consensusAAMode) {
-                                tmpOut.printf("\"%s\",%"DEC",%s,%s,%.4lf,%"DEC",%.2lf,%"DEC"",SPC->hideSubjectName?"-":subName,ir+1,refLet3,consLet3,consFreq,tot,line->entrScaled,sublen);
+                                tmpOut.printf("\"%s\",%" DEC ",%s,%s,%.4lf,%" DEC ",%.2lf,%" DEC "",SPC->hideSubjectName?"-":subName,ir+1,refLet3,consLet3,consFreq,tot,line->entrScaled,sublen);
                             } else {
-                                tmpOut.printf("\"%s\",%"DEC",%c,%s,%.4lf,%"DEC",%.2lf,%"DEC"",SPC->hideSubjectName?"-":subName,ir+1,refLchar,baseMut.ptr(),vv,tot,line->entrScaled,sublen);
+                                tmpOut.printf("\"%s\",%" DEC ",%c,%s,%.4lf,%" DEC ",%.2lf,%" DEC "",SPC->hideSubjectName?"-":subName,ir+1,refLchar,baseMut.ptr(),vv,tot,line->entrScaled,sublen);
                             }
 
                             if (rsID){
@@ -2558,7 +2558,7 @@ idx sBioseqSNP::snpCalls(sFil * prof, const char * subseq, const char * subName,
 
                                 const char * aa1=sBioseq::codon2AA(refAA)->print(SPC->AAcode);
                                 const char * aa2=(ic>=4)?"fs":sBioseq::codon2AA(mutAA)->print(SPC->AAcode);
-                                tmpOut.printf(",%"DEC",%"DEC",%"DEC",%s,%s",rangeS,rangeE, mutPosition+1, aa1, aa2);
+                                tmpOut.printf(",%" DEC ",%" DEC ",%" DEC ",%s,%s",rangeS,rangeE, mutPosition+1, aa1, aa2);
                                 tmpOut.printf(",%s",translationSource);
                                 tmpOut.printf("\n");
 
@@ -2858,7 +2858,7 @@ idx sBioseqSNP::snpOutConsensus(SNPRecord  * rec,ParamsProfileIterator * params,
     if( !tot  || (params->consensusThrs && rec->freqRaw(consInd) < params->consensusThrs) ) pass=false;
     if( pass ){
         if( params->iter_flags==sBioseqSNP::ePIsplitOnGaps && !params->userIndex ) {
-            params->str->printf("%s start=%"DEC"\n",(const char *)params->userPointer, rec->position);
+            params->str->printf("%s start=%" DEC "\n",(const char *)params->userPointer, rec->position);
         }
         params->str->printf("%c",rec->consensus);
         ++params->userIndex;
@@ -2941,7 +2941,7 @@ const char *  sBioseqSNP::noiseProfileFreqFromConcatenatedCSV(const char * buf, 
     }
 
     memset(noise, 0, sizeof(*noise));
-    if( ! (sString::bufscanf(buf, bufNext, "%"DEC",%lf,%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC, iSub, fr,
+    if( ! (sString::bufscanf(buf, bufNext, "%" DEC ",%lf,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC, iSub, fr,
             &(noise[0][1]), &(noise[0][2]), &(noise[0][3]),
             &(noise[1][0]), &(noise[1][2]), &(noise[1][3]),
             &(noise[2][0]), &(noise[2][1]), &(noise[2][3]),
@@ -2956,7 +2956,7 @@ const char * sBioseqSNP::noiseProfileSubFromConcatenatedCSV(const char * buf, co
     if( !bufNext ) {
         bufNext = skipToNextLine(buf, bufend);
     }
-    if( sString::bufscanf(buf, bufNext, "%"DEC",%*s", iSub) != 1 )
+    if( sString::bufscanf(buf, bufNext, "%" DEC ",%*s", iSub) != 1 )
         return 0;
     return bufNext;
 }
@@ -2976,7 +2976,7 @@ idx sBioseqSNP::histogramProfileFromCSV(const char *buf, const char *bufend, sVe
     while(buf < bufend) {
         sSet(histC);
         const char * bufNext = skipToNextLine(buf, bufend);
-        sString::bufscanf(buf, bufNext, "%"DEC",%lf,%c,\"%s\"", &iSub, &fr, &letter, histC);
+        sString::bufscanf(buf, bufNext, "%" DEC ",%lf,%c,\"%s\"", &iSub, &fr, &letter, histC);
 
         ibin=(idx)(fr/noiseProfileResolution);
         histProfile->resize(ibin+1);
@@ -2987,8 +2987,8 @@ idx sBioseqSNP::histogramProfileFromCSV(const char *buf, const char *bufend, sVe
         histEnd = hist + sLen(hist);
         while(hist && hist < histEnd) {
             histNext = sString::skipWords(hist,0,2,",");
-            sString::bufscanf(hist, histNext, "%"DEC",%"DEC, &v, &cnt);
-            char histType[32]; sprintf(histType, "%"DEC,v);
+            sString::bufscanf(hist, histNext, "%" DEC ",%" DEC, &v, &cnt);
+            char histType[32]; sprintf(histType, "%" DEC,v);
             hh->countForCoverage[sBioseq::mapATGC[(idx)letter]][histType]+=cnt;
             hist = histNext;
         }

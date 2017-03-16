@@ -197,7 +197,7 @@ idx sBioal::iterUnAligned(idx * piVis,idx start,idx cnt,ParamsAlignmentIterator 
             Qry->printFastXRow(params->str, isQ, iAl, 0, 0, 0, true, false, 0, 0, 0, true, 0, false);
             rpts = (!(params->navigatorFlags & alPrintCollapseRpt))?Qry->rpt(iAl):1;
             for( idx r=1 ; r < rpts ; ++r ){
-                _rptbuf.printf(0, "%"DEC,r+1);
+                _rptbuf.printf(0, "%" DEC,r+1);
                 Qry->printFastXRow(params->str, isQ, iAl, 0, 0, 0, true, false, _rptbuf.ptr(), 0, 0, true, 0, false);
             }
             tot+=rpts;
@@ -222,14 +222,14 @@ bool sBioal::regexAlignmentSingle(sStr &compStr, sStr &out, idx start, idx end, 
             rge = pmatch[0].rm_eo + rg_ofs;
             if( (callbackParam->navigatorFlags & alPrintPositionalRegExp) && callbackParam->High>=0 ) {
                 if( sOverlap(rgs, rge, start, end ) ) {
-                    out.printf(",%"DEC",%"DEC, rgs + 1, rge);
+                    out.printf(",%" DEC ",%" DEC, rgs + 1, rge);
                     loop = false;
                 } else {
                     rg_ofs += rgs;
                 }
             } else {
                 loop = false;
-                out.printf(",%"DEC",%"DEC, rgs + 1, rge);
+                out.printf(",%" DEC ",%" DEC, rgs + 1, rge);
             }
         }
         else{
@@ -418,18 +418,18 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
                 idx added_padd = callbackParam->subRealS - callbackParam->padding - (callbackParam->navigatorFlags&alPrintPosInDelRegExp?1:0);
                 if((callbackParam->navigatorFlags&alPrintRegExpSub) && hdl1){
                     sStr compStr;
-                    sString::extractSubstring(&compStr,hdl1,0,callbackParam->alCol,","__,false,false);
+                    sString::extractSubstring(&compStr,hdl1,0,callbackParam->alCol,"," __,false,false);
                     matchS = regexAlignmentSingle(compStr, hdl1, callbackParam->High - added_padd, callbackParam->High - added_padd, callbackParam);
 
                 }
                 if((callbackParam->navigatorFlags&alPrintRegExpInt) && hdl2){
                     sStr compStr;
-                    sString::extractSubstring(&compStr,hdl2,0,callbackParam->alCol,","__,false,false);
+                    sString::extractSubstring(&compStr,hdl2,0,callbackParam->alCol,"," __,false,false);
                     matchU = regexAlignmentSingle(compStr, hdl2, callbackParam->High - added_padd, callbackParam->High - added_padd, callbackParam);
                 }
                 if((callbackParam->navigatorFlags&alPrintRegExpQry) && hdl3){
                     sStr compStr;
-                    sString::extractSubstring(&compStr,hdl3,0,callbackParam->alCol,","__,false,false);
+                    sString::extractSubstring(&compStr,hdl3,0,callbackParam->alCol,"," __,false,false);
                     matchQ = regexAlignmentSingle(compStr, hdl3, callbackParam->High - added_padd, callbackParam->High - added_padd, callbackParam);
                 }
                 callbackParam->padding=0;callbackParam->indels=0;
@@ -529,7 +529,7 @@ idx sBioal::printAlignmentSummaryBySubject(sVec < sBioal::Stat > & statistics, s
     sStr tmp;bool printOther=false;
     if(reportFailed ){
         ++iVis;
-        tmpBody.printf("%"DEC",\"%s\",%"DEC",%"DEC",",(idx)0,"Unaligned", statistics[0].foundRpt , statistics[0].found );
+        tmpBody.printf("%" DEC ",\"%s\",%" DEC ",%" DEC ",",(idx)0,"Unaligned", statistics[0].foundRpt , statistics[0].found );
         if(coverage){
             tmpBody.printf(",-,-");
         }
@@ -606,7 +606,7 @@ idx sBioal::printAlignmentSummaryBySubject(sVec < sBioal::Stat > & statistics, s
         buflenBefore = tmpBody.length();
         regmatch_t pmatch1[1];
         if(iVis<=start+cnt || cnt<=0){
-            tmp.printf(0,"%"DEC",\"%s\",%"DEC",%"DEC",%"DEC,srtID+1, Sub->id(srtID) ,statistics[srtID+1].foundRpt,statistics[srtID+1].found,Sub->len(srtID));
+            tmp.printf(0,"%" DEC ",\"%s\",%" DEC ",%" DEC ",%" DEC,srtID+1, Sub->id(srtID) ,statistics[srtID+1].foundRpt,statistics[srtID+1].found,Sub->len(srtID));
             if(cur_cov){
                 tmp.printf(",%.1f,%.1f",curRPKM,(real)(*cur_cov)/Sub->len(srtID) );
             }
@@ -639,15 +639,15 @@ idx sBioal::printAlignmentSummaryBySubject(sVec < sBioal::Stat > & statistics, s
     }
     if(reportTotals){
         if( (printOther || processedSubs) && (len-showLen) && showLen ){
-            tmpBody.printf("+,\"%s\",%"DEC",%"DEC",%"DEC,"other",totRpt-showTotRpt,tot-showTot,len-showLen);
+            tmpBody.printf("+,\"%s\",%" DEC ",%" DEC ",%" DEC,"other",totRpt-showTotRpt,tot-showTot,len-showLen);
             if(coverage){
-                tmpBody.printf(",-,%"DEC,tot_coverage-show_coverage/(len-showLen));
+                tmpBody.printf(",-,%" DEC,tot_coverage-show_coverage/(len-showLen));
             }
             tmpBody.printf("\n");
         }
-        tmpBody.printf("+,\"%s\",%"DEC",%"DEC",%"DEC"", "total" ,totRpt,tot, len);
+        tmpBody.printf("+,\"%s\",%" DEC ",%" DEC ",%" DEC "", "total" ,totRpt,tot, len);
         if(coverage){
-            tmpBody.printf(",-,%"DEC,tot_coverage/len);
+            tmpBody.printf(",-,%" DEC,tot_coverage/len);
         }
         tmpBody.printf("\n");
     }
@@ -700,7 +700,7 @@ idx sBioal::printAlignmentHistogram(sStr * out , sDic < sBioal::LenHistogram > *
         sBioal::LenHistogram  * ll=lenHistogram->ptr(ih);
         idx * ilen=(idx*)lenHistogram->id(ih);
 
-        out->printf("%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC"\n",*ilen,ll->cntRead,ll->cntSeq, ll->cntFailed, ll->cntAl, ll->cntLeft, ll->cntRight);
+        out->printf("%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC "\n",*ilen,ll->cntRead,ll->cntSeq, ll->cntFailed, ll->cntAl, ll->cntLeft, ll->cntRight);
     }
     return lenHistogram->dim();
 }
@@ -790,7 +790,7 @@ idx sBioal::getSaturation(sBioal * bioal, ParamsAlignmentIterator * params, sBio
         *(dicSubHits->setString("last_bin")) = lb+1;
         lb++;
         idx cntSubs = dicSubHits->dim() - (params->userIndex/params->wrap) - 1;
-        buf.printf(0,"bin-%"DEC,(params->userIndex/params->wrap)+1);
+        buf.printf(0,"bin-%" DEC,(params->userIndex/params->wrap)+1);
         ( *(dicSubHits->setString( buf.ptr() )) ) = cntSubs;
         if( params->userIndex > iNum ) {
             params->userIndex = iNum;
@@ -799,7 +799,7 @@ idx sBioal::getSaturation(sBioal * bioal, ParamsAlignmentIterator * params, sBio
     }
 
     ++params->userIndex;
-    buf.printf(0,"%"DEC,hdr->idSub());
+    buf.printf(0,"%" DEC,hdr->idSub());
     (*(dicSubHits->setString( buf.ptr() )))++;
 
     return 1;
@@ -810,8 +810,8 @@ idx sBioal::printSubSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBi
     sStr tSub;
     sString::searchAndReplaceSymbols(&tSub, bioal->Sub->id(al->idSub()), 0, ","," ",0,true,true,false,false);
     params->str->printf(
-        "%"DEC","
-        "%"DEC",\"%s\""
+        "%" DEC ","
+        "%" DEC ",\"%s\""
         ,iNum+1
         ,al->idSub()+1,tSub.ptr());
     return 1;
@@ -827,10 +827,10 @@ idx sBioal::printMatchSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
     sBioseqAlignment::uncompressAlignment(al,m,uncompressMM.ptr());
     m=uncompressMM.ptr();
     params->str->printf(
-        "%"DEC","
-        "%"DEC",\"%s\",%"DEC",\"%s\","
-        "%"DEC",%"DEC",%"DEC","
-        "%"DEC",%"DEC",%"DEC",%"DEC"\n"
+        "%" DEC ","
+        "%" DEC ",\"%s\",%" DEC ",\"%s\","
+        "%" DEC ",%" DEC ",%" DEC ","
+        "%" DEC ",%" DEC ",%" DEC ",%" DEC "\n"
 
         ,iNum+1
         ,al->idSub()+1,tSub.ptr(),al->idQry()+1, tQry.ptr()
@@ -854,7 +854,7 @@ idx sBioal::printBEDSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBi
     m=uncompressMM.ptr();
 
    params->str->printf(
-        "\"%s\",%"DEC",%"DEC",U0,0,%s\n"
+        "\"%s\",%" DEC ",%" DEC ",U0,0,%s\n"
         ,tSub.ptr()
         ,al->qryStart()+m[1]+1, al->qryStart()+m[(al->lenAlign()-1)*2+1]+1
         ,(al->flags()&(sBioseqAlignment::fAlignBackward) ) ? ("-") : ("+")
@@ -872,7 +872,7 @@ idx sBioal::printFastaSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
     if(*id=='>')++id;
 
     params->str->printf(
-        ">%s %"DEC"\n"
+        ">%s %" DEC "\n"
         ,id,(params->navigatorFlags & alPrintCollapseRpt)?bioal->getRpt(iAlInd):1);
 
     if(params->navigatorFlags&alPrintMultiple) {
@@ -894,7 +894,7 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
     idx iq = al->idQry();
     char appendID[64], * papID  = 0;
     if(params->navigatorFlags & alPrintCollapseRpt) {
-        sprintf(appendID,"%"DEC,iNum);
+        sprintf(appendID,"%" DEC,iNum);
         papID = &appendID[0];
     }
 
@@ -910,9 +910,9 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
         hdl3.printf(">%s\n",tQry.ptr()); \
     } else { \
         if( (outwhat&alPrintSubject) && !(outwhat&alPrintSequenceOnly) ) \
-            hdl1.printf("%"DEC",%5"DEC", (%s) ,%5"DEC"",iNum|curChunk, idSub+1,((flags&sBioseqAlignment::fAlignBackward) ? "-" :"+" ),isS+1); \
+            hdl1.printf("%" DEC ",%5" DEC ", (%s) ,%5" DEC "",iNum|curChunk, idSub+1,((flags&sBioseqAlignment::fAlignBackward) ? "-" :"+" ),isS+1); \
         if(outwhat&(alPrintUpperInterm|alPrintLowerInterm) ){ \
-           hdl2.printf("%"DEC",,",iNum|curChunk); \
+           hdl2.printf("%" DEC ",,",iNum|curChunk); \
            if( params->alignmentStickDirectional==2 ){ \
                 if( flags&sBioseqAlignment::fAlignBackward ) \
                     hdl2.printf("(-)"); \
@@ -926,8 +926,8 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
             if ( (flags&sBioseqAlignment::fAlignBackward) && ((flags)&sBioseqAlignment::fAlignReverseEngine)==0 ) \
                 iqnn = qrybuflen-1-iqnn; \
             if(iqx>=0 && (outwhat&alPrintNonFlippedPosforRev))iqnn=isQ; \
-            hdl3.printf("%"DEC",%5"DEC", (%c) ,",iNum|curChunk , idQry+1,( flags&sBioseqAlignment::fAlignBackward ) ? '-' : '+'); \
-            hdl3.printf("%5"DEC"",iqnn+1 ); \
+            hdl3.printf("%" DEC ",%5" DEC ", (%c) ,",iNum|curChunk , idQry+1,( flags&sBioseqAlignment::fAlignBackward ) ? '-' : '+'); \
+            hdl3.printf("%5" DEC "",iqnn+1 ); \
         } \
     } \
 }
@@ -1077,7 +1077,7 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
         entr->resize(4*(qrybuflen+1));
     }
     if(params->id){
-        out->printf("%s[%"DEC"]<->Query[%"DEC"] : score=%"DEC"\n",
+        out->printf("%s[%" DEC "]<->Query[%" DEC "] : score=%" DEC "\n",
             params->id , idSub,idQry,al->score());
     }
     idx isx=0, iqx=0,i=0, is=0,isS=0,isL=0,isQ=-1,iq=0, iqnn=0, isnn=0,iqHigh=-1, isNotSide=0, isRightSide=0, isNonPerfect=0,stringHigh=0,intermHigh=0,callLetterHigh=0,iqRight=0,isRight=0;
@@ -1211,7 +1211,7 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
             qryalstart = qrybuflen - 1 - qryalstart;
             qryalend = qrybuflen - 1 - qryalend;
         }
-        l3.printf("|%"DEC"|%"DEC"| <- %"DEC" ->  |%"DEC"|%"DEC"|", al->getSubjectStart(m)+1,qryalstart+1, al->lenAlign(),qryalend+1,al->getSubjectEnd_uncompressed(m)+1);
+        l3.printf("|%" DEC "|%" DEC "| <- %" DEC " ->  |%" DEC "|%" DEC "|", al->getSubjectStart(m)+1,qryalstart+1, al->lenAlign(),qryalend+1,al->getSubjectEnd_uncompressed(m)+1);
     }
 
     printAlignmnetSingleRightTail
@@ -1222,7 +1222,7 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
 
     if((outwhat&alPrintSubject) && l1 ) {
         if( !(outwhat&alPrintSequenceOnly) ){
-            hdl1.printf(",%s,%"DEC"",l1.ptr(params->indels), isnn+1);
+            hdl1.printf(",%s,%" DEC "",l1.ptr(params->indels), isnn+1);
         }
         else {
             hdl1.printf("%s",l1.ptr(params->indels));
@@ -1230,7 +1230,7 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
     }
     if((outwhat&alPrintUpperInterm) && !(outwhat&alPrintDotsFormat) && l2 ) {
         if(!(outwhat&alPrintSequenceOnly) ) {
-            hdl2.printf(",%s,%"DEC,l2.ptr(params->indels),i/2);
+            hdl2.printf(",%s,%" DEC,l2.ptr(params->indels),i/2);
         }
         else {
             hdl2.printf("%s",l2.ptr(params->indels));
@@ -1238,7 +1238,7 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
     }
     if((outwhat&alPrintQuery) && l3 ) {
         if( !(outwhat&alPrintSequenceOnly) ) {
-            hdl3.printf(",%s,%"DEC"",l3.ptr(params->indels), iqnn+1);
+            hdl3.printf(",%s,%" DEC "",l3.ptr(params->indels), iqnn+1);
         }
         else {
             hdl3.printf("%s",l3.ptr(params->indels) );
@@ -1248,7 +1248,7 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
     if( (outwhat & alPrintSubject) && l1 && !(outwhat&alPrintSequenceOnly) ) {
         hdl1.printf(",%s",tSub.ptr());
         if(highlightposition != sNotIdx&& highlightposition >= 0 ){
-            hdl1.printf(",,%"DEC",%"DEC,highlightposition + 1,stringHigh);
+            hdl1.printf(",,%" DEC ",%" DEC,highlightposition + 1,stringHigh);
         }
         else {
             hdl1.printf(",,");
@@ -1256,17 +1256,17 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
     }
     if( (outwhat&alPrintQuery) && l3 && !(outwhat&alPrintSequenceOnly) ) {
         hdl3.printf(",%s",tQry.ptr());
-        hdl3.printf(",%"DEC,(outwhat & alPrintCollapseRpt)?bioal->getRpt(iAlInd):1);
+        hdl3.printf(",%" DEC,(outwhat & alPrintCollapseRpt)?bioal->getRpt(iAlInd):1);
 
         if( highlightposition != sNotIdx && highlightposition >= 0 )
-            hdl3.printf(",%"DEC",%"DEC, iqHigh + 1,stringHigh);
+            hdl3.printf(",%" DEC ",%" DEC, iqHigh + 1,stringHigh);
         else
             hdl3.printf(",");
 
     }
     if((outwhat&alPrintUpperInterm) && !(outwhat&alPrintDotsFormat) && l2 && !(outwhat&alPrintSequenceOnly) ) {
         if( highlightposition != sNotIdx && highlightposition >= 0 )
-            hdl2.printf(",,,%"DEC",%"DEC, intermHigh+1,stringHigh);
+            hdl2.printf(",,,%" DEC ",%" DEC, intermHigh+1,stringHigh);
         else
             hdl2.printf(",,,");
     }

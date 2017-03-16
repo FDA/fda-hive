@@ -176,12 +176,12 @@ idx sFrame::mergeClones(real cutoff)
         if(ptr(ic)->merged && !ptr(ic)->dead){
             ++cntMerged;
 #ifdef _DEBUG
-        ::printf("Merged clone:%"DEC" to : %"DEC" in position: %"DEC"\n", ptr(ic)->clID, ptr(ic)->mergedToCl,ptr(ic)->mergeSubPOS);
+        ::printf("Merged clone:%" DEC " to : %" DEC " in position: %" DEC "\n", ptr(ic)->clID, ptr(ic)->mergedToCl,ptr(ic)->mergeSubPOS);
 #endif
         }
     }
 #ifdef _DEBUG
-    if(cntMerged)::printf("Newly Merged clones:%3"DEC"\n",cntMerged);
+    if(cntMerged)::printf("Newly Merged clones:%3" DEC "\n",cntMerged);
 #endif
     return cntMerged;
 }
@@ -207,7 +207,7 @@ idx sFrame::killClones(real cutoff, bool keepOneAlive)
                 w->killed = true;
                 w->deathSubPOS = j;
 #ifdef _DEBUG
-                ::printf("Killed clone with id:%"DEC"\nBecause of covered size (%"DEC") being less than the window size(%"DEC")\n", w->clID, j - st + 1, win_size());
+                ::printf("Killed clone with id:%" DEC "\nBecause of covered size (%" DEC ") being less than the window size(%" DEC ")\n", w->clID, j - st + 1, win_size());
 #endif
                 ++cntKilled;
             }
@@ -216,9 +216,9 @@ idx sFrame::killClones(real cutoff, bool keepOneAlive)
 #ifdef _DEBUG
     for(idx ic=0;ic<cnt();++ic) {
         if(ptr(ic)->killed && !ptr(ic)->dead)
-        ::printf("Killed clone:%"DEC" in position: %"DEC"\n", ptr(ic)->clID,ptr(ic)->deathSubPOS);
+        ::printf("Killed clone:%" DEC " in position: %" DEC "\n", ptr(ic)->clID,ptr(ic)->deathSubPOS);
     }
-    if(cntKilled)::printf("Newly killed clones:%3"DEC"\n",cntKilled);
+    if(cntKilled)::printf("Newly killed clones:%3" DEC "\n",cntKilled);
 #endif
     return cntKilled;
 }
@@ -376,7 +376,7 @@ const char * sFrame::diff(idx cl1, idx cl2)
     }
     sStr * out = &st_buf;
     idx cnt = 0, cov_base1 = 0, cov_base2 = 0;
-    out->printf(0, "| # |  sub  |%7"DEC"|  cov  |%7"DEC"|  cov  |  dif  |\n", w1->clID, w2->clID);
+    out->printf(0, "| # |  sub  |%7" DEC "|  cov  |%7" DEC "|  cov  |  dif  |\n", w1->clID, w2->clID);
     out->printf("  |---+-------+-------+-------+-------+-------+-------|\n");
     for(idx i = 0; i < w1->dim(); ++i) {
         sBioseqpopul::position * p1 = w1->ptr(i);
@@ -399,9 +399,9 @@ const char * sFrame::diff(idx cl1, idx cl2)
         } else {
             cov_base2 = 0;
         }
-        out->printf("|%3"DEC"|%7"DEC"|%7"DEC"|%7"DEC"|%7"DEC"|%7"DEC"|%7s|\n", i, w1->subPos(i), (idx)p1->basecall, cov_base1, (idx)p2->basecall, cov_base2, flag.ptr());
+        out->printf("|%3" DEC "|%7" DEC "|%7" DEC "|%7" DEC "|%7" DEC "|%7" DEC "|%7s|\n", i, w1->subPos(i), (idx)p1->basecall, cov_base1, (idx)p2->basecall, cov_base2, flag.ptr());
     }
-    out->printf("|-----------------------------------+-Tot-diff--%3"DEC"-|\n", cnt);
+    out->printf("|-----------------------------------+-Tot-diff--%3" DEC "-|\n", cnt);
     return out->ptr(0);
 }
 
@@ -621,7 +621,7 @@ const char * sClone::print(real cutoff, idx minCov, sStr * out)
         out = &st_buf;
         out->cut(0);
     }
-    out->printf("|Clone__%7"DEC"_____________________________________________________________|\n", clID);
+    out->printf("|Clone__%7" DEC "_____________________________________________________________|\n", clID);
     out->printf("| # |  sub  |   A   |   C   |   G   |   T   |  Del  |  In   |  SNV  | flags |\n");
     out->printf("|---+-------+-------+-------+-------+-------+-------+-------+-------+-------|\n");
     sBioseqpopul::position * p = 0;
@@ -634,7 +634,7 @@ const char * sClone::print(real cutoff, idx minCov, sStr * out)
         if( mod(offset) == i ) {
             flag.printf(" O");
         }
-        out->printf("|%3"DEC"|%7"DEC"|%7"DEC"|%7"DEC"|%7"DEC"|%7"DEC"|%7"DEC"|%7"DEC"|%7s|%7s|\n", i, subPos(i), p->base[0], p->base[1], p->base[2], p->base[3], p->base[4], p->base[5], p->isBifurcatingPosition(cutoff,minCov) ? "  ***  " : "", flag.ptr());
+        out->printf("|%3" DEC "|%7" DEC "|%7" DEC "|%7" DEC "|%7" DEC "|%7" DEC "|%7" DEC "|%7" DEC "|%7s|%7s|\n", i, subPos(i), p->base[0], p->base[1], p->base[2], p->base[3], p->base[4], p->base[5], p->isBifurcatingPosition(cutoff,minCov) ? "  ***  " : "", flag.ptr());
     }
     out->printf("|---------------------------------------------------------------------------|\n");
     return out->ptr();
@@ -654,7 +654,7 @@ const char * sFrame::printCoverage(sStr * out)
         flag.printf(" ");
         if( _coverage.curMatPOS == i )
             flag.printf(0, " M");
-        out->printf("|%3"DEC"|%7"DEC"|%7"DEC"|%7s|\n", i, getMainClone()->subPos(i), _coverage[i], flag.ptr());
+        out->printf("|%3" DEC "|%7" DEC "|%7" DEC "|%7s|\n", i, getMainClone()->subPos(i), _coverage[i], flag.ptr());
     }
     out->printf("|---------------------------|\n");
     return out->ptr();
@@ -809,7 +809,7 @@ sBioseqpopul::clonePosition * sCloneConsensus::getSubPos(idx pos)
 {
     idx ipos=pos - summary.start;
     if(ipos < 0 || ipos >= seqCov.dim() ) {
-        ::printf("Fatal ERROR: requesting position %"DEC" in a vector size %"DEC"\n",ipos,seqCov.dim());
+        ::printf("Fatal ERROR: requesting position %" DEC " in a vector size %" DEC "\n",ipos,seqCov.dim());
         return 0;
     }
     return seqCov.ptr(ipos);
@@ -850,7 +850,7 @@ idx sFrameConsensus::getSimilarities(idx cloneID, idx framePos, sBioseqpopul::po
     }
 //#ifdef _DEBUG
 //    if( tot_sim != p->getSupportedCoverage() ) {
-//        ::printf("BAD SIMILARITIES ON extractCONSENSUS: clone :%"DEC" sim_tot = %"DEC" vs coverage=%"DEC"\n",cloneID, tot_sim, p->getSupportedCoverage() );
+//        ::printf("BAD SIMILARITIES ON extractCONSENSUS: clone :%" DEC " sim_tot = %" DEC " vs coverage=%" DEC "\n",cloneID, tot_sim, p->getSupportedCoverage() );
 //    }
 //#endif
     return simils;
@@ -1016,13 +1016,13 @@ idx sFrameConsensus::trimClones() {
         if( cl->summary.hasParent() ) {
             sCloneConsensus * pcl = ptr(cl->summary.parentClID);
             if( (pcl->summary.end >= 0 && pcl->summary.end < cl->summary.first_bif_pos ) || pcl->summary.start > cl->summary.first_bif_pos) {
-                ::printf("Problem with clone %"DEC" originating at position %"DEC" from clone %"DEC" with range [%"DEC",%"DEC"]\n", cl->summary.clID, cl->summary.first_bif_pos, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
+                ::printf("Problem with clone %" DEC " originating at position %" DEC " from clone %" DEC " with range [%" DEC ",%" DEC "]\n", cl->summary.clID, cl->summary.first_bif_pos, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
             }
         }
         if( cl->summary.hasMerged() ) {
             sCloneConsensus * pcl = ptr(cl->summary.mergeclID);
             if( pcl->summary.start > cl->summary.end || (pcl->summary.end >= 0 && pcl->summary.end < cl->summary.end) ) {
-                ::printf("Problem with clone %"DEC" ending at position %"DEC" to clone %"DEC" with range [%"DEC",%"DEC"]\n", cl->summary.clID, cl->summary.end, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
+                ::printf("Problem with clone %" DEC " ending at position %" DEC " to clone %" DEC " with range [%" DEC ",%" DEC "]\n", cl->summary.clID, cl->summary.end, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
             }
         }
     }
@@ -1084,7 +1084,7 @@ bool sFrameConsensus::validateSimilarities(idx simil_size, sDic<idx> * ext_simil
             if( sum!=cl->seqCov.ptr(j - cl->summary.start)->coverage() ) {
 
 #ifdef _DEBUG
-                ::printf("not matching dictionary and seqCov. clNum:%"DEC"  pos:%"DEC" \n", cl->summary.clID, j);
+                ::printf("not matching dictionary and seqCov. clNum:%" DEC "  pos:%" DEC " \n", cl->summary.clID, j);
 #endif
                 res = false;
             }
@@ -1202,13 +1202,13 @@ idx sFrameConsensus::mergeAll() {
         if( cl->summary.hasParent() ) {
             sCloneConsensus * pcl = ptr(cl->summary.parentClID);
             if( (pcl->summary.end >= 0 && pcl->summary.end < cl->summary.first_bif_pos ) || pcl->summary.start > cl->summary.first_bif_pos) {
-                ::printf("Problem with clone %"DEC" originating at position %"DEC" from clone %"DEC" with range [%"DEC",%"DEC"]", cl->summary.clID, cl->summary.first_bif_pos, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
+                ::printf("Problem with clone %" DEC " originating at position %" DEC " from clone %" DEC " with range [%" DEC ",%" DEC "]", cl->summary.clID, cl->summary.first_bif_pos, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
             }
         }
         if( cl->summary.hasMerged() ) {
             sCloneConsensus * pcl = ptr(cl->summary.mergeclID);
             if( pcl->summary.start > cl->summary.end || (pcl->summary.end >= 0 && pcl->summary.end < cl->summary.end) ) {
-                ::printf("Problem with clone %"DEC" ending at position %"DEC" to clone %"DEC" with range [%"DEC",%"DEC"]", cl->summary.clID, cl->summary.end, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
+                ::printf("Problem with clone %" DEC " ending at position %" DEC " to clone %" DEC " with range [%" DEC ",%" DEC "]", cl->summary.clID, cl->summary.end, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
             }
         }
     }
@@ -1217,7 +1217,7 @@ idx sFrameConsensus::mergeAll() {
 }
 
 const char * sFrameConsensus::contructSimilaritiesID ( idx icl, idx pos, idx reference ) {
-    _simil_id_buf.printf(0,"%"DEC"-%"DEC"-%"DEC, icl,pos,reference);
+    _simil_id_buf.printf(0,"%" DEC "-%" DEC "-%" DEC, icl,pos,reference);
     return _simil_id_buf;
 }
 
@@ -1327,13 +1327,13 @@ idx sFrameConsensus::cleanOutClones(sVec<idx> &cloneIndex)
         if( cl->summary.hasParent() ) {
             sCloneConsensus * pcl = ptr(cl->summary.parentClID);
             if( (pcl->summary.end >= 0 && pcl->summary.end < cl->summary.start ) || pcl->summary.start > cl->summary.start) {
-                ::printf("Problem with clone %"DEC" originating at position %"DEC" from clone %"DEC" with range [%"DEC",%"DEC"]\n", cl->summary.clID, cl->summary.start, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
+                ::printf("Problem with clone %" DEC " originating at position %" DEC " from clone %" DEC " with range [%" DEC ",%" DEC "]\n", cl->summary.clID, cl->summary.start, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
             }
         }
         if( cl->summary.hasMerged() ) {
             sCloneConsensus * pcl = ptr(cl->summary.mergeclID);
             if( pcl->summary.start > cl->summary.end || (pcl->summary.end >= 0 && pcl->summary.end < cl->summary.end) ) {
-                ::printf("Problem with clone %"DEC" ending at position %"DEC" to clone %"DEC" with range [%"DEC",%"DEC"]\n", cl->summary.clID, cl->summary.end, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
+                ::printf("Problem with clone %" DEC " ending at position %" DEC " to clone %" DEC " with range [%" DEC ",%" DEC "]\n", cl->summary.clID, cl->summary.end, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
             }
         }
     }
@@ -1467,13 +1467,13 @@ idx sFrameConsensus::cleanOutClones(sVec<idx> &cloneIndex)
         if( cl->summary.hasParent() ) {
             sCloneConsensus * pcl = ptr(cl->summary.parentClID);
             if( (pcl->summary.end >= 0 && pcl->summary.end < cl->summary.start ) || pcl->summary.start > cl->summary.first_bif_pos) {
-                ::printf("Problem with clone %"DEC" originating at position %"DEC" from clone %"DEC" with range [%"DEC",%"DEC"]\n", cl->summary.clID, cl->summary.start, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
+                ::printf("Problem with clone %" DEC " originating at position %" DEC " from clone %" DEC " with range [%" DEC ",%" DEC "]\n", cl->summary.clID, cl->summary.start, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
             }
         }
         if( cl->summary.hasMerged() ) {
             sCloneConsensus * pcl = ptr(cl->summary.mergeclID);
             if( pcl->summary.start > cl->summary.end || (pcl->summary.end >= 0 && pcl->summary.end < cl->summary.end) ) {
-                ::printf("Problem with clone %"DEC" ending at position %"DEC" to clone %"DEC" with range [%"DEC",%"DEC"]\n", cl->summary.clID, cl->summary.end, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
+                ::printf("Problem with clone %" DEC " ending at position %" DEC " to clone %" DEC " with range [%" DEC ",%" DEC "]\n", cl->summary.clID, cl->summary.end, pcl->summary.clID, pcl->summary.start, pcl->summary.end);
             }
         }
     }

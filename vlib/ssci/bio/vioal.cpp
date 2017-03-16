@@ -802,7 +802,7 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
     if( !outputfilename )
         return 0;
     sStr filenames00;
-    sString::searchAndReplaceSymbols(&filenames00,filenames,0,","sString_symbolsBlank,(const char *)0,0,true,true,true,true);
+    sString::searchAndReplaceSymbols(&filenames00,filenames,0,"," sString_symbolsBlank,(const char *)0,0,true,true,true,true);
     idx iFile=0 ,iAl , iTot;
 
 
@@ -1014,7 +1014,7 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
     for( idx posCur=0,iChunk=0; posCur<alFactors->dim() ; posCur+=params.countHiveAlPieces , ++iChunk) {
 
 
-        sFilePath path(outputfilename,"%%pathx.%"DEC".vioal",iChunk);sFile::remove(path.ptr(0));
+        sFilePath path(outputfilename,"%%pathx.%" DEC ".vioal",iChunk);sFile::remove(path.ptr(0));
         sVioDB db(0);
         DigestInit(&db,path);
 
@@ -1069,8 +1069,8 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
         db.Finalize(params.combineFiles);
         //sVioal::setMode(&db,mode);
 
-        path.makeName(outputfilename,"%%flnmx.%"DEC".vioal",iChunk);
-        hiveAlBuf.printf("file://%s,%"DEC",%"DEC"\n",path.ptr(0),(idx)0,ipCnt);
+        path.makeName(outputfilename,"%%flnmx.%" DEC ".vioal",iChunk);
+        hiveAlBuf.printf("file://%s,%" DEC ",%" DEC "\n",path.ptr(0),(idx)0,ipCnt);
 
         if(myCallbackFunction){
             if( !myCallbackFunction(myCallbackParam,iChunk,50+50*(posCur+countToDo)/alFactors->dim(), 100))

@@ -456,11 +456,11 @@ void sSeqAlign::printHashTbl(bool printlits)
         sLst< RefPos > & lst = hashTbl[i];
         if(lst.dim()==0)
             continue;
-        printf("%"DEC" %"DEC,i,lst.dim());
+        printf("%" DEC " %" DEC,i,lst.dim());
 
         if(printlits){
             for (  idx il=0; il<lst.dim() ; ++il )
-                printf(" %"DEC,lst[il]._pos);
+                printf(" %" DEC,lst[il]._pos);
         }printf("\n");
     }
 }
@@ -486,14 +486,14 @@ void sBioseqHash::fossilize(idx refseq, const char * seq, idx lenseq, idx granul
 
         idx lenfos=(lenseq-start > fosblock ) ? fosblock : lenseq-start ;
         DEBUG_START(1)
-            ::printf("\n\nDIRECT refseq=%"DEC"  start=%"DEC"\n",refseq,start);
+            ::printf("\n\nDIRECT refseq=%" DEC "  start=%" DEC "\n",refseq,start);
         DEBUG_END()
         idx bm=dynamicMatch( Mat.ptr(), seq, seq, start, lenfos, start,lenfos , maxDiag, history, costs );
         *hfVec->add()=bm;
 
         if( flags&sBioseq::eFossilizeReverse ){
             DEBUG_START(1)
-                ::printf("\n\nREVERSE refseq=%"DEC"  start=%"DEC"\n",refseq,start);
+                ::printf("\n\nREVERSE refseq=%" DEC "  start=%" DEC "\n",refseq,start);
             DEBUG_END()
 
             bm=dynamicMatch( Mat.ptr(), seq, seq, start, lenfos, start,lenfos , maxDiag, history, costs , lenseq );
@@ -592,7 +592,7 @@ PERF_NEXT("MASK");
         ::printf("\n    ");
         for ( idx is2=1; is2<maxDiag; ++is2)
             ::printf("%d", (bt[is2]>=nMereKeep) ? 1 : 0 );
-        ::printf("\n    %"HEX"\n\n\n",bmask);
+        ::printf("\n    %" HEX "\n\n\n",bmask);
     DEBUG_END()
 
 PERF_END();
@@ -615,7 +615,7 @@ PERF_END();
     totAve=(totAve*totCnt+ave)/(totCnt+1);
     totAveMax=(totAveMax*totCnt+tmax)/(totCnt+1);
     ++totCnt;
-    ::printf("\nbmask=%"HEX"  ave=%"DEC" max=%"DEC" totAve=%.3lf totAveMax=%.3lf totCnt=%"DEC" \n",bmask,ave,tmax,totAve,totAveMax,totCnt);
+    ::printf("\nbmask=%" HEX "  ave=%" DEC " max=%" DEC " totAve=%.3lf totAveMax=%.3lf totCnt=%" DEC " \n",bmask,ave,tmax,totAve,totAveMax,totCnt);
     //::printf("\n");
 
 */
@@ -655,9 +655,9 @@ idx  sBioseqHash::dumpFossilized (const char * flnm)
         fwrite( (void*)hF.ptr(), 1+hCnt, sizeof( idx ) , fp); // write the fossil hashes
 
 
-        /* printf("%"DEC" cnt=%"DEC"\n", i, hF[0]);
+        /* printf("%" DEC " cnt=%" DEC "\n", i, hF[0]);
         for ( idx j=0; j<hCnt; ++j){
-            printf("\t%"DEC",%"HEX"\n",j,hF[j+1]);
+            printf("\t%" DEC ",%" HEX "\n",j,hF[j+1]);
         }
         printf("\n\n");
         */
@@ -760,9 +760,9 @@ idx sBioseqHash::fossilizeQuick(idx * fossillist, idx foscnt, const char * seq, 
             sFile::remove("W:/out.csv");
             sFil ff("W:/out.csv");
             for ( idx si=0; si<dlen; ++si ){
-                ff.printf("%"DEC"",si);
+                ff.printf("%" DEC "",si);
                 for ( idx il=0; il<sDim(signal); ++il ){
-                    ff.printf(", %"DEC,signal[il][si] );
+                    ff.printf(", %" DEC,signal[il][si] );
                 }
                 ff.printf("\n");
             }
@@ -948,7 +948,7 @@ DBG.set();
             sFile::remove("/W/out.csv");
             sFil ff("/W/out.csv");
             for ( idx is=0; is<k; ++is ){
-                ff.printf("%"DEC"",is);
+                ff.printf("%" DEC "",is);
                 for ( idx in=0; in<N; ++in ){
                     ff.printf(", %lf",DBG[N*is+in] );
                 }

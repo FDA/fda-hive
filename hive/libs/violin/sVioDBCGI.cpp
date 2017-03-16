@@ -44,7 +44,7 @@ void printBody(sStr & buf,  idx maxSize, idx ctype,idx bodysize,void * bodyptr,c
     if(ctype==sVioDB::eInt) {
         if(*(idx *)bodyptr>INT32_MAX || *(idx *)bodyptr< INT32_MIN)
             buf.printf("not a Integer");
-        else buf.printf("%"DEC"",*(idx *)bodyptr);
+        else buf.printf("%" DEC "",*(idx *)bodyptr);
     }
     else if(ctype==sVioDB::eString) {
         sStr t;
@@ -59,7 +59,7 @@ void printBody(sStr & buf,  idx maxSize, idx ctype,idx bodysize,void * bodyptr,c
         idx printSize=0;
         if(maxSize<bodysize)    {
             printSize=maxSize;
-            buf.printf("First %"DEC" is :", printSize);
+            buf.printf("First %" DEC " is :", printSize);
         }
         else printSize=bodysize;
         sString::printHexArr( &res, bodyptr, printSize, 16);
@@ -77,8 +77,8 @@ idx sVioDBCGI::Cmd(const char * cmd)
     {
         eGetTypeCnt, eGetRecordCnt, eGetRelationCnt, eGetRelationPtr, eGetHeader, eGetRecordList, eGetRelationList, eGetRelationTree, eGetRecordDetail
     };
-    const char * listCommands = "vdbGetTypeCnt"_"vdbGetRecordCnt"_"vdbGetRelationCnt"_"vdbGetRelationPtr"_"vdbGetHeader"_
-        "vdbGetRecordList"_"vdbGetRelationList"_"vdbGetRelationTree"_"vdbGetRecordDetail"__;
+    const char * listCommands = "vdbGetTypeCnt" _ "vdbGetRecordCnt" _ "vdbGetRelationCnt" _ "vdbGetRelationPtr" _ "vdbGetHeader" _
+        "vdbGetRecordList" _ "vdbGetRelationList" _ "vdbGetRelationTree" _ "vdbGetRecordDetail" __;
     idx cmdnum = -1;
     sString::compareChoice(cmd, listCommands, &cmdnum, false, 0, true);
     sVec<const char*> ctype;
@@ -161,7 +161,7 @@ idx sVioDBCGI::Cmd(const char * cmd)
 
     switch(cmdnum) {
         case eGetTypeCnt:{
-           dataForm.printf("%"DEC"",db.GetTypeCnt());
+           dataForm.printf("%" DEC "",db.GetTypeCnt());
            outHtml();
         }return 1;
         case eGetHeader:{
@@ -178,7 +178,7 @@ idx sVioDBCGI::Cmd(const char * cmd)
             for(idx i=0;i<typeCnt;i++){
                 sVioDB::TypeList * typelist_type=db.GetTypePointer(i+1);
                 idx relCnt=typelist_type->relCnt;//sizeof(typelist_type->rels)/(sizeof(sVioDB::RLST));
-                buf.printf("%"DEC",%s,%s,%"DEC",%"DEC",\"",typelist_type->index,(const char *)&typelist_type->tnameOfs,ctype[(typelist_type->ctype)-1],relCnt,typelist_type->cnt);
+                buf.printf("%" DEC ",%s,%s,%" DEC ",%" DEC ",\"",typelist_type->index,(const char *)&typelist_type->tnameOfs,ctype[(typelist_type->ctype)-1],relCnt,typelist_type->cnt);
                 sVec < idx > rels;rels.add(relCnt);
                 for(idx j=0;j<relCnt;j++){
                     if(j!=0) buf.printf(",");
@@ -213,7 +213,7 @@ idx sVioDBCGI::Cmd(const char * cmd)
                 for(;i<=cntShow &&(!cnt||i < cnt+start+1);i++){
                     idx bodysize=0;
                     void * bodyptr=db.Getbody(typeIndex, i, &bodysize);
-                    buf.printf("%"DEC",%"DEC",",i,bodysize);
+                    buf.printf("%" DEC ",%" DEC ",",i,bodysize);
                     printBody(buf, 24, typelist_type->ctype,bodysize,bodyptr,0);
                 }
                 dataForm.printf("%s",buf.ptr(0));
@@ -232,10 +232,10 @@ idx sVioDBCGI::Cmd(const char * cmd)
                     if(cntRel==0) continue;
                     sVioDB::TypeList * typelistPtr=db.GetTypePointer(relTypeIndex);
                     for(idx j=start+1;j<=cntRel && (!cnt ||j < cnt+start+1);j++){
-                        buf.printf("%"DEC",%"DEC",%"DEC",%"DEC",root/%"DEC"/%s/",i+1,cntRel,relTypeIndex,*(relPtr+j-1),i+1,(const char *)&typelistPtr->tnameOfs);
+                        buf.printf("%" DEC ",%" DEC ",%" DEC ",%" DEC ",root/%" DEC "/%s/",i+1,cntRel,relTypeIndex,*(relPtr+j-1),i+1,(const char *)&typelistPtr->tnameOfs);
                         idx bodysize=0;
                         void * bodyptr=db.Getbody(relTypeIndex, *(relPtr+j-1), &bodysize);
-                        buf.printf("%"DEC":",*(relPtr+j-1));
+                        buf.printf("%" DEC ":",*(relPtr+j-1));
                         printBody(buf, 10, typelistPtr->ctype,bodysize,bodyptr,0);
 
                     }
@@ -255,10 +255,10 @@ idx sVioDBCGI::Cmd(const char * cmd)
                     idx * relPtr=db.GetRelationPtr(typeIndex, recordIndex, i+1, &cntRel,&relTypeIndex);
                     if(cntRel==0) continue;
                     sVioDB::TypeList * typelistPtr=db.GetTypePointer(relTypeIndex);
-                    buf.printf("%"DEC",%"DEC",\"%"DEC",%s:",i+1,cntRel,relTypeIndex,(const char *)&typelistPtr->tnameOfs);
+                    buf.printf("%" DEC ",%" DEC ",\"%" DEC ",%s:",i+1,cntRel,relTypeIndex,(const char *)&typelistPtr->tnameOfs);
                     for(idx j=start+1;j<=cntRel && (!cnt ||j < cnt+start+1);j++){
                         if(j!=0) buf.printf(",");
-                        buf.printf("%"DEC"",*(relPtr+j-1));
+                        buf.printf("%" DEC "",*(relPtr+j-1));
                     }
                     buf.printf("\"\n");
                 }
@@ -276,13 +276,13 @@ idx sVioDBCGI::Cmd(const char * cmd)
                 void * bodyptr=db.Getbody(typeIndex, recordIndex, &bodysize);
                 buf.printf("typeName,%s\n",(const char *)&typelist_type->tnameOfs);
                 buf.printf("ctype,%s\n",ctype[(typelist_type->ctype)-1]);
-                buf.printf("recordIndex,%"DEC"\n",recordIndex);
-                buf.printf("bodysize,%"DEC"\n",bodysize);
+                buf.printf("recordIndex,%" DEC "\n",recordIndex);
+                buf.printf("bodysize,%" DEC "\n",bodysize);
                 buf.printf("body,");
                 printBody(buf,bodysize, typelist_type->ctype,bodysize,bodyptr,show);
                 buf.printf("\n");
                 for(idx ir=0; ir<typelist_type->relCnt;++ir ) {
-                    buf.printf("relations-%s,%"DEC"\n",(const char *)&db.GetTypePointer(typelist_type->rels[ir].typeIndex)->tnameOfs, db.GetRecordPointerByIndex(typeIndex,recordIndex)->rels[ir].cnt);
+                    buf.printf("relations-%s,%" DEC "\n",(const char *)&db.GetTypePointer(typelist_type->rels[ir].typeIndex)->tnameOfs, db.GetRecordPointerByIndex(typeIndex,recordIndex)->rels[ir].cnt);
                 }
             }
             dataForm.printf("%s",buf.ptr(0));
@@ -290,15 +290,15 @@ idx sVioDBCGI::Cmd(const char * cmd)
 
         } return 1;
         case eGetRecordCnt:{
-           dataForm.printf("%"DEC"",db.GetRecordCnt(typeIndex));
+           dataForm.printf("%" DEC "",db.GetRecordCnt(typeIndex));
            outHtml();
         } return 1;
         case eGetRelationCnt:{
-           dataForm.printf("%"DEC"",db.GetRelationCnt(typeIndex, recordIndex, relationIndex));
+           dataForm.printf("%" DEC "",db.GetRelationCnt(typeIndex, recordIndex, relationIndex));
            outHtml();
         } return 1;
         case eGetRelationPtr:{
-           dataForm.printf("%"DEC"",*db.GetRelationPtr(typeIndex,recordIndex, relationIndex, &relationCnt, &relationTypeIndex));
+           dataForm.printf("%" DEC "",*db.GetRelationPtr(typeIndex,recordIndex, relationIndex, &relationCnt, &relationTypeIndex));
         outHtml();
         } return 1;
         default:break;

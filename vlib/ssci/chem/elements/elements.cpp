@@ -277,7 +277,7 @@ void sChem::element::initTable( void )
                 if(e->ofsIsotops==0)e->ofsIsotops=isoTable.dim();
                 iso=isoTable.add();
             
-                sscanf(p,"%"DEC") %lf %lf", &iso->iMass,&iso->rMass,&iso->abundance);
+                sscanf(p,"%" DEC ") %lf %lf", &iso->iMass,&iso->rMass,&iso->abundance);
                 e->cntIsotops++;
                 //++totCnt;
             }

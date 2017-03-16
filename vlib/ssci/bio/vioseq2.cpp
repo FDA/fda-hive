@@ -125,7 +125,7 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
     udx chunksForThisPrefix = getPartCount(fsize, maxChunkSize);
     udx sizeComb = getPrefixLength(chunksForThisPrefix);
 #if _DEBUG
-    ::printf("\nParallel Version: %"DEC" partitions, %"DEC" letters\n", chunksForThisPrefix, sizeComb);
+    ::printf("\nParallel Version: %" DEC " partitions, %" DEC " letters\n", chunksForThisPrefix, sizeComb);
 #endif
 
     idx res = 0, ires;
@@ -135,7 +135,7 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
         if( flags & sVioseq2::eCreateVioseqlist ) {
             res = parseSequenceFile(firstfile, flnm, flags, primers00, complexityWindow, complexityEntropy, 0, 0);
             sFilePath tmpfile(firstfile, "%%flnm");
-            filenames.printf("file://%s, 0, %"DEC"\n", tmpfile.ptr(0), res);
+            filenames.printf("file://%s, 0, %" DEC "\n", tmpfile.ptr(0), res);
         } else {
             res = parseSequenceFile(outfile, flnm, flags, primers00, complexityWindow, complexityEntropy, 0, 0);
         }
@@ -150,7 +150,7 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
         TSequential_parse_callback_data data;
         for(udx i = 0; i < chunksForThisPrefix; i++) {
             // We must append a number to the name of the file and send it to parse
-            sFilePath newfile(outfile, "%%pathx-%"UDEC".vioseq2", i);
+            sFilePath newfile(outfile, "%%pathx-%" UDEC ".vioseq2", i);
             ires = parseSequenceFile(newfile, flnm, flags, primers00, complexityWindow, complexityEntropy, sizeComb, i, &partList[i]);
             countRes[i] = ires;
             if( ires == 0 && i != 0 ) {
@@ -170,7 +170,7 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
                     filenames.printf("\n");
                 }
                 sFilePath tmpfile(newfile, "%%flnm");
-                filenames.printf("file://%s,0,%"DEC, tmpfile.ptr(0), ires);
+                filenames.printf("file://%s,0,%" DEC, tmpfile.ptr(0), ires);
 
             } else {
                 if( i != 0 ) {
@@ -179,7 +179,7 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
                 filenames.printf("%s", newfile.ptr(0));
             }
 #if _DEBUG
-            ::printf("%s > %"DEC"\n", newfile.ptr(0), ires);
+            ::printf("%s > %" DEC "\n", newfile.ptr(0), ires);
 #endif
         }
         if( res <= 0 ) {
@@ -1243,7 +1243,7 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
         if( idSub == sNotIdx ) {
             //const char * p = strstr(idSubS, "H#=");
             //if (p) p+=3; else p=idSubS;
-            sscanf(idSubS, "%"DEC"", &idSub);
+            sscanf(idSubS, "%" DEC "", &idSub);
         }
         if( idSub == sNotIdx && sub ) { // if auto-subject dictionarizing is allowed ... use it
             if (alignflag && extractSubFromDictionary){

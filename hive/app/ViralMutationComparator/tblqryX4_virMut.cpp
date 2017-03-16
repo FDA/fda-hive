@@ -67,7 +67,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    tblqryX4_virMut backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "viral-mutation-comp", argv[0]));
+    tblqryX4_virMut backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "viral-mutation-comp", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

@@ -485,7 +485,7 @@ bool SdtmSummaryCommand::retrieveMeasurementsValues(sDic < studyStat > & summary
         out.printf("2 < x < 3  : %.2lf \n", (twoUln/tot_hasDayOne) *100);
         out.printf("x > 3      : %.2lf \n", (threeUln/tot_hasDayOne) *100);
 
-        out.printf("==> TOTAL PATIENT: %"DEC" and baseLine: %"DEC" \n", cur_study->dim(), tot_hasDayOne);
+        out.printf("==> TOTAL PATIENT: %" DEC " and baseLine: %" DEC " \n", cur_study->dim(), tot_hasDayOne);
 */
         const char * cur_study_id = (const char *)tot_study_patient.id(is,&idLen);
         if (!summary_dic.find(cur_study_id,idLen)) {
@@ -603,7 +603,7 @@ bool SdtmSummaryCommand::compute(sTabular * tbl)
 
                 idx * totBase = cur_st->totBase.get(cur_par,idLen);
                 real normalPct = ((real)(*totBase)*100/(*cur_st->totN.ptr(ipar)));
-                delMe.printf(",%.*s,%"DEC",%.2lf,%.2lf",(int)idLen,cur_par,*cur_st->totN.ptr(ipar),100-normalPct,normalPct);
+                delMe.printf(",%.*s,%" DEC ",%.2lf,%.2lf",(int)idLen,cur_par,*cur_st->totN.ptr(ipar),100-normalPct,normalPct);
 
                 sDic < real > * cur_analysis = cur_st->baseStat.get(cur_par,idLen);
 

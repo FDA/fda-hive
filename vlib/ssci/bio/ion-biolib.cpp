@@ -177,8 +177,8 @@ idx sIonExpression::parseInVitro(const char * experiment){
                      ilen=0;
                      // ( const char *  src, const char * choice00,idx * numfnd,bool isCaseInSensitive, idx startNum, bool exactMatch)
                      //const char * separator = strchr(hdr,'_');
-                     //idx foundSepar = sString::compareChoice(hdr,"_"__,0,0,0,1);
-                     char * separator = sString::searchSubstring( hdr, sizeHdr, "_"__,1, sString_symbolsEndline,0);
+                     //idx foundSepar = sString::compareChoice(hdr,"_" __,0,0,0,1);
+                     char * separator = sString::searchSubstring( hdr, sizeHdr, "_" __,1, sString_symbolsEndline,0);
                      if (separator){
                          ilen = (hdr+sizeHdr-1)-separator;
                          memcpy(ibuf,separator+1,ilen);

@@ -180,31 +180,31 @@ enum enumCommands
 
 #include "ion-cgi.cpp"
 
-const char * listCommands = "seqList"_
-"seqQC"_
-"launchSvc"_
-"archive"_
-"idMap"_
+const char * listCommands = "seqList" _
+"seqQC" _
+"launchSvc" _
+"archive" _
+"idMap" _
 
 
-    "alCount"_"alMatch"_"alView"_"alSam"_"alBed"_"alStack"_"alStackSubj"_"alConsensus"_"alMutBias"_"alSaturation"_"alIon"_"alFastq"_"alFasta"_"alFailed"_
-    "profSNP"_"profNoiseIntegral"_"profFreqIntegral"_"profWithZeros"_"profVCF"_"profSummary"_"profSummaryAll"_"profContig"_"profSNPcalls"_"profProtGen"_"profGWatch"_"profConsensus"_
-    "recombCross"_
-    "diSeqSubList"_
-    "popHierarchy"_"popSummary"_"popCoverage"_"popPredictedGlobal"_"popConsesus"_"popContig"_"popExtended"_"popPermutations"_"popStackedStats"_"popClones"_
-    "anotDefinition"_"anotNumberOfRange"_"anotRange"_"anotIdsByRangeNumber"_"anotIdByKindOfId"_"anotFile"_"anotFiles"_"ingestGeneList"_"anotGetIdTypesFromAnotFile"_"anotSearch"_"anotBrowser"_"anotDumper"_"anotMapperResults"_"anotSeqIDs"_
-    "genCount"_
-//    "ion"_
-//    "ionAnnotInfo"_"ionAnnotIdMap"_
-"clock"_
-"translatevalt"_
+    "alCount" _ "alMatch" _ "alView" _ "alSam" _ "alBed" _ "alStack" _ "alStackSubj" _ "alConsensus" _ "alMutBias" _ "alSaturation" _ "alIon" _ "alFastq" _ "alFasta" _ "alFailed" _
+    "profSNP" _ "profNoiseIntegral" _ "profFreqIntegral" _ "profWithZeros" _ "profVCF" _ "profSummary" _ "profSummaryAll" _ "profContig" _ "profSNPcalls" _ "profProtGen" _ "profGWatch" _ "profConsensus" _
+    "recombCross" _
+    "diSeqSubList" _
+    "popHierarchy" _ "popSummary" _ "popCoverage" _ "popPredictedGlobal" _ "popConsesus" _ "popContig" _ "popExtended" _ "popPermutations" _ "popStackedStats" _ "popClones" _
+    "anotDefinition" _ "anotNumberOfRange" _ "anotRange" _ "anotIdsByRangeNumber" _ "anotIdByKindOfId" _ "anotFile" _ "anotFiles" _ "ingestGeneList" _ "anotGetIdTypesFromAnotFile" _ "anotSearch" _ "anotBrowser" _ "anotDumper" _ "anotMapperResults" _ "anotSeqIDs" _
+    "genCount" _
+//    "ion" _
+//    "ionAnnotInfo" _ "ionAnnotIdMap" _
+"clock" _
+"translatevalt" _
 _;
 
-const char * listIonCommands = "ionncbiTax"_"ionTaxInfo"_"ionTaxDownInfo"_"ionTaxParent"_"ionTaxPathogenInfo"_
-"ionAnnotInfo"_"ionAnnotIdMap"_"ionTaxidCollapse"_"ionTaxidByName"_"ionCodonDB"_"extendCodonTable"_"ionWander"_
+const char * listIonCommands = "ionncbiTax" _ "ionTaxInfo" _ "ionTaxDownInfo" _ "ionTaxParent" _ "ionTaxPathogenInfo" _
+"ionAnnotInfo" _ "ionAnnotIdMap" _ "ionTaxidCollapse" _ "ionTaxidByName" _ "ionCodonDB" _ "extendCodonTable" _ "ionWander" _
 _;
 
-const char * listIonBioCommands = "ionGenBankAnnotPosMap"_"ionAnnotTypes"_"ionAnnotInfoAll"_""
+const char * listIonBioCommands = "ionGenBankAnnotPosMap" _ "ionAnnotTypes" _ "ionAnnotInfoAll" _ ""
 _;
 
 idx DnaCGI::Cmd(const char * cmd)
@@ -234,7 +234,7 @@ idx DnaCGI::Cmd(const char * cmd)
             udx waitTime = pForm->uvalue("msecs", 1000);
             sStr * out = &dataForm;
             sleepMS(waitTime);
-            out->printf("waited for %"DEC"msecs successfully", waitTime);
+            out->printf("waited for %" DEC "msecs successfully", waitTime);
             outHtml();
             return 1;
         }
@@ -275,7 +275,7 @@ idx DnaCGI::Cmd(const char * cmd)
             }
             sStr dest;
             cfgStr(&dest, 0, "user.download");
-            dest.printf("cnv-%"DEC"/", reqId ? reqId : getpid() + rand()); // slash at the end important!
+            dest.printf("cnv-%" DEC "/", reqId ? reqId : getpid() + rand()); // slash at the end important!
             if( !sDir::makeDir(dest) ) {
                 error("Staging area access error: %s", strerror(errno));
                 break;
@@ -441,7 +441,7 @@ idx DnaCGI::Cmd(const char * cmd)
             const sBioseq::EBioMode biomode = pForm->boolvalue("long", true) ? sBioseq::eBioModeLong : sBioseq::eBioModeShort;
 
             idx formatToPrint=0;
-            const char *formats = "csv"_"fasta"_"fastq"_"fastx"__;
+            const char *formats = "csv" _ "fasta" _ "fastq" _ "fastx" __;
             sString::compareChoice(pForm->value("fformat", "csv"), formats, &formatToPrint, false, 0, true);
 
             bool isHeader = (formatToPrint == 0) && pForm->boolvalue("header", true);
@@ -602,7 +602,7 @@ idx DnaCGI::Cmd(const char * cmd)
 
                     t.cut(0);
                     sString::escapeForCSV(t, id);
-                    out->printf("%"DEC",%"DEC",%"DEC",%s,%s%s\n", (is + 1), len, rpt, t.ptr(), ss.ptr(0), ellipsize ? "..." : "");
+                    out->printf("%" DEC ",%" DEC ",%" DEC ",%s,%s%s\n", (is + 1), len, rpt, t.ptr(), ss.ptr(0), ellipsize ? "..." : "");
                     isValid = 1;
                 }
                 iVisible += isValid;
@@ -656,13 +656,13 @@ idx DnaCGI::Cmd(const char * cmd)
             const sHiveId objID(pForm->value("query"));
             const char *key = pForm->value("key");
             if( !objID ) {
-                error("Invalid objID: %"DEC, objID.objId());
+                error("Invalid objID: %" DEC, objID.objId());
                 break;
             }
             sStr lockBuf;
 
             idx keynum = -1;
-            const char * listSvcKey = "dna-qc"_"dna-screening"__;
+            const char * listSvcKey = "dna-qc" _ "dna-screening" __;
 
             sString::compareChoice(key, listSvcKey, &keynum, false, 0, true);
 
@@ -677,11 +677,11 @@ idx DnaCGI::Cmd(const char * cmd)
             idx reqLock = reqCheckLock(lockString);
             idx priority = 1000;
             if (reqLock){
-                dataForm.printf("Waiting for %s request=%"DEC"\n", svc->getSvcName(), reqLock);
+                dataForm.printf("Waiting for %s request=%" DEC "\n", svc->getSvcName(), reqLock);
             }
             else {
                 idx reqsubmitedQC = svc->launch(*user, grpId, 0, priority);
-                dataForm.printf("Submitted %s request=%"DEC"\n", svc->getSvcName(), reqsubmitedQC);
+                dataForm.printf("Submitted %s request=%" DEC "\n", svc->getSvcName(), reqsubmitedQC);
             }
             outHtml();
             return 1;
@@ -763,7 +763,7 @@ idx DnaCGI::Cmd(const char * cmd)
         std::auto_ptr<sUsrObj> al(user->objFactory(parent_proc_ids.dim() ? parent_proc_ids[0] : sHiveId::zero));
 
         sStr cr_path;
-        al->getFilePathname00(cr_path, "alignment.hiveal"_"alignment.vioal"__);
+        al->getFilePathname00(cr_path, "alignment.hiveal" _ "alignment.vioal" __);
         sHiveal hiveal(user, cr_path);
         sBioal * bioal = &hiveal;
 
@@ -781,7 +781,7 @@ idx DnaCGI::Cmd(const char * cmd)
         }
 
         cr_path.cut0cut();
-        obj.getFilePathname00(cr_path, "_.dic"__);
+        obj.getFilePathname00(cr_path, "_.dic" __);
         sFil dicbuf(cr_path,sMex::fReadonly);
         if( !dicbuf.ok() ) return 1;
         sDic<sMex::Pos> dicLU;
@@ -795,7 +795,7 @@ idx DnaCGI::Cmd(const char * cmd)
         if(!lupos)return 1;
 
         cr_path.cut0cut();
-        obj.getFilePathname00(cr_path, "_.vec"__);
+        obj.getFilePathname00(cr_path, "_.vec" __);
         sVec<idx> allreads(sMex::fReadonly,cr_path.ptr());
         if( !allreads.dim() ) {
             error("read container is missing");
@@ -857,11 +857,11 @@ idx DnaCGI::CmdAlignment(idx cmdnum)
         return 1;
     }
     sStr pathAl;
-    objs[0].getFilePathname00(pathAl, "alignment.hiveal"_"alignment.vioal"__);
+    objs[0].getFilePathname00(pathAl, "alignment.hiveal" _ "alignment.vioal" __);
     sHiveal hiveal(user, pathAl);
     sBioal * bioal = &hiveal;
 
-    //sStr pathList;listObjOrReqFiles( &pathList, "alignment.vioal"_"alignment-slice.vioal"__, 0 ,0); // "dna-hexagon"
+    //sStr pathList;listObjOrReqFiles( &pathList, "alignment.vioal" _ "alignment-slice.vioal" __, 0 ,0); // "dna-hexagon"
 
     idx start = formIValue("start", 0), cnt = formIValue("cnt", sIdxMax), mySubID = formIValue("mySubID", 0);
     --mySubID;
@@ -1066,13 +1066,13 @@ idx DnaCGI::CmdAlignment(idx cmdnum)
             if( mySubID == sNotIdx ) {
                 outFileName.printf("o%s-%s-Unaligned", objs[0].Id().print(), cmd);
             }
-            outFileName.printf("o%s-%s-%"DEC, objs[0].Id().print(), cmd, mySubID);
+            outFileName.printf("o%s-%s-%" DEC, objs[0].Id().print(), cmd, mySubID);
         }
     } else {
-        outFileName.printf("r%"DEC"-%s-%"DEC, reqId, cmd, mySubID);
+        outFileName.printf("r%" DEC "-%s-%" DEC, reqId, cmd, mySubID);
     }
     if( par.High > 0 )
-        outFileName.printf("-%"DEC, par.High);
+        outFileName.printf("-%" DEC, par.High);
     outFileName.printf(".%s", extension);
     outBinHeaders(true, "%s", outFileName.ptr());
     if( cmdnum == eAlMatch ) {
@@ -1101,7 +1101,7 @@ idx DnaCGI::CmdAlignment(idx cmdnum)
             sStr childPath, childFilePath, childFileNames;
 //                         objs[is].generatePathStoreManager(&childPath, false);
             for(idx iS = 0; iS < Sub.dim(); ++iS) {
-                childFileNames.printf(0, "SNPprofile-%"DEC".csv", iS);
+                childFileNames.printf(0, "SNPprofile-%" DEC ".csv", iS);
                 childFilePath.printf("%s", childFileNames.ptr());
                 if( sFile::size(childFilePath) ) {
 //                             childProcessedList.vadd(1,iS);
@@ -1150,7 +1150,7 @@ idx DnaCGI::CmdAlignment(idx cmdnum)
                 if( ionObjIDs ) {
                     sStr ionQry;
                     if( hi.ionCnt > 2 ) {
-                        ionQry.printf(0, "a=2-%"DEC":find.annot(id='$id', type='$type'); b=2-%"DEC":find.annot(record=a.record); dict(b.type,b.id);print(b.seqID, b.id,b.type);c=2-%"DEC":find.annot(seqID=b.seqID,type='FEATURES',id='source');d=2-%"DEC":find.annot(record=c.record);dict(d.type,d.id);", hi.ionCnt, hi.ionCnt,hi.ionCnt,hi.ionCnt);
+                        ionQry.printf(0, "a=2-%" DEC ":find.annot(id='$id', type='$type'); b=2-%" DEC ":find.annot(record=a.record); dict(b.type,b.id);print(b.seqID, b.id,b.type);c=2-%" DEC ":find.annot(seqID=b.seqID,type='FEATURES',id='source');d=2-%" DEC ":find.annot(record=c.record);dict(d.type,d.id);", hi.ionCnt, hi.ionCnt,hi.ionCnt,hi.ionCnt);
                     } else
                         ionQry.printf(0, "a=2:find.annot(id='$id', type='$type');b=2:find.annot(record=a.record);dict(b.type,b.id);print(b.seqID, b.id,b.type);c=2:find.annot(seqID=b.seqID,type='FEATURES',id='source');d=2:find.annot(record=c.record);dict(d.type,d.id);");
                     hi.addIonWander("complexIDLookup", ionQry.ptr(0));
@@ -1167,7 +1167,7 @@ idx DnaCGI::CmdAlignment(idx cmdnum)
             res = bioal->printAlignmentSummaryBySubject(stat, &out, &par, reportZeroHits, reportTotals, reportFailed, start, cnt, processedSubs.dim() ? &processedSubs : 0, cov_dic);
         }
         if( formBoolValue("info") ) {
-            out.printf("info,%"DEC",%"DEC"\n", start, res);
+            out.printf("info,%" DEC ",%" DEC "\n", start, res);
         }
     } else if( cmdnum == eAlMatch && (mySubID >= 0 || qty == -1) ) {
         res = bioal->iterateAlignments(&iVis, start, cnt, mySubID, sBioal::printMatchSingle, &par);
@@ -1214,11 +1214,11 @@ idx DnaCGI::CmdAlignment(idx cmdnum)
                 if( par.rangestart < Sub.len(mySubID) && sub ) {
                     sStr tSub;
                     sString::searchAndReplaceSymbols(&tSub, bioal->Sub->id(mySubID), 0, ",", " ", 0, true, true, false, false);
-                    out.printf(0, "Element #,%5"DEC", (+) ,%5"DEC",", mySubID + 1, par.rangestart + 1);
+                    out.printf(0, "Element #,%5" DEC ", (+) ,%5" DEC ",", mySubID + 1, par.rangestart + 1);
 
                     for(idx isx = par.rangestart; isx <= par.rangeend; ++isx)
                         out.printf("%c", sBioseq::mapRevATGC[sBioseq::mapComplementATGC[(idx) sBioseqAlignment::_seqBits(sub, isx, ~(sBioseqAlignment::fAlignBackwardComplement))]]);
-                    out.printf(",%"DEC",%s,Repeats,%"DEC",%"DEC, par.rangeend + 1, tSub.ptr(), par.High + 1, par.High - par.rangestart + 1);
+                    out.printf(",%" DEC ",%s,Repeats,%" DEC ",%" DEC, par.rangeend + 1, tSub.ptr(), par.High + 1, par.High - par.rangestart + 1);
                     if( &par.regp )
                         out.printf(",,");
                     out.printf("\n");
@@ -1241,7 +1241,7 @@ idx DnaCGI::CmdAlignment(idx cmdnum)
         cnt = 0;
         res = bioal->iterateAlignments(&iVis, start, cnt, mySubID, sBioal::printAlignmentSingle, &par);
         for(idx i = 0; i < mutBias.dim() / 4; ++i)
-            out.printf("%"DEC",%"DEC",%"DEC",%"DEC",%"DEC"\n", i + 1, mutBias[4 * i], mutBias[4 * i + 1], mutBias[4 * i + 2], mutBias[4 * i + 3]);
+            out.printf("%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC "\n", i + 1, mutBias[4 * i], mutBias[4 * i + 1], mutBias[4 * i + 2], mutBias[4 * i + 3]);
     } else if ( cmdnum == eAlSaturation ) {
         par.navigatorFlags |= sBioal::alPrintInRandom;
         if(par.regp) {
@@ -1286,15 +1286,15 @@ idx DnaCGI::CmdAlignment(idx cmdnum)
 
         idx binCnt = maxCnt/par.wrap;
         for(idx ih = 0 ; ih < binCnt ;  ++ih) {
-            tk_buf.printf(0,"bin-%"DEC,ih+1);
+            tk_buf.printf(0,"bin-%" DEC,ih+1);
             hits = refHits.get( tk_buf.ptr() );
             if(hits) {
                 binHits = *hits;
             }
-            out.printf("%"DEC", %"DEC"\n", par.wrap*(ih+1), binHits);
+            out.printf("%" DEC ", %" DEC "\n", par.wrap*(ih+1), binHits);
         }
 
-        out.printf("%"DEC", %"DEC"\n", maxCnt, refHits.dim() - binCnt - 1 );
+        out.printf("%" DEC ", %" DEC "\n", maxCnt, refHits.dim() - binCnt - 1 );
     } else if( (cmdnum == eAlIon) ) {
 
 //        const char * ionObjIDs = pForm->value("ionObjs",0);
@@ -1308,7 +1308,7 @@ idx DnaCGI::CmdAlignment(idx cmdnum)
 //        sIO io(0,(sIO::callbackFun)::printf);
 //
 //        sDic <sStr > dic;
-//        hi.annotMap(&io,0, &dic,"167006432"  _ "gi|000111|refSeq|NC_001447.1| wkuf" _ "gi|388570767|kokokokokok kwlkefnlkn"__ );
+//        hi.annotMap(&io,0, &dic,"167006432"  _ "gi|000111|refSeq|NC_001447.1| wkuf" _ "gi|388570767|kokokokokok kwlkefnlkn" __ );
 
     }
 
@@ -1344,7 +1344,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
         return 1;
     }
     sStr parentAlignmentPath;
-    al->getFilePathname00(parentAlignmentPath, "alignment.hiveal"_"alignment.vioal"__);
+    al->getFilePathname00(parentAlignmentPath, "alignment.hiveal" _ "alignment.vioal" __);
     if( !parentAlignmentPath ) {
         return 1;
     }
@@ -1364,7 +1364,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
     obj.getFilePathname(profPath, "SNPprofile.csv");
     if( !sFile::exists(profPath) ) {
         isConcatenated = false;
-        obj.getFilePathname(profPath, "SNPprofile-%"DEC".csv", mySubID + 1);
+        obj.getFilePathname(profPath, "SNPprofile-%" DEC ".csv", mySubID + 1);
     }
     sFil SNPprofile(profPath, sMex::fReadonly); // SNPprofile will be empty if 0 is passed in for mySubID (for all references)
 
@@ -1386,7 +1386,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
 
             //TODO fix downloadable file name
             sStr outFileName;
-            outFileName.printf("o%s-s%"DEC"-%sProfileIntegrals.csv", obj.Id().print(), mySubID + 1,((cmdnum==eProfNoiseIntegral)?"Noise":"Frequency"));
+            outFileName.printf("o%s-s%" DEC "-%sProfileIntegrals.csv", obj.Id().print(), mySubID + 1,((cmdnum==eProfNoiseIntegral)?"Noise":"Frequency"));
             outBinHeaders(true,"%s",outFileName.ptr());
             real resolution = obj.propGetR("noiseProfileResolution");
             if(!resolution) resolution = sBioseqSNP::noiseProfileResolution;
@@ -1413,7 +1413,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
             idx end = cnt ? start + cnt : Sub.len(mySubID);
 
             sStr path;
-            if( !obj.getFilePathname(path, "SNPprofile-%"DEC".csv", mySubID + 1) ) {
+            if( !obj.getFilePathname(path, "SNPprofile-%" DEC ".csv", mySubID + 1) ) {
                 return 1;
             }
             sFil SNPprofileT(path, sMex::fReadonly);
@@ -1423,10 +1423,10 @@ idx DnaCGI::CmdProfile(idx cmdnum)
 
             sStr outFileName;
             if( !start && !cnt ) {
-                outFileName.printf("o%s-SNPprofile_withzeros-%"DEC".csv", obj.Id().print(), mySubID + 1);
+                outFileName.printf("o%s-SNPprofile_withzeros-%" DEC ".csv", obj.Id().print(), mySubID + 1);
             } else {
                 // use random prefix since data will vary as user changes start/cnt
-                outFileName.printf("o%s-%"DEC"-SNPprofile_withzeros-%"DEC".csv", obj.Id().print(), reqId ? reqId : getpid() + rand(), mySubID + 1);
+                outFileName.printf("o%s-%" DEC "-SNPprofile_withzeros-%" DEC ".csv", obj.Id().print(), reqId ? reqId : getpid() + rand(), mySubID + 1);
             }
             outBinHeaders(true, "%s", outFileName.ptr());
 
@@ -1464,10 +1464,10 @@ idx DnaCGI::CmdProfile(idx cmdnum)
                 start = cnt = 0;
                 outFileName.printf("o%s-SNPprofile-all.vcf", obj.Id().print());
             } else if( !start && !cnt ) {
-                outFileName.printf("o%s-SNPprofile-%"DEC".vcf", obj.Id().print(), mySubID + 1);
+                outFileName.printf("o%s-SNPprofile-%" DEC ".vcf", obj.Id().print(), mySubID + 1);
             } else {
                 // use random prefix since data will vary as user changes start/cnt
-                outFileName.printf("o%s-%"DEC"-SNPprofile-%"DEC".vcf", obj.Id().print(), reqId ? reqId : getpid() + rand(), mySubID + 1);
+                outFileName.printf("o%s-%" DEC "-SNPprofile-%" DEC ".vcf", obj.Id().print(), reqId ? reqId : getpid() + rand(), mySubID + 1);
             }
             outBinHeaders(true, "%s", outFileName.ptr());
 
@@ -1484,7 +1484,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
             for(idx curSub = subStart; curSub < subEnd; ++curSub) {
 
                 //sStr path;
-                //if( !obj.getFilePathname(path, "SNPprofile-%"DEC".csv", curSub + 1) ) {
+                //if( !obj.getFilePathname(path, "SNPprofile-%" DEC ".csv", curSub + 1) ) {
                 //    continue;
                 //}
                 //sFil SNPprofileT(path,sMex::fReadonly);
@@ -1505,7 +1505,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
                     sBioseqSNP::iterateProfile(&SNPprofile, end, &iVis, start, cnt, sViosam::convertSNPintoVCF, &params);
                 } else {
                     profPath.cut(0);
-                    obj.getFilePathname(profPath, "SNPprofile-%"DEC".csv", curSub + 1);
+                    obj.getFilePathname(profPath, "SNPprofile-%" DEC ".csv", curSub + 1);
                     sFil SNPprofileOld(profPath, sMex::fReadonly);
                     sBioseqSNP::iterateProfile(&SNPprofileOld, end, &iVis, start, cnt, sViosam::convertSNPintoVCF, &params);
                 }
@@ -1560,7 +1560,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
                 if( isConcatenated )
                     obj.getFilePathname(tmp_profPath, "SNPprofile.csv");
                 else
-                    obj.getFilePathname(tmp_profPath, "SNPprofile-%"DEC".csv", mySubID + 1);
+                    obj.getFilePathname(tmp_profPath, "SNPprofile-%" DEC ".csv", mySubID + 1);
                 if( !sFile::exists(tmp_profPath) ) {
                     return 1;
                 }
@@ -1590,32 +1590,32 @@ idx DnaCGI::CmdProfile(idx cmdnum)
                 if( cmdnum == eProfSummary ) {
                     if( !all ) {
                         out.printf("- General Information -,\n");
-                        out.printf("Total Reference Genome Length,%"DEC"\n", ps.reflen);
-                        out.printf("Number of Reference Genomes,%"DEC"\n", Sub.dim());
+                        out.printf("Total Reference Genome Length,%" DEC "\n", ps.reflen);
+                        out.printf("Number of Reference Genomes,%" DEC "\n", Sub.dim());
                         out.printf("- Mapped Regions -,\n");
-                        out.printf("Total Contig Length,%"DEC"\n", ps.totalContigLength);
+                        out.printf("Total Contig Length,%" DEC "\n", ps.totalContigLength);
                         out.printf("Mapped Coverage (%% Reference),%.2lf\n", ps.contigsPart);
-                        out.printf("Average Coverage of Contigs,%"DEC"\n", ps.averageContigCoverage);
-                        out.printf("RPCM (Reads Per Contig base per Million mapped reads),%"DEC"\n", (idx)(1000000*((real)ps.averageContigCoverage/totAlRpts)));
-                        out.printf("Total Number of Contigs,%"DEC"\n", ps.totalContigsNumber);
+                        out.printf("Average Coverage of Contigs,%" DEC "\n", ps.averageContigCoverage);
+                        out.printf("RPCM (Reads Per Contig base per Million mapped reads),%" DEC "\n", (idx)(1000000*((real)ps.averageContigCoverage/totAlRpts)));
+                        out.printf("Total Number of Contigs,%" DEC "\n", ps.totalContigsNumber);
                         out.printf("- Unmapped Regions -,\n");
-                        out.printf("Total Length of the Unmapped Regions,%"DEC"\n", ps.totalGapLength);
+                        out.printf("Total Length of the Unmapped Regions,%" DEC "\n", ps.totalGapLength);
                         out.printf("Unmapped Regions (%% Reference),%.2lf\n", ps.gapsPart);
-                        out.printf("Average Coverage of Gaps,%"DEC"\n", ps.averageGapCoverage);
-                        out.printf("Total Number of Gaps Found,%"DEC"\n", ps.totalGapsNumber);
+                        out.printf("Average Coverage of Gaps,%" DEC "\n", ps.averageGapCoverage);
+                        out.printf("Total Number of Gaps Found,%" DEC "\n", ps.totalGapsNumber);
                     } else {
-                        out.printf("%"DEC",", mySubID);
+                        out.printf("%" DEC ",", mySubID);
                         out.printf("\"%s\",", Sub.id(mySubID));
-                        out.printf("%"DEC",", ps.reflen);
-                        out.printf("%"DEC",", ps.totalContigLength);
+                        out.printf("%" DEC ",", ps.reflen);
+                        out.printf("%" DEC ",", ps.totalContigLength);
                         out.printf("%.2lf,", ps.contigsPart);
-                        out.printf("%"DEC",", ps.averageContigCoverage);
-                        out.printf("%"DEC",", (idx)( 1000000*((real)ps.averageContigCoverage/totAlRpts)));
-                        out.printf("%"DEC",", ps.totalContigsNumber);
-                        out.printf("%"DEC",", ps.totalGapLength);
+                        out.printf("%" DEC ",", ps.averageContigCoverage);
+                        out.printf("%" DEC ",", (idx)( 1000000*((real)ps.averageContigCoverage/totAlRpts)));
+                        out.printf("%" DEC ",", ps.totalContigsNumber);
+                        out.printf("%" DEC ",", ps.totalGapLength);
                         out.printf("%.2lf,", ps.gapsPart);
-                        out.printf("%"DEC",", ps.averageGapCoverage);
-                        out.printf("%"DEC"\n", ps.totalGapsNumber);
+                        out.printf("%" DEC ",", ps.averageGapCoverage);
+                        out.printf("%" DEC "\n", ps.totalGapsNumber);
                     }
                 } else if ( cmdnum == eProfContig ){
                     if( !cnt )
@@ -1642,7 +1642,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
                         if( all ) {
                             out.printf("\"%s\",",Sub.id(mySubID));
                         }
-                        out.printf("%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%s\n", i + 1, spg.start + 1, spg.end + 1, spg.length, spg.averageCoverage, spg.hasCoverage ? "true" : "false");
+                        out.printf("%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%s\n", i + 1, spg.start + 1, spg.end + 1, spg.length, spg.averageCoverage, spg.hasCoverage ? "true" : "false");
                     }
                 }
             }
@@ -1650,14 +1650,14 @@ idx DnaCGI::CmdProfile(idx cmdnum)
                 if( all ) {
                     outBin(out.ptr(), out.length(), 0, true, "o%s-Summary-all.csv", obj.Id().print());
                 } else
-                    outBin(out.ptr(), out.length(), 0, true, "o%s-Summary-%"DEC".csv", obj.Id().print(), mySubID + 1);
+                    outBin(out.ptr(), out.length(), 0, true, "o%s-Summary-%" DEC ".csv", obj.Id().print(), mySubID + 1);
                 return 1;
 
             } else if( cmdnum == eProfContig ) {
                 if( all ) {
                     outBin(out.ptr(), out.length(), 0, true, "o%s-Contigs-all.csv", obj.Id().print());
                 } else
-                    outBin(out.ptr(), out.length(), 0, true, "o%s-Contigs-%"DEC".csv", obj.Id().print(), mySubID + 1);
+                    outBin(out.ptr(), out.length(), 0, true, "o%s-Contigs-%" DEC ".csv", obj.Id().print(), mySubID + 1);
             }
         }
             return 1;
@@ -1694,7 +1694,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
                             continue;
                         sStr refPreservedQuotes;
                         sString::escapeForCSV(refPreservedQuotes, Sub.id(mySubID - 1));
-                        out.printf("%"DEC",%"DEC",%c,%.2f,-,%s\n", Line.position, Line.position, sBioseq::mapRevATGC[ic], Line.freq(ic), refPreservedQuotes.ptr());
+                        out.printf("%" DEC ",%" DEC ",%c,%.2f,-,%s\n", Line.position, Line.position, sBioseq::mapRevATGC[ic], Line.freq(ic), refPreservedQuotes.ptr());
                     }
                 }
             }
@@ -1746,7 +1746,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
             if( mySubID >= 0 ) {
                 iSubStart = mySubID;
                 iSubEnd = mySubID + 1;
-                outBinHeaders(true, "o%s-SNPcall-%"DEC"-%1.4f.csv",obj.IdStr(), mySubID + 1, SPC.snpCallCutoff);
+                outBinHeaders(true, "o%s-SNPcall-%" DEC "-%1.4f.csv",obj.IdStr(), mySubID + 1, SPC.snpCallCutoff);
             } else {
                 outBinHeaders(true, "o%s-SNPcall-all-%1.4f.csv",obj.IdStr(), SPC.snpCallCutoff);
             }
@@ -1766,7 +1766,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
                 } else {
                     SNPprofilePerR.destroy();
                     path.cut(0);
-                    obj.getFilePathname(path, "SNPprofile-%"DEC".csv", iSub + 1);
+                    obj.getFilePathname(path, "SNPprofile-%" DEC ".csv", iSub + 1);
                     SNPprofilePerR.init(path, sMex::fReadonly);
                 }
                 if( !SNPprofilePerR.length() ) {
@@ -1774,7 +1774,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
                 }
                 sStr subName;
                 if( formIValue("hideSubjectName", 0) ) {
-                    subName.printf("ref#%"DEC, iSub + 1);
+                    subName.printf("ref#%" DEC, iSub + 1);
                 } else {
                     subName.printf(Sub.id(iSub));
                 }
@@ -1825,7 +1825,7 @@ idx DnaCGI::CmdProfile(idx cmdnum)
         case eProfConsensus: {
             idx defline = pForm->ivalue("defline", 1);
             idx iVis = 0;
-            outBinHeaders(true, "o%s-Consensus-%"DEC".fa", obj.Id().print(), mySubID + 1);
+            outBinHeaders(true, "o%s-Consensus-%" DEC ".fa", obj.Id().print(), mySubID + 1);
 
             sStr fasta_header;
 
@@ -1880,7 +1880,7 @@ idx DnaCGI::CmdRecomb(idx cmdnum)
      return 1;
      }
      sStr parentAlignmentPath;
-     al->getFilePathname00(parentAlignmentPath, "alignment.hiveal"_"alignment.vioal"__);
+     al->getFilePathname00(parentAlignmentPath, "alignment.hiveal" _ "alignment.vioal" __);
      if( !parentAlignmentPath ) {
      return 1;
      }
@@ -1899,7 +1899,7 @@ idx DnaCGI::CmdRecomb(idx cmdnum)
              sDic<sStr> cross2;
              idx mySub1 = pForm->ivalue("sub1",0) - 1;
              idx mySub2 = pForm->ivalue("sub2",0) - 1;
-             outBinHeaders(true,"o%s-cross-%"DEC"-%"DEC".csv",obj.IdStr(),mySub1+1,mySub2+1);
+             outBinHeaders(true,"o%s-cross-%" DEC "-%" DEC ".csv",obj.IdStr(),mySub1+1,mySub2+1);
              if(mySub1 < 0 || mySub2 < 0 || mySub1 == mySub2) {
                  return 1;
              }
@@ -1939,14 +1939,14 @@ idx DnaCGI::CmdRecomb(idx cmdnum)
                  sStr * value2 = cross2.get((void *)&ion_p,sizeof(ion_p));if(value2)value2->add0();
                  if( value1 || value2 ) {
                      if(!isPrevValid && !isPrevZero){
-                         out.printf("%"DEC",0,0\n",iS-1);
+                         out.printf("%" DEC ",0,0\n",iS-1);
                      }
-                     out.printf("%"DEC",%s,%s\n",iS,(value1?value1->ptr():"0"),(value2?value2->ptr():"0"));
+                     out.printf("%" DEC ",%s,%s\n",iS,(value1?value1->ptr():"0"),(value2?value2->ptr():"0"));
                      isPrevZero = false;
                      isPrevValid=true;
                  } else {
                      if(isPrevValid) {
-                         out.printf("%"DEC",0,0\n",iS);
+                         out.printf("%" DEC ",0,0\n",iS);
                          isPrevZero = true;
                      } else {
                          isPrevZero = false;
@@ -1975,7 +1975,7 @@ idx DnaCGI::CmdPopulation(idx cmdnum)
         return 1;
     }
     sStr parentAlignmentPath;
-    al->getFilePathname00(parentAlignmentPath, "alignment.hiveal"_"alignment.vioal"__);
+    al->getFilePathname00(parentAlignmentPath, "alignment.hiveal" _ "alignment.vioal" __);
     if( !parentAlignmentPath ) {
         return 1;
     }
@@ -2005,7 +2005,7 @@ idx DnaCGI::CmdPopulation(idx cmdnum)
     if( objs.dim() ) {
         outFileName.printf("o%s-%s", objs[0].Id().print(), cmd);
     } else {
-        outFileName.printf("r%"DEC"-%s", reqId, cmd);
+        outFileName.printf("r%" DEC "-%s", reqId, cmd);
     }
 
     if( cmdnum>=ePopContig && cmdnum<=ePopPermutations ) {
@@ -2088,17 +2088,17 @@ idx DnaCGI::CmdPopulation(idx cmdnum)
     sStr pathList_buf, pathSimil_buf, pathSkp2Gps_buf, pathGps2Skp_buf;
     const char *pathList = 0, *pathSimil = 0, *pathSkp2Gps = 0, *pathGps2Skp = 0;
 
-    pathList = obj.getFilePathname00(pathList_buf, "clones.viopop"__);
+    pathList = obj.getFilePathname00(pathList_buf, "clones.viopop" __);
     if (params.showSimil) {
-        pathSimil = obj.getFilePathname00(pathSimil_buf, "clones.simil"__);
+        pathSimil = obj.getFilePathname00(pathSimil_buf, "clones.simil" __);
     }
     if ( (params.flags&sViopop::clSkipSupportedDeletions) && !(c_print&sViopop::ePrintContigSummary) ) {
-        pathSkp2Gps = obj.getFilePathname00(pathSkp2Gps_buf, "skip2gapSupprted.map"__);
-        pathGps2Skp = obj.getFilePathname00(pathGps2Skp_buf, "gap2skipSupprted.map"__);
+        pathSkp2Gps = obj.getFilePathname00(pathSkp2Gps_buf, "skip2gapSupprted.map" __);
+        pathGps2Skp = obj.getFilePathname00(pathGps2Skp_buf, "gap2skipSupprted.map" __);
     }
     else if( (params.flags&sViopop::clPrintNoGapsFrame) && !(c_print&sViopop::ePrintContigSummary) ) {
-        pathSkp2Gps = obj.getFilePathname00(pathSkp2Gps_buf, "skip2gap.map"__);
-        pathGps2Skp = obj.getFilePathname00(pathGps2Skp_buf, "gap2skip.map"__);
+        pathSkp2Gps = obj.getFilePathname00(pathSkp2Gps_buf, "skip2gap.map" __);
+        pathGps2Skp = obj.getFilePathname00(pathGps2Skp_buf, "gap2skip.map" __);
     }
 
     sFil similFl(pathList, sMex::fReadonly);
@@ -2316,12 +2316,12 @@ idx DnaCGI::CmdAnnotation(idx cmd)
                     hiWander->resetResultBuf();
                     hiWander->traverse();
                     if (hiWander->traverseBuf.length() && !showStat) {
-                        line.printf("\"%.*s\",%"DEC",%"DEC",",(int)seqIDLen,seqID,start, end);
+                        line.printf("\"%.*s\",%" DEC ",%" DEC ",",(int)seqIDLen,seqID,start, end);
                         for (idx ipt=0; ipt< hiWander->traverseBuf.length(); ++ipt) {
                             char * myChar = hiWander->traverseBuf.ptr(ipt);
                             line.addString(myChar,1);
                             if (*myChar =='\n' && ipt < hiWander->traverseBuf.length() -1) {
-                                line.printf("\"%.*s\",%"DEC",%"DEC",",(int)seqIDLen,seqID,start, end);
+                                line.printf("\"%.*s\",%" DEC ",%" DEC ",",(int)seqIDLen,seqID,start, end);
                             }
 
                         }
@@ -2337,7 +2337,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
                     if (i<start) continue;
                     if (iCnt > cnt-1) break;
                     const char * cur_id = (const char*)hiWander->resultCounter.id(i,&cur_id_len);
-                    line.printf("\"%.*s\",%"DEC"\n",(int)cur_id_len, cur_id,*hiWander->resultCounter.ptr(i));
+                    line.printf("\"%.*s\",%" DEC "\n",(int)cur_id_len, cur_id,*hiWander->resultCounter.ptr(i));
                     iCnt++;
                 }
             }
@@ -2387,7 +2387,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
                 objFolder.propSet("ext", "genelist");
             }
             objFolder.cast("u-idList");
-            line.printf(0, "{\"%"DEC"\":{\"signal\":\"default\",\"data\":{\"from\":\"u-file\",\"to\":\"u-idList\"}}}", objIDToConvert.objId());
+            line.printf(0, "{\"%" DEC "\":{\"signal\":\"default\",\"data\":{\"from\":\"u-file\",\"to\":\"u-idList\"}}}", objIDToConvert.objId());
             outBin(line.ptr(), line.length(), 0, true, dtaBlobName.ptr(0));
             return 0;
         }
@@ -2400,7 +2400,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
         // Creating new object and get the path to the new location
         sStr tmp_dest;
         cfgStr(&tmp_dest, 0, "user.download");
-        tmp_dest.printf("geneList-%"DEC"/", reqId ? reqId : getpid() + rand()); // slash at the end important!
+        tmp_dest.printf("geneList-%" DEC "/", reqId ? reqId : getpid() + rand()); // slash at the end important!
         if( !sDir::makeDir(tmp_dest) ) {
             error("Staging area access error: %s", strerror(errno));
             return 0;
@@ -2432,7 +2432,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
         sStr src("file://%s", fn.ptr(0)); // add the source to the metadata
         dmArchiver archHS(*this, pathToFile, src, 0, fn.ptr(0)); // create the dmArchiver object in order to launch the file internally
         idx archReqId = archHS.launch(*user, grpId); // start launching the dmArchiver
-        logOut(eQPLogType_Info, "Launching dmArchiver request %"DEC" sequences\n", archReqId);
+        logOut(eQPLogType_Info, "Launching dmArchiver request %" DEC " sequences\n", archReqId);
         line.printf(0, "{\"%s\":{\"signal\":\"default\",\"data\":{\"from\":\"u-file\",\"to\":\"u-idList\"}}}", newFilename);
     } else if( cmd == eAnotDumper ) {
         //const char * anotIDs = pForm->value("anot_ids");
@@ -2626,7 +2626,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
         sStr String, objId;
         // src =  301452[UniProt|RefSeq]
         sDic<sVec<sStr> > dico;
-        sString::searchAndReplaceSymbols(&String, search, 0, ","_, 0, 0, true, true, true, true);
+        sString::searchAndReplaceSymbols(&String, search, 0, "," _, 0, 0, true, true, true, true);
         for(const char * ptr = String; ptr; ptr = sString::next00(ptr)) {
             objId.cut(0);
             idx len = sString::copyUntil(&objId, ptr, sLen(ptr), "["); // objId = 301452
@@ -2638,14 +2638,14 @@ idx DnaCGI::CmdAnnotation(idx cmd)
             if( len && !fnd ) {
                 idType = dico.set(objId.ptr());
             }
-            const char * sub = sString::searchStruc(ptr, sLen(ptr), "["__, "]"__, 0, 0);
+            const char * sub = sString::searchStruc(ptr, sLen(ptr), "[" __, "]" __, 0, 0);
             if( !sub ) {
                 return 0;
             }
             sStr t;
             sString::copyUntil(&t, sub, sLen(sub), "]");
             sStr tt;
-            sString::searchAndReplaceSymbols(&tt, t.ptr(), 0, "|"_, 0, 0, true, true, true, true);
+            sString::searchAndReplaceSymbols(&tt, t.ptr(), 0, "|" _, 0, 0, true, true, true, true);
             for(const char * pptr = tt; pptr; pptr = sString::next00(pptr)) {
                 idType->add()->printf("%s", pptr);
             }
@@ -2660,7 +2660,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
                 newStart = pos_start;
             if( pos_end )
                 newEnd = pos_end;
-            headerWithReference.printf("ref,%"DEC",%"DEC",%"DEC",%"DEC",reference genome,", newStart, newEnd, newStart, newEnd);
+            headerWithReference.printf("ref,%" DEC ",%" DEC ",%" DEC ",%" DEC ",reference genome,", newStart, newEnd, newStart, newEnd);
             sStr composeCell("\"seqID\" %s", refSeqID);
             sString::escapeForCSV(headerWithReference, composeCell.ptr(), composeCell.length());
             headerWithReference.printf("\n");
@@ -2675,7 +2675,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
             sHiveId objHiveId(key);
             sUsrObj obj(*user, objHiveId);
             sStr path;
-            obj.getFilePathname00(path, ".vioannot"__);
+            obj.getFilePathname00(path, ".vioannot" __);
             if( !path.length() )
                 continue;
             sVioAnnot a;
@@ -2695,7 +2695,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
 
         if( tmpOut.length() ) {
             line.cut(0);
-            line.printf("%"DEC"\n", error);
+            line.printf("%" DEC "\n", error);
             line.printf("%s", headerWithReference.ptr());
             line.printf("%s", tmpOut.ptr());
         }
@@ -2720,13 +2720,13 @@ idx DnaCGI::CmdAnnotation(idx cmd)
             sUsrObj ann(*user, *annotIDList.id(it));
             sStr path;
             if( strcasecmp(type, "u-ionAnnot") == 0 ) {
-                ann.getFilePathname00(path, "ion.ion"__); // full name by default for ion
+                ann.getFilePathname00(path, "ion.ion" __); // full name by default for ion
             } else
-                ann.getFilePathname00(path, ".vioannot"__);
+                ann.getFilePathname00(path, ".vioannot" __);
             if( !path.length() )
                 continue;
             ann.Id().print(line);
-            line.printf(",%s,%"DEC"\n", ann.propGet("name"), sFile::time(path));
+            line.printf(",%s,%" DEC "\n", ann.propGet("name"), sFile::time(path));
             iCnt++;
             if( iCnt > cnt )
                 break;
@@ -2770,7 +2770,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
             sStr path;
             sStr buf;
             sVec<sMex::Pos> bufposes;
-            myAnotFile.getFilePathname00(path, ".vioannot"__);
+            myAnotFile.getFilePathname00(path, ".vioannot" __);
 
             if( !path.length() )
                 return 1;
@@ -2791,7 +2791,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
                         continue;
                     if( ii == (cnt + start) )
                         break;
-                    line.printf("%"DEC",%s\n", ii + 1, buf.ptr(bufposes[ii].pos));
+                    line.printf("%" DEC ",%s\n", ii + 1, buf.ptr(bufposes[ii].pos));
                 }
             }
         }
@@ -2826,9 +2826,9 @@ idx DnaCGI::CmdAnnotation(idx cmd)
         //
         sStr outFileNameA;
         if( objs.dim() ) {
-            outFileNameA.printf("o%s-%"DEC"", objs[0].Id().print(), cmd);
+            outFileNameA.printf("o%s-%" DEC "", objs[0].Id().print(), cmd);
         } else {
-            outFileNameA.printf("r%"DEC"-%"DEC"", reqId, cmd);
+            outFileNameA.printf("r%" DEC "-%" DEC "", reqId, cmd);
         }
         outFileNameA.printf(".csv");
 
@@ -2932,7 +2932,7 @@ idx DnaCGI::CmdAnnotation(idx cmd)
                     annotList[iv].getIdByIdIndex(buf, idPtr[is]);
                     if( locus || giNumber ) {
                         // get the irec if any and push to array
-                        sStr gN("%"DEC"", giNumber);
+                        sStr gN("%" DEC "", giNumber);
                         if( strcmp(locus, buf.ptr()) == 0 )
                             found = is;
                         else if( strcmp(gN.ptr(), buf.ptr()) == 0 )
@@ -3018,11 +3018,11 @@ idx DnaCGI::CmdAnnotation(idx cmd)
                             sVioAnnot::startEnd * rangePtr = Annotation.getRangeJointsByRangeIndex(indexRangePtr[irange], &cntRangeJoints);  // LAM
                             cntRangeJoints /= sizeof(sVioAnnot::startEnd);
                             for(idx irj = 0; irj < cntRangeJoints; ++irj) {
-                                line.printf("%"DEC",%"DEC",%s,%s,%s,%"DEC",%s\n", rangePtr[irj].start, rangePtr[irj].end, locusTag.ptr(), product.ptr(0), proteinId.ptr(0), lengthSeq, "CDS");
+                                line.printf("%" DEC ",%" DEC ",%s,%s,%s,%" DEC ",%s\n", rangePtr[irj].start, rangePtr[irj].end, locusTag.ptr(), product.ptr(0), proteinId.ptr(0), lengthSeq, "CDS");
                             }
                         }
                         if( !cntRanges )
-                            line.printf("%d,%d,%s,%s,%s,%"DEC",%s\n", 0, 0, locusTag.ptr(), product.ptr(0), proteinId.ptr(0), lengthSeq, "CDS");
+                            line.printf("%d,%d,%s,%s,%s,%" DEC ",%s\n", 0, 0, locusTag.ptr(), product.ptr(0), proteinId.ptr(0), lengthSeq, "CDS");
                     }
                 }
             }
@@ -3115,7 +3115,7 @@ idx DnaCGIProc::OnExecute(idx req)
 
     dnaCGI_qapp->proc_obj = this;
 
-    const char * risky_cmds00 = "-qpSubmit"_"-qpRawSubmit"_"-qpProcSubmit"__;
+    const char * risky_cmds00 = "-qpSubmit" _ "-qpRawSubmit" _ "-qpProcSubmit" __;
     if( !dnaCGI_qapp->cmd || sString::compareChoice(dnaCGI_qapp->cmd, risky_cmds00, 0, true, 0, true) >= 0 ) {
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
@@ -3136,7 +3136,7 @@ idx DnaCGIProc::OnExecute(idx req)
     dnaCGI_qapp->raw = 2; // no headers and no html
 
     dnaCGI_qapp->pForm->inp("-daemon", "1");
-    sStr reqbuf("%"DEC, req);
+    sStr reqbuf("%" DEC, req);
     dnaCGI_qapp->pForm->inp("req", reqbuf.ptr());
 
     dnaCGI_qapp->run();
@@ -3152,18 +3152,18 @@ idx DnaCGIProc::OnExecute(idx req)
         }
         const char * dstName = dnaCGI_qapp->pForm->value("arch_dstname");
         const char * fmt = dnaCGI_qapp->pForm->value("ext");
-        datasource.printf(0, "file://%"DEC"-%s", req, dstName);
+        datasource.printf(0, "file://%" DEC "-%s", req, dstName);
         dmArchiver arch(*this, cgi_output_path, datasource, fmt, dstName);
         arch.addObjProperty("source", "%s", datasource.ptr());
         idx arch_reqId = arch.launch(*user);
-        logOut(eQPLogType_Info, "Launching dmArchiver request %"DEC" \n", arch_reqId);
+        logOut(eQPLogType_Info, "Launching dmArchiver request %" DEC " \n", arch_reqId);
         if( !arch_reqId ) {
             reqProgress(1, 100, 100);
             reqSetStatus(req, eQPReqStatus_Done);
             return 0;
         }
         datasource.printf(0,"arch_%s",cgi_dstnamebuf.ptr());
-        dnaCGI_qapp->reqSetData(req, datasource, "%"DEC, arch_reqId);
+        dnaCGI_qapp->reqSetData(req, datasource, "%" DEC, arch_reqId);
     } else {
         dnaCGI_qapp->reqRepackData(req, cgi_dstnamebuf.ptr());
     }
@@ -3177,7 +3177,7 @@ void DnaCGIProc::initIfNeeded()
 {
     if( dnaCGI_qapp )
         return;
-    dnaCGI_qapp = new DnaCGI("config=qapp.cfg"__, "dnaCGI", sApp::argc, sApp::argv, sApp::envp, stdin, true, true);
+    dnaCGI_qapp = new DnaCGI("config=qapp.cfg" __, "dnaCGI", sApp::argc, sApp::argv, sApp::envp, stdin, true, true);
 }
 
 int main(int argc, const char *argv[], const char *envp[])
@@ -3193,11 +3193,11 @@ int main(int argc, const char *argv[], const char *envp[])
     if( sString::parseBool(cmd.next("-daemon")) ) {
         sStr tmp;
 
-        DnaCGIProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dnaCGI", sApp::argv[0]));
+        DnaCGIProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dnaCGI", sApp::argv[0]));
         return (int) backend.run(argc, argv);
     }
 
-    DnaCGI qapp("config=qapp.cfg"__, "dnaCGI", argc, argv, envp, stdin, true, true);
+    DnaCGI qapp("config=qapp.cfg" __, "dnaCGI", argc, argv, envp, stdin, true, true);
     qapp.run();
     return 0;
 }

@@ -67,7 +67,7 @@ idx QPrideCtl::Cmd(const char * cmd)
         eLast
     };
     const char * listCommands=
-        "-noCommand"_
+        "-noCommand" _
         __;
     idx cmdnum=-1;
     sString::compareChoice( cmd, listCommands,&cmdnum,false, 0,true);
@@ -93,7 +93,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 */
 int main(int argc, const char *argv[])
 {
-    QPrideCtl qapp("config=qapp.cfg"__, argc, argv);
+    QPrideCtl qapp("config=qapp.cfg" __, argc, argv);
     qapp.run();
     return 0;
 }

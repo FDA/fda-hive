@@ -137,15 +137,15 @@ namespace slib
             virtual idx QP_reqGetUserKey(idx req) {return 0;}
             virtual idx QP_getReqByUserKey(idx userKey, const char * serviceName){return userKey;}
 
-            virtual idx QP_reqSetProgress(idx req, idx progress, idx progress100){printf("progress = %"DEC" %"DEC"%%\n",progress,progress100);return progress;}
+            virtual idx QP_reqSetProgress(idx req, idx progress, idx progress100){printf("progress = %" DEC " %" DEC "%%\n",progress,progress100);return progress;}
 
             virtual bool QP_setLog(idx req, idx job, idx level, const char * txt)
             {
                 if( req ) {
-                    printf("REQ[%"DEC"]", req);
+                    printf("REQ[%" DEC "]", req);
                 }
                 if( job ) {
-                    printf("%sJOB[%"DEC"]", req ? " " : "", job);
+                    printf("%sJOB[%" DEC "]", req ? " " : "", job);
                 }
                 if( txt ) {
                     printf(":\t%s\n", txt);

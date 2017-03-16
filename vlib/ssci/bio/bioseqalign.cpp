@@ -301,7 +301,7 @@ PERF_START("ALIGNSEQ");
                 }
 
                 ///#ifdef _DEBUG
-                ///::printf(" --- considering qryID=%"DEC" iqry=%"DEC" idir=%"DEC" refid=%"DEC" subpos=%"DEC" il/lstdim=%"DEC"/%"DEC" \n", idQry, iq, idir, refid, subpos,il,lstdim);
+                ///::printf(" --- considering qryID=%" DEC " iqry=%" DEC " idir=%" DEC " refid=%" DEC " subpos=%" DEC " il/lstdim=%" DEC "/%" DEC " \n", idQry, iq, idir, refid, subpos,il,lstdim);
                 ///#endif
                 const char * sub=Subs->seq(refid);
 
@@ -798,7 +798,7 @@ PERF_START("SMITHWATERMANN-ACTUAL-ALGORITHM");
         idx maxRow=0;
         idx maxRowPos=0;
 #ifdef DEBUGGING_SMITHWATERMANN
-::printf( "%"DEC" %c  :" , is , sBioseq::mapRevATGC[sBits]);
+::printf( "%" DEC " %c  :" , is , sBioseq::mapRevATGC[sBits]);
 #endif
 //vioPerf.end();
 //vioPerf.start("alignSW2 - 2 ");
@@ -846,7 +846,7 @@ PERF_START("SMITHWATERMANN-ACTUAL-ALGORITHM");
                 }
             }
 #ifdef DEBUGGING_SMITHWATERMANN
-::printf("%c %4"DEC" | ",cv>=maxRow ? sBioseq::mapRevATGC[qBits] : sBioseq::mapRevATGC[qBits]+'a'-'A' ,cv);
+::printf("%c %4" DEC " | ",cv>=maxRow ? sBioseq::mapRevATGC[qBits] : sBioseq::mapRevATGC[qBits]+'a'-'A' ,cv);
 #endif
 
         }
@@ -1292,11 +1292,11 @@ idx sBioseqAlignment::prepareMultipleAlignmentSrc(sStr * tempStr, const char * s
         sStr tempStrWOids;
 
 
-        sString::cleanMarkup(&tempStrWOids, src, len, "\r\n>"_"\n>"_"\r>"_">"__, "\r\n"_"\n"_"\r"__, "$", 0, false, false, false);
+        sString::cleanMarkup(&tempStrWOids, src, len, "\r\n>" _ "\n>" _ "\r>" _ ">" __, "\r\n" _ "\n" _ "\r" __, "$", 0, false, false, false);
         idx start = (*src == '>') ? 1 : 0;
         sStr tempStrWOeols;
         if( !tempStrWOids ) return 0;
-        sString::searchAndReplaceSymbols(&tempStrWOeols, tempStrWOids.ptr(start), tempStrWOids.length() - start, "\r\n"_"\n"_"\r"__, "", 0, true, true, false, false);
+        sString::searchAndReplaceSymbols(&tempStrWOeols, tempStrWOids.ptr(start), tempStrWOids.length() - start, "\r\n" _ "\n" _ "\r" __, "", 0, true, true, false, false);
         if( !tempStrWOeols ) return 0;
         sString::searchAndReplaceSymbols(tempStr, tempStrWOeols.ptr(), tempStrWOeols.length(), "$", "\n", 0, true, true, false, false);
     } else {
@@ -1456,7 +1456,7 @@ idx sBioseqAlignment::filterChosenAlignments(sVec< idx> * alignmentMap,idx qStar
     for( hdr=hdr0; hdr<hdre; hdr=sShift(hdr,hdr->sizeofFlat()), ++cnt ) {
         hdr->setIdQry( hdr->idQry()+qStart);
     }
-    ::printf("%"DEC"\n",cnt);
+    ::printf("%" DEC "\n",cnt);
     idx newcnt = 0;
     if(dst->ok()){
         if( doSelect ) {

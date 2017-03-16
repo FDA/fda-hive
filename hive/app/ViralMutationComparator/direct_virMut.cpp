@@ -206,7 +206,7 @@ idx DirectVirMut::OnExecute(idx req)
                         bodyAAChange=(const char * ) vax.hdrTable[iAAChange].ofs;
                         sizeAAChange=vax.hdrTable[iAAChange].size ;
                         if(sizeAAChange>3) {
-                            const char * prot=sString::searchSubstring(bodyAAChange,sizeAAChange,":p."__,1,0,true);
+                            const char * prot=sString::searchSubstring(bodyAAChange,sizeAAChange,":p." __,1,0,true);
                             if(prot) {
                                 prot+=3;
                                 sBioseq::ProtAA *  p1=sBioseq::AAFindByLet3(prot);
@@ -266,9 +266,9 @@ idx DirectVirMut::OnExecute(idx req)
 
                 ++rowCnt;
 
-                finp.printf("%s,%s,%s,%"DEC",%"DEC",%c,%c,%"DEC",%.3lf,%s\n",pat,m->ngspl,m->visit,m->AAPOS,m->TCOV,m->AAREF,m->AASUB,m->VCOV,m->AAFREQ,comp);
+                finp.printf("%s,%s,%s,%" DEC ",%" DEC ",%c,%c,%" DEC ",%.3lf,%s\n",pat,m->ngspl,m->visit,m->AAPOS,m->TCOV,m->AAREF,m->AASUB,m->VCOV,m->AAFREQ,comp);
                 #ifdef _DEBUG
-                ::printf("%s,%s,%s,%"DEC",%"DEC",%c,%c,%"DEC",%.3lf,%s\n",pat,m->ngspl,m->visit,m->AAPOS,m->TCOV,m->AAREF,m->AASUB,m->VCOV,m->AAFREQ,comp);
+                ::printf("%s,%s,%s,%" DEC ",%" DEC ",%c,%c,%" DEC ",%.3lf,%s\n",pat,m->ngspl,m->visit,m->AAPOS,m->TCOV,m->AAREF,m->AASUB,m->VCOV,m->AAFREQ,comp);
                 #endif
 
             }
@@ -302,7 +302,7 @@ idx DirectVirMut::OnExecute(idx req)
     const char * baseline_keywords00 = formValues00("baseline_keywords", &sbaseline_keywords00);
 
     if( !baseline_keywords00 )
-        baseline_keywords00 = "baseline"_"screening"__;
+        baseline_keywords00 = "baseline" _ "screening" __;
     else {
         sString::searchAndReplaceSymbols(sbaseline_keywords00.ptr(0),0,",;",0,0,true,false,false,true,0);
     }
@@ -359,7 +359,7 @@ idx DirectVirMut::OnExecute(idx req)
                     ++finTotals[pos];
 
                     *compList.set(comp,len)=1;
-                    it_inp.printf("%s,%s,%s,%"DEC",%"DEC",%c,%c,%"DEC",%.3lf,%s\n",pat,m->ngspl,m->visit,m->AAPOS,m->TCOV,m->AAREF,m->AASUB,m->VCOV,m->AAFREQ,comp);
+                    it_inp.printf("%s,%s,%s,%" DEC ",%" DEC ",%c,%c,%" DEC ",%.3lf,%s\n",pat,m->ngspl,m->visit,m->AAPOS,m->TCOV,m->AAREF,m->AASUB,m->VCOV,m->AAFREQ,comp);
                     howmanyprinted++;
                 }
 
@@ -377,7 +377,7 @@ idx DirectVirMut::OnExecute(idx req)
                     for(idx i = 0; i < oriCo->dim(); i++) {
                         m = oriCo->ptr(i);
                         if( sString::compareChoice(m->visit, baseline_keywords00, 0, true, 0, true) != sNotIdx ) {
-                            it_inp.printf("%s,%s,%s,%"DEC",%"DEC",%c,%c,%"DEC",%.3lf,%s\n", pat, m->ngspl, m->visit, m->AAPOS, m->TCOV, m->AAREF, m->AASUB, m->VCOV, m->AAFREQ, comp);
+                            it_inp.printf("%s,%s,%s,%" DEC ",%" DEC ",%c,%c,%" DEC ",%.3lf,%s\n", pat, m->ngspl, m->visit, m->AAPOS, m->TCOV, m->AAREF, m->AASUB, m->VCOV, m->AAFREQ, comp);
                         }
                     }
                 }
@@ -425,12 +425,12 @@ idx DirectVirMut::OnExecute(idx req)
                     const char * pat = (const char *)(finSub->id(p));
                     sDic <idx> * finPat=finSub->ptr(p);
 
-                    fflt.printf("%"DEC",%c%"DEC"%c,%s",*pos,sub[0],*pos,sub[1],pat);
+                    fflt.printf("%" DEC ",%c%" DEC "%c,%s",*pos,sub[0],*pos,sub[1],pat);
 
                     for(idx i=0; i<compList.dim() ; ++i ) { // for(idx c = 0; c < finPat->dim(); c++) {
                         const void * comp=compList.id(i,&len);
                         idx * res =finPat->get( comp,len);
-                        fflt.printf(",%"DEC,res ? *res : 0 );
+                        fflt.printf(",%" DEC,res ? *res : 0 );
                     }
                     fflt.printf("\n");
                 }
@@ -466,14 +466,14 @@ idx DirectVirMut::OnExecute(idx req)
         for(idx po = 0; po < finalMap.dim(); po++) {
             idx ipo=ind[po];
             idx * pos=(idx *)finalMap.id(ipo);
-            fres.printf("%"DEC",%"DEC",",*pos,finTotals[ipo]);
+            fres.printf("%" DEC ",%" DEC ",",*pos,finTotals[ipo]);
 
             sDic < sDic < sDic < idx > > > * finPos=finalMap.ptr(ipo); // by position, by substitution , by patient , by the company type the counts
             for( idx su=0; su<finPos->dim(); ++su) {
 
                 const char * sub= (const char *)finPos->id(su);
                 //sDic < sDic <idx> > * finSub=finPos->ptr(su);
-                fres.printf("%s%c%"DEC"%c",su ? "/":"" ,sub[0],*pos,sub[1]);
+                fres.printf("%s%c%" DEC "%c",su ? "/":"" ,sub[0],*pos,sub[1]);
             }
 
             fres.printf(",");
@@ -490,7 +490,7 @@ idx DirectVirMut::OnExecute(idx req)
                     }
                 }
 
-                fres.printf("%s%"DEC"",su ? "-":"" ,tot);
+                fres.printf("%s%" DEC "",su ? "-":"" ,tot);
             }
 
             fres.printf("\n");
@@ -529,7 +529,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DirectVirMut backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "viral-mutation-comp", argv[0]));
+    DirectVirMut backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "viral-mutation-comp", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

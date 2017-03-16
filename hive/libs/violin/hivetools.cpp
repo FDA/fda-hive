@@ -172,7 +172,7 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
         if( sBioseq::isBioModeLong( hiveseqModeArg ) ) {
             hiveseqMode = sBioseq::eBioModeLong;
         } else if ( !sBioseq::isBioModeShort( hiveseqModeArg ) ) {
-            log->printf( "Unknown biomode: %"DEC, hiveseqModeArg);
+            log->printf( "Unknown biomode: %" DEC, hiveseqModeArg);
             return 0;
         }
         // scan through the number of sequences and count the parallelizations size
@@ -225,7 +225,7 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
                     if (fileSlices){
                             idx locCount = fileCnt + (slice - file_slice_remainder);
                             while (locCount > slice){
-                                fileSlices->printf("%"DEC",%"DEC"\n", ifile, file_slice_remainder);
+                                fileSlices->printf("%" DEC ",%" DEC "\n", ifile, file_slice_remainder);
                                 locCount -= slice;
                                 file_slice_remainder += slice;
                                 fileCnt -= slice;
@@ -267,7 +267,7 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
                     sUsrFile hobj(objID, user);
                     sStr path;
                     idx tdim = 0;
-                    if( hobj.getFilePathname00(path, "alignment.hiveal"_"alignment.vioal"__) ) {
+                    if( hobj.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __) ) {
                         sHiveal hiveal(user, path);
                         sBioal * bioal = &hiveal;
                         if( subsetN.dim() ) {

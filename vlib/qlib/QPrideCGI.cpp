@@ -197,7 +197,7 @@ idx sQPrideCGI::QPSubmit(sVar & forma, bool withObjs, sQPride::Service & S, sStr
         for(idx ip = 0; ip < procObjs.dim(); ++ip) {
             procObjs[ip].actDelete();
         }
-        error("Failure: submission too large %"DEC" \n", cntParallel);
+        error("Failure: submission too large %" DEC " \n", cntParallel);
         return 1;
     }
     err = sUsrProc::standardizedSubmission(this, &forma, user, procObjs, cntParallel, &reqId, &S, 0, strObjList, &log);
@@ -247,10 +247,10 @@ idx sQPrideCGI::Cmd(const char * cmd)
         eLast
     };
     const char * listCommands=
-        "-qpSubmit"_"-qpCheck"_"-qpData"_"-qpDataNames"_"-qpFile"_"-qpResubmit"_"-qpReqInfo"_"-qpKillReq"_"-qpRawSubmit"_"-qpRawCheck"_"-qpProcSubmit"_"-qpProcReSubmit"_"-qpProcClone"_
-        "-qpReqSetAction"_
-        "-qpReqRegisterAlive"_
-        "-qpPerformReg"_"-qpPerformETA"_
+        "-qpSubmit" _ "-qpCheck" _ "-qpData" _ "-qpDataNames" _ "-qpFile" _ "-qpResubmit" _ "-qpReqInfo" _ "-qpKillReq" _ "-qpRawSubmit" _ "-qpRawCheck" _ "-qpProcSubmit" _ "-qpProcReSubmit" _ "-qpProcClone" _
+        "-qpReqSetAction" _
+        "-qpReqRegisterAlive" _
+        "-qpPerformReg" _ "-qpPerformETA" _
         __;
     idx cmdnum = -1;
     if( cmd ) {
@@ -342,9 +342,9 @@ idx sQPrideCGI::Cmd(const char * cmd)
                 reqReSubmit(reqId);
                 reqSetAction(reqId, eQPReqAction_Run);
                 if( !isObj ) {
-                    linkSelf("-qpCheck", "req=%"DEC"&svc=%s", reqId, svc);
+                    linkSelf("-qpCheck", "req=%" DEC "&svc=%s", reqId, svc);
                 } else {
-                    dataForm.printf("%"DEC",%s", reqId, objs[0].IdStr());
+                    dataForm.printf("%" DEC ",%s", reqId, objs[0].IdStr());
                 }
             } else {
             }
@@ -545,15 +545,15 @@ idx sQPrideCGI::Cmd(const char * cmd)
             }
             if( !raw ) {
                 if( cmdnum == eQPRawSubmit ) {
-                    linkSelf("-qpRawCheck", "req=%"DEC"&svc=%s", reqId, svc);
+                    linkSelf("-qpRawCheck", "req=%" DEC "&svc=%s", reqId, svc);
                 } else {
-                    linkSelf("-qpCheck", "req=%"DEC"&svc=%s", reqId, svc);
+                    linkSelf("-qpCheck", "req=%" DEC "&svc=%s", reqId, svc);
                 }
                 outHtml();
                 return 1;
             } else {
                 if( !pForm->ivalue("check", 0) ) {
-                    dataForm.printf("%"DEC",%s", reqId, strObjList ? strObjList.ptr(0) : "0");
+                    dataForm.printf("%" DEC ",%s", reqId, strObjList ? strObjList.ptr(0) : "0");
                     outHtml();
                     return 1;
                 }
@@ -589,7 +589,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
                 const char * reqName=requestGetPar(reqId, eQPReqPar_Name, &ReqName); if (!reqName)reqName= " ";
 
                 // general info
-                tmp.printf(0,"%s,%s,%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC,S.title, reqName , reqId,cSt>0 ? eQPReqStatus_Running : R.stat,timDiff,prg,prg100/grpCnt, grpCnt, R.act);
+                tmp.printf(0,"%s,%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC,S.title, reqName , reqId,cSt>0 ? eQPReqStatus_Running : R.stat,timDiff,prg,prg100/grpCnt, grpCnt, R.act);
 
                 // get data names
                 //sStr dnames00;dataGetAll(req, 0, &dnames00);
@@ -660,7 +660,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
 //                return 1;
             }
             if( pForm->boolvalue("down") ) {
-                outBin( dataForm.ptr(),dataForm.length(),0,true,"progress-%"DEC".csv",reqId);
+                outBin( dataForm.ptr(),dataForm.length(),0,true,"progress-%" DEC ".csv",reqId);
             }
             else{
                 outHtml();
@@ -685,7 +685,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
             reqSetStatus(&reqIds,eQPReqStatus_Suspended);
 
             if(!raw) {
-                linkSelf("-qpCheck","req=%"DEC"&svc=%s",reqId,svc);
+                linkSelf("-qpCheck","req=%" DEC "&svc=%s",reqId,svc);
                 outHtml();
                 return 1;
             }
@@ -716,7 +716,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
             reqSetAction(&reqIds,act);
 
             if(!raw) {
-                linkSelf("-qpCheck","req=%"DEC"&svc=%s",reqId,svc);
+                linkSelf("-qpCheck","req=%" DEC "&svc=%s",reqId,svc);
                 outHtml();
                 return 1;
             }
@@ -739,9 +739,9 @@ idx sQPrideCGI::Cmd(const char * cmd)
                     if( dsaveas[0] == '-' )
                         outBin(dat.ptr(), dat.length(), 0, true, "%s", dsaveas + 1);
                     else
-                        outBin(dat.ptr(), dat.length(), 0, true, "%"DEC"-%s", reqId, dsaveas);
+                        outBin(dat.ptr(), dat.length(), 0, true, "%" DEC "-%s", reqId, dsaveas);
                 } else if( miss ) {
-                    outBin(miss, sLen(miss), 0, true, "%"DEC"-%s", reqId, dsaveas);
+                    outBin(miss, sLen(miss), 0, true, "%" DEC "-%s", reqId, dsaveas);
                 } else {
                     outHtml();
                 }
@@ -803,7 +803,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
                     if( infos[i].level > (idx)eQPInfoLevel_Min){
                         tmp2.cut0cut(0);
                         sString::escapeForCSV(tmp2, infos[i].message());
-                        res.printf("%"DEC",%"DEC",%"DEC",%s,%s,%s,%s,%"DEC"\n", ++ii, c_req->reqID, c_req->reqID, tmp1.ptr(), ttt.ptr(), tmp2.ptr(), getLevelName((eQPInfoLevel)infos[i].level), infos[i].level);
+                        res.printf("%" DEC ",%" DEC ",%" DEC ",%s,%s,%s,%s,%" DEC "\n", ++ii, c_req->reqID, c_req->reqID, tmp1.ptr(), ttt.ptr(), tmp2.ptr(), getLevelName((eQPInfoLevel)infos[i].level), infos[i].level);
                         if( (idx)top_level < infos[i].level ) {
                             top_level = (eQPInfoLevel)infos[i].level;
                             top_level_txt_escaped.printf(0, "%s", tmp2.ptr());
@@ -815,7 +815,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
                     *svc_level = top_level;
                 }
                 if( top_level > eQPInfoLevel_Min) {
-                    res.printf("%"DEC",%s,%"DEC",%s,,%s,%s,%"DEC"\n", c_req->reqID, tmp1.ptr(), c_req->reqID, tmp1.ptr(), top_level_txt_escaped.ptr(),getLevelName((eQPInfoLevel)top_level),top_level);
+                    res.printf("%" DEC ",%s,%" DEC ",%s,,%s,%s,%" DEC "\n", c_req->reqID, tmp1.ptr(), c_req->reqID, tmp1.ptr(), top_level_txt_escaped.ptr(),getLevelName((eQPInfoLevel)top_level),top_level);
                 }
             }
             idx max_level = eQPInfoLevel_Min;
@@ -826,10 +826,10 @@ idx sQPrideCGI::Cmd(const char * cmd)
                     max_level = c_level;
                 }
                 if (c_level > (idx)eQPInfoLevel_Min)
-                    res.printf("\"%s\",\"Grouped Info\",0,,,,%s,%"DEC"\n", svcName, getLevelName((eQPInfoLevel)c_level), c_level);
+                    res.printf("\"%s\",\"Grouped Info\",0,,,,%s,%" DEC "\n", svcName, getLevelName((eQPInfoLevel)c_level), c_level);
             }
             if(res.length()){
-                res.printf("\"Grouped Info\",\"root\",0,,,,%s,%"DEC"\n",  getLevelName((eQPInfoLevel)max_level), max_level);
+                res.printf("\"Grouped Info\",\"root\",0,,,,%s,%" DEC "\n",  getLevelName((eQPInfoLevel)max_level), max_level);
                 dataForm.printf("%s",res.ptr());
             }
             outHtml();
@@ -875,7 +875,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
             idx ret = workRegisterTime(svcNameStr.ptr(), workparams.ptr(), amount, regtm);
 
             if( ret <= 0 ) {}// could not register
-            dataForm.printf("%"DEC,ret);
+            dataForm.printf("%" DEC,ret);
             outHtml();
 
         } return 1;
@@ -892,7 +892,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
             idx est = workEstimateTime(svcNameStr.ptr(), workparams.ptr(), amount);
 
             if( est < 0 ) {}// could not estimate
-            dataForm.printf("%"DEC,est);
+            dataForm.printf("%" DEC,est);
             outHtml();
         } return 1;
 
@@ -910,7 +910,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
 idx sQPrideCGIProc::OnExecute(idx req)
 {
     if( !procCGI_qapp )
-        procCGI_qapp = new sQPrideCGI("config=qapp.cfg"__,svcName, sApp::argc, sApp::argv, sApp::envp, stdin, true, true);
+        procCGI_qapp = new sQPrideCGI("config=qapp.cfg" __,svcName, sApp::argc, sApp::argv, sApp::envp, stdin, true, true);
 
     reqGetData(req, "formT.qpride", procCGI_qapp->pForm);
 
@@ -922,7 +922,7 @@ idx sQPrideCGIProc::OnExecute(idx req)
     procCGI_qapp->outP = &out;
     procCGI_qapp->proc_obj = this;
 
-    const char *  risky_cmds00 = "-qpSubmit"_"-qpRawSubmit"_"-qpProcSubmit"__;
+    const char *  risky_cmds00 = "-qpSubmit" _ "-qpRawSubmit" _ "-qpProcSubmit" __;
     if (! procCGI_qapp->cmd || sString::compareChoice( procCGI_qapp->cmd, risky_cmds00, 0, true, 0, true) >= 0) {
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
@@ -954,18 +954,18 @@ idx sQPrideCGIProc::OnExecute(idx req)
         }
         const char * dstName = procCGI_qapp->pForm->value("arch_dstname");
         const char * fmt = procCGI_qapp->pForm->value("ext");
-        datasource.printf(0, "file://%"DEC"-%s", req, dstName);
+        datasource.printf(0, "file://%" DEC "-%s", req, dstName);
         dmArchiver arch(*this, cgi_output_path, datasource, fmt, dstName);
         arch.addObjProperty("source", "%s", datasource.ptr());
         idx arch_reqId = arch.launch(*user);
-        logOut(eQPLogType_Info, "Launching dmArchiver request %"DEC" \n", arch_reqId);
+        logOut(eQPLogType_Info, "Launching dmArchiver request %" DEC " \n", arch_reqId);
         if( !arch_reqId ) {
             reqProgress(1, 100, 100);
             reqSetStatus(req, eQPReqStatus_Done);
             return 0;
         }
         datasource.printf(0,"arch_%s",cgi_dstname);
-        procCGI_qapp->reqSetData(req, datasource, "%"DEC, arch_reqId);
+        procCGI_qapp->reqSetData(req, datasource, "%" DEC, arch_reqId);
     }
     else*/ {
         procCGI_qapp->reqRepackData(req, cgi_dstname);
@@ -990,7 +990,7 @@ idx sQPrideCGIProc::run()
     if( sString::parseBool( cmd.next("-daemon") ) ){
         sStr tmp;
 
-        sQPrideProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, svcName, sApp::argv[0]));
+        sQPrideProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, svcName, sApp::argv[0]));
         return (int) backend.run(sApp::argc, sApp::argv);
     }
     return sQPrideCGI::run();

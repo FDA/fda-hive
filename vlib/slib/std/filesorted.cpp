@@ -40,7 +40,7 @@ sFileSorted * sFileSorted::init( const char * flnm, idx lbackuplength)
     fl=fopen(flnm,"rb");if(!fl)return 0;
 
     // read the first gi
-    fscanf(fl,"%"DEC, &firstGI);
+    fscanf(fl,"%" DEC, &firstGI);
 
     // position to the end and get the size 
     fseek(fl,0,SEEK_END);
@@ -57,7 +57,7 @@ sFileSorted * sFileSorted::init( const char * flnm, idx lbackuplength)
     idx pos;
     while ( !feof(fl) ){ // read until it is readeable 
         pos=ftell(fl);
-        if( fscanf(fl,"%"DEC, &lastGI) >0)lastPos=pos;
+        if( fscanf(fl,"%" DEC, &lastGI) >0)lastPos=pos;
         fgets(buf, (int)backuplength, fl ) ;
     }
     return this;
@@ -90,7 +90,7 @@ idx sFileSorted::search( idx gi)
         fgets(buf,sizeof(buf),fl);
 
         pos=ftell(fl);
-        if( fscanf(fl,"%"DEC, &giCur) <1 )
+        if( fscanf(fl,"%" DEC, &giCur) <1 )
             break;
         if(gi == giCur) 
             {fseek(fl,(long)pos,SEEK_SET);return pos;}
@@ -103,7 +103,7 @@ idx sFileSorted::search( idx gi)
     fseek(fl,(long)posS, SEEK_SET);
     for( giCur=giS; giCur<gi ; ){ // read until it is readeable 
         pos=ftell(fl);
-        if( fscanf(fl,"%"DEC, &giCur )<1) break;
+        if( fscanf(fl,"%" DEC, &giCur )<1) break;
         fgets(buf,sizeof(buf),fl);
         if(giCur==gi)
             {fseek(fl,(long)pos,SEEK_SET);return pos;}
@@ -176,7 +176,7 @@ idx sFileSorted::searchReverse( idx pos, idx gi)
         pos=ftell(fl);
         
         // read 
-        fscanf (fl, "%"DEC, &giCur);  
+        fscanf (fl, "%" DEC, &giCur);  
         fgets(buf,sizeof(buf),fl);
         // compare
         if( giCur>gi)
@@ -185,7 +185,7 @@ idx sFileSorted::searchReverse( idx pos, idx gi)
     //fseek(fl,pos,SEEK_SET);
     for( ; giCur<gi ; ){ // read until we get the first line with the gi we want
         pos=ftell(fl);
-        if( fscanf(fl,"%"DEC, &giCur )<1) break;
+        if( fscanf(fl,"%" DEC, &giCur )<1) break;
         fgets(buf,sizeof(buf),fl);
         if(giCur==gi)
             {fseek(fl,(long)pos,SEEK_SET);return pos;}

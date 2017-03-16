@@ -56,8 +56,8 @@ idx sPS::getProcListReserv( sVec <sPS::Stat> * pi , const char * proc, const cha
         pp.pid=0;pp.cmd[0]=0;
 
         // make a path to read command line
-        if(sscanf(p+6,"%"DEC,&pp.pid)==0 || pp.pid==0 )continue;
-        path.printf(0,"/proc/%"DEC"/cmdline",pp.pid);
+        if(sscanf(p+6,"%" DEC,&pp.pid)==0 || pp.pid==0 )continue;
+        path.printf(0,"/proc/%" DEC "/cmdline",pp.pid);
         FILE * fp=fopen(path.ptr() ,"r");if(!fp)continue;
         size=fread(pp.cmd,sizeof(pp.cmd)-1,1,fp);
         fclose(fp);
@@ -82,7 +82,7 @@ idx sPS::getProcListReserv( sVec <sPS::Stat> * pi , const char * proc, const cha
 idx sPS::killProcess( idx pid, idx signal )
 {
     sStr cmd;
-    cmd.printf("kill %"DEC" %"DEC, signal, pid);
+    cmd.printf("kill %" DEC " %" DEC, signal, pid);
     return system(cmd.ptr());
     // return kill(pid,signal);
 }
@@ -92,10 +92,10 @@ idx sPS::killProcess( idx pid, idx signal )
 idx sPS::getMem(idx pid)
 {
   sStr path;
-  path.printf( "/proc/%"DEC"/statm", pid);
+  path.printf( "/proc/%" DEC "/statm", pid);
   FILE * fp = fopen (path.ptr(), "r"); if (!fp) return 0;
   idx mem=0;
-  fscanf (fp, "%"DEC,&mem);
+  fscanf (fp, "%" DEC,&mem);
   fclose (fp);
   return mem;
 }
@@ -303,7 +303,7 @@ idx sPS::setMode(eExecMode mode, const char * ps_sript /* = 0 */)
                 if( ps_sript[0] != '/' && ps_sript[0] != '\\') {
                     extPS.curDir();
                 }
-                extPS.printf("%s.os"SLIB_PLATFORM, ps_sript);
+                extPS.printf("%s.os" SLIB_PLATFORM, ps_sript);
                 if( sFile::exists(extPS) ) {
                     m_mode = eExec_Extern;
                     m_extern.printf(0, "%s", ps_sript);
@@ -338,7 +338,7 @@ idx sPS::getProcList(sVec<sPS::Stat> * pi, const char * proc, bool currentUserOn
     for(const char * p = buf.ptr(); p && *p; p = sString::next00(p)) {
         pp.pid = 0;
         pp.cmd[0] = 0;
-        if( sscanf(p, "%"DEC, &pp.pid) == 0 || pp.pid == 0 ) {
+        if( sscanf(p, "%" DEC, &pp.pid) == 0 || pp.pid == 0 ) {
             continue;
         }
         const char * cmd = sString::skipWords(p, 0, 1);
@@ -559,9 +559,9 @@ idx sPS::killProcess(idx pid, idx signal) const
 {
     sStr cmd;
     if( m_mode == eExec_Extern ) {
-        cmd.printf("\"%s\" kill %"DEC, m_extern_path.ptr(), pid);
+        cmd.printf("\"%s\" kill %" DEC, m_extern_path.ptr(), pid);
     } else {
-        cmd.printf("kill %"DEC" %"DEC, signal, pid);
+        cmd.printf("kill %" DEC " %" DEC, signal, pid);
     }
     return system(cmd.ptr());
 }
@@ -573,14 +573,14 @@ idx sPS::getMem(idx pid) const
     sStr cmd;
     idx k = 1;
     if( m_mode == eExec_Extern ) {
-        cmd.printf("\"%s\" mem %"DEC, m_extern_path.ptr(), pid);
+        cmd.printf("\"%s\" mem %" DEC, m_extern_path.ptr(), pid);
     } else {
-        cmd.printf("ps -p %"DEC" -o rss | grep -v RSS", pid);
+        cmd.printf("ps -p %" DEC " -o rss | grep -v RSS", pid);
         k = 1024;
     }
     sPipe::exePipe(&dst, cmd, 0);
     idx mem = 0;
-    sscanf(dst.ptr(0), "%"DEC, &mem);
+    sscanf(dst.ptr(0), "%" DEC, &mem);
     return mem * k;
 }
 
@@ -640,7 +640,7 @@ idx sPS::exec00(const char * cmdline00, sPS::callbackSetUp setupChild, void * pa
 
         if( !cmdline00 || !*cmdline00 ) {
             // same semantics as glibc system() call - null cmdline means check for availability of a shell
-            cmdline00 = "/bin/sh"_"-c"_"exit 0"__;
+            cmdline00 = "/bin/sh" _ "-c" _ "exit 0" __;
         }
 
         sStr buf;

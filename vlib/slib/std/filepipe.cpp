@@ -309,7 +309,7 @@ char * vFile::getProcessPath(vFilePid pid, char * reslt, idx justdir)
     #else
         char buf[64];
         if(!pid)pid=getpid();
-        sprintf(buf,"/proc/%"DEC"/exe", pid);
+        sprintf(buf,"/proc/%" DEC "/exe", pid);
         reslt[ readlink (buf,reslt,vFile_PATH_MAXLEN)]=0;
     #endif
 

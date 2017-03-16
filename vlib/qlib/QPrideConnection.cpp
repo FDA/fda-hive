@@ -64,7 +64,7 @@ bool sQPrideConnection::hostNameMatch(const char * host, const char * hostName, 
         ret = true;
     }
     if( ret && colon && pmaxjob ) {
-        sscanf(colon + 1, "%"DEC, pmaxjob);
+        sscanf(colon + 1, "%" DEC, pmaxjob);
     }
     return ret;
 }

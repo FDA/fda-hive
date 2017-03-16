@@ -90,7 +90,7 @@ idx sRandomSeq::preparePrimers()
     sStr temp;
     temp.add(primersString.ptr(0), primersString.length());
     primersString.cut(0);
-    sString::searchAndReplaceSymbols(&primersString, temp, 0, ";"sString_symbolsEndline, 0, 0, true, true, false, false);
+    sString::searchAndReplaceSymbols(&primersString, temp, 0, ";" sString_symbolsEndline, 0, 0, true, true, false, false);
     primersCnt = sString::cnt00(primersString);
     return primersCnt;
 }
@@ -101,7 +101,7 @@ idx sRandomSeq::prepareLowComplexity()
     sStr temp;
     temp.add(lowComplexityString.ptr(0), lowComplexityString.length());
     lowComplexityString.cut(0);
-    sString::searchAndReplaceSymbols(&lowComplexityString, temp, 0, ";"sString_symbolsEndline, 0, 0, true, true, false, false);
+    sString::searchAndReplaceSymbols(&lowComplexityString, temp, 0, ";" sString_symbolsEndline, 0, 0, true, true, false, false);
     lowComplexityCnt = sString::cnt00(lowComplexityString);
     return lowComplexityCnt;
 }
@@ -169,7 +169,7 @@ bool sRandomSeq::addPrimers(sStr &buf, idx buflen)
 //                    idx posinbuf = mutation->position - seqStart;
 //                    if( flipCoin(mutation->frequency, 100) && ( (mutation->allele==0) || randAllele == mutation->allele)) {
 //                        if( id ) {
-//                            id->printf(" mut=%"DEC" %c>%c", mutation->position + 1, buf.ptr(posinbuf)[0], mutation->mutation.ptr()[0]);
+//                            id->printf(" mut=%" DEC " %c>%c", mutation->position + 1, buf.ptr(posinbuf)[0], mutation->mutation.ptr()[0]);
 //                        }
 //                        if( mutation->mutation.length() > 1 ) {
 //                            // We must move from posinbuf to make space mutation.length() spaces
@@ -179,7 +179,7 @@ bool sRandomSeq::addPrimers(sStr &buf, idx buflen)
 //                        strncpy(buf.ptr(posinbuf), mutation->mutation.ptr(), mutation->mutation.length());
 ////                        char init=sBioseq::mapRevATGC[(sBioseq::mapATGC[(idx)tt[0]])%4];
 ////                        tt[0]=sBioseq::mapRevATGC[(sBioseq::mapATGC[(idx)tt[0]]+*mut)%4];
-//                        //hdr.printf(" mut=%"DEC"%c>%c",curpos+1,init,tt[0]);
+//                        //hdr.printf(" mut=%" DEC "%c>%c",curpos+1,init,tt[0]);
 //                    }
 //                }
 //            }
@@ -213,7 +213,7 @@ int sRandomSeq::applySortMutations(sStr &buf, sStr &qua, idx buflen, idx irow, i
         if( coinResult && ((mutation->allele == 0) || (randAllele == mutation->allele)) ) {
             blen = buf.length();
             if( id && (posinbuf < seqlenDump)) {
-                id->printf(" mut=%"DEC" %c>%s", mutation->position + 1, buf.ptr(posinbuf)[0], mutationStringContainer.ptr(mutation->mutationOffset));
+                id->printf(" mut=%" DEC " %c>%s", mutation->position + 1, buf.ptr(posinbuf)[0], mutationStringContainer.ptr(mutation->mutationOffset));
             }
             mutation->count++;
             mlen = sLen(mutationStringContainer.ptr(mutation->mutationOffset));
@@ -252,7 +252,7 @@ int sRandomSeq::applySortMutations(sStr &buf, sStr &qua, idx buflen, idx irow, i
             }
             //                        char init=sBioseq::mapRevATGC[(sBioseq::mapATGC[(idx)tt[0]])%4];
             //                        tt[0]=sBioseq::mapRevATGC[(sBioseq::mapATGC[(idx)tt[0]]+*mut)%4];
-            //hdr.printf(" mut=%"DEC"%c>%c",curpos+1,init,tt[0]);
+            //hdr.printf(" mut=%" DEC "%c>%c",curpos+1,init,tt[0]);
         } else {
             mutation->miss++;
         }
@@ -306,7 +306,7 @@ bool sRandomSeq::printFastXData(sFil * outFile, idx seqlen, const char *seqid, c
     char initChar = seqqua ? '@' : '>';
     outFile->printf("%c%s", initChar, seqid);
     if( subrpt > 1 ) {
-        outFile->printf(" H#=%"DEC, subrpt);
+        outFile->printf(" H#=%" DEC, subrpt);
     }
     outFile->printf("\n%.*s\n", (int) seqlen, seq);
     if( seqqua ) {
@@ -620,7 +620,7 @@ bool sRandomSeq::mutationCSVoutput(sFil *out, sBioseq &sub, sStr &err)
             return false;
         }
         irow = mutation->refNumSeq;
-        out->printf("\"%s\",%"DEC",%"DEC",%c,%s,%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC",%"DEC"\n", sub.id(irow), mutation->position + 1, mutation->position + 1, mutation->refBase, mutationStringContainer.ptr(mutation->mutationOffset), mutation->frequency,
+        out->printf("\"%s\",%" DEC ",%" DEC ",%c,%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC "\n", sub.id(irow), mutation->position + 1, mutation->position + 1, mutation->refBase, mutationStringContainer.ptr(mutation->mutationOffset), mutation->frequency,
             mutation->quality, mutation->allele, mutation->mutBiasStart, mutation->mutBiasEnd, mutation->count, mutation->miss);
     }
 
@@ -642,7 +642,7 @@ bool sRandomSeq::mutationVCFoutput(sFil *out, const char *refID, sBioseq &sub, s
         "##INFO=<ID=AF,Number=.,Type=Float,Description=\"Allele Frequency\">\n"
 //        "##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Read Depth\">\n"
 //        "##INFO=<ID=CG,Number=1,Type=Integer,Description=\"Consensus Genotype\">\n"
-            "##FILTER=<ID=PASS,Description=\"Coverage Threshold level of at least %"DEC"\">\n"
+            "##FILTER=<ID=PASS,Description=\"Coverage Threshold level of at least %" DEC "\">\n"
         "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n", threshold);
     sStr info;
     idx irow;
@@ -654,8 +654,8 @@ bool sRandomSeq::mutationVCFoutput(sFil *out, const char *refID, sBioseq &sub, s
                 return false;
             }
             irow = mutation->refNumSeq;
-            info.printf(0, "AF=%"DEC, mutation->frequency);
-            out->printf("%s\t%"DEC"\t%s\t%c\t%s\t%"DEC"\tPASS\t%s\n", sub.id(irow), mutation->position + 1, sub.id(irow), mutation->refBase, mutationStringContainer.ptr(mutation->mutationOffset), mutation->quality, info.ptr());
+            info.printf(0, "AF=%" DEC, mutation->frequency);
+            out->printf("%s\t%" DEC "\t%s\t%c\t%s\t%" DEC "\tPASS\t%s\n", sub.id(irow), mutation->position + 1, sub.id(irow), mutation->refBase, mutationStringContainer.ptr(mutation->mutationOffset), mutation->quality, info.ptr());
     }
 
     return true;
@@ -756,7 +756,7 @@ bool sRandomSeq::loadParticularAttributes (sVar &options, sStr *err, sBioseq &qr
         minPEread = options.ivalue("pEndmin", 100);
         maxPEread = options.ivalue("pEndmax", 500);
         if( minPEread < minLength ) {
-//            err->printf("Please check your Paired end inputs, minimum Paired End (%"DEC" < minimum Length %"DEC")", minPEread, minLength);
+//            err->printf("Please check your Paired end inputs, minimum Paired End (%" DEC " < minimum Length %" DEC ")", minPEread, minLength);
             minPEread = minLength;
 //            return false;
         }
@@ -898,7 +898,7 @@ idx sRandomSeq::ionWanderCallback(sIon * ion, sIonWander *ts, sIonWander::Statem
         else {
             th->rangeContainer.cut(ifCut);
         }
-//        th->hiveseqListContainer.printf("%"DEC",%"DEC",%"DEC, seqid, range->startRange, range->endRange);
+//        th->hiveseqListContainer.printf("%" DEC ",%" DEC ",%" DEC, seqid, range->startRange, range->endRange);
 //        th->hiveseqListContainer.add0();
 
     }
@@ -1259,7 +1259,7 @@ idx sRandomSeq::randomize(sFil *out, sBioseq &sub, sStr &err, sFil *out2, const 
             continue;
         }
 
-        id.printf(0, "%s%s pos=%"DEC" len=%"DEC, prefixID, sub.id(irow), seqStart + 1, seqlenDump);
+        id.printf(0, "%s%s pos=%" DEC " len=%" DEC, prefixID, sub.id(irow), seqStart + 1, seqlenDump);
 
         // 1. Add primers first
         if( inSilicoFlags & eSeqPrimers ) {
@@ -1310,9 +1310,9 @@ idx sRandomSeq::randomize(sFil *out, sBioseq &sub, sStr &err, sFil *out2, const 
 
             }
             if( inSilicoFlags & eSeqNoId ) {
-                id.printf(0, "%"DEC, iter + 1);
+                id.printf(0, "%" DEC, iter + 1);
             } else {
-                id.printf(" FragLength=%"DEC" Strand=fwd", seqLen);
+                id.printf(" FragLength=%" DEC " Strand=fwd", seqLen);
             }
             printFastXData(file1, seqlenDump, id, t.ptr(), qua.length() ? qua.ptr() : 0, 1);
             // reverse complement the sequence
@@ -1336,7 +1336,7 @@ idx sRandomSeq::randomize(sFil *out, sBioseq &sub, sStr &err, sFil *out2, const 
                 }
             }
             if( inSilicoFlags & eSeqNoId ) {
-                id.printf(0, "%"DEC, iter + 1);
+                id.printf(0, "%" DEC, iter + 1);
             } else {
                 id.cut(id.length() - 3);
                 id.addString("rev");
@@ -1360,7 +1360,7 @@ idx sRandomSeq::randomize(sFil *out, sBioseq &sub, sStr &err, sFil *out2, const 
                 id.printf(" Strand=fwd");
             }
             if( inSilicoFlags & eSeqNoId ) {
-                id.printf(0, "%"DEC, iter + 1);
+                id.printf(0, "%" DEC, iter + 1);
             }
             printFastXData(out, seqLen, id, t.ptr(), qua.length() ? qua.ptr() : 0, 1);
         }

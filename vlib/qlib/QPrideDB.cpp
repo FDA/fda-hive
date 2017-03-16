@@ -137,7 +137,7 @@ idx sQPrideDB::_QP_SetIdxVar(sSql * db, idx req, idx val, const char * tblname, 
     protectName(sql, tblname);
     sql.addString(" SET ");
     protectName(sql, vname);
-    sql.printf(" = %"DEC, val);
+    sql.printf(" = %" DEC, val);
     if( extraset ) {
         sql.addString(extraset);
     }
@@ -145,9 +145,9 @@ idx sQPrideDB::_QP_SetIdxVar(sSql * db, idx req, idx val, const char * tblname, 
     protectName(sql, idxname);
     if( req < 0 ) {
         // group operation
-        sql.printf(" IN (SELECT reqID FROM QPGrp WHERE grpID = %"DEC")", -req);
+        sql.printf(" IN (SELECT reqID FROM QPGrp WHERE grpID = %" DEC ")", -req);
     } else {
-        sql.printf(" = %"DEC, req);
+        sql.printf(" = %" DEC, req);
     }
 
     db->getTable(sql.ptr(), 0, 0);
@@ -165,9 +165,9 @@ idx sQPrideDB::_QP_GetIdxVar(sSql * db, idx req, const char * tblname,const char
     protectName(sql, tblname);
     sql.addString(" WHERE ");
     protectName(sql, idxname);
-    sql.printf(" = %"DEC, req);
+    sql.printf(" = %" DEC, req);
 
-    db->sscanfTable(sql.ptr(), "%"DEC, &ret);
+    db->sscanfTable(sql.ptr(), "%" DEC, &ret);
     return ret;
 }
 
@@ -179,7 +179,7 @@ idx sQPrideDB::_QP_SetIdxVar(sSql * db, sVec<idx> * reqs, idx val, const char * 
     protectName(sql, tblname);
     sql.addString(" SET ");
     protectName(sql, vname);
-    sql.printf(" = %"DEC, val);
+    sql.printf(" = %" DEC, val);
     if( extraset ) {
         sql.addString(extraset);
     }
@@ -215,7 +215,7 @@ idx sQPrideDB::_QP_GetIdxVar(sSql * db, sVec<idx> * reqs, sVec<idx> * vals, cons
     db->getTable(sql.ptr(), &res);
     idx val = 0;
     for(idx i = 0; i < res.rows; ++i) {
-        sscanf(res(i, 0), "%"DEC, &val);
+        sscanf(res(i, 0), "%" DEC, &val);
         vals->vadd(1, val);
     }
     return vals->dim();
@@ -320,7 +320,7 @@ idx sQPrideDB::QP_reqReSubmit(idx * req, idx cnt, idx delaySeconds /* = 0 */)
         sStr sql;
         sql.addString("UPDATE QPReq SET stat = 1, takenCnt = 0, progress = 0, progress100 = 0, grabRand = 0, takenTm = cdate, doneTm = 0, actTm = NOW()");
         if( delaySeconds ) {
-            sql.printf(", scheduleGrab = TIMESTAMPADD(SECOND, %"DEC", NOW())", delaySeconds);
+            sql.printf(", scheduleGrab = TIMESTAMPADD(SECOND, %" DEC ", NOW())", delaySeconds);
         }
         sql.printf(" WHERE ");
         db->exprInList(sql, "reqID", req, cnt, false);
@@ -337,16 +337,16 @@ idx sQPrideDB::QP_requestGetForGrp(idx grp, void * RList, const char * serviceNa
     if( serviceName ) {
         sql.addString(" JOIN QPSvc USING (svcID) WHERE name = ");
         protectString(sql, serviceName);
-        sql.printf(" AND grpID = %"DEC, grp);
+        sql.printf(" AND grpID = %" DEC, grp);
     } else {
-        sql.printf(" WHERE grpID = %"DEC, grp);
+        sql.printf(" WHERE grpID = %" DEC, grp);
     }
-    db->sscanfTable(sql.ptr(), "%"DEC, &count, 1, sizeof(count));
+    db->sscanfTable(sql.ptr(), "%" DEC, &count, 1, sizeof(count));
     if( count > 0 ) {
         rList->add(count);
     } else { // this could be a single reqID without associated grpID
-        sStr sql2("SELECT COUNT(QPReq.reqID) FROM QPReq WHERE reqID = %"DEC, grp);
-        db->sscanfTable(sql2.ptr(), "%"DEC, &count, 1, sizeof(count));
+        sStr sql2("SELECT COUNT(QPReq.reqID) FROM QPReq WHERE reqID = %" DEC, grp);
+        db->sscanfTable(sql2.ptr(), "%" DEC, &count, 1, sizeof(count));
         if( count > 0 ) {
             rList->add(count);
             return sQPrideDB::QP_requestGet(grp, rList->ptr(), false);
@@ -359,7 +359,7 @@ idx sQPrideDB::QP_requestGetForGrp(idx grp, void * RList, const char * serviceNa
 
 idx sQPrideDB::QP_getReqByUserKey(idx userKey, const char * serviceName)
 {
-    sStr sql("SELECT reqID FROM QPReq WHERE userKey = %"DEC, userKey);
+    sStr sql("SELECT reqID FROM QPReq WHERE userKey = %" DEC, userKey);
     if( serviceName ) {
         sql.addString(" AND svcID IN (SELECT svcID FROM QPSvc WHERE name = ");
         protectString(sql, serviceName);
@@ -367,7 +367,7 @@ idx sQPrideDB::QP_getReqByUserKey(idx userKey, const char * serviceName)
     }
 
     idx req=0;
-    db->sscanfTable(sql.ptr(), "%"DEC, &req, 1, sizeof(req));
+    db->sscanfTable(sql.ptr(), "%" DEC, &req, 1, sizeof(req));
     return req;
 }
 
@@ -382,14 +382,14 @@ idx sQPrideDB::QP_requestGet(idx req , void * R, bool isGrp, const char * servic
             "UNIX_TIMESTAMP(doneTm), UNIX_TIMESTAMP(purgeTm), QPSvc.title, UNIX_TIMESTAMP(QPReq.scheduleGrab)");
 
     if( isGrp ) {
-        sql.printf(", QPGrp.grpID FROM QPGrp JOIN QPReq USING (reqID) JOIN QPSvc USING (svcID) WHERE grpID = %"DEC, req);
+        sql.printf(", QPGrp.grpID FROM QPGrp JOIN QPReq USING (reqID) JOIN QPSvc USING (svcID) WHERE grpID = %" DEC, req);
         if (serviceName) {
             sql.addString(" AND name = ");
             protectString(sql, serviceName);
         }
         sql.printf(" ORDER BY QPReq.reqID");
     } else {
-        sql.printf(" FROM QPReq JOIN QPSvc USING (svcID) WHERE reqID = %"DEC, req);
+        sql.printf(" FROM QPReq JOIN QPSvc USING (svcID) WHERE reqID = %" DEC, req);
     }
 
     db->getTable(sql.ptr(), &res);
@@ -432,11 +432,11 @@ idx sQPrideDB::QP_requestGet(idx req , void * R, bool isGrp, const char * servic
 
 idx sQPrideDB::QP_reqSetProgress(idx req, idx progress, idx progress100)
 {
-    sStr sql("UPDATE QPReq SET progress = IF(%"DEC" >= 0, %"DEC", progress)", progress, progress);
+    sStr sql("UPDATE QPReq SET progress = IF(%" DEC " >= 0, %" DEC ", progress)", progress, progress);
     if( progress100 >= 0 && progress100 <= 100 ) {
-        sql.printf(", progress100 = %"DEC, progress100);
+        sql.printf(", progress100 = %" DEC, progress100);
     }
-    sql.printf(" WHERE reqID = %"DEC, req);
+    sql.printf(" WHERE reqID = %" DEC, req);
     db->executeString(sql);
     return progress;
 }
@@ -468,7 +468,7 @@ idx sQPrideDB::QP_reqGetUser(idx req) {
 
 void sQPrideDB::QP_reqRegisterAlive(idx reqID)
 {
-    db->execute("UPDATE QPReq SET aliveTm = NOW() WHERE reqID = %"DEC, reqID);
+    db->execute("UPDATE QPReq SET aliveTm = NOW() WHERE reqID = %" DEC, reqID);
 }
 
 /*
@@ -585,10 +585,10 @@ idx sQPrideDB::QP_grp2Req(idx grp, sVec< idx > * reqs, const char * svc, idx mas
     idx v;
     sStr smaster;
     if( masterGroup ) {
-        smaster.printf(" AND QPGrp.masterGrpID = %"DEC, masterGroup < 0 ? grp : masterGroup);
+        smaster.printf(" AND QPGrp.masterGrpID = %" DEC, masterGroup < 0 ? grp : masterGroup);
     }
     if( svc && *svc ) {
-        sql.printf("SELECT QPGrp.reqID FROM QPGrp, QPReq WHERE QPReq.reqID=QPGrp.reqID %s AND QPGrp.grpID = %"DEC" AND svcID IN (SELECT svcID FROM QPSvc WHERE name", smaster ? smaster.ptr() : "", grp);
+        sql.printf("SELECT QPGrp.reqID FROM QPGrp, QPReq WHERE QPReq.reqID=QPGrp.reqID %s AND QPGrp.grpID = %" DEC " AND svcID IN (SELECT svcID FROM QPSvc WHERE name", smaster ? smaster.ptr() : "", grp);
         if( strchr(svc, '%') ) {
             sql.addString(" LIKE ");
         } else {
@@ -596,7 +596,7 @@ idx sQPrideDB::QP_grp2Req(idx grp, sVec< idx > * reqs, const char * svc, idx mas
         }
         protectString(sql, svc);
         sql.addString(") ORDER BY QPGrp.jobIDCollect, QPGrp.reqID");
-             /*sql.printf("select QPGrp.reqID from QPGrp, QPReq where QPReq.reqID=QPGrp.reqID and QPGrp.grpID=%"DEC" and svcID in  ( select svcID from QPSvc  where name like ",grp);
+             /*sql.printf("select QPGrp.reqID from QPGrp, QPReq where QPReq.reqID=QPGrp.reqID and QPGrp.grpID=%" DEC " and svcID in  ( select svcID from QPSvc  where name like ",grp);
         for( const char * p=svc; p; p=sString::next00(p)){
             if(p!=svc)sql.printf(" or");
             sql.printf("'%%%s%%' ",p);
@@ -604,11 +604,11 @@ idx sQPrideDB::QP_grp2Req(idx grp, sVec< idx > * reqs, const char * svc, idx mas
         sql.printf(" ) order by QPGrp.jobIDCollect, QPGrp.reqID ");
         */
     } else {
-        sql.printf("SELECT reqID FROM QPGrp WHERE grpID = %"DEC" %s ORDER BY jobIDCollect, reqID",grp,smaster ? smaster.ptr() : "" );
+        sql.printf("SELECT reqID FROM QPGrp WHERE grpID = %" DEC " %s ORDER BY jobIDCollect, reqID",grp,smaster ? smaster.ptr() : "" );
     }
     db->getTable(sql.ptr(), &res);
     for(idx i=0; i<res.rows; ++i) {
-        if( sscanf(res(i,0),"%"DEC,&v)!=1)break;
+        if( sscanf(res(i,0),"%" DEC,&v)!=1)break;
         reqs->vadd(1,v);
     }
     return reqs->dim() ? (*reqs)[0] : grp;
@@ -619,15 +619,15 @@ idx sQPrideDB::QP_req2Grp(idx req, sVec<idx> * grps, bool isMaster)
     sVarSet res;
     idx v;
     if( isMaster ) {
-        db->getTable(&res, "SELECT masterGrpID FROM QPGrp WHERE reqID=%"DEC" AND masterGrpID IS NOT NULL", req);
+        db->getTable(&res, "SELECT masterGrpID FROM QPGrp WHERE reqID=%" DEC " AND masterGrpID IS NOT NULL", req);
     } else {
-        db->getTable(&res, "SELECT grpID FROM QPGrp WHERE reqID=%"DEC" ORDER BY grpID ASC", req);
+        db->getTable(&res, "SELECT grpID FROM QPGrp WHERE reqID=%" DEC " ORDER BY grpID ASC", req);
     }
     if( !grps ) {
         return res.ival(0, 0, req);
     }
     for(idx i = 0; i < res.rows; ++i) {
-        if( sscanf(res(i, 0), "%"DEC, &v) != 1 ) {
+        if( sscanf(res(i, 0), "%" DEC, &v) != 1 ) {
             break;
         }
         grps->vadd(1, v);
@@ -639,12 +639,12 @@ idx sQPrideDB::QP_req2GrpSerial(idx req, idx grp, idx * pcnt, idx svc)
 {
     if(pcnt){
         if(svc!=sNotIdx) {
-            *pcnt=db->ivalue(0, "SELECT COUNT(QPReq.reqID) FROM QPGrp, QPReq WHERE QPGrp.reqID=QPReq.reqID AND svcID=%"DEC" AND QPGrp.grpID=%"DEC, svc, grp);
+            *pcnt=db->ivalue(0, "SELECT COUNT(QPReq.reqID) FROM QPGrp, QPReq WHERE QPGrp.reqID=QPReq.reqID AND svcID=%" DEC " AND QPGrp.grpID=%" DEC, svc, grp);
         } else {
-            *pcnt=db->ivalue(0, "SELECT COUNT(*) FROM QPGrp WHERE grpID=%"DEC, grp);
+            *pcnt=db->ivalue(0, "SELECT COUNT(*) FROM QPGrp WHERE grpID=%" DEC, grp);
         }
     }
-    return db->ivalue(0, "SELECT jobIDCollect FROM QPGrp WHERE grpID=%"DEC" AND reqID=%"DEC" LIMIT 1", grp, req);
+    return db->ivalue(0, "SELECT jobIDCollect FROM QPGrp WHERE grpID=%" DEC " AND reqID=%" DEC " LIMIT 1", grp, req);
 }
 
 
@@ -678,14 +678,14 @@ idx sQPrideDB::QP_grpGetProgress(idx grp, idx * progress, idx * progress100)
 /*
 idx QP_grpSetCollector(idx grp, idx jobID)
 {
-    db->execute("update QPGrp set jobIDCollect=%"DEC" where grp=%"DEC" and jobIDCollect=%"DEC,grp,jobID);
-    idx jo=db->ivalue(0,"select jobIDCollect from QPGrp where grp=%"DEC,grp);
+    db->execute("update QPGrp set jobIDCollect=%" DEC " where grp=%" DEC " and jobIDCollect=%" DEC,grp,jobID);
+    idx jo=db->ivalue(0,"select jobIDCollect from QPGrp where grp=%" DEC,grp);
     return jo==jobID ? jo : 0 ;
 }
 
 idx QP_grpGetCollector(idx grp)
 {
-    db->ivalue("select jobIDCollect from QPGrp where grp=%"DEC,grp);
+    db->ivalue("select jobIDCollect from QPGrp where grp=%" DEC,grp);
     return grp;
 }
 */
@@ -697,28 +697,28 @@ idx QP_grpGetCollector(idx grp)
 bool sQPrideDB::QP_reqSetPar(idx req, idx type, const char * value,bool isOverwrite)
 {
     sStr sql;
-    if ( isOverwrite==0 || db->ivalue(-1, "SELECT reqID FROM QPReqPar WHERE reqID=%"DEC" AND type=%"DEC, req, type) ==-1) {
-        sql.printf("INSERT INTO QPReqPar (reqID, type, val) VALUES(%"DEC", %"DEC", ", req, type);
+    if ( isOverwrite==0 || db->ivalue(-1, "SELECT reqID FROM QPReqPar WHERE reqID=%" DEC " AND type=%" DEC, req, type) ==-1) {
+        sql.printf("INSERT INTO QPReqPar (reqID, type, val) VALUES(%" DEC ", %" DEC ", ", req, type);
         protectString(sql, value);
         sql.addString(")");
     } else {
         sql.addString("UPDATE QPReqPar SET val = ");
         protectString(sql, value);
-        sql.printf(" WHERE reqID = %"DEC" AND type = %"DEC, req, type);
+        sql.printf(" WHERE reqID = %" DEC " AND type = %" DEC, req, type);
     }
     return db->executeString(sql.ptr());
 }
 
 char * sQPrideDB::QP_requestGetPar(idx req, idx type, sStr * val)
 {
-    db->getBlob(val->mex(), "SELECT val FROM QPReqPar WHERE reqID=%"DEC" AND type=%"DEC, req, type);
+    db->getBlob(val->mex(), "SELECT val FROM QPReqPar WHERE reqID=%" DEC " AND type=%" DEC, req, type);
     val->add0();
     return val->ptr();
 }
 
 char * sQPrideDB::QP_reqDataGet(idx req, const char * dataName, sMex * data, idx * timestamp)
 {
-    sStr sql("SELECT dataBlob, UNIX_TIMESTAMP(modTm) FROM QPData WHERE reqID = %"DEC" AND dataName = ", req);
+    sStr sql("SELECT dataBlob, UNIX_TIMESTAMP(modTm) FROM QPData WHERE reqID = %" DEC " AND dataName = ", req);
     protectString(sql, dataName);
 
     sMex enc;
@@ -739,7 +739,7 @@ char * sQPrideDB::QP_reqDataGet(idx req, const char * dataName, sMex * data, idx
 
 idx sQPrideDB::QP_reqDataGetTimestamp(idx req, const char * dataName)
 {
-    sStr sql("SELECT UNIX_TIMESTAMP(modTm) FROM QPData WHERE reqID = %"DEC" AND dataName = ", req);
+    sStr sql("SELECT UNIX_TIMESTAMP(modTm) FROM QPData WHERE reqID = %" DEC " AND dataName = ", req);
     protectString(sql, dataName);
 
     return db->ivalue(sql.ptr(), sIdxMax);
@@ -765,7 +765,7 @@ idx sQPrideDB::QP_reqDataGetAll(idx req, sVec < sStr > * dataVec, sStr * infos00
     sStr sql;
     sVarSet res;
 
-    db->getTable(&res, "SELECT dataName FROM QPData WHERE reqID = %"DEC, req);
+    db->getTable(&res, "SELECT dataName FROM QPData WHERE reqID = %" DEC, req);
     for(idx i=0; i<res.rows; ++i) {
         char * dataName=res(i,0);
         if( infos00 ){
@@ -909,7 +909,7 @@ idx sQPrideDB::QP_serviceGet(void * Svc, const char * serviceName, idx svcId)
             protectString(sql, serviceName);
         }
     } else if( svcId ) {
-        sql.printf(" WHERE svcID = %"DEC,svcId);
+        sql.printf(" WHERE svcID = %" DEC,svcId);
     }
 
     sVarSet res;
@@ -958,7 +958,7 @@ idx sQPrideDB::QP_serviceGet(void * Svc, const char * serviceName, idx svcId)
 
 idx sQPrideDB::QP_serviceUp(const char * svc, idx isUpMask)
 {
-    sStr sql("UPDATE QPSvc SET isUp = %"DEC" WHERE name = ", isUpMask);
+    sStr sql("UPDATE QPSvc SET isUp = %" DEC " WHERE name = ", isUpMask);
     protectString(sql, svc);
     db->executeString(sql.ptr());
     return isUpMask;
@@ -1029,7 +1029,7 @@ void sQPrideDB::QP_getRegisteredIP(sVec <sStr> * ips, const char * equCmd)
     // by default only hosts last active during the last hour are included
     // this can be changed by e.g. "qapp -shall=:24 cmd"
     if( hoursAgo > 0 ) {
-        sql.printf(" AND (mdate > now() - INTERVAL %"DEC" hour)", hoursAgo);
+        sql.printf(" AND (mdate > now() - INTERVAL %" DEC " hour)", hoursAgo);
     } else {
         sql.addString(" AND (mdate > now() - INTERVAL 1 hour)");
     }
@@ -1123,11 +1123,11 @@ void sQPrideDB::QP_registerHostIP(const char * sys)
 void sQPrideDB::QP_reqCleanTbl(sVec <sStr> *tblfiles, idx req, const char *dataname)
 {
     sVarSet res;
-    sStr sql("SELECT dataName FROM QPData WHERE reqID = %"DEC" AND dataName LIKE ", req);
+    sStr sql("SELECT dataName FROM QPData WHERE reqID = %" DEC " AND dataName LIKE ", req);
     protectString(sql, dataname);
     db->getTable(sql.ptr(), &res);
 
-    sql.printf(0, "DELETE FROM QPData WHERE reqID = %"DEC" AND dataName LIKE ", req);
+    sql.printf(0, "DELETE FROM QPData WHERE reqID = %" DEC " AND dataName LIKE ", req);
     protectString(sql, dataname);
     db->executeString(sql.ptr());
 
@@ -1165,7 +1165,7 @@ idx sQPrideDB::QP_workRegisterTime(const char * svc, const char * params, idx am
         amountOfWork += amount;
         timeSeconds += time;
 
-        sql.printf("UPDATE QPPerform SET amountOfWork='%"DEC"', timeSeconds='%"DEC"' WHERE svcName = ", amountOfWork, timeSeconds);
+        sql.printf("UPDATE QPPerform SET amountOfWork='%" DEC "', timeSeconds='%" DEC "' WHERE svcName = ", amountOfWork, timeSeconds);
         protectString(sql, svc);
         if( params ) {
             sql.addString(" AND paramset = ");
@@ -1178,14 +1178,14 @@ idx sQPrideDB::QP_workRegisterTime(const char * svc, const char * params, idx am
         if( params ) { //parameter set is not null
             sql.addString("INSERT INTO QPPerform (svcName, amountOfWork, timeSeconds, paramset) VALUES (");
             protectString(sql, svc);
-            sql.printf(", %"DEC", %"DEC", ", amount, time);
+            sql.printf(", %" DEC ", %" DEC ", ", amount, time);
             protectString(sql, params);
             sql.addString(")");
             db->executeString(sql.ptr());
         } else {//parameter set is null
             sql.printf("INSERT INTO QPPerform (svcName, amountOfWork, timeSeconds) VALUES (");
             protectString(sql, svc);
-            sql.printf(", %"DEC", %"DEC")", amount, time);
+            sql.printf(", %" DEC ", %" DEC ")", amount, time);
             db->executeString(sql.ptr());
         }
         return time;
@@ -1282,11 +1282,11 @@ idx sQPrideDB::QP_dbReconnect(void)
 // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 void sQPrideDB::QP_jobRegisterAlive(idx job)
 {
-    db->execute("UPDATE QPJob SET aliveTm=NOW() WHERE jobID=%"DEC, job);
+    db->execute("UPDATE QPJob SET aliveTm=NOW() WHERE jobID=%" DEC, job);
 }
 idx sQPrideDB::QP_jobSetStatus(idx job, idx jobstat)
 {
-    db->execute("UPDATE QPJob SET stat=%"DEC" WHERE jobID=%"DEC, jobstat, job);
+    db->execute("UPDATE QPJob SET stat=%" DEC " WHERE jobID=%" DEC, jobstat, job);
     return jobstat;
 }
 
@@ -1316,18 +1316,18 @@ idx sQPrideDB::QP_jobRegister(const char * serviceName, const char * hostName, i
 
 idx sQPrideDB::QP_jobSetMem(idx job, idx curMemSize, idx maxMemSize)
 {
-    db->execute("UPDATE QPJob SET mem=%"DEC", maxmem=%"DEC" WHERE jobID=%"DEC, curMemSize, maxMemSize, job);
+    db->execute("UPDATE QPJob SET mem=%" DEC ", maxmem=%" DEC " WHERE jobID=%" DEC, curMemSize, maxMemSize, job);
     return curMemSize;
 }
 
 idx sQPrideDB::QP_jobGetAction(idx job)
 {
-    return db->ivalue(0, "SELECT act FROM QPJob WHERE jobID = %"DEC, job);
+    return db->ivalue(0, "SELECT act FROM QPJob WHERE jobID = %" DEC, job);
 }
 
 idx sQPrideDB::QP_jobSetReq(idx job, idx req)
 {
-    return db->uvalue(0, "UPDATE QPJob SET reqID = %"DEC" WHERE jobID = %"DEC"; UPDATE QPReq SET jobID = %"DEC" WHERE reqID = %"DEC"; SELECT 1;", req, job, job, req);
+    return db->uvalue(0, "UPDATE QPJob SET reqID = %" DEC " WHERE jobID = %" DEC "; UPDATE QPReq SET jobID = %" DEC " WHERE reqID = %" DEC "; SELECT 1;", req, job, job, req);
 }
 
 idx sQPrideDB::QP_jobGet(idx jobID, sQPrideBase::Job * jobs, idx jobCnt, const char * _wherecls)
@@ -1343,7 +1343,7 @@ idx sQPrideDB::QP_jobGet(idx jobID, sQPrideBase::Job * jobs, idx jobCnt, const c
     if( _wherecls ) {
         sql.printf(_wherecls);
     } else if( jobID ) {
-        sql.printf("WHERE QPJob.jobID = %"DEC, jobID);
+        sql.printf("WHERE QPJob.jobID = %" DEC, jobID);
     }
 
     sVarSet res;
@@ -1496,9 +1496,9 @@ idx sQPrideDB::QP_sysJobsGetList(sVec <sQPrideBase::Job> * jobs , idx stat, idx 
 {
     sStr sql("SELECT COUNT(jobID) FROM QPJob");
     idx tail=sql.length();
-    sql.printf(" WHERE stat=%"DEC, stat);
+    sql.printf(" WHERE stat=%" DEC, stat);
     if( act != sQPrideBase::eQPJobAction_Any ) {
-        sql.printf(" AND act = %"DEC, act );
+        sql.printf(" AND act = %" DEC, act );
     }
     if( hostname ) {
         sql.printf(" AND hostName = ");

@@ -207,7 +207,7 @@ static void Svc_dealloc(pyhive::SvcObj *self)
 
 static PyObject* Svc_repr(pyhive::SvcObj * self)
 {
-    sStr buf("<%s %"DEC" %s at %p>", self->ob_type->tp_name, self->svc.svcID, self->svc.name, self);
+    sStr buf("<%s %" DEC " %s at %p>", self->ob_type->tp_name, self->svc.svcID, self->svc.name, self);
     return PyString_FromString(buf.ptr());
 }
 
@@ -253,7 +253,7 @@ static PyObject * Svc_get_cdate(pyhive::SvcObj * self, void * closure)
 {
     if( !self->cdate ) {
         sStr buf;
-        self->cdate = pyhive::parseDateTime(buf.printf("%"DEC, self->svc.cdate));
+        self->cdate = pyhive::parseDateTime(buf.printf("%" DEC, self->svc.cdate));
     }
     Py_XINCREF(self->cdate);
     return self->cdate;
@@ -444,7 +444,7 @@ static int Proc_init(pyhive::Proc *self, PyObject * args, PyObject * kwds)
         return -1;
     }
 
-    self->proc = new pyhive::sQPyProc(self, "config=qapp.cfg"__, srv);
+    self->proc = new pyhive::sQPyProc(self, "config=qapp.cfg" __, srv);
     pyhive::sQPyProc::setSingleton(self->proc);
 
     return 0;
@@ -882,7 +882,7 @@ static PyObject * Proc_req_lock(pyhive::Proc * self, PyObject * args, PyObject *
     if( self->proc->reqLock(reqID, key, &reqLockedBy, max_lifetime, force) ) {
         Py_RETURN_TRUE;
     } else {
-        PyObject * eargs = Py_BuildValue("(NN)", PyString_FromFormat("Already locked by request %"PY_DEC, reqLockedBy), pyhive::idx2py(reqLockedBy));
+        PyObject * eargs = Py_BuildValue("(NN)", PyString_FromFormat("Already locked by request %" PY_DEC, reqLockedBy), pyhive::idx2py(reqLockedBy));
         PyErr_SetObject((PyObject*)&AlreadyLockedError, eargs);
         Py_XDECREF(eargs);
         return 0;

@@ -408,11 +408,11 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
             const char * batch_name = batch_name_node ? batch_name_node->value() : 0;
             idx batch_size = batch_size_node ? sMax<idx>(0, batch_size_node->ivalue()) : 0;
             if( !batch_name || !batch_name[0] ) {
-                proc->logOut(sQPrideBase::eQPLogType_Warning, "'batch_list' tree node with path %s, row %"DEC": 'batch_param' is empty, skipping", batch_array_node->path(), irow);
+                proc->logOut(sQPrideBase::eQPLogType_Warning, "'batch_list' tree node with path %s, row %" DEC ": 'batch_param' is empty, skipping", batch_array_node->path(), irow);
                 continue;
             }
             if( !batch_size ) {
-                proc->logOut(sQPrideBase::eQPLogType_Warning, "'batch_list' tree node with path %s, row %"DEC": 'batch_value' is empty, skipping", batch_array_node->path(), irow);
+                proc->logOut(sQPrideBase::eQPLogType_Warning, "'batch_list' tree node with path %s, row %" DEC ": 'batch_value' is empty, skipping", batch_array_node->path(), irow);
                 continue;
             }
 
@@ -773,7 +773,7 @@ sVar * BatchingIterator::makeForm(sVar * pForm, const char * svcToSubmit) const
     pForm->mex()->add(skel->mex()->ptr(0), skel->mex()->pos());
 
     static sStr label;
-    label.printf(0, "%s #%"DEC, svcToSubmit, cur_it + 1);
+    label.printf(0, "%s #%" DEC, svcToSubmit, cur_it + 1);
 
     for (idx ilist=0; ilist<batches.dim(); ilist++) {
         idx dim_fields = desc->dimFields(ilist);
@@ -793,7 +793,7 @@ sVar * BatchingIterator::makeForm(sVar * pForm, const char * svcToSubmit) const
 
     keybuf.cut(0);
     label.cut(0);
-    pForm->inp(desc->printFormReqPriorityKey(), label.printf("%"DEC, desc->getReqPriority(cur_it)));
+    pForm->inp(desc->printFormReqPriorityKey(), label.printf("%" DEC, desc->getReqPriority(cur_it)));
 
     return pForm;
 }
@@ -801,7 +801,7 @@ sVar * BatchingIterator::makeForm(sVar * pForm, const char * svcToSubmit) const
 idx SvcBatcher::OnExecute(idx req)
 {
 #ifdef _DEBUG
-    fprintf(stderr, "qpride form for req %"DEC":\n", req);
+    fprintf(stderr, "qpride form for req %" DEC ":\n", req);
     for (idx i=0; i<pForm->dim(); i++) {
         const char * key = static_cast<const char*>(pForm->id(i));
         const char * value = pForm->value(key);
@@ -855,9 +855,9 @@ idx SvcBatcher::OnExecute(idx req)
         submittedGrpIDs.add(batch_iter.maxIterations());
         if( doCreateProcesses ) {
             submittedProcessIDs.add(batch_iter.maxIterations());
-            logOut(eQPLogType_Info, "Will create %"DEC" process submissions", batch_iter.maxIterations());
+            logOut(eQPLogType_Info, "Will create %" DEC " process submissions", batch_iter.maxIterations());
         } else {
-            logOut(eQPLogType_Info, "Will create %"DEC" non-process submissions", batch_iter.maxIterations());
+            logOut(eQPLogType_Info, "Will create %" DEC " non-process submissions", batch_iter.maxIterations());
         }
 
         idx howManySubmitted=0;
@@ -869,11 +869,11 @@ idx SvcBatcher::OnExecute(idx req)
 
             idx err=0;
             strObjList.cut(0);
-            logOut(eQPLogType_Trace, "Trying to make form for value set %"DEC, batch_iter.getCurStep());
+            logOut(eQPLogType_Trace, "Trying to make form for value set %" DEC, batch_iter.getCurStep());
             batch_iter.makeForm(&submissionForm, svcToSubmit);
 
 #ifdef _DEBUG
-            log.printf(0, "Created form for value set %"DEC":\n", batch_iter.getCurStep());
+            log.printf(0, "Created form for value set %" DEC ":\n", batch_iter.getCurStep());
             for (idx i=0; i<submissionForm.dim(); i++) {
                 const char * key = static_cast<const char*>(submissionForm.id(i));
                 const char * value = submissionForm.value(key);
@@ -884,10 +884,10 @@ idx SvcBatcher::OnExecute(idx req)
 #endif
 
             if (doCreateProcesses) {
-                logOut(eQPLogType_Trace, "Trying to create process for value set %"DEC, batch_iter.getCurStep());
+                logOut(eQPLogType_Trace, "Trying to create process for value set %" DEC, batch_iter.getCurStep());
                 err=sUsrProc::createProcesForsubmission(this, &submissionForm, user, procObjs, &Svc, &strObjList, &log);
                 if( err ) {
-                    logOut(eQPLogType_Error, "Failed to create process for value set %"DEC": %s", batch_iter.getCurStep(), log.ptr());
+                    logOut(eQPLogType_Error, "Failed to create process for value set %" DEC ": %s", batch_iter.getCurStep(), log.ptr());
                     if( ignore_errors ) {
                         reqSetInfo(req, eQPInfoLevel_Warning, "Failed to create process; attempting to continue (ignoring errors).");
                         continue;
@@ -899,13 +899,13 @@ idx SvcBatcher::OnExecute(idx req)
                     }
                 }
                 submittedProcessIDs[numProcesses++] = procObjs[0].Id();
-                logOut(eQPLogType_Info, "Created process for value set %"DEC": %s", batch_iter.getCurStep(), strObjList.ptr());
+                logOut(eQPLogType_Info, "Created process for value set %" DEC ": %s", batch_iter.getCurStep(), strObjList.ptr());
             }
 
-            logOut(eQPLogType_Trace, "Trying to customize submission for value set %"DEC, batch_iter.getCurStep());
+            logOut(eQPLogType_Trace, "Trying to customize submission for value set %" DEC, batch_iter.getCurStep());
             idx cntParallel=sHiveTools::customizeSubmission(&submissionForm, user, procObjs.dim() ? procObjs.ptr(0) : 0, &Svc, &log);
             if( !cntParallel ) {
-                logOut(eQPLogType_Error, "Failed to customize submission for value set %"DEC": %s", batch_iter.getCurStep(), log.ptr());
+                logOut(eQPLogType_Error, "Failed to customize submission for value set %" DEC ": %s", batch_iter.getCurStep(), log.ptr());
                 if( ignore_errors ) {
                     sStr readable;
                     reqSetInfo(req, eQPInfoLevel_Warning, "Failed to customize submission; attempting to continue (ignoring errors). %s", prop2readableLog(readable, log.ptr()));
@@ -918,12 +918,12 @@ idx SvcBatcher::OnExecute(idx req)
                     return 0;
                 }
             }
-            logOut(eQPLogType_Info, "Customized submission for value set %"DEC": parallel count == %"DEC, batch_iter.getCurStep(), cntParallel);
+            logOut(eQPLogType_Info, "Customized submission for value set %" DEC ": parallel count == %" DEC, batch_iter.getCurStep(), cntParallel);
 
-            logOut(eQPLogType_Trace, "Trying standardized submission for value set %"DEC, batch_iter.getCurStep());
+            logOut(eQPLogType_Trace, "Trying standardized submission for value set %" DEC, batch_iter.getCurStep());
             err=sUsrProc::standardizedSubmission(this, &submissionForm, user, procObjs, cntParallel, &reqSub, &Svc, 0, &strObjList, &log);
             if( err ) {
-                logOut(eQPLogType_Error, "Failed to submit process for value set %"DEC": %s", batch_iter.getCurStep(), log.ptr());
+                logOut(eQPLogType_Error, "Failed to submit process for value set %" DEC ": %s", batch_iter.getCurStep(), log.ptr());
                 if( ignore_errors ) {
                     reqSetInfo(req, eQPInfoLevel_Warning, "Failed to submit process; attempting to continue (ignoring errors).");
                     continue;
@@ -935,7 +935,7 @@ idx SvcBatcher::OnExecute(idx req)
                 }
             }
             howManySubmitted+=cntParallel;
-            logOut(eQPLogType_Info, "Standardized submission for value set %"DEC": parallel count == %"DEC", total submitted == %"DEC, batch_iter.getCurStep(), cntParallel, howManySubmitted);
+            logOut(eQPLogType_Info, "Standardized submission for value set %" DEC ": parallel count == %" DEC ", total submitted == %" DEC, batch_iter.getCurStep(), cntParallel, howManySubmitted);
 
             sVec < idx > reqIds;
             grp2Req(reqSub, &reqIds);
@@ -947,7 +947,7 @@ idx SvcBatcher::OnExecute(idx req)
 
             log.cut0cut();
             sString::printfIVec(&log, &reqIds, ", ");
-            logOut(eQPLogType_Info, "Running requests for value set %"DEC": %s", batch_iter.getCurStep(), log.ptr());
+            logOut(eQPLogType_Info, "Running requests for value set %" DEC ": %s", batch_iter.getCurStep(), log.ptr());
             log.cut0cut();
 
             reqSetAction(&reqIds, eQPReqAction_Run);

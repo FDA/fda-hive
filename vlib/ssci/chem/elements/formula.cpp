@@ -72,8 +72,8 @@ void sChem::formula::printfAtomList(sStr * dst, bool isotopic)
         for( ; ia<frml->dim() && al[ia].element!=0; ++ia) {
             element * ee=element::ptr((al[ia].element)&0xFF);
                         
-            if(isotopic)dst->printf("%s[%"DEC"]%"DEC"", ee->symbol, (al[ia].element>>16) , al[ia].count); 
-            else dst->printf("%s%"DEC"", ee->symbol,al[ia].count); 
+            if(isotopic)dst->printf("%s[%" DEC "]%" DEC "", ee->symbol, (al[ia].element>>16) , al[ia].count); 
+            else dst->printf("%s%" DEC "", ee->symbol,al[ia].count); 
         }
         //dst->printf(" ");
     }
@@ -199,9 +199,9 @@ idx sChem::formula::isotopicList(sChem::formula * dst, idx totIsoStart, idx totI
             const char * inValid=0;// check validity 
             
             if(km[kinds-1]!=0)inValid="Xatom";
-//            printf("%"DEC"  ", ++iter);for(ik=0; ik<kinds; ++ik ) printf("%s",element((frml[el[ik]].element)->symbol);printf("\n");
+//            printf("%" DEC "  ", ++iter);for(ik=0; ik<kinds; ++ik ) printf("%s",element((frml[el[ik]].element)->symbol);printf("\n");
 
-//            printf("%"DEC"  ", iter);
+//            printf("%" DEC "  ", iter);
             for(ik=0; ik<kinds; ++ik ) {  // perform some checks 
                 element * ee=element::ptr(frml[el[ik]].element);
                 isotop * isos=element::isoTable.ptr(ee->ofsIsotops);
@@ -214,7 +214,7 @@ idx sChem::formula::isotopicList(sChem::formula * dst, idx totIsoStart, idx totI
                     if(ii==ee->cntIsotops)inValid="tooHeavy"; 
                 }
                 if(!inValid && el[ik]==el[ik+1] && km[ik]<km[ik+1])inValid="repeat";
-//                printf("%"DEC"",km[ik]);
+//                printf("%" DEC "",km[ik]);
             }
 //            if(inValid)printf(" %s ", inValid);printf("\n");
             
@@ -290,7 +290,7 @@ idx sChem::formula::isotopicDistr(sVec < sChem::formula > * dst, real cutoff, re
 
         idx genPos=peaks.dim(); // here we start adding for the next generation
         #ifdef ALGO_PRINTFS
-            printf("---------------- Adding element #%"DEC" %s\n", ie, ee->symbol);
+            printf("---------------- Adding element #%" DEC " %s\n", ie, ee->symbol);
         #endif
         for(idx ip=genFirst; ip<genLast ; ++ip )  {
             
@@ -358,11 +358,11 @@ idx sChem::formula::isotopicDistr(sVec < sChem::formula > * dst, real cutoff, re
         for(il=genPos, id=0; il < peaks.dim() ; ++il ) {
             totSum+=pk[il].prob;
             #ifdef ALGO_PRINTFS
-                printf("#  %"DEC"\t",il);
+                printf("#  %" DEC "\t",il);
                 sChemAtomCount * oo=peaks(il)->ptr();
                 for( idx kk=0; kk< peaks(il)->dim() ; ++kk){
                     sChemElement * eell=sChemPeriodicTable::element((oo[kk].element)&0xFF);
-                    printf("%s[%"DEC"]%"DEC"", eell->symbol, (oo[kk].element>>16) , oo[kk].count); 
+                    printf("%s[%" DEC "]%" DEC "", eell->symbol, (oo[kk].element>>16) , oo[kk].count); 
                 }
                 printf(" %lg", peaks(il)->prob); 
             #endif
@@ -411,15 +411,15 @@ void sChem::formula::printfIsotopicDistribution(sStr * dst,sVec < sChem::formula
     real totSum=0;
     for(idx il=start; il < finish ; ++il ) {
         totSum+=peaks->ptr(il)->prob;
-        dst->printf("#  %"DEC"\t",il);
+        dst->printf("#  %" DEC "\t",il);
         sChem::atomcount * oo=peaks->ptr(il)->ptr();
         for( idx kk=0; kk< peaks->ptr(il)->dim() ; ++kk){
             element * eell=element::ptr((oo[kk].element)&0xFF);
-            dst->printf("%s[%"DEC"]%"DEC"", eell->symbol, (oo[kk].element>>16) , oo[kk].count); 
+            dst->printf("%s[%" DEC "]%" DEC "", eell->symbol, (oo[kk].element>>16) , oo[kk].count); 
         }
         dst->printf(" %lg\n", peaks->ptr(il)->prob); 
     }
-    dst->printf("##### %"DEC" elements %lg\n",peaks->dim(),totSum);
+    dst->printf("##### %" DEC " elements %lg\n",peaks->dim(),totSum);
 
 }
 

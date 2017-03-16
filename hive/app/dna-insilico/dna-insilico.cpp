@@ -296,7 +296,7 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
             randseq.minPEread = tree->findIValue("inSilicoPEmindist", 100);
             randseq.maxPEread = tree->findIValue("inSilicoPEmaxdist", 500);
             if( randseq.minPEread < randseq.minLength ) {
-                err->printf("Please check your Paired end inputs, minimum Paired End (%"DEC" < minimum Length %"DEC")", randseq.minPEread, randseq.minLength);
+                err->printf("Please check your Paired end inputs, minimum Paired End (%" DEC " < minimum Length %" DEC ")", randseq.minPEread, randseq.minLength);
                 return false;
             }
             if( (randseq.minPEread < randseq.maxPEread) && randseq.validate(randseq.minPEread, 0, -1) && randseq.validate(randseq.maxPEread, 0, -1) ) {
@@ -531,7 +531,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
                 continue;
             }
 #if _DEBUG
-            fprintf(stderr, "ref %"DEC": add inSilicoObjID = %s\n", iref, hiveId.print());
+            fprintf(stderr, "ref %" DEC ": add inSilicoObjID = %s\n", iref, hiveId.print());
 #endif
             idx irow = nodeRefSeqRow->findIValue("inSilicoSeqID"); // Check if we need to substract 1 or not
             range->sourceStartRange = nodeRefSeqRow->findIValue("inSilicoStartRange")-1;
@@ -547,7 +547,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
             range->sourceSeqnum = -1;
             range->destSeqnum = -1;
             range->hiveseqListOffset = randseq.hiveseqListContainer.length();
-            randseq.hiveseqListContainer.printf("%s, %"DEC", %"DEC, hiveId.print(), irow, irow);
+            randseq.hiveseqListContainer.printf("%s, %" DEC ", %" DEC, hiveId.print(), irow, irow);
             randseq.hiveseqListContainer.add0();
             if( !qry.dim() ) {
                 err->printf("Sequence specified is not valid in ObjId: %s \n", hiveId.print());
@@ -561,7 +561,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
 
             }
             if( range->sourceStartRange > seqlen ) {
-                err->printf("Sequence Start range is invalid in ObjId: %s (%"DEC" > %"DEC")", hiveId.print(), range->sourceStartRange, seqlen);
+                err->printf("Sequence Start range is invalid in ObjId: %s (%" DEC " > %" DEC ")", hiveId.print(), range->sourceStartRange, seqlen);
                 return false;
             }
             if( range->sourceStartRange < 0 ) {
@@ -644,7 +644,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
             idx randallele = nodeMutRandRow->findIValue("inSilicoRandMutAllele");
 
             if( !randseq.validate(randNumber, 0, -1) ) {
-                err->printf("Invalid number of mutations (%"DEC") to generate randomly", randNumber);
+                err->printf("Invalid number of mutations (%" DEC ") to generate randomly", randNumber);
                 return false;
             }
             for(idx imut = 0; imut < randNumber; ++imut) {
@@ -719,7 +719,7 @@ idx DnaInsilicoProc::parseAnnotation(sBioseq &sub, sStr &err)
         sStr findAnnot, name;
         for(idx i = 0; i < randseq.annotRanges.dim(); ++i) {
             findAnnot.printf(0, "a=find.annot(");
-            name.printf(0, "getRange%"DEC, i + 1);
+            name.printf(0, "getRange%" DEC, i + 1);
             sRandomSeq::AnnotQuery *annot = randseq.annotRanges.ptr(i);
 
             if( annot->seqoffset != -1 ) {
@@ -909,7 +909,7 @@ bool DnaInsilicoProc::generateRecombination(sFil &out, sStr &err)
                 sub = randseq.Sub;
                 irow = range->sourceSeqnum;
             }
-            id.printf(";%"DEC".%s: RANGE (%"DEC",%"DEC")", irecomb + 1, sub->id(irow), range->sourceStartRange+1, range->sourceEndRange+1);
+            id.printf(";%" DEC ".%s: RANGE (%" DEC ",%" DEC ")", irecomb + 1, sub->id(irow), range->sourceStartRange+1, range->sourceEndRange+1);
             switch(range->orientation) {
                 case 1:
                     id.printf("REV");
@@ -997,7 +997,7 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
 
     for(idx i = 0; i < randseq.cnvRanges.dim(); ++i) {
         findAnnot.printf(0, "a=find.annot(");
-        name.printf(0, "getRange%"DEC, i + 1);
+        name.printf(0, "getRange%" DEC, i + 1);
         sRandomSeq::AnnotQuery *rangeQuery = randseq.cnvRanges.ptr(i);
 
         const sUsrObjPropsNode *node = (const sUsrObjPropsNode *)rangeQuery->extraInfo;
@@ -1153,7 +1153,7 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
         idx auxRange = iRange;
         out.printf(">%s", sub.id(i));
         while ( auxRange < totRanges && range->destSeqnum == i){
-            out.printf(" RANGE %"DEC" (%"DEC",%"DEC")", range->tandem, range->sourceStartRange + 1, range->sourceEndRange+1);
+            out.printf(" RANGE %" DEC " (%" DEC ",%" DEC ")", range->tandem, range->sourceStartRange + 1, range->sourceEndRange+1);
             range = randseq.rangeContainer.ptr(sortRangeContainer[++auxRange]);
         }
         out.printf("\n");
@@ -1561,7 +1561,7 @@ int main(int argc, const char *argv[], const char *envp[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DnaInsilicoProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-insilico", argv[0]));
+    DnaInsilicoProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-insilico", argv[0]));
     return (int) backend.run(argc, argv);
 
 }

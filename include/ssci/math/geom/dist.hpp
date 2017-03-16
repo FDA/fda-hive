@@ -537,14 +537,14 @@ namespace slib
                     out.printf(",");
                     func(out, *this, x, param);
                 } else
-                    out.printf(",%"DEC, x);
+                    out.printf(",%" DEC, x);
             }
             out.printf("\r\n");
             for (idx x=0; x<_npoints; x++) {
                 if (func)
                     func(out, *this, x, param);
                 else
-                    out.printf("%"DEC, x);
+                    out.printf("%" DEC, x);
 
                 for (idx y=0; y<_npoints; y++)
                     out.printf(",%g", dist(x, y));

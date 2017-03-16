@@ -457,12 +457,12 @@ void slib::sJSONParser::vsetError(idx line, idx col, const char * raw, const cha
 
     if( line >= 0 ) {
         if( col >= 0) {
-            _error.printf("line %"DEC" col %"DEC": ", line + 1, col + 1);
+            _error.printf("line %" DEC " col %" DEC ": ", line + 1, col + 1);
         } else {
-            _error.printf("line %"DEC": ", line);
+            _error.printf("line %" DEC ": ", line);
         }
     } else if( col >= 0 ) {
-        _error.printf("col %"DEC": ", col);
+        _error.printf("col %" DEC ": ", col);
     }
 
     _error.vprintf(msg_fmt, ap);

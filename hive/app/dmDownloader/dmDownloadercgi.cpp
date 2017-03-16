@@ -70,15 +70,15 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
 
             const char * pcl = getenv("CONTENT_LENGTH");
             if( pcl ) {
-                sscanf(pcl, "%"UDEC, &m_contentLength);
+                sscanf(pcl, "%" UDEC, &m_contentLength);
             }
             idx archReqId = 0;
             sStr boundary;
             const char * pct = getenv("CONTENT_TYPE"), *pbndr = pct;
-            if( pct && sString::searchSubstring(pct, 0, "multipart/form-data"__, 1, __, true) &&
-               (pbndr = sString::searchSubstring(pct, 0, "boundary="__, 1, __, true)) && sLen(pbndr + 9) ) {
+            if( pct && sString::searchSubstring(pct, 0, "multipart/form-data" __, 1, __, true) &&
+               (pbndr = sString::searchSubstring(pct, 0, "boundary=" __, 1, __, true)) && sLen(pbndr + 9) ) {
                     pbndr += 9;
-                    sString::copyUntil(&boundary, pbndr, sLen(pbndr), " \r\n"__);
+                    sString::copyUntil(&boundary, pbndr, sLen(pbndr), " \r\n" __);
             } else {
                 m_logBuf.printf("error: %s: '%s'\n", pbndr ? "Content-type 'multipart/form-data' expected" : "'boundary=' not found", pct ? pct : "");
             }
@@ -104,10 +104,10 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                     reqSetStatus(reqId, eQPReqStatus_ProgError);
                 } else {
                     reqSetStatus(reqId, eQPReqStatus_Done);
-                    m_logBuf.printf("HIVE Received %"DEC" bytes\nBrowser Submitted %"DEC" bytes\n", m_contentRead, m_contentLength);
+                    m_logBuf.printf("HIVE Received %" DEC " bytes\nBrowser Submitted %" DEC " bytes\n", m_contentRead, m_contentLength);
                 }
             }
-            m_logBuf.printf("Success %"DEC",%s!\n", archReqId, m_uploadProc.get() ? m_uploadProc->Id().print() : "0");
+            m_logBuf.printf("Success %" DEC ",%s!\n", archReqId, m_uploadProc.get() ? m_uploadProc->Id().print() : "0");
             sStr l;
             sString::searchAndReplaceSymbols(&l, m_logBuf.ptr(), m_logBuf.length(), "\n", 0, 0, true, true, false, true);
             for(const char * p = l.ptr(); p; p = sString::next00(p)) {
@@ -215,19 +215,19 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
             const idx len = m_headerVal.length();
             if( len ) {
                 const char * fnd = 0;
-                if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"chkauto_"__, 1, "\n"__, true) != 0 ) {
+                if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"chkauto_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eUnpackDepth;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"idx_"__, 1, "\n"__, true) != 0 ) {
+                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"idx_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eIndex;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"qc_"__, 1, "\n"__, true) != 0 ) {
+                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"qc_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eQC;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"screen_"__, 1, "\n"__, true) != 0 ) {
+                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"screen_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eScreen;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"subj_"__, 1, "\n"__, true) != 0 ) {
+                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"subj_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eSubject;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"onbehalf_"__, 1, "\n"__, true) != 0 ) {
+                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"onbehalf_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eOnBehalf;
-                } else if( (fnd = sString::searchSubstring(m_headerVal, len, "; filename=\""__, 1, "\"\n"__, true)) != 0 ) {
+                } else if( (fnd = sString::searchSubstring(m_headerVal, len, "; filename=\"" __, 1, "\"\n" __, true)) != 0 ) {
                     sStr fff;
                     sString::copyUntil(&fff, fnd + 12, len - 12, "\"\r\n");
                     m_mode = eFILE;
@@ -259,7 +259,7 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
             if( m_mode == eFILE ) {
                 if( !m_uploadAreaPath ) {
                     cfgStr(&m_uploadAreaPath, 0, "user.download", "");
-                    m_uploadAreaPath.printf("upl-%"DEC"/", reqId); // '/' here is important for archiver submission!
+                    m_uploadAreaPath.printf("upl-%" DEC "/", reqId); // '/' here is important for archiver submission!
                     // Running from HTTP server account we need to give all permissions to download
                     if( !sDir::makeDir(m_uploadAreaPath, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH | S_IWOTH) ) {
                         m_logBuf.printf("Upload area is not accessible: %s\n", strerror(errno));
@@ -337,16 +337,16 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                 case eUnpackDepth:
                     u = 0;
 
-                    if( sString::bufscanf(m_partData, m_partData.last(), "%"DEC, &u) ) {
+                    if( sString::bufscanf(m_partData, m_partData.last(), "%" DEC, &u) ) {
                         dmArchiver::setDepth(*this, u);
                         if( u ) {
-                            m_logBuf.printf("Upload marked for processing %"DEC"\n", u = ~0 ? -1 : u);
+                            m_logBuf.printf("Upload marked for processing %" DEC "\n", u = ~0 ? -1 : u);
                         }
                     }
                     break;
                 case eIndex:
                     i = 0;
-                    if( sString::bufscanf(m_partData, m_partData.last(), "%"DEC, &i) ) {
+                    if( sString::bufscanf(m_partData, m_partData.last(), "%" DEC, &i) ) {
                         dmArchiver::setIndexFlag(*this, i);
                         if( i ) {
                             m_logBuf.printf("Upload marked for indexing\n");
@@ -355,7 +355,7 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                     break;
                 case eQC:
                     i = 0;
-                    if( sString::bufscanf(m_partData, m_partData.last(), "%"DEC, &i) ) {
+                    if( sString::bufscanf(m_partData, m_partData.last(), "%" DEC, &i) ) {
                         dmArchiver::setQCFlag(*this, i);
                         if( i ) {
                             m_logBuf.printf("Upload marked for QC\n");
@@ -364,7 +364,7 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                     break;
                 case eScreen:
                     i = 0;
-                    if( sString::bufscanf(m_partData, m_partData.last(), "%"DEC, &i) ) {
+                    if( sString::bufscanf(m_partData, m_partData.last(), "%" DEC, &i) ) {
                         dmArchiver::setScreenFlag(*this, i);
                         if( i ) {
                             m_logBuf.printf("Upload marked for screening\n");
@@ -389,7 +389,7 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                     if( m_fi.started && flen ) {
                         idx elapsed = time(0) - m_fi.started;
                         elapsed = elapsed ? elapsed : 1;
-                        m_logBuf.printf("Uploaded in %"DEC" seconds\n", elapsed);
+                        m_logBuf.printf("Uploaded in %" DEC " seconds\n", elapsed);
                         const char * suff = " KMGTPEZY";
                         real spd = flen / elapsed;
                         while( spd > 1024 ) {
@@ -400,7 +400,7 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                             m_logBuf.printf("Upload speed ~%.2f%cb/sec\n", spd, *suff);
                         }
                     }
-                    m_logBuf.printf("File Size %"DEC" bytes\n", flen);
+                    m_logBuf.printf("File Size %" DEC " bytes\n", flen);
                     break;
             }
             m_mode = eNONE;
@@ -449,7 +449,7 @@ static void addURI(sUsrObj & obj, const char * uri, const char * wget_opts, cons
 {
     static sStr grp;
     static udx cnt = 0;
-    const char * pgrp = grp.printf(0, "100.%"UDEC, ++cnt);
+    const char * pgrp = grp.printf(0, "100.%" UDEC, ++cnt);
     obj.propSet("uri_data_uri", &pgrp, &uri, 1, true);
     if( wget_opts && wget_opts[0] ) {
         obj.propSet("uri_data_wget", &pgrp, &wget_opts, 1, true);
@@ -481,8 +481,8 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
             errlog.printf("err.%s.uri=URLs and Identifiers list is empty: nothing to do", obj_id.ptr());
             break;
         }
-        // disabled until protein parser is implemented: _"ncbi_protein"_"uniprot"
-        const char * const schemas = "http"_"https"_"ftp"_"ncbi_nuccore"_"ncbi_nuccds"_"sra"_"genbank"_"dropbox"__;
+        // disabled until protein parser is implemented: _"ncbi_protein" _ "uniprot"
+        const char * const schemas = "http" _ "https" _ "ftp" _ "ncbi_nuccore" _ "ncbi_nuccds" _ "sra" _ "genbank" _ "dropbox" __;
         sStr base;
         obj->propGet("baseURL", &base);
         sString::cleanEnds(&base, base, 0, sString_symbolsBlank, true);
@@ -514,7 +514,7 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
         sTxtTbl tbl;
         tbl.setBuf(&uri);
         tbl.parseOptions().flags = 0;
-        tbl.parseOptions().colsep = ",;"sString_symbolsSpace;
+        tbl.parseOptions().colsep = ",;" sString_symbolsSpace;
         tbl.parse();
         regex_t sra_rgx, accession_rgx;
         if( regcomp(&sra_rgx, "^[DES]R[RXSP][0-9]+$", REG_EXTENDED | REG_ICASE) != 0 ||
@@ -598,7 +598,7 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
                             }
                         }
                         for(idx i = 0; i < uniq.dim(); ++i) {
-                            ids.printf("%"DEC, uniq[i]);
+                            ids.printf("%" DEC, uniq[i]);
                             ids.add0();
                         }
                         ids.add0();
@@ -697,7 +697,7 @@ int main(int argc, const char *argv[], const char *envp[])
     if( strstr(argv[0], "dmUp") ) {
         putenv(get);
     }
-    dmDownloaderCGI qapp("config=qapp.cfg"__, "dmDownloader", argc, argv, envp, strstr(argv[0], "dmUp") ? 0 : stdin, true, true);
+    dmDownloaderCGI qapp("config=qapp.cfg" __, "dmDownloader", argc, argv, envp, strstr(argv[0], "dmUp") ? 0 : stdin, true, true);
     if( strstr(argv[0], "dmUp") ) {
         return qapp.Uploader(argc, argv, envp);
     }

@@ -81,14 +81,14 @@ bool ExtractCommand::compute(sTabular * tbl)
     if (!colSet || colSet.dim() == 0)
     {
         char p [16];
-        sprintf (p, "0-%"DEC, tbl->cols());
+        sprintf (p, "0-%" DEC, tbl->cols());
         sString::scanRangeSet(p,0,&(colSet),0ll,0ll,0ll);
     }
 
     if (!rowSet || rowSet.dim() == 0)
     {
         char p [16];
-        sprintf (p, "0-%"DEC, tbl->rows());
+        sprintf (p, "0-%" DEC, tbl->rows());
         sString::scanRangeSet(p,0,&(rowSet),0ll,0ll,0ll);
     }
 

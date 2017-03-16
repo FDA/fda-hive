@@ -57,7 +57,7 @@ idx DnaProfXcuffdiff::PrepareData ( sUsr& user, const char * parentIDs, const ch
 
         //put .gtf filename from each parent aligner process into a list file (for cuffmerge)
         sStr spath;
-        profile.getFilePathname00(spath, "transcripts.gtf"__);
+        profile.getFilePathname00(spath, "transcripts.gtf" __);
         if (spath && sFile::size(spath.ptr())>0) {
             ListGFTfile.printf("%s\n",spath.ptr()); //one .gtf filename per line is required by cuffmerge
         }
@@ -68,7 +68,7 @@ idx DnaProfXcuffdiff::PrepareData ( sUsr& user, const char * parentIDs, const ch
 
         //put .bam filenames from each parent aligner process into a list file (for cuffdiff)
         spath.cut(0);
-        profile.getFilePathname00(spath, "accepted_hits.bam"__);
+        profile.getFilePathname00(spath, "accepted_hits.bam" __);
         if (spath && sFile::size(spath.ptr())>0) {
             if (ListBAMfile.length()>0)
                 ListBAMfile.printf(", "); //comma and space between filenames is required by cuffdiff
@@ -135,7 +135,7 @@ idx DnaProfXcuffdiff::Profile (sIO * log, sStr * outFile, const char * workDir, 
     sStr subjectFastaFile("%s/datain/subject.fa", workDir);
     sStr GTFfileList("%s/datain/gtfFileList.txt", workDir);
 
-    sStr cmdLine("cuffdiff.os"SLIB_PLATFORM" \'%s\' \'%s\' \'%s\' \'%s\' \'%s\'",
+    sStr cmdLine("cuffdiff.os" SLIB_PLATFORM " \'%s\' \'%s\' \'%s\' \'%s\' \'%s\'",
         workDir, refGTFfile.ptr(), subjectFastaFile.ptr(), GTFfileList.ptr(), bamFiles.ptr());
     if(log)log->printf("RUNNING: %s\n",cmdLine.ptr());
     sPS::execute(cmdLine);
@@ -148,7 +148,7 @@ idx DnaProfXcuffdiff::Profile (sIO * log, sStr * outFile, const char * workDir, 
         sFile::copy( outFile->ptr() , vpath.ptr() , false);
     }
     else {
-        qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "request %"DEC" failed to produce gene_exp.diff file.", qp->reqId);
+        qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "request %" DEC " failed to produce gene_exp.diff file.", qp->reqId);
         qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_ProgError);
         return 0;
     }

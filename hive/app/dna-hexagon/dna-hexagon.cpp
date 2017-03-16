@@ -366,7 +366,7 @@ idx DnaHexagon::OnExecute(idx req)
             idx curSubSave=curSub, curSubPosSave=curSubPos;
             idx curSubAnnotFileSave=curSubAnnotFile, curSubAnnotRangeSave=curSubAnnotRange, curSubAnnotPosSave=curSubAnnotPos, curSubAnnotRangeSectionSave=curSubAnnotRangeSection;
 
-            //logOut(eQPLogType_Debug,"Processing next subject range from %"DEC" position %"DEC" \n"  , curSubSave, curSubPos);
+            //logOut(eQPLogType_Debug,"Processing next subject range from %" DEC " position %" DEC " \n"  , curSubSave, curSubPos);
 
     PERF_START("KMERE_SEEDING");
             // estimate how many bases from current sequence are are getting into this bunch
@@ -403,7 +403,7 @@ idx DnaHexagon::OnExecute(idx req)
             masterAl.bioHash.reset();
             ++chunkSub;
 
-            //logOut(eQPLogType_Debug,"... to subject range %"DEC" position %"DEC" \n"  , curSub, curSubPos);
+            //logOut(eQPLogType_Debug,"... to subject range %" DEC " position %" DEC " \n"  , curSub, curSubPos);
 
             curSub=curSubSave;
             curSubPos=curSubPosSave;
@@ -414,7 +414,7 @@ idx DnaHexagon::OnExecute(idx req)
 
             subjectIn=0;
 
-            logOut(eQPLogType_Debug,"Compiling %"DEC" seed dictionary # %"DEC" to accumulate %"DEC" MegaBases \n",seed, chunkSub, maxSubjectBasesToCompile/1024/1024);
+            logOut(eQPLogType_Debug,"Compiling %" DEC " seed dictionary # %" DEC " to accumulate %" DEC " MegaBases \n",seed, chunkSub, maxSubjectBasesToCompile/1024/1024);
 
             for ( ; curSub<sEnd ; ++curSub, curSubPos=0, curSubAnnotFile=0) {
 
@@ -432,7 +432,7 @@ idx DnaHexagon::OnExecute(idx req)
                         idx posToStartHash=sen[curSubAnnotRangeSection].start;//-seed;
                         if(posToStartHash<0)posToStartHash=0;
                         idx cntCompiled=masterAl.bioHash.compile(curSub, sub->seq(curSub), sub->len(curSub), sBioseqHash::eCompileDic|isBloom, hashExpectation,  posToStartHash, howMuchToPutIn , complexityRefWindow, complexityRefEntropy, acceptNNNQuaTrheshold ? sub->qua(curSub) :0 , true, acceptNNNQuaTrheshold );
-                        logOut(eQPLogType_Debug,"\t reference %"DEC" [%"DEC"- %"DEC"] ... %"DEC" out of %"DEC" in! %s\n",curSub, posToStartHash, posToStartHash+howMuchToPutIn , cntCompiled , howMuchToPutIn ,sub->id(curSub));
+                        logOut(eQPLogType_Debug,"\t reference %" DEC " [%" DEC "- %" DEC "] ... %" DEC " out of %" DEC " in! %s\n",curSub, posToStartHash, posToStartHash+howMuchToPutIn , cntCompiled , howMuchToPutIn ,sub->id(curSub));
                     ROLL_ANNOTATIONS_END
                 }
                 else {
@@ -446,7 +446,7 @@ idx DnaHexagon::OnExecute(idx req)
                     if(posToStartHash<0)posToStartHash=0;
 
                     idx cntCompiled=masterAl.bioHash.compile(curSub, sub->seq(curSub), sub->len(curSub), sBioseqHash::eCompileDic|isBloom, hashExpectation,  posToStartHash, howMuchToPutIn , complexityRefWindow, complexityRefEntropy, acceptNNNQuaTrheshold ? sub->qua(curSub) :0 , true, acceptNNNQuaTrheshold );
-                    logOut(eQPLogType_Debug,"\t reference %"DEC" [%"DEC"- %"DEC"] ... %"DEC" out of %"DEC" in! %s\n",curSub, posToStartHash, posToStartHash+howMuchToPutIn , cntCompiled , howMuchToPutIn ,sub->id(curSub));
+                    logOut(eQPLogType_Debug,"\t reference %" DEC " [%" DEC "- %" DEC "] ... %" DEC " out of %" DEC " in! %s\n",curSub, posToStartHash, posToStartHash+howMuchToPutIn , cntCompiled , howMuchToPutIn ,sub->id(curSub));
 
                     curSubPos+=howMuchToPutIn;
 
@@ -456,7 +456,7 @@ idx DnaHexagon::OnExecute(idx req)
             }
 
     PERF_END();
-            logOut(eQPLogType_Debug,"Aligning %"DEC" query sequences to %"DEC" subject Mega-Bases in the range %"DEC"-%"DEC" out of %"DEC" Mega-Bases\n"  , qEnd-qStart, subjectIn/1024/1024 , (subTotalDone)/1024/1024, (subTotalDone+subjectIn)/1024/1024, subTotalLen/1024/1024);
+            logOut(eQPLogType_Debug,"Aligning %" DEC " query sequences to %" DEC " subject Mega-Bases in the range %" DEC "-%" DEC " out of %" DEC " Mega-Bases\n"  , qEnd-qStart, subjectIn/1024/1024 , (subTotalDone)/1024/1024, (subTotalDone+subjectIn)/1024/1024, subTotalLen/1024/1024);
 
             idx qriesHit=0;
             for(idx iqry=qStart; !doBreak && iqry<qEnd ; ++iqry ) { //curQ=iq;
@@ -465,7 +465,7 @@ idx DnaHexagon::OnExecute(idx req)
 
                 /*const char * dbgid=qry->id(iq);
                 if(strstr(dbgid,"12 pos=556911 len=50 REV ori=vargi|330443590")==dbgid) {
-                    ::printf(":------------------------%s-------------%"DEC"    %"DEC"--\n",dbgid,req,iq);
+                    ::printf(":------------------------%s-------------%" DEC "    %" DEC "--\n",dbgid,req,iq);
                    // exit(0);
                 }*/
                 //continue;
@@ -516,7 +516,7 @@ idx DnaHexagon::OnExecute(idx req)
 
     PERF_START("ALIGNMENTS");
                 //if( iq==5559 )
-                //    ::printf("POTENTIAL PROBLEM %"DEC"\n",iq);
+                //    ::printf("POTENTIAL PROBLEM %" DEC "\n",iq);
                 //idx ofsAA=alignmentMap.dim();
                 if(isok) {
                     idx qsim=qry->sim(iq);
@@ -569,7 +569,7 @@ idx DnaHexagon::OnExecute(idx req)
 
 
                         //if(found && (alignmentMap[ofsAA+6]!=-50 || alignmentMap[ofsAA+5]!=0 || alignmentMap[ofsAA+4]!=0 ) ){
-                        //    ::printf("::::::::::::::::::::: idQry=%"DEC" %s\n",iq, qry->id(iq) );
+                        //    ::printf("::::::::::::::::::::: idQry=%" DEC " %s\n",iq, qry->id(iq) );
                         //    exit(0);
                         //}
 
@@ -607,7 +607,7 @@ idx DnaHexagon::OnExecute(idx req)
                     ++qriesHit;
                     cntFound+=qry->rpt(iq)*found;
                     //if(alignmentMap[ofsAA+6]!=-100)
-                    //    ::printf("Oo! %"DEC"\n",iq);
+                    //    ::printf("Oo! %" DEC "\n",iq);
                 }
 
                 //curWork=(is*(qEnd-qStart)+(curS-is)*(iq-qStart));
@@ -620,7 +620,7 @@ idx DnaHexagon::OnExecute(idx req)
                         break;
                         }
                     PERF_PRINT();
-                    logOut(eQPLogType_Debug,"\n\tnotfound %"DEC",foundfast %"DEC",foundveryfast %"DEC",foundslow %"DEC"\n\tcomplex %"DEC" simple %"DEC"\n\tlowqaul %"DEC"\n\tlookups: hash %"DEC" bloom %"DEC" extension %"DEC" SW %"DEC" SW-success %"DEC" \n\n"  , cntNotFound,  cntFast, cntVeryFast, cntSlow, cntComplex, cntSimple, cntLowQua,cntHashLookup,cntBloomLookup,cntExtension,cntAlignmentSW,cntSuccessSW);
+                    logOut(eQPLogType_Debug,"\n\tnotfound %" DEC ",foundfast %" DEC ",foundveryfast %" DEC ",foundslow %" DEC "\n\tcomplex %" DEC " simple %" DEC "\n\tlowqaul %" DEC "\n\tlookups: hash %" DEC " bloom %" DEC " extension %" DEC " SW %" DEC " SW-success %" DEC " \n\n"  , cntNotFound,  cntFast, cntVeryFast, cntSlow, cntComplex, cntSimple, cntLowQua,cntHashLookup,cntBloomLookup,cntExtension,cntAlignmentSW,cntSuccessSW);
 
                 }
                 if(maxNumberQuery!=0 && iqry>qStart+maxNumberQuery)
@@ -628,7 +628,7 @@ idx DnaHexagon::OnExecute(idx req)
                     //{subTotalDone=subTotalLen;break;}
 
             }
-            logOut(eQPLogType_Debug,"\n\tnotfound %"DEC",foundfast %"DEC",foundveryfast %"DEC",foundslow %"DEC"\n\tcomplex %"DEC" simple %"DEC"\n\tlowqaul %"DEC"\n\tlookups: hash %"DEC" bloom%"DEC" extension %"DEC" SW %"DEC" SW-success %"DEC" \n\n"  , cntNotFound,  cntFast, cntVeryFast, cntSlow, cntComplex, cntSimple, cntLowQua, cntHashLookup,cntBloomLookup,cntExtension,cntAlignmentSW,cntSuccessSW);
+            logOut(eQPLogType_Debug,"\n\tnotfound %" DEC ",foundfast %" DEC ",foundveryfast %" DEC ",foundslow %" DEC "\n\tcomplex %" DEC " simple %" DEC "\n\tlowqaul %" DEC "\n\tlookups: hash %" DEC " bloom%" DEC " extension %" DEC " SW %" DEC " SW-success %" DEC " \n\n"  , cntNotFound,  cntFast, cntVeryFast, cntSlow, cntComplex, cntSimple, cntLowQua, cntHashLookup,cntBloomLookup,cntExtension,cntAlignmentSW,cntSuccessSW);
 
             if(qriesHit>=qEnd-qStart )
                 break;
@@ -745,7 +745,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaHexagon backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-hexagon",argv[0]));
+    DnaHexagon backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-hexagon",argv[0]));
     return (int)backend.run(argc,argv);
 }
 

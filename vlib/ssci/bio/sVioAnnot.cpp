@@ -207,9 +207,9 @@ void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * v
 
     // this is a change in a tag // if(strcmp(gbd.curTag.ptr(0),tagName)==0 )
     if(gbd.curValue.length()!=0) {
-        path.cut(0); //path.printf("%"DEC".%"DEC".%"DEC,locusNum,cdsNum,tagNum);
-        if (strcmp(dataFlag.ptr(0),"CDS")==0) path.printf("%"DEC".1.%"DEC".%"DEC,locusNum,cdsNum,tagNum);
-        if (strcmp(dataFlag.ptr(0),"mat_peptide")==0) path.printf("%"DEC".2.%"DEC".%"DEC,locusNum,matPepNum,matPepTagNum);
+        path.cut(0); //path.printf("%" DEC ".%" DEC ".%" DEC,locusNum,cdsNum,tagNum);
+        if (strcmp(dataFlag.ptr(0),"CDS")==0) path.printf("%" DEC ".1.%" DEC ".%" DEC,locusNum,cdsNum,tagNum);
+        if (strcmp(dataFlag.ptr(0),"mat_peptide")==0) path.printf("%" DEC ".2.%" DEC ".%" DEC,locusNum,matPepNum,matPepTagNum);
         // custom code for dumping different tags in a special way
         if (strcmp(gbd.curTag.ptr(),"CDS")==0 || strcmp(gbd.curTag.ptr(),"mat_peptide")==0) {
             if (join==false && complement==false) {
@@ -234,7 +234,7 @@ void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * v
         else if (strcmp(gbd.curTag.ptr(),"CDS")!=0 && strcmp(gbd.curTag.ptr(),"mat_peptide")!=0) { //the very first LOCUS dump
             header = header + 1 ;
             gbd.curPath.cut(0);
-            gbd.curPath.printf("%"UDEC".%d.%d.%"DEC,locusNum,0,0,header);
+            gbd.curPath.printf("%" UDEC ".%d.%d.%" DEC,locusNum,0,0,header);
             gbdDumper(gbd.locus.ptr(), gbd.curData.ptr(), gbd.curTag.ptr(), gbd.curPath.ptr(), gbd.curValue.ptr(),lineExp);
         }
     }
@@ -347,11 +347,11 @@ void RangeExtraction(char * value,sVec <idx> * startArray,sVec <idx> * endArray)
         bool checkComplement = (strncmp("complement",textRaw,10)==0) ? true : false;
         bool checkJoin = (strncmp("join",textRaw,4)==0) ? true : false;
         if (checkComplement==true){
-            sString::cleanMarkup(&text,textRaw,0,"complement("_,")"_,""_,0,true,false, false);
+            sString::cleanMarkup(&text,textRaw,0,"complement(" _,")" _,"" _,0,true,false, false);
             sString::searchAndReplaceSymbols(&startEnd,text.ptr(1),0,"..",0,0,true,true,false,true);
         }
         if (checkJoin==true){
-            sString::cleanMarkup(&text,textRaw,0,"join("_,")"_,""_,0,true,false, false);
+            sString::cleanMarkup(&text,textRaw,0,"join(" _,")" _,"" _,0,true,false, false);
             sString::searchAndReplaceSymbols(&startEnd,text.ptr(1),0,"..",0,0,true,true,false,true);
         }
         else if (checkComplement==false && checkJoin==false) {
@@ -364,27 +364,27 @@ void RangeExtraction(char * value,sVec <idx> * startArray,sVec <idx> * endArray)
             if (strncmp("<",startRaw,1)==0) { startClean.printf(0,"%s",startRaw+1);}
             else if (strncmp("<",startRaw,1)!=0) { startClean.printf(0,"%s",startRaw);}
             startArray->add();
-            sscanf(startClean.ptr(0),"%"DEC"",startArray->ptr(ele));
+            sscanf(startClean.ptr(0),"%" DEC "",startArray->ptr(ele));
 
             endArray->add();
-            sscanf("0","%"DEC"",endArray->ptr(ele)) ;
+            sscanf("0","%" DEC "",endArray->ptr(ele)) ;
 
         }
         else {
             sStr startClean; char * startRaw = sString::next00(startEnd,0);
-            sString::cleanEnds(startRaw,0,")"_,true,0);
+            sString::cleanEnds(startRaw,0,")" _,true,0);
             sStr endClean; char * endRaw =sString::next00(startEnd,1);
-            sString::cleanEnds(endRaw,0,")"_,true,0);
+            sString::cleanEnds(endRaw,0,")" _,true,0);
 
             if (strncmp("<",startRaw,1)==0) { startClean.printf(0,"%s",startRaw+1);}
             else if (strncmp("<",startRaw,1)!=0) { startClean.printf(0,"%s",startRaw);}
             if (strncmp(">",endRaw,1)==0) { endClean.printf(0,"%s",endRaw+1);}
             else if (strncmp(">",endRaw,1)!=0) { endClean.printf(0,"%s",endRaw);}
             startArray->add();
-            sscanf(startClean.ptr(0),"%"DEC"",startArray->ptr(ele));
+            sscanf(startClean.ptr(0),"%" DEC "",startArray->ptr(ele));
 
             endArray->add();
-            sscanf(endClean.ptr(0),"%"DEC"",endArray->ptr(ele));
+            sscanf(endClean.ptr(0),"%" DEC "",endArray->ptr(ele));
 
         }
     }
@@ -466,7 +466,7 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
       db.AddType(sVioDB::eString,sDim(relationlistRefSource),relationlistRefSource,"refSrce", 4);       // ie: Human Genome Chromosomes v19 buil37
 
       for (idx iDummy=5; iDummy<33; ++iDummy){
-          sStr dummyName; dummyName.printf(0,"dmmy_%"DEC"",iDummy);
+          sStr dummyName; dummyName.printf(0,"dmmy_%" DEC "",iDummy);
           db.AddType(sVioDB::eString,sDim(relationlistRefSource),relationlistRefSource, dummyName.ptr(0),iDummy);
       }
      //___________________________________________
@@ -563,7 +563,7 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
                            sVec <idx> startArray; sVec <idx> endArray;
                            RangeExtraction(value.ptr(0),&startArray,&endArray);
                            for (idx i=0;i<startArray.dim();i++){
-                              // ::printf("Num %"DEC" start %"DEC" end %"DEC"\n",i,startArray[i],endArray[i]);
+                              // ::printf("Num %" DEC " start %" DEC " end %" DEC "\n",i,startArray[i],endArray[i]);
                                rangeVec.add();
                                rangeVec[i].start = startArray[i];
                                rangeVec[i].end = endArray[i];
@@ -574,8 +574,8 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
                        }
                        else {
                            rangeVec.add();
-                           sscanf(sString::next00(lineSeparByZero.ptr(),4),"%"DEC"",&rangeVec[0].start);
-                           sscanf(sString::next00(lineSeparByZero.ptr(),5),"%"DEC"",&rangeVec[0].end);
+                           sscanf(sString::next00(lineSeparByZero.ptr(),4),"%" DEC "",&rangeVec[0].start);
+                           sscanf(sString::next00(lineSeparByZero.ptr(),5),"%" DEC "",&rangeVec[0].end);
                            rangeVec[0].max=rangeVec[0].end;
                        }
                        db.AddRecord(idxType_range,rangeVec.ptr(), sizeof(struct startEnd)*rangeVec.dim());
@@ -1098,13 +1098,13 @@ void sVioAnnot::cleanIdFromProfiler(const char * idToClean, sStr & idOut)
     sStr locusB; locusB.cut(0);
 
     if (strncmp(idToClean,">gi|",4)==0){
-        sString::extractSubstring(&idOut,idToClean,0, 1, ">gi|"_"|"__, true , true);
+        sString::extractSubstring(&idOut,idToClean,0, 1, ">gi|" _ "|" __, true , true);
     }
     else if (strncmp(idToClean,"gi|",3)==0){
-            sString::extractSubstring(&idOut,idToClean,0, 1, "gi|"_"|"__, true , true);
+            sString::extractSubstring(&idOut,idToClean,0, 1, "gi|" _ "|" __, true , true);
         }
     else if (strncmp(idToClean,">",1)==0) {
-        sString::extractSubstring(&idOut,idToClean,0, 1, ">"_" "__, true , true);
+        sString::extractSubstring(&idOut,idToClean,0, 1, ">" _ " " __, true , true);
     }
     else {
         sString::searchAndReplaceSymbols(&locusB, idToClean, 0, " ", 0, 0, true, true, false, true);
@@ -1203,11 +1203,11 @@ idx sVioAnnot::printInformationBasedOnIdAndIdType(const char * idTypeToSearch, c
                         break;
                     }
                     sStr * myId = idTypeAndId.set(whatToPrint[ii].ptr(0));
-                    myId->printf(0, "%"DEC"", rangePtr[0].start);
+                    myId->printf(0, "%" DEC "", rangePtr[0].start);
                     startPrinted = true;
                 } else if( strcasecmp(whatToPrint[ii].ptr(0), "rangeend") == 0 && endPrinted == false ) {
                     sStr * myId = idTypeAndId.set(whatToPrint[ii].ptr(0));
-                    myId->printf(0, "%"DEC"", rangePtr[0].end);
+                    myId->printf(0, "%" DEC "", rangePtr[0].end);
                     if (rangePtr[0].end > end) {
                        print = false;
                        break;
@@ -1326,7 +1326,7 @@ idx sVioAnnot::printInformationBasedOnIdTypeList(const char * sourceFileName,con
                   const char * key = (const char *)idTypeAndId.id(ii);
                   sStr * idValue = idTypeAndId.get(key);
                   lineToPrint.cut(0);
-                  lineToPrint.printf("%"DEC",%"DEC",%s,1,%s,%s",rangePtr[0].start, rangePtr[0].end,key,idValue->ptr(0),seqID.ptr(0));  // "Start,End,Type,Signal,Description,Reference\n"
+                  lineToPrint.printf("%" DEC ",%" DEC ",%s,1,%s,%s",rangePtr[0].start, rangePtr[0].end,key,idValue->ptr(0),seqID.ptr(0));  // "Start,End,Type,Signal,Description,Reference\n"
                   if (alreadyPrinted.find(lineToPrint.ptr(0))) continue;
                   outPut.printf("%s\n", lineToPrint.ptr());
                   alreadyPrinted[lineToPrint.ptr(0)] = 1;
@@ -1335,7 +1335,7 @@ idx sVioAnnot::printInformationBasedOnIdTypeList(const char * sourceFileName,con
            }
            else {
                lineToPrint.cut(0);
-               lineToPrint.printf("%s,%"DEC",%"DEC",%s,",seqID.ptr(),rangePtr[0].start, rangePtr[0].end,sourceFileName);
+               lineToPrint.printf("%s,%" DEC ",%" DEC ",%s,",seqID.ptr(),rangePtr[0].start, rangePtr[0].end,sourceFileName);
                sStr cellToPrint;
                cellToPrint.cut(0);
                for(idx ii = 0; ii < idTypeAndId.dim(); ++ii) {
@@ -1366,7 +1366,7 @@ idx sVioAnnot::runBumperEngine(const char * contentInCSVFormat,idx sourceLength,
     sTxtTbl * tbl = new sTxtTbl();
     tbl->setBuf(contentInCSVFormat, sourceLength, 0);
     tbl->parseOptions().flags = sTblIndex::fSaveRowEnds|sTblIndex::fColsep00;
-    tbl->parseOptions().colsep = ","__;
+    tbl->parseOptions().colsep = "," __;
     tbl->parseOptions().comment = 0;
     tbl->parse();
 
@@ -1386,8 +1386,8 @@ idx sVioAnnot::runBumperEngine(const char * contentInCSVFormat,idx sourceLength,
         // const char *
 
         idx start =0, end=0;
-        sscanf(myStart,"%"DEC,&start);
-        sscanf(myEnd,"%"DEC,&end);
+        sscanf(myStart,"%" DEC,&start);
+        sscanf(myEnd,"%" DEC,&end);
         if ( end>_referenceEnd || start<_referenceStart) continue;
         idx _error = myBumper.add(start,end,mySrc,mySeqID, myIdTypeId);
         if (_error > error) error = _error;
@@ -1591,7 +1591,7 @@ bool sVioAnnot::printRangeSetSearch( sVec<idx> &startV, sVec<idx> &endV, idx rec
     for( idx i = 0 ; i < startV.dim() ; ++i ) {
         start = startV[i]; end = endV[i];
         resultSize = searchInVirtualTree(indexPtrRange,relationCnt,resStruct,start,end);
-        id_pos.printf(0,"%"DEC"-%"DEC,start,end);
+        id_pos.printf(0,"%" DEC "-%" DEC,start,end);
 
         if(resultSize) {
             if( (params.rowParams&ePrintSingleHitRow) ) {
@@ -1643,14 +1643,14 @@ bool sVioAnnot::printSingleRangeSearch( startEndNode &range,searchOutputParams &
 
     if( cntIDsForRange && ( (params.rowParams&ePrintSingleAnnotRangeRow) ) ) {
         if( output_format&ePrintAnnotRange) {
-            out->printf("%"DEC, range.ranges->start);
+            out->printf("%" DEC, range.ranges->start);
             if( output_format&ePrintAnnotRangeInOneColumn ) {
                 out->printf(" - ");
             }
             else {
                 out->printf("%s",params.column_delim);
             }
-            out->printf("%"DEC, range.ranges->end);
+            out->printf("%" DEC, range.ranges->end);
             out->printf("%s",params.column_delim);
         }
     }
@@ -1700,14 +1700,14 @@ bool sVioAnnot::printSingleAnnotation ( const char * id, const char * id_type, s
         out->printf("%s",params.column_delim);
     }
     if( (output_format&ePrintAnnotRange) && !(params.rowParams&ePrintSingleAnnotRangeRow)) {
-        out->printf("%"DEC, start);
+        out->printf("%" DEC, start);
         if( output_format&ePrintAnnotRangeInOneColumn ) {
             out->printf(" - ");
         }
         else {
             out->printf("%s",params.column_delim);
         }
-        out->printf("%"DEC, end);
+        out->printf("%" DEC, end);
         out->printf("%s",params.column_delim);
     }
     out->printf("\"%s\"",id);

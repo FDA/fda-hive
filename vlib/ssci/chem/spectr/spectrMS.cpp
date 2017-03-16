@@ -53,7 +53,7 @@ idx sSpectrMS::isoDistributionList::makeMolList (sStr * molList, idx istart, idx
             //real oo =sotop->rMass;
             ///real pp=sotop->abundance;
             //continue;
-            //printf("%"DEC" %"DEC" @@@@ %"DEC" %"DEC" %"DEC" @@@@@@@@@ %p %p %p\n", il, ir, sizeof(sChem::isotop) , sizeof(int) , sizeof(real), sotop, &sotop->rMass, &sotop->abundance);
+            //printf("%" DEC " %" DEC " @@@@ %" DEC " %" DEC " %" DEC " @@@@@@@@@ %p %p %p\n", il, ir, sizeof(sChem::isotop) , sizeof(int) , sizeof(real), sotop, &sotop->rMass, &sotop->abundance);
             //molList->printf(" %lf ",12.);//sotop->rMass
         } 
         molList->printf("\n");

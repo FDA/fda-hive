@@ -220,7 +220,7 @@ idx DnaHexagonBatcher::OnExecute(idx req)
                     idx score = ha.getAl(alignNumber)->score();
                     idx start = ha.getAl(alignNumber)->subStart();
                     idx qryStart = ha.getAl(alignNumber)->qryStart();
-                    ::printf("Qry: %"DEC"\tAlign: %"DEC"\tScore %"DEC"\tSubID:%"DEC"\tSubStart:%"DEC"\tQryStart:%"DEC"\tLen:%"DEC"\tSubEnd:%"DEC"\tQryEnd:%"DEC"\n", iQ, *qryAl.ptr(iQ)->ptr(ii), score, idSub,start,qryStart,len, len+start, len+qryStart);
+                    ::printf("Qry: %" DEC "\tAlign: %" DEC "\tScore %" DEC "\tSubID:%" DEC "\tSubStart:%" DEC "\tQryStart:%" DEC "\tLen:%" DEC "\tSubEnd:%" DEC "\tQryEnd:%" DEC "\n", iQ, *qryAl.ptr(iQ)->ptr(ii), score, idSub,start,qryStart,len, len+start, len+qryStart);
                     */
                 }
             }
@@ -247,7 +247,7 @@ idx DnaHexagonBatcher::OnExecute(idx req)
 
         for (idx i = 0; i < subjects.dim(); i++) {
             idx s = subjects[i];
-            ::printf("grpID: %"DEC"  Bacteria %"DEC": %s\n", grpID, s, Sub.id(subjects[i]));
+            ::printf("grpID: %" DEC "  Bacteria %" DEC ": %s\n", grpID, s, Sub.id(subjects[i]));
         }
     }
 
@@ -270,7 +270,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaHexagonBatcher backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-hexagon-batcher",argv[0]));
+    DnaHexagonBatcher backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-hexagon-batcher",argv[0]));
     return (int)backend.run(argc,argv);
 }
 

@@ -134,10 +134,10 @@ class DnaDifferentialProfiler : public sQPrideProc
 
                 idx readfromNoise(unsigned char *rows[], idx rn)
                 {
-                    sscanf((const char *)rows[0], "%"DEC, &iSub);
-                    sscanf((const char *)rows[1], "%"DEC, &position);
-                    sscanf((const char *)rows[6], "%"DEC, &colVal[0]);
-                    sscanf((const char *)rows[7], "%"DEC, &colVal[1]);
+                    sscanf((const char *)rows[0], "%" DEC, &iSub);
+                    sscanf((const char *)rows[1], "%" DEC, &position);
+                    sscanf((const char *)rows[6], "%" DEC, &colVal[0]);
+                    sscanf((const char *)rows[7], "%" DEC, &colVal[1]);
                     numCols = 2;
                     return 0;
                 }
@@ -318,7 +318,7 @@ class DnaDifferentialProfiler : public sQPrideProc
             sStr subject;
             aligner.propGet00("subject", &subject, ";");
             sStr path;
-            aligner.getFilePathname00(path, "alignment.hiveal"_"alignment.vioal"__);
+            aligner.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __);
             sHiveal hiveal(user, path);
             if( !hiveal.isok() || hiveal.dimAl()==0){
                 error->printf("No alignments are detected or the alignment file %s is missing or corrupted\n", alignerID.print());
@@ -397,7 +397,7 @@ class DnaDifferentialProfiler : public sQPrideProc
         {
             sVec<sHiveId> profileIDs;
             if (formHiveIdValues("dip_profileID", &profileIDs) < 0) {
-                logOut(eQPLogType_Error, "Empty profileID list for %"DEC" request; terminating\n", _req);
+                logOut(eQPLogType_Error, "Empty profileID list for %" DEC " request; terminating\n", _req);
                 reqSetInfo(_req, eQPInfoLevel_Error, "Need a non-empty list of profiling results");
                 return false;
             }
@@ -549,8 +549,8 @@ class DnaDifferentialProfiler : public sQPrideProc
                             prof->currPos = csvParseStr(buf, bufend, aux.ptr(), 1024, rows, cn, ',', 0, &colnum);
                             if (prof->profType.eType & (infoProfile)){
                                 // Read subject and position
-                                sscanf((const char *) rows[0], "%"DEC, &Line->iSub);
-                                sscanf((const char *) rows[1], "%"DEC, &Line->position);
+                                sscanf((const char *) rows[0], "%" DEC, &Line->iSub);
+                                sscanf((const char *) rows[1], "%" DEC, &Line->position);
                             }
                         }
                         else {
@@ -561,7 +561,7 @@ class DnaDifferentialProfiler : public sQPrideProc
                     }
                 }
                 if (input->sourceColumn >= 0){
-                    sscanf((const char *) rows[input->sourceColumn], "%"DEC, &Line->colVal[icol]);
+                    sscanf((const char *) rows[input->sourceColumn], "%" DEC, &Line->colVal[icol]);
                 }
 //                // Validate colVal[icol] value
 //                if ((input->minVal >= 0) && (Line->colVal[icol] < input->minVal)){
@@ -582,7 +582,7 @@ class DnaDifferentialProfiler : public sQPrideProc
 
 //
 //                for(idx icol = 0; icol < input->colRow; ++icol) {
-//                    sscanf((const char *) rows[0], "%"DEC, &iSub);
+//                    sscanf((const char *) rows[0], "%" DEC, &iSub);
 //                }
 //
 //                Line->readCol(rows, colnum);
@@ -774,7 +774,7 @@ class DnaDifferentialProfiler : public sQPrideProc
                     idx let;
                     RowInfo *rec = &currStatus[i];
                     if (findMutation(rec, &mut, &let)){
-                        out.printf("%c->%c:%.2lf:%"DEC,rec->letter,mut, rec->freq[let],rec->colVal[0]);
+                        out.printf("%c->%c:%.2lf:%" DEC,rec->letter,mut, rec->freq[let],rec->colVal[0]);
                     }
                     else {
                         out.add("-::", 3);
@@ -1022,7 +1022,7 @@ idx DnaDifferentialProfiler::loadParameters(sVec <Jobs> *jobList, sStr *err)
         cJob->inputNumParams = numInputs;
         cJob->outputNumParams = numOutputs;
         cJob->outfilenamePosition = nameFiles00.length();
-        nameFiles00.printf("job%"DEC, numJobs+1);
+        nameFiles00.printf("job%" DEC, numJobs+1);
         nameFiles00.add0();
         ++numJobs;
     }
@@ -1125,7 +1125,7 @@ const char * DnaDifferentialProfiler::csvParseStr(const char *src, const char *s
                     break;
                 }
                 if (err){
-                    err->printf("bad end quote in element %"DEC, (r + 1));
+                    err->printf("bad end quote in element %" DEC, (r + 1));
                 }
                 return 0;
         }
@@ -1197,8 +1197,8 @@ idx DnaDifferentialProfiler::prepareOutHeaders (sFil *out, Jobs *currentJob, boo
     //    out1.printf("id,start,end");
     //    out2.printf("id:pos");
     //    for (idx i = 0; i < numProf; ++i){
-    //        out1.printf(",profCov_%"DEC, _profs.ptr(i)->profobjID);
-    //        out2.printf(",profMut_%"DEC, _profs.ptr(i)->profobjID);
+    //        out1.printf(",profCov_%" DEC, _profs.ptr(i)->profobjID);
+    //        out2.printf(",profMut_%" DEC, _profs.ptr(i)->profobjID);
     //    }
     //    out1.addString("\n", 1);
     //    out2.addString("\n", 1);
@@ -1206,7 +1206,7 @@ idx DnaDifferentialProfiler::prepareOutHeaders (sFil *out, Jobs *currentJob, boo
     if (mutOption){
         out->addString("id:pos");
         for (idx i = 0; i < numProf; ++i){
-            out->printf(",prof_%"DEC"_mut", _profs.ptr(i)->profobjID);
+            out->printf(",prof_%" DEC "_mut", _profs.ptr(i)->profobjID);
         }
 
     }
@@ -1220,7 +1220,7 @@ idx DnaDifferentialProfiler::prepareOutHeaders (sFil *out, Jobs *currentJob, boo
                 }
                 out->add(",", 1);
                 const char *colName = nameFiles00.ptr(outrow->colNamePosition);
-                out->printf("prof_%"DEC"_%s", _profs.ptr(i)->profobjID, colName);
+                out->printf("prof_%" DEC "_%s", _profs.ptr(i)->profobjID, colName);
             }
         }
     }
@@ -1419,6 +1419,6 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaDifferentialProfiler backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-differential-profiler",argv[0]));
+    DnaDifferentialProfiler backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-differential-profiler",argv[0]));
     return (int)backend.run(argc,argv);
 }

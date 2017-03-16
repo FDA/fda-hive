@@ -78,7 +78,7 @@ idx DnaDenovoAssemblyProc::OnExecute(idx req)
         return 0; // error
     }
     sBioseq & Qry = hs;
-    ::printf("%"DEC" sequences are here\n", Qry.dim());
+    ::printf("%" DEC " sequences are here\n", Qry.dim());
 
 
 //    sHiveseq ref(sQPride::user, "/home/lsantana/sabin2/Sabin2.vioseq2");
@@ -162,6 +162,6 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DnaDenovoAssemblyProc backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-denovoassembly", argv[0]));
+    DnaDenovoAssemblyProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-denovoassembly", argv[0]));
     return (int) backend.run(argc, argv);
 }

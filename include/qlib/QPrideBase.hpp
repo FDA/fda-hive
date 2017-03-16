@@ -294,7 +294,7 @@ namespace slib
             void flushCache();
 
             char * cfgStr(sStr * buf, sVar * pForm, const char * par, const char * defval=0 ){return configGet(buf,pForm, par,defval,0);}
-            idx cfgInt(sVar * pForm, const char * par, idx defval=0){idx res=defval; sStr tmp, oo("%"DEC,defval);  configGet(&tmp,pForm, par, oo.ptr(), "%"DEC,&res);return res;}
+            idx cfgInt(sVar * pForm, const char * par, idx defval=0){idx res=defval; sStr tmp, oo("%" DEC,defval);  configGet(&tmp,pForm, par, oo.ptr(), "%" DEC,&res);return res;}
             real cfgReal(sVar * pForm, const char * par, real defval=0){real res=defval; sStr tmp, oo("%lf",defval); configGet(&tmp,pForm, par, oo.ptr(), "%lf",&res);return res;}
             char * cfgPath(sStr & path, sVar * pForm, const char * flnm, const char * par)
             {

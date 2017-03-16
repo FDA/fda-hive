@@ -33,7 +33,7 @@
 #define IDTYPE_TYPE 2
 
 const char * sIdMap::idMapVioDBFileFlag ="idTest";
-const char * sIdMap::excludeList= "abc"__;
+const char * sIdMap::excludeList= "abc" __;
 
 bool sIdMap::getNeighbourByLevel(const char * startId, const char * idTypeFrom,sStr &buf, idx level, idx maxCnt, idx start,idx maxExpand){
     sVec<QC>  idWithType;
@@ -581,7 +581,7 @@ void sIdMap::Parsefile(const char* inputFilename, const char* outfilename, bool 
 void sIdMap::ParseOneline(const char * buf, sStr & key, sStr &otherType, sStr &other)
 {
     sStr line;
-    sString::searchAndReplaceSymbols(&line, buf ,0, "\t"__, 0, 0, true , true, false , true);
+    sString::searchAndReplaceSymbols(&line, buf ,0, "\t" __, 0, 0, true , true, false , true);
     const char * ptr1=line.ptr();
     if(ptr1)    key.printf(0,"%s",ptr1);
     ptr1=sString::next00(ptr1);
@@ -593,7 +593,7 @@ void sIdMap::ParseOneline(const char * buf, sStr & key, sStr &otherType, sStr &o
 void sIdMap::ParseOnelineNCBI(const char * buf, sStr & key, sStr &otherType, sStr &other)
 {
     sStr line;
-    sString::searchAndReplaceSymbols(&line, buf ,0, "\t"__, 0, 0, true , true, false , true);
+    sString::searchAndReplaceSymbols(&line, buf ,0, "\t" __, 0, 0, true , true, false , true);
     const char * ptr1=line.ptr();
     if(ptr1)    key.printf(0,"%s",ptr1);
     ptr1=sString::next00(ptr1);

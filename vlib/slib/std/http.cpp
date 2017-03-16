@@ -252,7 +252,7 @@ idx sHtml::readCGIPost(sVec < sMex::Pos> * ofs, char * post, idx len)
         if( !strncmp(ptr,dispos,lendisp) ) {
 
 
-            char * elename=sString::searchSubstring(ptr,len,"name=\""__,1,"\n"__,1);
+            char * elename=sString::searchSubstring(ptr,len,"name=\"" __,1,"\n" __,1);
             if(elename ) {
                 elename+=6;
                 char * eleend=strpbrk(elename,"\"\r\n");
@@ -263,7 +263,7 @@ idx sHtml::readCGIPost(sVec < sMex::Pos> * ofs, char * post, idx len)
                     ppos->size=(idx )(eleend-elename);
                 }
 
-                char * filename=sString::searchSubstring(ptr,len,"filename=\""__,1,"\n"__,1);
+                char * filename=sString::searchSubstring(ptr,len,"filename=\"" __,1,"\n" __,1);
                 if(filename) {
                     char * filenameend=strpbrk(filename+10,"\"\r\n");
                     if(filenameend) {
@@ -289,7 +289,7 @@ idx sHtml::readCGIPost(sVec < sMex::Pos> * ofs, char * post, idx len)
             }
 
             // position to the empty line
-            ptr=sString::searchSubstring(ptr,0,"\n\r\n"_"\n\n"__,1,0,0);
+            ptr=sString::searchSubstring(ptr,0,"\n\r\n" _ "\n\n" __,1,0,0);
 
             for(idx inew=0;inew<2 && ptr && ptr<post+len && (*ptr=='\n' || *ptr=='\r') ;){
                 if(*ptr=='\n')++inew;
@@ -437,7 +437,7 @@ idx sHtml::inputCGI(sStr * bfr, sVec <sMex::Pos> * ofs, FILE * fp, idx argc, con
             const char * key = static_cast<const char*>(variables->id(i));
             idx value_size = 0;
             const char * value = variables->value(key, 0, &value_size);
-            fprintf(stderr, "%s=%s (val strlen = %"DEC", size = %"DEC")\n", key, value, sLen(value), value_size);
+            fprintf(stderr, "%s=%s (val strlen = %" DEC ", size = %" DEC ")\n", key, value, sLen(value), value_size);
         }
 #endif
     }
@@ -725,7 +725,7 @@ void sHtml::outFormData(sVar * form, const char * formflnm, bool truncate) // th
         const char * variable=(const char *)form->id(i);
         const char * value=form->value(variable,"(null)") ;
 
-        frm.printf("<tr><td>%"DEC"</td><td>'%s'</td><td>'%s'</td></tr>\n",i,variable, value);
+        frm.printf("<tr><td>%" DEC "</td><td>'%s'</td><td>'%s'</td></tr>\n",i,variable, value);
     }
     frm.printf("</table>\n");
 
@@ -743,7 +743,7 @@ FILE * sHtml::grabInData(FILE * readfrom, const char * * envp, const char  * pos
         if(!postFile)postFile="/tmp/__post.in";
         sFile::remove(postFile);
         sMex pst;pst.init(postFile); pst.readIO(stdin);
-        //::printf("postFileFlags=%"DEC"\n",(pst.flags>>(sMex_FileHandleShift)) & 0xFFFF); // this is where file handles are kept);
+        //::printf("postFileFlags=%" DEC "\n",(pst.flags>>(sMex_FileHandleShift)) & 0xFFFF); // this is where file handles are kept);
         readfrom=fopen(postFile,"r");
         //::printf("postFile= %s\n--------------------\n%.*s\n-------------------\n",postFile,(int)pst.pos(),pst.ptr());
     } /*else {
@@ -755,8 +755,8 @@ FILE * sHtml::grabInData(FILE * readfrom, const char * * envp, const char  * pos
         sFile::remove(envFile);
         sFil fEnv(envFile);
         for ( idx ie=0; envp[ie]; ++ie){
-            fEnv.printf("%"DEC" %s\n",ie, envp[ie]);
-            ::fprintf(stderr, "%"DEC" %s\n",ie, envp[ie]);
+            fEnv.printf("%" DEC " %s\n",ie, envp[ie]);
+            ::fprintf(stderr, "%" DEC " %s\n",ie, envp[ie]);
         }
     }
 #endif

@@ -54,24 +54,24 @@ idx DnaParserProc::OnExecute(idx req)
     do {
         const sHiveId objID(formValue("obj"));
         if( !objID ) {
-            errmsg.printf("Invalid objID in %"DEC" request", req);
+            errmsg.printf("Invalid objID in %" DEC " request", req);
             break;
         }
         sUsrFile obj(objID, user);
         if( !obj.Id() ) {
-            errmsg.printf("Invalid obj %s in %"DEC" request", objID.print(), req);
+            errmsg.printf("Invalid obj %s in %" DEC " request", objID.print(), req);
             break;
         }
         logOut(eQPLogType_Info, "processing object %s\n", obj.Id().print());
         sStr sourceSequenceFilePath;
         formValue("sourceSequenceFilePath", &sourceSequenceFilePath, 0);
         if( !sourceSequenceFilePath ) {
-            errmsg.printf("Invalid source sequence file path in %"DEC" request", req);
+            errmsg.printf("Invalid source sequence file path in %" DEC " request", req);
             break;
         }
         idx fsize = sFile::size(sourceSequenceFilePath);
         if( !fsize ) {
-            errmsg.printf("Source sequence filesize is empty in %"DEC" request", req);
+            errmsg.printf("Source sequence filesize is empty in %" DEC " request", req);
             break;
         }
 
@@ -97,14 +97,14 @@ idx DnaParserProc::OnExecute(idx req)
 
             // We must append a number to the name of the file and send it to parse
             sStr newfile;
-            if( !obj.addFilePathname(newfile, true, "~tmp.%"DEC".vioseq2", reqSliceId) ) {
+            if( !obj.addFilePathname(newfile, true, "~tmp.%" DEC ".vioseq2", reqSliceId) ) {
                 errmsg.printf("failed to create destination");
                 break;
             }
             sStr partfile;
-            reqSetData(req, "file://"RELFIXTBL, 0, 0); // create and empty file for this request
+            reqSetData(req, "file://" RELFIXTBL, 0, 0); // create and empty file for this request
             if( !reqDataPath(req, RELFIXTBL, &partfile) ) {
-                errmsg.printf("Can't write the "RELFIXTBL);
+                errmsg.printf("Can't write the " RELFIXTBL);
                 break;
             }
             sFile::remove(partfile.ptr(0));
@@ -118,7 +118,7 @@ idx DnaParserProc::OnExecute(idx req)
                 if (filetype){
                         flags |= filetype;
                 }
-                logOut(eQPLogType_Info, "sFile::size(\"%s\") is %"DEC"\n", sourceSequenceFilePath.ptr(), fsize);
+                logOut(eQPLogType_Info, "sFile::size(\"%s\") is %" DEC "\n", sourceSequenceFilePath.ptr(), fsize);
 
                 idx ires = v.parseSequenceFile(newfile, sourceSequenceFilePath, flags, 0, 0, 0, v.getPrefixLength(reqSliceCnt), reqSliceId, &partitionList);
 //                isMultipleAlignment = alignReferenceIncluded || (v.getFlags() & sVioseq2::eTreatAsMA);
@@ -130,14 +130,14 @@ idx DnaParserProc::OnExecute(idx req)
                         }
                     }
                     if (!errmsg){
-                        errmsg.printf("Parser returns Error Code: %"DEC, ires);
+                        errmsg.printf("Parser returns Error Code: %" DEC, ires);
                     }
                     break;
                 }
-                reqSetData(req, COUNTLONG , "%"DEC, ires);
+                reqSetData(req, COUNTLONG , "%" DEC, ires);
                 sStr lngloc;
                 if(!reqGetData(req, COUNTLONG , &lngloc) ) {
-                    errmsg.printf("Can't write the "COUNTLONG);
+                    errmsg.printf("Can't write the " COUNTLONG);
                     break;
                 }
                 const idx prefixLen = v.getPrefixLength(reqSliceCnt);
@@ -150,9 +150,9 @@ idx DnaParserProc::OnExecute(idx req)
                 // switch to short for report
                 v.setmode(sBioseq::eBioModeShort);
 #if _DEBUG
-                reqSetInfo(req, eQPInfoLevel_Info, "parsed '%s' part %"DEC" prefix '%s' sequence count short: %"DEC" long: %"DEC"\n", sourceSequenceFilePath.ptr(), reqSliceId, pfx.ptr(), v.dim(), ires);
+                reqSetInfo(req, eQPInfoLevel_Info, "parsed '%s' part %" DEC " prefix '%s' sequence count short: %" DEC " long: %" DEC "\n", sourceSequenceFilePath.ptr(), reqSliceId, pfx.ptr(), v.dim(), ires);
 #else
-                logOut(eQPLogType_Info, "parsed '%s' part %"DEC" prefix '%s' sequence count short: %"DEC" long: %"DEC"\n", sourceSequenceFilePath.ptr(), reqSliceId, pfx.ptr(), v.dim(), ires);
+                logOut(eQPLogType_Info, "parsed '%s' part %" DEC " prefix '%s' sequence count short: %" DEC " long: %" DEC "\n", sourceSequenceFilePath.ptr(), reqSliceId, pfx.ptr(), v.dim(), ires);
 #endif
             }}
         }
@@ -198,25 +198,25 @@ idx DnaParserProc::OnExecute(idx req)
                 // Generate the list of files to concatenate or to create the vioseqlist
                 for(idx i = 0; i < reqSliceCnt; ++i) {
                     sStr newtempfile;
-                    if( !obj.getFilePathname(newtempfile, "~tmp.%"DEC".vioseq2", i) ) {
-                        errmsg.printf("failed to access chunk file %"DEC, i);
+                    if( !obj.getFilePathname(newtempfile, "~tmp.%" DEC ".vioseq2", i) ) {
+                        errmsg.printf("failed to access chunk file %" DEC, i);
                         break;
                     }
                     sStr partfile;
                     reqDataPath(reqList[i], RELFIXTBL, &partfile);
                     if( !partfile) {
-    //                    errmsg.printf("There is no relation FixTable for req: %"DEC, reqList[i]);
+    //                    errmsg.printf("There is no relation FixTable for req: %" DEC, reqList[i]);
                         countRes[i] = 0;
                         continue;
                     }
                     sStr l;
                     reqGetData(reqList[i], COUNTLONG, &l);
                     if( !l) {
-    //                    errmsg.printf("There is no relation FixTable for req: %"DEC, reqList[i]);
+    //                    errmsg.printf("There is no relation FixTable for req: %" DEC, reqList[i]);
                         continue;
                     }
                     idx lres=0;
-                    sscanf(l,"%"DEC,&lres);
+                    sscanf(l,"%" DEC,&lres);
                     sVioseq2 bioseq(newtempfile);
                     if( !bioseq.dim() ) {
     //                    errmsg.printf("Error reading vioseq file: %s", newtempfile.ptr());
@@ -229,11 +229,11 @@ idx DnaParserProc::OnExecute(idx req)
                     longres += lres;
                     /*partList[i].init( partfile.ptr(), sMex::fReadonly);
                     if( !partList[i].ok()) {
-                        errmsg.printf("Sequence ID line mapping failed %"DEC, i);
+                        errmsg.printf("Sequence ID line mapping failed %" DEC, i);
                         break;
                     }*/
                     if( reqSliceCnt > 1 && !sFile::size(partfile)) {
-                        errmsg.printf("Sequence ID line mapping failed %"DEC, i);
+                        errmsg.printf("Sequence ID line mapping failed %" DEC, i);
                         break;
                     }
                     partFiles00.add(partfile.ptr(),partfile.length());
@@ -264,7 +264,7 @@ idx DnaParserProc::OnExecute(idx req)
                     sVioDB dbi(firstfile, 0, 0, 0);
                     idx rc = sVioseq2::fixAddRelation(&dbi, 0/*&partList*/, countRes,partFiles00.ptr(), reqProgressStatic, this);
                     if( rc != 0 ) {
-                        errmsg.printf("failed to fix relation %"DEC, rc);
+                        errmsg.printf("failed to fix relation %" DEC, rc);
                         break;
                     }
 //                    longres = dbi.GetRecordCnt(sVioseq2::eRecID_TYPE);    // Get the count of long mode sequences to return
@@ -275,17 +275,17 @@ idx DnaParserProc::OnExecute(idx req)
                 for(idx i = 0; i < reqSliceCnt; i++) {
                     sStr oldfile, newfile;
                     if ( (countRes[i] == 0) && (i != 0) ){continue;}
-                    if( !obj.getFilePathname(oldfile, "~tmp.%"DEC".vioseq2", i) ) {
-                        errmsg.printf("failed to access chunk file %"DEC" (1)", i);
+                    if( !obj.getFilePathname(oldfile, "~tmp.%" DEC ".vioseq2", i) ) {
+                        errmsg.printf("failed to access chunk file %" DEC " (1)", i);
                         break;
                     }
-                    if( !obj.addFilePathname(newfile, true, ".%"DEC".vioseq2", i) ) {
-                        errmsg.printf("failed to add chunk file %"DEC" (1)", i);
+                    if( !obj.addFilePathname(newfile, true, ".%" DEC ".vioseq2", i) ) {
+                        errmsg.printf("failed to add chunk file %" DEC " (1)", i);
                         break;
                     }
                     if( !isMerged ) {  // Append file:// to the names
                         sFilePath tmpfile(newfile, "%%flnm");
-                        filenames.printf("file://%s,0,%"DEC"\n", tmpfile.ptr(0), countRes[i]);
+                        filenames.printf("file://%s,0,%" DEC "\n", tmpfile.ptr(0), countRes[i]);
                     } else {  // Separate only by ','
                         if( i != 0 ) {
                             filenames.printf(",");
@@ -312,12 +312,12 @@ idx DnaParserProc::OnExecute(idx req)
                     for(idx i = 0; i < reqSliceCnt; i++) {
                         if ( (countRes[i] == 0) && (i != 0) ){continue;}
                         sStr oldfile, newfile;
-                        if( !obj.getFilePathname(oldfile, "~tmp.%"DEC".vioseq2", i) ) {
-                            errmsg.printf("failed to access chunk file %"DEC" (2) to rename it", i);
+                        if( !obj.getFilePathname(oldfile, "~tmp.%" DEC ".vioseq2", i) ) {
+                            errmsg.printf("failed to access chunk file %" DEC " (2) to rename it", i);
                             break;
                         }
-                        if( !obj.addFilePathname(newfile, true, ".%"DEC".vioseq2", i) ) {
-                            errmsg.printf("failed to add chunk file %"DEC" (2) to rename it", i);
+                        if( !obj.addFilePathname(newfile, true, ".%" DEC ".vioseq2", i) ) {
+                            errmsg.printf("failed to add chunk file %" DEC " (2) to rename it", i);
                             break;
                         }
                         sVioDB dbren(oldfile);
@@ -359,7 +359,7 @@ idx DnaParserProc::OnExecute(idx req)
                         // Will launch dna-qc
                         DnaQC dnaqc(*this, objID);
                         idx reqsubmitedQC = dnaqc.launch(*user, grpId);
-                        logOut(eQPLogType_Info, "Submitted %s request %"DEC"\n", dnaqc.getSvcName(), reqsubmitedQC);
+                        logOut(eQPLogType_Info, "Submitted %s request %" DEC "\n", dnaqc.getSvcName(), reqsubmitedQC);
                     }
                     if (dmArchiver::getScreenFlag(*this) != 0){
                         // Will launch dna-screening for hexagon and blast
@@ -367,7 +367,7 @@ idx DnaParserProc::OnExecute(idx req)
                         DnaScreening dnascreen(*this, objID, DnaScreening::eBlastVsNT);
                         idx priority = 1000;
                         idx reqsubmitScreen = dnascreen.launch(*user, grpId, 0, priority); // grpID=0 not to attach to the main group - otherwise its too long and makes it seem slower to parse
-                        logOut(eQPLogType_Info, "Submitted %s request %"DEC"\n", dnascreen.getSvcName(), reqsubmitScreen);
+                        logOut(eQPLogType_Info, "Submitted %s request %" DEC "\n", dnascreen.getSvcName(), reqsubmitScreen);
                     }
                 } else {
                     errmsg.printf("Failed to read the final file: hs.dim() is 0");
@@ -383,7 +383,7 @@ idx DnaParserProc::OnExecute(idx req)
                     reqProgress(-1, 99, 100);
                     // Delete vioseq2 files
                     sStr newfile;
-                    if( !obj.getFilePathname(newfile, ".%"DEC".vioseq2", i) ) {
+                    if( !obj.getFilePathname(newfile, ".%" DEC ".vioseq2", i) ) {
                         continue;
                     }
                     sVioDB dbren(newfile);
@@ -453,7 +453,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaParserProc backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-parser",argv[0]));
+    DnaParserProc backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-parser",argv[0]));
     return (int)backend.run(argc,argv);
 }
 

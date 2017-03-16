@@ -53,9 +53,9 @@ extern char ** environ;
 #define _DEBUG_TRACE_PIPE2_off
 
 #ifdef _DEBUG
-    #define SPIPE2_EXEC_SYS_FAIL(fmt, ...) ::fprintf(stderr, "sPipe2::execute: %s:%d: "fmt"\n", __FILE__, __LINE__, __VA_ARGS__)
+    #define SPIPE2_EXEC_SYS_FAIL(fmt, ...) ::fprintf(stderr, "sPipe2::execute: %s:%d: " fmt "\n", __FILE__, __LINE__, __VA_ARGS__)
     #ifdef _DEBUG_TRACE_PIPE2
-    #define SPIPE2_TRACE(fmt, ...) ::fprintf(stderr, "sPipe2: %s:%d, pid %d "fmt"\n", __FILE__, __LINE__, getpid(), __VA_ARGS__)
+    #define SPIPE2_TRACE(fmt, ...) ::fprintf(stderr, "sPipe2: %s:%d, pid %d " fmt "\n", __FILE__, __LINE__, getpid(), __VA_ARGS__)
     #else
     #define SPIPE2_TRACE(...)
     #endif
@@ -144,15 +144,15 @@ idx sPipe2::IO::readFromPipe(char * buf, idx buf_len)
     while( 1 ) {
         idx read_len = ::read(pipe_fds[0], buf, buf_len);
         if( read_len > 0 ) {
-            SPIPE2_TRACE("read %"DEC" bytes from fd %d", read_len, pipe_fds[0]);
+            SPIPE2_TRACE("read %" DEC " bytes from fd %d", read_len, pipe_fds[0]);
             read_total += read_len;
             io->add(buf, read_len);
         } else if( read_len == 0 || errno == EAGAIN || errno == EWOULDBLOCK ) {
             // more IO might come later
-            SPIPE2_TRACE("read %"DEC" bytes from fd %d; breaking", read_len, pipe_fds[0]);
+            SPIPE2_TRACE("read %" DEC " bytes from fd %d; breaking", read_len, pipe_fds[0]);
             break;
         } else {
-            SPIPE2_TRACE("read %"DEC" bytes from fd %d; %s; closing pipe", read_len, pipe_fds[0], strerror(errno));
+            SPIPE2_TRACE("read %" DEC " bytes from fd %d; %s; closing pipe", read_len, pipe_fds[0], strerror(errno));
             closePipeFD(0);
             break;
         }
@@ -816,7 +816,7 @@ void sPipe2::forkedChild()
         sSet(&lim);
         lim.rlim_cur = _limit_cpu;
         lim.rlim_max = _hard_limit_cpu ? _hard_limit_cpu : RLIM_SAVED_MAX;
-        SPIPE2_TRACE("CPU limit: %"DEC" (%"DEC" hard)", _limit_cpu, _hard_limit_cpu);
+        SPIPE2_TRACE("CPU limit: %" DEC " (%" DEC " hard)", _limit_cpu, _hard_limit_cpu);
         if( ::setrlimit(RLIMIT_CPU, &lim) ) {
             SPIPE2_TRACE("setrlimit() failed: %s", strerror(errno));
         }
@@ -826,7 +826,7 @@ void sPipe2::forkedChild()
         sSet(&lim);
         lim.rlim_cur = _limit_heap;
         lim.rlim_max = _hard_limit_heap ? _hard_limit_heap : RLIM_SAVED_MAX;
-        SPIPE2_TRACE("Heap limit: %"DEC" (%"DEC" hard)", _limit_heap, _hard_limit_heap);
+        SPIPE2_TRACE("Heap limit: %" DEC " (%" DEC " hard)", _limit_heap, _hard_limit_heap);
         // set both RLIMIT_AS and RLIMIT_DATA, since which one is relevant depends on the operating system's malloc() implementation
         // http://stackoverflow.com/questions/23768601/posix-rlimit-what-exactly-can-we-assume-about-rlimit-data
         if( ::setrlimit(RLIMIT_AS, &lim) || ::setrlimit(RLIMIT_DATA, &lim) ) {
@@ -933,7 +933,7 @@ sRC sPipe2::execute(sPipe2::ExecMode mode, sPipe2::doneCb cb, void * param)
                 // original forked child, which needs to inform parent process about daemon_pid and then exit
                 // POSIX says pipe writes of at least PIPE_BUF bytes are atomic, and PIPE_BUF >= 512
                 if( FILE * strm = ::fdopen(_stdout.pipe_fds[1], "w") ) {
-                    fprintf(strm, "%"DEC, (idx)daemon_pid);
+                    fprintf(strm, "%" DEC, (idx)daemon_pid);
                     exit(0);
                 } else {
                     SPIPE2_EXEC_SYS_FAIL("fdopen() failed: %s", strerror(errno));
@@ -1000,10 +1000,10 @@ sRC sPipe2::execute(sPipe2::ExecMode mode, sPipe2::doneCb cb, void * param)
         } else if( mode == eDaemon ) {
             // read daemon pid from child's stdout pipe
             if( FILE * strm = ::fdopen(_stdout.pipe_fds[0], "r") ) {
-                ::fscanf(strm, "%"DEC, &_pid);
+                ::fscanf(strm, "%" DEC, &_pid);
                 ::fclose(strm);
                 _stdout.pipe_fds[0] = -1;
-                SPIPE2_TRACE("daemon PID is %"DEC, _pid);
+                SPIPE2_TRACE("daemon PID is %" DEC, _pid);
             } else {
                 SPIPE2_EXEC_SYS_FAIL("fdopen() failed: %s", strerror(errno));
                 rc.set(sRC::eWaiting, sRC::eProcess, sRC::eIO, sRC::eFailed);
@@ -1151,7 +1151,7 @@ void sPipe2::handleCallbacks(bool in_thread)
                 } else if( code == SELFPIPE_CPU_TIME[0] ) {
                     // launched process has run out of time; kill. Don't return right now - waiter thread neads to waitpid() it
                     // ::kill() instead of sPipe2::kill() because sPipe2::kill() should not be used from callback thread
-                    SPIPE2_TRACE("kill %"DEC" -9", _mode == eDaemon ? -_pid : _pid);
+                    SPIPE2_TRACE("kill %" DEC " -9", _mode == eDaemon ? -_pid : _pid);
                     if( ::kill(_mode == eDaemon ? -_pid : _pid, 9) ) {
                         SPIPE2_TRACE("kill failed: %s", strerror(errno));
                     }
@@ -1240,7 +1240,7 @@ void * sPipe2::waiterThread(void * param_)
         self->_retcode = -1;
     }
 
-    SPIPE2_TRACE("waiter thread: waited for pid %"DEC"; return code = %d", self_pid, self->_retcode);
+    SPIPE2_TRACE("waiter thread: waited for pid %" DEC "; return code = %d", self_pid, self->_retcode);
 
     self->_is_running = false;
     if( ::write(self->_self_pipe_fds[1], SELFPIPE_WAIT, 1) < 1 ) {

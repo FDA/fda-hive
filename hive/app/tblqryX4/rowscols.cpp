@@ -480,9 +480,9 @@ const char * OutputColumns::printDump(sStr & out, bool withType, const char * in
         indent = sStr::zero;
     }
 
-    out.printf("{\n%s"SPACES"\"cols\": [\n", indent);
+    out.printf("{\n%s" SPACES "\"cols\": [\n", indent);
     for(idx icol = 0; icol < _cols.dim(); icol++) {
-        out.printf("%s" SPACES SPACES "{ \"icol\": %"DEC", \"name\": ", indent, icol);
+        out.printf("%s" SPACES SPACES "{ \"icol\": %" DEC ", \"name\": ", indent, icol);
         const char * name = getName(icol);
         if( name ) {
             sString::escapeForJSON(out, name);
@@ -493,7 +493,7 @@ const char * OutputColumns::printDump(sStr & out, bool withType, const char * in
         if( getFormula(icol) ) {
             out.addString("\"formula\"");
         } else {
-            out.printf("%"DEC, getInputCol(icol));
+            out.printf("%" DEC, getInputCol(icol));
         }
         if( withType ) {
             out.printf(", \"type\": \"%s\"", sVariant::getTypeName(getType(icol)));
@@ -515,13 +515,13 @@ const char * OutputColumns::printDump(sStr & out, bool withType, const char * in
         out.addString(icol + 1 < _cols.dim() ? ",\n" : "\n");
     }
     out.printf("%s" SPACES "],\n", indent);
-    out.printf("%s"SPACES"\"saved\": [\n", indent);
+    out.printf("%s" SPACES "\"saved\": [\n", indent);
     for(saveHandle keep = minSavedCol(); keep <= maxSavedCol(); keep++) {
-        out.printf("%s" SPACES SPACES "{ \"handle\": %"DEC", \"src\": ", indent, keep);
+        out.printf("%s" SPACES SPACES "{ \"handle\": %" DEC ", \"src\": ", indent, keep);
         if( getFormula(-sIdxMax, keep) ) {
             out.addString("\"formula\"");
         } else {
-            out.printf("%"DEC, getInputCol(-sIdxMax, keep));
+            out.printf("%" DEC, getInputCol(-sIdxMax, keep));
         }
         if( getType(-sIdxMax, keep) != sVariant::value_NULL ) {
             out.printf(", \"type\": \"%s\"", sVariant::getTypeName(getType(-sIdxMax, keep)));
@@ -533,7 +533,7 @@ const char * OutputColumns::printDump(sStr & out, bool withType, const char * in
             out.addString(", \"fmt\": ");
             sString::escapeForJSON(out, getFormat(-sIdxMax, keep));
         }
-        out.printf(", \"refs\": %"DEC"}", *_savedCols.ptr(keep - 1));
+        out.printf(", \"refs\": %" DEC "}", *_savedCols.ptr(keep - 1));
         out.addString(keep < maxSavedCol() ? ",\n" : "\n");
     }
     out.printf("%s" SPACES "]\n%s}", indent, indent);
@@ -585,9 +585,9 @@ bool OutputBuffer::setCell(idx icol, OutputColumns::saveHandle keep, idx in_row)
             sStr err_buf;
             _ctx->qlangCtx().printError(err_buf);
             if( icol == -sIdxMax ) {
-                _ctx->logInfo("Formula failed on input row %"DEC": %s", in_row, err_buf.ptr());
+                _ctx->logInfo("Formula failed on input row %" DEC ": %s", in_row, err_buf.ptr());
             } else {
-                _ctx->logInfo("Formula failed for column %"DEC" on input row %"DEC": %s", icol, in_row, err_buf.ptr());
+                _ctx->logInfo("Formula failed for column %" DEC " on input row %" DEC ": %s", icol, in_row, err_buf.ptr());
             }
             // a formula failing is a non-fatal event; we log and continue
             c.val.setNull();
@@ -617,21 +617,21 @@ bool OutputBuffer::setCell(idx icol, OutputColumns::saveHandle keep, idx in_row)
     return true;
 }
 
-static const char * rowMethodNames = "rowlist"_
-"inrowlist"_
-"equals"_
-"regex"_
-"substring"_
-"formula"_
-"range"__;
+static const char * rowMethodNames = "rowlist" _
+"inrowlist" _
+"equals" _
+"regex" _
+"substring" _
+"formula" _
+"range" __;
 
-static const char * colMethodNames = "collist"_
-"incollist"_
-"equals"_
-"regex"_
-"substring"_
-"formula"_
-"range"__;
+static const char * colMethodNames = "collist" _
+"incollist" _
+"equals" _
+"regex" _
+"substring" _
+"formula" _
+"range" __;
 
 const char * OutputRowFilter::_default_opname = "filter";
 const char * OutputColFilter::_default_opname = "colfilter";
@@ -1039,7 +1039,7 @@ OutputFilter::EResult OutputFilter::evalDataValue(sVariant * pdataval, bool allo
                 if( unlikely(!_specs[is].fmla->eval(_tmp_val, _ctx->qlangCtx())) ) {
                     // non-fatal
                     sStr err_buf;
-                    _ctx->logInfo("Failed formula on filtering input row %"DEC": %s", _ctx->qlangCtx().getCurInputRow(), _ctx->qlangCtx().printError(err_buf));
+                    _ctx->logInfo("Failed formula on filtering input row %" DEC ": %s", _ctx->qlangCtx().getCurInputRow(), _ctx->qlangCtx().printError(err_buf));
                     _ctx->qlangCtx().clearError();
                     return eResult_error;
                 }
@@ -1097,7 +1097,7 @@ OutputRowFilter::EResult OutputRowFilter::eval(idx in_row, idx out_row)
                 if( unlikely(!_specs[is].fmla->eval(_tmp_val, _ctx->qlangCtx())) ) {
                     // non-fatal
                     sStr err_buf;
-                    _ctx->logInfo("Failed formula on filtering input row %"DEC": %s", _ctx->qlangCtx().getCurInputRow(), _ctx->qlangCtx().printError(err_buf));
+                    _ctx->logInfo("Failed formula on filtering input row %" DEC ": %s", _ctx->qlangCtx().getCurInputRow(), _ctx->qlangCtx().printError(err_buf));
                     _ctx->qlangCtx().clearError();
                     return eResult_error;
                 }
@@ -1252,7 +1252,7 @@ const char * OutputCategories::print(sStr & out, const char * indent)
         sString::escapeForJSON(out, cat_name);
         out.printf(": {\r\n%s        \"%s\": [", indent, getTypeName());
         for(idx ir = 0; ir < cat_values.dim(); ir++) {
-            out.printf("%s%"DEC, ir ? ", " : "", cat_values[ir]);
+            out.printf("%s%" DEC, ir ? ", " : "", cat_values[ir]);
         }
         out.printf("]");
         for(idx ik = 0; ik < cat_tqs_op.dim(); ik++) {

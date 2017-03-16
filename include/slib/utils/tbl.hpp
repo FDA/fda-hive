@@ -118,7 +118,7 @@ namespace slib
             sStr oneCell;
             get(&oneCell,irow,icol);
             idx val=defValue;
-            sscanf(oneCell.ptr(),"%"DEC,&val);
+            sscanf(oneCell.ptr(),"%" DEC,&val);
             return val;
         }
         real rvalue(idx irow, idx icol, real defValue=0 ) {

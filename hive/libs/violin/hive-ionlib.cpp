@@ -50,8 +50,8 @@ enum enumCommands{
 };
 
 const char * listCommands=
-    "wander"_
-    "wantbl"_
+    "wander" _
+    "wantbl" _
     _;
 
 idx sHiveIon::retrieveListOfObjects(sUsr * usr, sVec<sHiveId> * objList, sDir * fileList00, const char * objIDList, const char * typeList, const char * parList00, const char * valList00, const char * filePattern00)
@@ -104,7 +104,7 @@ idx sHiveIon::realValStatCallback(sIon * ion, sIonWander * wander, sIonWander::S
         gE->compositePassage.cut(0);
         // because we know the label for asking about the phenotype started with an 'd'
         if(statement->label[0]=='d') {
-            //compositePassage.printf("%"DEC"_",statement->scope);
+            //compositePassage.printf("%" DEC "_",statement->scope);
             gE->compositePassage.addString("a_",2); // 'a' for phenotype
             if (gE->collapsePassage){
                 const char * specialSepar = strchr((const char *)reslist[3].body,'@');
@@ -116,7 +116,7 @@ idx sHiveIon::realValStatCallback(sIon * ion, sIonWander * wander, sIonWander::S
             else gE->compositePassage.addString((const char *)reslist[3].body,reslist[3].size);
         } else {
             #ifdef WORKING_MODEL
-            gE->compositePassage.printf("Expr%"DEC"-",recordID+1);
+            gE->compositePassage.printf("Expr%" DEC "-",recordID+1);
             #else
                 //compositePassage.addString("\"",1);
             gE->compositePassage.addString("e_",2); // 'e' for genotype

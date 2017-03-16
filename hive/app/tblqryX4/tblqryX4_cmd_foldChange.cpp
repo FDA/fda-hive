@@ -86,7 +86,7 @@ bool FoldChangeCommand::init(const char * op_name, sVariant * arg)
         return false;
     }
     sStr tmpFormula;
-    tmpFormula.printf("${Unique Col-%"DEC"} + ${Unique Col-%"DEC"}",colSet_1[0]+1, colSet_2[0]+1);
+    tmpFormula.printf("${Unique Col-%" DEC "} + ${Unique Col-%" DEC "}",colSet_1[0]+1, colSet_2[0]+1);
     sVariant sorter_arg;
     sorter_arg.setDic();
     sVariant * sorter_formula_arg = sorter_arg.setElt("formulas", 0);
@@ -151,10 +151,10 @@ bool FoldChangeCommand::compute(sTabular * tbl)
 
         if (ir==-1){
             sStr hdr_col;
-            hdr_col.printf("Unique Col-%"DEC"",col_1+1);
+            hdr_col.printf("Unique Col-%" DEC "",col_1+1);
             toReturn->addCell("Fold-Change",11, sVariant::value_REAL);
             toReturn->addCell(hdr_col.ptr(),0,sVariant::value_INT);
-            hdr_col.printf(0,"Unique Col-%"DEC"",col_2+1);
+            hdr_col.printf(0,"Unique Col-%" DEC "",col_2+1);
             toReturn->addCell(hdr_col.ptr(),0, sVariant::value_INT);
         }
 

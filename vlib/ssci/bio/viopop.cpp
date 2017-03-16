@@ -172,7 +172,7 @@ bool sViopop::buildMergeDictionary(ParamCloneIterator * params, sDic<sVec<idx> >
     bool isGapsInfo = isVersion2();
     for(idx iCl = 0; iCl < clCnt; ++iCl) {
         sBioseqpopul::cloneStats * clStat = getStats(iCl);
-        t_buf.printf(0, "%"DEC, iCl);
+        t_buf.printf(0, "%" DEC, iCl);
         mergeCl = false;
         if( params->hiddenClones && cl2hide.get(t_buf.ptr()) ) {
             mergeCl = true;
@@ -198,7 +198,7 @@ bool sViopop::buildMergeDictionary(ParamCloneIterator * params, sDic<sVec<idx> >
                 parentCl = 0;
             }
             while( parentCl ) {
-                t_buf.printf(0, "%"DEC, parentCl->clID);
+                t_buf.printf(0, "%" DEC, parentCl->clID);
                 sVec<idx> *tm = mergeTree.get(t_buf.ptr());
                 if( tm ) {
                     if( params->mergeHidden ) {
@@ -225,7 +225,7 @@ idx sViopop::buildMergeCompositionDictionary( ParamCloneIterator * params, sDic<
         sStr t_buf;
         sVec< contigComp > * comp = 0;
         for( idx i = 0 ; i < dimCl() ; ++i ) {
-            t_buf.printf(0,"%"DEC,i);
+            t_buf.printf(0,"%" DEC,i);
             if( mergeDict->get(t_buf.ptr()) ) {
                 comp = mergeComp.set(t_buf.ptr());
                 constructCloneComposition(i, comp);
@@ -371,7 +371,7 @@ idx sViopop::clonesCoverage( ParamCloneIterator * params, sBioseqpopul::cloneSum
         }
     }
 
-    params->out->printf("%"DEC",%"DEC",", spcFrmRangeStart + 1, spcFrmRangeEnd);//showStart, showEnd
+    params->out->printf("%" DEC ",%" DEC ",", spcFrmRangeStart + 1, spcFrmRangeEnd);//showStart, showEnd
     sBioseqpopul::cloneSummary * p_cl = 0, * m_cl = 0;
     idx parentID = cl->clID, mergeID = cl->clID, bifurcPos = -1, mergePos = -1;
     if( cl->hasParent() ) {
@@ -393,7 +393,7 @@ idx sViopop::clonesCoverage( ParamCloneIterator * params, sBioseqpopul::cloneSum
 //            }
         }
     }
-    params->out->printf("Clone_%"DEC",Clone_%"DEC",%"DEC",%"DEC",", parentID,mergeID,bifurcPos,mergePos );
+    params->out->printf("Clone_%" DEC ",Clone_%" DEC ",%" DEC ",%" DEC ",", parentID,mergeID,bifurcPos,mergePos );
 
     seqCovPosition * sCP = 0;
     idx sq_size = 0;
@@ -538,7 +538,7 @@ idx sViopop::clonesCoverage( ParamCloneIterator * params, sBioseqpopul::cloneSum
 
     oCov.printf("]");
     if( !params->normCov )
-        params->out->printf("%"DEC",\"%s\"", (idx) maxCov, oCov.ptr());
+        params->out->printf("%" DEC ",\"%s\"", (idx) maxCov, oCov.ptr());
     else {
         params->out->printf("%lf,\"%s\"", maxCov, oCov.ptr());
         maxCov = 100;
@@ -568,7 +568,7 @@ bool sViopop::printSimilaritiesinJSON(sStr & out, idx cl, idx pos, idx cov, idx 
             }
 
             if( cov && t_sim > thresh_sim )
-                t_out.printf(",'%"DEC"':%.4lf",iS, t_sim );
+                t_out.printf(",'%" DEC "':%.4lf",iS, t_sim );
         }
         if( sort_sim.dim() ) {
             sVec<idx> ofs(sMex::fExactSize);ofs.add(sort_sim.dim() );
@@ -581,7 +581,7 @@ bool sViopop::printSimilaritiesinJSON(sStr & out, idx cl, idx pos, idx cov, idx 
                 if(!t_sim) {
                     break;
                 }
-                t_out.printf(",'%"DEC"':%.4lf",ofs[iS], t_sim );
+                t_out.printf(",'%" DEC "':%.4lf",ofs[iS], t_sim );
                 ++cl;
             }
         }
@@ -595,12 +595,12 @@ bool sViopop::printSimilaritiesinJSON(sStr & out, idx cl, idx pos, idx cov, idx 
 
 void sViopop::printPositionCoverageinJSON(sStr & out, idx pos, char let ,idx cov, const char * sim, bool norm, idx t_cov ) {
 
-    out.printf("{'p':%"DEC",'l':'%c','c':", pos, let);
+    out.printf("{'p':%" DEC ",'l':'%c','c':", pos, let);
     if(norm){
         out.printf("%.4lf",t_cov?(real)cov*100/t_cov:0 );
     }
     else{
-        out.printf("%"DEC,cov );
+        out.printf("%" DEC,cov );
     }
     if(sim){
         out.printf(",'s':%s",sim);
@@ -725,13 +725,13 @@ idx sViopop::getValidCloneID( idx iCl )
 {
     idx res = -1, cl;
     if( mergeDict ) {
-        _t_buf.printf(0,"%"DEC,iCl);
+        _t_buf.printf(0,"%" DEC,iCl);
         if( !mergeDict->get(_t_buf.ptr()) ) {
             sBioseqpopul::cloneSummary * clSum = getCl(iCl);
             if(clSum && clSum->parentClID != clSum->clID ) {
                 cl =  getValidCloneID( clSum->parentClID  );
                 if(cl>=0) {
-                    _t_buf.printf(0,"%"DEC,cl);
+                    _t_buf.printf(0,"%" DEC,cl);
                     sVec<idx> * mergedIDs = mergeDict->get(_t_buf.ptr());
                     for (idx i = 0 ; i < mergedIDs->dim(); ++i ) {
                         if( iCl == *mergedIDs->ptr(i) ) {
@@ -756,13 +756,13 @@ sBioseqpopul::cloneSummary * sViopop::getValidCloneSummary( idx iCl)
 {
     sBioseqpopul::cloneSummary * cl = 0, * t_cl = 0;
     if( mergeDict ) {
-        _t_buf.printf(0,"%"DEC,iCl);
+        _t_buf.printf(0,"%" DEC,iCl);
         if( !mergeDict->get(_t_buf.ptr()) ) {
             sBioseqpopul::cloneSummary * clSum = getCl(iCl);
             if(clSum && clSum->parentClID != clSum->clID ) {
                 t_cl = getValidCloneSummary( clSum->parentClID );
                  if( t_cl ) {
-                     _t_buf.printf(0,"%"DEC,t_cl->clID);
+                     _t_buf.printf(0,"%" DEC,t_cl->clID);
                      sVec<idx> * mergedIDs = mergeDict->get(_t_buf.ptr());
                      for (idx i = 0 ; i < mergedIDs->dim(); ++i ) {
                          if( iCl == *mergedIDs->ptr(i) ) {
@@ -791,7 +791,7 @@ void sViopop::constructCloneComposition(idx iCl, sVec< contigComp > *comp)
     sBioseqpopul::cloneSummary * cl = getCl(iCl), * m_cl;
 
     if( cl &&  mergeDict ) {
-        _t_buf.printf(0,"%"DEC,iCl);
+        _t_buf.printf(0,"%" DEC,iCl);
         sVec<idx> * merged = mergeDict->get(_t_buf.ptr());
 
         sVec< idx > rangePos;
@@ -855,7 +855,7 @@ bool sViopop::getValidCloneComposition(sBioseqpopul::cloneSummary * cl, sVec < c
 {
     c_comp.cut(0);
     if ( mergeCompDict ) {
-        _t_buf.printf(0,"%"DEC, cl->clID);
+        _t_buf.printf(0,"%" DEC, cl->clID);
         sVec < contigComp > * l_comp = mergeCompDict->get(_t_buf.ptr());
         if(l_comp) {
             for(idx i = 0 ; i < l_comp->dim() ; ++i ) {
@@ -886,7 +886,7 @@ idx sViopop::printAllClones(sViopop * viopop, ParamCloneIterator * params, idx c
 
     sBioseqpopul::cloneStats * gStats = viopop->getGenStats ();
     idx refCnt=gStats->support;
-//    sStr t_buf;t_buf.printf(0,"%"DEC,clIndex);
+//    sStr t_buf;t_buf.printf(0,"%" DEC,clIndex);
     sVec< seqCovPosition > seqCov, * pSC = 0;
     sVec < contigComp > cComp, * pC_Comp;
     sVec<idx> skp2gapMap, gap2skpMap, * pS2Gmap = 0,* pG2Smap = 0;
@@ -910,7 +910,7 @@ idx sViopop::printAllClones(sViopop * viopop, ParamCloneIterator * params, idx c
     }
 
     params->out->printf("\n");
-    params->out->printf("Clone_%"DEC",%"DEC",%"DEC",", cl->clID, viopop->getFramePos(cl, cl->start, pG2Smap,true)+1, viopop->getFramePos(cl, cl->end-1, pG2Smap,true)+1);
+    params->out->printf("Clone_%" DEC ",%" DEC ",%" DEC ",", cl->clID, viopop->getFramePos(cl, cl->start, pG2Smap,true)+1, viopop->getFramePos(cl, cl->end-1, pG2Smap,true)+1);
 
     if( viopop->clonesCoverage(params, cl, pSC, refCnt, pC_Comp, pS2Gmap, pG2Smap ) < 0 )
         return 0;
@@ -982,18 +982,18 @@ idx sViopop::clonesDifferences(ParamCloneIterator * params, sBioseqpopul::cloneS
         }
         if( isDiff ) {
             if( !diffs )
-                firstDif = i+1;//firstDif.printf("%"DEC, i+1);    //Starting point of bifurcation based on mutation and not on first read available
+                firstDif = i+1;//firstDif.printf("%" DEC, i+1);    //Starting point of bifurcation based on mutation and not on first read available
             else
                 oDifs.printf(",");
             char fB = pSeqCov[pi].baseChar() ;
             char cB = pSeqCov[pi].baseChar();
-            oDifs.printf("%"DEC">%"DEC"/%c:%"DEC"/%c", i+1, pSeqCov[pi].coverage(), fB, cSeqCov[ci].coverage(), cB);
+            oDifs.printf("%" DEC ">%" DEC "/%c:%" DEC "/%c", i+1, pSeqCov[pi].coverage(), fB, cSeqCov[ci].coverage(), cB);
             lastDif = i+1;
             ++diffs;
         }
     }
     oDifs.printf("\"");
-    params->out->printf("%"DEC",%"DEC",%"DEC",%s", getFramePos(childCl,firstDif, child_gap2skpMap,true), getFramePos(childCl, lastDif, child_gap2skpMap,true), diffs, oDifs.ptr());
+    params->out->printf("%" DEC ",%" DEC ",%" DEC ",%s", getFramePos(childCl,firstDif, child_gap2skpMap,true), getFramePos(childCl, lastDif, child_gap2skpMap,true), diffs, oDifs.ptr());
 
     if ( c_stats )
     params->out->printf(",\"{\'pvalue\':%lf,\'bayes\':%lf}\"",c_stats->bifurcation_pvalue,c_stats->bifurcation_bayes);
@@ -1012,7 +1012,7 @@ idx sViopop::printHierarchySingle(sViopop * viopop, ParamCloneIterator * params,
     if(params->flags&sViopop::clPrintConsensus)
         viopop->getSeq(clIndex,scCov);
 
-    sStr t_buf("%"DEC,clIndex);
+    sStr t_buf("%" DEC,clIndex);
 
     if( viopop->mergeDict ){
         sVec<idx> * mergingCl=viopop->mergeDict->get( t_buf.ptr() );
@@ -1021,7 +1021,7 @@ idx sViopop::printHierarchySingle(sViopop * viopop, ParamCloneIterator * params,
         }
     }
     if(clSum && clSum->clID>=0 && clSum->start!=clSum->end){
-        params->out->printf("Clone_%"DEC",%"DEC",%"DEC",%"DEC,clSum->clID,clSum->start,clSum->end,clSum->mergeclID);
+        params->out->printf("Clone_%" DEC ",%" DEC ",%" DEC ",%" DEC,clSum->clID,clSum->start,clSum->end,clSum->mergeclID);
 
 
         if(params->flags&sViopop::clPrintTreeMode){
@@ -1037,7 +1037,7 @@ idx sViopop::printHierarchySingle(sViopop * viopop, ParamCloneIterator * params,
                 fCl=viopop->getFatherCl(fClID);
             }
             for(idx iF=fArr.dim()-1;iF>=0;--iF){
-                params->out->printf("Clone_%"DEC"/",fArr[iF]);
+                params->out->printf("Clone_%" DEC "/",fArr[iF]);
             }
         }
         params->out->printf("\n");
@@ -1060,12 +1060,12 @@ idx sViopop::printAllCoverageClones(idx * iVis, idx start, idx cnt,sStr & out,id
     out.printf("Position");
     for (idx icl=0; icl<clCnt; ++icl) {
         idx iCl=clList ? clList[icl] : icl;
-        out.printf(",Clone_%"DEC,getCl(iCl)->clID);
+        out.printf(",Clone_%" DEC,getCl(iCl)->clID);
     }
     sBioseqpopul::cloneStats * stats=getGenStats();
     for(idx is=0;is<stats->size;++is){
         out.printf("\n");
-        out.printf("%"DEC,is+1);
+        out.printf("%" DEC,is+1);
         for (idx icl=clCnt-1; icl>=0; --icl) {
             idx iCl=clList ? clList[icl] : icl;
             sVec<idx> scCov(sMex::fExactSize);
@@ -1075,7 +1075,7 @@ idx sViopop::printAllCoverageClones(idx * iVis, idx start, idx cnt,sStr & out,id
             if(cl->start>is || cl->end<=is)
                 out.printf(",");
             else
-                out.printf(",%"DEC,scCov[is-cl->start]);
+                out.printf(",%" DEC,scCov[is-cl->start]);
         }
         ++iFound;
     }
@@ -1108,7 +1108,7 @@ idx sViopop::getBifurcatedClonesOnPosition( idx pos, sVec<idx> * clInds, idx clI
     sBioseqpopul::cloneSummary * clSum=0;
     clInds->cut(0);
     for(idx cLi = 0 ; cLi < dimCl() ; ++cLi ) {
-        _t_buf.printf(0,"%"DEC,cLi);
+        _t_buf.printf(0,"%" DEC,cLi);
         if( merged && !merged->get( (const void *)_t_buf.ptr(),_t_buf.length() ) ) {
             continue;
         }
@@ -1195,7 +1195,7 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
         getClonesOnPosition(this,pos++,&vec_clIds);
         again = !vec_clIds.dim();
         for( idx i = 0 ; i < vec_clIds.dim() && mergeDict ; ++i ) {
-            if( !mergeDict->get( t_buf.printf(0,"%"DEC,vec_clIds[i]) ) ) {
+            if( !mergeDict->get( t_buf.printf(0,"%" DEC,vec_clIds[i]) ) ) {
                 again = true;
                 break;
             }
@@ -1204,7 +1204,7 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
     --pos;
     for (idx c = 0 ; c < vec_clIds.dim() ; ++c){
         //Clone that have other clones merged to them will still have same start position so no need to call mergedClones function.
-        if( mergeDict && !mergeDict->get( t_buf.printf(0,"%"DEC,vec_clIds[c]) ) )
+        if( mergeDict && !mergeDict->get( t_buf.printf(0,"%" DEC,vec_clIds[c]) ) )
             continue;
         else
             vclIds.vadd(1,vec_clIds[c]);
@@ -1253,7 +1253,7 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
                         continue;
                     }
 
-                    if( t_cl->clID == cl->clID || ( mergeDict && !mergeDict->get( t_buf.printf(0,"%"DEC,vec_clIds[j]) ) ) ) {
+                    if( t_cl->clID == cl->clID || ( mergeDict && !mergeDict->get( t_buf.printf(0,"%" DEC,vec_clIds[j]) ) ) ) {
                         continue;
                     }
                     if( clIds.find( (void *)&t_cl->clID, sizeof (idx) ) || isCloneAncestor(t_cl, clIds) ) {
@@ -1820,7 +1820,7 @@ idx sViopop::getPredictedGlobal(sVec< sVec <sViopop::cloneRegion> > & out, sVec<
 
         sStr ids;
         for(idx i = 0 ; i < c_flow.dim(); ++i)
-            ids.printf("_%"DEC,c_flow[i].contigInd);
+            ids.printf("_%" DEC,c_flow[i].contigInd);
 
         if( !flows.find(ids.ptr(),ids.length()) ) {
             dicted_c_flow = flows.set(ids.ptr(),ids.length());
@@ -2104,7 +2104,7 @@ idx sViopop::printContigsPrevalence(sVec< sVec< sViopop::cloneRegion > > & compo
             avCov/=len;
             totAvCovs += avCov;
             if(param->fastaTmplt){
-                sString::searchAndReplaceStrings(&titles,param->fastaTmplt,0,"$_(v)"__,title.ptr(1),1,false);
+                sString::searchAndReplaceStrings(&titles,param->fastaTmplt,0,"$_(v)" __,title.ptr(1),1,false);
                 titles.shrink00();
             }
             else{
@@ -2178,17 +2178,17 @@ idx sViopop::printContig( sVec< sVec< sViopop::cloneRegion > > & composition, sV
 bool appendToLastComp(sStr & title,idx &contgId,idx &start, idx &end, const char * sep) {
     char * src = title.ptr();
     bool isAppended = false;
-    char * last = sString::searchSubstring(src,title.length(),"contig_"__,sNotIdx,"",false);
+    char * last = sString::searchSubstring(src,title.length(),"contig_" __,sNotIdx,"",false);
     if( last ) {
         idx prevCntId,prevStart,prevEnd;
-        idx ret = sString::bufscanf(last,title.last(), "contig_%"DEC"[%"DEC"-%"DEC"]",&prevCntId,&prevStart,&prevEnd);
+        idx ret = sString::bufscanf(last,title.last(), "contig_%" DEC "[%" DEC "-%" DEC "]",&prevCntId,&prevStart,&prevEnd);
         if(ret == 3 && prevCntId == contgId) {
-            title.printf((idx)(last-src),"contig_%"DEC"[%"DEC"-%"DEC"]",contgId,prevStart,end);
+            title.printf((idx)(last-src),"contig_%" DEC "[%" DEC "-%" DEC "]",contgId,prevStart,end);
             isAppended = true;
         }
     }
     if( !isAppended ) {
-        title.printf("contig_%"DEC"[%"DEC"-%"DEC"]",contgId,start,end);
+        title.printf("contig_%" DEC "[%" DEC "-%" DEC "]",contgId,start,end);
     }
     return isAppended;
 }
@@ -2197,18 +2197,18 @@ const char * sViopop::printTitle(sStr & title, ParamCloneIterator * param, idx c
     if( !sep )
         sep = ",";
     if( param && (param->flags & clPrintFastaTitleSimple) && !title.length() ) {
-        title.printf("%scontig_%"DEC,sep,contgId);
+        title.printf("%scontig_%" DEC,sep,contgId);
     } else if( param && (param->flags & clPrintFastaTitleNumbersOnly)&& !title.length() ) {
-        title.printf("%s%"DEC,sep,contgId);
+        title.printf("%s%" DEC,sep,contgId);
     } else if ( !param || (param->flags & clPrintFastaTitleComposition) ) {
         if(start==end && title.length()==0 ) {
-            title.printf("%sclone_%"DEC" | composition:", sep, contgId);
+            title.printf("%sclone_%" DEC " | composition:", sep, contgId);
         } else {
             if( title.ptr(title.length()-1)[0] != ':') {
                 title.printf("%s",sep);
             }
             appendToLastComp(title,contgId,start,end,sep);
-//            title.printf("contig_%"DEC"[%"DEC"-%"DEC"]", contgId, start, end);
+//            title.printf("contig_%" DEC "[%" DEC "-%" DEC "]", contgId, start, end);
         }
     }
     return title.ptr();
@@ -2283,7 +2283,7 @@ idx sViopop::printContigSequences( sVec< sViopop::cloneRegion > & composition, s
     out.addString(">");
     printTitleFreq(title, param, cur_clId);
     if(param->fastaTmplt){
-        sString::searchAndReplaceStrings(&out,param->fastaTmplt,0,"$_(v)"__,title.ptr(1),1,false);
+        sString::searchAndReplaceStrings(&out,param->fastaTmplt,0,"$_(v)" __,title.ptr(1),1,false);
         out.shrink00();
     }
     else{
@@ -2365,7 +2365,7 @@ idx sViopop::printContigAlignments( sVec< sViopop::cloneRegion > & composition, 
     out.addString(">");
     printTitleFreq(title, param, cur_clId);
     if(param->fastaTmplt){
-        sString::searchAndReplaceStrings(&out,param->fastaTmplt,0,"$_(v)"__,title.ptr(1),1,false);
+        sString::searchAndReplaceStrings(&out,param->fastaTmplt,0,"$_(v)" __,title.ptr(1),1,false);
         out.shrink00();
     }
     else{
@@ -2428,7 +2428,7 @@ idx sViopop::printContigCoverages( sVec< sViopop::cloneRegion > & composition, s
                 seq.printf(",0");
             }
             else { //supported deletion
-                seq.printf(",%"DEC,(idx)(tSC[pos].coverage()*(t_region->freq)));
+                seq.printf(",%" DEC,(idx)(tSC[pos].coverage()*(t_region->freq)));
             }
         }
         pos += cl->start;
@@ -2438,7 +2438,7 @@ idx sViopop::printContigCoverages( sVec< sViopop::cloneRegion > & composition, s
     }
     printTitleFreq(title, param, cur_clId);
     if(param->fastaTmplt){
-        sString::searchAndReplaceStrings(&out,param->fastaTmplt,0,"$_(v)"__,title.ptr(1),1,false);
+        sString::searchAndReplaceStrings(&out,param->fastaTmplt,0,"$_(v)" __,title.ptr(1),1,false);
         out.shrink00();
     }
     else{
@@ -2486,16 +2486,16 @@ idx sViopop::printContigComposition( sVec< sViopop::cloneRegion > & composition,
 
         printTitle(title,param, t_region->contigInd, offset + 1, end - start + offset);
         if( !(param->flags&clPrintNoGapsFrame) && (param->flags&clPrintContigsInMutualFrame) ) {
-            seq.printf("%"DEC" %"DEC" clone_%"DEC":%"DEC"-%"DEC"\n",offset+1,end-start+offset, t_region->contigInd,cl->start + start+1,cl->start + end);
+            seq.printf("%" DEC " %" DEC " clone_%" DEC ":%" DEC "-%" DEC "\n",offset+1,end-start+offset, t_region->contigInd,cl->start + start+1,cl->start + end);
         }
         else {
-            seq.printf("%"DEC" %"DEC" clone_%"DEC":%"DEC"-%"DEC"\n",offset+1,end-start+offset, t_region->contigInd,start+1,end);
+            seq.printf("%" DEC " %" DEC " clone_%" DEC ":%" DEC "-%" DEC "\n",offset+1,end-start+offset, t_region->contigInd,start+1,end);
         }
         offset+=end-start;
     }
     printTitleFreq(title, param, cur_clId);
     if(param->fastaTmplt){
-        sString::searchAndReplaceStrings(&out,param->fastaTmplt,0,"$_(v)"__,title.ptr(1),1,false);
+        sString::searchAndReplaceStrings(&out,param->fastaTmplt,0,"$_(v)" __,title.ptr(1),1,false);
         out.shrink00();
     }
     else{
@@ -2581,16 +2581,16 @@ idx sViopop::printContigBreakpoints( sVec< sViopop::cloneRegion > & composition,
                 continue;
             }
             if( isBreakpoint(t_simils,simils) ) {
-                seq.printf(" %"DEC" %s\n%"DEC,offset, t_simils.ptr() ,offset+1);
+                seq.printf(" %" DEC " %s\n%" DEC,offset, t_simils.ptr() ,offset+1);
                 t_simils.printf(0,"%s",simils.ptr());
             }
         }
     }
-    seq.printf(" %"DEC" %s\n",offset,simils.ptr());
+    seq.printf(" %" DEC " %s\n",offset,simils.ptr());
     t_title.cut(0);
     printTitleFreq(title, param, cur_clId);
     if(param->fastaTmplt){
-        sString::searchAndReplaceStrings(&t_title,param->fastaTmplt,0,"$_(v)"__,title.ptr(1),1,false);
+        sString::searchAndReplaceStrings(&t_title,param->fastaTmplt,0,"$_(v)" __,title.ptr(1),1,false);
         out.shrink00();
     }
     else{
@@ -2620,15 +2620,15 @@ idx sViopop::printContigSummary(sVec< sViopop::cloneRegion > & composition, sStr
                 cl = &rsCl;
             }
         } else {
-            params->out->printf("Invalid contigs %"DEC"\n", cl->clID);
+            params->out->printf("Invalid contigs %" DEC "\n", cl->clID);
             return 0;
         }
     }
-    params->out->printf("Clone_%"DEC",%"DEC",%"DEC",",cl->clID,cl->start + 1,cl->end);
+    params->out->printf("Clone_%" DEC ",%" DEC ",%" DEC ",",cl->clID,cl->start + 1,cl->end);
     if( cl->hasMerged() ) {
         mcl = getValidCloneSummary(cl->mergeclID);
         if( mcl ) {
-            params->out->printf("Clone_%"DEC,mcl->clID);
+            params->out->printf("Clone_%" DEC,mcl->clID);
         }
     }
     params->out->addString(",");
@@ -2639,7 +2639,7 @@ idx sViopop::printContigSummary(sVec< sViopop::cloneRegion > & composition, sStr
             pcl = &rsPCl;
         }
         if(pcl) {
-            params->out->printf("Clone_%"DEC",",pcl->clID);
+            params->out->printf("Clone_%" DEC ",",pcl->clID);
             clonesDifferences(params, pcl, cl, pPSC, pSC);
         } else {
             params->out->addString(",,,,");
@@ -2670,11 +2670,11 @@ idx sViopop::printAllSequenceClones(idx * iVis, idx start, idx cnt,sStr & out,id
     out.printf("Position");
     for (idx icl=0; icl<clCnt; ++icl) {
         idx iCl=clList ? clList[icl] : icl;
-        out.printf(",Clone_%"DEC,getCl(iCl)->clID);
+        out.printf(",Clone_%" DEC,getCl(iCl)->clID);
     }
     out.printf("\n");
     for(idx is=0;is<stats->size;++is){
-        out.printf("%"DEC,is+1);
+        out.printf("%" DEC,is+1);
         for (idx icl=0; icl<clCnt; ++icl) {
             idx iCl=clList ? clList[icl] : icl;
             sVec<idx> scSeq(sMex::fExactSize);
@@ -2714,11 +2714,11 @@ idx sViopop::printCoverageSingle(sViopop * viopop, ParamCloneIterator * params, 
         viopop->getSeq(clIndex,scSeq);
 
     if(clSum){
-        params->out->printf("Clone_%"DEC",%"DEC",%"DEC",%"DEC",",clSum->clID,clSum->start,clSum->end,clSum->mergeclID);
+        params->out->printf("Clone_%" DEC ",%" DEC ",%" DEC ",%" DEC ",",clSum->clID,clSum->start,clSum->end,clSum->mergeclID);
         sBioseqpopul::cloneSummary * fCl=viopop->getFatherCl(clIndex);
 
         if(fCl){
-            params->out->printf("Clone_%"DEC,fCl->clID);
+            params->out->printf("Clone_%" DEC,fCl->clID);
         }
         else
             params->out->printf("-1");
@@ -2730,14 +2730,14 @@ idx sViopop::printCoverageSingle(sViopop * viopop, ParamCloneIterator * params, 
         for(idx i=0;i<scSeq.dim();++i){
             if(!(i%step) || !i || i==scSeq.dim()-1){
                 if(i)params->out->printf(",");
-                params->out->printf("%"DEC,scCov[i]);
+                params->out->printf("%" DEC,scCov[i]);
                 avFilCov+=scCov[i];++iC;
                 if(maxFilCov<scCov[i])
                     maxFilCov=scCov[i];
             }
         }
         params->out->printf("\"");
-        params->out->printf(",%"DEC",%.2lf",maxFilCov,(real)avFilCov/iC);
+        params->out->printf(",%" DEC ",%.2lf",maxFilCov,(real)avFilCov/iC);
     }
     params->out->printf("\n");
     return 1;
@@ -2763,7 +2763,7 @@ idx sViopop::printStackedStats(sStr * out, ParamCloneIterator * params){
          srt_i = stck_lengths_ind[i];
          stat_cl = getStats(srt_i);
          summ_cl = getCl(srt_i);
-         out->printf("Clone_%"DEC",%"DEC",%"DEC"\n",summ_cl->clID,stat_cl->stacked_size,stat_cl->size);
+         out->printf("Clone_%" DEC ",%" DEC ",%" DEC "\n",summ_cl->clID,stat_cl->stacked_size,stat_cl->size);
      }
 
      return stck_lengths.dim();

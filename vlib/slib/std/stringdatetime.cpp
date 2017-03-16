@@ -94,7 +94,7 @@ idx sString::parseTime(const char * s, idx * pLenParsed, idx * pExplicitUtcOffse
 
     // am/pm
     idx ampm = -1;
-    static const char * ampm00 = "am"_"a.m."_"pm"_"p.m."__;
+    static const char * ampm00 = "am" _ "a.m." _ "pm" _ "p.m." __;
     idx ampm_len = sString::compareChoice(s, ampm00, &ampm, true, 0, false);
     if( ampm_len > 0 ) {
         if( ampm == 0 || ampm == 1 ) {
@@ -226,7 +226,7 @@ static idx parseDateTimeRFC2822(struct tm * result, const char * s, idx * pLenPa
     char * end = 0;
 
     if( isalpha(*s) ) {
-        static const char * wdays00 = "Sun,"_"Mon,"_"Tue,"_"Wed,"_"Thu,"_"Fri,"_"Sat,"__;
+        static const char * wdays00 = "Sun," _ "Mon," _ "Tue," _ "Wed," _ "Thu," _ "Fri," _ "Sat," __;
         idx wday = -1;
         sString::compareChoice(s, wdays00, &wday, true, 0, false);
         if( wday < 0 || wday > 6 )
@@ -241,7 +241,7 @@ static idx parseDateTimeRFC2822(struct tm * result, const char * s, idx * pLenPa
     result->tm_mday = day;
     for( s = end; isspace(*s); s++ );
 
-    static const char * months00 = "Jan"_"Feb"_"Mar"_"Apr"_"May"_"Jun"_"Jul"_"Aug"_"Sep"_"Oct"_"Nov"_"Dec"__;
+    static const char * months00 = "Jan" _ "Feb" _ "Mar" _ "Apr" _ "May" _ "Jun" _ "Jul" _ "Aug" _ "Sep" _ "Oct" _ "Nov" _ "Dec" __;
     idx month = -1;
     sString::compareChoice(s, months00, &month, true, 0, false);
     if( month < 0 || month > 11 )
@@ -453,7 +453,7 @@ const char * sString::printDateTime(sStr & out, const struct tm * tm, idx flags)
                 utc_offset = unix_time - mktime(&tm_utc);
             }
             if( utc_offset ) {
-                out.printf("%c%02"DEC":%02"DEC, utc_offset > 0 ? '+' : '-', sAbs(utc_offset) / 3600, (sAbs(utc_offset) / 60) % 60);
+                out.printf("%c%02" DEC ":%02" DEC, utc_offset > 0 ? '+' : '-', sAbs(utc_offset) / 3600, (sAbs(utc_offset) / 60) % 60);
             } else {
                 out.addString("Z");
             }

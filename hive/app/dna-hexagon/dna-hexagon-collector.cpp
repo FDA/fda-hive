@@ -117,7 +117,7 @@ idx DnaHexagonCollector::OnExecute(idx req)
     grpDataPaths(grpId, "alignment-slice.vioalt", &srcAlignmentsT00, "dna-hexagon");
     //srcAlignmentsT.shrink00();
     //grpDataPaths(grpId, "alignment-slice.vioalt", &srcAlignmentsT00, "dna-alignx");
-    logOut(eQPLogType_Debug, "Alignment slice list count %"DEC, sString::cnt00(srcAlignmentsT00));
+    logOut(eQPLogType_Debug, "Alignment slice list count %" DEC, sString::cnt00(srcAlignmentsT00));
 
     const char * resultFileTemplate = formValue("resultFileTemplate", 0);
     if( !resultFileTemplate ) {
@@ -167,7 +167,7 @@ idx DnaHexagonCollector::OnExecute(idx req)
     /*
      sHivealtax * idAlTax = new sHivealtax(user, objs[0].Id(), (idx)1, (idx)0);
      sDic < idx > taxCnt;
-     char buf[1024];sprintf(buf,"%"DEC,objs[0],objs[0].Id());
+     char buf[1024];sprintf(buf,"%" DEC,objs[0],objs[0].Id());
      idAlTax->CurateResult(taxCnt, 0, subject, buf, "leaf");
      idx newSpeciesFound = idAlTax->analyzeResults(&taxCnt,0, query, "alignment");
      */
@@ -196,7 +196,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc, argv); // remember arguments in global for future
 
-    DnaHexagonCollector backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "dna-hexagon-collector", argv[0]));
+    DnaHexagonCollector backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-hexagon-collector", argv[0]));
     return (int) backend.run(argc, argv);
 }
 

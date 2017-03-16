@@ -480,7 +480,7 @@ const char * sFile::mktemp(sStr & outPath, const char * dir, const char * extens
 
     for( idx i=0; i<8; i++ ) {
         outPath.cut(filestart);
-        outPath.printf("%.*s%"DEC"%s", static_cast<int>(xxx - pattern), pattern, static_cast<idx>(getpid()) + rand(), xxx + 6);
+        outPath.printf("%.*s%" DEC "%s", static_cast<int>(xxx - pattern), pattern, static_cast<idx>(getpid()) + rand(), xxx + 6);
         if( extension )
             outPath.printf(".%s", extension);
 

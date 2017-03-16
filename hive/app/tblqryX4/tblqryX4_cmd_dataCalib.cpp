@@ -165,7 +165,7 @@ bool DataCalibCommand::compute(sTabular * tbl)
     if (categoryCols.dim() > 0 && !translate){
         if (!calibrationCols.dim()){
             sStr p;
-            p.printf("0-%"DEC, tbl->cols());
+            p.printf("0-%" DEC, tbl->cols());
             sString::scanRangeSet(p.ptr(),0,&(calibrationCols),0ll,0ll,0ll);
         }
         for (idx r = 0; r < tbl->rows(); r++){
@@ -185,7 +185,7 @@ bool DataCalibCommand::compute(sTabular * tbl)
     }else if (categoryCols.dim() > 0){
         if (!calibrationCols.dim()){
             sStr p;
-            p.printf("0-%"DEC, tbl->cols());
+            p.printf("0-%" DEC, tbl->cols());
             sString::scanRangeSet(p.ptr(),0,&(calibrationCols),0ll,0ll,0ll);
         }
         for (idx r = 0; r < tbl->cols(); r++){

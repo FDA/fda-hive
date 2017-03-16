@@ -184,12 +184,12 @@ bool HeatmapCommand::compute(sTabular * tbl)
 
     {
 
-        _ctx.qproc().reqSetData(_ctx.outReqID(),"file://"OUTFILE,0,0);
+        _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTFILE,0,0);
         _ctx.qproc().reqDataPath(_ctx.outReqID(),OUTFILE,&pathT);
         sFile::remove(pathT);
 
         sStr t1;
-        _ctx.qproc().reqSetData(_ctx.outReqID(),"file://"HORIZONTAL,0,0);
+        _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" HORIZONTAL,0,0);
         _ctx.qproc().reqDataPath(_ctx.outReqID(),HORIZONTAL,&t1);
         sFile::remove(t1);
 
@@ -202,7 +202,7 @@ bool HeatmapCommand::compute(sTabular * tbl)
 
     {
         sStr t2;
-        _ctx.qproc().reqSetData(_ctx.outReqID(),"file://"VERTICAL,0,0);
+        _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" VERTICAL,0,0);
         _ctx.qproc().reqDataPath(_ctx.outReqID(),VERTICAL,&t2);
         sFile::remove(t2);
 
@@ -225,7 +225,7 @@ bool HeatmapCommand::compute(sTabular * tbl)
 
     {
         sStr t3;
-        _ctx.qproc().reqSetData(_ctx.outReqID(),"file://"OUTCSV,0,0);
+        _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTCSV,0,0);
         _ctx.qproc().reqDataPath(_ctx.outReqID(),OUTCSV,&t3);
         sFile::remove(t3);
 

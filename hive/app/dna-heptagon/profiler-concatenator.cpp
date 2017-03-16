@@ -52,8 +52,8 @@ const char * heptagon_submitter ="dna-heptagon";
 enum enumFileNames{ eNoise,eNoiseIntegral,eFreqProfile,eFreqProfileIntegral,
                         eHistProfile,eSNPprofile,eProfileInfo,eSNPthumb,eThumbInfo};
 
-const char * fileNames00 = "Noise"_"NoiseIntegral"_"FreqProfile"_"FreqProfileIntegral"_
-                           "HistProfile"_"SNPprofile"_"ProfileInfo"_"SNPthumb"_"ThumbInfo"__;
+const char * fileNames00 = "Noise" _ "NoiseIntegral" _ "FreqProfile" _ "FreqProfileIntegral" _
+                           "HistProfile" _ "SNPprofile" _ "ProfileInfo" _ "SNPthumb" _ "ThumbInfo" __;
 
 
 typedef struct {
@@ -103,7 +103,7 @@ idx getSubSortedFileInd(sDir & dir, sVec<idx> & ind)
     ind.resize(dir.dimEntries());
     udx i = 0 ;
     for(const char * path = dir.ptr(); path ; path = sString::next00(path), ++i) {
-        sscanf(path,"%*[^-]-%"DEC,ind.ptr(i));
+        sscanf(path,"%*[^-]-%" DEC,ind.ptr(i));
     }
     sSort::sort(ind.dim(),ind.ptr());
     return ind.dim();
@@ -140,7 +140,7 @@ idx concatenatedResults(const char * dir)
         udx flcnt = getSubSortedFileInd(results,subInd);
         sIO c_file;
         for( udx ic = 0 ; ic < flcnt ; ++ic) {
-            dstProfilePath.cut(0);filePathname(dstProfilePath,false,dir, "%s-%"DEC".csv",file_type,subInd[ic]);
+            dstProfilePath.cut(0);filePathname(dstProfilePath,false,dir, "%s-%" DEC ".csv",file_type,subInd[ic]);
             if( sFile::exists(dstProfilePath) ) {
                 tmpH.destroy();tmpH.init(dstProfilePath.ptr(),sMex::fReadonly);
                 const char * buf = tmpH.ptr();const char * n_buf = buf;const char * bufend = tmpH.last();
@@ -158,7 +158,7 @@ idx concatenatedResults(const char * dir)
                         keepHeader = false;
                     }
                     else{
-                        c_file.printf("%"DEC",",subInd[ic]);
+                        c_file.printf("%" DEC ",",subInd[ic]);
                         c_file.add(buf,((n_buf?n_buf:bufend)-buf));
                     }
                     if(c_file.length() && c_file.ptr(c_file.length()-1)[0]!='\n' )c_file.addString("\n");
@@ -201,7 +201,7 @@ idx cleanOldFiles(const char * dir) {
         if(type_flcnt)++flsDltd;
         idx iSub = 0;
         for( idx ic = 0 ; ic < type_flcnt ; ) {
-            filePath.cut(0);filePathname(filePath,false,dir, "%s-%"DEC".csv",file_type,iSub++);
+            filePath.cut(0);filePathname(filePath,false,dir, "%s-%" DEC ".csv",file_type,iSub++);
             if( sFile::exists(filePath) ) {
                 sFile::remove(filePath);
                 ++ic;
@@ -306,7 +306,7 @@ int main(int argc, const char * argv[])
         cmd.init("-help");
     }
 
-    sQPrideClient qapp("config=qapp.cfg"__);
+    sQPrideClient qapp("config=qapp.cfg" __);
     for(idx i = 0; concatenatorCmdExes[i].param != sNotPtr; ++i)
         if( concatenatorCmdExes[i].cmdFun )
             concatenatorCmdExes[i].param = (void *) &qapp;

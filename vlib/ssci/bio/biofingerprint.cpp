@@ -58,7 +58,7 @@ idx sBioFingerPrint::compileChromosome(idx chrID, idx generationNum)
 //    initSeed(seed0);
     initPopulation(chr1, 1);
     sStr buf;
-    ::printf("seed0 is %"DEC, seed0);
+    ::printf("seed0 is %" DEC, seed0);
     ::printf("\nAnalyzing patterns \n");
 
     sVec<idx> sortList;
@@ -72,20 +72,20 @@ idx sBioFingerPrint::compileChromosome(idx chrID, idx generationNum)
 //        udx *cmask = getPMask(chr1, i);
         buf.cut(0);
         getPatRepresentation(&buf, chr1, i);
-        ::printf("%"DEC" - %"DEC", %"DEC", %s\n", i, bitC[i], countBits(chr1, i), buf.ptr(0));
+        ::printf("%" DEC " - %" DEC ", %" DEC ", %s\n", i, bitC[i], countBits(chr1, i), buf.ptr(0));
     }
 
     bitSetCount64(7);
 //    numOfSegs = segsCount(chr1->chr0);
     generateNewSolution(chr1, true, &sortList);
     calcPopFitness(chr1, &sortList);
-    ::printf("\nSorted List of n= % "DEC" \n", sortList.dim());
+    ::printf("\nSorted List of n= %" DEC " \n", sortList.dim());
     sortPopulation(chr1, &sortList);
 
     printPopulation(0, chr1, &sortList, 0, hdr->numPatterns * 2);
 
     for(idx gen = 0; gen < generationNum; ++gen) {
-        ::printf("\nGeneration No. %"DEC"\n", gen + 1);
+        ::printf("\nGeneration No. %" DEC "\n", gen + 1);
 
         generateNewPopulation(chr1, sortList.ptr(0));
 
@@ -156,10 +156,10 @@ idx sBioFingerPrint::printIndividual(sStr *dest, ChromInfo *chr, idx ind)
     udx *ipat = getPattern(chr, ind);
     idx fitness = getFitness (chr, ind);
     if (dest){
-        dest->printf("fitness: %"DEC", %"DEC" - %"DEC", %"DEC", %s (%"DEC"-mer)\n", fitness, ind, chr->bitsCountOffset[ind], chr->bitsCountOffset[ind] * 100 / segsCount(chr->chr0), buf.ptr(0), bitSetCount64(ipat[1]) / 2);
+        dest->printf("fitness: %" DEC ", %" DEC " - %" DEC ", %" DEC ", %s (%" DEC "-mer)\n", fitness, ind, chr->bitsCountOffset[ind], chr->bitsCountOffset[ind] * 100 / segsCount(chr->chr0), buf.ptr(0), bitSetCount64(ipat[1]) / 2);
     }
     else {
-        ::printf("fitness: %"DEC", %"DEC" - %"DEC", %"DEC", %s (%"DEC"-mer)\n", fitness, ind, bitC[ind], countBits(chr, ind) * 100 / segsCount(chr->chr0), buf.ptr(0), bitSetCount64(ipat[1]) / 2);
+        ::printf("fitness: %" DEC ", %" DEC " - %" DEC ", %" DEC ", %s (%" DEC "-mer)\n", fitness, ind, bitC[ind], countBits(chr, ind) * 100 / segsCount(chr->chr0), buf.ptr(0), bitSetCount64(ipat[1]) / 2);
     }
     return 0;
 
@@ -303,7 +303,7 @@ idx sBioFingerPrint::generateNewSolution(ChromInfo *chr, bool randomgenerated, s
 
         buf.cut(0);
         getPatRepresentation(&buf, chr, i);
-        ::printf("%"DEC", %"DEC", %s\n", bitC[i], countBits(chr, i), buf.ptr(0));
+        ::printf("%" DEC ", %" DEC ", %s\n", bitC[i], countBits(chr, i), buf.ptr(0));
 
     }
     return 0;
@@ -331,7 +331,7 @@ idx sBioFingerPrint::calcPopFitness(ChromInfo *chr, sVec<idx> * listPop)
     idx index;
     ::printf("\nNumber of segments that each Pattern hit\n");
     for(idx i = 0; i < count; ++i) {
-        ::printf(" %"DEC, bitC[i]);
+        ::printf(" %" DEC, bitC[i]);
     }
 //    ::printf("\nCalculating Distance Matrix for n= % "DEC" \n", n);
 //    ::printf("\n");
@@ -343,7 +343,7 @@ idx sBioFingerPrint::calcPopFitness(ChromInfo *chr, sVec<idx> * listPop)
             i2 = getRowTable(chr, j);
             index = (j * (2 * n - j - 1)) / 2 + (i - j - 1);
             distMatrix[index] = calcDistance(i1, i2, len);
-//            ::printf("i=%"DEC" , j=%"DEC" , shared segs= %"DEC "% (%"DEC")\n", i, j, distMatrix[index]*100 / bitC[i], distMatrix[index]);
+//            ::printf("i=%" DEC " , j=%" DEC " , shared segs= %" DEC "% (%" DEC ")\n", i, j, distMatrix[index]*100 / bitC[i], distMatrix[index]);
         }
 //        ::printf(" \n");
     }
@@ -482,7 +482,7 @@ idx sBioFingerPrint::initPopulation(ChromInfo *chr, idx num)
         }
         buf.cut(0);
         getPatRepresentation(&buf, chr, i);
-        ::printf("%"DEC"  :\t  %s\n", pos, buf.ptr(0));
+        ::printf("%" DEC "  :\t  %s\n", pos, buf.ptr(0));
     }
     return 0;
 }

@@ -61,7 +61,7 @@ idx sString::composeChoiceList(sStr * dfl,const char * cols00, idx * visCols, id
         if(visCols[i]) {
             if(cnt) dfl->addSeparator(separ);
             dfl->printf("%s",ptr);
-            if(sizCols)dfl->printf(":%"DEC,sizCols[i]);
+            if(sizCols)dfl->printf(":%" DEC,sizCols[i]);
             ++cnt;
         }
     }
@@ -93,13 +93,13 @@ idx sString::scanRangeSet(const char * src, idx len, sVec<idx> * range, idx shif
         strncpy(mbyf, ptr, mbyfLen);
         mbyf[mbyfLen] = 0;
         if( (mbyf[0] == '0' && (mbyf[1] == 'x' || mbyf[1] == 'X')) || (mbyf[0] == '-' && mbyf[1] == '0' && (mbyf[2] == 'x' || mbyf[2] == 'X')) ) {
-            if( !sscanf((mbyf[0] == '-') ? mbyf + 3 : mbyf + 2, "%"HEX, &icid) ) {
+            if( !sscanf((mbyf[0] == '-') ? mbyf + 3 : mbyf + 2, "%" HEX, &icid) ) {
                 break;
             }
             if( mbyf[0] == '-' ) {
                 icid = -icid;
             }
-        } else if( !sscanf(mbyf, "%"DEC, &icid) ) {
+        } else if( !sscanf(mbyf, "%" DEC, &icid) ) {
             break;
         }
         if( icid < 0 && ptr != src ) { // range specified
@@ -158,7 +158,7 @@ idx sString::splitRange(real sVal, real fVal, idx cntTicks, sVec < real > * vec,
 
     while( acc != bestacc) {
 
-        //sprintf(fmt,"%%.%"DEC"le",acc);
+        //sprintf(fmt,"%%.%" DEC "le",acc);
         for(i=0; i<cntTicks; ++i) {
             VV[i]=(idx)((sVal+vstp*i)*acc);
 

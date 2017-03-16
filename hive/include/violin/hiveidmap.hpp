@@ -59,7 +59,7 @@ namespace sviolin
                         udx versionU = 0;
                         const char * v = objIdList.getValue(tbl);
                         if( v ) {
-                            sscanf(v, "%"UDEC, &versionU);
+                            sscanf(v, "%" UDEC, &versionU);
                         }
                         if( versionU && maxV < versionU ) {
                             maxV = versionU;

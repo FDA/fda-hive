@@ -104,8 +104,8 @@ void * sConClient::getHTTP(sMex * http, const char * urlText,const char * data, 
             "Accept: text/html, text/plain\r\n"
             //"Content-Type: application/x-www-form-urlencoded\r\n"
             "Content-Type: multipart/form-data; boundary=%s\r\n"
-            "Host: %s:%"DEC"\r\n"
-            "Content-Length: %"DEC"\r\n"
+            "Host: %s:%" DEC "\r\n"
+            "Content-Length: %" DEC "\r\n"
             //"Connection: Keep-Alive\r\n"
             "\r\n"
             ,fileB,boundary.ptr(),url.ptr(),portN,datalen-10);
@@ -119,8 +119,8 @@ void * sConClient::getHTTP(sMex * http, const char * urlText,const char * data, 
             "Accept: text/html, text/plain\r\n"
             //"User-Agent: Mozilla/4.0 (compatible; vLib)\r\n"
             "Content-Type: application/x-www-form-urlencoded\r\n"
-            "Host: %s:%"DEC"\r\n"
-            "Content-Length: %"DEC"\r\n"
+            "Host: %s:%" DEC "\r\n"
+            "Content-Length: %" DEC "\r\n"
             //"Connection: Keep-Alive\r\n"
             "\r\n"
             ,fileB,url.ptr(),portN,datalen-5);
@@ -132,7 +132,7 @@ void * sConClient::getHTTP(sMex * http, const char * urlText,const char * data, 
             "GET /%s%s%s HTTP/1.0\r\n"
             "Accept: text/html, text/plain\r\n"
             "User-Agent: vLib\r\n"
-            "Host: %s:%"DEC"\r\n"
+            "Host: %s:%" DEC "\r\n"
             //"Connection: Keep-Alive\r\n"
             "\r\n"
             ,fileB,( data && *data) ? "?": "" , data,url.ptr(),portN);
@@ -145,13 +145,13 @@ void * sConClient::getHTTP(sMex * http, const char * urlText,const char * data, 
     sMex reloc;
     idx lenDownloaded=0,originalLen=http->pos();
     for( idx i=0; lenDownloaded==originalLen && i<timeout+1 ; ++i ) {    
-        con.recieve(http,0,"\n\n"_"\r\n\r\n"__, 0, allowreloc ? &reloc : 0 );
+        con.recieve(http,0,"\n\n" _ "\r\n\r\n" __, 0, allowreloc ? &reloc : 0 );
         lenDownloaded=http->pos();
         sleepSeconds(1);
     }
 
     if(allowreloc && reloc.pos() ) {
-        sString::cleanMarkup((char *)reloc.ptr(), reloc.pos(), "Location:"__,"\n"__,"",1,true,false, false);
+        sString::cleanMarkup((char *)reloc.ptr(), reloc.pos(), "Location:" __,"\n" __,"",1,true,false, false);
         sString::cleanEnds((char *)reloc.ptr(), reloc.pos(),sString_symbolsBlank,true);
         if(sLen(reloc.ptr())){
             http->cut(pos);
@@ -186,7 +186,7 @@ idx sConClient::sendMail(sStr * responseout,  const char * server, idx portN, co
     }
     if( code != 0 ) {
         if( responseout ) {
-            responseout->printf("%"DEC" %s", code, msg);
+            responseout->printf("%" DEC " %s", code, msg);
         }
         return code;
     }
@@ -201,7 +201,7 @@ idx sConClient::sendMail(sStr * responseout,  const char * server, idx portN, co
     #endif
 
     sStr rcpt;
-    sString::searchAndReplaceStrings(&rcpt, recipients, 0, ","__, "\r\nrcpt to: "__, 0, true);
+    sString::searchAndReplaceStrings(&rcpt, recipients, 0, "," __, "\r\nrcpt to: " __, 0, true);
     sStr mailM;
     mailM.printf(
         "helo %s\r\n"
@@ -236,12 +236,12 @@ idx sConClient::sendMail(sStr * responseout,  const char * server, idx portN, co
     if( !responseout ) {
         responseout = &response;
     }
-    con.recieve(responseout, 0, "\n\n"_"\r\n\r\n"__);
+    con.recieve(responseout, 0, "\n\n" _ "\r\n\r\n" __);
 
     idx errCODESTART = 400;
     for(const char * ptr = responseout->ptr(); ptr; ptr = strchr(ptr, '\n')) {
         code = 0;
-        sscanf(ptr, "%"DEC, &code);
+        sscanf(ptr, "%" DEC, &code);
         if(code >= errCODESTART ) {
             return code;
         }

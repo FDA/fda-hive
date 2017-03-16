@@ -454,7 +454,7 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
                             // DB deadlock detected, and our own g_user->updateStart() call had
                             // started the current DB transaction. Wait a bit and retry.
                             g_user->updateAbandon();
-                            QP->logOut(QP->eQPLogType_Warning, "DB deadlock detected, retrying attempt %"DEC"/%"DEC"\n", itry + 1, sSql::max_deadlock_retries);
+                            QP->logOut(QP->eQPLogType_Warning, "DB deadlock detected, retrying attempt %" DEC "/%" DEC "\n", itry + 1, sSql::max_deadlock_retries);
                             sTime::randomSleep(sSql::max_deadlock_wait_usec);
                             continue;
                         } else {
@@ -492,7 +492,7 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
                         // DB deadlock detected, and our own g_user->updateStart() call had
                         // started the current DB transaction. Wait a bit and retry.
                         g_user->updateAbandon();
-                        QP->logOut(QP->eQPLogType_Warning, "DB deadlock detected, retrying attempt %"DEC"/%"DEC"\n", itry + 1, sSql::max_deadlock_retries);
+                        QP->logOut(QP->eQPLogType_Warning, "DB deadlock detected, retrying attempt %" DEC "/%" DEC "\n", itry + 1, sSql::max_deadlock_retries);
                         sTime::randomSleep(sSql::max_deadlock_wait_usec);
                         continue;
                     } else {
@@ -668,11 +668,11 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
                 }
                 if( asUrl ) {
                     v.printPropUrl(out);
-                    sString::searchAndReplaceStrings(&out2, out, out.length(), "&prop."__, "&prop.src-"__, 0, false);
+                    sString::searchAndReplaceStrings(&out2, out, out.length(), "&prop." __, "&prop.src-" __, 0, false);
                 } else {
-                    v.addRow().addCol((udx) 0).addCol("_comment").addCol((const char*) 0).printCol("%"DEC" objects exported on %s", ids.dim(), (*QP->vars["thisHostName"]));
+                    v.addRow().addCol((udx) 0).addCol("_comment").addCol((const char*) 0).printCol("%" DEC " objects exported on %s", ids.dim(), (*QP->vars["thisHostName"]));
                     v.printProp(out);
-                    sString::searchAndReplaceStrings(&out2, out, out.length(), "\nprop."__, "\nprop.src-"__, 0, false);
+                    sString::searchAndReplaceStrings(&out2, out, out.length(), "\nprop." __, "\nprop.src-" __, 0, false);
                 }
                 if( toFile ) {
                     ofil.printf("%s", out2.ptr());
@@ -781,8 +781,8 @@ static idx __on_db_init_data_type_sql(sQPrideClient * QP, const char * cmd, cons
 "START TRANSACTION;\n" \
 "\n" \
 "source db_init_data_include.sql;\n\n");
-    QP->printf("SET @type_domain = %"UDEC";\n", utype->id().domainId());
-    QP->printf("SET @type_type_id = %"UDEC";\n", utype->id().objId());
+    QP->printf("SET @type_domain = %" UDEC ";\n", utype->id().domainId());
+    QP->printf("SET @type_type_id = %" UDEC ";\n", utype->id().objId());
     QP->printf("\n" \
 "DELETE FROM UPPerm WHERE objID = @type_type_id AND domainID = @type_domain;\n" \
 "DELETE FROM UPObjField WHERE objID = @type_type_id AND domainID = @type_domain;\n" \
@@ -944,7 +944,7 @@ static idx __on_service(sQPrideClient * QP, const char * cmd, const char *, cons
             const char * up = pForm->value("isup");
             if( up && up[0] ) {
                 idx isup = -1;
-                sscanf(up, "%"HEX, &isup);
+                sscanf(up, "%" HEX, &isup);
                 if( up[0] == '+' ) {
                     isup = (sv.isUp) | (((idx) 1) << (idx) atol(up + 1));
                 } else if( up[0] == '-' ) {
@@ -975,9 +975,9 @@ static idx __on_service(sQPrideClient * QP, const char * cmd, const char *, cons
             svc = &svcI;
         }
 
-#define ifPrtD(_par) if(!strcmp(a,"all") || !strcmp(a,#_par) ){QP->printf("%s%"DEC,comma,svc->_par);comma=QP->comma;}
+#define ifPrtD(_par) if(!strcmp(a,"all") || !strcmp(a,#_par) ){QP->printf("%s%" DEC,comma,svc->_par);comma=QP->comma;}
 #define ifPrtS(_par) if(!strcmp(a,"all") || !strcmp(a,#_par) ){QP->printf("%s%s",comma,*svc->_par ? svc->_par  : "-");comma=QP->comma;}
-#define ifPrtX(_par) if(!strcmp(a,"all") || !strcmp(a,#_par) ){QP->printf("%s%"HEX,comma,svc->_par);comma=QP->comma;}
+#define ifPrtX(_par) if(!strcmp(a,"all") || !strcmp(a,#_par) ){QP->printf("%s%" HEX,comma,svc->_par);comma=QP->comma;}
 
         for(idx i = 0; i < svcCnt; ++i) {
             sStr t;
@@ -1043,7 +1043,7 @@ static idx __on_submit(sQPrideClient * QP, const char * cmd, const char *, const
     } else if( sIs(cmd, "-reqCache") ) {
         QP->reqId = QP->reqCache();
     }
-    QP->printf("%"DEC"\n", QP->reqId);
+    QP->printf("%" DEC "\n", QP->reqId);
     return 0;
 }
 
@@ -1102,7 +1102,7 @@ static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const 
             }
             else
                 fwrite(data.ptr(),dsize ? dsize : data.pos(),1,stdout);
-            if(verbose)fprintf(stderr,"%"DEC"/%"DEC"\r",i,reqs.dim());
+            if(verbose)fprintf(stderr,"%" DEC "/%" DEC "\r",i,reqs.dim());
         }
         if(fp!=stdout)
             fclose(stdout);
@@ -1127,7 +1127,7 @@ static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const 
             dstPath="";
         }
         char * sl=sFilePath::nextToSlash(dstPath);
-        sStr dirname; dirname.printf("QPData-%"DEC,QP->reqId);
+        sStr dirname; dirname.printf("QPData-%" DEC,QP->reqId);
         if(sl && *(sl)==0) dstPath=path.printf("%s%s%s",tmpDir.ptr(),dstPath,dirname.ptr());
 
         if(doZip==2) { // lazy mode
@@ -1280,8 +1280,8 @@ static idx __on_resource(sQPrideClient * QP, const char * cmd, const char * , co
 // _/  Requests
 // _/
 // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-static const char * _QPReqActionList="unknown"_"none"_"run"_"kill"_"suspend"_"resume"__;
-static const char * _QPReqStatusList="unknown"_"waiting"_"processing"_"running"_"suspended"_"done"_"killed"_"progerror"_"syserror"__;
+static const char * _QPReqActionList="unknown" _ "none" _ "run" _ "kill" _ "suspend" _ "resume" __;
+static const char * _QPReqStatusList="unknown" _ "waiting" _ "processing" _ "running" _ "suspended" _ "done" _ "killed" _ "progerror" _ "syserror" __;
 
 static idx __on_request(sQPrideClient * QP, const char * cmd, const char * arg, const char * ,sVar * pForm)
 {
@@ -1291,9 +1291,9 @@ static idx __on_request(sQPrideClient * QP, const char * cmd, const char * arg, 
         sQPride::Request Req;
         QP->requestGet(QP->reqId, &Req) ;
 
-        #define ifArtD(_par) if(!strcmp(arg,"all") || !strcmp(arg,#_par) )QP->printf("%"DEC"\n",Req._par)
-        #define ifArtT(_par) if(!strcmp(arg,"all") || !strcmp(arg,#_par) )QP->printf("%"DEC"\n",Req._par)
-        #define ifArtX(_par) if(!strcmp(arg,"all") || !strcmp(arg,#_par) )QP->printf("%"HEX"\n",Req._par)
+        #define ifArtD(_par) if(!strcmp(arg,"all") || !strcmp(arg,#_par) )QP->printf("%" DEC "\n",Req._par)
+        #define ifArtT(_par) if(!strcmp(arg,"all") || !strcmp(arg,#_par) )QP->printf("%" DEC "\n",Req._par)
+        #define ifArtX(_par) if(!strcmp(arg,"all") || !strcmp(arg,#_par) )QP->printf("%" HEX"\n",Req._par)
 
         sStr t;sString::searchAndReplaceSymbols(&t,pForm->value("variable"),0,",",0,0,true,true,true);
         for ( const char * a=t.ptr(); a ; a=sString::next00(a)) {
@@ -1326,32 +1326,32 @@ static idx __on_request(sQPrideClient * QP, const char * cmd, const char * arg, 
         sVec<sQPrideBase::QPLogMessage> infos;
         QP->reqGetInfo(QP->reqId, QP->eQPInfoLevel_Min, infos);
         for(idx i = 0; i < infos.dim(); ++i) {
-            QP->printf("%"DEC" %"DEC" %s\n", infos[i].level, infos[i].cdate, infos[i].message());
+            QP->printf("%" DEC " %" DEC " %s\n", infos[i].level, infos[i].cdate, infos[i].message());
         }
     } else if(sIs(cmd,"-reqSetInfo")){
         QP->reqSetInfo(QP->reqId, QP->eQPInfoLevel_Info, pForm->value("text") );
     } else if(sIs(cmd,"-reqSetAction")){
         pos=sString::compareChoice(arg, _QPReqActionList,&num,true, 0, true);
-        if(pos==sNotIdx)sscanf(pForm->value("action"),"%"DEC,&num);
+        if(pos==sNotIdx)sscanf(pForm->value("action"),"%" DEC,&num);
            QP->reqSetAction(QP->reqId, num);
     }else if(sIs(cmd,"-grpSetAction")){
         pos=sString::compareChoice(pForm->value("action"), _QPReqActionList,&num,true, 0, true);
-        if(pos==sNotIdx)sscanf(arg,"%"DEC,&num);
+        if(pos==sNotIdx)sscanf(arg,"%" DEC,&num);
         QP->reqSetAction(-QP->grpId, num);
     } else if(sIs(cmd,"-reqGetAction")){
         num=QP->reqGetAction(QP->reqId);
-        QP->printf("%"DEC" %s\n",num,sString::next00(_QPReqActionList,num));
+        QP->printf("%" DEC " %s\n",num,sString::next00(_QPReqActionList,num));
     } else if(sIs(cmd,"-reqSetStatus")){
         pos=sString::compareChoice(pForm->value("status"), _QPReqStatusList,&num,true, 0, true);
-        if(pos==sNotIdx)sscanf(arg,"%"DEC,&num);
+        if(pos==sNotIdx)sscanf(arg,"%" DEC,&num);
         QP->reqSetStatus(QP->reqId, num);
     } else if(sIs(cmd,"-grpSetStatus")){
         pos=sString::compareChoice(pForm->value("status"), _QPReqStatusList,&num,true, 0, true);
-        if(pos==sNotIdx)sscanf(arg,"%"DEC,&num);
+        if(pos==sNotIdx)sscanf(arg,"%" DEC,&num);
         QP->reqSetStatus( - QP->grpId, num);
     } else if(sIs(cmd,"-reqGetStatus")){
         num=QP->reqGetStatus(QP->reqId);
-        QP->printf("%"DEC" %s\n",num,sString::next00(_QPReqStatusList,num));
+        QP->printf("%" DEC " %s\n",num,sString::next00(_QPReqStatusList,num));
     } else if( sIs(cmd, "-reqSetProgress") ) {
         idx progress = 0, progress100 = 0;
         progress = pForm->ivalue("progress");
@@ -1377,12 +1377,12 @@ static idx __on_grp(sQPrideClient * QP, const char * cmd, const char * arg, cons
         sVec<idx> grpIds;
         QP->req2Grp(QP->reqId, &grpIds);
         for( idx i=0; i<grpIds.dim(); ++i)
-            QP->printf("%"DEC"\n",grpIds[i]);
+            QP->printf("%" DEC "\n",grpIds[i]);
     } else if(sIs(cmd,"-getGrp2Req")){
         sVec<idx> reqIds;
         QP->grp2Req(QP->grpId, &reqIds);
         for( idx i=0; i<reqIds.dim(); ++i)
-            QP->printf("%"DEC"\n",reqIds[i]);
+            QP->printf("%" DEC "\n",reqIds[i]);
     }
     return 0;
 }

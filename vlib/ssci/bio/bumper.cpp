@@ -148,7 +148,7 @@ idx Bumper::print(sStr & output, bool printHeader) {
 
     for (idx chunk = 0; chunk < annotations.dim(); chunk++) {
         for (idx layer = 0; layer < annotations[chunk].dim(); ++layer){
-            output.printf("%s,%"DEC",%"DEC",%"DEC",%"DEC",%s,%s\n",annotations[chunk][layer].seqID.ptr() ,annotations[chunk][layer].start ,annotations[chunk][layer].end, annotations[chunk][layer].virtualStart, annotations[chunk][layer].virtualEnd, annotations[chunk][layer].source.ptr(), annotations[chunk][layer].idTypeId.ptr());
+            output.printf("%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%s,%s\n",annotations[chunk][layer].seqID.ptr() ,annotations[chunk][layer].start ,annotations[chunk][layer].end, annotations[chunk][layer].virtualStart, annotations[chunk][layer].virtualEnd, annotations[chunk][layer].source.ptr(), annotations[chunk][layer].idTypeId.ptr());
         }
     }
 

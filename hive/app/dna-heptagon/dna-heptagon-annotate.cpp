@@ -123,7 +123,7 @@ idx DnaHeptagonAnnotate::OnExecute(idx req)
     sUsrFile aligner(alignerID,sQPride::user);
     // if profiling stage is not yet done
     sStr path;
-    aligner.getFilePathname00(path, "alignment.hiveal"_"alignment.vioal"__);
+    aligner.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __);
     sHiveal hiveal(user, path);
     sBioal * bioal = &hiveal;
     bioal=&hiveal;
@@ -401,7 +401,7 @@ idx DnaHeptagonAnnotate::OnExecute(idx req)
                             continue;
                         if((idx) aine->ref==ico)
                             continue;
-                        ffl.printf("%s,%"DEC",%d,%"DEC",%s,%s,%d,%.2lf,%"DEC",%"DEC"\n", subname.ptr(), pos+1, aine->pos+1, aatot,sBioseq::mappedCodon2AA(aine->ref)->let,sBioseq::mappedCodon2AA(ico)->let,aine->aa[ico], aine->aa[ico]*1./aatot, mrng->annot.Start, mrng->annot.End);
+                        ffl.printf("%s,%" DEC ",%d,%" DEC ",%s,%s,%d,%.2lf,%" DEC ",%" DEC "\n", subname.ptr(), pos+1, aine->pos+1, aatot,sBioseq::mappedCodon2AA(aine->ref)->let,sBioseq::mappedCodon2AA(ico)->let,aine->aa[ico], aine->aa[ico]*1./aatot, mrng->annot.Start, mrng->annot.End);
                         ico++;
                         ico = ico-1;
                     }
@@ -446,6 +446,6 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaHeptagonAnnotate backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-heptagon-annotate",argv[0]));
+    DnaHeptagonAnnotate backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-heptagon-annotate",argv[0]));
     return (int)backend.run(argc,argv);
 }

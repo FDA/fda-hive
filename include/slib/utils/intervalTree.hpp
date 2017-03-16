@@ -90,8 +90,8 @@ namespace slib {
 
             void giveMeEverything(sStr *buf )
             {
-                buf->printf ("Number of Range Nodes: %"DEC"\n", getDim());
-                buf->printf ("Number of Nodes in the Tree:%"DEC"\n", getTreeDim());
+                buf->printf ("Number of Range Nodes: %" DEC "\n", getDim());
+                buf->printf ("Number of Nodes in the Tree:%" DEC "\n", getTreeDim());
 
                 sDic<sSort::Lenstats> lenStat;
 
@@ -99,7 +99,7 @@ namespace slib {
 
                 for (idx i = 0; i < _vec.dim(); i ++){
 //                    sStr s_vecSize;
-//                    s_vecSize.printf("%"DEC,getVecDim(i));
+//                    s_vecSize.printf("%" DEC,getVecDim(i));
 //                    lenStat[s_vecSize.ptr()]++;
                     idx seqlen = getVecDim(i);
                     sSort::Lenstats * auxlenStat = lenStat.set(&seqlen, sizeof(seqlen));
@@ -116,7 +116,7 @@ namespace slib {
                 for(idx l = 0; l < lenStat.dim(); ++l) {
                     idx aux = *(idx *)lenStat.id(ind[l]);
                     sSort::Lenstats *auxlen = lenStat.ptr(ind[l]);
-                    buf->printf("%"DEC",%"DEC",%"DEC"\n", aux, auxlen->num, auxlen->sum);
+                    buf->printf("%" DEC ",%" DEC ",%" DEC "\n", aux, auxlen->num, auxlen->sum);
                 }
             }
 

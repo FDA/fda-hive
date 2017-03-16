@@ -68,7 +68,7 @@ void SigFaultHandler(int sig)
         ::fprintf(stderr, "\nInsufficient resources for the program, try freeing some memory and/or disk space\n");
     }
     if( sApp::err_location ) {
-        ::fprintf(stderr, "\nError occurred at position %"UDEC"\n", sApp::err_location);
+        ::fprintf(stderr, "\nError occurred at position %" UDEC "\n", sApp::err_location);
     }
     fflush(stdout);
     fflush(stderr);
@@ -122,9 +122,9 @@ char * sApp::cfgget(const char * section, const char * name, const char * defVal
         }
         idx st = 0, en = 0;
         sString::searchAndReplaceSymbols(&t, nm.ptr(), 0, ".", 0, 0, true, true, true);
-        sString::searchStruc(cfg->ptr(),cfg->length(),t.ptr(), "["_"\n"__,&st,&en); // first we find out variable
+        sString::searchStruc(cfg->ptr(),cfg->length(),t.ptr(), "[" _ "\n" __,&st,&en); // first we find out variable
         t.cut(0);
-        if(st!=en)sString::cleanEnds(&t,cfg->ptr(st),en-st,"="sString_symbolsBlank,true); // then we clean equal signs and spaces at both ends
+        if(st!=en)sString::cleanEnds(&t,cfg->ptr(st),en-st,"=" sString_symbolsBlank,true); // then we clean equal signs and spaces at both ends
         if( !t.length() ) {
             t.add(__, 2);
         }

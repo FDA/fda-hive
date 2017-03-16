@@ -131,21 +131,21 @@ bool StatTestCommand::compute(sTabular * tbl)
     sVec <idx> allCols;
 
     char c [16];
-    sprintf(c, "0-%"DEC, tbl->cols());
+    sprintf(c, "0-%" DEC, tbl->cols());
     sString::scanRangeSet(c,0, &allCols,0ll,0ll,0ll);
 
 
     if (!rowSet || rowSet.dim() < 1)
     {
         char p [16];
-        sprintf (p, "0-%"DEC, tbl->rows());
+        sprintf (p, "0-%" DEC, tbl->rows());
         sString::scanRangeSet(p,0,&(rowSet),0ll,0ll,0ll);
     }
 
     Mat.parseTabular(tbl, &rowSet, &allCols, &colIDs, &rowIDs, 0, 0, true);
 
     sStr pathT;
-    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://"OUTFILE,0,0);
+    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTFILE,0,0);
     _ctx.qproc().reqDataPath(_ctx.outReqID(),OUTFILE,&pathT);
     sFile::remove(pathT);
     sFil out(pathT);
@@ -186,7 +186,7 @@ bool StatTestCommand::compute(sTabular * tbl)
         if (atof(outStr.ptr()))
             out2.printf("%f,%lf\n", atof(outStr.ptr()), -(log10(probvals[i])/log10(2)));
         else
-            out2.printf("%"DEC",%lf\n", i, -(log10(probvals[i])/log10(2)));
+            out2.printf("%" DEC ",%lf\n", i, -(log10(probvals[i])/log10(2)));
     }
 
     free (probvals);

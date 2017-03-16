@@ -44,6 +44,6 @@ int main(int argc, const char * argv[])
 {
     sStr tmp;
     sApp::args(argc, argv);
-    QPrideDaemon backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "qm", argv[0]));
+    QPrideDaemon backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "qm", argv[0]));
     backend.run(argc, argv);
 }

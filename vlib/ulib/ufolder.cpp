@@ -31,7 +31,7 @@
 
 using namespace slib;
 
-const char * s_roots00 = "HIVE Space"_"Inbox"_"Trash"__;
+const char * s_roots00 = "HIVE Space" _ "Inbox" _ "Trash" __;
 const char * s_Home = s_roots00;
 const char * s_Inbox = s_Home + sLen(s_Home) + 1;
 const char * s_Trash = s_Inbox + sLen(s_Inbox) + 1;
@@ -672,7 +672,7 @@ udx sUsrFolder::name(const char* name)
     idx buflen = obj_name.length();
     while( isSubFolder( obj_name ) ) {
         obj_name.cut(buflen);
-        obj_name.printf(" (%"UDEC")", ++homonyms);
+        obj_name.printf(" (%" UDEC ")", ++homonyms);
     }
 
     return TParent::propSet("name", obj_name);
@@ -760,7 +760,7 @@ bool sUsrFolder::fixChildrenPath(void)
             t_ptr = strbuf.printf("%s", ch.val(r,1,0));
         }
         else {
-            t_ptr = strbuf.printf("%"UDEC,++max_group);
+            t_ptr = strbuf.printf("%" UDEC,++max_group);
 
             if( grpCnt && (*grpCnt) > 1 ) {
                 --(*grpCnt);

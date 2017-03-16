@@ -90,7 +90,7 @@ int main(int argc, const char * argv[])
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
 
-    DnaParserProc backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-ionparser",argv[0]));
+    DnaParserProc backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-ionparser",argv[0]));
     return (int)backend.run(argc,argv);
 }
 

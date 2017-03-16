@@ -209,7 +209,7 @@ namespace slib
         }
         virtual const char * id(idx inum, idx iread=1) {
             if(hdr->flags&eParseNoId )
-                return lId.printf(0,">%"DEC,inum);
+                return lId.printf(0,">%" DEC,inum);
             if(fp && inum == lNumId)
                 return lId.ptr();else lNumId=inum;
 

@@ -52,19 +52,19 @@ sHoneyCombIon * sHoneyCombIon::init(const char * baseName, idx openMode )
     valueType=ion->addRecordType("value",sIon::eCTypeString,sIon::eHashTypeString);
 
 
-    objToTypeRelationshipIndex=ion->addRelationType("obj_type","obj"_"type"__,
-        "obj"__, // relation hasher 3
-        "obj"_"type"__, // relation hasher 5
-        "type"__, // relation hasher 8
+    objToTypeRelationshipIndex=ion->addRelationType("obj_type","obj" _ "type" __,
+        "obj" __, // relation hasher 3
+        "obj" _ "type" __, // relation hasher 5
+        "type" __, // relation hasher 8
         (const char * )0);
-    objToValueRelationshipIndex=ion->addRelationType("obj_prop","obj"_"name"_"path"_"value"__,
-        "#obj"_"#name"_"#path"_"#value"__, // if index hashing : the same nodes cannot be linked second time ?
-        "obj"__, // relation hasher 10
-        "obj"_"name"__, // relation hasher 12
-        "obj"_"name"_"value"__, // relation hasher 15
-        "name"__, // relation hasher 19
-        "name"_"value"__, // relation hasher 21
-        "value"__, // relation hasher 24
+    objToValueRelationshipIndex=ion->addRelationType("obj_prop","obj" _ "name" _ "path" _ "value" __,
+        "#obj"_"#name"_"#path"_"#value" __, // if index hashing : the same nodes cannot be linked second time ?
+        "obj" __, // relation hasher 10
+        "obj" _ "name" __, // relation hasher 12
+        "obj" _ "name" _ "value" __, // relation hasher 15
+        "name" __, // relation hasher 19
+        "name" _ "value" __, // relation hasher 21
+        "value" __, // relation hasher 24
         (const char * )0);
 
     return this;
@@ -177,7 +177,7 @@ idx sHoneyCombIon::objListIterate(Locator * locator, bool isMult, const char * t
         npath= (const char * )ion->getRecordBody(pathType, locator->indexPath, &size);
         nvalue= (const char * )ion->getRecordBody(valueType, locator->indexValue, &size);
 
-        buf->printf("\nprop.%"DEC".%s.%s=%s",*pObjID,nname,npath,nvalue);
+        buf->printf("\nprop.%" DEC ".%s.%s=%s",*pObjID,nname,npath,nvalue);
     }
     return locator->bucket;
     //}while(bucket!=sNotIdx);
@@ -208,7 +208,7 @@ const char * sHoneyCombIon::propGet(sIO * buf, idx objID, const char * name, con
         const char * path= (const char * )ion->getRecordBody(pathType, arr[2], &size);
         const char * value= (const char * )ion->getRecordBody(valueType, arr[3], &size);
         if(buf)
-            buf->printf("\nprop.%"DEC".%s.%s=%s",*objID,name,path,value);
+            buf->printf("\nprop.%" DEC ".%s.%s=%s",*objID,name,path,value);
         if(!ret)ret=value;
     }while(bucket!=sNotIdx);
     return ret;

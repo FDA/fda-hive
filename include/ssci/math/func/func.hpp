@@ -82,7 +82,6 @@ namespace slib {
                         while( returnIndexbeforeTarget && (mid > 0) && (array[mid] >= target) ) {
                             mid -= 1;
                         }
-                        return mid;
                     }
             };
     };

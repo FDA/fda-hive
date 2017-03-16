@@ -514,7 +514,7 @@ void sUsrType2::DepForest::makeTreeTraversal(sVec<idx> & out, idx inode, sVec<bo
     sKnot<udx> & node = _nodes[inode];
     // first ensure we got all of the node's parents...
     for(idx iin=0; iin < node.in.dim(); iin++) {
-        LOG_TRACE("Traversing parent %"DEC"/%"DEC" of type \"%s\": \"%s\"", iin, node.in.dim(), sUsrType2::_types[node.obj]->name(), sUsrType2::_types[_nodes[*node.in.ptr(iin)].obj]->name());
+        LOG_TRACE("Traversing parent %" DEC "/%" DEC " of type \"%s\": \"%s\"", iin, node.in.dim(), sUsrType2::_types[node.obj]->name(), sUsrType2::_types[_nodes[*node.in.ptr(iin)].obj]->name());
         makeTreeTraversal(out, *node.in.ptr(iin), visited);
     }
 
@@ -738,7 +738,7 @@ class sUsrType2::LoadFromObjContext {
                     }
                     for( ; idep < dep_list.dim() && e_start.type_id == dep_list.getSorted(idep).type_id; idep++ ) {
                         const DepList::Entry & e = dep_list.getSorted(idep);
-                        LOG_TRACE("Got dep entry #%"DEC": %s (%s path)", idep, e.print(local_log_buf, false, false), e.index >= 0 ? static_cast<const char*>(dep_list.interned_strings.id(e.index)) : "no");
+                        LOG_TRACE("Got dep entry #%" DEC ": %s (%s path)", idep, e.print(local_log_buf, false, false), e.index >= 0 ? static_cast<const char*>(dep_list.interned_strings.id(e.index)) : "no");
                         const DepList::Entry * e_prev = idep > istart ? &dep_list.getSorted(idep - 1) : 0;
                         sUsrType2 * udep = getRaw(e.dep_id);
 
@@ -1406,7 +1406,7 @@ void sUsrType2::loadDeps(const sUsr & user)
                 LOG_ERROR("Type \"%s\" (%s) has invalid parent \"%s\"", _types[itype]->name(), _types[itype]->_id.print(), par_name);
                 continue;
             }
-            LOG_TRACE("Type \"%s\" (%s) has parent %"DEC" \"%s\" (%s)", _types[itype]->name(), _types[itype]->_id.print(), _types[itype]->_parents.dim(), par->name(), par->_id.print());
+            LOG_TRACE("Type \"%s\" (%s) has parent %" DEC " \"%s\" (%s)", _types[itype]->name(), _types[itype]->_id.print(), _types[itype]->_parents.dim(), par->name(), par->_id.print());
             *_types[itype]->_parents.add(1) = par->_itype;
             *_types[par->_itype]->_children.add(1) = itype;
         }
@@ -1663,7 +1663,7 @@ void sUsrType2::loadFields(const sUsr & user, sUsrType2::DepForest * type_forest
                     fld->_readonly = (sUsrTypeField::EReadOnly)ro;
                     break;
                 default:
-                    LOG_ERROR("Invalid is_readonly_fg code %"DEC" in field \"%s\" in type \"%s\" (%s)", ro, user.db().resultValue(name_icol), utype->name(), utype->id().print());
+                    LOG_ERROR("Invalid is_readonly_fg code %" DEC " in field \"%s\" in type \"%s\" (%s)", ro, user.db().resultValue(name_icol), utype->name(), utype->id().print());
                     fld->_readonly = sUsrTypeField::eReadOnly;
                     fld->_is_broken = true;
             }
@@ -1730,7 +1730,7 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
         for(idx itp=0; itp<cnt_utype_par; itp++) {
             sUsrType2 & utype_par = *_types[utype._parents[itp]];
             // traverse from root fields down : if utype_par's list/array field with children is overridden by utype's scalar field, the children must be ignored
-            LOG_TRACE("Inheriting %"DEC" fields from parent %s to child %s", utype_par._root_ifields.dim(), utype_par.name(), utype.name());
+            LOG_TRACE("Inheriting %" DEC " fields from parent %s to child %s", utype_par._root_ifields.dim(), utype_par.name(), utype.name());
             for(idx irif=0; irif<utype_par._root_ifields.dim(); irif++) {
                 utype.inheritField(utype_par._fields.ptr(utype_par._root_ifields[irif]), overridden_dic, case_buf);
             }
@@ -1742,7 +1742,7 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
             idx included_from_itype = utype._fields[ifld]._included_from_itype;
             if( included_from_itype >= 0 ) {
                 if( !_types[included_from_itype]->_is_fetched ) {
-                    LOG_ERROR("Type \"%s\" (%s): field \"%s\" (%"DEC") includes from type \"%s\" whose fields have not yet been processed!", utype.name(), utype.id().print(), utype._fields[ifld].name(), ifld, _types[included_from_itype]->name());
+                    LOG_ERROR("Type \"%s\" (%s): field \"%s\" (%" DEC ") includes from type \"%s\" whose fields have not yet been processed!", utype.name(), utype.id().print(), utype._fields[ifld].name(), ifld, _types[included_from_itype]->name());
                 }
                 // inclusions : field "foo" included via type2* field "bar" gets added as "bar_foo"
                 inc_buf.printf(0, "$(%s_", utype._fields[ifld].name());
@@ -1751,7 +1751,7 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
                 for(idx iinc = 0; iinc < _types[included_from_itype]->_fields.dim(); iinc++) {
                     const sUsrTypeField * inc_src_fld = _types[included_from_itype]->_fields.ptr(iinc);
                     if( !inc_src_fld->_is_broken && inc_src_fld->name()[0] != '_' ) {
-                        LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%"DEC") includes field \"%s\" from type \"%s\"", utype.name(), utype.id().print(), utype._fields[ifld].name(), ifld, inc_src_fld->name(),
+                        LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%" DEC ") includes field \"%s\" from type \"%s\"", utype.name(), utype.id().print(), utype._fields[ifld].name(), ifld, inc_src_fld->name(),
                             _types[inc_src_fld->_definer_itype]->name());
                         inc_buf.printf(inc_buf_name_pos, "%s_%s", utype._fields[ifld].name(), inc_src_fld->name());
                         inc_buf.add0(2);
@@ -1776,9 +1776,9 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
 
                         subst_buf.cut(0);
                         // Are there other fields which are allowed to use "$(fldname)" syntax?
-                        sUsrTypeField::replaceString(inc_dst_fld->_pos_brief, "$("__, inc_buf.ptr(0), subst_buf);
-                        sUsrTypeField::replaceString(inc_dst_fld->_pos_constraint_data, "$("__, inc_buf.ptr(0), subst_buf);
-                        sUsrTypeField::replaceString(inc_dst_fld->_pos_default_value, "$("__, inc_buf.ptr(0), subst_buf);
+                        sUsrTypeField::replaceString(inc_dst_fld->_pos_brief, "$(" __, inc_buf.ptr(0), subst_buf);
+                        sUsrTypeField::replaceString(inc_dst_fld->_pos_constraint_data, "$(" __, inc_buf.ptr(0), subst_buf);
+                        sUsrTypeField::replaceString(inc_dst_fld->_pos_default_value, "$(" __, inc_buf.ptr(0), subst_buf);
 
                         if( sLen(sUsrTypeField::getString(inc_dst_fld->_pos_parent_name)) ) {
                             idx inc_buf_par_name_pos = inc_buf.length();
@@ -1860,7 +1860,7 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
                 }
             } else {
                 *utype._root_ifields.add(1) = ifld;
-                LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%"DEC") is a root field", utype.name(), utype.id().print(), utype._fields[ifld].name(), ifld);
+                LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%" DEC ") is a root field", utype.name(), utype.id().print(), utype._fields[ifld].name(), ifld);
             }
         }
         sSort::sortSimpleCallback<idx>(&fldCompare, utype._fields.ptr(), utype._root_ifields.dim(), utype._root_ifields.ptr());
@@ -2008,7 +2008,7 @@ idx sUsrType2::ensureArrayFieldRow(sUsrTypeField * fld, sStr & name_buf, sStr & 
 void sUsrType2::setFieldChildren(idx ifld, idx iroot_fld, SetFieldChildrenParam * param, sStr & case_buf)
 {
     param->done_dic.set(&ifld, sizeof(idx));
-    LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%"DEC") descends from root field \"%s\" (%"DEC")", name(), id().print(), _fields[ifld].name(), ifld, _fields[iroot_fld].name(), iroot_fld);
+    LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%" DEC ") descends from root field \"%s\" (%" DEC ")", name(), id().print(), _fields[ifld].name(), ifld, _fields[iroot_fld].name(), iroot_fld);
     sUsrTypeField * fld = _fields.ptr(ifld);
     if( const sUsrTypeField * par = fld->parent() ) {
         fld->_ancestor_count = par->_ancestor_count + 1;
@@ -2025,7 +2025,7 @@ void sUsrType2::setFieldChildren(idx ifld, idx iroot_fld, SetFieldChildrenParam 
         _child_ifields.add(fld->_dim_children + 1);
         for(idx i=0; i<fld->_dim_children; i++) {
             idx ichild = *children->ptr(i);
-            LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%"DEC"): packing child field \"%s\" (%"DEC")", name(), id().print(), fld->name(), ifld, _fields.ptr(ichild)->name(), ichild);
+            LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%" DEC "): packing child field \"%s\" (%" DEC ")", name(), id().print(), fld->name(), ifld, _fields.ptr(ichild)->name(), ichild);
             _child_ifields[fld->_start_children + i] = ichild;
             setFieldChildren(ichild, iroot_fld, param, case_buf);
         }

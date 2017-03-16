@@ -2257,13 +2257,13 @@ bool sTxtTbl::addCell(const sHiveId & val)
 
 bool sTxtTbl::addICell(idx ival)
 {
-    _conversion_buf.printf(0, "%"DEC, ival);
+    _conversion_buf.printf(0, "%" DEC, ival);
     return addCell(_conversion_buf.ptr(), _conversion_buf.length(), sVariant::value_INT);
 }
 
 bool sTxtTbl::addUCell(udx uval)
 {
-    _conversion_buf.printf(0, "%"UDEC, uval);
+    _conversion_buf.printf(0, "%" UDEC, uval);
     return addCell(_conversion_buf.ptr(), _conversion_buf.length(), sVariant::value_UINT);
 }
 

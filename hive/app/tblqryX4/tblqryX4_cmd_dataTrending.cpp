@@ -95,8 +95,8 @@ struct elementInfo {
 
 static bool periodTextTreatment(sStr & dst, const char * src){
     sStr splitTerm;
-    // sString::searchAndReplaceSymbols(&splitTerm,src,0,"/"_"-"__,0,0,true,false,false,true);
-    sString::searchAndReplaceStrings(&splitTerm,src,0,"/"_"-"__,0,0,0);
+    // sString::searchAndReplaceSymbols(&splitTerm,src,0,"/" _ "-" __,0,0,true,false,false,true);
+    sString::searchAndReplaceStrings(&splitTerm,src,0,"/" _ "-" __,0,0,0);
     if (sString::cnt00(splitTerm)==3){
         sStr cleanQuote;
         const char * firstField = sString::next00(splitTerm,0);
@@ -261,7 +261,7 @@ static idx convertToIdx (const char * src){
     }
     else dst.printf("%s",src);
 
-    sscanf(dst.ptr(),"%"DEC"", &a); // sscanf(c.ptr(0), "%"DEC"", &myRangeNum.start);
+    sscanf(dst.ptr(),"%" DEC "", &a); // sscanf(c.ptr(0), "%" DEC "", &myRangeNum.start);
     return a;
 }
 
@@ -530,7 +530,7 @@ bool DataTrendingCommand::compute(sTabular * tbl)
     //  Outputting
     // -------------------
     sStr outPutPath;
-    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://"OUTFILE,0,0); // set the file name to the request
+    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTFILE,0,0); // set the file name to the request
     _ctx.qproc().reqDataPath(_ctx.outReqID(),OUTFILE,&outPutPath); // find the path of the file name
     sFile::remove(outPutPath);                // in case the file already existed
 
@@ -591,7 +591,7 @@ bool DataTrendingCommand::compute(sTabular * tbl)
             idx * value;
             if (dicOfElements.ptr(iElement)->group.find(header,len)){
              value= dicOfElements.ptr(iElement)->group.get(header,len);
-             dataTrendingCSV.printf("%"DEC"",*value);
+             dataTrendingCSV.printf("%" DEC "",*value);
             }
             else {
                 dataTrendingCSV.printf("0");

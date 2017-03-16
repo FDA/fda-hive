@@ -203,7 +203,7 @@ idx sLang::eval_dic_set(sLang * lg, idx il)
         idx * pItem=ppDic->set(nam);
         if(pItem)*pItem=itOfs;
     }
-    lg->curScope->setVar("__ret","%"DEC,ppDic ? ppDic->dim() : 0 );
+    lg->curScope->setVar("__ret","%" DEC,ppDic ? ppDic->dim() : 0 );
     return 0;
 }
 
@@ -216,7 +216,7 @@ idx sLang::eval_dic_set(sLang * lg, idx il)
 //"string.len( src ) {}"
 idx sLang::eval_string_len(sLang * lg, idx il)
 {
-    lg->curScope->setVar("__ret","%"DEC,strlen(V("src")));
+    lg->curScope->setVar("__ret","%" DEC,strlen(V("src")));
     return 0;
 }
 
@@ -230,7 +230,7 @@ idx sLang::eval_string_cat(sLang * lg, idx il)
 //"string.cmp( src1, src2 ) {}"
 idx sLang::eval_string_cmp(sLang * lg, idx il)
 {
-    lg->curScope->setVar("__ret","%"DEC,strcmp(V("src1"),V("src2")) ? 1 : 0 );
+    lg->curScope->setVar("__ret","%" DEC,strcmp(V("src1"),V("src2")) ? 1 : 0 );
     return 0;
 }
 
@@ -244,7 +244,7 @@ idx sLang::eval_string_cnt(sLang * lg, idx il)
         for ( cnt=0, --src; src ; ++cnt) src=sString::searchSubstring( src+1, 0, separ , 1, 0, 0 ); // count how many are there 
         --cnt;
     }
-    lg->curScope->setVar("__ret","%"DEC,cnt);
+    lg->curScope->setVar("__ret","%" DEC,cnt);
     return 0;
 }
 
@@ -259,7 +259,7 @@ idx sLang::eval_string_cntsymb(sLang * lg, idx il)
             if(strchr(separ,src[i])) ++cnt;
         }
     }
-    lg->curScope->setVar("__ret","%"DEC,cnt);
+    lg->curScope->setVar("__ret","%" DEC,cnt);
     return 0;
 }
 
@@ -288,7 +288,7 @@ idx sLang::eval_string_extract(sLang * lg, idx il)
 //"string.compareuntil( src1, src2 , until , case ){}"
 idx sLang::eval_string_compareuntil(sLang * lg, idx il)
 {
-    lg->curScope->setVar("__ret", "%"DEC, sString::compareUntil( V("src1"), V("src2"), V("until"), VcaseI) ? 1 : 0 );
+    lg->curScope->setVar("__ret", "%" DEC, sString::compareUntil( V("src1"), V("src2"), V("until"), VcaseI) ? 1 : 0 );
     return 0;
 }
 
@@ -395,7 +395,7 @@ idx sLang::eval_string_printf(sLang * lg, idx il)
     const char * argp;
     sStrT ret,tmp;
 
-    // copy and replace any %x(%"DEC"%i%f) sign by %s
+    // copy and replace any %x(%" DEC "%i%f) sign by %s
     const char * s,* n;
     idx i;
     for ( i=VI("__var"), s=fmt; s && *s ;  ){
@@ -412,10 +412,10 @@ idx sLang::eval_string_printf(sLang * lg, idx il)
                 ret.add("%%",2);n+=2;
             }
             else {
-                tmp.printf(0,"__%"DEC,i);
+                tmp.printf(0,"__%" DEC,i);
                 argp=V(tmp.ptr());
                 if(argp)ret.add(argp,(unsigned int)strlen(argp));
-                while( *n && !strchr("\\ildxfgespc"sString_symbolsBlank,*n) ) ++n;// skip all the formatting characters to the next blank
+                while( *n && !strchr("\\ildxfgespc" sString_symbolsBlank,*n) ) ++n;// skip all the formatting characters to the next blank
                 if(*n)++n;
                 ++i ;
             }
@@ -441,7 +441,7 @@ idx sLang::eval_string_unescape( sLang * lg, idx il)
 {
     const char * cont=V("src");
     sStrT ret;
-    sString::searchAndReplaceStrings(&ret,cont,0,"\\n"_"\\r"_"\\t"__,"\n"_"\r"_"\t"__,0,0);
+    sString::searchAndReplaceStrings(&ret,cont,0,"\\n" _ "\\r" _ "\\t" __,"\n" _ "\r" _ "\t" __,0,0);
     char * ptr =ret.ptr();
     lg->curScope->setVar("__ret","%s",ptr ? ptr : "");
     return 0;
@@ -516,7 +516,7 @@ idx sLang::eval_file_exists(sLang * lg, idx il)
     idx fh=open(flnm, O_RDONLY, S_IREAD );
     if(fh>0)close((int)fh);
     */
-    lg->curScope->setVar("__ret","%"DEC,fh );
+    lg->curScope->setVar("__ret","%" DEC,fh );
     return 0;
 }
 
@@ -524,7 +524,7 @@ idx sLang::eval_file_exists(sLang * lg, idx il)
 idx sLang::eval_file_open(sLang * lg, idx il)
 {
     idx fh=open(V("flnm"), O_RDWR , S_IWRITE);
-    lg->curScope->setVar("__ret","%"DEC,fh>0 ? fh : 0);
+    lg->curScope->setVar("__ret","%" DEC,fh>0 ? fh : 0);
     return 0;
 }
 
@@ -533,7 +533,7 @@ idx sLang::eval_file_close(sLang * lg, idx il)
 {
     idx fh=VI("handle");
     if(fh>0)close((int)fh);
-    lg->curScope->setVar("__ret","%"DEC,fh>0 ? fh : 0);
+    lg->curScope->setVar("__ret","%" DEC,fh>0 ? fh : 0);
     return 0;
 }
 
@@ -555,7 +555,7 @@ idx sLang::eval_file_len(sLang * lg, idx il)
     
     if(!hdl)close((int)fh); // we opened it we should close 
 
-    lg->curScope->setVar("__ret","%"DEC,size);
+    lg->curScope->setVar("__ret","%" DEC,size);
     return 0;
 }
 
@@ -566,7 +566,7 @@ idx sLang::eval_file_getpos(sLang * lg, idx il)
     idx fh=VI("handle");
     idx lpos =0;
     if(fh>0)lpos = lseek((int)fh,0,SEEK_CUR);
-    lg->curScope->setVar("__ret","%"DEC,lpos);
+    lg->curScope->setVar("__ret","%" DEC,lpos);
     return 0;
 }
 
@@ -577,7 +577,7 @@ idx sLang::eval_file_setpos(sLang * lg, idx il)
     idx pos=VI("pos");
     idx lpos=VI("pos");
     if(fh>0)lpos = lseek((int)fh,(long)pos,SEEK_SET);
-    lg->curScope->setVar("__ret","%"DEC,lpos);
+    lg->curScope->setVar("__ret","%" DEC,lpos);
     return 0;
 }
 
@@ -631,7 +631,7 @@ idx sLang::eval_file_write(sLang * lg, idx il)
 
     if(fh>0)len=write((int)fh,(void*)cont,(unsigned int)size);
     
-    lg->curScope->setVar("__ret","%"DEC,len);
+    lg->curScope->setVar("__ret","%" DEC,len);
     return 0;
 }
 
@@ -743,7 +743,7 @@ idx sLang::eval_file_makedir(sLang * lg, idx il)
     if(!isfile)
         sDir::makeDir(dir);
     
-    //lg->curScope->setVar("__ret","%"DEC,dst);
+    //lg->curScope->setVar("__ret","%" DEC,dst);
     return 0;
 }
 

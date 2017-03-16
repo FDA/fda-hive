@@ -73,17 +73,17 @@ void DnaParser::setObjId(const sHiveId & objId)
 
 void DnaParser::setMerge(bool isMerged)
 {
-    setVar("merge", "%"UDEC, (udx)isMerged ? (udx)1 : (udx)0);
+    setVar("merge", "%" UDEC, (udx)isMerged ? (udx)1 : (udx)0);
 }
 
 void DnaParser::setSingleFile(bool isSingle)
 {
-    setVar("single", "%"UDEC, (udx)isSingle ? (udx)1 : (udx)0);
+    setVar("single", "%" UDEC, (udx)isSingle ? (udx)1 : (udx)0);
 }
 
 void DnaParser::setVioseqlist(bool isHiveseq)
 {
-    setVar("hiveseq", "%"UDEC, (udx)isHiveseq ? (udx)1 : (udx)0);
+    setVar("hiveseq", "%" UDEC, (udx)isHiveseq ? (udx)1 : (udx)0);
 }
 
 void DnaParser::setTreatAsTypeFile(const char * dataType)
@@ -106,7 +106,7 @@ void DnaParser::setTreatAsTypeFile(const char * dataType)
         typeFile = 0;
         //typeFile = sVioseq2::eTreatAsFastA;
     }
-    setVar("parseAsType", "%"UDEC, typeFile);
+    setVar("parseAsType", "%" UDEC, typeFile);
 }
 
 void DnaParser::setTypeName(const char * typeName)

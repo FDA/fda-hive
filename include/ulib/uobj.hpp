@@ -196,14 +196,14 @@ namespace slib {
             udx propSetI(const char* prop, idx value)
             {
                 char strBuf[64];
-                sprintf(strBuf, "%"DEC, value);
+                sprintf(strBuf, "%" DEC, value);
                 char * strBufPtr=strBuf;
                 return propSet(prop, 0, (const char**)&strBufPtr, 1);
             }
             udx propSetU(const char* prop, udx value)
             {
                 char strBuf[64];
-                sprintf(strBuf, "%"UDEC, value);
+                sprintf(strBuf, "%" UDEC, value);
                 char * strBufPtr=strBuf;
                 return propSet(prop, 0, (const char**)&strBufPtr, 1);
             }
@@ -225,7 +225,7 @@ namespace slib {
             {
                 char strBuf[64];
                 udx t = value;
-                sprintf(strBuf, "%"UDEC, t);
+                sprintf(strBuf, "%" UDEC, t);
                 char * strBufPtr=strBuf;
                 return propSet(prop, 0, (const char**)&strBufPtr, 1);
             }
@@ -265,7 +265,7 @@ namespace slib {
                 idx retval = 0;
                 const char* p = propGet(prop);
                 if( p ) {
-                    sscanf(p, "%"DEC, &retval);
+                    sscanf(p, "%" DEC, &retval);
                 }
                 return retval;
             }
@@ -274,7 +274,7 @@ namespace slib {
                 udx retval = 0;
                 const char* p = propGet(prop);
                 if( p ) {
-                    sscanf(p, "%"UDEC, &retval);
+                    sscanf(p, "%" UDEC, &retval);
                 }
                 return retval;
             }
@@ -296,7 +296,7 @@ namespace slib {
                 udx retval = 0;
                 const char* p = propGet(prop);
                 if( p ) {
-                    sscanf(p, "%"UDEC, &retval);
+                    sscanf(p, "%" UDEC, &retval);
                 }
                 return retval;
             }

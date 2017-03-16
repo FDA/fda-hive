@@ -107,7 +107,7 @@ bool FourierCommand::compute(sTabular * tbl)
     if (!rowSet || rowSet.dim() < 1)
     {
         char p [16];
-        sprintf(p, "0-%"DEC, tbl->rows()-1);
+        sprintf(p, "0-%" DEC, tbl->rows()-1);
         sString::scanRangeSet(p,0,&(rowSet),0ll,0ll,0ll);
     }
     categories.cut(1);
@@ -157,7 +157,7 @@ bool FourierCommand::compute(sTabular * tbl)
     for (idx a = 0; a < count2power/2-1; a++)
     {
         char bb [32];
-        sprintf (bb, "Harmonic %"DEC, a);
+        sprintf (bb, "Harmonic %" DEC, a);
         tmpTbl->addCell(bb);
     }
     tmpTbl->addEndRow();

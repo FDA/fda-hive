@@ -44,13 +44,13 @@ namespace slib {
     class sString {
         public:
             //! 00-terminated list of newline characters
-            #define sString_symbolsEndline  "\r\n"__
+            #define sString_symbolsEndline  "\r\n" __
             //! 00-terminated list of whitespace symbols
-            #define sString_symbolsBlank    " \t\r\n"__
+            #define sString_symbolsBlank    " \t\r\n" __
             //! 00-terminated list of non-newline whitespace symbols
-            #define sString_symbolsSpace    " \t"__
+            #define sString_symbolsSpace    " \t" __
             //! \def sString_symbolsComment
-            #define sString_symbolsComment  ";!"__
+            #define sString_symbolsComment  ";!" __
 
 
         public:
@@ -123,7 +123,7 @@ namespace slib {
                     return 1;
 
                 idx ival = 1;
-                sscanf(s, "%"DEC, &ival);
+                sscanf(s, "%" DEC, &ival);
                 return ival;
             }
             //! check whether a string holds a boolean value
@@ -197,7 +197,7 @@ namespace slib {
                 \param flags bitwise-or of sString::EPrintDateTimeFlags
                 \returns pointer to start of printed string */
             static const char * printDateTime(sStr & out, idx unix_time, idx flags=0);
-            template <typename Tobj > static idx sscanfAnyVec(sVec < Tobj > * excl, const char * src, idx len, Tobj shift, Tobj rmin, Tobj rmax, const char * fmt, const char * separ=",;"sString_symbolsBlank ) 
+            template <typename Tobj > static idx sscanfAnyVec(sVec < Tobj > * excl, const char * src, idx len, Tobj shift, Tobj rmin, Tobj rmax, const char * fmt, const char * separ=",;" sString_symbolsBlank ) 
             {
                 if(!src) return 0;if(len==0)len=sLen(src);
                 Tobj ex=0;
@@ -220,9 +220,9 @@ namespace slib {
                     excl->vadd(1,ex);
                 }return excl->dim();
             }
-            static idx sscanfRVec(sVec < real > * excl, const char * src, idx len=0, real shift=0.0, real rmin=-REAL_MAX, real rmax=REAL_MAX) {return sscanfAnyVec<real>(excl, src,len, shift, rmin, rmax, "%lf",",;"sString_symbolsBlank);}
-            static idx sscanfIVec(sVec < idx > * excl, const char * src, idx len=0, idx shift=0, idx imin=-sIdxMax, idx imax=sIdxMax)  {return sscanfAnyVec<idx>(excl, src,len, shift, imin, imax, "%"DEC,",;"sString_symbolsBlank);}
-            static idx sscanfUVec(sVec < udx > * excl, const char * src, idx len=0, idx shift=0, udx umin=0, udx umax=sUdxMax)  {return sscanfAnyVec<udx>(excl, src,len, shift, umin, umax, "%"UDEC,",;"sString_symbolsBlank);}
+            static idx sscanfRVec(sVec < real > * excl, const char * src, idx len=0, real shift=0.0, real rmin=-REAL_MAX, real rmax=REAL_MAX) {return sscanfAnyVec<real>(excl, src,len, shift, rmin, rmax, "%lf",",;" sString_symbolsBlank);}
+            static idx sscanfIVec(sVec < idx > * excl, const char * src, idx len=0, idx shift=0, idx imin=-sIdxMax, idx imax=sIdxMax)  {return sscanfAnyVec<idx>(excl, src,len, shift, imin, imax, "%" DEC,",;" sString_symbolsBlank);}
+            static idx sscanfUVec(sVec < udx > * excl, const char * src, idx len=0, idx shift=0, udx umin=0, udx umax=sUdxMax)  {return sscanfAnyVec<udx>(excl, src,len, shift, umin, umax, "%" UDEC,",;" sString_symbolsBlank);}
 
             template <typename Tobj > static idx printfAnyVec(sStr * str, sVec < Tobj > * excl, const char * fmt, const char * separ=",") 
             {
@@ -233,8 +233,8 @@ namespace slib {
                 }return excl->dim();
             }
             static idx printfRVec(sStr * str, sVec < real > * excl, const char * separ="," ) {return printfAnyVec<real>(str, excl, "%lf", separ );}
-            static idx printfIVec(sStr * str, sVec < idx > * excl, const char * separ=",")  {return printfAnyVec<idx>(str, excl, "%"DEC,separ);}
-            static idx printfUVec(sStr * str, sVec < udx > * excl, const char * separ=",")  {return printfAnyVec<udx>(str, excl, "%"UDEC,separ);}
+            static idx printfIVec(sStr * str, sVec < idx > * excl, const char * separ=",")  {return printfAnyVec<idx>(str, excl, "%" DEC,separ);}
+            static idx printfUVec(sStr * str, sVec < udx > * excl, const char * separ=",")  {return printfAnyVec<udx>(str, excl, "%" UDEC,separ);}
 
             enum eCase {
                 eCaseNone=0, //!< no case modification
@@ -396,7 +396,7 @@ namespace slib {
                 specifiers dereference pointers to their corresponding data types.
                 For example: \code
                     idx val = 123;
-                    sString::xprintp(&s, "%"DEC" %n^a^b^x=123", &val, &val); // result is "123 x" \endcode */
+                    sString::xprintp(&s, "%" DEC " %n^a^b^x=123", &val, &val); // result is "123 x" \endcode */
             static char *  xprintp(sStr * str,const char * formatDescription,...)
             {
                 char * ret;

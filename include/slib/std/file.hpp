@@ -479,7 +479,7 @@ namespace slib {
             //! Return substring after the last directory separator in path
             static char * nextToSlash(const char * path)
             {
-                char * lastch = sString::searchSubstring(path, 0, "/"_"\\"__, sNotIdx, 0, 1);
+                char * lastch = sString::searchSubstring(path, 0, "/" _ "\\" __, sNotIdx, 0, 1);
                 if( !lastch )
                     return sString::nonconst(path);
                 else

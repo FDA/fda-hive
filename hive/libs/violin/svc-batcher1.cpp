@@ -34,7 +34,7 @@
 idx SvcBatcher1::OnExecute(idx req)
 {
 #ifdef _DEBUG
-    fprintf(stderr, "qpride form for req %"DEC":\n", req);
+    fprintf(stderr, "qpride form for req %" DEC ":\n", req);
     for (idx i=0; i<pForm->dim(); i++) {
         const char * key = static_cast<const char*>(pForm->id(i));
         const char * value = pForm->value(key);
@@ -111,7 +111,7 @@ idx SvcBatcher1::OnExecute(idx req)
             if(doCreateProcesses) {
                 err=sUsrProc::createProcesForsubmission(this , pForm , user, procObjs, &Svc, &strObjList, &log);
                 if( err ) {
-                    logOut(eQPLogType_Error, "Failed to create process for value set %"DEC": %s\n", iv, log.ptr());
+                    logOut(eQPLogType_Error, "Failed to create process for value set %" DEC ": %s\n", iv, log.ptr());
                     reqSetInfo(req, eQPInfoLevel_Error, "Failed to create process.");
                     reqSetStatus(req, eQPReqStatus_ProgError);
                     return 0;
@@ -120,7 +120,7 @@ idx SvcBatcher1::OnExecute(idx req)
 
 
             sDic <idx > * curCombination=valueSets.ptr(iv);
-            nameTemplate.printf(0," %s #%"DEC, svcToSubmit, iv+1);
+            nameTemplate.printf(0," %s #%" DEC, svcToSubmit, iv+1);
             //sStr batched_service;
 
             for( idx i=0 ; i<curCombination->dim() ; ++i ){
@@ -165,7 +165,7 @@ idx SvcBatcher1::OnExecute(idx req)
 
             idx cntParallel=sHiveTools::customizeSubmission(pForm , user, procObjs.dim() ? procObjs.ptr(0) : 0, &Svc, &log);
             if( !cntParallel ) {
-                logOut(eQPLogType_Error, "Failed to customize submission for value set %"DEC": %s\n", iv, log.ptr());
+                logOut(eQPLogType_Error, "Failed to customize submission for value set %" DEC ": %s\n", iv, log.ptr());
                 reqSetInfo(req, eQPInfoLevel_Error, "Failed to customize submission.");
                 reqSetStatus(req, eQPReqStatus_ProgError);
                 return 0;
@@ -173,7 +173,7 @@ idx SvcBatcher1::OnExecute(idx req)
 
             err=sUsrProc::standardizedSubmission(this , pForm , user, procObjs , cntParallel, &reqSub, &Svc, 0, &strObjList, &log );
             if( err ) {
-                logOut(eQPLogType_Error, "Failed to submit process for value set %"DEC": %s\n", iv, log.ptr());
+                logOut(eQPLogType_Error, "Failed to submit process for value set %" DEC ": %s\n", iv, log.ptr());
                 reqSetInfo(req, eQPInfoLevel_Error, "Failed to submit process.");
                 reqSetStatus(req, eQPReqStatus_ProgError);
                 return 0;

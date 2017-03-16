@@ -119,11 +119,11 @@ bool sUSrv::OnCommandUsage(const char * command, const char * value)
 
     udx userId = 0;
     if( value && value[0] ) {
-        sscanf(value, "%"UDEC, &userId);
+        sscanf(value, "%" UDEC, &userId);
     }
     sVarSet users;
     if( userId ) {
-        qpride.db().getTable(&users, "select userID, email from UPUser where userID = %"UDEC, userId);
+        qpride.db().getTable(&users, "select userID, email from UPUser where userID = %" UDEC, userId);
     } else {
         qpride.db().getTable(&users, "select userID, email from UPUser where type = 'user'");
     }
@@ -131,10 +131,10 @@ bool sUSrv::OnCommandUsage(const char * command, const char * value)
         sUsrUsage * usage = sUsrUsage::get(qpride, users.uval(iu, 0));
         if( usage ) {
             usage->update(m_statisticsTimeUnit);
-            logOut(eQPLogType_Info, "Usage %s for %"UDEC" %s\n", usage->Id().print(), usage->account(), users.val(iu, 1));
+            logOut(eQPLogType_Info, "Usage %s for %" UDEC " %s\n", usage->Id().print(), usage->account(), users.val(iu, 1));
             delete usage;
         } else {
-            logOut(eQPLogType_Info, "Usage for user %"UDEC" cannot be updated\n", users.uval(iu, 0));
+            logOut(eQPLogType_Info, "Usage for user %" UDEC " cannot be updated\n", users.uval(iu, 0));
         }
     }
     return true;
@@ -154,7 +154,7 @@ bool sUSrv::OnCommandAudit(const char * command, const char * value)
             const udx now = time(0) - keep * 60 * 60;
             udx q = 1;
             if( path ) {
-                path.printf(".%"UDEC, now);
+                path.printf(".%" UDEC, now);
                 int dump = open(path, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                 if( dump >= 0 ) {
                     sVarSet tbl;
@@ -162,7 +162,7 @@ bool sUSrv::OnCommandAudit(const char * command, const char * value)
                     q = 0; // reset count
                     do {
                         tbl.empty();
-                        qpride.db().getTable(&tbl, "SELECT historyID, createTm, sid, userID, operation, comment FROM UPHistory WHERE createTm < FROM_UNIXTIME(%"UDEC") LIMIT %"UDEC",10000", now, q);
+                        qpride.db().getTable(&tbl, "SELECT historyID, createTm, sid, userID, operation, comment FROM UPHistory WHERE createTm < FROM_UNIXTIME(%" UDEC ") LIMIT %" UDEC ",10000", now, q);
                         if( tbl.rows ) {
                             const char * nm[] = { "id", "time", "session", "user", "operation", "details" };
                             buf.cut(0);
@@ -186,14 +186,14 @@ bool sUSrv::OnCommandAudit(const char * command, const char * value)
                     if( !q ) {
                         sFile::remove(path);
                     } else {
-                        logOut(eQPLogType_Info, "Audit file '%s' %"UDEC" lines\n", path.ptr(), q);
+                        logOut(eQPLogType_Info, "Audit file '%s' %" UDEC " lines\n", path.ptr(), q);
                     }
                 } else {
                     logOut(eQPLogType_Error, "Cannot open audit dump file '%s': %s\n", path.ptr(), strerror(errno));
                 }
             }
             if( q ) {
-                qpride.db().execute("DELETE FROM UPHistory WHERE createTm < FROM_UNIXTIME(%"UDEC")", now);
+                qpride.db().execute("DELETE FROM UPHistory WHERE createTm < FROM_UNIXTIME(%" UDEC ")", now);
             }
         }
     }
@@ -212,7 +212,7 @@ void sUSrv::purge(TPurgeData & data)
         limit = limit ? limit : -1;
         idx expireAfter = cfgInt(0, "qm.ObjectExpireDays", 30);
         expireAfter = expireAfter >= 0 ? expireAfter : 30;
-        qpride.db().getTable(&res, "SELECT domainID, objID FROM UPObj WHERE softExpiration IS NOT NULL AND DATEDIFF(NOW(), softExpiration) >= %"UDEC" LIMIT %"UDEC, expireAfter, limit);
+        qpride.db().getTable(&res, "SELECT domainID, objID FROM UPObj WHERE softExpiration IS NOT NULL AND DATEDIFF(NOW(), softExpiration) >= %" UDEC " LIMIT %" UDEC, expireAfter, limit);
         if( res.rows ) {
             sStr deleted("\t");
             sStr not_deleted("\t");
@@ -251,9 +251,9 @@ void sUSrv::purge(TPurgeData & data)
                 not_deleted.cut0cut(not_deleted.length() - 2);
             }
 
-            logOut(eQPLogType_Info, "following %"DEC" objects have been purged:\n%s\n", cnt_deleted, deleted.ptr());
+            logOut(eQPLogType_Info, "following %" DEC " objects have been purged:\n%s\n", cnt_deleted, deleted.ptr());
             if( cnt_not_deleted ) {
-                logOut(eQPLogType_Warning, "following %"DEC" objects could not be purged:\n%s\n", cnt_not_deleted, not_deleted.ptr());
+                logOut(eQPLogType_Warning, "following %" DEC " objects could not be purged:\n%s\n", cnt_not_deleted, not_deleted.ptr());
             }
         }
     }
@@ -264,6 +264,6 @@ int main(int argc, const char * argv[])
 {
     sStr tmp;
     sApp::args(argc, argv);
-    sUSrv backend("config=qapp.cfg"__, sQPrideProc::QPrideSrvName(&tmp, "qm", argv[0]));
+    sUSrv backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "qm", argv[0]));
     return (int) backend.run(argc, argv);
 }

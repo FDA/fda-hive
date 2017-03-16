@@ -80,8 +80,8 @@ idx DnaAlignMulti::OnExecute(idx req)
     // _/
     // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    ::printf("Subject has %"DEC" sequences inside\n",sub->dim());
-    ::printf("Query has %"DEC" sequences inside\n",qry->dim());
+    ::printf("Subject has %" DEC " sequences inside\n",sub->dim());
+    ::printf("Query has %" DEC " sequences inside\n",qry->dim());
 
     for( idx i=0; i< sub->dim() ; ++i ){
         const char * seq=sub->seq(i);
@@ -132,6 +132,6 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
     sStr tmp;
     sApp::args(argc,argv); // remember arguments in global for future
-    DnaAlignMulti backend("config=qapp.cfg"__,sQPrideProc::QPrideSrvName(&tmp,"dna-alignmulti",argv[0]));
+    DnaAlignMulti backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-alignmulti",argv[0]));
     return (int)backend.run(argc,argv);
 }

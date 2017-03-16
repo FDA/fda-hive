@@ -172,7 +172,7 @@ static idx __on_sel(sVioTools * , const char * cmd, const char * , const char * 
 
         while( !feof(fp) ){
             inum=-1;
-            fscanf(fp, "%"DEC,&inum);
+            fscanf(fp, "%" DEC,&inum);
             fgets(buf,sizeof(buf),fp);
             if(inum==-1)continue;
 
@@ -278,7 +278,7 @@ static idx __on_fasta(sVioTools * QP, const char * cmd, const char * arg , const
             idx subdim = sub.parseSequenceFile(isStdIn ? 0 : o.ptr(), infile, flags, maxChunk ? maxChunk : ((idx)(8)*1024*1024*1024), gPrimers.length() ? gPrimers.ptr() : 0  , complexityWindow , complexityEntropy);
 
             if( verbose && subdim > 0 ) {
-                fprintf(stderr, "%"DEC"\n", sub.dim());
+                fprintf(stderr, "%" DEC "\n", sub.dim());
             }
             if( subdim > 0 ) {
                 cntTot += subdim;
@@ -292,7 +292,7 @@ static idx __on_fasta(sVioTools * QP, const char * cmd, const char * arg , const
                 break;
         }
         if (!isConcat){  // I don't want to print total sequences
-            QP->printf("%"DEC"\n",cntTot);
+            QP->printf("%" DEC "\n",cntTot);
         }
     }
     else if(sIs(cmd,"-vPrimers")){
@@ -305,7 +305,7 @@ static idx __on_fasta(sVioTools * QP, const char * cmd, const char * arg , const
         const sBioseq::EBioMode biomode = gPrint.ivalue("long")? sBioseq::eBioModeLong: sBioseq::eBioModeShort;
         sHiveseq sub(0, pForm->value("vioseq"), biomode);
 
-        QP->printf("%"DEC,sub.dim());
+        QP->printf("%" DEC,sub.dim());
         if(endline)QP->printf("\n");
     }
     else if(sIs(cmd,"-vAnnot")){
@@ -453,7 +453,7 @@ PERF_START("SEQUENCE");
                         else
                             oQP.printf(">");
                     }
-                    if(isNum)oQP.printf("%"DEC"-",i);
+                    if(isNum)oQP.printf("%" DEC "-",i);
                     //const char * id=sub.id(i);
                     if(!isNoID){
                         if(id[0]=='>' || id[0] == '@')++id;
@@ -462,9 +462,9 @@ PERF_START("SEQUENCE");
                             if(!supressIDline ) {
                                 // annot.get irange find id/idtype pairs from annotation into -> annotID, annotIDType
                                 if(annotID) {
-                                    oQP.printf(" %s:%s:%"DEC"-%"DEC,annotIDType, annotID,seqStart, slen+seqStart);
+                                    oQP.printf(" %s:%s:%" DEC "-%" DEC,annotIDType, annotID,seqStart, slen+seqStart);
                                 }else  {
-                                    oQP.printf(" %"DEC"-%"DEC,seqStart, slen+seqStart);
+                                    oQP.printf(" %" DEC "-%" DEC,seqStart, slen+seqStart);
                                 }
                             }
                         }
@@ -478,11 +478,11 @@ PERF_START("SEQUENCE");
                     }
                     if(!supressIDline ) {
                         idx subrpt = sub.rpt(i);
-                        if(isLen){oQP.printf(" len=%"DEC" rpt=%"DEC" sim=%"DEC" ",sublen,subrpt, sub.sim(i)); totLen+=sublen;}
-                        if(isPos){oQP.printf(" range=%"DEC"-%"DEC" ",seqStart,seqStart+seqLen); }
+                        if(isLen){oQP.printf(" len=%" DEC " rpt=%" DEC " sim=%" DEC " ",sublen,subrpt, sub.sim(i)); totLen+=sublen;}
+                        if(isPos){oQP.printf(" range=%" DEC "-%" DEC " ",seqStart,seqStart+seqLen); }
             //            if(isReverse){oQP.printf(" rev"); }
                         if(hiverpt && (subrpt != 1)){
-                            oQP.printf(" H#=%"DEC"", sub.rpt(i));
+                            oQP.printf(" H#=%" DEC "", sub.rpt(i));
                         }
 
                         //else oQP->printf("\n");
@@ -556,7 +556,7 @@ PERF_START("SEQUENCE");
             }
         }
         if(isLen && cnt>1)
-            oQP.printf("%"DEC" total\n",totLen);
+            oQP.printf("%" DEC " total\n",totLen);
         oQP.add0();
         if(out && (strcmp(out, "stdout") != 0)){
             ofil.printf("%s\n", oQP.ptr(0));
@@ -613,10 +613,10 @@ PERF_PRINT();
             compareS(idcont,id);
 
             if(!isId)QP->printf(">");
-            if(isNum)QP->printf("%"DEC" ",i);
+            if(isNum)QP->printf("%" DEC " ",i);
             if(!isNoID)QP->printf("%s",id);
-            if(isLen){QP->printf(" len=%"DEC" ",len); totLen+=len;}
-            if(isPos){QP->printf(" range=%"DEC"-%"DEC" ",seqStart,seqStart+seqLen); }
+            if(isLen){QP->printf(" len=%" DEC " ",len); totLen+=len;}
+            if(isPos){QP->printf(" range=%" DEC "-%" DEC " ",seqStart,seqStart+seqLen); }
 
             //else QP->printf("\n");
             if(isId ){if(endline)QP->printf("\n");continue;}
@@ -633,7 +633,7 @@ PERF_PRINT();
                     idx qlen=seqLen ? seqLen : sublen;
                     if(isQualBit || (sub.hdrR.flags&sVioseq::eParseQuaBit)) {
                         for( idx iq=seqStart; iq<qlen; ++iq ){
-                            //QP->printf("%"DEC " ",(idx)qua[iq/8]&((idx)1)<<(iq%8) ? 40 : 10);
+                            //QP->printf("%" DEC " ",(idx)qua[iq/8]&((idx)1)<<(iq%8) ? 40 : 10);
                             //if(wrap && iq && (iq%wrap)==0)QP->printf("\n");
                             idx qqq=(idx)qua[iq/8]&((idx)1)<<(iq%8) ? 40 : 10;
                             QP->printf("%c",(idx)(qqq+33));
@@ -641,7 +641,7 @@ PERF_PRINT();
                         }
                     } else {
                         for( idx iq=0; iq<len; ++iq ){
-                            //QP->printf("%"DEC " ",(idx)qua[iq]);
+                            //QP->printf("%" DEC " ",(idx)qua[iq]);
                             QP->printf("%c",(idx)(qua[iq]+33));
                             //if(iq && (iq%wrap)==0)QP->printf("\n");
                         }
@@ -654,7 +654,7 @@ PERF_PRINT();
             if(endline)QP->printf("\n");
         }
         if(isLen && cnt>1)
-            QP->printf("%"DEC" total\n",totLen);
+            QP->printf("%" DEC " total\n",totLen);
 
         sBioseq::initModule(sBioseq::eATGC);
 
@@ -712,7 +712,7 @@ PERF_PRINT();
                 sStr subid;
                 sString::searchAndReplaceSymbols(&subid, nPtr, 0, ":",0,0,true , true, false, true);
                 idx i=atol(subid.ptr());
-//                QP->printf(" id=%"DEC,i);
+//                QP->printf(" id=%" DEC,i);
                 if(i<sub.dim())
                 {
                     sStr subID;sString::searchAndReplaceSymbols(&subID, sub.id(i), 0, ","," ",0,true,true,false,false);
@@ -732,8 +732,8 @@ PERF_PRINT();
                         }
                         else
                             seqLen=sub.len(i)-sStart;
-                        fastaTitle.printf(":%"DEC"-%"DEC",",sStart,seqLen);
-                        //QP->printf(" start=%8"DEC" , length=%8"DEC"\n",sStart,seqLen);
+                        fastaTitle.printf(":%" DEC "-%" DEC ",",sStart,seqLen);
+                        //QP->printf(" start=%8" DEC " , length=%8" DEC "\n",sStart,seqLen);
                     }
                     else
                         QP->printf(" whole sequence used \n");
@@ -742,7 +742,7 @@ PERF_PRINT();
                     t.add(0);
                 }
                 else
-                    QP->printf("%4"DEC" NOT FOUND",i);
+                    QP->printf("%4" DEC " NOT FOUND",i);
             }
             t.add0(2);
             fastaTitle.printf(fastaTitle.length()-1,")");
@@ -753,10 +753,10 @@ PERF_PRINT();
             sStr tcmb;
             /*while(*recomb){
                 sStr sid;
-                sString::extractSubstring(&sid,recomb,0,1,","_":"__,0,0);
+                sString::extractSubstring(&sid,recomb,0,1,"," _ ":" __,0,0);
                 i=atol(sid.ptr());
-                sid.printf(0,"%s"_"%s",sub.id(i)+1,sub.id(i)+1);
-                recomb=sString::cleanMarkup(recomb,0,","_","__,","_":"__,sid.ptr(),1,false,false);
+                sid.printf(0,"%s" _ "%s",sub.id(i)+1,sub.id(i)+1);
+                recomb=sString::cleanMarkup(recomb,0,"," _ "," __,"," _ ":" __,sid.ptr(),1,false,false);
             }*/
 
             out.printf(0,"%s\n",fastaTitle.ptr());
@@ -948,7 +948,7 @@ PERF_PRINT();
         if (useAnnotFile){
             QP->printf("Insilico - Successfully parsed annotation File: %s\n", annotFile);
         }
-        QP->printf("Insilico - Successfully generated %"DEC" short reads in: %s", numReads, o1.ptr());
+        QP->printf("Insilico - Successfully generated %" DEC " short reads in: %s", numReads, o1.ptr());
         if (randseqFlags & sRandomSeq::eSeqPrintPairedEnd){
             QP->printf(" and %s\n", o2.ptr());
         }
@@ -1021,9 +1021,9 @@ PERF_PRINT();
                 break;
             }
         }
-        QP->printf("Files found with extension \"%s\": %"DEC"\n", srcExtension, cntFiles);
-        QP->printf("Files skipped: %"DEC"\n", skippedRows);
-        QP->printf("Files created with extension \"%s\": %"DEC"\n", srcExtension, cntRows);
+        QP->printf("Files found with extension \"%s\": %" DEC "\n", srcExtension, cntFiles);
+        QP->printf("Files skipped: %" DEC "\n", skippedRows);
+        QP->printf("Files created with extension \"%s\": %" DEC "\n", srcExtension, cntRows);
     } else if( sIs(cmd, "-about") ) {
         QP->printf("Hive (ver. 0.5) Credits !!!!\n");
     }

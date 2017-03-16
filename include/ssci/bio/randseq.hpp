@@ -351,7 +351,7 @@ namespace slib
                     RangeSeq *range = rangeContainer.ptr(*key);
                     idx irow = range->sourceSeqnum; // use the real irow from sBioseq
                     seqLen = range->sourceEndRange - range->sourceStartRange;
-                    out->printf("%s, %"DEC", %"DEC"\n", Sub->id(irow), seqLen, cnt);
+                    out->printf("%s, %" DEC ", %" DEC "\n", Sub->id(irow), seqLen, cnt);
                 }
                 return true;
             }

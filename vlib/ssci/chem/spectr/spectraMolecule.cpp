@@ -38,7 +38,7 @@ sSpectrMS::isoDistributionList sSpctrMolecule::IsoD;
 bool sSpctrMolecule::inputMolecules(sStr & rst, sStr & inpMolList)
 {
     idx st = sNotIdx, ed = sNotIdx;
-    char * sect = sString::searchStruc(rst.ptr(), rst.length(), "[Molecules]"__, "["__, &st, &ed);
+    char * sect = sString::searchStruc(rst.ptr(), rst.length(), "[Molecules]" __, "[" __, &st, &ed);
     if( !sect || !IsoD.readIsoDistributions(sect, ed - st, 1e-6, 1e-3, 0) ) {
         return false;
     }
@@ -57,7 +57,7 @@ const char * sSpctrMolecule::prepareMolList(sStr * mollist,const char * separ /*
             else
             mollist->add0(1);
         }
-        mollist->printf("%"DEC" %.3lf %s", imol + 1, IsoD.isoDistr[imol].getMass(), (const char *) IsoD.isoDistr.id(imol));
+        mollist->printf("%" DEC " %.3lf %s", imol + 1, IsoD.isoDistr[imol].getMass(), (const char *) IsoD.isoDistr.id(imol));
     }
     return mollist->ptr();
 }

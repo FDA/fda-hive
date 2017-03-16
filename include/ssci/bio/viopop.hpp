@@ -336,7 +336,7 @@ class sViopop
                         res.printf("\"%s\"",Sub->id(i));
                     }
                     else {
-                        res.printf("%"DEC,i);
+                        res.printf("%" DEC,i);
                     }
                 }
             }
@@ -629,7 +629,7 @@ class sViopop
         void printPositionCoverageinJSON(sStr & out, idx pos, char let , idx cov, const char * sim, bool abs, idx t_cov );
 
         const char * contructSimilaritiesID ( idx icl, idx pos, idx reference ) {
-            return _t_buf.printf(0,"%"DEC"-%"DEC"-%"DEC, icl,pos,reference);
+            return _t_buf.printf(0,"%" DEC "-%" DEC "-%" DEC, icl,pos,reference);
         }
 
         bool buildMergeDictionary( ParamCloneIterator * params, sDic< sVec<idx> > & mergeTree, idx clCnt );
@@ -638,7 +638,7 @@ class sViopop
 
         inline bool isValidClone (idx iCl) {
             if(mergeDict) {
-                _t_buf.printf(0,"%"DEC,iCl);
+                _t_buf.printf(0,"%" DEC,iCl);
                 return mergeDict->get(_t_buf.ptr());
             }
             else {
