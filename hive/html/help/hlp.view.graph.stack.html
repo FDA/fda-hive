@@ -1,0 +1,22 @@
+<id>hlp.view.graph.stack.html</id>
+<title>Stack</title>
+<definition>View mutation bias and stack for alignment</definition>
+<description>This visualization has two components, the mutation bias graph and the stack. To view detailed information, a reference segment must first be
+selected from the <a href="hlp.obj.svc-align-hexagon.tab-list.html">hits list</a> to the left by clicking the corresponding row.<br/>
+<br/>
+The stack displays essentially the same information as the alignment table in a different format, representing all matches as dots (.) and only displaying the actual
+nucleotide of the read at positions where the read and reference do not match. The column headings provide the information for the reference, where as each subsequent row
+contains the corresponding information for each read. Columns include:<br/>
+<ol>
+<li> The first column indicates the position of the left end of the reference frame. This can be changed by entering a different value in the "position" search box in the top right
+corner of the stack tab. The number in successive rows indicates the corresponding positions of reads.</li>
+<li>The nucleotide sequence displayed is the reference sequence at that position. Dots in in the corresponding rows indicate that the read matches the reference at a given position and
+actual reported letters are the base called at that position of the read which does not match the reference.</li>
+<li>The third column reports the end position of alignment with respect to the reference frame. Again, this can be changed by centering around a different position using the "position"
+search box in the top right.</li>
+<li>This column heading should report the name of the specific reference segment selected from the hits list on the left. Subsequent rows display the ID lines for the corresponding
+aligned reads.</li>
+<li>The <span class='pn'>Repeats</span> column lists the number of exact repeats of that read which were contained in the reads file.</li>
+</ol>
+
+</description>

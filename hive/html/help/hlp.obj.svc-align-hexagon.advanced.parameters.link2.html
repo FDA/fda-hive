@@ -1,0 +1,101 @@
+<id>hlp.obj.svc-align-hexagon.advanced.parameters.link2.html</id>
+<title>HIVE-Hexagon</title>
+<definition>DNA Sequence Alignment</definition>
+<description>
+HIVE alignments are highly customizable to meet 
+the flexible demands of a variety of use-cases. 
+The following provides instruction and discussion 
+about advanced alignment parameters.
+<br/>
+<br/>
+<br/>
+<span class='heading'>Alignment Parameters</span>:
+<ul style="padding-left:4%">
+<dl>
+    <dt><span class='pn'>Alignment Scope</span></dt>
+       <dd>
+      Alignment of sequences across the reference genome can 
+     be done locally or globally by choosing the appropriate 
+        value from the drop-down menu.
+     <ul>
+            <li>
+                <i>Local</i> - Tries to find the best match in 
+                particular regions of the genome; better suited 
+                for identifying conserved residues or domains.
+            </li>
+            <li>
+                <i>Global</i> - Tries to match the entire sequence
+             length to the reference genome; good for similarity
+                and identity searches between sequences.
+            </li>
+        </ul>
+        </dd>
+    </br>
+    <dt><span class='pn'>Gap Continuation Cost</span></dt>
+        <dd>
+            This is the scoring cost associated with continuation of 
+            a gap, default set to -4.
+        </dd>
+    <br/>
+    <dt><span class='pn'>Gap Opening Cost</span></dt>
+        <dd>
+            This is the scoring cost associated with opening a gap. 
+            In a biological scenario, single base insertions or 
+            deletions are less probable than larger insertions or 
+            deletions.  For this reason, a gap opening is assigned a 
+            higher penalty than continuation of a gap while computing 
+            the alignment score.  If gaps continue over multiple 
+            positions after the gap has already been opened, they are 
+            more likely the result of a true insertion or deletion with 
+            potential evolutionary significance. Thus, the default Gap 
+            open penalty has a more negative value than the default Gap 
+            next penalty. Default set to -12.
+        </dd>
+    <br/>
+    <dt><span class='pn'>Match Benefit</span></dt>
+        <dd>
+            This is the associated score for a matching position, 
+            default set to 5.
+        </dd>
+    <br/>
+    <dt><span class='pn'>Match Continuation Penalty</span></dt>
+        <dd>
+            This the is scoring cost associated with calling a mismatch 
+            adjacent to a position with a mismatch, default set to -6.
+        </dd>
+    <br/>
+    <dt><span class='pn'>Mismatch Penalty</span></dt>
+        <dd>
+            This is the scoring cost associated with a mismatch between 
+            the query and reference, default set to -4.
+        </dd>
+    </br>
+    <dt><span class='pn'>Seed K-mer</span></dt>
+        <dd>
+            A seed is a short fragment of the query sequence used to 
+            search for nucleotide similarity. Seed length determines the 
+            size of the K-mer to look up in a hash table. Higher seed 
+            values make the alignment faster but have a potential of 
+            decreasing the sensitivity of the method. The default seed 
+            length is set at 11 letters, corresponding to the seed length 
+            employed by the BLAST algorithm. Alternative seed lengths 
+            pre-populate the drop-down menu.
+        </dd>
+    <br/>
+    <dt><span class='pn'>Short Terminus Alignment</span></dt>
+        <dd>
+            Alignment coverage near the end (terminus) of a reference segment 
+            is often less than ideal due to the Minimum Match Length threshold. 
+            For example, if the Minimum Match Length parameter is set to 30 but 
+            you have a read that exactly matches 20 base pairs up to the end of 
+            the segment, this exact match over the area that matters will be 
+            excluded because it is shorter than the specified threshold. This 
+            parameter essentially allows specification of a different match length 
+            threshold in the region of the terminus. The default setting to 0 
+            means to use the default Minimum Match Length.
+        </dd>
+    <br/>
+</dl>
+</ul>
+<a href="hlp.obj.svc-align-hexagon.advanced.parameters.html">Click here to go back to Advanced Parameters</a>.
+</description>

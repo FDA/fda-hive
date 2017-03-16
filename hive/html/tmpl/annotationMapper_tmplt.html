@@ -1,0 +1,197 @@
+<!--
+$Id: annotationMapper_tmplt.html 4112 2013-09-13 23:57:20Z lam $
+vim: set et ts=4 sts=4:
+-->
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+ <script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script src="js-obj-new/svc-algo-ionAnnotMapper.js"></script>
+
+<script>
+
+    // Set the Annotation Mapper title bar
+    setLocationTitle("HIVE: Annotation Mapper");
+
+    // Determine which parameters will be visible (name field from the database, table: UPTypeFiled under annotation mapper object [id = 115])
+    // Also can include inherited fields
+    var valgoProcess_visibleParameters = ["name", "reference", "profilerParams", "crossMapMode", "annotListList" ];
+    // Set the default mode to algo-annotMapper
+    var valgoProcess_qpsvc = "algo-ionAnnotMapper";
+    var valgoProcess_svc = "svc-algo-ionAnnotMapper";
+    
+    
+    var annotationTitle = "Annotation Mapper Input Parameters";
+
+    var valgoProcess_parameterTitle= annotationTitle;
+    var valgoProcess_submitButtonName="CROSSMAP";
+    
+    /*
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    _/
+    _/ File Based Lists and Trees 
+    _/
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+     */
+
+    var header = "";
+    var reference = "";
+    var anotationFileList = "";
+
+    var algoProcess = new valgoProcess(docLocValue("id"), valgoProcess_qpsvc, valgoProcess_svc);
+    algoProcess.visibleParameters = valgoProcess_visibleParameters;
+    
+    algoProcess.callbackLoaded = process_callbackLoaded;
+    algoProcess.inputChanged = process_inputChanged;
+    algoProcess.doneComputing = process_doneComputing;
+    algoProcess.autoexpand=10; // show all the fields. By default, they are collapsed
+ // Set any initial presets here
+    algoProcess.initialPresets={
+            name:"> ",
+            service: valgoProcess_qpsvc
+    }
+    
+    algoProcess.recViewerName = 'DV_Parameter_view';
+
+    
+    var process_callbackLoaded=function(rViewer){
+        console.log("page loaded");
+
+        var profiler = docLocValue("profiler");
+        var dbsnp = docLocValue("dbSNP");
+        var threshold = docLocValue("threshold");
+        if (profiler && dbsnp){
+            //algoProcess.setValueList([{"annot":profiler},{"annot":profiler}]);
+            //algoProcess.onAddElement("");
+            constructGroupAnnotList(profiler,dbsnp,threshold);
+        }
+        else if(algoProcess.loadedID && algoProcess.modeActive) {
+            process_inputChanged(rViewer); 
+          }
+        
+        return;
+    }
+
+     // Set the function for whenever there is a change in the form 
+    var process_inputChanged = function(viewer,elem) {
+        //console.log("inputChanged");
+        
+        // When a change occurs, get the reference file and populate the seqIDs in the next field     
+        var ref = algoProcess.getValue("reference");
+        // Check to see if the reference was changed, or if the same reference was selected (lazy loading)
+        if (ref != reference) {
+            // Assign to global variable to check next time a reference is changed (to ignore if the reference is not actually changed)
+            // For Lazy Loading
+            reference = ref;
+            
+            // Get reference information from backend via anotSeqIDs method
+            var ref_url = "http://?cmd=anotSeqIDs&reference=" + ref;
+            vjDS.add("Retrieving Reference IDs", "dsSeqIDs", "static://");
+            //vjDS["dsSeqIDs"].reload(ref_url); // needed?
+            var refSubDS = vjDS["dsSeqIDs"];
+            refSubDS.clear_callbacks();
+            
+            // Register the callback to add the data (list of seq IDs) to Sequences Annotated
+            // This includes the all option
+            refSubDS.register_callback({
+                func: function(param, data) {
+                    // Get the drop down box
+                    var refSubID = algoProcess.viewer.getElement("referenceSubID");
+                    // Add Seq ID data
+                    refSubID.fld.constraint_data = "all|" + data;
+                    // Redraw the drop down box
+                    algoProcess.viewer.redraw();
+                }
+            });
+            // Now that all methods have been added, reload the data for the Seq ID list
+            refSubDS.reload(ref_url,true);
+        } 
+        
+        var anotFile = algoProcess.getValue("annot", "join").split(",");
+        // Don't reload if annotation files are not listed.
+        if (anotFile != anotationFileList) {
+            annotationFileList = anotFile;
+            
+            var curAnot = anotFile[anotFile.length - 1];
+            
+            //var url = "http://?cmd=anotGetIdTypesFromAnotFile&objID=" + curAnot;
+            var url = "static://";
+            vjDS.add("", "dsfilterColumn", "static://");
+            vjDS["dsfilterColumn"].reload(url, true);
+            var dd = vjDS["dsfilterColumn"];
+            dd.parser = function(ds, text) {
+                header = "";
+                console.log(text);
+                var hd = text.split("\n");
+                for (var ii = 0; ii < hd.length; ++ii) {
+                    if (ii > 0)
+                        header += "|";
+                    var tmphd = hd[ii].split(",");
+                    if (tmphd[1] == undefined || !tmphd[1].length)
+                        continue;
+                    header += tmphd[1];
+                }
+                var el = algoProcess.viewer.getElement("filterColumn");
+                el.fld.constraint_data = header;
+                algoProcess.viewer.redraw();
+            }
+        }
+        return;
+    }
+    
+    function constructGroupAnnotList(prof,db,threshold){
+        algoProcess.viewer.getElement("threshold").value = threshold;
+        var tmp_col = algoProcess.viewer.getElement("annotListList");
+        var tmp_flCl =  tmp_col.children[0].children[1];
+        
+        tmp_col.children[0].children[0].value = prof;
+        
+        algoProcess.viewer.constructInfrastructure(tmp_col, "annotList", false,1);
+        tmp_col.children[1].children[0].value = dbSNPObjID;
+        algoProcess.viewer.redraw();
+        
+    }
+    
+    // Finished computing function
+    var process_doneComputing=function(viewer, reqid, stat) {
+        console.log("Done Computing");
+        if (stat >= 5) {
+            processID = docLocValue("id");
+            
+            currentCompletionState = "computed";
+            algoWidgetObj.iterateAlgoJSON (algoWidgetObj.optionsForPage.subTabs, "algoMenu");
+            
+            var isIon = (docLocValue("cmdMode").toLowerCase().indexOf("iondb") != -1 ) ? true : false;
+            
+            var node = {
+                _type : 'svc-algo-annotMapper',
+                id : processID
+            };
+            
+            dna_annotMapper = (node._type, node, $.getAlgoViewManager().options.jsonForPage.subTabs.results);
+            
+        } else if (stat > 2) {
+            
+        }
+        
+        return true;
+    }
+    
+    $(document).ready(function() 
+            {
+                globalAlgo = $('#mainAlgoArea').algoview({
+                    algoObj: algoProcess,
+                    svcType: valgoProcess_svc,
+                    algoTitle: annotationTitle/* ,
+                    paramsPos:{posId: 'layout_inputs', top:'0', bottom:'60%', left:'20%', right:'75%'} */
+                });
+             }
+    );
+</script>

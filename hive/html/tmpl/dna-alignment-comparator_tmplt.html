@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<script type="text/javascript" src="d3js/core/d3.js"></script>
+<script type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/correlation_cords.js"></script>
+<script type="text/javascript" src="d3js/parcoords_plot.js"></script>
+<script type="text/javascript" src="d3js/venn_diagram.js"></script>
+<script type="text/javascript" src="js/vjSVGView.js"></script>
+<script src="js-obj-new/svc-alignment-comparator.js"></script> 
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script type="application/javascript" language="JavaScript1.1" src="js/vjTableViewX2.js" ></script>
+<script  src='js/vjPluggableToolbar.js'> </script>
+
+<script>
+google.load("visualization", "1", {packages:["corechart"]});
+
+    // Set the DNA Pipeline title bar
+    setLocationTitle("Alignment comparator");
+    
+    var algoProcess=new valgoProcess(docLocValue("id"),  "dna-alignment-comparator", "svc-alignment-comparator" );
+    
+    algoProcess.visibleParameters=["name","aligners","seqClassify", "entryExl"];
+    
+    algoProcess.submitButtonName="SUBMIT";
+    algoProcess.docLocsToBorrow=["aligners","seqClassify"];
+    algoProcess.recViewerName = 'DV_Parameter_view';
+
+    // Set the function for whenever there is a change in the form 
+    algoProcess.inputChanged = function(viewer,elem) {
+        console.log("inputChanged");
+    };
+    
+    algoProcess.callbackLoaded=function(viewer){
+      console.log("inputloaded");
+      return;
+    };
+    
+    algoProcess.initialPresets={
+         name:"> ",
+         service:"svc-alignment-comparator"
+    };
+    
+    $(document).ready(function() 
+    {
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: "svc-alignment-comparator",
+            algoTitle: "Alignment comparator"
+        });
+     });
+  
+  
+</script>
+

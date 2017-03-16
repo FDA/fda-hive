@@ -1,0 +1,49 @@
+<!--
+ $Id$
+-->
+<script>
+    gInitList+="user_registered_init();";
+    
+    function user_registered_init()
+    {
+        loc = "" + document.location;
+        var isrch = loc.indexOf(":");
+        if (isrch != -1) {
+            loc = loc.substring(isrch + 3);
+            isrch = loc.indexOf("/");
+            if (isrch != -1) {
+                loc = loc.substring(0, isrch);
+            }
+        }
+        gObject("cc_link").href = gObject("cc_link").href.replace(/@HOST@/gi, loc);
+    }
+</script>
+
+<span id="sectGeneral" ><div class="HIVE_section">
+    <span class="HIVE_section_title" id="titleUsr"></span>
+    <div class="HIVE_sect1" >
+        <table >
+            <tr>
+                <td valign=top>
+                    <table width="100%" class="HIVE_table">
+                        <tr>
+                            <td class="HIVE_variable">Your account on HIVE was successfully created.<br/>
+                                                    Before you can start using the system we need to verify your email address
+                                                    and get account approved.<br/>
+                                                    Email was sent to the address you provided during registration.
+                                                    Please check your inbox.
+                                                    <br/><br/>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+</div></span>
+
+
+</form>
+    
+

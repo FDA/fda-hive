@@ -1,0 +1,9 @@
+id,title,icon,description
+dna-hexagon,HIVE-hexagon,img-algo/hive-hexagon.gif,Native HIVE-hexagon algorithm optimized for High Performance Cloud computing environments 
+dna-alignx-blast,NCBI-blast,img-algo/ncbi-blast.jpeg,NCBI blast algorithm developped by National Center for Biotechnology information
+dna-alignx-bowtie,Bow-Tie,img-algo/bow-tie.jpeg,Bow Tie algorithm developped by...
+dna-alignx-tophat,Tophat,img-algo/svc-align-tophat.gif, TopHat based workflow 
+dna-alignx-magic,Magic,img-algo/svc-align-magic.gif,Spliced read mapper for RNA-Seq
+dna-alignx-bwa,BWA,img-algo/svc-align-bwa.gif,Burrow Wheeler Algorithm
+dna-alignx-clustal,Clustal,img-algo/svc-align-clustal.gif,Clustal multiple alignment
+dna-alignx-mafft,MAFFT,img-algo/svc-align-mafft.gif,MAFFT multiple alignment

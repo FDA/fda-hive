@@ -1,0 +1,147 @@
+<!--
+$Id$
+vim: set et ts=4 sts=4:
+-->
+<script type="application/javascript" language="JavaScript1.1" src="js/vjTableViewX2.js" ></script>
+
+<script  src='js/vjSVGView.js'> </script>
+<script  src='js/vjPluggableToolbar.js'> </script>
+<script  src='js/vjTreeSeries.js'> </script>
+<script  src='js-graph/vjSVG_Phylogram.js'> </script>
+<script  src='js-graph/vjSVG_base.js'> </script>
+<script  src='js-graph/vjSVG_primitive.js'> </script>
+<script  src='js-graph/vjSVG_plot.js'> </script>
+<script  src='js-graph/vjSVG_HeatMap.js'> </script>
+<script  src='js/vjIFrameView.js'> </script>
+<script  src='js-graph/vjSVG_SOM.js'></script>
+<script  type="text/javascript" src="d3js/core/d3.js"></script>
+<script  type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script  type="text/javascript" src="d3js/stackable_group_bars.js"></script>
+<script  type="text/javascript" src="d3js/phylog_tree.js"></script>
+
+<script>
+if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
+javaScriptEngine.include("js-graph/vjSVG_plot.js");
+javaScriptEngine.include("js-graph/vjSVG_base.js");
+javaScriptEngine.include("js-graph/vjSVG_Axis.js");
+javaScriptEngine.include("js-graph/vjSVG_primitive.js");
+javaScriptEngine.include("js-graph/vjSVG_Defaults.js");
+javaScriptEngine.include("js-graph/vjSVG_General.js");
+</script>
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/tabs.css');
+    $.loadScript('jsx/widgets/jquery/jquery.tableWidgetController.js');
+</script>
+
+<script type="application/javascript">
+
+google.load("visualization", "1", {
+    packages : [ "corechart" ]
+});
+
+setLocationTitle("TableQuery");
+ 
+ $(document).ready(function(){
+        var objs = docLocValue("objs", -1);
+        var tqsId = docLocValue("tqsId", -1);
+        var tbls = docLocValue("tbl", -1);
+        var dataId = docLocValue("dataId", -1);
+        var cols = docLocValue("cols", -1);
+        var dataCmd = docLocValue("dataCmd", -1);
+        var objQry = docLocValue("objQry", -1);
+      
+        var fromHitList=docLocValue("extendAnnot",-1);
+        
+        var urlToUse = "qpbg_tblqryx4://";
+        if (tbls == -1)
+            urlToUse += "_.csv//spcTypeObj=tblqryx2&cnt=1000&raw=1";
+        else
+            urlToUse += tbls + "//spcTypeObj=tblqryx2&cnt=1000&raw=1";
+        
+        if (objs != -1)
+        {
+            urlToUse += "&objs=" + objs;
+            latestCommand = "objs";
+        }
+        if (tqsId != -1)
+            urlToUse += "&tqsId=" + tqsId;
+        if (dataId != -1)
+            urlToUse += "&dataId=" + dataId;
+        if (cols != -1)
+            urlToUse += "&cols=" + cols;
+        if (dataCmd != -1)
+            urlToUse += "&dataCmd=" + encodeURIComponent(dataCmd);
+        if (objQry != -1)
+            urlToUse += "&objQry=" + vjDS.escapeQueryLanguage(objQry);
+
+        var urlToPut = "static://";
+        if (urlToUse != "qpbg_tblqryx4://_.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200")
+        {
+            urlToPut = urlToUse;
+            urlToPut = urlExchangeParameter(urlToPut, "cols", "0-200");
+        }
+        if (objs !=-1 && fromHitList != -1){
+            var ionObjs = docLocValue("ionObjs");
+            var cnt = docLocValue('cnt') ? docLocValue('cnt') : 50;
+            if (ionObjs.length){
+                urlToPut = "cmd=alCount&extendAnnot=1&cnt="+cnt+"&objs=" + objs + "&ionObjs=" + ionObjs;
+            }
+            else {
+                urlToPut = "cmd=alCount&extendAnnot=1&cnt=50&objs=" + objs;
+            }
+            var profilerID = docLocValue("profilerID");
+            if (profilerID.length){
+                urlToPut += "&profilerID=" + profilerID;
+            }
+            urlToPut = vjDS.escapeQueryLanguage(urlToPut);
+            urlToPut = "qpbg_tblqryx4://_.csv//dataCmd="+urlToPut + "&cnt="+cnt;
+        }
+        vjDS.add("Table query result", "dsTblQryX2", urlToPut);
+      
+        var config = {
+                layout: {
+                    items:[
+                    {
+                        id: 'mainArea',
+                        size: '100%',
+                        allowMaximize: true,
+                        allowResize: false,
+                        tabs:{
+                            items: [{
+                                active: true,
+                                title: 'Results',
+                                name: 'results',
+                                allowClose: false,
+                                overflow: "auto",
+                                view: {
+                                    name: 'tableWidgetController',
+                                    options:{
+                                        nameOfArea: "mainArea",
+                                        data: "dsTblQryX2",
+                                        formName: "formTblqryX2"
+                                    }
+                                }
+                            }]
+                        }
+                    }]
+                  }
+                };
+        
+        $('#tableDiv').layoutmanager({
+            type: 'horizontal',
+            saveState: false,
+            config: config
+        });
+ });
+
+</script>
+
+
+<form name="formTblqryX2">
+    <div class="content">
+        <div class="main-content" id='tableDiv'></div>
+    </div>
+</form>

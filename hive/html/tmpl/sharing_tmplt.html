@@ -1,0 +1,958 @@
+<!--
+ $Id$
+-->
+
+<script>
+    gInitList+="perm_init();";
+
+    var uTree=vjDV.locate("dvUserTreeViewer.hierarchy.0");
+    var oList=vjDV.locate("dvObjListViewer.objects.0");
+    var poList=vjDV.locate("dvObjListViewer.objects.2");
+    var foList=vjDV.locate("dvObjListViewer.objects.3");
+    var dList=vjDV.locate("dvObjListViewer.dependencies.0");
+    var pdList=vjDV.locate("dvObjListViewer.dependencies.2");
+    var fdList=vjDV.locate("dvObjListViewer.dependencies.3");
+    var can_check_if_can_share=true;
+
+    setLocationTitle ("sharing: HIVE")
+
+    function vjFakeSource(sourcebase)
+    {
+        vjDataSource.call(this, sourcebase);
+        this.unload=function() {
+            this.objList = null;
+            this.uTree = null;
+
+            this.cntUsers = this.cntObjects = this.cntAll = 0;
+            this.permTot = null;
+            this.groups = [];
+            this.objects = [];
+
+            this.state = "";
+        };
+        this.unload();
+
+        this.load=function() {
+            if (this.state == "done" || this.state == "err") {
+                return true;
+            }
+            this.load_callback();
+            return true;
+        };
+
+        this.load_callback = function() {
+            if (this.objList) {
+                this.call_callbacks("arrived");
+                this.state = "done";
+                this.timeDone = new Date();
+
+                this.groups = this.uTree.accumulate("node.selected", "node.id", 0);
+                this.objects = this.objList.accumulate(function(node) { return node.id && node.selected }, function(node) { return node.id }, 0);
+
+                this.cntUsers = this.groups.length;
+                this.cntObjects = this.objList.dim();
+                this.cntAll = this.cntUsers * this.cntObjects;
+                this.permTot = vjHC.permissionAccumulator(this.objList.accumulate(function(node) { return node.id && node.selected }, function(node) { return node._perm }, 0), 0, this.groups);
+
+                this.call_refresh_callbacks();
+            } else {
+                this.state = "";
+            }
+        };
+    }
+
+    function perm_init()
+    {
+        vjDV.add("dvUserTreeViewer",550,600);
+
+        vjDS.add("Retrieving User/Group Hierarchy", "dsUserTree", "http://?cmd=grpList&raw=1&usr=1&ugrp=1");
+        vjDS.add("Retrieving User List", "dsUserList", "http://?cmd=usrList&ugrp=0raw=1");
+        vjDS.add("Synchronizing Objects with the Permission Server", "dsObjList", "http://?cmd=propget&ids=" + docLocValue("ids") + "&mode=csv&perm=1&prop=_brief,created");
+        vjDS.add("Synchronizing Objects with the Permission Server", "dsObjDeps", "http://?cmd=propget&objQry=allusedby(\"" + docLocValue("ids") + "\",{recurse:true})&mode=csv&perm=1&prop=_brief,created");
+        vjDS.add("infrastructure: Constructing permissions color key", "dsObjListColorDiv", "innerHTML://dsObjListColorDiv");
+        vjDS.add("infrastructure: Constructing permissions list", "dsPermList", "innerText://dsPermissionDIV");
+        vjDS.add("infrastructure: Constructing permissions flags", "dsPermFlags", "innerHTML://dsPermFlagsDIV");
+
+        vjDS["obj_dsObjTblArr"] = new vjFakeSource( { title: "infrastructure: Object table", name: "obj_dsObjTblArr", url: "static://"} );
+        vjDS["dep_dsObjTblArr"] = new vjFakeSource( { title: "infrastructure: Dependency table", name: "dep_dsObjTblArr", url: "static://"} );
+
+        vjDV.dvUserTreeViewer.add("hierarchy", "user-group", "tab", [
+            new vjUserShareTreeView({
+                data: [ "dsUserTree", "dsUserList", "dsObjList", "dsObjDeps" ],
+                treeSourceName: "dsUserTreeViewSource",
+                formObject: document.forms["form-userList"],
+                highlightAnyFlag: true,
+                linkLeafCallback: perm_selectedUser,
+                linkBranchCallback: perm_selectedUser,
+                isok:true
+            }),
+            new vjUserShareTreeColorView()
+        ]);
+
+        vjDS.add("infrastructure: Sharing help documentation","dsHelpSharing","http://help/hlp.obj.sharing.html");
+        vjDV.dvUserTreeViewer.add( "help", "help", "tab", [ new vjHelpView ({ data:'dsHelpSharing', height: 550})  ]);
+
+        vjDV.dvUserTreeViewer.render();
+        vjDV.dvUserTreeViewer.load();
+
+        vjDV.add("dvObjListViewer",500, 600);
+
+
+
+        vjDV.dvObjListViewer.add("objects", "user-share", "tab", [
+            new vjTableView( {
+                data: [ "dsObjList", "dsUserTreeViewSource" ],
+                formObject: document.forms['form-permList'],
+                bgColors:['#f2f2f2','#ffffff'],
+                cols: [
+                    {name:new RegExp(/.*/), hidden:true},
+                    {name:'id', hidden: false, title:'ID', order: 1 } ,
+                    {name:'_brief', hidden: false, title:'Summary', order: 2 } ,
+                    {name:'created', hidden: false, title:"Created", order: 3, align: "left", type: 'datetime'}
+                    ],
+                selectCaptureCallback: perm_objSelectCallback,
+                selectCallback: perm_objSelectCallback,
+                userCannotSelect: true,
+                initTblArr: perm_initObjTblArr,
+                defaultIcon:'rec',
+                maxHeight:300,
+                defaultEmptyText: "no objects selected for sharing",
+                geometry:{ width:'100%'},
+                isok:true
+            }),
+            new vjHTMLView({
+                data: "dsObjListColorDiv",
+                geometry: { width:'100%'}
+            }),
+            new vjTableView( {
+                data: [ 'dsPermList', 'obj_dsObjTblArr' ],
+                checkIndeterminateTitle: "Permission currently applies to only some of the objects",
+                cols: [
+                    {name:'Explanation', wrap: true },
+                    {name:'perm', hidden: true }
+                    ],
+                initTblArr: perm_initPermList,
+                defaultIcon: 'recLock',
+                geometry:{ width:'100%'},
+                isStickyHeader: false, //FIXME - renders wrong in background tab
+                checkable:true,
+                wrap:true,
+                formObject:document.forms['form-permList'],
+                isok:true
+            }  ),
+            new vjHTMLView( {
+                data: [ 'dsPermFlags', 'obj_dsObjTblArr' ],
+                geometry: { width:'100%'},
+                idPrefix: "obj_",
+                callbackDataViewerParser: function(view, text) {
+                    return text.replace(/((?:id|name|for)=['"])([^'"]+)(['"])/g, "$1" + this.idPrefix + "$2$3")
+                },
+                callbackRendered: perm_initFlagViewer,
+                isok:true
+            }  )
+        ]);
+
+        vjDV.dvObjListViewer.add("dependencies", "user-share", "tab", [
+            new vjTableView( {
+                data: [ "dsObjDeps", "dsUserTreeViewSource" ],
+                formObject: document.forms['form-permList'],
+                bgColors:['#f2f2f2','#ffffff'],
+                cols: [
+                    {name:new RegExp(/.*/), hidden:true},
+                    {name:'id', hidden: false, title:'ID', order: 1 } ,
+                    {name:'_brief', hidden: false, title:'Summary', order: 2 } ,
+                    {name:'created', hidden: false, title:"Created", order: 3, align: "left", type: 'datetime'}
+                    ],
+                selectCaptureCallback: perm_depSelectCallback,
+                selectCallback: perm_depSelectCallback,
+                userCannotSelect: true,
+                initTblArr: perm_initObjTblArr,
+                checkable: true,
+                defaultIcon:'rec',
+                defaultEmptyText: "no dependencies found",
+                maxHeight:300,
+                geometry:{ width:'100%'},
+                callbackRendered: function() {
+                    // hide permissions editor for dependencies if there are no dependencies
+                    if (!this.tblArr || !this.tblArr.rows || !this.tblArr.rows.length) {
+                        var viewers = vjDV["dvObjListViewer"].tabs["dependencies"].viewers;
+                        for (var i = 1; i < viewers.length; i++) {
+                            viewers[i].hidden = true;
+                            viewers[i].render();
+                        }
+                    }
+                },
+                isok:true
+            }),
+            new vjHTMLView({
+                data: "dsObjListColorDiv",
+                geometry: { width:'100%'}
+            }),
+            new vjTableView( {
+                data: [ 'dsPermList', 'dep_dsObjTblArr' ],
+                checkIndeterminateTitle: "Permission currently applies to only some of the dependencies",
+                cols: [
+                    {name:'Explanation', wrap: true },
+                    {name:'perm', hidden: true }
+                    ],
+                initTblArr: perm_initPermList,
+                defaultIcon:'recLock',
+                geometry:{ width:'100%'},
+                isStickyHeader: false, //FIXME - renders wrong in background tab
+                checkable:true,
+                wrap:true,
+                formObject:document.forms['form-permList'],
+                isok:true
+            }),
+            new vjHTMLView( {
+                data: [ 'dsPermFlags', 'dep_dsObjTblArr' ],
+                geometry: { width:'100%'},
+                idPrefix: "dep_",
+                callbackDataViewerParser: function(view, text) {
+                    return text.replace(/((?:id|name|for)=['"])([^'"]+)(['"])/g, "$1" + this.idPrefix + "$2$3")
+                },
+                callbackRendered: perm_initFlagViewer,
+                isok:true
+            })
+        ]);
+
+        vjDV.dvObjListViewer.doSelect = function( ir, renderAll) {return;}
+        vjDV.dvObjListViewer.render();
+        vjDV.dvObjListViewer.load();
+
+        uTree=vjDV.locate("dvUserTreeViewer.hierarchy.0");
+        oList=vjDV.locate("dvObjListViewer.objects.0");
+        poList=vjDV.locate("dvObjListViewer.objects.2");
+        foList=vjDV.locate("dvObjListViewer.objects.3");
+        dList=vjDV.locate("dvObjListViewer.dependencies.0");
+        pdList=vjDV.locate("dvObjListViewer.dependencies.2");
+        fdList=vjDV.locate("dvObjListViewer.dependencies.3");
+    }
+
+    function perm_getObjList(o) {
+        if (o == oList || o == poList || o == foList || o == "obj_") {
+            return oList;
+        } else if (o == dList || o == pdList || o == fdList || o == "dep_") {
+            return dList;
+        } else {
+            return null;
+        }
+    }
+
+    function perm_objSelectCallback(view, node, ir, ic) {
+        // no point in opening a copy of the same page
+        var parsed_id = parseHiveId(docLocValue("ids"));
+        var only_one_id = parsed_id && parsed_id.objId;
+        if (node.id && !only_one_id) {
+            linkURL("?cmd=sharing&ids=" + node.id, "sharing" + node.id);
+        }
+    }
+
+    function perm_depSelectCallback(view, node, ir, ic) {
+        if (node.id) {
+            linkURL("?cmd=sharing&ids=" + node.id, "sharing" + node.id);
+        }
+    }
+
+    function perm_rehighlightTree() {
+        var objList = oList.accumulate(function(node) { return node.id }, function(node) { return node.id });
+        var depList = dList.accumulate(function(node) { return node.id && node.checked }, function(node) { return node.id });
+        console.log(objList, depList);
+
+        uTree.resetSelected(objList.concat(depList));
+
+        perm_refreshSettings();
+    }
+
+    // highlight only those obj/dep rows that have permissions from selected users/groups
+    function perm_initObjTblArr(content, parsemode) {
+        this.defaultInitTblArr(this.getData(0).data, parsemode);
+        var objs_dic = {};
+        var my_perm_dic = null;
+        this.getData(1).tree.enumerate(function(view, node) {
+            if (node.selected && node._perm) {
+                var obj_id;
+                for (obj_id in node._perm) {
+                    objs_dic[obj_id] = true;
+                }
+            }
+            if (node.leafnode && cookieGet("email") && node.email.toLowerCase() == cookieGet("email").toLowerCase() ) {
+                my_perm_dic = node._perm;
+            }
+        }, uTree);
+
+        if (can_check_if_can_share) {
+            this.isNCheckableHeader = true;
+        }
+        this.tblArr.enumerate(function(viewer, tbl, ir) {
+            var row = tbl.rows[ir];
+            if (!row.id) {
+                return;
+            }
+            vjHC.permissionComputer(this, row);
+            row.selected = objs_dic[row.id] ? 4 : 0;
+            if (can_check_if_can_share) {
+                if (my_perm_dic && (my_perm_dic[row.id].effective_bits['share'] || my_perm_dic[row.id].effective_bits['admin'])) {
+                    row.checkDisabled = false;
+                    viewer.isNCheckableHeader = false;
+                } else {
+                    row.checkDisabled = true;
+                }
+            }
+        }, this);
+
+        var dsObjTblArr = null;
+        if (this == oList) {
+            dsObjTblArr = vjDS["obj_dsObjTblArr"];
+        } else if (this == dList) {
+            dsObjTblArr = vjDS["dep_dsObjTblArr"];
+        }
+
+        dsObjTblArr.unload();
+        dsObjTblArr.objList = this;
+        dsObjTblArr.uTree = uTree;
+        dsObjTblArr.load();
+    }
+
+    function perm_initPermList(content, parsemode) {
+        this.defaultInitTblArr(this.getData(0).data, parsemode);
+
+        //reset settings to none
+        var cnt_obj_checkable = perm_cntCheckable(this.getData(1).objList);
+        if (can_check_if_can_share) {
+            this.isNCheckableHeader = !cnt_obj_checkable;
+        }
+        this.enumerate(function(param, tbl, ir) {
+            var row = tbl.rows[ir];
+            row.checked = false;
+            if (can_check_if_can_share) {
+                row.checkDisabled = !cnt_obj_checkable;
+            }
+        });
+
+        if (uTree.called_perm_selectedUser && this.getData(1).groups.length) {
+            var permTot = this.getData(1).permTot;
+            var cntAll = this.getData(1).cntAll;
+            var ff;
+            for (ff in permTot.bits) {
+                var el = this.accumulate("node.perm=='" + ff + "'", "node");
+                if (el.length != 1) {
+                    continue;
+                }
+                el = el[0];
+                if (!permTot.bits[ff] || permTot.bits[ff] == 0) {
+                    el.checked = 0;
+                    continue;
+                } else if (permTot.bits[ff] == cntAll) {
+                    el.checked = 1;
+                } else {
+                    el.checked = -1;
+                }
+            }
+        }
+    };
+
+    function perm_initFlagViewer(viewer)
+    {
+        var id_prefix = viewer.idPrefix;
+
+        var els = document.forms['form-permList'].elements;
+        for ( var ip = 0; ip < els[id_prefix + "permFlagAllow"].length; ++ip) {
+            els[id_prefix + "permFlagAllow"][ip].checked = false;
+        }
+        els[id_prefix + "permFlagAllow"].value = null; // ffx
+        for ( var ip = 0; ip < els[id_prefix + "permFlagDirection"].length; ++ip) {
+            els[id_prefix + "permFlagDirection"][ip].checked = false;
+        }
+        els[id_prefix + "permFlagDirection"].value = null; // ffx
+        for ( var ip = 0; ip < els[id_prefix + "permFlagStatus"].length; ++ip) {
+            els[id_prefix + "permFlagStatus"][ip].checked = false;
+        }
+        els[id_prefix + "permFlagStatus"].value = null; // ffx
+
+        var cnt_obj_checkable = perm_cntCheckable(this.getData(1).objList);
+
+        if (can_check_if_can_share && !cnt_obj_checkable) {
+            var permdiv = gObject(viewer.container);
+            if (permdiv) {
+                var elements = permdiv.getElementsByTagName("input");
+                for (var ielt = 0; ielt < elements.length; ielt++) {
+                    if (elements[ielt].id && elements[ielt].id.indexOf(id_prefix + "permFlag") == 0) {
+                        elements[ielt].disabled = true;
+                    }
+                }
+            }
+        }
+
+        if (uTree.called_perm_selectedUser && this.getData(1).groups.length) {
+            var permTot = this.getData(1).permTot;
+            var cntAll = this.getData(1).cntAll;
+            var deny = permTot.flag.deny && permTot.flag.deny == cntAll;
+            gObject(id_prefix + 'permFlagAllowAllow').checked = !deny;
+            gObject(id_prefix + 'permFlagAllowDeny').checked = deny;
+
+            // leaves (users) cannot have down option
+            var isLeaf = uTree.accumulate("(node.selected && node.leafnode)", "node.id", 0);
+            gObject(id_prefix + 'permFlagDirectionDown').disabled = isok(isLeaf) || !cnt_obj_checkable;
+            gObject(id_prefix + 'permFlagDirectionUp').disabled = isok(isLeaf) || !cnt_obj_checkable;
+            if( isok(isLeaf) ) {
+                gObject(id_prefix + 'permFlagDirectionSelf').checked = true;
+                gObject(id_prefix + 'permFlagDirectionDown').checked = false;
+                gObject(id_prefix + 'permFlagDirectionUp').checked = false;
+            } else {
+                gObject(id_prefix + 'permFlagDirectionSelf').checked = false;
+                gObject(id_prefix + 'permFlagDirectionDown').checked = permTot.flag.down && permTot.flag.down == cntAll;
+                gObject(id_prefix + 'permFlagDirectionUp').checked = permTot.flag.up && permTot.flag.up == cntAll;
+            }
+            if (permTot.flag.revoke || permTot.flag.hold || permTot.flag.active) {
+                gObject(id_prefix + 'permFlagStatusActive').checked = !(permTot.flag.revoke || permTot.flag.hold);
+                gObject(id_prefix + 'permFlagStatusHold').checked = permTot.flag.hold && permTot.flag.hold == cntAll;
+                gObject(id_prefix + 'permFlagStatusRevoke').checked = permTot.flag.revoke && permTot.flag.revoke == cntAll;
+            }
+        }
+    }
+
+    function perm_selectedUser(viewer, node)
+    {
+        uTree.called_perm_selectedUser = true;
+
+        var objs_dic = {};
+        var selected_users = 0;
+        var selected_groups = 0;
+
+        uTree.enumerate(function(view, node) {
+            if (node.selected) {
+                if (node.leafnode) {
+                    selected_users++;
+                } else {
+                    selected_groups++;
+                }
+            }
+        }, uTree);
+
+        if (selected_users && selected_groups) {
+            alert("You can select either user(s) OR group(s) but not both.");
+            node.selected = 0;
+        }
+
+        // delete tblArr to ensure that table viewers call initTblArr() and then perm_initObjTblArr()
+        delete oList.tblArr;
+        delete dList.tblArr;
+
+        vjDS[this.treeSourceName].unload();
+        vjDS[this.treeSourceName].load();
+    }
+
+    function perm_refreshSettings() {
+        vjDS["obj_dsObjTblArr"].objList = oList;
+        vjDS["obj_dsObjTblArr"].uTree = uTree;
+        vjDS["obj_dsObjTblArr"].load();
+
+        vjDS["dep_dsObjTblArr"].objList = dList;
+        vjDS["dep_dsObjTblArr"].uTree = uTree;
+        vjDS["dep_dsObjTblArr"].load();
+    }
+
+    function perm_cntCheckable(objList) {
+        var ret = 0;
+        if (objList) {
+            objList.enumerate(function(param, tbl, ir) {
+                var row = tbl.rows[ir];
+                if (row.id && !(can_check_if_can_share && row.checkDisabled)) {
+                    ret++;
+                }
+            });
+        }
+        return ret;
+    }
+
+    function PermSetter() {
+        this.set = function(doRemove) {
+            var setter = this;
+            this.els = document.forms['form-permList'].elements;
+
+            this.groupNodeList = uTree.accumulate("node.selected==1", "node", 0);
+            this.groupList = [];
+            var change_my_perms = false;
+            for (var ig=0; ig<this.groupNodeList.length; ig++) {
+                var unode = this.groupNodeList[ig];
+                this.groupList.push(unode.id);
+                if (unode.leafnode && cookieGet("email") && unode.email.toLowerCase() == cookieGet("email").toLowerCase() ) {
+                    change_my_perms = true;
+                }
+            }
+            this.obj = {};
+            this.dep = {};
+
+            this.obj.list = oList.accumulate(function(node) { return node.id }, function(node) { return node.id });
+            this.dep.list = dList.accumulate(function(node) { return node.id && node.checked }, function(node) { return node.id });
+
+            if (!isok(this.groupList)) {
+                $("#dialog-need-users").dialog({modal: true});
+                return;
+            }
+            if (!isok(this.obj.list)) {
+                $("#dialog-need-objects").dialog({modal: true});
+                return;
+            }
+
+            if (!this.collect(doRemove, true)) {
+                return;
+            }
+
+            this.url = "permset&raw=1&ids=" + this.obj.list.join(",")
+                     + "&groups=" + this.groupList.join(",") + "&perm=" + this.obj.permList.join("|")
+                     + "&flag=" + this.obj.flagList.join("|");
+
+            if (isok(this.dep.list)) {
+                if (!this.collect(doRemove, false)) {
+                    return;
+                }
+                this.url += "&optIds=" + this.dep.list.join(",")
+                          + "&optPerm=" + this.dep.permList.join("|")
+                          + "&optFlag=" + this.dep.flagList.join("|");
+            }
+
+            if (change_my_perms) {
+                $("#dialog-confirm-my-perms").dialog({
+                    modal: true,
+                    width: 500,
+                    buttons: [
+                        {
+                            text: "Yes, I know what I am doing",
+                            tabIndex: -1, // don't focus on "I know what I am doing" by default - force user to read
+                            click: function() {
+                                $(this).dialog("close");
+                                setter.confirmDeps(doRemove);
+                            },
+                        },
+                        {
+                            text: "Cancel",
+                            click: function() { $(this).dialog("close"); }
+                        }
+                    ]
+                });
+                return;
+            } else {
+                return this.confirmDeps(doRemove);
+            }
+        };
+
+        this.confirmDeps = function(doRemove) {
+            var setter = this;
+            var all_bad_bits = {};
+
+            // sanity check: will the user/group have permission to use deps?
+            if (this.obj.flagDic.allow && (this.obj.flagDic.active || this.obj.flagDic.hold) && (this.obj.permDic.browse || this.obj.permDic.read || this.obj.permDic.download || this.obj.permDic.share)) {
+                // enumerate dList because depList only has checked dep ids
+                function ensure_flag_dic(flag) {
+                    if (typeof flag === "string") {
+                        var flags = flag.split(",");
+                        flag = {};
+                        for (var i=0; i<flags.length; i++) {
+                            flag[flags[i]] = true;
+                        }
+                    }
+                    return flag;
+                }
+
+                function is_allow_flag(flag) {
+                    flag = ensure_flag_dic(flag);
+                    if (flag.deny || flag.revoke) return false;
+                    if (!setter.obj.flagDic.hold && flag.hold) return false; // if main objs are allow+hold, then deps with allow+hold are good enough
+                    if (setter.obj.flagDic.down && !flag.down) return false;
+                    if (setter.obj.flagDic.up && !flag.up) return false;
+                    return true;
+                }
+                function is_deny_flag(flag) {
+                    flag = ensure_flag_dic(flag);
+                    if (!flag.deny || flag.revoke || flag.hold) return false;
+                    return true;
+                }
+
+                this.dep.badList = dList.accumulate(function(dnode) {
+                    if (!dnode.id) {
+                        return false;
+                    }
+
+                    var dep_id = dnode.id;
+
+                    for (var ig=0; ig<setter.groupNodeList.length; ig++) {
+                        var unode = setter.groupNodeList[ig];
+                        var allow_bits = {}, deny_bits = {}, effective_bits = {};
+                        var flag_key, bit_name;
+
+                        if (unode._perm && unode._perm[dep_id]) {
+                            var flag_key;
+                            var flag_bits = unode._perm[dep_id].flag_bits;
+                            for (flag_key in flag_bits) {
+                                if (is_allow_flag(flag_key)) {
+                                    for (bit_name in flag_bits[flag_key]) {
+                                        allow_bits[bit_name] = true;
+                                    }
+                                } else if (is_deny_flag(flag_key)) {
+                                    for (bit_name in flag_bits[flag_key]) {
+                                        deny_bits[bit_name] = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (setter.dep && setter.dep.flagDic) {
+                            if (is_allow_flag(setter.dep.flagDic)) {
+                                for (bit_name in setter.dep.permDic) {
+                                    allow_bits[bit_name] = true;
+                                }
+                            } else if (is_deny_flag(setter.dep.flagDic)) {
+                                for (bit_name in setter.dep.permDic) {
+                                    deny_bits[bit_name] = true;
+                                }
+                            }
+                        }
+
+                        // allow, then deny
+                        for (bit_name in allow_bits) {
+                            effective_bits[bit_name] = true;
+                        }
+                        for (bit_name in deny_bits) {
+                            delete effective_bits[bit_name];
+                        }
+
+                        if (setter.obj.permDic.browse && !effective_bits.browse) {
+                            all_bad_bits.browse = true;
+                            return true;
+                        }
+                        if (setter.obj.permDic.read && !effective_bits.read) {
+                            all_bad_bits.read = true;
+                            return true;
+                        }
+                        if (setter.obj.permDic.download && !effective_bits.download) {
+                            all_bad_bits.download = true;
+                            return true;
+                        }
+                        if (setter.obj.permDic.share && !effective_bits.share) {
+                            all_bad_bits.share = true;
+                            return true;
+                        }
+                    }
+                }, function(dnode) { return dnode.id });
+            }
+
+            // choose dialog depending on whether only share perm for deps is missing, or read/browse too
+            var selector = (all_bad_bits.share && !all_bad_bits.browse && !all_bad_bits.read && !all_bad_bits.download) ? "#dialog-confirm-unshareable-deps" : "#dialog-confirm-missing-deps";
+
+            if (isok(this.dep.badList)) {
+                $(selector + "-list")[0].innerHTML = this.formatIDList(this.dep.badList);
+                $(selector).dialog({
+                    modal: true,
+                    width: 500,
+                    buttons: [
+                        {
+                            text: "Yes, I know what I am doing",
+                            tabIndex: -1, // don't focus on "I know what I am doing" by default - force user to read
+                            click: function() {
+                                $(this).dialog("close");
+                                setter.confirmFinal(doRemove);
+                            },
+                        },
+                        {
+                            text: "Cancel",
+                            click: function() { $(this).dialog("close"); }
+                        }
+                    ]
+                });
+            } else {
+                this.confirmFinal(doRemove);
+            }
+        };
+
+        this.confirmFinal = function(doRemove) {
+            var setter = this;
+            var selector = doRemove ? "#dialog-confirm-delete" : "#dialog-confirm-apply";
+            $(selector + "-list")[0].innerHTML = this.formatIDList(this.obj.list);
+            $(selector + "-deps-list")[0].innerHTML = this.formatIDList(this.dep.list);
+            $(selector + "-deps-div")[0].className = isok(this.dep.list) ? "sectVis" : "sectHid";
+            $(selector).dialog({
+                modal: true,
+                width: 500,
+                buttons: {
+                    Continue: function() {
+                        $(this).dialog("close");
+                        //console.log(setter.url);
+                        linkCmd(setter.url, "result", perm_setCallback);
+                    },
+                    Cancel: function() {
+                        console.log("canceled");
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        };
+
+        this.collect = function(doRemove, is_obj) {
+            var ns = is_obj ? this.obj : this.dep;
+            var tab_name = is_obj ? "objects" : "dependencies";
+            var id_prefix = is_obj ? "obj_" : "dep_";
+            var pList = is_obj ? poList : pdList;
+
+            ns.permList = [];
+            ns.flagList = [];
+
+            if (!doRemove) {
+                ns.permList = pList.accumulate("node.checked > 0", "node.perm", 0);
+                if (!isok(ns.permList)) {
+                    $("#dialog-need-bits-what")[0].innerHTML = tab_name;
+                    $("#dialog-need-bits").dialog({modal: true});
+                    return false;
+                }
+            }
+
+            var ok = false;
+            for ( var ip = 0; ip < this.els[id_prefix + "permFlagAllow"].length; ++ip) {
+                if (this.els[id_prefix + "permFlagAllow"][ip].checked) {
+                    ns.flagList.push(this.els[id_prefix + "permFlagAllow"][ip].value);
+                    ok = true;
+                }
+            }
+            if (!doRemove && !ok) {
+                $("#dialog-need-perms-what")[0].innerHTML = tab_name;
+                $("#dialog-need-perms").dialog({modal: true});
+                return false;
+            }
+
+            ok = false;
+            for ( var ip = 0; ip < this.els[id_prefix + "permFlagDirection"].length; ++ip) {
+                if (this.els[id_prefix + "permFlagDirection"][ip].checked) {
+                    ns.flagList.push(this.els[id_prefix + "permFlagDirection"][ip].value);
+                    ok = true;
+                }
+            }
+            if (!doRemove && !ok) {
+                $("#dialog-need-direction-what")[0].innerHTML = tab_name;
+                $("#dialog-need-direction").dialog({modal: true});
+                return false;
+            }
+
+            ok = false;
+            for ( var ip = 0; ip < this.els[id_prefix + "permFlagStatus"].length; ++ip) {
+                if (this.els[id_prefix + "permFlagStatus"][ip].checked) {
+                    ns.flagList.push(this.els[id_prefix + "permFlagStatus"][ip].value);
+                    ok = true;
+                }
+            }
+            if (!doRemove && !ok) {
+                $("#dialog-need-status-what")[0].innerHTML = tab_name;
+                $("#dialog-need-status").dialog({modal: true});
+                return false;
+            }
+
+            ns.permDic = {};
+            ns.flagDic = {};
+            for (var i=0; i<ns.flagList.length; i++) {
+                ns.flagDic[ns.flagList[i]] = true;
+            }
+            for (var i=0; i<ns.permList.length; i++) {
+                ns.permDic[ns.permList[i]] = true;
+            }
+
+            return true;
+        };
+
+        this.formatIDList = function(l) {
+            var t = "";
+            if (l) {
+                for (var i=0; i < 20 && i < l.length; i++) {
+                    if (i) {
+                        t += ", ";
+                    }
+                    t += l[i];
+                }
+                if (l.length > 20) {
+                    t += ", and " + (l.length - 20) + " more ids...";
+                }
+            }
+            return t;
+        };
+    };
+
+    var perm_setter = new PermSetter();
+
+    function perm_setCallback(param, text) {
+        if (text != 'ok') {
+            alert("Access denied!");
+        } else {
+            alert("Done.");
+        }
+
+        vjDS.dsUserTreeViewSource.unload();
+        vjDS.dsObjList.reload(null, true);
+        vjDS.dsObjDeps.reload(null, true);
+        vjDS.dsUserTree.reload(null, true);
+    }
+</script>
+
+<div class="HIVE_section">
+    <table width="100%">
+        <tr>
+            <td class="HIVE_section_title">Group Hierarchy</td>
+            <td class="HIVE_section_title">List of objects under consideration</td>
+        </tr>
+        <tr>
+            <td rowspan="3" class="HIVE_sect1" width="1%" valign="top">
+                <form name="form-userList">
+                    <span id="dvUserTreeViewer"></span><br />
+                </form>
+            </td>
+            <td class="HIVE_sect1" width="30%" valign="top">
+                <form name="form-permList">
+                    <span id="dvObjListViewer"></span>
+                </form>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="dsObjListColorDiv" class="sectHid">
+<table width='100%' class='HIVE_variable'>
+    <tr>
+        <td>color key:</td>
+        <td class='TABLEVIEW_table_selected4' style='font-size:95%'>objects with permissions for selected users</td>
+    </tr>
+</table>
+</div>
+<span id="dsPermissionDIV" class="sectHid">
+<pre>perm,Permission,Explanation
+browse,Browse,permission to search for the object and browse its public properties
+read,Read,permission to read any parameters of the object
+download,Download,permission to download any files of the object
+write,Write,permission to modify the object
+exec,Execute,permission to execute object (if applicable)
+del,Remove,permission to remove the object from the system
+share,Share,permission to share the object with other users
+admin,Administer,permission to administer the object's access rights
+</pre>
+</span>
+
+<span id="dsPermFlagsDIV" class="sectHid">
+    <table width="100%" class="TABLEVIEW_table">
+        <tr>
+            <th></th>
+            <th>Application</th>
+        </tr>
+        <tr>
+            <th valign="top">Permission</th>
+            <td>
+                <table width="100%">
+                    <tr>
+                        <td width="1"><input type="radio" id="permFlagAllowAllow" name="permFlagAllow" value="allow"></td>
+                        <td><label for="permFlagAllowAllow"><img width=24 src="img/user-allow.gif" /> Allow</label></td>
+                        <td width="1"><input type="radio" id="permFlagAllowDeny" name="permFlagAllow" value="deny"></td>
+                        <td><label for="permFlagAllowDeny"><img width=24 src="img/user-deny.gif" /> Deny</label></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <th valign="top">Applies to:</th>
+            <td>
+                <table>
+                    <tr>
+                        <td><input type="radio" id="permFlagDirectionSelf" name="permFlagDirection" value="down"></td>
+                        <td><label for="permFlagDirectionSelf"><img width="24" src="img/user.gif" /> direct group members only</label></td>
+                    </tr>
+                    <tr>
+                        <td><input type="radio" id="permFlagDirectionDown" name="permFlagDirection" value="down"></td>
+                        <td><label for="permFlagDirectionDown"><img width="24" src="img/user-down.gif" /> the group and all its subgroups</label></td>
+                    </tr>
+                    <tr>
+                        <td><input type="radio" id="permFlagDirectionUp" name="permFlagDirection" value="up"></td>
+                        <td><label for="permFlagDirectionUp"><img width="24" src="img/user-up.gif" /> the group and up in hierarchy</label></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <th valign="top">Status</th>
+            <td>
+                <table>
+                    <tr>
+                        <td><input type="radio" id="permFlagStatusActive" name="permFlagStatus" value="active"></td>
+                        <td><label for="permFlagStatusActive"><img width="24" src="img/user-active.gif" /> active</label></td>
+                    </tr>
+                    <tr>
+                        <td><input type="radio" id="permFlagStatusHold" name="permFlagStatus" value="hold"></td>
+                        <td><label for="permFlagStatusHold"><img width="24" src="img/user-onhold.gif" /> on hold</label></td>
+                    </tr>
+                    <tr>
+                        <td><input type="radio" id="permFlagStatusRevoke" name="permFlagStatus" value="revoke"></td>
+                        <td><label for="permFlagStatusRevoke"><img width="24" src="img/user-delete.gif" /> revoke temporarily</label></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" colspan="2">
+                <table>
+                    <tr>
+                        <td><input type="button" id="btnSet" onclick="perm_setter.set()" value="Apply"></td>
+                        <td><input type="button" id="btnDel" onclick="perm_setter.set(true)" value="Delete"></td>
+                        <td><input type="button" id="btnReset" value="Reset" onclick="perm_refreshSettings()"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</span>
+
+<div class="sectHid">
+    <div id="dialog-need-users" title="Error">
+        <p>Cannot set permissions: no users or groups selected</p>
+    </div>
+    <div id="dialog-need-objects" title="Error">
+        <p>Cannot set permissions: no objects selected</p>
+    </div>
+    <div id="dialog-need-perms" title="Error">
+        <p>You need to choose "Allow" or "Deny" in the <span id="dialog-need-perms-what"></span> tab</p>
+    </div>
+    <div id="dialog-need-bits" title="Error">
+        <p>You need to choose which permissions to apply in the <span id="dialog-need-bits-what"></span> tab</p>
+    </div>
+    <div id="dialog-need-direction" title="Error">
+        <p>You need to choose how (direct groups, subgroups, or up in hierarchy) the permissions in <span id="dialog-need-direction-what"></span> tab are applied</p>
+    </div>
+    <div id="dialog-need-status" title="Error">
+        <p>You need to choose a permission status (active, on hold, or revoke) in the <span id="dialog-need-status-what"></span> tab</p>
+    </div>
+    <div id="dialog-confirm-my-perms" title="WARNING">
+        <p>You are changing your own user account's permissions for the selected objects. This can result in you losing the ability to view, modify, or access certain functionality of these objects.</p>
+        <p>Are you sure that you really want to do this?</p>
+    </div>
+    <div id="dialog-confirm-missing-deps" title="WARNING">
+        <p>Selected users/groups will not have appropriate permissions for dependencies with the following IDs:</p>
+        <div id="dialog-confirm-missing-deps-list"></div>
+        <p>As a result, your shared objects may appear broken, incomplete, or unusable to other users on the system.</p>
+        <p>Are you sure that you really want to do this?</p>
+    </div>
+    <div id="dialog-confirm-unshareable-deps" title="WARNING">
+        <p>You are granting share permissions for an object. However, you are not granting share permissions for dependencies with the following IDs:</p>
+        <div id="dialog-confirm-unshareable-deps-list"></div>
+        <p>As a result, selected users/groups will not be able to share your object's dependencies along with main object.</p>
+        <p>Are you sure that you really want to do this?</p>
+    </div>
+    <div id="dialog-confirm-delete" title="Final check">
+        <p>You are removing all permissions from objects with the following IDs:</p>
+        <div id="dialog-confirm-delete-list"></div>
+        <div id="dialog-confirm-delete-deps-div">
+            <p>and also from dependencies with the following IDs:</p>
+            <div id="dialog-confirm-delete-deps-list"></div>
+        </div>
+        <p>As a result, objects may become inaccessible.</p>
+    </div>
+    <div id="dialog-confirm-apply" title="Final check">
+        <p>You are changing permissions for objects with the following IDs:</p>
+        <div id="dialog-confirm-apply-list"></div>
+        <div id="dialog-confirm-apply-deps-div">
+            <p>and also for dependencies with the following IDs:</p>
+            <div id="dialog-confirm-apply-deps-list"></div>
+        </div>
+    </div>
+</div>

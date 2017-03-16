@@ -1,0 +1,91 @@
+<script type="application/javascript" src="js/vjTree.js"></script>
+<script type="application/javascript" src='js/vjDataSeries.js'></script>
+<script type="application/javascript" src='js/vjTreeSeries.js'></script>
+<script type="application/javascript" src='js/vjTaxonomyView.js' ></script>
+<script type="text/javascript" src="d3js/core/d3.js"></script>
+<script type="text/javascript" src="d3js/core/d3.csv.js"></script>
+<script type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/sunburst_hierarchy.js"></script>
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+<!--  <script src="js-obj-new/svc-dna-insilico.js"></script>-->
+<script type="application/javascript">
+
+setLocationTitle("dna-insilico: HIVE");
+
+
+var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+var process_svc="svc-dna-insilico";
+var process_qpsvc="dna-insilico";
+var thisQuery=docLocValue("query");
+vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files="+vjDS.escapeQueryLanguage("*.{csv,vcf,json,png,tsv,txt,fasta,fastq,fa}")+"&mode=csv&prop=none&ids="+thisProcessID, 0, "id,name,path,value");
+
+
+var algoProcess=new valgoProcess(thisProcessID,  process_qpsvc, process_svc);
+//algoProcess.callbackLoaded = inputLoaded;
+algoProcess.visibleParameters=["name","inSilicoGeneral","inSilicoOutput", "inSilicoEntry"];                                 
+if (thisQuery)
+{
+    algoProcess.initialPresets = { inSilicoSourceObjId: thisQuery,
+                                    name: "query:s=["+thisQuery+"] as objlist; return s[0].name;"};
+}
+algoProcess.autoexpand= thisProcessID.length ? "all" : 1 ; 
+algoProcess.noResultViewers = true;
+
+algoProcess.submitButtonName="SUBMIT";
+
+var thisQuery=docLocValue("query");
+var process_cmdMode=docLocValue("cmdMode");
+var process_initialPresets={};
+var thisProcessID = 0;
+
+function isMode(mode)
+{
+    return (!process_cmdMode || (process_cmdMode.indexOf("-"+mode)==-1 && process_cmdMode.indexOf(mode)!=0)) ? false : true;
+}
+
+if(isMode("batch")) { 
+    algoProcess.qpSvc="svc-batcher";
+    algoProcess.initialPresets.batch_svc="dna-screening";
+}
+
+/* function inputLoaded() {
+    var inSilico = algoProcess.viewer.getElement("inSilicoFileID");
+    inSilico.fld.selectCallback = function(viewer, node) {
+        var ds = vjDS["dsSubject"];
+        var url = "http://?cmd=seqList&ids=qry(((obj)\"" + node.id + "\").parent_proc_ids.map({.subject}).reduce(append))&rows=qry((intlist)(((obj)\"" + node.id + "\").subSet))";
+        ds.reload(url, true);
+    };
+}
+ */
+algoProcess.doneComputing = function (viewer, reqid, stat)
+{
+    thisProcessID = docLocValue("id");
+    
+     if(stat>=5) {
+        var exposeAlignments = vjDV[algoProcess.recViewerName].getElement("storeAlignments");
+        if (exposeAlignments && exposeAlignments.value != 0){
+            valgoToolbarDoneList= //<!-- type,align,order,name,title,icon,path,url,description // -->
+                ",right,2,alignment,Aligning Tools,img-algo/dna-tools.gif,/alignment,,Reference based assembly and profiling analysis\n"+
+                ",right,2,aligner,Hexagon Alignment,img-algo/hive-hexagon.gif,/alignment/aligner,?cmd=dna-hexagon-new&id=$(::thisProcessID),Proceed to alignment, Alignment, etc...\n";
+        }
+    }
+}
+
+$(document).ready(function() 
+{
+    globalAlgo = $('#mainAlgoArea').algoview({
+        algoObj: algoProcess,
+        svcType: "svc-dna-insilico",
+        algoTitle: "dna-insilico"
+    });
+});
+</script>
+

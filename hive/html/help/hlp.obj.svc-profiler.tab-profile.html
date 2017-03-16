@@ -1,0 +1,31 @@
+<id>hlp.obj.svc-profiler.tab-profile.html</id>
+<title>Profile</title>
+<definition>View graphs of Coverage, Entropy, Quality and SNPs plotted against position</definition>
+<description>The default view shows two graphs stacked on top of each other.  The top graph shows forward and reverse coverage as a function of position on the reference genome
+(or consensus, depending on the user's selection), where coverage is the number of reads aligned to a specific position.<br/>
+<br/>
+The bottom graph shows variations from the reference (or consensus) sequence at a given position as colored peaks.  Each nucleotide is designated by a specific color.  Holding the mouse
+ over a peak will display an information box containing the position in the sequence, the nucleotide variation and the percentage of that variation with respect to all reads at that
+ position.<br/>
+<br/>
+By default, the range of the X-axis is set to the entire length of the selected reference segment. This range may be modified by specifying values in the "Start position" and "End position" 
+fields in the top right of the viewer. Clicking the magnifying glass icon <img src="img/search.gif" width="18"/> will submit the resizing of the graphs, effectively zooming into the new 
+range provided. For a closer zoom, click on any point in the graph.<br/>
+<br/>
+Below the graphs but above the tabs are more viewing options for graphs which may be opened and viewed by clicking the adjacent icons, or closed and hidden by clicking the adjacent x. 
+Additional graphs include:
+<ul>
+<li><span class='pn'>Unaligned tails</span> - If computed, this graph will show a positional distribution of unaligned tails over the length of the genome. An unaligned tail occurs where
+a substantial length of a read aligns to the reference but a different portion (the tail) does not align at all. Because tails do not correspond to reference positions (as they do not align), 
+the Y value of a given position is the average length of all dangling tails attached to reads aligning to that position. For example, if a position is covered by 10 reads, each with tails of 
+one nucleotide in length, the corresponding Y value will be 1. Conversely, if a position is covered by 10 reads, only one of which has a tail 10 nucleotides in length, the corresponding Y value 
+will still be 1.</li>
+<li><span class='pn'>Disbalance</span> - This graph shows the coverage with respect to alignment directionality. It provides clear visualization of any bias or disbalance between forward
+ and reverse alignments.</li>
+<li><span class='pn'>Entropy</span> - This graph displays entropy associated with each position, scaled to a value between 0.00 and 1.00.  Entropy values close to 1.00 imply the occurrence of the variable base at
+that position is completely random, whereas entropy values closer to 0.00 imply non-randomness of a given SNP.  If the user disabled the entropy analysis in the commands section before
+computing the profile, the entropy graph will display a straight continuous line with slope of 0.</li>
+<li><span class='pn'>Quality</span> - This graph displays the quality associated with each position as a <a href="hlp.obj.phred.html">phred</a> score.</li>
+<li><span class='pn'>In-dels</span> - If included in computations, this will show the positions of any insertions or deletions in the read set with respect to the reference frame.</li>
+</ul>
+</description>

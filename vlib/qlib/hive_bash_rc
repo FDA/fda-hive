@@ -1,0 +1,175 @@
+
+HISTFILESIZE=10000
+HISTCONTROL=erasedups
+HISTTIMEFORMAT="%Y/%m/%dT%H:%M:%S "
+
+# force aliases on secondary shell
+shopt -s expand_aliases
+
+user=`id -un`
+os=`uname`
+
+awk_b2hr='{pq=split(POS,p,/,/);eq=split(POWER,e,/,/);lq=split(LAG,l,/,/);if(lq==2){pos=l[1];tq=split($pos,t,/=|:/);sec1=0;if(tq>=4){sec1+=t[tq-3]*86400}if(tq>=3){sec1+=t[tq-2]*3600}if(tq>=2){sec1+=t[tq-1]*60};if(tq>=1){sec1+=t[tq]};pos=l[2];tq=split($pos,t,/=|:/);sec2=0;if(tq>=4){sec2+=t[tq-3]*86400}if(tq>=3){sec2+=t[tq-2]*3600}if(tq>=2){sec2+=t[tq-1]*60};if(tq>=1){sec2+=t[tq]};x=sprintf("%s%c%s",$pos,32,sec1-sec2);$pos=x};for(i=1;i<=pq;i++){pos=p[i];x=$pos;if(x~/^[0-9\.]+$/&&x>0){pwr=(i<=eq)?e[i]:0;while(x>=1024){pwr+=1;x=x/1024}if(pwr>0){x=sprintf("%u%s",x,substr("KMGTPEZY",pwr,1))}}$pos=x}print}'
+
+hive_log()
+{
+    # redir to stderr to avoid returning message from function
+    if [[ "$0" = "" ]]; then
+        >&2 echo "`date '+%y/%m/%dT%H:%M:%S'` $$ bash // $*"
+    else
+        >&2 echo "`date '+%y/%m/%dT%H:%M:%S'` $$ `basename $0 /` // $*"
+    fi
+}
+
+hive_ssh2host() {
+    ip=`echo "select ip4 from QPHosts where name='$1'" | qdb | grep -v ip4`
+    ssh $ip;
+}
+
+hive_cd2storage() {
+    d=`qapp -user qapp -qcd $*`
+    if [ -d "$d" ]; then
+        cd "$d"
+    elif [ ! "x$d" = "x" ]; then
+        echo "Multiple locations:"
+        for p in $d; do echo $p; done
+    fi
+}
+
+hive_psp() {
+    echo "  PID %CPU     ELAPSED    +CPUt IOlug mRES    mVRT %MEM THR COMMAND"
+    if [ "$2" = "" ]; then
+        ps --no-headers -u $1 -o pid -o %cpu -o etime -o time -o rss -o vsz -o %mem -o nlwp -o command | grep -v grep | grep -v 'psp ' | awk -v LAG=3,4 -v POS=5,6 -v POWER=1,1 $awk_b2hr | grep -v awk
+    else
+        u=$1; shift
+        ps --no-headers -u $u -o pid -o %cpu -o etime -o time -o rss -o vsz -o %mem -o nlwp -o command | grep -v grep | grep -v 'psp ' | grep $* | awk -v LAG=3,4 -v POS=5,6 -v POWER=1,1 $awk_b2hr | grep -v awk
+    fi
+}
+
+hive_qmon() {
+    if [ "$1" = "" ]; then
+        secs=60
+    else
+        secs=$1
+    fi
+    if [ "$2" = "" ]; then
+        filter='(qsrv\.|qapp\.|qpstart\.)'
+    else
+        filter="$2"
+    fi
+    watch -n $secs "echo \"HOST %CPU ELAPSED  +CPUt IOlug mRES   mVRT %MEM COMMAND\"; \
+                    qa=\`which qapp\` && cd \`dirname \${qa}\` && ./qapp -shall psp \`dirname \${qa}\` | \
+                    awk -v LAG=3,4 -v POS=5,6 -v POWER=1,1 '$awk_b2hr' | \
+                    awk '{if(/^HOST/){h=substr(\$2,2)}else if(/^ ?[0-9]/&&\$0!~/$filter/){\$1=\"\";print h \" \" \$0}}' | sort -n -r -k 2,2 -k 4,4"
+}
+
+hive_history_grep() {
+    if [ "$1" = "" ]; then
+        history
+    else
+        history | grep $*
+    fi
+}
+
+# parse the config file called '~/qapp.cfg' containing
+#   [QPride]
+#   db=QPride
+#
+#hive_cfg_parse '~/qapp.cfg/' qapp_cfg_
+
+# read the content of the variable called 'db' from
+# section called 'QPride' (in the file [QPride])
+# (in the file db=QPride)
+#db=qapp_cfg_QPride 'db'
+
+hive_cfg_parser() ## copied from qlib/hive_bash_rc
+{
+    local OLD_IFS=$IFS
+    local ini="$(<$1)"           # read the file
+    local pfx="${2// /_}"
+    if [[ "${pfx}" == "" ]]; then
+        pfx=hive_cfg_
+        hive_log "missing config prefix, set to ${pfx}"
+    fi
+    ini="${ini//\[/\\[}"         # escape [
+    ini="${ini//\]/\\]}"         # escape ]
+    IFS=$'\n' && ini=( ${ini} )  # convert to line-array
+    ini=( ${ini[*]//;*/} )       # remove comments with ;
+    ini=( ${ini[*]/\	=/=} )   # remove tabs before =
+    ini=( ${ini[*]/=\	/=} )    # remove tabs after =
+    ini=( ${ini[*]/\ =\ /=} )    # remove anything with a space around =
+    ini=( ${ini[*]/#\\\[/\}$'\n'${pfx}} ) # set section prefix
+    ini=( ${ini[*]/%\\\]/ \(} )  # convert text2function (1)
+    ini=( ${ini[*]/=/=\( } )     # convert item to array
+    ini=( ${ini[*]/%/\';;} )     # close case
+    ini=( ${ini[*]/%\\\';;/\\} ) # restore multiline
+    ini=( ${ini[*]/%\(\';;/\(\) \{$'\n'case \$1 in$'\n'} ) # convert text2function (2)
+    ini=( ${ini[*]/%\}\';;/\*\)$'\n'if [[ \"\$2\" != \"\" ]]; then echo \"\$2\"; else hive_log \"config missing \$0(\$1)\"; exit 777; fi;;$'\n'esac$'\n'\}} ) # restore } @function end
+    ini=( ${ini[*]/=\( /\)$'\n'echo \'} ) # convert to case
+    # remove extra first elements/lines
+    ini[0]=""; ini[1]=""; ini[2]=""; ini[3]=""
+    # add the last brace
+    ini[${#ini[*]} + 1]="*)"$'\n'"if [[ \"\$2\" != \"\" ]]; then echo \"\$2\"; else hive_log \"config missing \$0(\$1)\"; exit 777; fi;;"$'\n'"esac"$'\n'"}"
+    eval "$(echo "${ini[*]}")" # eval the result
+    IFS=${OLD_IFS}
+}
+
+# general aliases
+alias la='ls -laF'
+alias ll='ls -lF'
+alias topu="top -u $user -d 1 -c"
+alias more='less'
+alias psu="ps -u $user"
+alias hg='hive_history_grep'
+alias psp="hive_psp $user"
+alias ssh='ssh -X'
+alias qssh='hive_ssh2host'
+alias qcd='hive_cd2storage'
+alias qmon='hive_qmon'
+alias makeall='make dbg && make && make rel && make'
+
+if [ -d "/home/$user/bin" ]; then
+    qp_home=/home/$user/bin
+    export PATH=$PATH:$qp_home
+    alias ldl="export LD_LIBRARY_PATH=$qp_home:$LD_LIBRARY_PATH"
+fi
+
+# read config file
+cfg_pfx=qapp_cfg_
+if [ -e qapp.cfg ]; then
+    hive_cfg_parser qapp.cfg ${cfg_pfx}
+elif  [ -e ~/qapp.cfg ]; then
+    hive_cfg_parser ~/qapp.cfg ${cfg_pfx}
+else
+    qapp_cfg_QPride () { echo "$2"; }
+fi
+
+# setup config parameters
+server=`qapp_cfg_QPride server qpridesrv`
+OLD_IFS=$IFS
+IFS=':' read -a arr <<< "$server"
+IFS=$OLD_IFS
+port=3306
+if [ ${#arr[@]} -gt 1 ]; then
+    port=${arr[1]}
+fi
+export HIVE_DB_HOST=${arr[0]}
+export HIVE_DB_PORT=$port
+export HIVE_DB=`qapp_cfg_QPride db QPride`
+export HIVE_DB_USER=`qapp_cfg_QPride user qpride`
+export HIVE_DB_PWD=`qapp_cfg_QPride pass q666pride`
+
+# avoid passwords on command line, mysql will pick up the env var
+export MYSQL_PWD=$HIVE_DB_PWD
+alias qdb="mysql -h $HIVE_DB_HOST -P$HIVE_DB_PORT -u $HIVE_DB_USER $HIVE_DB"
+
+FG=`qapp_cfg_QPride shellPromptColorFG 31`
+BG=`qapp_cfg_QPride shellPromptColorBG --`
+if [[ "$BG" = "" || "$BG" = "--" ]]; then
+    PS1="\T \[\033[${FG}m\]\u@\h\[\033[0m\] \w>"
+elif [[ "$FG" = "" ]]; then
+    PS1="\T \[\033[0;${BG}m\]\u@\h\[\033[0m\] \w>"
+else
+    PS1="\T \[\033[${FG};${BG}m\]\u@\h\[\033[0m\] \w>"
+fi
+

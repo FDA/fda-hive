@@ -1,0 +1,235 @@
+<id>hlp.obj.svc-dna-alignx.advanced.parameters.html</id>
+<title>HIVE-integrated ALIGN-X external aligners</title>
+<definition>Advanced help for external aligners </definition>
+<description>
+The goal in integrating any external software is to leverage 
+the high-performance capabilities of HIVE, not to alter or 
+diminish the original utility of the tool. As such, a number 
+of advanced parameters for integrated external aligners (including 
+BLAST, BLASTX, TBLASTX, Bowtie, BWA, BLAT, Tophat, MAFFT, and 
+Clustal) allow complete customization of the job akin to the 
+command line specifications of the tools in their external 
+environments. A comprehensive list of all such advanced parameters 
+for ALIGN-X integrated tools are as follows:
+<br/>
+<br/>
+<br/>
+<span class='heading'>Advanced Parameters</span>:
+<ul style="padding-left:4%">
+
+<dl>
+<br/>
+    <dt><span class='pn'>Force Reindexing of Subject</span></dt>
+        <dd>
+            Indexing is performed for a subject the first time 
+            an ALIGN-X alignment is run on that object. This 
+            is a time-intensive process, so we maintain indices 
+            for future computations. By selecting this checkbox, 
+            you are forcing the system to recompute a fresh index 
+            for the subject. This is done primarily to avoid any 
+            issues resulting from corrupt or incomplete data.  
+        </dd>
+<br/>
+    <dt><span class='pn'>Alignment Test-Run Slice</span></dt>
+        <dd>
+            This allows a user to conduct a test-run of parameters 
+            by specifying the size of a subset of sequences to run 
+            per computational thread. The default of all indicates 
+            to run all sequences in the alignment. To use the test-run 
+            feature, the user must specify a number of sequences to 
+            run on each thread.
+        </dd>
+<br/>
+    <dt><span class='pn'>E-value Filter</span></dt>
+        <dd>
+            The Expect (E) value describes the number of hits expected 
+            to occur for a database of a given size. Lower E-values 
+            correspond to more significant matches. For more information, 
+            please see the BLAST FAQ <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=FAQ#expect" style="color: blue">here</a>.
+        </dd>
+<br/>
+    <dt><span class='pn'>Engine Arguments</span></dt>
+        <dd>
+            This field allows you to directly specify any tool-specific 
+            commands that will be incorporated into the actual back-end 
+            command for the resulting computation. Please note, if you 
+            delete the default arguments, you will change the way the 
+            tool is optimized to run. 
+        </dd>
+<br/>
+    <dt><span class='pn'>Low Complexity Filter</span></dt>
+        <dd>
+            Some subjects are well known to have regions or entire sequences 
+            of low complexity and a high degree of repeats. With these subjects 
+            in mind, HIVE allows the user to specify masking such that regions 
+            of both reads and references can be excluded from the alignment by 
+            defining the minimal entropy threshold and a window size of the 
+            sequence to be ignored.
+            <ul>
+                <li>
+                    <span class='pn'>Reference masking</span> - The first dropdown menu 
+                    allows the user to define the Minimal Shannon Entropy of a region of 
+                    the reference genome allowed to be included in an alignment. Default 
+                    is 0 - permissive, which allows all regions to be included. The second 
+                    dropdown menu allows the user to specify the Window Size of the 
+                    reference genome to ignore if the calculated entropy drops below the 
+                    specified Minimal Shannon Entropy. Default of do not mask low complexity 
+                    regions allows inclusion of all regions regardless of calculated entropy.
+                </li>
+                <li>
+                    <span class='pn'>Short read filtration</span> - The first dropdown menu 
+                    allows the user to define the Minimal Shannon Entropy of a region of any 
+                    short read allowed to be included in an alignment. Default is 0 - permissive, 
+                    which allows all regions to be included. The second dropdown menu allows 
+                    the user to specify the Window Size of all short reads to ignore if the 
+                    calculated entropy drops below the specified Minimal Shannon Entropy. 
+                    Default of do not mask low complexity regions allows inclusion of all 
+                    regions regardless of calculated entropy.
+                </li>
+            </ul>
+        </dd>
+<br/>
+    <dt><span class='pn'>Markovnikov rule on filtered matches</span></dt>
+        <dd>
+            Checking this parameter will dictate that, for some read with two or more identically scoring candidate regions, a single alignment will be assigned to the reference region 
+            with greatest coverage.
+        </dd>
+<br/>
+    <dt><span class='pn'>Max Target Sequences</span></dt>
+        <dd>
+            In the case where an individual read hits multiple locations on 
+            the reference, this parameter allows the user to designate a 
+            maximum number of hits per that read to be considered for optimal 
+            alignment. Because optimal alignment is a computationally heavy step, 
+            minimizing the count of candidates to undergo optimal alignment 
+            helps to decrease overall required computation time. The default is 
+            set to 200.
+        </dd>
+<br/>
+    <dt><span class='pn'>Maximum Number of hits per Read to Consider</span></dt>
+        <dd>
+            In the case where an individual read hits multiple locations on 
+            the reference, this parameter allows the user to designate a 
+            maximum number of hits per that read to be considered for optimal 
+            alignment. Because optimal alignment is a computationally heavy step, 
+            minimizing the count of candidates to undergo optimal alignment 
+            helps to decrease overall required computation time. The default is 
+            set to 200.
+        </dd>
+<br/>
+    <dt><span class='pn'>Number of Alignments to Keep</span></dt>
+        <dd>
+            Show alignments for this number of database sequences.
+        </dd>
+<br/>
+    <dt><span class='pn'>Paired end filters</span></dt>
+        <dd>
+            Paired end filters are specifically designed for use on paired 
+            end reads sets. Normally, selecting any set of paired ends R1 and 
+            R2 as Sequence Read inputs does not tell the aligner to 
+            acknowledge them as a forward and reverse paired end reads. Rather, 
+            they are treated ambiguously as two unrelated reads. However, checking any of 
+            the paired end filters will tell the aligner to recognize the reads as 
+            originating from two ends of one continuous sequence. 
+            <a href="hlp.obj.svc-align-hexagon.advanced.parameters.link4.html">
+            Click here to view Paired End Filters descriptions</a>.
+        </dd>
+<br/>
+    <dt><span class='pn'>Random Seed</span></dt>
+        <dd>
+            This feature was implemented for debugging purposes. Default 
+            of 0 will revert to the underlying aligner's default method 
+            of randomization.            
+        </dd>
+<br/>
+    <dt><span class='pn'>Score Filter</span></dt>
+        <dd>
+            Each alignment produces a score based on matches, mismatches, 
+            insertions, deletions and gaps.  Usually, a higher score is 
+            correlated with a better alignment.  This option allows the user 
+            to eliminate alignment scores below a specified threshold. The 
+            default setting of None will report all alignments and discard 
+            nothing.
+         </dd>
+<br/>
+    <dt><span class='pn'>Score Threshold</span></dt>
+        <dd>
+            In contrast to the Score Filter which discards alignments, the 
+            Score Threshold is a minimum value required to consider an initial 
+            alignment for BLAST lookup.
+         </dd>
+<br/>
+    <dt><span class='pn'>Word Size</span></dt>
+        <dd>
+            This number designates the length of the initial exact match 
+            between a read and a reference. For BLAST, the default is 28. 
+            For BLASTX, the initial match must be between the values of 
+            2 and 7.
+        </dd>
+<br/>
+    <dt><span class='pn'>slice</span></dt>
+        <dd>
+            This is the number of reads for a single job. The default of 4000 
+            means the total number of jobs launched per computation will be 
+            equal to the total number of reads in your object divided by 4000.
+        </dd>
+<br/>
+    <dt><span class='pn'>Maximum Intron Length</span></dt>
+        <dd>
+            This number specifies the largest intron allowed when considering 
+            alignments from different regions of the reference. The default of 
+            0 tells the tool to treat the nucleotide sequence as if there are 
+            no introns.
+        </dd>
+<br/>
+    <dt><span class='pn'>Output Format</span>
+        <dd>
+            By default, BLASTX will report matches in a tab-separated (.tsv) 
+            file available for download. Results can also be printed in the 
+            BLAST output format.
+        </dd>
+<br/>
+    <dt><span class='pn'>Seed Size</span>
+        <dd>
+            For Bowtie, the -l option, this is the number of adjacent bases in a read for 
+            which the maximum mismatch criteria must be satisfied. Default 
+            is set to 28, but the lowest permitted value is 5. Computations 
+            will run faster for larger seed sizes. For BWA, the -k option, this specifies 
+            the minimum seed length, and will affect computation time if the value is significantly 
+            different than 20. For BLAT, this corresponds to the -tileSize=N option, with a 
+            default N of 11.
+        </dd>
+<br/>
+    <dt><span class='pn'>Number of Computational Subjects per Single Thread</span></dt>
+        <dd>
+            This parameter allows the user to specify the maximum number of 
+            sequences per thread to be aligned by a single compute node.
+        </dd>
+<br/>
+    <dt><span class='pn'>Minimum Match Length</span></dt>
+        <dd>
+            The alignments produced may vary in length. This option allows the 
+            user to choose a preferred length of alignment by discarding all 
+            alignments shorter in length than the specified value.
+        </dd>
+<br/>
+    <dt><span class='pn'>Mismatches</span></dt> 
+        <dd>
+            A mismatch in an alignment occurs when the query and reference align at most points 
+            in a given region but have different nucleotides at a single position in the same 
+            region. Potential alignments are not discarded due solely to mismatches, but the 
+            cumulative alignment score reflects a penalty associated with mismatches. The Mismatch 
+            Percentage is equal to the total number of mismatches divided by the total number of 
+            positions (or Mismatch % = total # mismatches/total # positions). This filter removes 
+            alignments with a mismatch % greater than the specified value.
+            <ul>
+                <li><i>Percent Allowed</i> allows the user to designate the percentage 
+                of mismatches allowed over which alignments will not be reported.</li>
+                <li><i>Computed on</i> allows the user to designate whether to compute 
+                the mismatch percent based on the length of the query, the entire 
+                alignment, or the designated minimum match length.</li>
+            </ul>
+        </dd>
+</description>
+
+-->

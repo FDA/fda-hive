@@ -1,0 +1,312 @@
+#/*
+# *  ::718604!
+# * 
+# * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+# * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+# * Affiliation: Food and Drug Administration (1), George Washington University (2)
+# * 
+# * All rights Reserved.
+# * 
+# * The MIT License (MIT)
+# * 
+# * Permission is hereby granted, free of charge, to any person obtaining
+# * a copy of this software and associated documentation files (the "Software"),
+# * to deal in the Software without restriction, including without limitation
+# * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# * and/or sell copies of the Software, and to permit persons to whom the
+# * Software is furnished to do so, subject to the following conditions:
+# * 
+# * The above copyright notice and this permission notice shall be included
+# * in all copies or substantial portions of the Software.
+# * 
+# * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# * DEALINGS IN THE SOFTWARE.
+# */
+
+abs_devdir = $(abspath $(devdir))
+abs_curdir = $(abspath $(shell pwd))
+
+space := 
+space +=
+comma := ,
+
+ifndef MAKE_MODE
+    -include makefile.mode
+endif
+ifndef MAKE_MODE
+    -include $(abs_devdir)/makefile.mode
+    MAKE_MODE ?= debug
+    MAKE_CXX_FLAGS ?= -g -D_DEBUG
+endif
+
+ifndef MAKE_OUT
+    -include makefile.dir
+endif
+ifndef MAKE_OUT
+    -include $(abs_devdir)/makefile.dir
+endif
+
+rname = $(MAKE_MODE)-$(SLIB_PLATFORM)-$(SLIB_ARCH)
+
+ADOPT_TOP_CXXFLAGS=
+# ImageMagick could be found on local system
+IMAGEMAGICK_LIB = $(shell pkg-config --libs MagickWand MagickCore)
+IMAGEMAGICK_CFLAGS = $(shell pkg-config --cflags MagickWand MagickCore)
+ifneq ($(IMAGEMAGICK_LIB),)
+    HAS_IMAGEMAGICK = 1
+    ADOPT_TOP_CXXFLAGS += $(space)-DHAS_IMAGEMAGICK
+endif
+# PCRE could be found on local system
+PCRE_LIB = $(shell pkg-config --libs 'libpcre >= 8.20')
+PCRE_CFLAGS = $(shell pkg-config --cflags 'libpcre >= 8.20')
+ifneq ($(PCRE_LIB),)
+    HAS_PCRE = 1
+    ADOPT_TOP_CXXFLAGS +=$(space)-DHAS_PCRE
+endif
+# SQLite could be found on local system
+SQLITE3_LIB = $(shell pkg-config --libs sqlite3)
+SQLITE3_CFLAGS = $(shell pkg-config --cflags sqlite3)
+ifneq ($(SQLITE3_LIB),)
+    HAS_SQLITE3 = 1
+    ADOPT_TOP_CXXFLAGS +=$(space)-DHAS_SQLITE3
+endif
+
+MYSQL_LIB = $(shell mysql_config --libs)
+
+include $(abs_devdir)/build/makefile.build
+include $(abs_devdir)/build/makefile.platform
+
+curdir = $(subst $(abs_devdir),,$(abs_curdir))
+ifeq ($(curdir),$(abs_curdir))
+   # devdir is external, load any local settings, like CXXFLAGS, LDFLAGS
+   -include makefile.local
+   curdir = $(abspath $(shell pwd))
+   MAKE_OUT_DFLT ?= $(curdir)
+else
+   # we are inside devdir - full source tree
+   MAKE_OUT_DFLT ?= $(abs_devdir)
+endif
+MAKE_OUT ?= $(MAKE_OUT_DFLT)
+
+MAKE_CMD=$(MAKE) --no-print-directory devdir="$(abs_devdir)" MAKE_MODE="$(MAKE_MODE)" \
+    MAKE_CXX_FLAGS="$(MAKE_CXX_FLAGS)" MAKE_OUT="$(MAKE_OUT)" INSTALLING=$(INSTALLING)
+
+bldout = $(MAKE_OUT)/$(rname)
+objdir   = $(bldout)/obj
+libdir   = $(bldout)/lib
+bindir   = $(bldout)/bin
+
+TOP_CXXFLAGS = -I$(abs_devdir)/include -I$(abs_devdir)/hive/include$(ADOPT_TOP_CXXFLAGS)
+
+# circular dependencies between qlib/ulib, slib/xlib - so we need to include both twice
+VLIB_LIB = -lqlib -lulib -lqlib -lulib -lqlang -lssci -lssql -lslib -lxlib -lion -lslib -lxlib
+
+ext_dev_lib = $(abs_devdir)/$(rname)/lib
+ifeq ("$(ext_dev_lib)","$(libdir)")
+    TOP_LDFLAGS = -lpthread -ldl -lm -L$(libdir)
+else
+    TOP_LDFLAGS = -lpthread -ldl -lm -L$(ext_dev_lib) -L$(libdir)
+endif
+
+# used in some makefiles to provide defines with defaults to be compiled in
+HIVE_DB_CXXFLAGS=-DHIVE_DB_HOST=\"localhost\" -DHIVE_DB=\"hive\" -DHIVE_DB_USER=\"hive\" -DHIVE_DB_PWD=\"hive123\"
+
+srcdir = $(abspath .)
+ifndef srcext
+    srcext = .cpp
+    CXX = g++
+endif
+
+ifndef BUILDS
+    BUILDS = $(LIBRARIES) $(MODULES) $(PROGRAMS)
+endif
+
+.SUFFIXES:
+
+.DEFAULT_GOAL ?= all
+
+.PHONY: all
+ifeq ($(MAKELEVEL),0)
+all:: MAKEFLAGS=-j
+endif
+all:: out_setup $(BUILDS) $(USER_PROJ)
+
+$(foreach tgt,$(BUILDS),$(eval $(tgt)_OBJS := $(patsubst %$(srcext),$(objdir)/$(curdir)/%.o,$(patsubst %.c,$(objdir)/$(curdir)/%.c.o,$($(tgt)_SRCS)))))
+$(foreach tgt,$(BUILDS),$(eval $(tgt)_DEPS := $(patsubst %$(srcext),$(objdir)/$(curdir)/%.d,$(patsubst %.c,$(objdir)/$(curdir)/%.c.d,$($(tgt)_SRCS)))))
+$(foreach tgt,$(BUILDS),$(eval ALL_OBJS += $($(tgt)_OBJS)))
+$(foreach tgt,$(BUILDS),$(eval ALL_DEPS += $($(tgt)_DEPS)))
+$(foreach tgt,$(LIBRARIES),$(eval ALL_LIBRARIES += $(libdir)/lib$(tgt).a))
+$(foreach tgt,$(MODULES),$(eval $(tgt)_NAME ?= $(tgt)))
+$(foreach tgt,$(MODULES),$(eval ALL_MODULES += $(libdir)/$($(tgt)_NAME).so))
+$(foreach tgt,$(PROGRAMS),$(eval ALL_PROGRAMS += $(bindir)/$(tgt)))
+$(foreach tgt,$(PROGRAMS_LIBS),$(if $(filter-out -lion,$(tgt)),$(eval ALL_PROGRAMS_LIBSDEPEND += $(subst -l,,$(libdir)/lib$(tgt).a))))
+$(foreach tgt,$(PROGRAMS),$(foreach lib,$($(tgt)_LIBS),$(if $(filter-out -lion,$(lib)),$(eval $(tgt)_PROGRAM_DEPENDS += $(subst -l,,$(libdir)/lib$(lib).a)))))
+$(foreach tgt,$(MODULES),$(foreach lib,$($(tgt)_LIBS),$(if $(filter-out -lion,$(lib)),$(eval $(tgt)_MODULE_DEPENDS += $(subst -l,,$(libdir)/lib$(lib).a)))))
+$(foreach tgt,$(LIBRARIES),$(eval $(tgt): $(libdir)/lib$(tgt).a))
+$(foreach tgt,$(MODULES),$(eval $(tgt): $(libdir)/$($(tgt)_NAME).so))
+$(foreach tgt,$(PROGRAMS),$(eval $(tgt): $(bindir)/$(tgt)))
+$(foreach tgt,$(LIBRARIES), \
+    $(eval $(libdir)/lib$(tgt).a: $(abs_devdir)/build/makefile.* $(srcdir)/makefile $($(tgt)_OBJS) $(LIBRARIES_DEPEND); \
+        @echo "================ $(MAKE_MODE) - LIB - $(tgt)"; \
+        rm -rf $(libdir)/lib$(tgt).a; \
+        echo "ar cr $(libdir)/lib$(tgt).a from `echo $($(tgt)_OBJS) | wc -w` objects"; \
+        ar cr $(libdir)/lib$(tgt).a $($(tgt)_OBJS) \
+    ) \
+)
+$(foreach tgt,$(MODULES), \
+	$(eval $(libdir)/$($(tgt)_NAME).so: $(abs_devdir)/build/makefile.* $(srcdir)/makefile $($(tgt)_OBJS) $(LIBRARIES_DEPEND) $($(tgt)_MODULE_DEPENDS); \
+		@echo "================ $(MAKE_MODE) - MODULE - $(tgt)"; \
+		rm -rf $$@; \
+		mkdir -p `dirname $$@`; \
+		echo "$(CXX) -o $$@ $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS)"; \
+		$(CXX) -pthread -shared -o $$@ $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS) \
+	) \
+)
+$(foreach tgt,$(PROGRAMS), \
+    $(eval $(bindir)/$(tgt): $(abs_devdir)/build/makefile.* $(srcdir)/makefile $($(tgt)_OBJS) $(ALL_PROGRAMS_LIBSDEPEND) $($(tgt)_PROGRAM_DEPENDS) $(PROGRAMS_DEPEND); \
+        @echo "================ $(MAKE_MODE) - APP - $(tgt)"; \
+        echo "$(CXX) -o $(bindir)/$(tgt) $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS)"; \
+        $(CXX) -o $(bindir)/$(tgt) $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS) \
+    ) \
+)
+
+.PHONY: purge
+purge:
+	rm -rf $(objdir)/$(curdir)
+
+.PHONY: clean
+clean:: purge
+ifdef ALL_LIBRARIES
+	@rm -f $(ALL_LIBRARIES)
+endif
+ifdef ALL_PROGRAMS
+	@rm -f $(ALL_PROGRAMS)
+endif
+ifdef ALL_MODULES
+	@rm -f $(ALL_MODULES)
+	@for d in $(ALL_MODULES); do \
+		d=$$(dirname $$d); \
+		if [[ $$d != $(libdir) && -d $$d && -z $$(ls $$d) ]]; then \
+			echo $$d cleaned; \
+			rmdir $$d; \
+		fi; \
+	done
+endif
+	@rm -f $(ALL_OBJS)
+	@rm -f $(ALL_DEPS)
+	@echo $(curdir) cleaned
+
+#rule to compile CPP files
+$(objdir)/$(curdir)/%.o: %$(srcext)
+	@mkdir -p `dirname $@`
+	@$(call make-depend,$<,$@,$(subst .o,.d,$@))
+	$(CXX) -Wall -Wno-format-security $(MAKE_CXX_FLAGS) $(PLATFORM_CXX_FLAGS) $(CXXFLAGS) $(TOP_CXXFLAGS) $($<_CXXFLAGS) -fPIC -c $< -o $@
+	@echo
+
+#rule to compile C files
+$(objdir)/$(curdir)/%.c.o: %.c
+	@mkdir -p `dirname $@`
+	@$(call make-depend,$<,$@,$(subst .o,.d,$@))
+	$(CXX) -Wall -Wno-format-security $(MAKE_CXX_FLAGS) $(PLATFORM_CXX_FLAGS) $(CXXFLAGS) $(TOP_CXXFLAGS) $($<_CXXFLAGS) -fPIC -c $< -o $@
+	@echo
+
+# usage: $(call make-depend,SourceFile,ObjectFile,DependFile)
+define make-depend
+    $(CXX) -MM -MP -MT $2 $(MAKE_CXX_FLAGS) $(PLATFORM_CXX_FLAGS) $(CXXFLAGS) $(TOP_CXXFLAGS) $($<_CXXFLAGS) $1 > $3
+endef
+
+# usage: $(call make-list,target,list)
+define make-list
+    @$(foreach t,$2,$(MAKE_CMD) -C $(t) $(1) &&) \
+    true;
+endef
+
+ifneq ("$(MAKECMDGOALS)","clean")
+    -include $(ALL_DEPS)
+endif
+
+.PHONY: install
+install:: INSTALLING=INSTALLING
+install::
+	@$(MAKE_CMD) dist
+
+.PHONY: dist
+dist:: out_setup_dist
+
+.PHONY: out_setup_dist
+out_setup_dist:
+
+.PHONY: dbg debug
+dbg: debug
+debug:
+	@echo "MAKE_MODE=$@" > makefile.mode
+	@echo "MAKE_CXX_FLAGS=-g -D_DEBUG -ggdb3" >> makefile.mode
+	@echo "build mode set to '$@'"
+
+.PHONY: pdbg pdebug
+pdbg: pdebug
+pdebug:
+	@echo "MAKE_MODE=$@" > makefile.mode
+	@echo "MAKE_CXX_FLAGS=-O3 -g -pg -ggdb3 -DNDEBUG"  >> makefile.mode
+	@echo "build mode set to '$@'"
+
+.PHONY: rel release
+rel: release
+release:
+	@echo "MAKE_MODE=$@" > makefile.mode
+	@echo "MAKE_CXX_FLAGS=-O3 -DNDEBUG" >> makefile.mode
+	@echo "build mode set to '$@'"
+
+.PHONY: prof profile
+prof: profile
+profile:
+	@echo "MAKE_MODE=$@" > makefile.mode
+	@echo "MAKE_CXX_FLAGS=-O3 -DNDEBUG -DSLIB_PERF" >> makefile.mode
+	@echo "build mode set to '$@'"
+
+.PHONY: out
+out:
+ifeq ($(OUT),)
+	@echo "build location reset to default '$(MAKE_OUT_DFLT)'"
+	@rm -rf makefile.dir
+else
+	@echo "build location is set to $(abspath $(OUT))"
+	@echo "MAKE_OUT=$(abspath $(OUT))" > makefile.dir
+endif
+
+.PHONY: reset
+reset:
+	@if [ -f makefile.mode ]; then cat makefile.mode; fi
+	@if [ -f makefile.dir ]; then cat makefile.dir; fi
+	@rm -rf makefile.mode makefile.dir
+	@echo "all build settings erased"
+
+.PHONY: reset-local
+reset-local:
+	@if [ -f makefile.local ]; then cat makefile.local; fi
+	@rm -rf makefile.local
+	@echo "all local settings erased"
+
+.PHONY: out_setup
+out_setup:
+	@mkdir -p $(objdir)
+	@mkdir -p $(libdir)
+	@mkdir -p $(bindir)
+
+.PHONY: env
+env:
+	@echo 'devdir ="$(devdir)"'
+	@echo 'abs_devdir ="$(abs_devdir)"'
+	@echo 'abs_curdir ="$(abs_curdir)"'
+	@echo 'curdir ="$(curdir)"'
+	@echo 'MAKE_CXX_FLAGS = "$(MAKE_CXX_FLAGS)"'
+	@echo 'MAKE_MODE = "$(MAKE_MODE)"'
+	@echo 'MAKE_OUT = "$(MAKE_OUT)"'
+
+# help targets
+-include $(abs_devdir)/build/makefile.help

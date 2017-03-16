@@ -1,0 +1,239 @@
+<!--
+$Id: dna-refClust_tmplt.html 10612 2015-09-18 14:21:16Z lam $
+vim: set et ts=4 sts=4:
+-->
+
+<!DOCTYPE html>
+<html>
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+ 
+ <script src="js-obj-new/svc-dna-refClust.js"></script>
+<script type="application/javascript" language="JavaScript1.1" src="js/vjTableViewX2.js" ></script>
+<script  src='js/vjPluggableToolbar.js'> </script>
+<script type="text/javascript" language="JavaScript1.1" src="js/vjGoogleGraphView.js"></script>
+<script type="text/javascript" src="js/vjAnnotListTableView.js"></script>
+  
+<script>
+    // Set the DNA Pipeline title bar
+    setLocationTitle("HIVE DNA Reference Cluster");
+    var qpSvc = "dna-insilico"; 
+    var svcProcType = "svc-dna-refClust";
+    var algoProcess = new valgoProcess(docLocValue("id"),  qpSvc , svcProcType ); // (loadedID,  qpSvc, svcProcType, svcRecViewer)
+    
+    algoProcess.visibleParameters=["name","dna-refClust_sourceObj","dna-refClust_annotation","dna-refClust_annotationFilter"];
+    
+    algoProcess.submitButtonName="SUBMIT";
+    algoProcess.recViewerName = 'DV_Parameter_view';
+    
+    //
+    var prevList = [];
+    var deletedList = [];
+    function populateAnotToRV(idArr) {
+        var recordV = vjDV[algoProcess.recViewerName];
+        var anotElement= recordV.getElement("dna-refClust_annotation");
+        //var genomeElement= recordV.getElement("inSilicoSourceObjId");
+        var genomeElement= recordV.getElement("dna-refClust_sourceObj");
+        if (!genomeElement.elementValueArray.length) { // meaning users reset list of genome ==> reset list of annotation
+            idArr = deletedList = prevList = [];
+        }
+        var rowIndexArr = [];
+        for (var i=0; i < deletedList.length; ++i) {
+            var ind = idArr.indexOf(deletedList[i]);
+            if (ind!=-1) rowIndexArr.push(ind); 
+        }
+        for (var i=0; i<rowIndexArr.length; ++i) {
+            var curIndex = rowIndexArr[i] - i;
+            idArr.splice(curIndex,1);
+        }
+        if (!anotElement['elementValueArray']) anotElement['elementValueArray'] =[];
+        if (!prevList.length) prevList = idArr; 
+        recordV.changeElementValueByPath(anotElement.path,idArr);
+        recordV.redraw();
+    }
+    
+    function extractSourceObj(data) {
+        var tbl = new vjTable(data,0,vjTable_propCSV);
+        var obj = new Object();
+        var idArr = new Array();
+        for (var ir=0; ir < tbl.rows.length; ++ir ) {
+            var row=tbl.rows[ir];
+            if ( row['source'].trim()=="file://" ) continue;
+            if ( ( !obj[row['id']] ) ) {
+                obj[row['id']]=row['source'];
+                idArr.push(row['id']);
+            }
+        }
+        return { arr: idArr, obj: obj};
+    }
+    
+    function constructAnnotElement(ds , data) {
+        console.log(" ======== \n" + vjDS["dsSourceInfo"].data + "===================");
+        var genomeObj = extractSourceObj(vjDS["dsSourceInfo"].data);
+        var anotObj = extractSourceObj(data);
+        var mappedAnotIds= new Array();
+        for (var i=0; i<genomeObj.arr.length; ++i) {
+            var gSource = genomeObj.obj[genomeObj.arr[i]];
+            for (var j=0; j<anotObj.arr.length; ++j) {
+                var aSource = anotObj.obj[anotObj.arr[j]];
+                if ( mappedAnotIds.indexOf(anotObj.arr[j])!=-1 ) continue; 
+                if ( aSource == gSource ){
+                    mappedAnotIds.push(anotObj.arr[j]);
+                }  
+            }
+        }
+        // populate the value
+        populateAnotToRV(mappedAnotIds);
+        // rerender annot table viewer
+        var recordV = vjDV[algoProcess.recViewerName];
+        //var refElement= recordV.getElement("inSilicoSourceObjId"); // dna-refClust_sourceObj
+        var refElement= recordV.getElement("dna-refClust_sourceObj"); // 
+        var anotControl = vjObj[algoProcess.annotationControlObjCls];
+        
+        anotControl.referenceObjList=refElement.elementValueArray;
+        anotControl.annotObjList = mappedAnotIds;
+        anotControl.reload();
+    }
+    
+    
+    // Set the function for whenever there is a change in the form
+    vjDS.add("Loading source info ... ","dsSourceInfo","http://?cmd=propget&mode=csv&prop=source&ids=");
+    vjDS.add("Loading source info ... ","dsAnnotSource","http://?cmd=objList&mode=csv&type=u-ionAnnot&prop=source");
+    //
+    vjDS["dsSourceInfo"].parser = function(ds,parser) {
+        vjDS["dsAnnotSource"].reload(0,true);
+    };
+    vjDS["dsAnnotSource"].parser = constructAnnotElement;
+    
+    
+    algoProcess.inputChanged = function(rViewer,selectedElement) {
+        console.log("inputChanged");
+        var recordV = vjDV[algoProcess.recViewerName];
+        var anotControl = vjObj[algoProcess.annotationControlObjCls];
+        //var isGenome = (selectedElement.name.indexOf("inSilicoSourceObjId")!=-1) ? 1 : 0; // dna-refClust_sourceObj
+        var isGenome = (selectedElement.name.indexOf("dna-refClust_sourceObj")!=-1) ? 1 : 0; // 
+        if (isGenome) {
+            var valueArr = selectedElement.elementValueArray;
+            if (valueArr.length) {
+                //var 
+                var realSourceId = recordV.getElement("inSilicoSourceObjId");
+                recordV.changeElementValueByPath(realSourceId.path, valueArr.join(";")); // for hiveseq to work, it needs semi-colon seperated
+                var url = vjDS["dsSourceInfo"].url;
+                url = urlExchangeParameter(url,    "ids", valueArr.join(","));
+                vjDS["dsSourceInfo"].reload(url, true);
+            }
+            else populateAnotToRV([]);
+        }
+        else if (selectedElement.name.indexOf("dna-refClust_annotation")!=-1) {
+            var curList = selectedElement.elementValueArray;
+            if (!curList.length){deletedList = appendList =[];}
+            for (var i=0; i<prevList.length;++i) {
+                if (curList.indexOf(prevList[i])==-1) { // not found, item deleted
+                    deletedList.push(prevList[i]);
+                }
+            }
+            var appendList = [];
+            for (var j=0; j<curList.length; ++j) {
+                if (prevList.indexOf(curList[j])==-1) { // not found =>  item added
+                    appendList.push(curList[j]);
+                }
+            }
+            for (var ia=0; ia<appendList.length; ++ia) {
+                var iFound = deletedList.indexOf(appendList[ia]); 
+                if (iFound !=-1) deletedList.slice(iFound,1);
+            }
+            prevList = curList;
+            // rerender annot table viewer
+            
+            //var refElement= recordV.getElement("inSilicoSourceObjId"); // dna-refClust_sourceObj
+            var refElement= recordV.getElement("dna-refClust_sourceObj"); // 
+            anotControl.referenceObjList=refElement.elementValueArray;
+            
+            anotControl.annotObjList = curList;
+            anotControl.reload();
+        }
+    };
+    
+    algoProcess.callbackLoaded=function(rViewer, algoP){
+         console.log("inputloaded");
+         if (!algoP.loadedID) {
+             var generalTab = gObject("general-tab");
+             var recordViewDiv = generalTab.firstChild;
+             var spanForAnot = document.createElement("span");
+             spanForAnot.id = "RV-dna-refClust_anot";
+             spanForAnot.style["overflow"] = "hidden";
+             recordViewDiv.appendChild(spanForAnot);
+             
+             var anotControl = new vjAnnotListTableControl({
+                 formObject: document.forms["algoForm"],
+                 defaultEmptyText: "Please Select Reference Genomes",
+                  //callbackSubmit: testSubmit,
+                  submitButton: {hidden:true},
+                  annotationButton:{hidden: true},
+                  //annotObjList:["3099581","3099578"],
+                 checkCallback: testCallback,
+                 removeCallback: testCallback,
+                 clearCallback: testCallback
+             });
+             algoProcess.annotationControlObjCls = anotControl[0].parentObjCls; 
+             
+              vjDV.add("RV-dna-refClust_anot","100%",300);
+             vjDV["RV-dna-refClust_anot"].add("Annotation Filters","recItem","tab", anotControl);
+            vjDV["RV-dna-refClust_anot"].render();
+            vjDV["RV-dna-refClust_anot"].load();
+         }
+    };
+    
+     function testCallback(anotViewerControl,panel) { // update value for annotation ranges table
+        var tbl = anotViewerControl.constructPreviewTableUrl(anotViewerControl.objAdded, true);
+        algoProcess.setValue("inSilicoRangeExtractInline", tbl);
+    } 
+     
+/*       algoProcess.initialPresets={
+        service:"dna-refClust"
+        //,algo: "query:alloftype('type should be here',{extra type:'type argument'})[0]"
+        ,inSilicoOption" 1
+    }; 
+     */
+
+    
+    algoProcess.doneComputing = function(viewer, reqid, stat) 
+    {    
+        // gObject("RV-dna-refClust_anot").style.visibility = "hidden";
+        if (stat == 5) { // this status is done
+            var nam = algoProcess.getValue("name"); // this is how you get the variables from the input form in JS
+            
+            currentCompletionState = "computed";
+            algoWidgetObj.iterateAlgoJSON (algoWidgetObj.optionsForPage.subTabs, "algoMenu");
+            
+            // this is how you call the Hive Object to construct you result viewers
+            //
+            var node = {
+                    _type : 'svc-dna-insilico',   // your back-end service name
+                    id : docLocValue("id"), // read the id from the URL
+            };
+            dna_refClust = vjHO.fullview(node._type, node, $.getAlgoViewManager().options.jsonForPage.subTabs.results);
+        }
+        else if (stat == 7) { // this status is error
+        
+        }
+    };
+
+    $(document).ready(function() 
+    {
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: "svc-dna-insilico",
+            algoTitle: "Dna Reference Cluster"
+        });
+     });
+    
+</script>

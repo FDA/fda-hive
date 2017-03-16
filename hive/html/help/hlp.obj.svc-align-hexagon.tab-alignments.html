@@ -1,0 +1,45 @@
+<id>hlp.obj.svc-align-hexagon.tab-alignments.html</id>
+<title>Alignments data container</title>
+<definition>View alignments</definition>
+<description>The alignments tab is a specialized version of the <a href="hlp.view.dataContainer.html">data container</a> visualization model.<br/>
+<br/>
+The alignment-specific table has rows arranged as corresponding triplets, the top being the reference sequence, the middle displaying alignment and the bottom showing the query sequence.
+ A pipe (|) symbol signifies a match at that nucleotide position whereas a space indicates a mismatch. Dots (.) and dashes (-) indicate deletions and insertions, respectively. The columns 
+ of the table are as follows:<br/>
+<ol>
+<li><span class='pn'>Start</span> lists the start position of the alignment for each sequence. The top row is the number assigned to the reference, the bottom row of the triplet is
+the number assigned to the query.</li>
+<li><span class='pn'>Alignment</span> displays the actual alignment in the triplet format discussed above.</li>
+<li><span class='pn'>End</span> displays the end position of the alignment for each sequence. Again the top and bottom numbers report the positions of the reference and the query,
+ respectively. The middle number is the length of the actual alignment reported.</li>
+<li><span class='pn'>Sequence</span> lists names for each sequence as specified by ID lines of corresponding read and reference input files.</li>
+<li><span class='pn'>Repeats</span> lists the number of repeats of that exact alignment (if applicable) instead of displaying them as multiple rows in the table.</li>
+</ol>
+In addition to basic string search, the two search boxes at the top right have a number of customizable filters for narrowing the scope of your visible results. In the Position search 
+box, supplying a number will report only those alignments that touch a specific position with the window centered around that position. If you are looking for variants at a specific 
+position, selecting "Mutated" here will report only those alignments with a mutation (with respect to the reference)at the specified position. Additionally, you can add a sequence 
+pattern to general string search box. For example, if "CAG" is entered in the right-most search box and "930" is entered in the Position search box, selecting the option for "Find only 
+patterns touching specified position" will return only those alignments with part of the CAG motif at position 930. 
+<br/>
+Additional filters are as follows:
+<ul>
+<li><span class='pn'>Collapse repeats</span> - By default, any completely identical alignments are collapsed with the count of repeats maintained in the repeat column. Deselecting this 
+option will display each duplicate alignment as a unique entry.</li>
+<li><span class='pn'>Shuffle alignments randomly</span> - Alignments are sorted with respect to their sequence similarity such that adjacent alignments are from more similar sequences 
+than alignments that are reported further away on the list. Selecting this option will randomly reorder the alignment report list.</li>
+<li><span class='pn'>Print 'N's</span> - Selecting this option will report nucleotides that were unassigned a letter call by the sequencing apparatus as an N.</li>
+<li><span class='pn'>Forward alignments</span> - Selecting this option will print forward alignments. By default, both forward and reverse alignments are reported.</li>
+<li><span class='pn'>Reverse alignments</span> - Selecting this option will print reverse alignments.</li>
+<li><span class='pn'>Search on reference</span> - Selecting this option allows you to search the reference specifically for your criteria. By default, searches are applied to the entire 
+triplet as described above.</li>
+<li><span class='pn'>Search on comparison</span> - Selecting this option allows you to search the comparison line for your criteria, allowing you to identify insertions and deletions by 
+searching for dots or dashes.</li>
+<li><span class='pn'>Search on read</span> - Selecting this option allows you to search the reads specifically for your criteria.</li>
+<li><span class='pn'>Non-perfect alignments</span> - Selecting this option will report only those alignments that have at least one mismatching position.</li>
+<li><span class='pn'>Filter dangling tails less than</span> - The number you supply here will determine the minimum length of any dangling tails, or series of unaligned nucleotides at one 
+end of an otherwise good alignment. Specifying a number here will result in reporting only those alignments with dangling tails of at least this length.</li>
+<li><span class='pn'>Only alignments with dangling tails</span> - Selecting any of the options here will result in the results table reporting only those alignments which have at least 
+one unaligned nucleotide at the end of an alignment. Selecting "Ignore tails" will report these alignments without tail positions. Selecting "Alignments with tails" will display the full 
+alignment frame, and selecting "Tails without alignments" will report only the dangling tail regions of such alignments.</li>
+</ul>     
+</description>

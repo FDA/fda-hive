@@ -1,0 +1,634 @@
+<!--
+ $Id$
+-->
+
+
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript" src="js/graph.js"></script>
+<script type="text/javascript" src="js/json2.js"></script>
+<script type="text/javascript" src="js/facts.js"></script>
+<script type="text/javascript">
+// version 1.0
+
+       google.load("visualization", "1", {packages:["corechart"]});
+       //google.setOnLoadCallback(drawChart);
+
+    var errorCodeFirst = -1000000;
+    var errorCodes = new Array("undefined error","outlier<br>max.ratio","cutoff<br>low/hight","bkg");
+
+function svc2array(data) {
+    myarray = new Array();
+    lines = new Array();
+    lines = data.split("\n");
+    for (l=0;l<lines.length;l++) {
+        var lineArr = new Array();
+        lineArr = lines[l].split(",");
+        if (lineArr.length < 2) { lineArr = lines[l].split(/\s+/); }
+        myarray.push(lineArr);
+    }
+
+    for (c=0; c<myarray.length; c++) {
+        for (s=0; s<myarray[c].length; s++) {
+            myarray[c][s] = parseFloat(myarray[c][s]);
+        }
+    }
+    return myarray;
+}
+
+//each LSO[sampleNumber] contains [k,b,Xcross] from least square method
+function replacePlateTable(parsedInput,min,max,LSO,errorData,bkgAverage) {
+   //alert("max="+max+" min="+min+" nOfSamples="+nOfSamples);
+   var nSamples = parsedInput[0].length;
+   var nCon = parsedInput.length;
+   var newTable="<table width=700><tr><td>DU/ml</td><td>Ref</td>";
+   for (s=2;s<=nSamples;s++) {
+       var sNum = s-1;
+       newTable=newTable+"<td>S"+sNum+"</td>"; 
+   }
+   newTable=newTable+"</tr>";
+   var titrFact = parseFloat(document.getElementById("titrFact").value);
+   var refCon = parseFloat(document.getElementById("refCon").value);
+   var refDil = parseFloat(document.getElementById("refDil").value);
+   var parCri = parseFloat(document.getElementById("parCri").value);
+   var linCri = parseFloat(document.getElementById("linCri").value);
+   var startCon = refCon/refDil;
+   for (c=0;c<nCon;c++) {
+       //newTable=newTable+"<tr><td>"+Math.round(100*3.0/Math.pow(2,c))/100+"</td>";
+       var ct = startCon/Math.pow(titrFact,c);
+       //var ct = Math.log(ct)/Math.log(2);
+       newTable=newTable+"<tr><td>"+Math.round(100*ct)/100+"</td>";
+       for (s=0;s<nSamples;s++) {
+          var con = parsedInput[c][s];
+          var intensity = Math.round(255*(1-(con-min)/(max-min)));
+          var inhex = intensity.toString(16);
+          if(inhex.length==1) { inhex = "0"+inhex; }
+          inhex = "FFFF" + inhex;
+          var sNum="";
+          var err = Math.round(errorData[c][s]*100)/100;
+          // if the measurement is a valid one
+          if (con>errorCodeFirst/10) { 
+              sNum = Math.round(con*100)/100; 
+              sNum=sNum+"<sub><small><div>&#177</div>"+err+"<small></sub>"; 
+              newTable=newTable+"<td bgcolor="+inhex+">"+sNum+"</td>";
+           }
+           //otherwise display errorCodes[] on the red background
+           else {
+               inhex="FFA4A4"; sNum = errorCodes[con-errorCodeFirst];
+               if ((con-errorCodeFirst)==3) { 
+                   sNum = sNum+"="+bkgAverage; 
+                   inhex="FFFFFF";
+               }
+               newTable=newTable+"<td bgcolor="+inhex+"><small>"+sNum+"</small></td>";
+           }
+       }
+       newTable=newTable+"</tr>";
+    }
+    newTable+="</table>";
+    document.getElementById("tablePlate").innerHTML=newTable;
+    newTable="<table width=700>";
+
+    newTable=newTable+"<tr><td colspan='5' ><br/><br/><h3>ELISA ANALYSIS</h3></td></tr>";
+    newTable=newTable+"<tr><td>Y=a+bX</td><td>Ref</td>";
+    for (s=2;s<=nSamples;s++) {
+        var sNum = s-1;
+        newTable=newTable+"<td>S"+sNum+"</td>"; 
+    }
+   newTable=newTable+"</tr>";
+    //add LSO lines to the table
+    //add k line
+    newTable=newTable+"<tr><td style='border-top:thin solid; border-color:black;'>b</td>";
+    for (s=0;s<nSamples;s++) { 
+        newTable=newTable+"<td style='border-top:thin solid; border-color:black;'>"+Math.round(1000*LSO[s][0])/1000+"</td>";
+    }
+    newTable=newTable+"</tr>";
+    //add Dk line
+    newTable=newTable+"<tr><td>&#916b</td>";
+    for (s=0;s<nSamples;s++) { 
+        newTable=newTable+"<td>"+Math.round(1000*LSO[s][4])/1000+"</td>";
+    }
+    newTable=newTable+"</tr>";
+    //add a line
+    newTable=newTable+"<tr><td>a</td>";
+    for (s=0;s<nSamples;s++) { 
+        newTable=newTable+"<td>"+Math.round(1000*LSO[s][1])/1000+"</td>";
+    }
+    newTable=newTable+"</tr>";   
+    //add Da line
+    newTable=newTable+"<tr><td>&#916a</td>";
+    for (s=0;s<nSamples;s++) { 
+        newTable=newTable+"<td>"+Math.round(1000*LSO[s][5])/1000+"</td>";
+    }
+    newTable=newTable+"</tr>";    
+    //add r2 line
+    newTable=newTable+"<tr><td>r<sup>2</sup></td>";
+    for (s=0;s<nSamples;s++) {
+        var rtwo = Math.round(10000*LSO[s][2])/10000;
+        if (rtwo<linCri) { 
+            var style = "style='color:#FF0000'";
+            rtwo="<div "+style+"><b><i>"+rtwo+"</i></b></div>"; 
+        }
+        newTable=newTable+"<td>"+rtwo+"</td>";
+    }
+    //add angle line
+    newTable=newTable+"<tr><td id=\"angle\">angle</td>";
+    for (s=0;s<nSamples;s++) { 
+        var angDiff = 360/(2*Math.PI)*( Math.atan(LSO[s][0])-Math.atan(LSO[0][0]) );
+        angDiff = Math.round(100*angDiff)/100;
+        if (Math.abs(angDiff)>=parCri) { 
+            var style = "style='color:#FF0000'"
+            angDiff="<div "+style+"><b><i>"+angDiff+"</i></b></div>"; 
+        }
+        newTable=newTable+"<td>"+angDiff+"</td>";
+    } 
+    //add Xdiff line
+    newTable=newTable+"<tr><td>Xdiff</td>";
+    for (s=0;s<nSamples;s++) {
+        newTable=newTable+"<td>"+Math.round(1000*LSO[s][6])/1000+"</td>";
+    }
+    //add D_Xdiff line
+    newTable=newTable+"<tr><td>&#916Xdiff</td>";
+    for (s=0;s<nSamples;s++) { 
+        newTable=newTable+"<td>"+Math.abs(Math.round(1000*LSO[s][8])/1000)+"</td>";
+    }
+    //add Potency line
+    newTable=newTable+"<tr><td>potency</td>";
+    for (s=0;s<nSamples;s++) { 
+        newTable=newTable+"<td>"+Math.round(LSO[s][7])+"</td>";
+    }
+    //add D_Potency line
+    newTable=newTable+"<tr><td>&#916<sub>p=0.95</sub></td>";
+    for (s=0;s<nSamples;s++) { 
+        newTable=newTable+"<td>"+Math.abs(Math.round(10*LSO[s][9])/10)+"</td>";
+    }
+    newTable=newTable+"</tr>";
+
+   //}
+   newTable=newTable+"</table>";
+   //alert(newTable);
+   document.getElementById("tableAnalysis").innerHTML=newTable;
+}
+
+function drawChart(arrayData,conLog) {
+    //alert(arrayData[5]);       
+    //arrayData=[[2.1,2.9,4.1],[4.1,6.2,7.8],[11.8,9.2,12.2]];
+
+    //rework arrayData into arrayForGraph:
+    var concentrationsNumber = arrayData[0].length;
+    var samplesNumber = arrayData.length;
+    var arrayForGraph = new Array(concentrationsNumber);
+    for (c=0;c<=concentrationsNumber;c++) { arrayForGraph[c]=Array(samplesNumber);}
+
+    arrayForGraph[0][0] = "concentrationsLogs";
+    for (c=1;c<=concentrationsNumber;c++) { 
+        arrayForGraph[c][0] = parseFloat(conLog[c-1]);
+    }
+
+    arrayForGraph[0][1] = "FDA Ref";
+    for (s=2;s<=samplesNumber;s++) {
+         var sNum = s-1;
+         arrayForGraph[0][s] = "sample"+sNum.toString(); 
+    }
+    for (c=1; c<=concentrationsNumber; c++) {
+        for (s=1; s<=samplesNumber;s++) {
+            //alert("arrayData["+(c-1)+"]["+(s-1)+"]="+arrayData[c-1][s-1]);
+            arrayForGraph[c][s] = arrayData[s-1][c-1];
+        }
+    }
+
+    //for (c=0;c<concentrationsNumber;c++) { for (s=0;s<samplesNumber;s++) {
+        //alert("arrayForGraph["+c+"]["+s+"]="+arrayForGraph[c][s]);
+    //}}
+
+    var data = google.visualization.arrayToDataTable(arrayForGraph);
+    var chart = new google.visualization.ScatterChart(document.getElementById('graphAnalysis'));
+    var options = {
+        //curveType: "function",
+        //curveType: "line",
+        title: "Log scale: optical density vs concentration",
+        //vAxis: {maxValue: 10},
+        width: 600, height: 500};
+    chart.draw(data, options);
+
+}
+
+function plateparse() {
+    var mytxt=document.getElementById("csv").value;
+    var parsedInput = new Array();
+    parsedInput = svc2array(mytxt);
+    var titrFact = parseFloat(document.getElementById("titrFact").value);
+    
+    var refCon = parseFloat(document.getElementById("refCon").value);
+    var refDil = parseFloat(document.getElementById("refDil").value);
+    var startCon = refCon/refDil;
+
+    // rework parsedInput into sample array
+    var retArray = new Array();
+    retArray = reworkDoubleSamples(parsedInput);
+    var rewParsedInput = new Array();
+    var errorData = new Array();
+    rewParsedInput = retArray[0];
+    errorData = retArray[1];
+    var bkgAverage = retArray[2];
+    //alert(retArray[0]);
+
+    var nOfSamples = rewParsedInput[0].length;
+    var nOfConc = rewParsedInput.length;
+    //alert("nOfSamples="+nOfSamples+" nOfConc="+nOfConc);
+
+    //transpose rewParsedInput into sampleLogArrayTr and 
+    //find min,max for replacePlateTable()
+    var max=-1000000.0;
+    var min=1000000.0;
+    var sampleLogArrayTr = new Array(nOfSamples);
+    for (s=0;s<nOfSamples;s++) {
+        sampleLogArrayTr[s] = new Array(nOfConc);
+        for (c=0;c<nOfConc;c++) {
+           var od = rewParsedInput[c][s];
+           //alert("c="+c+",s="+s+",od="+sampleLogArrayTr[s][s]);
+           if ((od>-1000)&&(min>od)) { min=od; }
+           if ((od>-1000)&&(od>max)) { max=od; }
+            //alert("c="+c+",s="+s+",od="+rewParsedInput[c][s]);
+            sampleLogArrayTr[s][c] = Math.log(rewParsedInput[c][s])/Math.log(titrFact);
+            //sampleLogArrayTr[s][c]=parseFloat(rewParsedInput[c][s]);
+            //alert("c="+c+",s="+s+",od="+sampleLogArrayTr[s][c]);
+        }
+    }
+    //compute concentrations and put them into array
+    var conLog = new Array(nOfConc);
+    for (c=0;c<nOfConc;c++) {
+       var ct = startCon/Math.pow(titrFact,c);
+       conLog[c] = Math.log(ct)/Math.log(titrFact);
+       //conLog[c] = startCon/Math.pow(titrFact,c);
+    }
+    //apply least square method to each sample
+    var LSO = new Array(nOfSamples);
+    for (s=0;s<nOfSamples;s++) {
+        LSO[s] = leastSquares(conLog,sampleLogArrayTr[s],0);
+        //alert("standard"+s+" "+LSO[s]);
+    }
+
+    //calculate Xdiff for each sample
+    var Xdiff = new Array(nOfSamples-1);
+    for (s=0;s<nOfSamples;s++) {
+        var parr = new Array(3);
+        parr = potency(s,sampleLogArrayTr[s],LSO[s],LSO[0]);
+        LSO[s][6] = parr[0]; //Xdiff
+        LSO[s][7] = parr[1]; //potency
+        LSO[s][8] = parr[2]; //D_Xdiff
+        LSO[s][9] = parr[3]; //D_potency       
+    }
+
+    //transpose sampleLogArrayTr back for drawChart()
+    //var sampleLogArray = new Array(nOfConc);
+    //for (c=0;c<nOfConc;c++) {
+    //    sampleLogArray[c]=new Array(nOfSamples);
+    //    for (s=0;s<nOfSamples;s++) {
+    //       sampleLogArray[c][s]=sampleLogArrayTr[s][c];
+    //       //alert("c="+c+",s="+s+",od="+sampleLogArrayTr[s][s]);
+    //    }
+    //}
+
+    replacePlateTable(rewParsedInput,min,max,LSO,errorData,bkgAverage);
+    //replacePlateTable(sampleLogArray,min,max,LSO,errorData);
+    drawChart(sampleLogArrayTr,conLog);
+
+}
+
+//X and Y are arrays, Ycross is value:
+function leastSquares(X,Y,Ycross) {
+    var Xsum=0.0; var Ysum=0.0; var XYsum=0.0; var Xp2sum=0.0; var Yp2sum=0.0;
+    var validMeasurements=0;
+    for (i=0;i<X.length;i++) {
+        if (Y[i] > -1000) {
+            Xsum+=X[i]; Ysum+=Y[i]; XYsum+=X[i]*Y[i]; Xp2sum+=X[i]*X[i]; Yp2sum+=Y[i]*Y[i];
+            validMeasurements++; 
+        }
+    }
+    var Xmean=Xsum/validMeasurements; var Ymean=Ysum/validMeasurements;
+    var XYmean=XYsum/validMeasurements; var Xp2mean=Xp2sum/validMeasurements;
+    var Yp2mean=Yp2sum/validMeasurements;
+
+    var k=0.0;   
+    var SSxy = XYsum-validMeasurements*Xmean*Ymean; 
+    var SSxx = Xp2sum-validMeasurements*Xmean*Xmean;
+    var SSyy = Yp2sum-validMeasurements*Ymean*Ymean;
+    if (SSxx>0) {k = SSxy/SSxx; }
+    var b=Ymean-k*Xmean;
+    //calculate r^2
+    var r2 = 0.0;
+    if (SSyy>0) {r2 = SSxy*SSxy/(SSxx*SSyy); }
+    //alert("k="+k+"\nb="+b+"\nr2="+r2);   
+
+    //calculate error for k and b
+    var s = 0.0;
+    if (validMeasurements>2) { s = Math.sqrt((SSyy-SSxy*SSxy/SSxx)/(validMeasurements-2)); }
+    var Dk = s*Math.sqrt(1.0/validMeasurements+Xmean*Xmean/SSxx);
+    var Db = s/Math.sqrt(SSxx);    
+
+    // find median Y, taking into account possibility of undef values
+    // find minY, maxY
+    var minY=1000000; var maxY=-1000000;
+    for (i=0;i<Y.length;i++) {
+        if (Y[i]>-1000) {
+            if (Y[i]<minY) { minY=Y[i]; }
+            if (Y[i]>maxY) { maxY=Y[i]; }
+        }
+    }
+    var Ymedian = minY+(maxY-minY)/2;
+ 
+    //reserve LSO[5] and LSO[6] for Xdiff and Potency
+    return [k,b,r2,Ymedian,Dk,Db,0,0];
+}
+
+function reworkDoubleSamples(parsedInput) {
+    var nOfSeries = parsedInput[0].length;
+    var nOfConc = parsedInput.length;   
+
+    var cutLow = parseFloat(document.getElementById("cutLow").value); //0.25
+    var cutHigh = parseFloat(document.getElementById("cutHigh").value); //3.3
+    var outMax = parseFloat(document.getElementById("outMax").value); //1.30
+   
+    // calculate average background from empty cells
+    // last 4 cells in the last row contain background measurements from empty cells
+    var bkgAverage = 0.0;
+    for (i=0;i<4;i++) { 
+        bkgAverage += parsedInput[nOfConc-1][nOfSeries-1-i]; 
+        //alert("bkgAverage="+bkgAverage);
+    }
+    bkgAverage = bkgAverage/4;
+    
+    //bkgAverage = 0;//DEBUG ONLY!!
+
+    var arrayData = new Array(nOfConc);
+    var errorData = new Array(nOfConc);   
+
+    // average pairs of measurements for the same sample&concentration substructing background
+    // and excluding outliers
+    for (c=0;c<nOfConc;c++) {
+        arrayData[c]=new Array(parsedInput[c].length/2); 
+        errorData[c]=new Array(parsedInput[c].length/2);
+        for (s=0;s<nOfSeries/2;s++) {
+            // apply cutoff_low and cutoff_high 
+            if ((parsedInput[c][2*s]>bkgAverage*(1+cutLow))&&(parsedInput[c][2*s+1]>bkgAverage*(1+cutLow))
+              &&(parsedInput[c][2*s]<cutHigh)&&(parsedInput[c][2*s+1]<cutHigh)) {
+                // apply outlier filter max
+//alert(parsedInput[c][2*s]+"-"+parsedInput[c][2*s+1]);
+                if ( ((Math.abs(parsedInput[c][2*s]-parsedInput[c][2*s+1]))/parsedInput[c][2*s] < outMax-1 )
+                  ||( (Math.abs(parsedInput[c][2*s]-parsedInput[c][2*s+1]))/parsedInput[c][2*s+1] < outMax-1 )) {
+                    arrayData[c][s] = (parsedInput[c][2*s]+parsedInput[c][2*s+1]-2*bkgAverage)/2;
+                    //alert(c+","+s+","+arrayData[c][s]);
+                    errorData[c][s] = Math.abs(parsedInput[c][2*s+1]-parsedInput[c][2*s])/2;
+                }
+                else {
+                    //alert("optical densities for sample "+s+" differ in more then 'outlier filter max'="+outMax+ " times!");
+                    arrayData[c][s] = errorCodeFirst + 1;
+                }
+            }
+            else{
+                    //alert("s="+s+" nOfSeries="+nOfSeries+"c="+c+" nOfConc="+nOfConc);
+                    if ( ((s+1==nOfSeries/2)||(s+1==nOfSeries/2-1)) && (c+1==nOfConc) ) {
+                        arrayData[c][s] = errorCodeFirst + 3;
+                    }
+                    else {
+                        //alert("optical density for sample "+s+" are cut off by  cutoff_low or cutoff_high filters.");
+                        arrayData[c][s] = errorCodeFirst + 2;
+                    }
+            }
+        }
+    }
+    //alert(arrayData[0]);
+    return [arrayData,errorData,bkgAverage];
+}
+
+function potency(sNumber,Y,LSO,refLSO) {
+
+    var refCon = parseFloat(document.getElementById("refCon").value);
+    var refDil = parseFloat(document.getElementById("refDil").value);
+    var titrFact = parseFloat(document.getElementById("titrFact").value)
+    var startCon = refCon/refDil;
+
+    // calculate distance between LSO and refLSO at Ymedian
+    var Ymedian = LSO[3];
+    var refK = refLSO[0]; var refB = refLSO[1];
+    var K = LSO[0]; var B = LSO[1];
+    var Xdiff = (Ymedian-B)/K-(Ymedian-refB)/refK;
+
+    if (sNumber>0) {    
+        var startDil = document.getElementById("stDil"+sNumber.toString()).value;
+        var refCon = document.getElementById("refCon").value;
+        var potency = startDil*refCon/Math.pow(titrFact,Xdiff);
+    }
+    else if (sNumber==0) { potency = 1; }
+
+    //calculate error for Xdiff
+    var Dk = LSO[4]; var Db = LSO[5];
+    var DkRef = LSO[4]; var DbRef = LSO[5]; 
+    var DXdiff  = -Dk*(Ymedian-B)/(K*K)-Db/K+DkRef*(Ymedian-refB)/(refK*refK)+DbRef/refK;
+    if (sNumber>0) {
+        //1.96 * standard deviation gives value for 0.95 confidence interval
+        var Dpotency = 1.96 * DXdiff*potency*Math.log(titrFact)/Math.log(Math.E);
+    }
+    else if (sNumber==0) { Dpotency = 0; }
+    
+    return [Xdiff,potency,DXdiff,Dpotency];
+}
+
+function handleFile() {
+    var file = document.getElementById('fi').files[0];
+    var csv = document.getElementById("csv");
+    csv.value = file.getAsDataURL();
+}
+
+</script>
+
+<script>
+    gInitList+="elisa_init();";
+
+    function elisa_init()
+    {
+        vjDS.add( "infrastructure: loading","dsInput", "innerHTML://dsInput");
+        vjDS.add( "infrastructure: loading","dsInputParams", "innerHTML://dsInputParams");
+        vjDS.add( "infrastructure: loading","dsPlate", "innerHTML://dsPlate");
+        vjDS.add( "infrastructure: loading","dsAnalysis", "innerHTML://dsAnalysis");
+        vjDS.add( "infrastructure: loading","dsGraph", "innerHTML://dsGraph");
+        vjDS.add( "infrastructure: loading","dsHelp", "http://util/elisa.docx");
+     
+        vjDV.add("dvInput",750,300);
+        vjDV.dvInput.add( "input", "table", "tab", { data: 'dsInput'} );
+        vjDV.dvInput.compose();
+        vjDV.dvInput.load ();
+   
+        vjDV.add("dvInputParams",350,700);
+        vjDV.dvInputParams.add( "parameters", "commands", "tab", { data: 'dsInputParams'} );
+        vjDV.dvInputParams.add( "help", "help","download" ,{ data: 'dsHelp'} );
+        vjDV.dvInputParams.compose();
+        vjDV.dvInputParams.load ();
+
+
+        vjDV.add("dvPlate",750,400);
+        vjDV.dvPlate.add( "plate", "table", "tab", { data: 'dsPlate'} );
+        vjDV.dvPlate.compose();
+        vjDV.dvPlate.load ();
+
+
+        vjDV.add("dvAnalysis",750,400);
+        vjDV.dvAnalysis.add( "analysis", "table", "tab", { data: 'dsAnalysis'} );
+        vjDV.dvAnalysis.compose();
+        vjDV.dvAnalysis.load ();
+
+        vjDV.add("dvGraph",750,650);
+        vjDV.dvGraph.add( "linear-regression", "table", "tab", { data: 'dsGraph'} );
+        vjDV.dvGraph.compose();
+        vjDV.dvGraph.load ();
+
+        plateparse();
+ 
+}
+
+</script>
+
+
+
+<form name="init" action="seq.cgi" >
+
+        
+    <span id="sectFloor1"> <div  class="HIVE_section">
+        <script>document.write(ovis("sectProfileDetails","sectVis"));</script>
+        <span class="HIVE_section_title" >Elisa Input:</span> <span class="HIVE_section_title" id="titleInfo" > </span>
+        <div class="HIVE_sect1"  >
+            <table width="100%" id="sectProfileDetails" border=0>
+                <tr>
+                    <td valign=top width=30% >
+                        <span id="dvInputParams" > </span>
+                    </td>
+                    <td valign=top >
+                        <span id="dvInput" > </span>
+                        <br/>
+                        <span id="dvPlate" ></span> 
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    </td>
+                    <td>
+                        
+                    </td>
+                </tr>
+    
+            </table>
+        </div>
+    </div> </span>
+
+    <span id="sectFloor2" ><div class="HIVE_section">
+        <script>document.write(ovis("sectRecombDetails","sectVis"));</script>
+        <span class="HIVE_section_title" >Elisa analysis:</span> <span class="HIVE_section_title" id="recombTitleInfo" > </span>
+        <div class="HIVE_sect1" >
+            <table width="100%" id="sectRecombDetails" border=0>
+                <tr>
+                    <td valign=top  width=500>
+                        <span id="dvAnalysis" ></span> 
+                    </td>
+                    <td valign=center width=500 align=center>
+                       <span id="dvGraph" ></span> 
+                    </td>
+                </tr>
+            </table>
+        </div>         
+    </div></span>
+
+</form>
+
+
+
+<form name="hiddenform" > 
+    <span id="dsInput" class='sectHid'>
+        <table width=700 class="HIVE_table" > 
+            <tr>
+                <td class="HIVE_value">
+                
+                 <textarea nowrap="nowrap" id="csv" cols=82 rows=10 onClick=plateparse(); onChange=plateparse()>
+2.32,2.34,2.86,2.99,2.94,2.72,3.03,3.22,2.98,3.23,2.15,2.41,2.45,2.03,2.21,2.07
+1.37,1.31,1.59,1.74,1.69,1.57,1.77,1.87,1.72,1.92,1.17,1.37,1.32,1.15,1.22,1.14
+0.77,0.77,0.91,1.00,0.99,0.92,0.99,1.08,0.99,1.13,0.69,0.75,0.81,0.70,0.71,0.72
+0.44,0.48,0.53,0.60,0.56,0.56,0.58,0.63,0.60,0.65,0.42,0.48,0.47,0.44,0.44,0.43
+0.32,0.32,0.35,0.40,0.38,0.37,0.38,0.41,0.39,0.44,0.29,0.34,0.33,0.30,0.30,0.31
+0.24,0.25,0.27,0.29,0.28,0.28,0.27,0.29,0.28,0.31,0.23,0.26,0.16,0.16,0.15,0.17</textarea>
+                </td>
+            </tr>
+        </table>
+        
+    </span>
+    
+    <span id="dsInputParams" class='sectHid'>
+        <table width=300 class="HIVE_table" > 
+            <tr>
+                <td class="HIVE_value">
+                    <table onChange="plateparse()" class="HIVE_table">
+                        <tr><td class="HIVE_variable">Reference dilution</td>
+                            <td class="HIVE_value"><input size=4 type="text" id="refDil" value="12.3"></input></td>
+                        </tr>
+                        <tr><td class="HIVE_variable">Reference concentration [DU/ml]</td><td class="HIVE_value"><input size=4 type="text" id="refCon" value="36.8"></input></td></tr>
+                        <tr><td class="HIVE_variable">Titration factor</td><td class="HIVE_value"><input size=4 type="text" id="titrFact" value="2.00"></input></td></tr>
+                        <tr><td class="HIVE_variable">Start dilution of 1</td><td class="HIVE_value"><input size=4 type="text" id="stDil1" value="27.19"></input></td></tr>
+                        <tr><td class="HIVE_variable">Start dilution of 2</td><td class="HIVE_value"><input size=4 type="text" id="stDil2" value="27.19"></input></td></tr>
+                        <tr><td class="HIVE_variable">Start dilution of 3</td><td class="HIVE_value"><input size=4 type="text" id="stDil3" value="27.19"></input></td></tr>
+                        <tr><td class="HIVE_variable">Start dilution of 4</td><td class="HIVE_value"><input size=4 type="text" id="stDil4" value="27.19"></input></td></tr>
+                        <tr><td class="HIVE_variable">Start dilution of 5</td><td class="HIVE_value"><input size=4 type="text" id="stDil5" value="2.18"></input></td></tr>
+                        <tr><td class="HIVE_variable">Start dilution of 6</td><td class="HIVE_value"><input size=4 type="text" id="stDil6" value="2.18"></input></td></tr>
+                        <tr><td class="HIVE_variable">Start dilution of 7</td><td class="HIVE_value"><input size=4 type="text" id="stDil7" value="2.18"></input></td></tr>
+                        <tr><td class="HIVE_variable">cutoff_low [times*bkg]</td><td class="HIVE_value"><input size=4 type="text" id="cutLow" value="0.25"></input></td></tr>
+                        <tr><td class="HIVE_variable">cutoff_high [optical units]</td><td class="HIVE_value"><input size=4 type="text" id="cutHigh" value="3.3"></input></td></tr>
+                        <tr><td class="HIVE_variable">Linearity Criterion [probability]</td><td class="HIVE_value"><input size=4 type="text" id="linCri" value="0.99"></input></td></tr>
+                        <tr><td class="HIVE_variable">Paralelity [degrees]</td><td class="HIVE_value"><input size=4 type="text" id="parCri" value="3.0"@></input></td></tr>
+                        <tr><td class="HIVE_variable">Outlier filter max. ratio</td><td class="HIVE_value"><input size=4 type="text" id="outMax" value="1.3"></input></td></tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <input type="button" value="Recalculate" onClick=plateparse();>
+    </span>
+
+    <span id="dsPlate" class='sectHid'>
+        <table width=700 class="HIVE_table" > 
+            <tr>
+                <td class="HIVE_value">
+                    <table onChange="plateparse()" class="HIVE_table">
+                        <tr><td class="HIVE_variable">
+                            <span id="tablePlate"></span>
+                        </td></tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </span>
+    
+    <span id="dsAnalysis" class='sectHid'>
+        <table width=700 class="HIVE_table" > 
+            <tr>
+                <td class="HIVE_value">
+                    <table class="HIVE_table">
+                        <tr><td>
+                            <span id="tableAnalysis"></span>
+                        </td></tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </span>
+
+    <span id="dsGraph" class='sectHid'>
+        <table width=700 class="HIVE_table" > 
+            <tr>
+                <td class="HIVE_value">
+                    <tableclass="HIVE_table">
+                        <tr><td>
+                            <span id="graphAnalysis"></span>
+                        </td></tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </span>        
+</form>
+

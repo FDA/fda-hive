@@ -1,0 +1,164 @@
+#/*
+# *  ::718604!
+# * 
+# * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+# * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+# * Affiliation: Food and Drug Administration (1), George Washington University (2)
+# * 
+# * All rights Reserved.
+# * 
+# * The MIT License (MIT)
+# * 
+# * Permission is hereby granted, free of charge, to any person obtaining
+# * a copy of this software and associated documentation files (the "Software"),
+# * to deal in the Software without restriction, including without limitation
+# * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# * and/or sell copies of the Software, and to permit persons to whom the
+# * Software is furnished to do so, subject to the following conditions:
+# * 
+# * The above copyright notice and this permission notice shall be included
+# * in all copies or substantial portions of the Software.
+# * 
+# * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# * DEALINGS IN THE SOFTWARE.
+# */
+
+# usage: $(call run-qapp,service,res_name,file,cmd)
+define run-qapp
+    xcwd=`pwd`; \
+    if test -s ~/bin/qapp.cfg ; then \
+        cd ~/bin; \
+    fi; \
+    qappcmd=$4; \
+    if test -z "$$qappcmd" ; then \
+        qappcmd=-resourceSet; \
+    fi; \
+    echo "$(devdir)/$(rname)/bin/qapp $$qappcmd \"$(subst ",\",$1)\" \"$(subst ",\",$2)\" \"$(subst ",\",$3)\""; \
+    $(devdir)/$(rname)/bin/qapp $$qappcmd $1 $2 $3 || exit 44; \
+    cd $$xcwd
+endef
+
+# usage: $(call qp-sql,file.sql)
+define qp-sql
+    if test ! -s "$1" ; then \
+        echo "File not found or empty `pwd` '$1'"; \
+        exit 2; \
+    fi; \
+    echo "Using $(HIVE_DB) $(HIVE_DB_USER)@$(HIVE_DB_HOST):$(HIVE_DB_PORT)"; \
+    mysql -N --comments -h $(HIVE_DB_HOST) -P$(HIVE_DB_PORT) -u $(HIVE_DB_USER) -p$(HIVE_DB_PWD) $(HIVE_DB) < $1 || exit 55
+endef
+
+# usage: $(call dist-service-register,name,title,categories, space separated name=value list for QPSvc table insert)
+define dist-service-register
+    @echo "Registering service \"$1\" \"$2\" \"$3\""; \
+    if test "$1" = "" ; then \
+        echo "Service name is missing"; \
+        exit 2; \
+    fi; \
+    cat $(devdir)/build/dist_start.sql > $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    echo -n "CALL tmp_QPSvc_add('$1', '$2', '$3', '" >> $(TMPDIR)tmp-$$$$.sql  || exit 1; \
+    $(foreach p,$4,echo -n "$(if $(findstring =,$p),$(comma),$(space))$(subst ','',$p)">> $(TMPDIR)tmp-$$$$.sql || exit 1;) \
+    echo "');" >> $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    cat $(devdir)/build/dist_end.sql >> $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    $(call qp-sql,$(TMPDIR)tmp-$$$$.sql); \
+    rm $(TMPDIR)tmp-$$$$.sql; \
+    $(call run-qapp,$1,,,-resourceDel); \
+    if ! test "$1" = "qm" ; then \
+        $(call dist-service-set-config-int,$1,); \
+    fi
+endef
+
+# usage: $(call dist-service-set-config,name,space separated name=value list)
+define dist-service-set-config
+    @$(call dist-service-set-config-int,$1,$2)
+endef
+
+# usage: $(call dist-service-set-config-int,name,space separated name=value list)
+define dist-service-set-config-int
+    if ! test "$2" = "" ; then \
+        echo "Setting conguration for service \"$1\""; \
+    fi; \
+    if test "$1" = "" ; then \
+        echo "Service name is missing"; \
+        exit 2; \
+    fi; \
+    cat $(devdir)/build/dist_start.sql > $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    echo -n "CALL tmp_QPSvc_set_config('$1', '" >> $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    $(foreach p,$2,echo -n "$(if $(findstring =,$p),$(comma),$(space))$(subst ','',$p)">> $(TMPDIR)tmp-$$$$.sql || exit 1;) \
+    echo "');" >> $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    cat $(devdir)/build/dist_end.sql >> $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    $(call qp-sql,$(TMPDIR)tmp-$$$$.sql); \
+    rm $(TMPDIR)tmp-$$$$.sql
+endef
+
+# usage: $(call dist-service-set-config-path,name,param,days,masks)
+define dist-service-set-config-path
+    @echo "Setting path attributes for \"$1.$2\""; \
+    if test "$1" = "" ; then \
+        echo "Service name is missing"; \
+        exit 2; \
+    fi; \
+    if test "$2" = "" ; then \
+        echo "Parameter name is missing"; \
+        exit 2; \
+    fi; \
+    cat $(devdir)/build/dist_start.sql > $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    echo -n "CALL tmp_QPSvc_set_config_path('$1', '$2', '$3', '$4');" >> $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    cat $(devdir)/build/dist_end.sql >> $(TMPDIR)tmp-$$$$.sql || exit 1; \
+    $(call qp-sql,$(TMPDIR)tmp-$$$$.sql); \
+    rm $(TMPDIR)tmp-$$$$.sql
+endef
+
+# usage: $(call dist-src,svcName,resourceName,appName)
+define dist-src
+    @$(call dist-app-build,$1,$2,$(srcdir)/$3)
+endef
+
+# usage: $(call dist-app,svcName,appName[,resourceName])
+define dist-app
+    @rnm=$3; \
+    if test "$$rnm" = "" ; then \
+        rnm="$1.os$(SLIB_PLATFORM)"; \
+    fi; \
+    $(call dist-app-build,$1,$$rnm,$(bindir)/$2)
+endef
+
+# usage: $(call dist-app-build,svcName,resourceName,appName)
+define dist-app-build
+    echo "$3" | grep '^content://' 1>/dev/null 2>&1; \
+    is_ctn=$$?; \
+    echo "$3" | grep '\.so[\.0-9]*$$' 1>/dev/null 2>&1; \
+    is_so=$$?; \
+    if test "$$is_ctn" = "1" -a ! -e "$3" ; then \
+        echo "File not found '$3'"; \
+        exit 2; \
+    elif test "$$is_so" = "0" ; then \
+        for so in $3*; do \
+            lnk=`readlink -n $$so`; \
+            if test "$$lnk" = "" ; then \
+                $(call run-qapp,$1,`basename $$so`,$$so); \
+            else \
+                $(call run-qapp,$1,\\-\>`basename $$so`,content://$$lnk); \
+            fi; \
+        done; \
+    else \
+        $(call run-qapp,$1,$2,$3); \
+    fi
+endef
+
+# to import objects from json, and then delete any non-updated objects matching a query
+# usage: $(call prop-import-json,file,query)
+define prop-import-json
+    if test ! "x$(INSTALLING)" = "x" ; then \
+        if test ! "x$2" = "x" ; then \
+            $(call run-qapp,$(srcdir)/$1,,,"-updateList $2 -user qapp -propJson"); \
+        else \
+            $(call run-qapp,$(srcdir)/$1,,,"-user qapp -propJson"); \
+        fi \
+    fi;
+endef

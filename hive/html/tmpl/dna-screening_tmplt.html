@@ -1,0 +1,281 @@
+
+
+<script src="js/algox.js" ></script>
+<script type="application/javascript" src="js/vjTree.js"></script>
+<script type="application/javascript" src='js/vjDataSeries.js'></script>
+<script type="application/javascript" src='js/vjTreeSeries.js'></script>
+<script type="application/javascript" src='js/vjTaxonomyView.js' ></script>
+<script type="application/javascript" src='js-obj/svc-dna-screening.js' ></script>
+<script type="text/javascript" src="d3js/core/d3.js"></script>
+<script type="text/javascript" src="d3js/core/d3.csv.js"></script>
+<script type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/sunburst_hierarchy.js"></script>
+
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" id="jumpNewPage">
+    <a href = "#">
+        Click to go to new Censuscope webpage
+    </a>
+</div>
+
+<script type="application/javascript">
+
+
+
+gInitList += "valgoProcess_init();";
+setLocationTitle("censuScope: HIVE");
+
+valgoProcess_visibleParameters=["name", "alignSelector","query","subject", "Sample", "CensusIterations","CensuslimitIterations","taxDepth","method","filterNs","selfStopping","deepScanning","batch_svc"];
+valgoProcess_qpsvc="dna-screening";
+valgoProcess_svc="svc-dna-screening";
+valgoProcess_parameterTitle="censuScope";
+valgoProcess_submitButtonName="Submit";
+valgoProcess_initialPresets = {"batch_svc":"single"};
+
+/* 
+var process_svc="svc-dna-screening";
+var process_qpsvc="dna-screening";
+
+var formName="formGeneric";
+var thisProcessID=docLocValue("id");if(!thisProcessID)thisProcessID=0;
+var thisObjID=docLocValue("query");
+
+// Needed to enable cmdMode flag in URL
+var process_cmdMode=docLocValue("cmdMode");
+var process_initialPresets={};//{name:""};
+
+function isMode(mode)
+{
+    return (!process_cmdMode || (process_cmdMode.indexOf("-"+mode)==-1 && process_cmdMode.indexOf(mode)!=0)) ? false : true;
+}
+
+if(isMode('batch')) { 
+    //process_qpsvc="dna-hexagon-batcher";
+    process_qpsvc="svc-batcher";
+    process_initialPresets.batch_svc="dna-screening";
+}
+
+
+
+
+var algoProcess, algoProgress;
+var algo_cansubmit=( isok(thisProcessID) && thisProcessID[0]!='-' ) ? false : true ;
+//var database;
+function generic_init()
+{
+
+    vjDS.add('dodo','sunburst_test',"innerHTML://demoSunburst");
+            
+                
+    var visualArray=new Array(
+            {
+                name : 'dvProcess',
+                ///passive : (dna_hexagon_defaults_ui.visualElements.parameters) ? false : true,
+                role : 'input',
+                title : "Parameters",
+                align : 'left',
+                brief : "<span id='RV-name'></span><span id='RV-query'></span><span id='RV-alignSelector'></span><span id='RV-subject'></span><span id='RV-Sample'></span><span id='RV-CensusIterations'></span><span id='RV-CensuslimitIterations'></span><span id='RV-taxDepth'></span><span id='RV-method'></span><span id='RV-filterNs'></span><span id='RV-selfStopping'></span><span id='RV-deepScanning'></span>"
+            });
+    vjVIS.generate(visualArray);
+    
+    algoProcess=new valgoProcess(thisProcessID,formName, "dvProcess",process_qpsvc,process_svc,"SUBMIT");
+    algoProcess.callbackLoaded=loaded;
+    
+    algoProcess.initialPresets = isok(thisProcessID) ? null : process_initialPresets;
+
+    //algoProcess.fldPresets={slice:"1000000000"};
+    
+    //algoProcess.progressTag = "Progress"; // default value is "Progress"
+    algoProcess.generate();
+    algoProcess.viewer.onChangeCallback=mycallback;
+   // database = algoProcess.viewer.getElement("database"); 
+    
+    
+    algoProgress=new valgoProgress(thisProcessID,formName,"Progress");
+ 
+    if(!algo_cansubmit) {
+        algoProgress.callbackDoneComputing=doneComputing;
+        algoProgress.generate();
+    }
+    
+    
+    
+}
+ */
+
+valgoProcess_inputChanged=function(viewer,elem)
+{
+    var NewQuery = algoProcess.getValue("query");//.split(",").join(";");
+    var name = algoProcess.getValue("name");
+    if (!isResultsMode() && !name && NewQuery){
+        //algoProcess.setValue("name","Object"+NewQuery);
+        algoProcess.setValueList({name: "query:s=["+NewQuery+"] as objlist; return s[0].name; "});
+    }
+    var algorithm = algoProcess.getValue("alignSelector");
+    var database=algoProcess.getValue("subject");
+    var mydatabaseObj = algoProcess.viewer.getElement("subject");
+    var alignment = algoProcess.getValue("alignmentInput");
+//    if(algorithm=="svc-align-hexagon"){
+//        algoProcess.setValue("database","Representative Genome(only for hexagon)");
+//        mydatabaseObj.fld.constraint_data = "Representative Genome(only for hexagon)";
+//        
+//    }else if(algorithm=="svc-align-blast"){
+//        mydatabaseObj.fld.constraint_data = "Nucleotide Collection(NT)|Metaphlan Collection(Bacteria Signature)";
+//    }
+    var source11 = algoProcess.getValue("textBasedInput");
+    var source12 = algoProcess.getValue("textBasedColumn");
+    var source13 = algoProcess.getValue("textBasedFileSeparator");
+    
+    var okToSubmit=false;
+    if (!isResultsMode() && ((NewQuery && database) || alignment)) {
+        okToSubmit=true;
+    }
+    if (source11 && source12 && source13){
+        okToSubmit = true;
+    }
+    algoProcess.activateSubmitButton(okToSubmit);
+    algoProcess.viewer.redraw();
+}
+testBreak = function(viewer){
+    console.log("sdfad");
+    return true;
+}
+valgoProcess_inputLoaded=function(viewer)
+{
+    if (!isResultsMode()) {
+        algoProcess.readFromDocLoc(["alignmentInput"]);
+        var alObjID=algoProcess.getValue("alignmentInput", "join");
+        var name = algoProcess.getValue("name");
+        if(alObjID){
+            algoProcess.setValue("alignmentInput",alObjID.split(",").join(";"));
+            algoProcess.setValue("name","Screening for object "+ alObjID);
+            algoProcess.setValueList({name: "query:s=["+alObjID+"] as objlist; return s[0].name; "});
+        }
+        algoProcess.readFromDocLoc(["query"]);
+        var thisObjID=algoProcess.getValue("query", "join");
+        if(thisObjID){
+            algoProcess.setValueList({"query": thisObjID.split(",")});
+            algoProcess.setValue("name","Screening for objects "+thisObjID);
+            algoProcess.setValueList({name: "query:s=["+thisObjID+"] as objlist; return s[0].name; "});
+        }
+        algoProcess.setValue("split",'-');
+        valgoProcess_inputChanged();
+        //algoProcess.setValue("slice",1000000000);
+        //algoProcess.viewer.redraw();
+
+        //alert(algoProcess.getValue("split"))
+    }
+    return;
+}
+
+valgoProcess_doneComputing=function(viewer, reqid, stat)
+{
+    algoProcess.activateSubmitButton(0);
+    if(stat>=5) {
+        //alert();
+        var flag=algoProcess.getValue("alignSelector");
+        var flagNum = 0;
+        if(flag=='svc-align-blast'){
+            flagNum =1;
+        }
+/*      else if(flag=='svc-dna-hexagon'){
+            
+            
+            
+        }*/
+        var node={_type:'svc-dna-screening',id:valgoProcess_ID};
+        var dvleft=vjDV.add("dvResultViewer1", 650, 800);
+        var dvright=vjDV.add("dvResultViewer2", 400, 800);
+        //dvleft.frame='none';
+        dna_objJs = vjHO.fullview(node._type,node,{obj:[dvleft,dvright]});
+/*
+        var dvleft2=vjDV.add("dvResultViewer3", 650, 800);
+        var dvright2=vjDV.add("dvResultViewer4", 400, 800);
+        var nodeAl={_type:'svc-align-hexagon',
+                name: "123",
+                status: "5",
+                id:thisProcessID, 
+                svc: "dna-hexagon",
+                svcTitle: "HIVE-hexagon Alignment"
+                };
+        vjHO.preview(nodeAl._type,nodeAl,{obj:dvleft2});
+*/
+        var thisProcessID=docLocValue("id");
+        var exposeAlignments = algoProcess.viewer.getElement("storeAlignments");
+        if (exposeAlignments && exposeAlignments.value != 0){
+            var nodeAl={_type:'svc-align-screening',id:thisProcessID};
+            var dv_objs;
+            dv_objs = [vjDV.add("dvHitListViewer", 350, 350), vjDV.add("dvHitListInfoViewer",800,350)];
+            var dna_hexagonHitList = vjHO.fullview(nodeAl._type,nodeAl,{obj:dv_objs});
+            dna_hexagonHitList.onFullviewLoadCallback = showShortMode;
+        }
+    }
+    visibool("resultBlock", true);
+    return;
+}
+
+
+function showShortMode (a)
+{
+    this.urlSet['alView'].active_url = urlExchangeParameter(this.urlSet['alView'].active_url,"isNshowRpts",1);
+    this.urlSet['alStack'].active_url = urlExchangeParameter(this.urlSet['alStack'].active_url,"isNshowRpts",1);
+    this.urlSet['alMatch'].active_url = urlExchangeParameter(this.urlSet['alMatch'].active_url,"isNshowRpts",1);
+    
+    var panels = [this.viewers.alignment_panel,this.viewers.stack_panel];
+    for (var ip = 0 ; ip < panels.length ; ++ip) {
+        for( var ir = 0 ; ir < panels[ip].rows.length ; ++ir ) {
+            if(panels[ip].rows[ir].name == "isNshowRpts")
+                panels[ip].rows.splice( ir, 1);
+        }
+    }
+    for( var ih = 0 ; ih < this.viewers.hitlist.cols.length ; ++ih ) {
+        if(this.viewers.hitlist.cols[ih].name === "Hits" ){
+            this.viewers.hitlist.cols[ih].hidden = true;
+        }
+        else if(this.viewers.hitlist.cols[ih].name === "Hits Unique" ) {
+                this.viewers.hitlist.cols[ih].hidden = false;
+                this.viewers.hitlist.cols[ih].title = "Hits";
+        }
+    }
+}
+
+$(document).ready(function (){
+    $("#jumpNewPage").on("click", function (eventData){
+        var url = window.location.href;
+        setCookie("jumpNewPageCensuscope", "true", 7); 
+        
+        if (url.indexOf("&") >= 0)
+            linkURL("?cmd=dna-screening-new" + url.substring(url.indexOf("&")));
+        else
+            linkURL("?cmd=dna-screening-new");
+        
+        eventData.preventDefault();
+    });
+    
+    if (getCookie("jumpNewPageCensuscope") != "false" && $(".top").children().attr("class") != "institution")
+        setCookie("jumpNewPageCensuscope", "true", 7);
+    if (getCookie("jumpNewPageCensuscope") == "true"){
+         $("#jumpNewPage").click();
+    }
+});
+    
+</script>
+
+
+<script >document.write(valgoSectionPageStart(false));</script> 
+            <table><tr>
+            <td>
+                <div id='dvResultViewer1'></div>
+            </td>
+        
+            <td>
+                <div id='dvResultViewer2'></div>
+            </td>
+            </tr></table>
+    <table>
+        <tr >
+             <td id="dvHitListViewer" ></td>
+             <td id="dvHitListInfoViewer" ></td>
+        </tr>
+    </table>
+<script >document.write(valgoSectionPageEnd(false));</script>
+

@@ -1,0 +1,20 @@
+
+[QPride]
+    db = hive
+    server=localhost
+    user=hive
+    pass=hive123
+    pageSize=50
+    permanent=true
+    debug=0
+
+[HIVE]
+    db = hive
+    server=localhost
+    user=hive
+    pass=hive123
+    pageSize=50
+    permanent=true
+    debug=0
+
+[End]

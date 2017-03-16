@@ -1,0 +1,258 @@
+<!--
+ $Id$
+-->
+<script src="js/algox.js" > </script>
+
+
+<script>
+    google.load("visualization", "1", { packages: ["corechart"] });
+
+    gInitList += "valgoProcess_init();dna_recomb_init;";
+    setLocationTitle("dna-recomb: HIVE");
+
+    var dna_recomb_formName = "form-recomb";
+    var dna_recomb_ID = docLocValue("id"); if (!dna_recomb_ID) dna_recomb_ID = 0;
+    var alignID = docLocValue("parent_proc_ids"); if(isok(alignID))alignID=alignID.split(",");
+    var dna_algo_cansubmit = (isok(dna_recomb_ID) && dna_recomb_ID[0] != '-') ? false : true;
+
+    var dna_hexagonHitList, dna_Recomb;
+    var dna_algo_initialLoad = false;
+    
+    var process_help=[];
+    var process_showParentList=1;
+    
+    valgoProcess_visibleParameters = ["name", "mutualAligmentID"];
+    valgoProcess_qpsvc = "dna-recomb";
+    valgoProcess_svc = "svc-recomb";
+    valgoProcess_parameterTitle = "Recombination Algorithm Parameters";
+    valgoProcess_brief = "<table class='HIVE_sect1'><tr ><td id='dvHitListViewer' valign=top></td><td id='dvHitListInfoViewer' valign=top></td></tr></table>";
+    valgoProcess_initialPresets = {"name":""};
+
+    valgoToolbarWaitingList = "type,align,order,name,title,icon,path,url,description\n"
+            + "html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next\n"
+            + ",left,1,home,Home Page,img/home.png,home,?cmd=home,Jump to Home Page\n"
+            + ",left,1,modresubmit,Modify and Resubmit,img/recRevert.gif,/resubmit,"+urlExchangeParameter(document.location,"id","-"+valgoProcess_ID)+",Modify parameters and resubmit this computation using the same template\n"
+            + ",left,1,dna-hexagon,Back to Alignment,img-algo/svc-align-hexagon.gif,/hexagon,?cmd=dna-hexagon&id=$(::alignID),Review Alignment Process";
+
+//     valgoToolbarDoneList = "type,align,order,name,title,icon,path,url,description\n"
+//         + "html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next\n"
+//         + ",left,1,home,Home Page,img/home.png,home,?cmd=home,Jump to Home Page\n"
+//         + ",left,3,resubmit,Modify and Resubmit,img-algo/svc-profiler.gif,/resubmit,?cmd=dna-recomb&id=-$(::valgoProcess_ID),Modify parameters and resubmit this computation using the same template\n"
+//         + ",left,2,dna-hexagon,Back to Alignment,img-algo/svc-align-hexagon.gif,/hexagon,?cmd=dna-hexagon&id=$(::alignID),Review Alignment Process";
+    
+    function dna_recomb_init() {
+        
+        var visualArray=new Array({
+            name : 'dvRecombZoom',
+            onlyPopup : true,
+            role : 'output',
+            title : "Profile Zoom",
+            align : 'left',
+            popupCloser : true
+        }, {
+            name : 'dvhistpopup',
+            onlyPopup : true,
+            role : 'output',
+            title : "Coverage Histogram",
+            align : 'left',
+            popupCloser : true
+        });
+        vjVIS.generate( visualArray );
+        ///////////////////////////////////Process/Progress///////////////////////////////////////
+//         algoProcess = new valgoProcess(dna_recomb_ID, dna_recomb_formName, "dvProcess", process_qpsvc, process_svc, "    Analyse    ");
+//         algoProcess.callbackOnSubmit = dna_recomb_checkSubmission;
+//         algoProcess.callbackLoaded = dna_recomb_inputLoaded;
+//         algoProcess.initialPresets = isok(dna_recomb_ID) ? null : process_initialPresets;
+// //         algoProcess.subject_help=process_help;
+        
+//         algoProcess.toolBar="processToolbar";
+//         algoProcess.generate(); // dna_recomb_IDD
+//         algoProcess.viewer.fldEnumerate="if(node.name=='parent_proc_ids') { node.title='Alignments to use'; node.type=''; }";
+        
+
+//         if(algoProcess.modeActive) {
+//             visibool("dvProcessSubmitter", true);
+//             return ;
+//         }
+        
+
+//         dna_algoProgress = new valgoProgress(dna_recomb_ID, dna_recomb_formName, "Progress");
+//         dna_algoProgress.callbackDoneComputing = dna_recomb_doneComputing;
+//         dna_algoProgress.generate();
+            
+        return;
+    }
+
+    function dna_recomb_checkSubmission()
+    {
+        if(dna_hexagonHitList.viewers['hitlist'].tblArr.rows.length>1){
+            if(!algoProcess.getValue("mutualAligmentID")) {
+                alertI("Please provide a mutual alignment of the references\nused in the alignment process.");
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+    
+    function load_genomeID()
+    {
+        if (!alignID)
+            return;
+
+        linkCmd('objQry&raw=1&qry=("' + (alignID.join?alignID.join(","):alignID) + '"%20as%20objlist).map({.subject}).reduce(function(x,y){x.append(y)})',
+            "",
+            function(param, text) {
+                try {
+                    genomeID = JSON.parse(text);
+                    if (genomeID.join) {genomeID = genomeID.join();}
+                    if (!genomeID) {genomeID = 0;}
+                } catch (e) {genomeID = 0;}
+            }
+        );
+    }
+    
+    valgoProcess_inputLoaded = function (viewer) 
+    {
+//         algoProcess.setValue("scissors", "hiveal");
+//         algoProcess.setValue("split", "parent_proc_ids");
+        var par = algoProcess.viewer.getElement("parent_proc_ids");
+        par.fld.constraint_data = "svc-align*";
+
+        var nam = algoProcess.getValue("name");
+        var subset = algoProcess.getValue("subSet");
+        
+        if (alignID) 
+            algoProcess.setValue("parent_proc_ids", alignID);
+        else { 
+            alignID=algoProcess.getValue('parent_proc_ids');
+            load_genomeID();
+        }
+        
+//         var subset=algoProcess.getValue('subSet');
+//         if(subset)
+//             subset=subset.split(";");
+        
+        var okToSubmit = /* isok(subset) &&*/ isok(alignID) && algoProcess.modeActive;
+        if(!okToSubmit) okToSubmit = false;
+        
+        if(!dna_hexagonHitList){
+            // create the hexagon hitlist 
+//             dna_hexagonHitList = new valgoHexagonHitList(alignID, dna_recomb_formName, "dvHitList", "dvHitListInfo");
+            var dvname=vjDV.add("dvHitListViewer", 350, 350);
+            var dvinfo=vjDV.add("dvHitListInfoViewer",800,350);
+            var node={_type:'svc-align',id:alignID};
+            dna_hexagonHitList = vjHO.fullview(node._type,node,{obj:[dvname,dvinfo]});
+            dna_hexagonHitList.isInput=true;
+            dna_hexagonHitList.checkable = true;
+            dna_hexagonHitList.algoProc=algoProcess;
+            dna_hexagonHitList.callbackChecked = dna_recomb_checkedReference;
+            dna_hexagonHitList.callbackSelected = dna_recomb_selectedReference;
+        }
+        
+//         dna_hexagonHitList.reload(alignID,null, null);
+//         alignID=algoProcess.viewer.getElementValue('parent_proc_ids');
+        
+        visibool("dvProcessSubmitter", okToSubmit);
+    }
+    
+    function dna_recomb_checkedReference(viewer) 
+    {
+        if(!dna_recomb_ID){
+            var okToSubmit = dna_hexagonHitList.update(algoProcess);
+            visibool("dvProcessSubmitter", okToSubmit);
+        }else if(dna_Recomb) {
+            if(!dna_Recomb.isComputed){
+                dna_Recomb.isComputed = algoProcess.viewer.attached("file", "RecombPolyplotCoverage.csv");
+            }
+             if(dna_Recomb.isComputed ){
+                var subIDList=dna_hexagonHitList.viewers['hitlist'].accumulate("node.checked","node");
+                dna_Recomb.reload(dna_recomb_ID, subIDList, algoProcess.getValue('parent_proc_ids'));
+            }
+        }
+    }
+
+    valgoProcess_doneComputing = function(viewer, reqid, stat, callcounter) {
+        if ( stat >= 5 ) {// 
+            node={_type:'svc-recomb',id:dna_recomb_ID};
+            var dvname=vjDV.add("dvRecomb",0.95*gPgW,450);
+            
+            dna_Recomb = vjHO.fullview(node._type,node,{obj:[dvname]});
+            if(dna_hexagonHitList && dna_hexagonHitList.referenceNode){
+                dna_Recomb.onFullviewRenderCallback = function(){dna_recomb_selectedReference(viewer, dna_hexagonHitList.referenceNode);};
+            }
+            vjDS["ds"+algoProcess.toolBar].reload("innerText://ds"+algoProcess.toolBar+"DoneDV", true);
+            visibool("resultBlock", true);
+        }
+    }
+    
+    function dna_recomb_selectedReference(viewer, node) 
+    {
+        if (!dna_Recomb )
+            return;
+        
+        if (!node.id || (""+node.id=="0") || node.id == "+") return;
+        if(!dna_Recomb.isComputed){
+            dna_Recomb.isComputed = algoProcess.viewer.attached("file", "RecombPolyplotCoverage.csv");
+        }
+        if(dna_Recomb.isComputed && !dna_Recomb.isNfirst_selection) {
+            dna_Recomb.isNfirst_selection = true;
+            var vv = dna_hexagonHitList.viewers['hitlist'];
+            vv.mimicCheckmarkSelected.call(vv,node.irow,1);
+        }
+        
+    }
+    
+    
+</script>
+    
+<form name="form-process" method=get POST action="dna.cgi" enctype="multipart/form-data" >
+    
+    <table class="HIVE_section"><tr><td><span id="dvRecombZoom-visual"></td></tr></table>
+    <table class="HIVE_section"><tr><td><span id="dvhistpopup-visual"></td></table>
+    
+    <table width="100%" border="0"><tr><td width="48%"></td><td width="2%" align=center>
+        
+    
+        <script>        document.write(ovis("algoBlock", "sectVis", "<img border=0 width=48 src='img/algoout.gif' />|<img border=0 width=48 src='img/algoin.gif' />"))</script>
+        <span id="algoBlock">
+            
+            <div id="dvProcess-visual" ></div><br/>
+            <div id="dvProcessSubmitter"></div>
+            <div id="dvProgressViewer"></div>
+            
+            <img border=0 src="img/algoout.gif" width=48 />
+        </span>
+    
+    </td><td width="48%"></td></tr></table>
+    <table width="100%" border="0">
+    
+        <tr>
+            <td width="48%"></td>
+            <td width="2%" align=center>
+                <span id="resultBlock" class="sectHid" >
+                    <div class="HIVE_section" >
+                        <script>valgoSectionHeader("Recombination Profile", "img-algo/svc-recomb.gif", "sectOutput1", "<span class='sectVis' id='dvprocessToolbar'></span>", true)</script>
+                        
+                        <table id="sectOut1" class="HIVE_sect1">
+                            <tr >
+                                <td id="dvRecomb" valign=top></td>
+                            </tr>
+                        </table>    
+                    </div>
+                </span>
+            </td>
+            <td width="48%"></td>
+        </tr>
+    </table>
+  
+</form>
+
+
+
+<!-- <form name="form-dna-hexagon"> -->
+<!--     <div id="floating-dna-hexagon"></div> -->
+<!-- </form> -->
+    
+
+

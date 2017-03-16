@@ -1,0 +1,42 @@
+<id>hlp.svc-algo-annotMapper.html</id>
+<title>HIVE Annotation Mapper</title>
+<definition>Crossmapping of Annotation and/or Profile Files</definition>
+<description>
+The <span class='toolname'>HIVE Annotation Mapper</span> performs crossmapping between two or more annotation and/or profile files.  The program is able to report back to the user
+areas of the files that are either in common or exclusive based on the ranges.  For example, crossmapping a human profile versus a database of known common SNPs could be used
+to return either the SNPs that are common in both the profile and the database or the SNPs that are in the profile but not recorded in the database (potentially novel).  This mapping
+is performed in quickly and efficiently. <br/>
+<br/>
+<span class='heading'>Input Data for Annotation Mapper</span><br/>
+The input page for the Annotation Mapper provides the following basic parameters:
+<ul>
+    <li><span class='pn'>Name</span> - This is the name that this conversion process should have in case you wish to refer back to it in the future.  A default name will be provided if nothing is specified</li>
+    <li><span class='pn'>Reference Sequence</span> - This is a list of all genome files the user has access to.  If you are interested in restricting the mapping process based on the sequence identifiers present in the appropriate genome, select that genome here.  If you are not looking to narrow down to a specific reference (i.e. chromosome, segment, etc.) then you can leave this drop down empty.</li>
+    <li><span class='pn'>Sequences Annotated</span> - This is an optional field that is populated once you select a reference sequence.  The list will then contain all of the reference identifiers found in your genome file (i.e. chromosomes, segments, etc.).  You can, from the drop down menu, select one that you are interested in limiting your results to.  If you want to limit to multiple reference identifiers, you can click on the + Sequences Annotated below.  This will open up a second drop down list which will enable you to select a second reference identifier.  This process can be repeated until all reference identifiers of interest are selected.</li>
+    <li><span class='pn'>Cross Mapping Mode</span> - This option specifies the method of mapping that you are interested in doing with your files.  There are four different options:
+        <ul>
+            <li>Present in 1st AND 2nd sets – This option will return ranges and associated information that is shared between the two (or more) files sets.  For example, if there is an element in the first file set that overlaps an element in the second file set (a single SNP or a region) the program will return the overlapped range along with information from both file sets.  This works with as many file sets as you wish to have. </li>
+            <li>Present in 1st NOT 2nd set – This option will return ranges and associated information that is exclusively in the first file set.  This means that if the range in the first set matches a range in the second set, that information will not be returned.  This option is used to find information that is exclusive to on set of files (i.e. to filter out information from a second set of files).  This option should only be used with 2 file sets.</li>
+            <li>Present in 2nd NOT in 1st set – This option will return ranges and associated information that is exclusively in the second file set.  This means that if the range in the second set matches a range in the first set, that information will not be returned.  This option is used to find information that is exclusive to on set of files (i.e. to filter out information from a second set of files).  This option should only be used with 2 file sets.</li>
+            <li>Present in ONLY ONE set – This option will return ranges and associated information that exists exclusively in any file set provided.  If three file sets are provided, for example, this mode will return all ranges that exist in only one of the three file sets (it can exist exclusively in any of the three).  This mode can be used with any number of file sets.</li>
+        </ul>
+    </li>
+    <li><span class='pn'>Frequency Threshold</span> - The threshold for the lowest allowed frequency of variation (lower frequency SNP calls will be ignored for this process).  This is only relevant if you’ve selected a hexagon profile as one of your annotation files. The default is 0 which means there will be no additional profile frequency threshold filtering beyond what was chosen when running the profile.</li>
+    <li><span class='pn'>Coverage Threshold</span> - Required coverage of a position in a Hexagon profile before it is considered in Annotation Mapper.  This is only relevant if you’ve selected a hexagon profile as one of your annotation files.  The default is 0 which means there will be no additional profile frequency threshold filtering beyond what was chosen when running the profile. </li>
+
+
+    <li><span class='pn'>Annotation Cross-Mapping Group</span> - This is the total field name for input of annotation/profile files.  There are several sections of this field:</li>
+        <ul>
+            <li>Annotation Files - Each group of files selected to be examined together is a group of Annotation Files.  A file can be selected with the drop down menu under 'Annotation File' and additional ones can be selected by clicking the first + Annotation Files button.  All files within this group will be considered together.  You can think of this as all files entered here being combined into a single large file for comparison purposes.  The actual mapping will be between the first group and any additional groups entered.  There are optional filters allowed for each annotation file:</li>
+                <ul>
+                    <li>Logic - This is the first drop down box provided under 'Filters' (with a default of OR value).  This field represents the logic to be used with the selected filter.  OR means that the system will take an entry that meets the requirement put in regardless of other requirements that are required.  AND means that the system will look for the above requirement along with this current requirement before the system will take the entry.  See the Annotation Mapper tutorial for a walkthrough on how to use the filter section.</li>
+                    <li>Column - This is the second drop down box provided under 'Filters'.  This field represent the field data from the annotation file.  If you think of the annotation file as a spreadsheet, this would be the column header.</li>
+                    <li>Value - This is the final input provided under 'Filter'.  This field represents the data associated with the previous field.  If you think of the annotation file as a spreadsheet, this would be the data entered into each row of the selected column.  This data is case sensitive.</li>
+                </ul>
+            <li>+ Annotation Files - The first + Annotation Files button adds a new file to the annotation group.  The second + Annotation Files button creates a new Annotation Files group.  At least two groups are needed as inputs for Annotation Mapper</li>
+            <li></li>
+        </ul>
+ </ul>
+ Note: All parameters have descriptions accessible in the interface by hovering the mouse over a topic.<br/>
+ <br/>
+</description>

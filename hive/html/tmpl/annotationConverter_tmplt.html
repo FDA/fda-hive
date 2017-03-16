@@ -1,0 +1,628 @@
+<!--
+$Id: annotationConverter_tmplt.html 4112 2013-09-13 23:57:20Z lam $
+vim: set et ts=4 sts=4:
+-->
+<!--  <script src="js-algo/algo.js" type="text/javascript"> </script> -->
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+ <script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+  
+
+<script>
+
+    var anotConvPage = {
+            title:"HIVE: Annotation Engine"
+            ,pageTitle: "Annotation Converter"
+            ,thisProcessID: ( docLocValue("id") ? docLocValue("id") : 0)
+            ,recViewerName:"DV_Parameter_view"
+            ,process_qpsvc: "dmTableToIondb"
+            ,process_svc:"svc-dmTableToIondb"
+            ,visibleParameters: [ "name", "annotationFile","referenceGenome", "reName","submitOptions", "columns_list" ]
+            ,anotFile0:""
+            ,anotFile:""
+            ,extension:"csv"
+            ,realExtension:"csv"
+            ,fieldToCheckArr:["annotationFile","rangeStart","rangeEnd","refMapIdRange","column_name","idType"]
+            ,toggle:false      // Used to track the auto-fill check box to see if it has changed or not
+            ,defaultGtfHdr:"seqname,source,feature,start,end,score,strand,frame,attribute"
+            ,process_callbackLoaded: function(a,b,c,d,e){
+                return anotConvPage.process_callbackLoaded(a,b,c,d,e);
+            }
+            ,process_inputChanged:function(a,b,c,d,e){
+                return anotConvPage.process_inputChanged(a,b,c,d,e);
+            }
+    };
+    
+    setLocationTitle(anotConvPage.title);
+
+    // Determine which parameters will be visible (name field from the database, table: UPTypeFiled under annotation converter object [id = 100])
+    // Also can include inherited fields
+
+    vjDS.add("...", "dsExtension", "static://");
+
+    /*
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    _/
+    _/ File Based Lists and Trees 
+    _/
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+     */
+
+      var algoProcess = new valgoProcess(anotConvPage.thisProcessID, anotConvPage.process_qpsvc, anotConvPage.process_svc);
+      
+      // Set the callbacks for whenever the form is first loaded or changed
+      algoProcess.visibleParameters = anotConvPage.visibleParameters;
+      
+      algoProcess.callbackLoaded = anotConvPage.process_callbackLoaded;
+      algoProcess.inputChanged = anotConvPage.process_inputChanged;
+      algoProcess.autoexpand=10; // show all the fields. By default, they are collapsed
+      algoProcess.recViewerName = anotConvPage.recViewerName;
+      
+
+      vjDS.add("Scanning Available Sequence Lists", "dsSequenceContent","innerHTML://inner-Text");
+      vjDS.add("Retrieving data", "dsResult", "static:// ");
+
+      algoProcess.tabsToAdd= [{
+          whereToAdd: "parameters",
+                       whatToAdd: {
+                             tabId: 'prev_table',
+                             tabName: "Table Preview",
+                             position: {posId: 'prev_table', top:'60%', bottom:'100%', left:'20%', right:'75%'},
+                             viewerConstructor: {
+                                 dataViewer: 'vjTableView',
+                                 dataViewerOptions: {
+                                     data: ["dsResult"],
+                                     bgColors : [ '#f2f2f2', '#ffffff' ]
+                                 }
+                             },
+                             preload: true,
+                             inactive: false,
+                             autoOpen: ["preSubmit"]
+                         }
+      }];
+      
+     
+    anotConvPage.activateSubmitButton = function (showSubmitButton) {
+        var submitInputDom =  gObject("submitterInput"); // activateSubmitButton is not defined in new interface => need to manually do that :(
+        if (submitInputDom) {
+            submitInputDom.style.visibility = showSubmitButton ? ("visible") : ("hidden"); 
+        }
+    }
+    
+    anotConvPage.analyzeExtension = function(extension){
+        var realExt  = extension.toLowerCase();
+        realExt = realExt.split(".")[realExt.split(".").length-1];
+        this.realExtension = realExt;
+        this.extension = extension;
+        return realExt;
+    }
+    
+    anotConvPage.contructUrl = function (objectid,count,ignoreComment) {
+        if (!count) count="20";
+        
+        var colsep = "";
+        if (this.realExtension == "tab" || this.realExtension == "tsv" || this.realExtension.indexOf("gtf") !=-1 || this.realExtension.indexOf("gff") !=-1) {
+            colsep = "&colsep=%09";
+        }
+        
+        var url="";
+        var engine = "qpbg_tblqryx4://";
+        var fn = "_." + this.extension;
+        var cmtPrefix = ignoreComment ? "&commentPrefix=%23" : "";
+        
+        url = engine + fn + "//objs=" + objectid + colsep +"&parseCnt=" + count + cmtPrefix;
+        
+        return url;
+    }
+    
+    anotConvPage.constructMyHeader = function(hdr,separator) {
+        var out_header="";
+        
+        if (this.realExtension.indexOf("gtf") != -1 || this.realExtension.indexOf("gff") !=-1){
+            var checkFirstColumnHeader = hdr.split(separator)[0].replace(/\r/g, "");
+            if (checkFirstColumnHeader.indexOf("seqname")==-1) 
+                hdr = this.defaultGtfHdr; 
+        }
+        
+        for ( var ii = 0; ii < hdr.split(separator).length; ++ii) {
+            var myCol = hdr.split(separator)[ii].replace(/\r/g, "");
+            out_header += myCol;
+            if (ii < hdr.split(separator).length - 1)
+                out_header += "|";
+        }
+        this.populateConstraintData(out_header);
+        return out_header;
+    }
+    
+    anotConvPage.populateConstraintData =function (header){
+        var eleList = new Array("rangeStart", "rangeEnd","column_name", "refMapIdRange", "idType");
+        for ( var ii = 0; ii < eleList.length; ++ii) {
+            var el = this.recordV.getElement(eleList[ii]);
+            el.fld.constraint_data = header;
+        }
+    }
+
+    anotConvPage.handleIdTypesField = function () {
+        if (this.toggle == true) {
+            this.toggle = false;
+            //algoProcess.viewer.getElement("columns_list").children[1].value = false; // Uncheck box if not the same source
+
+            // Clear the IdTypes
+            this.clearIdTypes();
+            // Draw the IdTypes
+            this.selectIdTypes();
+        }
+        this.recordV.redraw();
+    }
+    
+    function getExtension(anotFile, elem, node) {
+        var url = "http://?cmd=propget&prop=ext&mode=csv&ids=" + anotFile;
+        var ds = vjDS["dsExtension"];
+        
+        ds.parser = function(ds, text) {
+            var myTbl = new vjTable(text,0, vjTable_propCSV);
+            anotConvPage.analyzeExtension(myTbl.rows[0].ext);
+            return myTbl.rows[0].ext;
+        }
+        
+        ds.clear_callbacks();
+        ds.register_callback({func : function(param, data) {
+                var myCurPage = anotConvPage;
+                var url = myCurPage.contructUrl(myCurPage.anotFile, "20",true);
+                var dd = vjDS["dsResult"];
+                
+                dd.parser = function(ds, text) {
+                    var curPage = anotConvPage;
+                    if (!algoProcess.modeActive) // i.e: computed
+                        return text;
+                    var genom = node.id;
+                    var separator = ",";
+                    var textComputed = text;
+                    
+                    var hd = textComputed.split("\n")[0]; // get the first line, assuming this is the header
+                    curPage.constructMyHeader(hd,separator);
+                    curPage.handleIdTypesField();
+                    return textComputed;
+                }
+
+                if (myCurPage.extension.toLowerCase().indexOf("gtf") !=-1 || myCurPage.extension.toLowerCase().indexOf("gff") != -1){
+                    vjDS["dsResult"].header = myCurPage.defaultGtfHdr;
+                }
+                else vjDS["dsResult"].header ="";
+                vjDS["dsResult"].reload(url, true);
+                myCurPage.anotFile0 = myCurPage.anotFile;
+            }
+        });
+        ds.reload(url, true);
+        return;
+    }
+
+    anotConvPage.selectIdTypes = function() {
+        // Determine how many id objects are needed (one per column found in the file)
+        var recordV = this.recordV;
+        var IdTypesContraintData = recordV.getElement("idType").fld.constraint_data;
+        // Create the array of values
+
+        var startPos = recordV.getElementValue("rangeStart", "join");
+        var endPos = recordV.getElementValue("rangeEnd", "join");
+        var chrom = recordV.getElementValue("refMapIdRange", "join");
+
+        var tmp_IdTypesArray = IdTypesContraintData.split("|");
+        var IdTypesArray = new Array();
+        for ( var count = 0; count < tmp_IdTypesArray.length; count++) {
+            if (tmp_IdTypesArray[count] != startPos
+                    && tmp_IdTypesArray[count] != chrom
+                    && tmp_IdTypesArray[count] != endPos) {
+                IdTypesArray.push(tmp_IdTypesArray[count]);
+            }
+        }
+        // Determine how many objects there are to populate
+        var columnNumber = IdTypesArray.length;
+        var numberOfIds = recordV.getElement("columns_list").children.length;
+        var IdTypesIndex = 0;
+
+        // Populate first id object if it already exists
+        if (numberOfIds > 2) {
+            // There exists 3 or more children to fill
+            for ( var i = 0; i < (numberOfIds - 2); i++) {
+                var _tmp_col = recordV.getElement("columns_list").children[i + 2];
+                _tmp_col.children[0].value = IdTypesArray[IdTypesIndex];
+                _tmp_col.children[1].value = IdTypesArray[IdTypesIndex];
+                _tmp_col.children[2].value = "0";
+                IdTypesIndex++;
+            }
+        } else {
+            alert("DEVELOPER ALERT: there should never be less than 3 children of the columns_list object.");
+        }
+
+        // Add additional objects as needed
+        for ( var ii = numberOfIds; ii < (IdTypesArray.length + 2); ii++) {
+            // Construct a new "id" object
+            var idElement = recordV.getElement("columns_list");
+            recordV.constructInfrastructure(idElement, "id", false,1);
+
+            idElement.children[ii].children[0].value = IdTypesArray[IdTypesIndex];
+            idElement.children[ii].children[1].value = IdTypesArray[IdTypesIndex];
+            idElement.children[ii].children[2].value = "0";
+
+            IdTypesIndex++
+        }
+    }
+
+    anotConvPage.clearIdTypes =function(){
+        var columns_list_children = this.recordV.getElement("columns_list");
+        columns_list_children.children[2].children[0].value = "";
+        columns_list_children.children[2].children[1].value = "";
+        columns_list_children.children[2].children[2].value = "0";
+
+        if (columns_list_children.children.length > 3) {
+            var newChild = new Array();
+            // Reset id object to default, one that will remain
+            for ( var ir = 0; ir < 3; ir++) {
+                newChild[ir] = columns_list_children.children[ir];
+            }
+            columns_list_children.children = newChild;
+        }
+
+    }
+
+    anotConvPage.process_inputChanged=function(viewer, elem) {
+
+        // algoProcess.setValueList({ame:'koko',kk:'query:sdbfcks'});
+        
+        this.anotFile = algoProcess.getValue("annotationFile", "join");
+        var arrayOfFiles = this.anotFile.split(',');
+        if (arrayOfFiles.length > 1) {
+            //
+            // Change the back-end variables to launch svc-batcher instead of dmTableToIondb
+            //
+            this.recordV.cmdPropSet="?cmd=-qpProcSubmit&svc=svc-batcher";
+            algoProcess.setValueList({batch_svc:anotConvPage.process_qpsvc});
+            //
+            // Automatically set up the batch parameters for the user
+            //
+            var _batchParams = ["annotationFile"];
+            viewer.changeElementValue("batch_param", _batchParams);
+            viewer.changeElementValue("batch_value", 1);
+        } else {
+            // Revert back to non-batch mode
+            this.recordV.cmdPropSet="?cmd=-qpProcSubmit&svc=" + this.process_qpsvc;
+            //var _batchParams = new Array();
+            viewer.changeElementValue("batch_param", undefined);
+            viewer.changeElementValue("batch_value", undefined);
+        }
+        var node = new Object();
+        node.id = this.recordV.getElementValue("referenceGenome", "join");
+        selectedTableId = this.anotFile;
+        
+
+        // Check if reference genome is selected and create the preview
+       /*  if (node.id && node.id.length) {
+            vjDV.add("dvSequenceContentViewer", 900, 200).selected = 1;
+            vjDV.dvSequenceContentViewer.render();
+            vjDV.dvSequenceContentViewer.load();
+            var dna_hiveseq_fullview = vjHO.preview("u-hiveseq", node, {
+                obj : vjDV.dvSequenceContentViewer
+            });
+
+        } */
+
+        // If the box is checked, redraw
+        if (this.recordV.getElementValue("allIdTypes") && algoProcess.modeActive) {
+            if (this.toggle == false) {
+                this.toggle = true; // Set the toggle to checked so not to repeat during changes to other parts of the field
+                // Clear any existing IdTypes
+                this.clearIdTypes();
+                // Draw the IdTypes
+                this.selectIdTypes();
+                this.recordV.redraw();
+            }
+        } else {
+            if (this.toggle == true) {
+                this.toggle = false;
+                // Toggle was checked, now unchecked, remove values
+                this.clearIdTypes();
+                this.recordV.redraw();
+            }
+        }
+
+        if (!this.anotFile || !this.anotFile.length)
+            return;
+
+        if (this.anotFile != this.anotFile0) {
+            getExtension(this.anotFile, elem, node);
+        }
+        
+        this.checkMandatoryFields();
+    }
+    
+    
+    anotConvPage.checkMandatoryFields=function() {
+        var showSubmitButton = true;
+        var len = this.fieldToCheckArr.length;
+        for (var i=0; i<len; ++i) {
+            var val = algoProcess.getValue(this.fieldToCheckArr[i],"join");
+            if (!val && !val.length) {
+                showSubmitButton = false;
+                break;
+            }
+        }
+        this.activateSubmitButton(showSubmitButton);
+        //algoProcess.activateSubmitButton(showSubmitButton);
+    }
+
+    anotConvPage.process_callbackLoaded=function(rViewer, algoP) {
+        var anFile = docLocValue("objID");
+        var genMark = docLocValue("geneMark");
+        var refGenome = docLocValue("referenceGenome");
+        
+        if (anFile) {
+            algoProcess.setValue("annotationFile", anFile);
+            algoProcess.setValue("referenceGenome", refGenome);
+            this.process_inputChanged(rViewer, genMark);
+        } else if (algoProcess.loadedID  /* && algoProcess.modeActive */) {
+            this.process_inputChanged(rViewer);
+        } else {
+            this.activateSubmitButton(false);
+        }
+        return;
+    }
+
+    function addValidationOptions() {
+        var divOption = document.createElement("div");
+        divOption.id = "dvProcessSubmitOption";
+
+        var allRs = document.getElementById("AllResults");
+        var vldRs = document.getElementById("ValidatedResults");
+
+        var boxInput_allResults = document.createElement("input");
+        boxInput_allResults.type = "radio";
+        //boxInput_allResults.id = "AllResults";
+        boxInput_allResults.setAttribute("onchange", "myFunction('AllResults')");
+        boxInput_allResults.name = "annotationOptions";
+        boxInput_allResults.value = "annotation";
+        
+        var textT_1 = document.createElement("span");
+        textT_1.innerHTML = " annotate all ";
+
+        var textT_2 = document.createElement("span");
+        textT_2.innerHTML = " annotate validated results";
+
+        var boxInput_validatedResults = document.createElement("input");
+        boxInput_validatedResults.type = "radio";
+        //boxInput_validatedResults.id = "ValidatedResults";
+        boxInput_validatedResults.setAttribute("onchange","myFunction('ValidatedResults')");
+        boxInput_validatedResults.name = "annotationOptions";
+        boxInput_validatedResults.value = "annotateValidatedResults";
+        
+        divOption.appendChild(boxInput_allResults);
+
+        divOption.appendChild(boxInput_validatedResults);
+
+        divOption.insertBefore(textT_1, boxInput_validatedResults);
+        divOption.appendChild(textT_2);
+        var divParent = document.getElementById("dvProcessSubmitter");
+
+        divParent.insertBefore(divOption, divParent.firstChild);
+        document.getElementById("dvProcessSubmitterInput").value = " Annotate ";
+        divParent.setAttribute("class", "DV_content");
+        divParent.setAttribute("style", "width:450px");
+    }
+
+    algoProcess.doneComputing = function(viewer, reqid, stat) {
+
+        var notSkip = false;
+        if (stat >= 5) {
+            
+            //===================================================================
+            var sbbutton = document.getElementById("dvProcessSubmitterInput");
+            //sbbutton.disabled = true;
+            var smbtopt = algoProcess.getValue("submitOptions", "join"); 
+            if (notSkip && (smbtopt.indexOf("Validated") != -1 || smbtopt.indexOf("All") != -1)) {
+                var divParent = document.getElementById("dvProcessSubmitOption");
+                var allRs = document.getElementById("AllResults");
+                var vldRs = document.getElementById("ValidatedResults");
+                if (allRs != undefined && vldRs != undefined) {
+                    while (divParent.hasChildNodes()) {
+                        divParent.removeChild(divParent.lastChild);
+                    }
+                }
+            } 
+            if (smbtopt.indexOf("dataValidation")!=-1){
+                addValidationOptions();
+                sbbutton.disabled = false;
+            }
+            else if (smbtopt.indexOf("annotation")!=-1) {
+                /* visibool("resultBlock", false); */
+            }
+            /* visibool("dvTableViewer", false); */
+            //========================================================================
+
+            var selectedTableId = algoProcess
+                    .getValue("annotationFile", "join");
+             var summaryURL = "qpbg_tblqryx4://_summary.csv//objs=" + anotConvPage.thisProcessID +"&cnt=100";
+            
+
+            //Talk to alex for download...
+            var errorURL = "qpbg_tblqryx4://_summary.csv//objs="
+                    + anotConvPage.thisProcessID
+                    + "&tqs=" + vjDS.escapeQueryLanguage(JSON.stringify([
+                        {
+                            op: "filter",
+                            arg: {
+                                cols: [
+                                    { name: "position-validation", optional: true },
+                                    { name: "wildtype-validation", optional: true },
+                                    { name: "mutation-validation", optional: true }
+                                ],
+                                method: "equals",
+                                value: "FAILED",
+                                colConjunction: false
+                            }
+                        }
+                      ]));
+            var correctURL = "qpbg_tblqryx4://_summary.csv//objs="
+                    + anotConvPage.thisProcessID
+                    + "&tqs=" + vjDS.escapeQueryLanguage(JSON.stringify([
+                        {
+                            op: "filter",
+                            arg: {
+                                cols: [
+                                    { name: "position-validation", optional: true },
+                                    { name: "wildtype-validation", optional: true },
+                                    { name: "mutation-validation", optional: true }
+                                ],
+                                method: "equals",
+                                value: "PASSED",
+                                colConjunction: true
+                            }
+                        }
+                      ]));
+
+            summaryURL = errorURL = correctURL = "static://";
+           // vjDV["dvTableViewer"].remove("Table-Preview");
+            vjDS.add("loading Download","dsDownload","static://#,name\n<img src='img/download.gif' height=20 width=20 >,Summary\n<img src='img/download.gif' height=20 width=20 >,Correct\n<img src='img/download.gif' height=20 width=20 >,Error\n");
+
+            var downloadV = new vjTableView({
+
+                data : [ "dsDownload" ],
+                formObject : document.forms['formGeneric'],
+                defaultEmptyText : 'select a table to show',
+                geometry : {
+                    width : '100%'
+                },
+                bgColors : [ '#f2f2f2', '#ffffff' ],
+                //callbackRendered: home_callbackAfterTableRendered,
+                //selectCallback:check_download,
+                cols : [ {
+                    name : "name",
+                    url : linkDownload
+                }, {
+                    name : "#",
+                    url : linkDownload
+                } ],
+                isok : true
+            });
+
+            /* vjDV["dvTableViewer"].add("Download", "download", "tab",
+                    [ downloadV ]); */
+
+            var urlArr = new Array();
+            urlArr.push(summaryURL, correctURL, errorURL);
+
+            vjDS.add("loading Summary", "dsSummary", "static://");
+            vjDS.add("loading Error", "dsError", "static://");
+            vjDS.add("loading Correct", "dsCorrect", "static://");
+
+            var dsArr = new Array();
+            dsArr.push("dsSummary", "dsCorrect", "dsError");
+
+            var tabArr = new Array();
+            tabArr.push("Summary");//,"Correct","Error");
+
+            //vjDS["dsResult"].reload(tableURL,true);
+            var vvArr = new Array();
+            for ( var i = 0; i < dsArr.length; i++) {
+                var vv = new vjTableView(
+                        {
+                            data : [ dsArr[i] ],
+                            formObject : document.forms['formGeneric'],
+                            defaultEmptyText : 'select a table to show',
+                            geometry : {
+                                width : '100%'
+                            },
+                            precompute : "for( var ic=0; ic<row.cols.length; ++ic ){if( row.cols[ic]=='FAILED'){row.selected=3;break;}}",
+                            bgColors : [ '#f2f2f2', '#ffffff' ],
+                            // callbackRendered: home_callbackAfterTableRendered,
+                            isok : true
+                        });
+                //vvArr.push(vv);
+                vjDS[dsArr[i]].reload(urlArr[i], true);
+                //vjDS["aaa"].reload(errorURL, true, "download");
+                var viewerToolbar = new vjPanelView(
+                        {
+                            data : [ 'dsVoid', dsArr[i] ],
+                            formObject : document.forms["formGeneric"],
+                            iconSize : 24,
+                            showTitles : true,
+                            rows : [
+                                    {
+                                        name : 'pager',
+                                        icon : 'page',
+                                        align : 'right',
+                                        order : 2,
+                                        title : 'per page',
+                                        description : 'page up/down or show selected number of objects in the control',
+                                        type : 'pager',
+                                        counters : [ 10, 20, 50, 100, 1000,
+                                                'all' ]
+                                    }, {
+                                        name : 'search',
+                                        align : 'left',
+                                        order : 10,
+                                        isSubmitable : true,
+                                        prohibit_new : true
+                                    } ]
+                        })
+                if (i > tabArr.length-1)
+                    continue;
+          /*       vjDV["dvTableViewer"].add(tabArr[i], "table", "tab", [
+                        viewerToolbar, vv ]); */
+
+            }
+            //vjDV["dvTableViewer"].viewers("Table");
+           // vjDV["dvTableViewer"].selected = 1;
+            //vjDV["dvTableViewer"].render();
+            //vjDV["dvTableViewer"].load();
+
+            
+/*             vjDS["ds" + algoProcess.toolBar].reload("innerText://ds"
+                    + algoProcess.toolBar + "DoneDV", true); */
+        }
+        currentCompletionState = "computed";
+        
+        return true;
+    }
+
+    function linkDownload(vv, table, irow, icol) {
+        //var prfx = location.origin + location.pathname;
+        //var url = prfx + "?cmd=objFile&ids="+docLocValue("id")+"&filename=_."+table["name"].replace(/\s+/g, '');  // table["Locus"].replace(/\s+/g, '');
+        if (confirm("Start Downloading the data?  (This may take a significant amount of time depending on the data size.)")) {
+            var rowName = table["name"];
+            var myDsName = "ds" + rowName;
+
+            var url = vv.dataSourceEngine[myDsName].dataurl;
+            var dd = vjDS[myDsName];
+            dd.reload(url, true, "download");
+        }
+    }
+
+    function myFunction(checkboxname) {        
+        var opt = "annotate"+ checkboxname;
+        this.algoProcess.setValue("submitOptions", opt);
+    }
+    
+    $(document).ready(function() 
+    {
+        // Start Drawing stuff
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: anotConvPage.process_svc, // "svc-dmTableToIondb",
+            algoTitle: anotConvPage.pageTitle,
+            paramsPos:{posId: 'layout_inputs', top:'0', bottom:'60%', left:'20%', right:'75%'}
+        });
+        
+        (function() {
+            anotConvPage.recordV = vjDV[algoProcess.recViewerName]
+        })();
+     });
+</script>
+

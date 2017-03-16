@@ -1,0 +1,38 @@
+<id>hlp.obj.svc-profiler.advanced.parameters.html</id>
+<title>Advanced parameters</title>
+<definition>Descriptions of advanced profiling inputs</definition>
+<description>
+As with all HIVE tools, the HIVE-hexagon profiler is highly customizable through parametrization. Please read below for details about advanced profiling parameters:<br/>
+<br/>
+<span class='heading'>Advanced Parameters</span>:
+<ul style="padding-left:4%">
+<li><span class='pn'>Base Quality Filter</span> - This parameter tells the tool to ignore SNP calls at positions with Phred scores below the selected threshold. Default set to 20.  </li>
+<li><span class='pn'>Count of Inserts Invalidating Repeats</span> - Single base insertions commonly cause additional erroneous insertions of the same base due to difficulties with
+ signal quantification. This parameter allows the user to specify the maximum quantity of a single base repeat after which the entire insertion is ignored. Default set to 3.</li>
+<li><span class='pn'>Entropic Cutoff</span> - Specify the minimal positional base entropy below which positions will be ignored. </li>
+<li><span class='pn'>Forward/Reverse Disbalance</span> - Specify the minimum percent difference in forward and reverse base-calls such that positions with disbalance above that percentage
+will instead consider coverage of both directions as the coverage of the smaller value. </li>
+<li><span class='pn'>Maximum Mismatch Percent</span> - Enter the maximum allowable mismatch percent for an alignment to be included in profiling computation.</li>
+<li><span class='pn'>Maximum Percentage of Low-Quality Regions</span> - This percentage is determined by dividing the average quality by length. If the average quality over a query read
+ corresponds to a percentage above the cutoff, the entire read will be excluded from SNP-calling computations.</li>
+<li><span class='pn'>Minimal Alignment Length</span> - Specify the minimum length of alignments to be included in profiling computations. </li>
+<li><span class='pn'>Noise</span></li>
+<ul><li><span class='pn'>Noise Filtering Parameters</span> - By default, all variant positions and their respective frequencies are reported. Different options allow the user to filter
+noise based on a specified threshold or a previously computed profiling experiment.</li>
+    <li><span class='pn'>Noise Profile Maximum Cutoff</span> - Define the percentage of variants with respect to frequency distributions which are considered significant.</li>
+    <li><span class='pn'>Noise Profile Resolution</span> - Noise profile resolution defines the size of the bins for distribution graphing.</li>
+    <li><span class='pn'>Noise Profiling Process ID</span> - Specify the HIVE object ID of a related, previously computed plasmid profiling experiment. Note: you must specify a value
+    here if choosing the "Use the noise level of plasmid profiling experiment" for the Noise Filtering Parameters option above.</li>
+</ul>
+<li><span class='pn'>Profile only repeated regions</span> - Checking this box will profile only those regions with repetitions. </li>
+<li><span class='pn'>SNP Threshold</span></li>
+<ul><li><span class='pn'>Action on SNP Threshold</span> - Specify how to treat specific SNP positions based on the input of the Minimal Frequency of SNP Threshold parameter.</li>
+    <li><span class='pn'>Minimal Frequency of SNP Threshold</span> - Define a frequency threshold below which potential SNPs will not be called.</li>
+</ul>
+<li><span class='pn'>Safe Entropy Zone</span> - Designating a safe zone allows the graphical engine to display positions in the safe zone using fewer points while showing
+positions under the safe threshold at a higher resolution. This enables speedier computation and graphical rendering.</li>
+<li><span class='pn'>Tail Histograms</span> - Compute histograms of positions with dangling tails for which part of a read aligns but a significant portion of the same read does not.</li>
+<li><span class='pn'>Treat filtered positions</span> - Specify whether to include, ignore or treat positions not meeting various filtering criterion with a value of 0.</li>
+<li><span class='pn'>Truncate terminals</span> - Specify a number of base-pairs to cut from each end of the alignments before computing profile.</li>
+</ul>
+</description>

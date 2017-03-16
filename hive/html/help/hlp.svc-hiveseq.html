@@ -1,0 +1,60 @@
+<id>hlp.page.hiveseq.inputparameters.html</id>
+
+<title>Hiveseq Manipulation Parameters</title>
+<definition>Detailed description on parameters and filters that are available for changing</definition>
+<description>
+<br>
+This paremter section houses parameters that are used for a multitude of filters such as: sequence trimmer
+primers filter, adapters filter, quality and length filter,complexity filter, identification filter,simulated random sequence generation,
+sequence combining tool and assemblers. The paremters specific to each of these filters and utilities can be found below
+in their own subsection.
+<br/>
+<br>
+
+LOW COMPLEXITY FILTER: <br/>
+
+To use this filter the box under Use Low Complexity Filter must be checked off.<br>
+Window size- range in which low complexity regions will be measured.The default for this is set to 15 but can be changed using the drop down menu.<br>
+Entropy value- measures the entropy within the window and can be filled with any of the following options: 0 (permissive), 1.2 (reluctant) and 1.6(strict).<br>
+<br>
+ADAPTERS FILTER: <br/>
+To use this you must first check off the box marked Use Adapters Filter. Then using the
+drop down menu choose an adapter file.
+At this point you will need to specify the Maximum Number of Mismatches  you will be allowing.
+<br>
+PRIMERS FILTER: <br/>
+
+To appropriately use this tool make sure the Use Primers Filter box is checked off and
+a Primer file is chosen using the drop down menu. This drop down will only show files
+you have identified as primers.
+
+The if primers found options allows your to pick from one of the following four options:
+<br/>
+-    Do not keep the read- it will discard the whole read (or row) from the result.</br>
+-    Keep the read and cut the middle only- It will keep the read and it will cut the primer from that specific point to the end of it.</br>
+-    Keep the read and cut in the end only- It will keep the read only if the primer is found at the end of the read. It is useful for adapters.</br>
+-    Keep the read and always cut- It will always try to cut the read and o keep the read in the file.</br>
+Minimum length and maximum mismatch lengths-  specify the minimum number of bases that the algorithm must account for to identify a primer and the maximum number of mismatches allowed to identify the primer.</br>
+<br>
+QUALITY FILTER: <br/>
+The first parameter involves checking off the Use Quality Filter box.
+Minimum Percentage value of quality bases above the threshold value-count the number of bases that must have a quality equal to / higher than the threshold. The default value is 100, it means that all the bases in the read have to be better than the threshold value but users can select any value from the drop down or enter their own preferred value.
+Threshold value- to select sequences above the Phred Score which is the threshold value to select sequences above the Phred Score and only sequences that are above this threshold will be kept.
+<br>
+TRIM SEQUENCE: <br/>
+
+The parameters for this facility are found below those of the Quality Filter. There are only two parameters here. Minimum Length which specifies the amount to trip from the left side and Maximum Length which specifies the amount to trim from the right side. Both these parameters have prefilled values that can be seen by clicking on the drop down arrow but users may also put in their preferred values.
+<br>
+LENGTH SEQUENCE FILTER: <br/>
+This is the next filtration tool which allows the user to delete reads that are under the Minimum Sequence Length, a value that users can input.
+<br>
+RANDOMIZER: <br/>
+The last utility in Hiveseq is the randomizer tool. This tool produces random reads based on an input. The first parameter: Number of Short Reads to Randomly Generate specifies how many reads you would like produced.  Random noise( in percent)  introduces a percentage to change each base according to this value, if value = 0.5, it means that it will change 1 out of 2 bases. Minimum Length of Random Sequence specifies the length of the newly produced sequence the Maximum Length of Random Sequence specifies the longest read produced.
+<br>
+CONTIG-EXTENSION: <br/>
+This allows user to select an input file containing short reads and generate a fasta file containing all the contigs generated from
+the short reads, the file is automatically adopted by the HIVE so it can be accessible for further computations inside HIVE
+Sizemer – this is the sizemer that is use to glue or extend the ending of some regions with the beginning of other, a value of 16 or 24 is recommended.
+Sizefilter -  we can filter the short sequences to be used by the algorithm, if the size of the sequence is shorter than the value of sizefilter it will be discarded.
+
+</description>

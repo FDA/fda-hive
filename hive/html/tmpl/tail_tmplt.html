@@ -1,0 +1,85 @@
+<!--
+ $Id: tail_tmplt.html 4881 2013-11-29 22:55:57Z karagiak $
+-->
+<script >
+        var gver = gObject('gSysVersion')
+        if( gver ) {
+            gver.innerHTML = gSysVersion;
+        }
+        function dvFloatingDiv_hide(layername)
+        {
+            if(!layername)layername="dvFloatingDiv";
+            gObjectSet(layername,"-","-","-","hide","-","-");
+        }
+        function dvFloatingDiv_show(x,y, layername)
+        {
+            if (x == 'center') x = gMoX;
+            if (y == 'center') y = gMoY;
+            
+            if(x<0)x=gMoX;
+            if(y<0)y=gMoY
+            if(!layername)layername="dvFloatingDiv";
+            gObjectSet(layername,x,y,"-","show","-","-");
+        }
+        
+        gInitList="vjDatasourceViewer_init();"+gInitList;
+
+
+        var gInitOriginal=gInit;
+        gInit=function ()
+        {
+            user_init(gInitOriginal);
+        }
+</script>
+<span style='color:white;' id='basic-textsizer'>ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&amp;*()</span>
+<form name="form-floatingDiv" onsubmit="javascript:return false;">
+    <div id="dvFloatingContainerDiv">
+        <div id="basic-floatingElements"></div>
+        <div style="position: absolute; display: none;-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;'" id="basic-resizer"></div>
+
+        <div style="position: absolute; display: none;" id="dvFloatingDiv">
+            <table border=0 class="VISUAL_popup">
+                <tr>
+                    <td bgcolor="white" align=right valign=middle><a href="#"
+                        onclick="gObjectSet('dvFloatingDiv','-','-','-','hide','-','-');return false;">
+                            <small>close</small>
+                    </a></td>
+                    <td bgcolor="white" width='1'><a href="#"
+                        onclick="gObjectSet('dvFloatingDiv','-','-','-','hide','-','-');return false;">
+                            <img src="img/delete.gif" height=16 border=0 />
+                    </a></td>
+                </tr>
+                <tr>
+                    <td colspan=2 bgcolor='white'><span id='dvFloatingContainer'>
+                            <span id="dvFloatingViewer"></span>
+                    </span></td>
+                </tr>
+            </table>
+        </div>
+        <div style="position: absolute; display: inline; z-index:1000;" id="dvDatasourceDiv">
+            <table border=0 class="VISUAL_popup">
+                <tr>
+                    <td align=right bgcolor="white" width='399'><a href="#"
+                        onclick="gObjectSet('dvDatasourceDiv','-','-','-','hide','-','-');return false;">
+                            <img src="img/delete.gif" border=0 height=16 />
+                    </a></td>
+                    <td valign=middle bgcolor="white"><a href="#"
+                        onclick="gObjectSet('dvDatasourceDiv','-','-','-','hide','-','-');return false;">
+                            <small>hide</small>
+                    </a></td>
+                </tr>
+                <tr>
+                    <td colspan=2 bgcolor='white'><span
+                        id='dvDatasourceContainer'> <span id="dvDatasourceViewer"></span></span></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div style="position: absolute; z-index:120; display: none;" id="floatDiv"></div>
+    <input type='button' onclick='tableRendered()' style="display:none" />
+</form>
+
+<script src="jquery/3rd/lightbox/lightbox.js"></script> <!-- lightbox -->
+
+</body>
+</html>

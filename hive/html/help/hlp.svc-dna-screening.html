@@ -1,0 +1,58 @@
+<id>hlp.svc-dna-screening.html</id>
+<title>CensuScope</title>
+<definition>Metagenomic DNA-screening</definition>
+<description>
+<span class='toolname'>CensuScope</span> is designed and optimized for the quick detection of components of a given NGS metagenomic dataset. Primarily, CensuScope consists of
+census-based reads file generation and Blast/bowtie based short-reads alignment. Users are provided with a standard format report of components classified at the species or
+higher taxonomic node resolution. CensuScope can be used to evaluate sample contamination, microbiome content and other metagenomic related data analysis.<br/>
+<br/>
+<span class='heading'>Basic inputs and parameters</span>:
+<ul style="padding-left:4%">
+<li><span class='pn'>Name</span> - Here you can designate a name for this specific CensuScope job request for simple search and retrieval from your user home directory.</li>
+<li><span class='pn'>Sequence Read</span> - Select the query data for your metagenomic analysis by clicking the arrow. A new window will pop up displaying all reads available to you through your user home directory.
+Select one or multiple reads by clicking on the corresponding row. To close the window click the <img src="img/use-delete.gif" width=15> icon in the top right corner. Your selected sequence(s)
+should now be visible in the Input Sequences field. Read files can also be pre-populated if selected directly from your user home directory prior to clicking the CensuScope shortcut <img src="img/scope.gif" width=15> icon.</li>
+<li><span class='pn'>Algorithm</span> - Here you may choose the algorithm used for alignment, the default selection is Blast.</li>
+<li><span class='pn'>Database</span> - Choose the desired sequence database to search against from those available to you in HIVE. If you do not see your desired database, you may need to change the properties of
+the associated file from the user home page details tab, or you may need to change the format of the file's ID line. In order to be used as a database for CensuScope purposes, the ID line must contain taxonomy-like 
+information. The ID line can follow the NT format, for example, "Gi|4|emb|X1234|my genome", or can maintain an accession-like number in the first column, for example, "NC_021543 Human". If your file of interest 
+is uploaded following these specifications, you must first convert it to a genome. (From your user home directory, select the object and then select "Convert to Genome" from the dropdown "Convert" menu. Then select "Edit" 
+under the "Details" dropdown menu, and a new page will appear. Under "Taxonomy ID" you must either select a pre-existing object or you may define a new ID type. Save your changes.) Once the file is correctly formatted and 
+contains a Taxonomy ID tag, it will automatically appear as an option in the "Database" field of CensuScope.</li>
+<li><span class='pn'>Number of Reads</span> - Choose the number of the subset of reads to randomly take from the dataset for DNA screening. Note: there is a maximum of 4000 reads to be considered per iteration. If you want to 
+consider a greater number of reads than 4000, you will need to modify the "Number of Alignments p/Iteration" field to compensate for this limit.</li>
+<li><span class='pn'>Number of Alignments p/Iteration</span> - Designate the number of alignments per read per iteration to report. Default set to 1 alignment per read per iteration.</li>
+<li><span class='pn'>Maximum number of iterations</span> - Designate the maximum number of iterations to perform. Default set to 50 maximum iterations.</li>
+<li><span class="pn">Taxonomic Level</span> - Designate the resolution of taxonomic hierarchy at which to report results. Options include kingdom, phylum, class, order, family, genus, species and leaf. Default is set to species.</li>
+<li><span class="pn">Filter low quality reads</span> - This option allows the user to specify whether to filter reads containing an indeterminant nucleotide (N) content of greater than 50%.</li>
+<li><span class="pn">Active Machine Learning (Shannon Entropy)</span> - If checked, this allows the machine to dynamically determine the appropriate number of iterations to compute. Under this condition, when an iteration yields no new
+hits, the computation will stop. If new hits are acquired after an iteration, the machine will invoke a new iteration.</li>
+</ul>
+<br/>
+<span class='heading'>Results Views and Downloads</span>:<br/>
+<br/>
+The results view is split with the graphical viewer on the left and the details viewer on the right. Results represented with respect to taxonomy can be displayed as a phylogram, <img src="img/tree.gif" width=15> tree, or 
+<img src="img/list.gif" width=15> list. In phylogram mode, clicking on a node will either expand a closed node or collapse an expanded node, and will also display the relevant taxonomy information in the details viewer on 
+the right. Ctrl + clicking on a node will allow you to rebuild the tree setting the selected node as the root. In tree mode, species are represented in a hierarchical tree according to their classifications. Selecting a 
+node by clicking on the name of the associated node will re-populate the details viewer on the right. Clicking the <img src="img/recExpand.gif" width=15> icon will expand the tree at a given node while clicking the 
+<img src="img/recCollapse.gif" width=15> icon will collapse the tree at the selected node. The list view displays all hits with respect to their associated NCBI taxonomy IDs. For each taxonomy ID, the name of the taxonomy 
+(set to species by default) is displayed with accompanying statistics:
+<ul style="padding-left:8%">
+<li><span class='pn'>Percentage</span> - indicates the percentage of hits across all iterations assigned to this taxonomy</li>
+<li><span class='pn'>Min</span> - the minimum count of hits assigned to this taxonomy in any given run</li>
+<li><span class='pn'>Min Pct</span> - the minimum converted into a percentage</li>
+<li><span class='pn'>Max</span> - the maximum number of hits assigned to this taxonomy in any given run</li>
+<li><span class='pn'>Max Pct</span> - the maximum converted into a percentage</li>
+<li><span class='pn'>Mean</span> - the mean number of hits to this taxonomy across all iterations</li>
+<li><span class='pn'>Mean Pct</span> - the mean converted into a percentage</li>
+<li><span class='pn'>Std Dev</span> - the standard deviation between iterations for this taxonomy</li>
+<li><span class='pn'>Interval</span> - the error associated with iterations for this taxonomy</li>
+<li><span class='pn'>Full Lineage</span> - displays the entire taxonomy lineage down to the specific level for a given taxon ID</li>
+</ul>
+A minimum and maximum very close together with a small standard deviation indicates a good randomization of sequences whereas very distant minima and maxima indicate poor randomization. This table can be downloaded with respect 
+to either the taxonomy ID or the GI for a given species.<br/>
+<br/>
+The convergence view shows the trend of changing Shannon Entropy over successive iterations for different taxonomy levels. <br/>
+<br/>
+The sunburst diagram provides an interactive and visually dynamic breakdown of the distribution of taxonomic associations found in the sample. <br/>
+</description>

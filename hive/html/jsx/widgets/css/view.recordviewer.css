@@ -1,0 +1,234 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+.record-viewer {
+    
+}
+
+.record-viewer label.title {
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: 700;
+    font-size: 16px;
+    vertical-align: top;
+}
+
+.record-viewer .spec {
+    margin-left: 1em;
+}
+
+.record-viewer,
+.record-viewer ul {
+    list-style-type: none;
+}
+
+.record-viewer li {
+    margin: 10px 0;
+}
+
+.record-viewer li div {
+    display: inline-block;
+    margin-left: .5em;
+}
+
+.record-viewer ul.array {
+    /*padding: 0;*/
+}
+
+.record-viewer ul.array>li {
+    float: left;
+    margin-right: 1em;
+}
+
+.record-viewer ul.array:after {
+    content:'';
+    display:block;
+    clear: both;
+}
+
+.record-viewer input[type="text"].field,
+.record-viewer input[type="checkbox"].field,
+.record-viewer select.field,
+.record-viewer textarea.field,
+.record-viewer span.field,
+.record-viewer div.choice {
+    /*display: block;
+    padding: 3px 6px;*/
+    font-size: 16px;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    padding-left: 5px;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+.record-viewer input[type="text"].field,
+.record-viewer span.field,
+.record-viewer table.field,
+.record-viewer select.field,
+.record-viewer div.choice {
+    height: 34px;
+    width: 100%;
+    max-width: 50em;
+}
+
+.record-viewer .field.changed {
+    background-color: lightgray !important;
+}
+
+.record-viewer .field.readonly {
+    background-color: #eee !important;
+    color: #555;
+}
+
+.record-viewer input[type="checkbox"].field {
+    height: 20px;
+    width: 20px;
+}
+
+.record-viewer textarea.field {
+    width: 100%;
+    max-width: 50em;
+}
+
+.record-viewer ul.list>li.bool>input[type="checkbox"] {
+    display: inline !important;
+    margin-right: 1em;
+}
+
+.record-viewer ul.array>li.bool>input[type="checkbox"] {
+    margin: 10px auto;
+}
+
+.record-viewer ul.array>li.list>ul {
+    padding: 0;
+}
+
+.record-viewer ul.array>li.list>ul>li {
+    margin: 0;
+}
+
+.record-viewer .collapser {
+    margin-right: .5em;
+}
+
+.record-viewer .undo {
+    background-image: url("images/undo-black.png");
+    background-position: center center;
+    height: 16px;
+    width: 16px;
+    display: inline-block;
+    margin-left: .5em;
+    cursor: pointer;
+}
+
+.record-viewer .save {
+    background-image: url("images/save.png");
+    background-position: center center;
+    height: 16px;
+    width: 16px;
+    display: inline-block;
+    margin-left: .5em;
+    cursor: pointer;
+}
+
+.record-viewer .remove {
+    background-image: url("images/remove-16.png");
+    background-position: center center;
+    font-size: 15px;
+    height: 16px;
+    width: 16px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.record-viewer .field-control-panel,
+.record-viewer .array-control-panel {
+    position: absolute;
+    height: 34px;
+    padding: 9px;
+}
+
+/* Inline styles */
+.record-viewer.inline label {
+    display: inline-block;
+    max-width: 20em;
+    width: 20em;
+    text-align: left;
+}
+
+.record-viewer.inline li div.field-container {
+    display: inline-block;
+    margin-left: .5em;
+    font-size: 16px;
+    min-width: 25em;
+    max-width: 25em;
+    position: relative;
+}
+
+.record-viewer.inline li div.field-container .field-control {
+    position: absolute;
+    height: 34px;
+    padding-top: 8px;
+}
+
+.record-viewer.inline li table.field {
+    display: inline-table;
+    margin-left: .5em; 
+    min-width: 25em;
+}
+
+.record-viewer.inline li table.field td {
+    padding: 3px;
+}
+
+.record-viewer.inline li div .field {
+    min-width: 25em;
+    max-width: 25em;
+}
+
+.record-viewer.inline input[type="checkbox"].field {
+    min-width: 1em;
+    max-width: 1em;
+}
+
+.record-viewer.inline li div.toolbar {
+    width: 100%;
+    margin: 0px;
+}
+
+.field-container .form-control:nth-child(n+1)  {
+    margin-bottom: .5em;
+}

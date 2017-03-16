@@ -1,0 +1,30 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+table.dataTable.table{margin:0}table.dataTable.table thead th,table.dataTable.table thead td{position:relative}table.dataTable.table thead th.sorting,table.dataTable.table thead th.sorting_asc,table.dataTable.table thead th.sorting_desc,table.dataTable.table thead td.sorting,table.dataTable.table thead td.sorting_asc,table.dataTable.table thead td.sorting_desc{padding-right:20px}table.dataTable.table thead th.sorting:after,table.dataTable.table thead th.sorting_asc:after,table.dataTable.table thead th.sorting_desc:after,table.dataTable.table thead td.sorting:after,table.dataTable.table thead td.sorting_asc:after,table.dataTable.table thead td.sorting_desc:after{position:absolute;top:12px;right:8px;display:block;font-family:Icons}table.dataTable.table thead th.sorting:after,table.dataTable.table thead td.sorting:after{content:"\f0dc";color:#ddd;font-size:0.8em}table.dataTable.table thead th.sorting_asc:after,table.dataTable.table thead td.sorting_asc:after{content:"\f0de"}table.dataTable.table thead th.sorting_desc:after,table.dataTable.table thead td.sorting_desc:after{content:"\f0dd"}table.dataTable.table td,table.dataTable.table th{-webkit-box-sizing:content-box;-moz-box-sizing:content-box;box-sizing:content-box}table.dataTable.table td.dataTables_empty,table.dataTable.table th.dataTables_empty{text-align:center}table.dataTable.table.nowrap th,table.dataTable.table.nowrap td{white-space:nowrap}div.dataTables_wrapper div.dataTables_length select{vertical-align:middle;min-height:2.7142em}div.dataTables_wrapper div.dataTables_length .ui.selection.dropdown{min-width:0}div.dataTables_wrapper div.dataTables_filter input{margin-left:0.5em}div.dataTables_wrapper div.dataTables_info{padding-top:13px;white-space:nowrap}div.dataTables_wrapper div.dataTables_processing{position:absolute;top:50%;left:50%;width:200px;margin-left:-100px;text-align:center}div.dataTables_wrapper div.row.dt-table{padding:0}div.dataTables_wrapper div.dataTables_scrollHead table.dataTable{border-bottom-right-radius:0;border-bottom-left-radius:0;border-bottom:none}div.dataTables_wrapper div.dataTables_scrollBody thead .sorting:after,div.dataTables_wrapper div.dataTables_scrollBody thead .sorting_asc:after,div.dataTables_wrapper div.dataTables_scrollBody thead .sorting_desc:after{display:none}div.dataTables_wrapper div.dataTables_scrollBody table.dataTable{border-radius:0;border-top:none;border-bottom-width:0}div.dataTables_wrapper div.dataTables_scrollBody table.dataTable.no-footer{border-bottom-width:1px}div.dataTables_wrapper div.dataTables_scrollFoot table.dataTable{border-top-right-radius:0;border-top-left-radius:0;border-top:none}

@@ -1,0 +1,13 @@
+<id>hlp.algo.alignmentAlgorithm.html</id>
+<title>Alignment algorithm</title>
+<definition>Select algorithm for alignment</definition>
+<description>Here you may choose the algorithm used for alignment, the default selection is hexagon.<br></br>
+
+BLAST, or Basic Local Alignment Search Tool, is an alignment algorithm used to compare a query sequence with a reference sequence (or library of sequences) and identify those reads which share identity with the reference.  BLAST does not compare the sequences in entirety, but instead locates short matches (seeds) between the two.  After all short matches between the query sequence and reference sequence are identified a scoring-matrix is used to assign a value to extensions of the short alignments. Resultant alignments with scores greater than the specified threshold are returned as results.<br></br>
+
+Hexagon is an alignment algorithm, similar to NCBI BLAST, that finds short alignments by seeding and subsequent extension.  The hexagon algorithm runs faster than BLAST and therefore is able to use a smaller seed size, increasing sensitivity.<br></br>
+
+Bowtie is a short read aligner, employing a Burrows-Wheeler index to minimize its memory footprint, allowing for a very fast alignment rate.<br></br>
+
+Select desired algorithm by clicking on the associated title or description field.
+</description>

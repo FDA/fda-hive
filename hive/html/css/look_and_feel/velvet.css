@@ -1,0 +1,82 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+body {
+    background-color:#fdfdfd;
+}
+
+a {
+    color:#9d9d9d;
+}
+
+.nav-tabs>li>a{
+    border-radius:0px 0px 0 0
+}
+
+.nav-tabs>li.active>a,.nav-tabs>li.active>a:hover,.nav-tabs>li.active>a:focus{
+    background-color:#90caf9;
+    color: #000;
+}
+
+.nav-tabs>li>a {
+    color: #353535;
+}
+
+.panel{
+    border:none;
+    border-radius:0px;
+    -webkit-box-shadow:  0px 3px 10px #c8c8c8;
+    box-shadow: 0px 3px 10px #c8c8c8;
+}
+
+.panel-heading{
+    border-bottom:0px solid transparent;
+}
+
+.panel-default{
+    border-color:initial;
+}
+
+.layout-infobox {
+    margin: 5px;
+    border: 1px solid white !important;
+    border-radius: 0px !important;
+}
+
+.layout-infobox-tabs ul li a {
+  padding: 0.2em 0.5em 0.2em 0.5em;
+  font-family: Century Gothic;
+}
+
+.toolbar input[type=text] {
+    height: 34px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    vertical-align: middle;
+}

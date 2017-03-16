@@ -1,0 +1,210 @@
+<!--
+$Id$
+vim: set et ts=4 sts=4:
+-->
+<script>
+var all_reports = [
+    {
+        name: "heptagon-deps",
+        title: "Heptagons &ndash; references and reads",
+        params: {
+            heptagons: {
+                title: "Heptagon objects",
+                type: "obj",
+                constraint: "type",
+                constraint_data: "svc-profiler",
+                is_multi_fg: 1
+            }
+        },
+        makeUrl: function() {
+            var heptagons = this.params.heptagons.value ? '((objlist)' + JSON.stringify(this.params.heptagons.value) + ')' : 'alloftype("svc-profiler")[0:19]';
+            return 'http://?cmd=objQry&qry=' + heptagons + '.map({{id:.id,_type:._type,svc:.svc,submitter:.submitter,_brief:._brief,references:.parent_proc_ids?.parent_proc_ids[0].subject.map({{id:.id,name:.name}}):"",reads:.parent_proc_ids.map({.query}).apply(union).map({{id:.id,name:.name}})}}).csv()';
+        },
+        precompute: function(view, tbl, ir) {
+            var row = tbl.rows[ir];
+            [5, 6].forEach(function(ic) {
+                var txt = "<table><tr><td>";
+                JSON.parse(row.cols[ic]).forEach(function(o) {
+                    txt += "<tr><td>" + o.id + "</td><td>" + o.name + "</td></tr>";
+                });
+                txt += "</td></tr></table>";
+                row.cols[ic] = row[tbl.hdr[ic].name] = txt;
+            });
+        },
+        cols: [
+            {name: new RegExp(/.*/), hidden:true},
+            {name: "id", hidden: false, title:"ID"},
+            {name: "_type", hidden: true},
+            {name: "svc", hidden: true},
+            {name: "submitter", hidden: true},
+            {name: "_brief", hidden: false, title: "Summary"},
+            {name: "references", hidden: false, title: "References"},
+            {name: "reads", hidden: false, title: "Reads"}
+        ]
+    }
+];
+
+$.loadLayoutManager();
+
+$(document).ready(function() {
+    vjDS.add("Report parameters", "dsReportParams", "static://");
+    vjDS.add("Report table", "dsReportTable", "static://")
+    var config = {
+        layout: {
+            items: [
+                {
+                    id: "left",
+                    size: "20%",
+                    toggler: "east",
+                    overflow: "auto",
+                    view: {
+                        name: "dataview",
+                        overflow: "auto"
+                    }
+                },
+                {
+                    id: "main-output-tabs",
+                    size: "100%",
+                    tabs: {
+                        items: [
+                            {
+                                active: false,
+                                name: "params-tab",
+                                title: "Parameters",
+                                overflow: "auto",
+                                view: {
+                                    name: "dataview",
+                                    options: {
+                                        dataViewer: [ "vjRecordView" ],
+                                        dataViewerOptions: {
+                                            data: "dsReportParams",
+                                            container: "dvReportParams",
+                                            formObject: document.forms["formReports"],
+                                            autoStatus: 3,
+                                            constructionPropagateDown: 2,
+                                            onChangeCallback: function(viewer, node, element) {
+                                                this.report.params[node.fld.name].value = this.getElementValue(node.fld.name, "array");
+                                                vjDS["dsReportTable"].reload(this.report.makeUrl(), true);
+                                            }
+                                        }
+                                    }
+                                }
+                            }, {
+                                active: true,
+                                name: "report-tab",
+                                title: "Report",
+                                overflow: "auto",
+                                view: {
+                                    name: "dataview",
+                                    options: {
+                                        dataViewer: "vjTableView",
+                                        dataViewerOptions: {
+                                            data: "dsReportTable",
+                                            container: "dvReportTable",
+                                            bgColors:['#f2f2f2', '#ffffff'],
+                                            selectCallback: function(viewer, node, ir, ic, col) {
+                                                var cmd = node.submitter;
+                                                var ids = "&id="+node.id;
+                                                if (!cmd) cmd = node.svc;
+                                                if (!cmd && (node._type == "nuc-read" || node._type == "genome")) {
+                                                    cmd = "dna-hiveseq";
+                                                    ids = "&ids="+node.id;
+                                                }
+                                                if (!cmd) return;
+                                                linkURL("?cmd="+cmd+ids, "process"+node.id);
+                                            },
+                                            precompute: function(view, tbl, ir) {
+                                                var row = tbl.rows[ir];
+                                                for (var ic=0; ic<tbl.hdr.length; ic++) {
+                                                    if (row.cols[ic] && row.cols[ic][0] == '[') {
+                                                        var txt = "<table><tr><td>";
+                                                        JSON.parse(row.cols[ic]).forEach(function(o) {
+                                                            txt += "<tr><td>" + o.id + "</td><td>" + o.name + "</td></tr>";
+                                                        });
+                                                        txt += "</td></tr></table>";
+                                                        row.cols[ic] = txt;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    };
+    $('#main-content-reports').layoutmanager({
+        type: 'horizontal',
+        saveState: false,
+        config: config
+    });
+
+    $("#reports-list-slideout-div").detach().appendTo("#left-panel");
+
+    all_reports.forEach(function(report) {
+        var linker = document.createElement("div");
+        linker.id = report.name + "-linker";
+        linker.className = "linker";
+        linker.innerHTML = report.title;
+        $(linker).on("click", function() {
+            var dvReportParams = vjObj.find("dvReportParams");
+            dvReportParams.report = report;
+
+            var type_cols = ["type_id", "name", "title", "type", "parent", "role", "is_key_fg", "is_readonly_fg", "is_optional_fg", "is_multi_fg", "is_hidden_fg", "brief", "is_summary_fg", "is_virtual_fg", "is_batch_fg", "order", "default_value", "link_url", "constraint", "constraint_data", "constraint_description", "description"];
+            var params_csv = type_cols.join(",") + "\n";
+            for (name in report.params) {
+                type_cols.forEach(function(type_col, i) {
+                    var type_col_val = type_col == "name" ? name : report.params[name][type_col];
+                    if (type_col_val === undefined) {
+                        type_col_val = "";
+                    }
+                    params_csv += (i ? "," : "") + type_col_val;
+                });
+                params_csv += "\n";
+            }
+            vjDS["dsReportParams"].reload("static://" + params_csv, true);
+
+            var dvReportTable = vjObj.find("dvReportTable");
+            dvReportTable.report = report;
+            dvReportTable.cols = report.cols;
+            dvReportTable.precompute = report.precompute;
+            vjDS["dsReportTable"].reload(report.makeUrl(), true);
+        });
+
+        var li_elt = document.createElement("li");
+        li_elt.appendChild(linker);
+        $("#reports-list-slideout-ul").append(li_elt);
+    });
+
+    // FIXME - make generic function (not copypaste from jquery.algoview.js)
+    setTimeout(function() {
+        $("#entireTopBar").css({top: '-85px'});//hide('blind', {}, 200);
+        $("#content-reports").css({top: '40px'});
+        $(window).trigger('resize');
+        $("#dvMenu").css({"left":"5%", "width":"95%"});
+        $("#outterMenu").append(
+                $(document.createElement("a")).append(
+                        $(document.createElement("img"))
+                            .css({"height": "25px", "left": "10px", "top": "2px", "width": "3%", "position": "fixed"})
+                            .attr({"src": "img/HIVELogoDec0213_Transparent.png"})
+                )
+        );
+    }, 5000);
+});
+</script>
+
+<form name="formReports">
+    <div class="content" id="content-reports">
+        <div class="main-content" id="main-content-reports">
+        </div>
+    </div>
+</form>
+
+<div class="slideout-menu" id="reports-list-slideout-div">
+    <h2>Available reports</h2>
+    <ul id="reports-list-slideout-ul">
+    </ul>
+</div>

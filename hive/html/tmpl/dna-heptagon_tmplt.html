@@ -1,0 +1,332 @@
+<!--
+ $Id: dna-profiler_tmplt.html 7341 2014-10-17 14:47:02Z jtorcivia $
+vim: set et ts=4 sts=4:
+-->
+<!-- 
+For the Annotation Viewer
+ -->
+ 
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" id="jumpNewPage">
+    <a href = "#">
+        Click to go to new Profiler webpage
+    </a>
+</div>
+
+<script src='js/vjDataSeries.js'></script>
+
+<script src="js/algox.js" ></script>
+
+<script src='js-graph/vjSVG_plot.js'></script>
+<script src='js-graph/vjSVG_base.js'></script>
+<script src='js-graph/vjSVG_Axis.js'></script>
+<script src='js-graph/vjSVG_primitive.js'></script>
+<script src='js/vjSVGView.js'></script>
+<script src='js-graph/vjSVG_Defaults.js'></script>
+<script src='js-graph/vjSVG_General.js'></script>
+<script src="js-obj/svc-heptagon.js"></script>
+<script>
+    google.load("visualization", "1", {
+        packages : [ "corechart" ]
+    });
+
+    gInitList += "valgoProcess_init();heptagon_init();";
+    setLocationTitle("HIVE-heptagon profiler");
+
+//     var genomeID = 0;
+    valgoProcess_visibleParameters = [ "name", "snpCompare", "minCover", "parent_proc_ids" ];
+    valgoProcess_qpsvc = "dna-heptagon";
+    valgoProcess_svc = "svc-profiler-heptagon";
+    valgoProcess_parameterTitle = "Profiling Algorithm Parameters";
+    valgoProcess_brief = "<table class='HIVE_sect1'><tr ><td id='dvHitListViewer' valign=top></td><td id='dvHitListInfoViewer' valign=top></td></tr></table>";
+    valgoProcess_initialPresets = {"name":""};
+    
+    var alignID=docLocValue("parent_proc_ids"); if(isok(alignID))alignID=alignID.split(",");
+
+    var process_showParentList = 1;
+    var dna_hexagonHitList, dna_profilerProfile;
+
+
+    valgoToolbarWaitingList = "type,align,order,name,title,icon,path,url,description\n"
+            + "html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next\n"
+            + ",left,1,home,Home Page,img/home.png,home,?cmd=home,Jump to Home Page\n"
+            + ",left,1,modresubmit,Modify and Resubmit,img-algo/svc-profiler.gif,/resubmit,"+urlExchangeParameter(document.location,"id","-"+valgoProcess_ID)+",Modify parameters and resubmit this computation using the same template\n"
+            + ",left,1,dna-hexagon,Back to Alignment,img-algo/svc-align-hexagon.gif,/hexagon,?cmd=dna-hexagon&id=$(::alignID),Review Alignment Process";
+
+    valgoToolbarDoneList = /* "type,align,order,name,title,icon,path,url,description\n"+ */
+    "html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next\n"
+            + ",left,1,dna-clust,Hierarchical Clustering,img-algo/svc-clust.png,/dna-clust,javascript:toClust(),\"Classify related profiling results by comparing their SNP frequencies\"\n";
+    
+            valgoToolbarDoneList += ",right,1,tools,External Tools,img-algo/dna-tools.gif,/tools,,External Tools\n";
+            valgoToolbarDoneList += ",right,1,tableQry,Table Query,img/table.gif,/tools/tableQry,?cmd=tblqry-new,Proceed to table query utility\n";
+
+    function heptagon_init() {
+        var visualArray = new Array({
+            name : 'dvProfilerZoom',
+            onlyPopup : true,
+            role : 'output',
+            title : "Profile Zoom",
+            align : 'left',
+            popupCloser : true
+        }, {
+            name : 'dvAnnotZoom',
+            onlyPopup : true,
+            role : 'output',
+            title : "Annot Zoom",
+            align : 'left',
+            popupCloser : true
+        }, {
+            name : 'dvhistpopup',
+            onlyPopup : true,
+            role : 'output',
+            title : "Coverage Histogram",
+            align : 'left',
+            popupCloser : true
+        });
+        vjVIS.generate(visualArray);
+    }
+    
+    function load_genomeID(redirect)
+    {
+        if (!alignID)
+            return;
+
+        linkCmd('objQry&raw=1&qry=("' + alignID.join(",") + '"%20as%20objlist).map({.subject}).map({this.join(",")}).join(",")',
+            "",
+            function(param, text) {
+                try {
+                    genomeID = text;
+//                     if (genomeID.join) {
+//                         genomeID = genomeID.join();
+//                     }
+                    if (!genomeID) {
+                        genomeID = 0;
+                    }
+                    if(redirect) {
+                        linkSelf('dna-clust&profileID='+valgoProcess_ID+'&referenceID='+genomeID,true);
+                    }
+                } catch (e) {
+                    genomeID = 0;
+                }
+            }
+        );
+    }
+    
+
+    function setInitialName() {
+        linkCmd("objQry&raw=1&qry="+vjDS.escapeQueryLanguage("a=[" + alignID + "] as objlist ;return a[0].name;"), "", 
+        function(param, text) {
+            var title = "Profile based on alignment :";
+            if (text) {
+                title += " "+text;
+            }
+            title += " ("+alignID+")"
+            algoProcess.setValue("name", title);
+        });
+    }
+
+    function toClust() {
+        if (!genomeID) {
+            load_genomeID(true);
+        } else {
+            linkSelf('dna-clust&profileID=' + valgoProcess_ID + '&referenceID='
+                    + genomeID, true)
+        }
+    }
+    valgoProcess_inputLoaded = function(viewer) {
+        var par = algoProcess.viewer.getElement("parent_proc_ids");
+        par.fld.constraint_data = "svc-align*";
+
+        var nam = algoProcess.getValue("name");
+        var subset = algoProcess.getValue("subSet");
+
+        if (alignID) {
+            algoProcess.setValue('parent_proc_ids', alignID);
+        } else {
+            alignID = algoProcess.getValue('parent_proc_ids', "array");
+            load_genomeID();
+        }
+        var okToSubmit = isok(subset) && isok(alignID)
+                && algoProcess.modeActive;
+
+        if (algoProcess.modeActive) {
+            if (!nam) setInitialName();
+            algoProcess.setValue("scissors", "hiveal");
+            algoProcess.setValue("split", "parent_proc_ids");
+        }
+
+        if (!dna_hexagonHitList) {
+            var node = {
+                _type : 'svc-align',
+                id : alignID[0],
+                profiler: docLocValue("id")
+            };
+            var dvname = vjDV.add("dvHitListViewer", 350, 350);
+            var dvinfo = vjDV.add("dvHitListInfoViewer", 800, 350);
+            dna_hexagonHitList = vjHO.fullview(node._type, node, {
+                obj : [ dvname, dvinfo ]
+            });
+            dna_hexagonHitList.isInput = true;
+            dna_hexagonHitList.checkable = (algoProcess.modeActive) ? true : false;
+            dna_hexagonHitList.callbackChecked = process_checkedReference;
+            dna_hexagonHitList.callbackSelected = process_selectedReference;
+            dna_hexagonHitList.algoProc = algoProcess;
+            if (isok(subset))
+                dna_hexagonHitList.subsetCount = str2ranges(subset, ";");
+        }
+
+        visibool("dvProcessSubmitter", okToSubmit);
+        visibool("dvProcessSubmitterAll", algoProcess.modeActive);
+    }
+    function process_checkedReference(viewer) {
+        if (algoProcess.modeActive) {
+            algoProcess.setValue("subSet", viewer.accumulate("node.checked",
+                    "node.id").join(";"));
+            valgoProcess_inputLoaded();
+        }
+    }
+
+    function process_selectedReference(viewer, node) {
+        if (!dna_profilerProfile || !dna_profilerProfile.onSelectReferenceID
+                || !node.id || ("" + node.id == "0") || node.id == "+")
+            return;
+
+        dna_profilerProfile.onSelectReferenceID(null, node);
+        var viewer = vjDV.locate("dvProfilerViewer.annot-files.0");
+    }
+
+    valgoProcess_doneComputing = function(viewer, reqid, stat) {
+
+        if (stat == 5) {
+            node = {
+                _type : 'svc-profiler-heptagon',
+                id : valgoProcess_ID
+            };
+            
+            dvname = vjDV.add("dvProfilerViewer", 350, 350);
+            dvinfo = vjDV.add("dvProfilerInfoViewer", 900, 350);
+            
+            var dvzoom = vjDV.add("dvProfilerZoomViewer", 0.95 * gPgW, 450);
+            var dvannotzoom = vjDV.add("dvAnnotZoomViewer", 0.7 * gPgW, 350);
+            var dvHistpopup = vjDV.add("dvhistpopupViewer", 0.7 * gPgW, 350);
+
+            algoProcess.reload(undefined,true);//to load files
+            if(!isBatch()){
+
+                dna_profilerProfile = vjHO.fullview(node._type, node, {
+                    obj : [ dvname, dvinfo, dvzoom, dvannotzoom, dvHistpopup ]
+                });
+                dna_profilerProfile.algoProc = algoProcess;
+                
+                if (dna_hexagonHitList && dna_hexagonHitList.referenceNode) {
+                    process_selectedReference(null,dna_hexagonHitList.referenceNode);
+                    //dna_profilerProfile.onFullviewRenderCallback = function(){process_selectedReference(null,dna_hexagonHitList.referenceNode)};
+                }
+                vjDS["ds" + algoProcess.toolBar].reload("innerText://ds"
+                        + algoProcess.toolBar + "DoneDV", true);
+                visibool("resultBlock", true);
+            }
+        }
+
+    }
+
+    function process_submitAll(button) {
+        if (!confirm("Do you want to build profiles for ALL references in this alignment?"))
+            return;
+        //alert("0:"+docLocValue('profx',0));
+        if (docLocValue('cmdMode', 0) == "profx") {
+            algoProcess.setValue("svc", "dna-profx");
+            algoProcess.setValue("slice", "1000000000000");
+            algoProcess.setValue("split", "-");
+            
+            //
+            // Check to see what algorithm is being selected by the user
+            // Sets the appropriate variable for the backend.
+            if (docLocValue('svc-profx-samtools', 0)) {
+                algoProcess.setValue("profSelector", "svc-profx-samtools");
+            } else if (docLocValue('svc-profx-varscan', 0)) {
+                algoProcess.setValue("profSelector", "svc-profx-varscan");
+            } else if (docLocValue('svc-profx-cuffdiff', 0)) {
+                // CuffDiff not supported through here.
+                // Cuffdiff is only currently run through TopHat
+                //algoProcess.setValue("profSelector", "svc-profx-cuffdiff");
+            }
+        }
+        algoProcess.setValue("subSet", "");
+        visibool("dvProcessSubmitter", false);
+        visibool("dvProcessSubmitterAll", false);
+        algoProcess.onSubmitRequest();
+        return;
+    }
+    
+    
+    $(document).ready(function (){
+        $("#jumpNewPage").on("click", function (eventData){
+            var url = window.location.href;
+            setCookie("jumpNewPageHeptagon", "true", 7);            
+            
+            if (url.indexOf("&") >= 0)
+                linkURL("?cmd=dna-heptagon-new" + url.substring(url.indexOf("&")));
+            else
+                linkURL("?cmd=dna-heptagon-new");
+            
+            eventData.preventDefault();
+        });
+        
+        if (getCookie("jumpNewPageHeptagon") != "false" && $(".top").children().attr("class") != "institution")
+            setCookie("jumpNewPageHeptagon", "true", 7);
+        if (getCookie("jumpNewPageHeptagon") == "true"){
+             $("#jumpNewPage").click();
+        }
+    });
+</script>
+
+<form name="form-process" method=get POST action="dna.cgi" enctype="multipart/form-data" >
+
+    <table class="HIVE_section"><tr><td><span id="dvProfilerZoom-visual"></td></tr></table>
+    <table class="HIVE_section"><tr><td><span id="dvAnnotZoom-visual"></td></table>
+    <table class="HIVE_section"><tr><td><span id="dvhistpopup-visual"></td></table>
+
+    <table width="100%" border="0" id="dvWholePanel">
+        <tr>
+            <td width="48%" id="dvLeftPanel"></td>
+            <td width="2%" align=center>
+                <div class="HIVE_oneliner" style="width:100%">
+                    <span id="algoBlock">
+                        <div id="dvProcess-visual" ></div>
+                        <div id="dvProcessBatchable"></div>
+                        <img border=0 src="img/algoin.gif" width=48 /><br/>
+                        <div id="dvProcessSubmitter"></div>
+                        <div id="dvProcessSubmitterAll">
+                            <input type=button onClick='process_submitAll(this)' name='_all_submitter' size=20 value='Analyse All References' />
+                        </div>
+                        <div id="dvProgressViewer"></div>
+                        <img border=0 src="img/algoout.gif" width=48 />
+                    </span>
+                </div>
+            </td>
+            <td width="48%" id="dvRightPanel"></td>
+        </tr>
+    </table>
+    
+    <table width="100%" border="0">
+        <tr>
+            <td width="48%"></td>
+            <td width="2%" align=center>
+                <span id="resultBlock" class="sectHid" >
+                    <div class="HIVE_section" >
+                        <script>valgoSectionHeader("Next-Gen Profile", "img-algo/svc-profiler.gif", "sectOutput1", "<span class='sectVis' id='dvprocessToolbar'></span>", true)</script>
+    
+                        <table id="sectOut1" class="HIVE_sect1">
+                            <tr >
+                                <td id="dvProfilerViewer" valign=top></td>
+                                <td id="dvProfilerInfoViewer" valign=top></td>
+                            </tr>
+                        </table>    
+                    </div>
+                </span>
+            </td>
+            <td width="48%"></td>
+        </tr>
+    </table>    
+  
+</form>

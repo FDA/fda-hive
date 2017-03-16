@@ -1,0 +1,69 @@
+<id>hlp.obj.svc-align-hexagon.advanced.parameters.link4.html</id>
+<title>HIVE-Hexagon</title>
+<definition>DNA Sequence Alignment</definition>
+<description>
+HIVE alignments are highly customizable to meet 
+the flexible demands of a variety of use-cases. 
+The following provides instruction and discussion 
+about advanced alignment parameters.
+<br/>
+<br/>
+<br/>
+<span class='heading'>Advanced Parameters: Paired End Filters</span>:
+<ul style="padding-left:4%">
+Paired end filters are specifically designed for use on paired 
+end reads sets. Normally, selecting any set of paired ends R1 and 
+R2 as Sequence Read inputs in Hexagon does not tell Hexagon to 
+acknowledge them as forward and reverse paired end reads. Rather, 
+Hexagon treats them as two standard reads. However, checking any of 
+the paired end filters will instruct Hexagon to recognize the reads 
+as originating from two ends of one continuous sequence.
+<br/><br/>
+Selecting any one of these paired end filters will cause Hexagon to 
+recognize the first half of the inputs in the Sequence Read field 
+as reads in one direction and the second half of the inputs as reads 
+going in the opposite direction. For instance, if you have 2 reads, R1 
+and R2, entered in the Sequence Reads field, then they will be 
+considered as a pair of two ends from one continuous sequence.
+<br/><br/>
+Likewise, if you have reads R1, R2, R3, and R4 entered in that order, 
+Hexagon will consider R1 and R2 as reads in one direction, and it will 
+consider R3 and R4 as reads in the reverse direction. This will occur 
+even if reads R1 and R2 are in fact directionally opposite of each 
+other. So, the order in which paired end reads are input into the 
+Sequence Read field is important.
+<br/><br/>
+<dl>
+<dt><span class='pn'>Filter pairs on different subjects</span></dt>
+    <dd>
+        Checking this parameter will filter out any alignments where 
+        pairs were found on different subjects.
+    </dd>
+<br/>
+<dt><span class='pn'>Filter pairs with wrong strandedness</span></dt>
+    <dd>
+        Checking this parameter will filter out alignments where 
+        two reads of a paired end read are both forwards reads or 
+        both reverse reads.
+    </dd>
+<br/>
+<dt><span class='pn'>Filter unpaired alignments</span></dt>
+    <dd>
+        Checking this parameter will filter out alignments that 
+        were found to contain only one side of a paired end 
+        read aligning to the reference.
+    </dd>
+<br/>
+<dt><span class='pn'>Length of the Fragment</span></dt>
+    <dd>
+        Here, enter the Min and Max fragment lengths of 
+        the reads set so that paired ends that comprise 
+        a segment outside of these ranges can be filtered 
+        out as not being paired ends.
+    </dd>
+<br/>
+<br/>
+</dl>
+</ul>
+<a href="hlp.obj.svc-align-hexagon.advanced.parameters.html">Click here to go back to Advanced Parameters</a>.
+</description>

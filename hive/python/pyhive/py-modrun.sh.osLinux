@@ -1,0 +1,56 @@
+#!/bin/bash
+
+: ${QPRIDE_BIN:=/home/qpride/bin}
+: ${os:=Linux}
+
+HIVE_PY_PKG=python-2.7.os${os}
+
+# detect CentOS 6 and RHEL 6 - need different binaries for their ancient libc version
+if [[ $os = "Linux" ]] && ( grep -Eq 'release 6([^0-9]|$)' /etc/redhat-release 2> /dev/null || grep -Eq 'release 6([^0-9]|$)' /etc/centos-release 2> /dev/null ); then
+    HIVE_PY_PKG=${HIVE_PY_PKG}.el6
+elif [[ $os = "Linux" ]] && ( grep -Eq 'release 7([^0-9]|$)' /etc/redhat-release 2> /dev/null || grep -Eq 'release 7([^0-9]|$)' /etc/centos-release 2> /dev/null ); then
+    HIVE_PY_PKG=${HIVE_PY_PKG}.el7
+fi
+
+HIVE_PY_HOME=${QPRIDE_BIN}/${HIVE_PY_PKG}
+if [[ ! -d "${HIVE_PY_HOME}" ]]; then
+    echo "python-2.7 for ${os} not found in ${HIVE_PY_HOME}"
+    exit 1
+fi
+
+export PYTHONHOME=${HIVE_PY_HOME}/usr
+export PYTHONPATH=${QPRIDE_BIN}/python2.7:${HIVE_PY_HOME}/usr/lib/python2.7
+export PYTHONIOENCODING=utf-8
+
+# for matplotlib - use a non-interactive, non-X mode by default
+: ${MPLBACKEND:=Agg}
+export MPLBACKEND
+
+# for libfontconfig, pango, other freedestkop stuff
+export XDG_CONFIG_HOME=${HIVE_PY_HOME}/etc
+export FONTCONFIG_PATH=${HIVE_PY_HOME}/etc/fonts
+
+# for text UI
+export TERMINFO=${HIVE_PY_HOME}/usr/lib/terminfo
+
+export PATH=${HIVE_PY_HOME}/usr/bin:${PATH}
+export LD_LIBRARY_PATH=${HIVE_PY_HOME}/usr/lib:${HIVE_PY_HOME}/lib:${LD_LIBRARY_PATH}
+
+SRV_NAME=$1
+shift
+
+if [[ -z $SRV_NAME ]]; then
+    echo "No service/module name given"
+    exit 1
+fi
+
+${HIVE_PY_HOME}/usr/bin/python - "$@" <<EOF
+import sys
+import pyhive
+pyhive.proc = pyhive.Proc('${SRV_NAME}')
+import ${SRV_NAME}
+# [1:] to skip the initial '-'
+pyhive.proc.run(${SRV_NAME}, sys.argv[1:])
+EOF
+
+exit $?

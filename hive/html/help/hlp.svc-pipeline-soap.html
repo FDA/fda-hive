@@ -1,0 +1,41 @@
+<id>hlp.svc-soap.html</id>
+<title>SOAPdenovo2</title>
+<definition>General help for SOAPdenovo2 short read assembler</definition>
+<description><br/>
+<span class='toolname'>SOAPdenovo2</span> is a third-party short read assembly algorithm that has been integrated into HIVE. SOAPdenovo2 is a de novo draft assembly for human-sized genomes. Users can gain familiarity with SOAPdenovo2 at their page located at <a href="http://soap.genomics.org.cn/soapdenovo.html#intro2">http://soap.genomics.org.cn/soapdenovo.html#intro2</a>. General information and parameter descriptions were taken from <a href="https://github.com/aquaskyline/SOAPdenovo2">https://github.com/aquaskyline/SOAPdenovo2</a>. <br/>
+<br/>
+The assembler accepts paired ends read files in three kinds of formats: FASTA, FASTQ and BAM. Mate-pair relationship could be indicated in two ways: two sequence files with reads in the same order belonging to a pair, or two adjacent reads in a single file (FASTA only) belonging to a pair. If a read in bam file fails platform/vendor quality checks(the flag field 0x0200 is set), itself and it's paired read would be ignored.<br/><br/>
+In the configuration file single end files are indicated by "f=/path/filename" or "q=/pah/filename" for fasta or fastq formats separately. Paired reads in two fasta sequence files are indicated by "f1=" and "f2=". While paired reads in two fastq sequences files are indicated by "q1=" and "q2=". Paired reads in a single fasta sequence file is indicated by "p=" item. Reads in bam sequence files is indicated by "b=".<br/><br/>
+All the below items in each library section are optional. The assembler assigns default values for most of them. If you are not sure how to set a parameter, you can remove it from your configuration file.<br/><br/>
+<ul>
+<li><span class='heading'>Name:</span> Designate a name for this SOAPdenovo2 assembly.<br/>
+<li><span class='heading'>Kmer Size:</span> Length of the kmer.<br/>
+<li><span class='heading'>Kmer Frequency Cutoff: </span> Kmers with frequency no larger than this value will be deleted. <br/>
+<li><span class='heading'>Edge Coverage Cutoff:</span> Edges with coverage no larger than this value will be deleted. <br/>
+<li><span class='heading'>Merge Level:</span> The strength of merging similar sequences during contiging.<br/>
+<li><span class='heading'>Resolve Repeats by Reads:</span> Check to resolve repeats by reads.<br/>
+<li><span class='heading'>Maximum Read Length:</span> Reads above the value entered in this field will be truncated to the length specified by this value.<br/>
+<li><span class='heading'>Library:</span>
+    <ul style="padding-left:4%">
+
+        <li><span class='pn'>Average Insert Length</span> - This value indicates the average insert size of this library or the peak value position in the insert size distribution figure.</li>
+
+        <li><span class='pn'>Reverse Sequences</span> - This option takes value 0 or 1. It tells the assembler if the read sequences need to be complementarily reversed. Illumima GA produces two types of paired-end libraries: a) forward-reverse, generated from fragmented DNA ends with typical insert size less than 500 bp; b) reverse-forward, generated from circularizing libraries with typical insert size greater than 2 Kb. The parameter "reverse_seq" should be set to indicate this: 0, forward-reverse; 1, reverse-forward.</li>
+
+        <li><span class='pn'>Assembly Flags</span> - This indicator decides in which part(s) the reads are used. It takes value 1(only contig assembly), 2 (only scaffold assembly), 3(both contig and scaffold assembly), or 4 (only gap closure).</li>
+    
+        <li><span class='pn'>Read length Cutoff</span> - The assembler will cut the reads from the current library to this length.</li>
+
+        <li><span class='pn'>Rank</span> - It takes integer values and decides in which order the reads are used for scaffold assembly. Libraries with the same "rank" are used at the same time during scaffold assembly.</li>
+
+        <li><span class='pn'>Pair Number Cutoff Value</span> - This parameter is the cutoff value of pair number for a reliable connection between two contigs or pre-scaffolds. The minimum number for paired-end reads and mate-pair reads is 3 and 5 respectively.</li>
+
+        <li><span class='pn'>Map Length</span> - This takes effect in the "map" step and is the minimun alignment length between a read and a contig required for a reliable read location. The minimum length for paired-end reads and mate-pair reads is 32 and 35 respectively.</li>
+
+        <li><span class='pn'>Paired Reads</span> - Users upload the reads to assemble here.</li>
+
+    </ul>
+<li><span class='heading'>Jump Library</span>: Same parameters as regular Library but defaults are configured with optimization for jumping libraries.
+    
+</ul>
+</description>

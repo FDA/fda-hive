@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>HIVE: High-performance Integrated Virtual Environment</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="Author" content="Vahan Simonyan" />
+    <meta name="owner" content="HIVE" />
+    <meta name="Reply-To" content="hive@fda.hhs.gov" />
+    <meta name="Keywords" content="High throughput sequencing, Next Gen Sequencing, Bioinformatics, Protein, Taxonomy, Sequence" />
+    <meta name="Description" content="HIVE bioinformatics" />
+    <META HTTP-EQUIV="expires" CONTENT="0" />
+    <META HTTP-EQUIV="pragma" CONTENT="NO-CACHE" />
+
+    <link rel="stylesheet" type="text/css" href="jquery/jquery-ui/1.11.0/jquery-ui.css" />
+
+    <link rel="stylesheet" href="css/hive.css" type="text/css" />
+    <link rel="stylesheet" href="css/top.css" type="text/css" />
+    <link rel="stylesheet" href="css/documentation.css" type="text/css" />
+    <link rel="stylesheet" href="css/qpstyles.css" type="text/css" />
+    <link rel="stylesheet" href="css/documentation.css" type="text/css" />
+
+    <link rel="stylesheet" href="css/header.css" type="text/css" />
+    
+    <link rel="stylesheet" href="jquery/3rd/lightbox/lightbox.css" type="text/css" />
+    
+    <!-- order apparently matters for some browsers; using recommendations from https://github.com/RealFaviconGenerator -->
+    <link rel="shortcut icon" href="img/hive-hexagon.ico">
+    <link rel="icon" type="image/png" href="img/hive-hexagon-96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="img/hive-hexagon-16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="img/hive-hexagon-32.png" sizes="32x32">
+
+    <!-- third-party javascripts -->
+    <script type="text/javascript" src="es-shims/es5-shim.min.js"></script>
+    <script type="text/javascript" src="es-shims/es5-sham.min.js"></script>
+    <script type="text/javascript" src="json3/json3.min.js"></script>
+    <script type="text/javascript" src="jquery/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="jquery/jquery-ui/1.11.0/jquery-ui.js"></script>
+    <script type="text/javascript" src="jquery/3rd/jquery.livequery.js"></script>
+    <script type="text/javascript" src="jquery/3rd/jquery.storageapi.min.js"></script>
+    
+    <script type="text/javascript" src="jsep/jsep.min.js"></script>
+     <script type="text/javascript" src="threejs/three.min.js"></script>
+     <script type="text/javascript" src="threejs/threex.domevent.js"></script>
+     
+
+    <!-- standard polyfills for old browsers -->
+    <script type="text/javascript" src="js/polyfill.js"></script>
+
+    <!-- new ui utils/helper methods -->
+    <script type="text/javascript" src="jsx/widgets/jquery/jquery.utils.js"></script>
+    <script type="text/javascript" src="jsx/widgets/jquery/jquery.hivetoolbar.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="oldjs/qpride.js"></script>
+
+
+    <!-- hive js framework -->
+    <script type="text/javascript" language="JavaScript1.1" src="js/basic.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/colors.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/json2.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjObj.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjQPride.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjDataSource.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjDataView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjJavaScript.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="js-obj/hive-objects.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjTable.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjTree.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjMenuView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjImageView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjTextView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjTableView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjTreeView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjRecordView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjHTMLView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjHelpView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjProgressView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjGoogleGraphView.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjHoneyComb.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjPageLayout.js"></script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjPageLayoutSequence.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjVisualElements.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjDataSourceView.js"> </script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjDataSeries.js"> </script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjAlignmentView.js"> </script>
+    
+    <script type="text/javascript" language="JavaScript1.1" src="js-obj/u-hiveseq.js"> </script>
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjHiveseqView.js"> </script>
+    
+    <script type="text/javascript" language="JavaScript1.1" src="js/vjTaxonomyView.js"> </script>
+    
+    <script type="text/javascript" src="d3js/core/d3.js"></script>
+    <script type="text/javascript" src="d3js/core/d3.csv.js"></script>
+    <script type="text/javascript" src="d3js/d3js_basics.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="d3js/3d_scatter.js"> </script>
+    <script type="text/javascript" language="JavaScript1.1" src="d3js/zoomable_lineGraph.js"> </script>
+    
+    <script type="text/javascript" language="JavaScript1.1"
+        src="js/vjExplorerBaseView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1"
+        src="js/vjDirectoryView.js"></script>
+    <script type="text/javascript" language="JavaScript1.1"
+        src="js/vjExplorerUsrView.js"></script>
+
+    <script type="text/javascript" language="JavaScript1.1" src="js/facts.js"></script>
+ 
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+<!--
+ $Id$
+-->
+
+
+
+
+<script  type="text/javascript" >
+
+
+    __updateEnvironment();
+
+    function top_initNotifications()
+    {
+        var visualArray = new Array({
+            name : 'dvNotifications',
+            title : null,
+            align : 'left',
+            clickBriefExpand : true
+        });
+        vjVIS.generate(visualArray);
+
+        vjDS.add("infrastructure: Notifications", "dsNotifications", "innerHTML://dsNotificationsDV");
+        var viewerNotifications = new vjTableView({
+            isStickyHeader : false,
+            data : 'dsNotifications',
+            bgColors : [
+                            '#DfDfff', '#ffffff'
+            ],
+            cols : [{
+                        name : new RegExp(/.*/),
+                        wrap : true
+                    }, {
+                        name : '<!--section-->',
+                        hidden : true
+                    }, {
+                        name : 'url',
+                        hidden : true
+                    }, {
+                        name : 'date',
+                        wrap : false
+                    }],
+            maxTxtLen : 100000,
+            newSectionWord : '<!--section-->',
+            newSectionColumn : 1,
+            geometry : {
+                width : '100%'
+            },
+            isok : true
+        });
+        vjDV.add("dvNotificationsViewer", 600, 600);
+        vjDV.dvNotificationsViewer.add("News Feed", "help", "tab", [
+            viewerNotifications
+        ]);
+        vjDV.dvNotificationsViewer.render();
+        vjDV.dvNotificationsViewer.load();
+    }
+
+    var gUserSettings;
+    function user_setvar(variable, value)
+    {
+        if (!gUserSettings)
+            return;
+
+        gUserSettings.changeElementValue(variable, value);
+        cookieSet('HIVE-user-' + variable, value);
+    }
+    function user_getvar(variable, defaultValue, which)
+    {
+        if (!gUserSettings)
+            return defaultValue;
+        var res = gUserSettings.getElementValue(variable, which);
+        if (!res)
+            return defaultValue;
+        else
+            return res;
+    }
+    function user_init(executeAfter)
+    {
+        var visualArray = new Array({
+            name : 'dvUser',
+            role : 'input',
+            title : " ",
+            align : 'left',
+            icon : 'img/user.gif',
+            noicon : true,
+            noBGImage : true,
+            icoSize : 24,
+            popupCloser : true,
+            briefSpanTag : "RV-",
+            isok : true
+        });
+        vjVIS.generate(visualArray);
+        vjDS.add("infrastructure: Loading User Metadata Information", "dsCurrentUserRecord", "http://?cmd=objList&type=user-settings&mode=csv");
+        vjDS.add("infrastructure: User Specifications", "dsCurrentUserSpec", "http://?cmd=propspec&type=user-settings");
+        vjDV.add("dvUserViewer", 600, 600);
+
+        gUserSettings = new vjRecordView({
+            data : ["dsCurrentUserSpec", "dsCurrentUserRecord"],
+            showRoot : false,
+            autoStatus : 3,
+            objType : "user-settings",
+            RVtag : "RVCurrentUser",
+            implementSaveButton : true,
+            callbackRendered : executeAfter,
+            onChangeCallback : function(viewer, element)
+            {
+                cookieSet('HIVE-user-' + element.fld.name, element.value);
+            },
+            reloadObjIDFromData : true,
+            formObject : document.forms["form-menu"],
+            isok : true
+        });
+
+        vjDV["dvUserViewer"].add("User Settings", "user", "tab", [
+            gUserSettings
+        ]);
+        vjDV["dvUserViewer"].render();
+        if (!gObject("dvUserViewer")){
+            funcLink(executeAfter);
+        }
+        vjDV["dvUserViewer"].load();
+
+    }
+
+    function top_init()
+    {
+        vjPAGE.initMenu("", "form-menu");
+        top_initNotifications();
+    }
+
+    function main_addSection(namesection, height, icon)
+    {
+        vjDS.add("infrastructure: " + namesection + " Page", "ds" + namesection + "Page", "http://help/hlp.page.main."
+                        + namesection + ".html");
+        vjDV.add(namesection + "-tab", "100%", height == 0 ? "300" : height).frame = 'none';
+        var viewer = new vjHelpView({
+            data : "ds" + namesection + "Page"
+        });
+        viewer.styleBase = "MAINPAGE_INTRO";
+        if (icon)
+            viewer.icon = icon;
+        vjDV[namesection + "-tab"].add(namesection, "table", "tab", viewer);
+        vjDV[namesection + "-tab"].render();
+        vjDV[namesection + "-tab"].load();
+    }
+
+    function main_initToolbar(isvert)
+    {
+        vjDS.add("infrastructure: Constructing Toolbar", "dsToolbarmain", "innerText://dsToolbarMainDV");
+        var actualToolbar = new vjPanelView({
+            data : "dsToolbarmain",
+            formObject : document.forms['form-toolbarmain'],
+            iconSize : isvert ? 24 : 48,
+            showTitles : true,
+            rootMenuStyle : isvert ? 'vertical' : 'horizontal'
+        });
+        var dv = "dvToolbarmain";
+        if (isvert)
+            dv += "vertical";
+        vjDV.add(dv, "100%", "100%").frame = "none";
+        vjDV[dv].add("toolbar", "", "menu", actualToolbar);
+        vjDV[dv].render();
+        vjDV[dv].load();
+
+    }
+
+    gSysVersion = 0;
+    gInitList = "top_init();\n" + gInitList;
+    
+    
+    
+    $(document).ready(function() {
+        if ($("#header").addEventListener) {
+            $("#header").addEventListener('contextmenu', function(e) {
+                alert("You've tried to open context menu"); //here you draw your own menu
+                e.preventDefault();
+            }, false);
+        } else {
+            $("#header").contextmenu(function() {
+                $("#rmenu").attr("class", "show");  
+                $("#rmenu")[0].style.top =  mouseY(event) + 'px';
+                $("#rmenu")[0].style.left = mouseX(event) + 'px';
+   
+                window.event.returnValue = false;
+            });
+        }
+        
+        $("#seeDS").on("click", function(){
+            var toPut = "";
+            $("body").append(
+                    $(document.createElement("div"))
+                        .attr("id", "dialog")
+                        .attr("title", "Continue Dialog")
+                        .append (
+                                $(document.createElement("p")).text("Available DataSources:")
+                        )
+                    );
+            
+            for (var dsName in vjDS){
+                if (vjDS[dsName] instanceof vjDataSource && vjDS[dsName].title.indexOf("infrastructure:")<0
+                        && vjDS[dsName].url.indexOf("static://")<0){
+                    $("#dialog").append (
+                            $(document.createElement("p")).text(dsName + " : " + vjDS[dsName].url)
+                    );
+                }
+            }
+                             
+            $("#dialog").dialog({
+                modal: true,
+                width: 500,
+                buttons: {
+                    OK: function() {
+                       $(this).dialog("remove");
+                    }
+                },
+                open: function() {
+                    $(this).closest(".ui-dialog")
+                    .find(".ui-dialog-titlebar-close")
+                    .addClass("ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close")
+                    .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+                }
+            });
+        });
+        
+        $("#seeInfraDS").on("click", function(){
+            var toPut = "";
+            $("body").append(
+                    $(document.createElement("div"))
+                        .attr("id", "dialog")
+                        .attr("title", "Continue Dialog")
+                        .append (
+                                $(document.createElement("p")).text("Available DataSources:")
+                        )
+                    );
+            
+            for (var dsName in vjDS){
+                if (vjDS[dsName] instanceof vjDataSource && vjDS[dsName].url.indexOf("static://")<0){
+                    $("#dialog").append (
+                            $(document.createElement("p")).text(dsName + " : " + vjDS[dsName].url)
+                    );
+                }
+            }
+                             
+            $("#dialog").dialog({
+                modal: true,
+                width: 500,
+                buttons: {
+                    OK: function() {
+                       $(this).dialog("remove");
+                    }
+                },
+                open: function() {
+                    $(this).closest(".ui-dialog")
+                    .find(".ui-dialog-titlebar-close")
+                    .addClass("ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close")
+                    .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+                }
+            });
+        });
+    });
+
+    // this is from another SO post...  
+     $(document).bind("click", function(event) {
+         $("#rmenu").attr("class","hide");
+     });
+
+
+
+    function mouseX(evt) {
+        if (evt.pageX) {
+            return evt.pageX;
+        } else if (evt.clientX) {
+           return evt.clientX + (document.documentElement.scrollLeft ?
+               document.documentElement.scrollLeft :
+               document.body.scrollLeft);
+        } else {
+            return null;
+        }
+    }
+
+    function mouseY(evt) {
+        if (evt.pageY) {
+            return evt.pageY;
+        } else if (evt.clientY) {
+           return evt.clientY + (document.documentElement.scrollTop ?
+           document.documentElement.scrollTop :
+           document.body.scrollTop);
+        } else {
+            return null;
+        }
+    }
+
+    
+</script>

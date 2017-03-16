@@ -1,0 +1,6 @@
+<id>hlp.algo.seqalign.hashStep</id>
+<title>Hash step</title>
+<definition>Set the size of the hash step</definition>
+<description > The hash step builds a matrix containing all the possible combinations of nucleotides present in a N-mer of a certain size which is used to calculate the frequency of occurrence of such N-mers.
+Because small hash steps involve some redundancy, increasing the size of the hash step for seeding, especially in large genomes, improves the alignment speed significantly.  However, there is also a potential cost of decreasing the sensitivity.  The user may enter a specific value or leave the default set at “auto.”  If “auto” is chosen, the value will be set to 1 for small genomes and to seed/2 for large genomes.  The value 1 means no loss in sensitivity.  The value equal to the size of the seed is the maximum recommended value. </description>
+

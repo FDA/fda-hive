@@ -1,0 +1,125 @@
+#!/bin/bash
+#/*
+# *  ::718604!
+# * 
+# * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+# * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+# * Affiliation: Food and Drug Administration (1), George Washington University (2)
+# * 
+# * All rights Reserved.
+# * 
+# * The MIT License (MIT)
+# * 
+# * Permission is hereby granted, free of charge, to any person obtaining
+# * a copy of this software and associated documentation files (the "Software"),
+# * to deal in the Software without restriction, including without limitation
+# * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# * and/or sell copies of the Software, and to permit persons to whom the
+# * Software is furnished to do so, subject to the following conditions:
+# * 
+# * The above copyright notice and this permission notice shall be included
+# * in all copies or substantial portions of the Software.
+# * 
+# * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# * DEALINGS IN THE SOFTWARE.
+# */
+
+export os=Linux
+
+#locate self and use location as primary PATH directory
+pushd . 1>/dev/null 2>&1
+SCRIPT_PATH="${BASH_SOURCE[0]}";
+while([ -h "${SCRIPT_PATH}" ]) do
+    cd "`dirname "${SCRIPT_PATH}"`"
+    SCRIPT_PATH="$(readlink "`basename "${SCRIPT_PATH}"`")";
+done
+cd "`dirname "${SCRIPT_PATH}"`" 1>/dev/null 2>&1
+export QPRIDE_BIN="`pwd`";
+
+HIVE_PY_PKG=python-2.7.os${os}
+
+# detect CentOS 6 and RHEL 6 - need different binaries for their ancient libc version
+if [[ $os = "Linux" ]] && ( grep -Eq 'release 6([^0-9]|$)' /etc/redhat-release 2> /dev/null || grep -Eq 'release 6([^0-9]|$)' /etc/centos-release 2> /dev/null ); then
+    HIVE_PY_PKG=${HIVE_PY_PKG}.el6
+elif [[ $os = "Linux" ]] && ( grep -Eq 'release 7([^0-9]|$)' /etc/redhat-release 2> /dev/null || grep -Eq 'release 7([^0-9]|$)' /etc/centos-release 2> /dev/null ); then
+    HIVE_PY_PKG=${HIVE_PY_PKG}.el7
+fi
+
+export PATH=$QPRIDE_BIN:$PATH
+export LD_LIBRARY_PATH=$QPRIDE_BIN:$QPRIDE_BIN/${HIVE_PY_PKG}/usr/lib:$QPRIDE_BIN/lib64:$LD_LIBRARY_PATH
+export PERLLIB=$QPRIDE_BIN/perl/lib64:$PERLLIB
+
+qapp=$QPRIDE_BIN/qapp.os$os
+if [ ! -x "$qapp" ]; then
+    echo "$qapp is not found";
+    exit 1;
+fi
+qsrv=$QPRIDE_BIN/qsrv.os$os
+if [ ! -x "$qsrv" ]; then
+    echo "$qsrv is not found";
+    exit 2;
+fi
+
+host=`uname -n`
+ip4last=`/sbin/ip addr show | grep 'inet ' | awk -F '[: ]+' '{print $3;}' | grep -v "^127\." | head -1 | awk -F '[./]+' '{print $4;}'`
+if [ "$ip4last" = "" ]; then
+    ip4last=$RANDOM
+fi
+if [ "$host" = "" ]; then
+    host=$ip4last
+fi
+
+qsrv_log=`$qapp -configGet qm.tempDirectory`;
+if [ "$qsrv_log" = "" ]; then
+    qsrv_log="/tmp/"
+fi
+if [ ! -d "$qsrv_log" ]; then
+    echo "$qsrv_log is not directory";
+    exit 3;
+fi
+user=`id -un`
+if [ "$user" = "" ]; then
+    user=$USER
+fi
+if [ "$user" = "" ]; then
+    user=nobody
+fi
+qsrv_log=${qsrv_log}qsrv.$user.$host.log
+
+# every machine restarts at the minute in an hour signified by the last number in its IP address
+min=`date +%M`
+min=`expr $min`
+minToRestart=`expr $ip4last "%" 59`
+if [ $min -eq $minToRestart ]; then
+    hour=`date +%H`
+    if [ "$hour" = "23" -a -f "$qsrv_log" ]; then
+        cnt=60 # days of logs, use 'zgrep xxx qsrv.log*.gz' to search through logs
+        while [ $cnt -gt 2 ]; do
+            l="$qsrv_log.$cnt.gz"
+            cnt=`expr $cnt - 1`
+            mv -f "$qsrv_log.$cnt.gz" "$l" 2>&1 | grep -v 'No such file or directory'
+        done
+        if [ -f "$qsrv_log.1" ]; then
+            gzip -c "$qsrv_log.1" 1> "$qsrv_log.2.gz" 2>/dev/null
+        fi
+        mv -f "$qsrv_log" "$qsrv_log.1"
+    fi
+    for t in '1 2 3 4 5 6 7 8 9 10 11 12'; do
+        $qapp -messageSubmit localhost qm exit 1>/dev/null 2>&1
+        sleep 1
+    done
+    killall --user $user -9 `basename $qsrv` 1>/dev/null 2>&1
+fi
+
+umask 022 # disable these bits ----w--w- or same as chmod -R a+rx,u+w,go-w
+if [ "$host" = "comb" ]; then
+    # debug mode only
+    umask 000
+fi 
+nohup $qsrv stdin 0 $1 >>"$qsrv_log" 2>&1 &
+popd 1>/dev/null 2>&1

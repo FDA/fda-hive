@@ -1,0 +1,110 @@
+<!--
+ $Id$
+-->
+
+<script>
+    
+    gInitList+="record_init();";
+
+    
+
+    function record_init()
+    {
+         //return;
+        
+         var readonly=docLocValue("readonly");
+        
+        var types=docLocValue("types");
+        //if( !types.length )
+        //    return;
+        if(types.length)
+            types = types.split(",");
+        
+        var ids=docLocValue("ids");
+        if( ids.length ) ids = ids.split(",");
+        var fakeObj=false;
+        for( var i=0; i< ids.length; ++i) {
+          if(ids[i].charAt(0)=='-') {
+              ids[i]=ids[i].substring(1);
+              fakeObj=true;
+          }
+        }
+        
+        var length = ids.length ? ids.length : types.length;
+    
+        setLocationTitle(types+": "+ids+" - HIVE")
+        
+        // create a tabbed view element for files
+        for( var i=0; i< length; ++i) { 
+            vjDV.add("dvRecordViewer","100%","100%").frame='none';
+        }
+
+        vjPAGE.initRecordViewers("dvRecordViewer","form-recordView",types,ids,null,readonly,fakeObj);
+        
+        //var myViewer=vjDV.locate("dvRecordViewer._active._active");
+        
+        return ;
+    }
+
+    function record_saveRecord()
+    {
+    
+    
+    }
+    
+
+</script>
+        
+    
+
+
+<span class="sectHid">
+<span id="RRV-EXTERNAL_ID_label-TEMPLATE"><textarea %RRV-INTERFACE-TAGS% cols=40 >%RRV-INTERFACE-VALUE%</textarea></span>
+</span>
+
+    <div class="HIVE_section" >
+            <table width="100%"  class="HIVE_table" >
+                <tr>
+                    <td height="60" width=200 >
+                        <span class="HIVE_section_title">Record Composition Engine</span><br>
+                    </td>
+                    <td>
+                        <span id="RV_descriptionDiv"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td valign=top colspan=2 class="HIVE_sect1">
+                        <form name="form-recordView" >
+                            <span id="dvRecordViewer"> </span>
+                            <br/>
+                             
+                        </form>
+                    </td>
+                </tr>
+            </table>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

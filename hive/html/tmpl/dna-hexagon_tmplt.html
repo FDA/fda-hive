@@ -1,0 +1,357 @@
+<!--
+ $Id$
+-->
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" id="jumpNewPage">
+    <a href = "#">
+        Click to go to new Aligner webpage
+    </a>
+</div>
+
+<script src="js/algox.js" ></script>
+<!-- <script src="js-obj/svc-genemark.js" ></script> -->
+<script>
+
+google.load("visualization", "1", { packages : [ "corechart" ] });
+
+gInitList += "valgoProcess_init();";
+setLocationTitle("HIVE-hexagon aligner");
+
+
+valgoProcess_visibleParameters=["name","batch_svc","alignSelector","query","subject","minMatchLen","keepAllMatches","mismatches"];
+if( isMode("batch_list") ) 
+    valgoProcess_visibleParameters.push("batch");
+    
+valgoProcess_qpsvc="dna-hexagon";
+valgoProcess_svc="svc-align-hexagon";
+valgoProcess_parameterTitle="Alignment Algorithm Parameters";
+valgoProcess_submitButtonName="ALIGN";
+valgoProcess_initialPresets = {"batch_svc":"single"};
+        
+valgoProcess_tabToAdd = [
+         {
+             tabname: "Advanced Help",
+             dsname: "dsHelpAdvanced",
+             title: "loading help ....",
+             icon: "help",
+             url: "http://help/hlp.obj.svc-align-hexagon.advanced.html",
+             viewer: new vjHelpView ()
+         }
+         ];
+
+valgoProcess_cmdModeLst.alignSelector=["hexagon","bowtie2","bowtie","blast","blastx","tblastx","bwa","tophat","magic","clustal","mafft","blat"] ;
+        
+
+var isMultipleAlignment=false;
+var isBatchMode=false;
+
+if(isMode("hexagon")) {
+    valgoProcess_initialPresets.alignSelector="svc-align-hexagon";
+    //valgoProcess_fields ={subject:{constraint:'search', constraint_data: {fetch:'id', url:'http://?cmd=objList&type=genome&prop_name=taxonomy&prop_val=!NT&raw=1&mode=csv',inline:[{name:'id',hidden:false,title:'ID'}, {name:'name',hidden:false,title:'name'}]}  }};
+} else if(isMode("blast")) {
+    // Now we need to check which version of blast it is (since all will trigger above)
+    // Not tblastx though
+    
+    // Variables generic for any BLAST program
+    valgoProcess_qpsvc="dna-alignx";
+    valgoProcess_initialPresets.slice=4000;
+    
+    if (isMode("blastx")) {
+        valgoProcess_initialPresets.alignSelector="svc-align-blastx";
+        valgoProcess_svc="svc-align-blastx";
+        valgoProcess_initialPresets.cmdLine="-task blastx-fast -num_threads 1";
+        valgoProcess_initialPresets.slice="2000";
+        valgoProcess_initialPresets.minMatchLen="15";
+    } else {
+        valgoProcess_initialPresets.alignSelector="svc-align-blast";
+        valgoProcess_svc="svc-align-blast";
+    }
+} else if (isMode("tblastx")) {
+    // Remove the mismatches since tblastx doesn't suppor this parameter
+    valgoProcess_visibleParameters=["name","alignSelector","query","subject","minMatchLen","keepAllMatches"];
+    // Hide mismatches from the interface
+    
+    valgoProcess_initialPresets.alignSelector="svc-align-tblastx";
+    valgoProcess_svc="svc-align-tblastx";
+    valgoProcess_initialPresets.cmdLine="-num_threads 1";
+ // Variables generic for any BLAST program
+    valgoProcess_qpsvc="dna-alignx";
+    valgoProcess_initialPresets.slice="4000";
+    valgoProcess_initialPresets.minMatchLen="15";
+    
+} else if(isMode("blat")) {
+    valgoProcess_initialPresets.alignSelector="svc-align-blat";
+    valgoProcess_svc="svc-align-blat";
+    valgoProcess_qpsvc="dna-alignx";
+    // {fetch:'id', url:'http://?cmd=objList&type=genome&prop_name=taxonomy&prop_val=!NT&raw=1&mode=csv',inline:[{name:'id',hidden:false,title:'ID'}, {name:'name',hidden:false,title:'name'}]}
+} else if(isMode("bwa")) {
+    valgoProcess_visibleParameters=["name","alignSelector","query","subject", "seedSize"];
+    valgoProcess_initialPresets.alignSelector="svc-align-bwa";
+    valgoProcess_svc="svc-align-bwa";
+    valgoProcess_qpsvc="dna-alignx";
+    valgoProcess_field_visibility={keepAllMatches:'hidden'};
+    // {fetch:'id', url:'http://?cmd=objList&type=genome&prop_name=taxonomy&prop_val=!NT&raw=1&mode=csv',inline:[{name:'id',hidden:false,title:'ID'}, {name:'name',hidden:false,title:'name'}]}
+} else if(isMode("bowtie2")) {
+    valgoProcess_initialPresets.alignSelector="svc-align-bowtie2";
+    valgoProcess_svc="svc-align-bowtie2";
+    valgoProcess_qpsvc="dna-alignx";
+    // {fetch:'id', url:'http://?cmd=objList&type=genome&prop_name=taxonomy&prop_val=!NT&raw=1&mode=csv',inline:[{name:'id',hidden:false,title:'ID'}, {name:'name',hidden:false,title:'name'}]}
+} else if(isMode("bowtie")) {
+    valgoProcess_initialPresets.alignSelector="svc-align-bowtie";
+    valgoProcess_svc="svc-align-bowtie";
+    valgoProcess_qpsvc="dna-alignx";
+    // {fetch:'id', url:'http://?cmd=objList&type=genome&prop_name=taxonomy&prop_val=!NT&raw=1&mode=csv',inline:[{name:'id',hidden:false,title:'ID'}, {name:'name',hidden:false,title:'name'}]}
+} else if(isMode("tophat")) {
+    valgoProcess_initialPresets.alignSelector="svc-align-tophat";
+    valgoProcess_svc="svc-align-tophat";
+    valgoProcess_qpsvc="dna-alignx";
+    valgoProcess_visibleParameters=["name", "alignSelector","query","subject", "GTFfile","minMatchLen", "keepAllMatches", "mismatches","GTFfile"];
+
+} else if(isMode("magic")) {
+    valgoProcess_initialPresets.alignSelector="svc-align-magic";
+    valgoProcess_svc="svc-align-magic";
+    valgoProcess_qpsvc="dna-alignx";
+    // {fetch:'id', url:'http://?cmd=objList&type=genome&prop_name=taxonomy&prop_val=magic&raw=1&mode=csv',inline:[{name:'id',hidden:false,title:'ID'}, {name:'name',hidden:false,title:'name'}]}
+} else if(isMode("clustal")) {
+    valgoProcess_initialPresets.alignSelector="svc-align-clustal";
+    valgoProcess_svc="svc-align-clustal";
+    valgoProcess_qpsvc="dna-alignx";
+    valgoProcess_field_visibility={query:'hidden'};
+    isMultipleAlignment=true;
+} else if(isMode("mafft")) {
+    valgoProcess_initialPresets.alignSelector="svc-align-mafft";
+    valgoProcess_svc="svc-align-mafft";
+    valgoProcess_qpsvc="dna-alignx";
+    isMultipleAlignment=true;
+}
+
+
+valgoToolbarDoneList = "";
+valgoToolbarDoneList += ",right,2,clusterTools,External Tools,img-algo/dna-tools.gif,/tools,,Reference based assembly and profiling analysis\n";
+valgoToolbarDoneList += ",right,3,cluster,Sequence Clustering,img-algo/svc-profiler.gif,/tools/cluster,?cmd=textClustering&sourceID=$(::valgoProcess_ID),Proceed to sequence profiling analysis: basecalling, SNP computations, etc...\n";
+
+if(isMultipleAlignment) {
+    valgoProcess_fields ={query:{is_hidden_fg:1}};
+    valgoProcess_visibleParameters=["parsed","name", "alignSelector","subject"];
+
+} else {
+    valgoToolbarDoneList += ",right,1,metagenomicTools,Metagenomic Tools,img-algo/dna-tools.gif,/metatools,,Metagenomic analysis\n";
+    valgoToolbarDoneList += ",right,3,censuscope,CensuScope,img/scope.gif,/metatools/dna-screening,?cmd=dna-screening&alignmentInput=$(::valgoProcess_ID),Proceed to metagenomic analysis: CensuScope \n";
+    valgoToolbarDoneList += ",right,4,textClustering,Annotation Clustering,img-algo/dna-tools.gif,/metatools/textClustering,?cmd=annotationClustering&sourceFile=$(::valgoProcess_ID)&tcAnnotClustering=true&tcSplitQueries=true,Proceed to metagenomic analysis: Annotation Clustering \n";
+    valgoToolbarDoneList += ",right,3,tools,Profiling Tools,img-algo/dna-tools.gif,/profiler,,Reference based assembly and profiling analysis\n";
+    valgoToolbarDoneList += ",right,2,profiler,Sequence Profiling,img-algo/svc-profiler.gif,/profiler/profiler,?cmd=dna-heptagon&parent_proc_ids=$(::valgoProcess_ID),Proceed to sequence profiling analysis: basecalling, SNP computations, etc...\n";
+    valgoToolbarDoneList += ",right,3,recombinant,Reference Recombination,img-algo/svc-recomb.gif,/profiler/recombinant,?cmd=dna-recomb&parent_proc_ids=$(::valgoProcess_ID),'Proceed to sequence recombination discovery analysis'\n";
+    valgoToolbarDoneList += ",right,4,populator,Population Analysis,img-algo/hive-population.gif,/profiler/population,?cmd=dna-popul&parent_proc_ids=$(::valgoProcess_ID),'Proceed to population analysis computations'\n";
+    valgoToolbarDoneList += ",right,5,samtools,Samtools SNP Calling,img-algo/svc-profx-samtools.gif,/profiler/profx,?cmd=dna-heptagon&cmdMode=profx&svc-profx-samtools=1&parent_proc_ids=$(::valgoProcess_ID),'Proceed to samtools sequence profiling analysis: basecalling, SNP computations, etc...'\n";
+    valgoToolbarDoneList += ",right,6,varscan,Varscan2 SNP Calling,img-algo/svc-profx-varscan.png,/profiler/profx-varscan,?cmd=dna-heptagon&cmdMode=profx&svc-profx-varscan=1&parent_proc_ids=$(::valgoProcess_ID),'Proceed to varscan sequence profiling analysis: basecalling, SNP computations, etc...'\n"
+    //valgoToolbarDoneList += ",right,5,samtools,Samtools SNP Calling,img-algo/svc-profx-samtools.gif,/profiler/profx,?cmd=dna-profiler&cmdMode=profx&svc-profx-samtools=1&parent_proc_ids=$(::valgoProcess_ID),'Proceed to samtools sequence profiling analysis: basecalling, SNP computations, etc...'\n";
+}
+ 
+if(isMode("virus")) {
+    valgoProcess_help.push({name:"Viral Genome", url:"http://help/hlp.page.dna-hexagon.virus.html"});
+    valgoProcess_visualImage="img-subject/viruses-original.jpg";
+
+    valgoProcess_initialPresets.name+=" Virus";
+    valgoProcess_initialPresets.seed=11;
+}
+else if(isMode("bacteria")) {
+    valgoProcess_help.push({name:"Bacteria", url:"http://help/hlp.page.dna-hexagon.bacteria.html"});
+    valgoProcess_visualImage="img-subject/bacteria.png";
+    
+    valgoProcess_initialPresets.name+=" Bacteria";
+    valgoProcess_initialPresets.seed=12;
+    
+    valgoProcess_visibleParameters.push("searchRepeatsAndTrans");
+}
+else if(isMode("human")) {
+    valgoProcess_help.push({name:"Human Subject", url:"http://help/hlp.page.dna-hexagon.HumanWGS.html"});
+    valgoProcess_visualImage="img-subject/HumanWGS.jpg";
+    
+    valgoProcess_initialPresets.name+="Homo sapiens";
+    valgoProcess_initialPresets.seed=14;
+    valgoProcess_initialPresets.looseExtenderMismatchesPercent=15;
+    valgoProcess_initialPresets.hashCompileStp=2;
+    valgoProcess_initialPresets.maxMissQueryPercent=3;
+    valgoProcess_initialPresets.maxHitsPerRead=50;
+ 
+    if(isMode("wgs")) {
+       valgoProcess_initialPresets.maxHashBin=50;
+    }     
+}
+else if(isMode("related")) {
+    //valgoProcess_help.push({name:"Distant Relative", url:"http://help/hlp.page.dna-hexagon.virus.html"});
+    valgoProcess_visualImage="img-subject/viruses-original.jpg";
+
+    valgoProcess_initialPresets.name+=" Distant Relative";
+    valgoProcess_initialPresets.seed=8;
+    valgoProcess_initialPresets.selfQueryPosJumpInNonPerfectAlignment=0;
+    valgoProcess_initialPresets.maxExtensionGaps=2;
+    valgoProcess_initialPresets.looseExtenderMismatchesPercent=23;
+    valgoProcess_initialPresets.maxMissQueryPercent=20;
+    valgoProcess_initialPresets.minMatchLen=36;
+}
+
+
+if(isMode("wgs")){
+    valgoProcess_help.push({name:"Whole Genome Sequencing", url:"http://help/hlp.page.hive-hexagon.WGS.html", icon: "dna"});
+    
+    valgoProcess_initialPresets.subject="query:alloftype(\"genome\",{taxonomy:\"human-genome\"})";
+    valgoProcess_initialPresets.name+=" Whole Genome Sequencing";
+    valgoProcess_initialPresets.alignmentEngine=0;
+    valgoProcess_initialPresets.keepAllMatches=0;
+        
+} if(isMode("exome")) {
+    valgoProcess_help.push({name:"Exome", url:"http://help/hlp.page.dna-hexagon.exome.html"});
+     
+    valgoProcess_initialPresets.name+=" Exome Sequencing";
+    valgoProcess_initialPresets.subject="query:alloftype(\"genome\",{taxonomy:\"human-exome\"})";
+}  
+if(isMode("transcriptome")){
+    valgoProcess_help.push({name:"Transcriptome", url:"http://help/hlp.page.dna-hexagon.transcriptome.html"});
+    
+    valgoProcess_initialPresets.name=" Transcriptome Sequencing";
+    valgoProcess_initialPresets.subject="query:alloftype(\"genome\",{taxonomy:\"human-transcriptome\"})";
+}
+ 
+  
+
+
+
+valgoProcess_inputChanged=function(viewer,elem)
+{
+    
+    // toggle automatic naming capability based on current typed name
+    var isAllowNameChange = true;
+    if( elem.name.indexOf(".name")>0 ) {
+        isAllowNameChange = algoProcess.getValue("name") ? false : true;
+    }
+
+    var qry=algoProcess.getValue("query", "join");
+    var sub=algoProcess.getValue("subject","join");
+
+    if( isAllowNameChange && (elem.name.indexOf(".subject")>0) || (elem.name.indexOf(".query")>0) ) {
+        if(isMultipleAlignment && isok(sub))
+            algoProcess.setValueList({name: "query:s=["+sub+"] as objlist; cnt=((int)s)-1; a=s[0].name; if(cnt>0){ a=cat( a,\" and \", cnt, \" more\");} return a;"});
+        else if( (isok(qry) && isok(sub)) ) {
+            algoProcess.setValueList({name: "query:q=["+qry+"] as objlist;s=["+sub+"] as objlist; cnt=((int)s)-1; a=q[0].name; if(cnt>0){ a=cat(a,\" and \", cnt, \" more\");}  return cat(a, \" versus \", s[0].name);"});
+        }
+    }
+    //var okToSubmit = ( (isok(qry) && isok(sub)) || (isok(qry) && valgoProcess_cmdMode.substring(0,7)=="clustal") || (isok(qry) && valgoProcess_cmdMode.substring(0,5)=="mafft")) && algoProcess.modeActive;
+    var okToSubmit = ( isok(qry) && isok(sub) ) && algoProcess.modeActive;
+    if(isMultipleAlignment)
+        okToSubmit = isok(sub) && algoProcess.modeActive;
+
+    algoProcess.activateSubmitButton(okToSubmit);
+
+
+}
+
+valgoProcess_inputLoaded=function(viewer)
+{
+    //algoProcess.readFromDocLoc(["query","subject","referenceAnnot"]);
+    algoProcess.readFromDocLoc(["query","subject","referenceAnnot","keepAllMatches","doubleStagePerfect"]);
+    var qry=algoProcess.getValue("query");
+    var sub=algoProcess.getValue("subject");
+
+
+    var okToSubmit = isok(qry) && isok(sub) && algoProcess.modeActive;
+    if(isMultipleAlignment)
+        okToSubmit = isok(sub) && algoProcess.modeActive;
+    algoProcess.activateSubmitButton(okToSubmit);
+}
+
+valgoProcess_doneComputing=function(viewer, reqid, stat)
+{
+    if (stat >= 5) {
+        var node={_type:!isMultipleAlignment?'svc-align':'svc-align-multiple',id:valgoProcess_ID};
+        var dv_objs;
+        var dna_hexagonHitList;
+        if(isMultipleAlignment){
+            dv_objs=vjDV.add("dvHitListViewer", 1150, 350);
+            dna_hexagonHitList = vjHO.fullview(node._type,node,{obj:dv_objs});
+            dna_hexagonHitList.algoProc = algoProcess;
+        } else if ( (isMode("blastx") || isMode("tblastx")) && !isBatch() ) {
+            // Output if it is blastx (protein specific output)
+            node={_type:isMode("blastx")?'svc-align-blastx':'svc-align-tblastx',id:valgoProcess_ID};
+            dv_objs=vjDV.add("dvHitListViewer", 1150, 350);
+            dna_hexagonHitList = vjHO.fullview(node._type,node,{obj:dv_objs});
+            dna_hexagonHitList.algoProc = algoProcess;
+        } else if ( !isBatch() ) {
+            dv_objs = [vjDV.add("dvHitListViewer", 350, 350), vjDV.add("dvHitListInfoViewer",800,350)];
+            dna_hexagonHitList = vjHO.fullview(node._type,node,{obj:dv_objs});
+            dna_hexagonHitList.algoProc = algoProcess;
+        }
+    }
+
+    visibool("resultBlock", true);
+}
+
+
+
+/* function rowDisplay (viewer, node)
+{
+   this.referenceNode = node;
+   var blastOffset = node.offset;
+   var fileSizeView = 2500; // characters to display in vjHTMLview
+
+   vjDS.add("Blastx-output","dsBlastxOutput", "http://?cmd=objFile&filename=blastx.blast_out&maxSize="+fileSizeView+"&offset="+blastOffset+"&raw=1&ids=" + docLocValue("id"));
+   
+   vjDV.add("dvHitListInfoViewer", "100%", 500);
+   var myrowViewerList = new vjTextView({
+       data : [ "dsBlastxOutput" ],
+       formObject : document.forms['formGenemark'],
+       defaultEmptyText : 'select a table to show',
+       geometry : {
+           width : '100%'
+       },
+       //selectCallback: rowDisplay,
+       // callbackRendered: home_callbackAfterTableRendered,
+       isok : true
+   });
+
+   vjDV["dvHitListInfoViewer"].add("Blast Evidence", "list", "tab", [ myrowViewerList]);
+// this.vjDV[dv].add("downloads", "table", "tab", [ viewerDownloads ]);
+
+ //vjDV["dvTableInfoViewer"].addDownloadViewer();
+ 
+ //vjDV["dvTableInfoViewer"].add("BlastOutputDownload", "list", "download", [ myrowViewerList]);
+ //vjDV["dvNgsPred"].add("UniProt-PDB Mapper","list","tab", [  mydvAlignmentViewer ] );
+
+ vjDV["dvHitListInfoViewer"].render();
+ vjDV["dvHitListInfoViewer"].load();
+
+} */
+
+
+$(document).ready(function (){
+    $("#jumpNewPage").on("click", function (eventData){
+        var url = window.location.href;
+        setCookie("jumpNewPageHexagon", "true", 7); 
+        
+        if (url.indexOf("&") >= 0)
+            linkURL("?cmd=dna-hexagon-new" + url.substring(url.indexOf("&")));
+        else
+            linkURL("?cmd=dna-hexagon-new");
+        
+        eventData.preventDefault();
+    });
+    
+    if (getCookie("jumpNewPageHexagon") != "false" && $(".top").children().attr("class") != "institution")
+        setCookie("jumpNewPageHexagon", "true", 7);
+    if (getCookie("jumpNewPageHexagon") == "true"){
+         $("#jumpNewPage").click();
+    }
+});
+
+
+</script>
+
+<script >document.write(valgoSectionPageStart(false));</script> 
+    <table id='sectOutput1' class='HIVE_sect1'>
+        <tr >
+             <td id="dvHitListViewer" ></td>
+             <td id="dvHitListInfoViewer" ></td>
+        </tr>
+    </table>
+<script >document.write(valgoSectionPageEnd(false));</script>
+
+

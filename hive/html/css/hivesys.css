@@ -1,0 +1,88 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+ul.JSON_TREE, ul.JSON_TREE ul {
+    list-style-type: none;
+    background: url(tree-vline.png) repeat-y;
+    margin: 0;
+    padding: 0;
+    font-family:Century Gothic, Ubuntu Light;
+}
+
+
+ul.JSON_TREE ul {
+    margin-left: 1px;
+}
+
+ul.JSON_TREE li {
+    margin: 0;
+    padding: 0 8px;
+    line-height: 24px;
+    background: url(tree-node.png) no-repeat;
+    color: navy;
+    font-weight: light;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+
+ul.JSON_TREE li.JSON_TREE_last {
+    background: #fff url(tree-lastnode.png) no-repeat;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.JSON_TREE-control
+{
+    border: 1px solid;
+    border-spacing: 0px;
+    border-color:#efefff;
+    padding: 0px 0px 0px 0px;
+    color: #0047AB;
+    background-color: #ffffff;
+    font-family:Anonymous, Courier;
+    font-weight: light;
+    font-size:65%;
+    
+}
+
+.JSON_TREE-input
+{
+    border: 1px solid;
+    border-spacing: 0px;
+    border-color:#ffffff;
+    padding: 0px 0px 0px 0px;
+    color: #0047AB;
+    background-color: #ffffff;
+    font-family:Anonymous, Courier;
+    font-weight: lighter;
+    vertical-align: text-top;
+    font-size:80%;
+}

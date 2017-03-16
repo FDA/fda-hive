@@ -1,0 +1,25 @@
+<id>hlp.generic-launcher-template</id>
+<title>THIS IS THE TITLE OF THE HELP DOCUMENT</title>
+<br />
+<definition>THIS IS THE SHORT DESCRIPTION UNDER THE TITLE</definition>
+<description><span class="pagetext">PIPELINE NAME</span>FIRST PARAGRAPH</description>
+
+<!--
+    BELOW IS SAMPLE TEXT THAT CAN BE REPLACED... THIS TEXT IS INTRODUCING THE HELP FILE AND
+    EXPLAINING THE PARAMETERS AND OUTPUT FILES.
+!>
+
+<br />
+There are several different parameters available in this implementation of Velvet and this pipeline should be used to assemble viral reads data into genomic contigs.
+<br />
+<ul>
+<li><b>Name</b>: This is the name you would like to call the computation launching the de novo pipeline.  This name is how you will reference this computation in the future if you would like to examine parameters or re-download results.</li>
+<li><b>Velvet Input</b>: This field is a drop down menu allowing you to access your sequence reads files.  In other words this is the input file or files for the Velvet pipeline.  The system will treat these files as FASTA files for the purpose of Velvet's parameters (even if they were uploaded as FASTQ files).  The pipeline will also assume they are short reads files. </li>
+<li><b>K-mer Coverage</b>: This is the k-mer length that Velvet should use in its processing of the contigs file.  This is the length of the k-mers as they are entered into Velvet's hash table.  This must always be an odd number and must be below 31.  Furthermore, it must be smaller than your read lengths (so if your read lengths are very small it may need to be set smaller than the default).  Longer k-mer lengths will give you more specificity while shorter k-mer lengths will give you more sensitivity (greater coverage).  The default is set to 21. </li>
+<li><b>Coverage Cut-off</b>: This is the minimum coverage required for Velvet to make a call on the assembly.  The default is set to 5.  A larger number will introduce more confidence in the results, but can result in genuine assemblies not being counted.  The lower the number the greater the chance of including incorrect assemblies. </li>
+<li><b>Script Object</b>: This is the internal script file used to run Velvet with the above parameters.  Generally this should be left at the default and not changed by the user.  The current object name is "Velvet Default Pipeline" if the field is unpopulated initially.  If you can not find this script file, please alert the system administrator </li>
+
+</ul>
+<br>
+Once the data has been entered, select Submit to begin the Velvet assembly process.  Once velveth has been completed the interface will show 50% completed.  Note that percentage completed may not correlate with time it takes to run the process.  After Velvet is completed (which may take a long time depending on the size of the data) a list will populate with the output files: contigs.fa and stats.txt.  You can either download these files directly or import them back into HIVE via the download and archive options respectively.
+</description>

@@ -1,0 +1,78 @@
+
+<!--
+ $Id$
+-->
+<script > 
+    gInitList+="menu_init();"
+
+    function menu_init()
+    {
+        setLocationTitle("portal: Bowtie");
+
+        var arr = new Array (
+            {name: 'dna-bowtie'}
+
+        );
+
+        var v= vjDV.add("dvPortalViewer",1024,350);
+        v.selected=0;//v.maxtabs=1;
+        for ( var iv=0; iv<arr.length; ++iv ) {
+            vjDS.add("Accumulating the Availale Algorithms", "ds"+arr[iv].name, "innerText://ds"+arr[iv].name+"DV" );
+            var viewer=new vjTableView({
+                data: "ds"+arr[iv].name,
+                formObject: document.forms["form-portal"],
+                cols:[
+                    {name:'name', hidden:true },
+                    {name:'icon', hidden:true},
+                    {name:'description', wrap:true }
+                ],
+                precompute:"if(!node.url && node.name)node.url='?cmd='+node.name;",
+                iconSize:32,
+                bgColors:['#f2f2f2','#ffffff'] ,
+                isok:true });
+            vjDV.dvPortalViewer.add( arr[iv].name, "process", "tab", [viewer] );
+                
+        }
+        vjDV.dvPortalViewer.render();
+        vjDV.dvPortalViewer.load();
+
+
+    }
+</script>
+
+
+
+<form name="menu" action="seq.cgi" method="GET" >
+
+    <div class="HIVE_section" >
+        <table border=0 width=100% >
+            <tr >
+                <td class="HIVE_section_title">
+                    <a name="files"></a>
+                    <table><tr><td><img src="img/file.gif" width=48 /></td><td>Bowtie Arsenal</td></tr></table>
+                </td>
+            </tr>
+            <tr>
+                <td class="HIVE_sect1" valign=top align=center>
+                    <span id="dvPortalViewer"></span>
+                </td>
+            </tr>
+        </table>    
+    </div>
+
+    
+    
+</form>
+
+
+<form name="form-portal">
+<span class="sectHid" id='dsdna-bowtieDV'><pre>
+icon,name,title,description
+img-algo/svc-align-bowtie.gif,dna-bowtie,Standard bowtie ,choose this to align sequence reads to a reference genomes using bowtie 
+img-subject/viruses-original.jpg,dna-bowtie-virus,Virus specific bowtie, choose this to align viral sequence reads to a reference viral genomes using bowtie         
+img-subject/bacteria.png,dna-bowtie-bacteria,Bacteria specific bowtie,choose this to align bacterial sequence reads to a reference bacterial genomes using bowtie          
+img-subject/HumanWGS.jpg,dna-bowtie-HumanWGS,Human whole genome specific bowtie, choose this to align human sequence reads to a whole genome human reference using bowtie    
+img-subject/exome.gif,dna-bowtie-exome, Exome specific bowtie, choose this to align exome sequence reads to a exome reference using bowtie
+img-subject/transcriptome.jpg,dna-bowtie-transcriptome, Transcriptome specific bowtie, choose this to align transcriptome sequence reads to a transcriptome reference using bowtie
+</pre></span>
+</form>

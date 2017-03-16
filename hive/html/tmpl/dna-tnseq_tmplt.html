@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<script type="text/javascript" src="d3js/core/d3.js"></script>
+<script type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/correlation_cords.js"></script>
+<script src="js-obj-new/svc-tnseq.js"></script>
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script type="application/javascript" language="JavaScript1.1" src="js/vjTableViewX2.js" ></script>
+<script  src='js/vjPluggableToolbar.js'> </script>
+
+<script>
+google.load("visualization", "1", {packages:["corechart"]});
+
+    // Set the DNA Pipeline title bar
+    setLocationTitle("TNSeq analyzer");
+    
+    var algoProcess=new valgoProcess(docLocValue("id"),  "dna-tnseq", "svc-tnseq" );
+    
+    algoProcess.visibleParameters=["name","aligners","coverage_threshold","window","referenceAnnot","referenceFeature","referenceType"];
+    
+    algoProcess.submitButtonName="SUBMIT";
+    algoProcess.docLocsToBorrow=["aligners"];
+    algoProcess.recViewerName = 'DV_Parameter_view';
+
+    // Set the function for whenever there is a change in the form
+    vjDS.add("Loading annotation types ...","dsAnnotTypes","static://");
+    vjDS["dsAnnotTypes"].parser = function (ds,text) {
+        console.log(text);
+        var recordV = vjDV[algoProcess.recViewerName];
+        var isGenbank = false;
+        var featureElement= recordV.getElement("referenceFeature");
+        var typeElement= recordV.getElement("referenceType");
+        var txtSplit = text.split("\n");
+        for (var i=0; i<txtSplit.length; ++i) {
+            var type = txtSplit[i];
+            if (type=="FEATURES") {
+                isGenbank = true;
+                break;
+            }
+        }
+        
+        if( featureElement ) {
+            featureElement.fld.hidden = !isGenbank;
+            featureElement.fld.is_hidden_fg = !isGenbank;
+        }
+        if (text) {
+            //recordV.changeElementValueByPath(typeElement.path,"CDS|blabla|haha");
+            var typeToDisplay = txtSplit.filter(function(type) {
+                var typeToSkip =["FEATURES","strand","accession","gi","organism","listOfConnectedRanges"];
+                if (typeToSkip.indexOf(type)!=-1) {// found
+                    return false;
+                }
+                return true;
+            });
+            
+            typeElement.fld.constraint_data = typeToDisplay.join("|");
+        }
+        recordV.redraw();
+        return text;
+    };
+    
+    algoProcess.inputChanged = function(viewer,elem) {
+        console.log("inputChanged");
+        if (elem.name.indexOf("referenceAnnot")!=-1) {
+            //var val = elem.value;
+            var val = viewer.getElementValue("referenceAnnot","join");
+            if (val){
+                vjDS["dsAnnotTypes"].reload("http://?cmd=ionAnnotTypes&fromComputation=0&cnt=-1&ionObjs=" + val,true);
+            }
+            else {
+                var featureElement= viewer.getElement("referenceFeature");
+                featureElement.fld.hidden = featureElement.fld.is_hidden_fg  = true;
+                featureElement.value = "";
+                var typeElement= viewer.getElement("referenceType");
+                typeElement.fld.constraint_data = "gene";
+                typeElement.value="";
+                viewer.redraw();
+            }
+        }
+        if (elem.name.indexOf("referenceType")!=-1) {
+            var val = viewer.getElementValue("referenceType");
+            if (val) {
+                algoProcess.typeTabName=val + " Table";
+            }
+            else {
+                algoProcess.typeTabName="Genes Table";
+            }
+        }
+    };
+    
+    algoProcess.callbackLoaded=function(viewer){
+          console.log("callbackloaded");
+          var featureElement= viewer.getElement("referenceFeature");
+          if (viewer.getElementValue("referenceFeature")){
+              featureElement.fld.hidden = featureElement.fld.is_hidden_fg  = false;
+              viewer.redraw();
+          }
+          if (viewer.getElementValue("referenceType")){
+              algoProcess.typeTabName = viewer.getElementValue("referenceType") + " Table";
+          }
+          return;
+    };
+    
+    algoProcess.initialPresets={
+         name:"> ",
+         service:"dna-tnseq"
+    };
+    
+    $(document).ready(function() 
+    {
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: "svc-tnseq",
+            algoTitle: "TNSequencing analyzer"
+        });
+     });
+  
+  
+</script>
+

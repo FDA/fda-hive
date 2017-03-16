@@ -1,0 +1,56 @@
+
+       
+    <!--
+ $Id: loginmobile_tmplt.html 6175 2014-05-20 14:03:59Z ant $
+-->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+
+    <script type="text/javascript">
+
+                gInitList += "gLogin_init();";
+            
+            function gLogin_init() {
+                setLocationTitle("login: HIVE");
+                var ll = cookieGet('last_login');
+                if( cookieGet('followTo') ) {
+                    gObject("follow").value = cookieGet('followTo');
+                }
+                cookieDelete('followTo');
+                if( ll && ll.length > 0) {
+                    gObject("inpLogin").value = ll;
+                    gObject("inpPswd").focus();
+                } else {
+                    gObject("inpLogin").focus();
+                }
+            }
+            gForm_onEnterCallback = function(ctrl, e) {
+                if( ctrl.id == 'inpLogin') {
+                    gObject("inpPswd").focus();
+                    return false;
+                }
+                return true;
+            }
+
+        </script>
+        
+        
+<div class=login>
+    <div class="loginlogo">
+           <img src="img/hive_logo_mobile.png" />    </div>    
+                   <div id="Enter_input" class="enter">
+                    <form name='frm_login' action='' method=post enctype="multipart/form-data" onKeyPress="return gOnFormEnter(event)">
+                                <input type="text" id="inpLogin" name="login" placeholder="Email address" class="emaillogin">
+                                
+                                <input type="password" id="inpPswd" name="pswd" placeholder="Password" class="psswdlogin">
+                                
+                                <div align='center' class="HIVE_variable"><input type='submit' value="Login" class="loginsubmit" /></div>
+                            
+                        <input name='cmd' value='login' type='hidden' />
+                        <input id='follow' name='follow' value='/mobile/home' type='hidden' />
+                    </form>
+                    </div>
+</div>  
+    </div>    
+

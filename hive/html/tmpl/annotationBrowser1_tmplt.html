@@ -1,0 +1,592 @@
+<script src='js/vjDataSeries.js'></script>
+<script src='js/vjBumperLocater.js'></script>
+<script src='js/vjSVGGeneView.js'></script>
+
+<script src='js-graph/vjSVG_plot.js'></script>
+<script src='js-graph/vjSVG_base.js'></script>
+<script src='js-graph/vjSVG_Axis.js'></script>
+<script src='js-graph/vjSVG_primitive.js'></script>
+<script src='js-graph/vjSVG_CoordinateSystems.js'></script>
+<script src='js/vjSVGView.js'></script>
+<script src='js-graph/vjSVG_Defaults.js'></script>
+<script src='js-graph/vjSVG_General.js'></script>
+
+<script src='js-graph/vjSVG_GenomeBrowser.js'></script>
+
+<link href='http://fonts.googleapis.com/css?family=Maven+Pro:400,700' rel='stylesheet' type='text/css'>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+        font-family: 'Maven Pro', sans-serif;
+      }
+    </style>
+<script src="js-algo/algo.js" type="text/javascript"> </script>
+
+<script>
+    gInitList+="home_init();";
+
+    setLocationTitle("home: HIVE");    
+    
+    /*
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    _/
+    _/ File Based Lists and Trees 
+    _/
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    */
+    
+    var referenceSeq;
+    var refObj;
+    
+    // Annotation browser developer defined variables
+    var resolution = 100; // Relates to the width of the box size
+    var density = 10; // How many stacks up before the annotations are cut off
+    
+    // Error code from backend
+    /* Error codes:
+        0 = no problems; returned all annotations from backend
+        1 = no problems; returned annotations for each chunk equal or less than the density (above)
+        2 = error; no chunk exists to hold annotation - this means the resolution was set to 0 or less and not caught in the backend
+        3 = error; no default layer - this means there was a problem with the c++ bumper class constructor
+       */ 
+    var error = -1;
+    
+    function home_init()
+    {
+        var spec=home_reloadSpecs();
+        vjDS.add("Loading...", "dsRecordSource", "static://"+spec);
+        
+        myRecordViewer = new vjRecordView({
+             data: ['dsRecordSource'],
+             formObject: document.forms['formGeneric'],
+             showRoot: 1,
+             autoStatus:3,
+             debug: false,//show the path
+             autoDescription:false,
+             onChangeCallback :onRecordChanged,
+             callbackRendered : onRecordLoaded,
+             constructionPropagateDown: 2,//if expand it
+             isok: true} );
+
+         vjDV.add("dvRecordViewer", 750, 200);
+         vjDV["dvRecordViewer"].add("Options", "rec", "tab", [myRecordViewer]);
+         vjDV["dvRecordViewer"].render();
+         vjDV["dvRecordViewer"].load();
+         
+         function onRecordChanged(viewer,node,element){
+            if (node.fld.name == "reference"){
+                var ref = this.getElementValue("reference");
+                var ref_url = "http://?cmd=anotSeqIDs&reference=" + ref;
+                 vjDS.add("", "dsSeqIDs", "static://");
+                 var refSubDS = vjDS["dsSeqIDs"];
+                 refSubDS.clear_callbacks();
+                 refSubDS.register_callback({
+                       func: function(param, data) {
+                          var refSubID = viewer.getElement("refSeqID");
+                         refSubID.fld.constraint_data = data;
+                         viewer.redraw();
+                         
+                       }
+                  });
+                 refSubDS.reload(ref_url,true);
+            }
+            if (node.fld.name == "refSeqID"){
+                var refSeq = viewer.getElementValue("refSeqID");
+                referenceSeq = refSeq ;
+                refObj = viewer.getElementValue("reference");
+            }
+         }
+         
+         function onRecordLoaded(){}
+
+        //=================================
+        // Annotations File Table
+        //=================================
+        vjDS.add("Loading...", "dsAnnotationFiles", "static://");
+        vjDV.add("dvAnnotationFileViewer",gPgW*0.2,gPgH*0.3).frame="notab";
+        vjDS["dsAnnotationFiles"].reload("http://?cmd=anotFiles",true);
+        var viewerList=new vjTableView( { 
+            data: ["dsAnnotationFiles"],
+            formObject: document.forms['formGeneric'],
+            defaultEmptyText:'select an annotation',
+            geometry:{ width:'100%'},
+            cols:[
+                {name:"created", align:"right", type:"datetime", hidden:false}    
+            ],
+            bgColors :[ '#ffffff','#f2f2f2' ],
+            //checkable:true,
+            selectCallback: load_idTypes,
+            //checkCallback: clicked_when_option_selected,
+            // callbackRendered: home_callbackAfterTableRendered,
+            isok:true });
+        
+        var viewerList_panel = new vjBasicPanelView({
+             data: ['dsVoid', 'dsAnnotationFiles'],
+             formObject: document.forms['formGeneric'],
+             iconSize: 24,
+             isok: true
+         });
+        vjDV["dvAnnotationFileViewer"].add( "Annotations", "graph", "tab", [ viewerList_panel, viewerList ]);
+        vjDV["dvAnnotationFileViewer"].render();
+        vjDV["dvAnnotationFileViewer"].load();
+       
+       //=================================
+       // Columns Table
+       //=================================
+       
+        vjDS.add("Loading...", "dsIDTypes", "static://",0,"#,idType");
+        //vjDS["dsIDTypes"].reload("http://cmd=retrieveStructre&ref=1234&searchField=idType",true);
+        vjDV.add("dvIDTypes",gPgW*0.2,gPgH*0.3).frame="notab";
+        var viewerList2=new vjTableView( { 
+           data: ["dsIDTypes"],
+           formObject: document.forms['formGeneric'],
+           bgColors :[ '#ffffff','#f2f2f2' ],
+           defaultEmptyText:'select an annotation parameter',
+           geometry:{ width:'100%'},
+           //selectCallback: load_ids,
+           checkable:true,
+           checkCallback: addIdType,
+           callbackRendered: selectedNewAnnotationFile,
+           isok:true });
+        var viewerList2_panel = new vjBasicPanelView({
+            data: ['dsVoid', 'dsIDTypes'],
+            formObject: document.forms['formGeneric'],
+            iconSize: 24,
+            
+            isok: true
+        });
+        
+       vjDV["dvIDTypes"].add( "Columns", "table", "tab", [viewerList2_panel,  viewerList2 ]);
+       vjDV["dvIDTypes"].render();
+       vjDV["dvIDTypes"].load();
+       
+       function selectedNewAnnotationFile (viewer, row) {
+           // Get list from IDType master list
+           // Check each entry against the variables here.
+           // If annotation file ID and idType match, checkmark
+           
+           // Get annotation File ID
+           
+           var _tmpTable = vjDV["dvAnnotationFileViewer"].find("Annotations", 1);
+           if (_tmpTable.selectedNodes[0] == undefined) return;
+           
+           var _tmpAnnotID = _tmpTable.selectedNodes[0].id;
+           
+           // Get our master IDtype list
+           if (globalIDTypes[_tmpAnnotID] != undefined || globalIDTypes[_tmpAnnotID]) {
+              // Has checked ones
+                for (var i = 0; i < globalIDTypes[_tmpAnnotID].length; i++) {
+                    var idTypeToCheck = globalIDTypes[_tmpAnnotID][i];
+                    // Search through list of idTypes in current viewer and check match if any
+                    for (var ii = 0; ii < viewer.tblArr.rows.length; ii++) {
+                        var _tmpID = viewer.tblArr.rows[ii].idType;
+                        if (_tmpID == idTypeToCheck) viewer.mimicCheckmarkSelected(ii, 1);
+                    }
+                }  
+           } 
+       }
+      
+       var globalIDTypes = new Object();
+       
+       //=================================
+       // Add Table
+       //=================================
+       
+       vjDS.add("Loading...", "dsValues", "static://",0,"AnnotationID,idType");      
+       vjDV.add("dvValues",gPgW*0.2,gPgH*0.3).frame="notab";
+       var viewerList3=new vjTableView( { 
+          data: ["dsValues"],
+          formObject: document.forms['formGeneric'],
+          defaultEmptyText:'select a table to show',
+          bgColors :[ '#ffffff','#f2f2f2' ],
+          geometry:{ width:'100%'},
+          //checkable:true,
+          cols:[
+                {name:"time", type:"datetime", hidden:true}    
+            ],
+          selectCallback: load_ids,
+        
+          // callbackRendered: home_callbackAfterTableRendered,
+          isok:true });
+ 
+      var viewerList3_panel = new vjBasicPanelView({
+          data: ['dsVoid', 'dsValues'],
+          formObject: document.forms['formGeneric'],
+          iconSize: 24,
+          
+          isok: true
+      }); 
+      vjDV["dvValues"].add( "Values", "table", "tab", [ viewerList3_panel, viewerList3 ]);
+      vjDV["dvValues"].render();
+      vjDV["dvValues"].load();
+      
+      
+      function addIdType (viewer,row) {
+          var _tmpTable = vjDV["dvAnnotationFileViewer"].find("Annotations", 1);
+          var _tmpAnnotID = _tmpTable.selectedNodes[0].id;
+          
+          if (globalIDTypes[_tmpAnnotID] == undefined || !globalIDTypes[_tmpAnnotID]) {
+              globalIDTypes[_tmpAnnotID] = new Array ();
+              globalIDTypes[_tmpAnnotID].push(row["idType"]);
+          } else {
+              var indx = globalIDTypes[_tmpAnnotID].indexOf(row["idType"]);
+              if ( indx == -1) {
+                  // add
+                  globalIDTypes[_tmpAnnotID].push(row["idType"]);
+              } else {
+                  // Remove from master list (idType)
+                  if (row.checked == 0){
+                       globalIDTypes[_tmpAnnotID].splice(indx, 1);
+                  }
+              }
+          }
+          
+          var listOfIdTypes = "";
+          for (var i in globalIDTypes) {
+              for (var ii = 0; ii < globalIDTypes[i].length; ii++) {
+                  listOfIdTypes += i + ",";
+                  listOfIdTypes += globalIDTypes[i][ii] + "\n";
+              }
+          }
+          // anotFile,idTypesList\n
+          // 156515, seqID|Accesion
+          
+          vjDS["dsValues"].reload("static://"+ listOfIdTypes,true);          
+          // cmd=anotBrowser&search=3017874[Accession|Position(N)|Ref(N)],3017932[feature|gene_name]&cnt=100
+          // cmd=anotBrowser&search=3017874%5BAccession|Position(N)|Ref(N)%5D%2C3017932%5Bfeature|gene_name%5D&cnt=100
+          //var newURL = "http://?cmd=annotSearch&objIDs=" "3017932,3017932,3017932,3017914" "&idTypes=Accession,Position(N),Var(N),Position(N)";
+          //vjDS["dsGeneTest"].reload(newURL, true);
+      } 
+      
+      function load_idTypes() {
+          if (this.selectedCnt!=1) return;
+          var url = "http://?cmd=anotGetIdTypesFromAnotFile"; //Need the URL that returns the ID types based on the annotation object ID clicked.
+          var selectedId = this.selectedNodes[0].id ;
+          if ( parseInt(selectedId) < 1) return;
+          url += "&objID=" + selectedId ;
+          //console.log(" my id " + url);
+          vjDS["dsIDTypes"].reload(url, true);
+          vjDV["dvIDTypes"].objectID = selectedId;
+          
+      }
+      
+      function load_ids () {
+          if (this.selectedCnt != 1) return;
+          var url = "http://?cmd=anotGetIdsByIdTypeAndFile";
+          var selectedID = this.selectedNodes[0].idType;
+          if (parseInt(selectedID) < 1) return;
+          url += "&objID=" + vjDV["dvIDTypes"].objectID;
+          url += "&idType=" + selectedID;
+          //console.log("my id " + url);
+          vjDS["dsValues"].reload(url, true);
+      }
+         
+    }
+    
+    var a = new Array ();
+    
+    function annotateInformation() {
+        var nn = gObject("resultSection");
+        nn.setAttribute("class","VISUAL_table");
+        
+        var _tmpTable = vjDV["dvValues"].find("Values", 1);
+        var oo = new Object();
+        var nberOfAnnotID = 0;
+        for (var i=0; i< _tmpTable.tblArr.rows.length; ++i){
+            var annotationID =  _tmpTable.tblArr.rows[i]["AnnotationID"];
+            var idType =  _tmpTable.tblArr.rows[i]["idType"];
+            if (oo[annotationID]== undefined || !oo[annotationID]){
+                oo[annotationID] = new Array();
+                nberOfAnnotID += 1;
+            }
+            oo[annotationID].push(idType);
+        }
+        var openBracket = "%5B";  // URL encode
+        var closeBracket = "%5D";
+        var comma = "%2C";
+        var refSeqID = "";
+        var refObjID = "";
+        if (referenceSeq && referenceSeq.length) refSeqID = referenceSeq;
+        if (refObj && refObj.length) refObjID = refObj;
+        
+        var newURL = "http://?cmd=anotBrowser&refSeqID="+ refSeqID +"&refObjID=" + refObjID +"&resolution=" + resolution + "&density=" + density + "&srch=";
+        var incre = 0;
+        for (var o in oo){            
+            newURL += o + openBracket;
+            for (var j=0; j<oo[o].length; ++j){
+                newURL += oo[o][j] ;
+                if (j < oo[o].length -1 ) newURL += "|";
+            }
+            newURL += closeBracket;
+            if (incre < nberOfAnnotID -1) newURL += comma;            
+            incre += 1;
+        }
+        
+        //var url = "http://?cmd=anotSearch&objID=" + annotID + "&searchField=idType&searchTerm=" + searchTerm  + "&whatToPrint=seqID|rangeStart|rangeEnd";
+        var url = "http://?cmd=anotBrowser&srch=3017874%5BAccession|Position(N)|Ref(N)%5D%2C3017932%5Bfeature|gene_name%5D&cnt=50";
+        // cmd=anotBrowser&search=3017874%5BAccession|Position(N)|Ref(N)%5D%2C3017932%5Bfeature|gene_name%5D&cnt=100        
+        
+        //=================================
+        //             Display SVG
+        //=================================
+
+        //vjDS.add("Loading Data ....","dsGeneTest","innerHTML://fakeDataDiv");
+        vjDS.add("Loading Data ....","dsGeneData","static://",0); // to Draw
+        vjDS.add("Loading Data ....","dsGeneDataTable","static://",0); // to display in the table
+        
+        vjDS["dsGeneData"].reload(newURL,true);
+        var urlForTable = newURL;
+        urlForTable = urlExchangeParameter(urlForTable,"start", "0"); //
+        urlForTable = urlExchangeParameter(urlForTable,"cnt", "20"); //
+        vjDS["dsGeneDataTable"].reload(urlForTable,true);
+        
+        // Table 
+        var myTableViewer =new vjTableView( { 
+            data: ["dsGeneDataTable"],
+            formObject: document.forms['formGeneric'],
+            defaultEmptyText:'select a table to show',
+            bgColors :[ '#ffffff','#f2f2f2' ],
+            geometry:{ width:'100%'},
+            isok:true });
+        
+        var myTableViewer_panel = new vjBasicPanelView({
+            data: ['dsVoid', 'dsGeneDataTable'],
+            formObject: document.forms['formGeneric'],
+            iconSize: 24,
+            isok: true
+        }); 
+        myTableViewer_panel.rows = myTableViewer_panel.rows.concat([
+               { type: "text" ,name: 'pos_start', title: '0', prefix: "start position",  align: 'left', order: 0, showTitle: true, hidden: false, isSubmitable: true,  description: 'search for position start' }
+       ]);
+        
+        // Remove the error code from the begining of the information returned from the backend.
+       vjDS["dsGeneData"].parser = function(ds, text){
+           // Set the global error code
+           error = text.slice(0,1);
+           vjDS["dsGeneData"].exonView = error;
+           console.log("error: " + error);
+           if (error > 1) {
+               alert("ERROR: There was a problem in the system (not a user error).  Either the resolution was set at a negative number or the constructor of the bumper class failed.")
+           }
+             // Determine the table to send to the vjBumperLocator (without the error code)
+           var _text = text.slice(2);
+           return _text;
+        } 
+       
+       // Annotation Box Graph       
+        this.bp = new vjBumperLocator ({
+             name: "dsGeneData",
+             url: newURL, // "http://?cmd=anotBrowser&refSeqID="+ refSeqID +"&refObjID=" + refObjID +"&resolution=" + resolution + "&density=" + density + "&srch=";
+             columnsToPick:{sourceID:"source",rangeID:"seqID",start:"virtual_start",end:"virtual_end"}, // default value
+             //columnsToPick:{sourceID:"source",rangeID:"seqID",start:"start",end:"end"}, // default value
+             collapse: false, // default value
+             referenceName: "reference",
+             exonView: error
+        });  // Bumping base on the reference
+        
+        this.myReference=new vjDataSeries({
+                   name:"dsReference"
+                  ,url : "innerHTML://fakeReference"
+                  ,type:"anotBox"
+                   ,columnDefinition:{start:'start',end:'end',label:'seqname'}
+                ,id:referenceSeq
+                ,isReference:true
+                   ,isok:true
+           }); 
+        
+        //var my_plot=new vjSVG_Plot();
+        //my_plot.add(this.bp);
+        var my_plot = new vjSVG_GenomeBrowser({});
+        my_plot.add(this.bp);
+        my_plot.add(this.myReference);
+        
+        var svgGeneViewer = new vjSVGView({
+             plots: [my_plot],
+             numberOfLayers: 10,
+             computeSizeOfBox: false,
+             boxSize: 10
+        });
+        
+        var svgGene_panel = new vjPanelView({
+                data: ['dsVoid', 'dsGeneData'],
+                formObject: document.forms['formGeneric'],
+                iconSize: 24,
+                rows:[
+                    { name: 'zoomin', prefix:"zoom in",align: 'left', isSubmitable: true,showTitle: false, hidden: false, order: 3, title: 'zoomin', description: 'Zoom In', icon: 'zoomin.png', url: zoomIn},
+                    { name: 'zoomout', align: 'left',isSubmitable: true ,showTitle: false, hidden: false, order: 4, title: 'zoomout', description: 'Zoom Out', icon: 'zoomout.png', url: zoomOut},
+                    { name: 'pos_start',prefix:"start position", align: 'right',isSubmitable: true ,type:"text",showTitle: false, hidden: false, order: 4, title: 'start position',size:10, description: 'start position'},
+                    { name: 'pos_end',prefix:"end position", align: 'right',isSubmitable: true ,type:"text",showTitle: false, hidden: false, order: 4, title: 'end position', size:15,description: 'end position'},
+                    { name: 'submit', align: 'right',isSubmitter:"true",showTitle: false, hidden: false, order: 4,title: 'submit', icon:"search",description: 'submit'}
+                      ],
+                isok: true        
+        });
+        var myGeneViewer_panel = new vjBasicPanelView({
+            data: ['dsVoid', 'dsGeneData'],
+            formObject: document.forms['formGeneric'],
+            iconSize: 24,
+            isok: true
+        }); 
+        
+        vjDV.add("dvTestSvgViewer", gPgW*0.9,gPgH*0.5);
+        vjDV["dvTestSvgViewer"].add("MyGraph","graph","tab",[ svgGene_panel, svgGeneViewer]);
+        //vjDV["dvTestSvgViewer"].add("MyTable","table","tab",[myTableViewer_panel, myTableViewer]);
+        vjDV["dvTestSvgViewer"].render();
+        vjDV["dvTestSvgViewer"].load();
+    }
+    
+   function zoomIn(){
+       
+       var url = vjDS["dsGeneData"].dataurl;
+       
+       // determine new start and end based on this formula
+       var length = bp.reference.end - bp.reference.start ;
+       if (length <= resolution) {
+           bp.maxZoom = true;
+           return; // escape out if already less than or equal to resolution
+       }
+       
+       var newStart = bp.reference.start + Math.ceil(length/4);
+       var newEnd  = bp.reference.end - Math.ceil(length/4);
+       
+       // Check to make sure that the new start and end are not max zoomed
+       if (newEnd - newStart < resolution) {
+           // formula returned too small range, need to expand it
+           var fix = resolution - (newEnd - newStart);
+           if (fix % 2 != 0) {
+               fix = fix / 2 + 1;
+           } else fix = fix / 2;
+           newEnd = newEnd + fix;
+           newStart = newStart - fix;
+           if (newStart < bp.reference.absoluteStart) {
+               var endfix = bp.referece.absoluteStart - newStart;
+               newStart = bp.reference.absoluteStart;
+               newEnd = newEnd + endfix;
+           }
+           if (newEnd > bp.reference.absoluteEnd) {
+               var startfix = bp.reference.absoluteEnd - newEnd;
+               newEnd = bp.reference.absoluteEnd;
+               newStart = newStart - startfix;
+           }
+       }
+       url = urlExchangeParameter(url, "pos_start", newStart);
+       url = urlExchangeParameter(url, "pos_end", newEnd);
+
+       vjDS["dsGeneData"].parser = function (ds, text) {
+           // Set the global error code
+           error = text.slice(0,1);
+           vjDS["dsGeneData"].exonView = error;
+           console.log("error: " + error);
+           if (error > 1) {
+               alert("ERROR: There was a problem in the system (not a user error).  Either the resolution was set at a negative number or the constructor of the bumper class failed.")
+           }
+             // Determine the table to send to the vjBumperLocator (without the error code)
+           var _text = text.slice(2);
+             console.log("Results: " + _text);
+           return _text;
+       }
+
+       vjDS["dsGeneData"].reload(url,true);
+
+       var rng = newEnd - newStart;
+       console.log("newStart: " + newStart + "\tnewEnd: "+ newEnd + "\trange: " + rng);
+       //console.log("vjDS: " + vjDS["dsGeneData"].data);
+   }
+   
+   function zoomOut(){
+       bp.maxZoom = false;
+       var url = vjDS["dsGeneData"].dataurl;
+       
+       // Determine a length and change perspective based on the formula below
+       var length = bp.reference.end - bp.reference.start ;  
+       var newStart = bp.reference.start - Math.ceil(length/4);
+       var newEnd = bp.reference.end + Math.ceil(length/4);
+       
+       // Check to make sure the ends are within the bounds of the reference
+       if (newEnd > bp.referece.absoluteEnd) newEnd = bp.reference.absoluteEnd;
+       if (newStart < bp.referece.absoluteStart) newStart = bp.reference.absoluteStart;
+       // return if there is no change in the end of what is shown
+       if (newStart == bp.reference.start && newEnd == bp.reference.end) return;
+       
+       // Get and draw new perspective if appropriate
+       url = urlExchangeParameter(url, "pos_start", newStart);
+       url = urlExchangeParameter(url, "pos_end", newEnd);
+       vjDS["dsGeneData"].reload(url,true);
+   }
+    
+    
+    function home_reloadSpecs()
+    {
+        var srch = "{fetch:'svc', url:'http://?cmd=objList&type=svc-profiler&mode=csv&prop=id,svcTitle,status,progress100,name,created,svc,submitter,_type',inline:'id,name', outline:[{name:'id',hidden:false,title:'ID'}, {name:'name',hidden:false,title:'name'}, {name:'created',hidden:false,title:'Created',type:'datetime'}]}";
+        var spec="type_id,name,title,type,parent,role,is_key_fg,is_readonly_fg,is_optional_fg,is_multi_fg,is_hidden_fg,brief,is_summary_fg,is_virtual_fg,order,default_value,constraint,constraint_data,constraint_description,description\n"
+                +"objID,snpProf,SNV Profile,obj,,,0,0,0,1,0,0,0,0,2,0,type,"+"svc-profiler"+",,Only fetches SNP profiles that match the selected genonme,List of SNP Profiles that can be selected for analyais\n"
+                +"objID,reference,Reference Genome,obj,,,0,0,0,0,0,0,0,0,1,0,type,genome,,,Gets the Genomes for selection\n"
+                +"string,refSeqID,Reference Sequence,string,,,0,0,0,0,0,0,0,0,1,0,choice,,,,Gets the Sequence from Genome for selection\n";
+                +"";
+        return spec;
+    }
+
+</script>
+
+
+
+<form name="formGeneric">
+
+<div id="fakeReference" class="sectHid">
+seqname,start,end
+chrFake,0,2000
+</div>
+
+
+<div  class="HIVE_section">
+    <table class="VISUAL_table">
+        <tr>
+            <th style="background:url(&quot;img/bg-hexagon.jpg&quot;)" align="left" valign="middle" bgcolor="transparent" width="100%"> Select reference and sequence</th>
+        </tr>
+        <tr>
+            <td>
+                <div id="dvRecordViewer" > </div>
+            </td>
+        </tr>
+    </table>
+    <br>
+    <table class="VISUAL_table">
+        <tr>
+            <th style="background:url(&quot;img/bg-hexagon.jpg&quot;)" align="left" valign="middle" bgcolor="transparent" width="100%" colspan="3"> Select Annotation </th>
+        </tr>
+        <tr>
+            <td>
+                <p class="RDV_content" style="font-weight:bold;padding:0;"> Annotation Files
+                <div id="dvAnnotationFileViewer"> </div>
+            </td>
+            <td>
+                <p class="RDV_content" style="font-weight:bold;padding:0"> Columns To Add
+                <div id="dvIDTypes"></div>
+            </td>
+            <td>
+                <p class="RDV_content" style="font-weight:bold;padding:0"> Added Columns 
+                <div id="dvValues"></div>
+            </td>
+            
+           </tr>
+      </table>
+      
+      <input type="button" onclick="annotateInformation()" value="Show Annotations on Reference">
+      <br>
+      <br>
+      <table id="resultSection" class="sectHid" >
+          <tr>
+            <th style="background:url(&quot;img/bg-hexagon.jpg&quot;)" align="center" valign="middle" bgcolor="transparent" width="99%"> RESULTS</th>
+        </tr>
+           <tr>
+            <td id="dvTestSvgViewer" align=center valign=bottom ></td>
+            
+        </tr>
+    </table>
+    
+   
+</div>    
+    
+</form>  
+
+

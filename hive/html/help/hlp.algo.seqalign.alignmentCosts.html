@@ -1,0 +1,5 @@
+<id>hlp.algo.seqalign.alignmentCosts</id>
+<title>Alignment Costs</title>
+<definition>Assign penalties to be included in computation of alignment scores</definition>
+<description>The alignment is produced by scoring all matches, mismatches and gaps.  Matches are rewarded whereas mismatches and gaps are penalized.  The default values already populate the textboxes, but a user may specify any cost for each of the four scoring criteria.
+In a biological scenario, single base insertions or deletions are less probable than larger insertions or deletions.  For this reason, a gap opening is assigned a higher penalty than continuation of a gap while computing the alignment score.  If gaps continue over multiple positions after the gap has already been opened, they are more likely the result of a true insertion or deletion with potential evolutionary significance.  Thus, the default <span class="pagetext">Gap open</scan> penalty has a more negative value than the default <span class="pagetext">Gap next</scan> penalty.</description>

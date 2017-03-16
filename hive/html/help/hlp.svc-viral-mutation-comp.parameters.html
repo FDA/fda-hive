@@ -1,0 +1,84 @@
+<id>hlp.svc-viral-mutation-comp.parameters.html</id>
+<title>Input parameters</title>
+<definition>Basic input required</definition>
+<description>
+Here you find the most frequently modified parameters and the minimal inputs required to run the viral mutation comparator
+tool. Additional optional algorithm and system parameters can be found by opening the corresponding tabs. Short
+descriptions for parameters can be found by hovering the mouse over the input field. Additional information is included
+in the text and links below.<br/>
+<br/>
+<span class='heading'>Basic inputs and parameters</span>:<br/>
+<ul style="padding-left:4%">
+<li><span class='pn'>Name</span> - Choose a name for this specific comparison process for simple search and retrieval
+from your user home directory.<br/>
+<br/></li>
+<li><span class='pn'>Mutation calls from alternative pipelines</span> - Supply mutation data from results of an external
+analysis, for example, data reported in support of a submission. Externally generated mutation data must be very precisely
+organized in order to be properly parsed and used by HIVE's table query engine. The supplied table file should be in a
+recognizable table format (.csv, .xls) and should include the following columns, with headings exactly as they appear below,
+and in the same order as they appear below (from left to right):<br/>
+<br/>
+<table border="1">
+    <tr>
+        <td>USUBJID</td>
+        <td>Subject ID, for example, a clinical trial patient identifier</td>
+    </tr>
+    <tr>
+        <td>NGSPL</td>
+        <td>Technological platform used to generate NGS sample data</td>
+    </tr>
+    <tr>
+        <td>VISIT</td>
+        <td>Reason for sample collection, for example, baseline, or follow-up</td>
+    </tr>
+    <tr>
+        <td>AAPOS</td>
+        <td>Amino acid position of the called mutation as defined by position on reference genome</td>
+    </tr>
+    <tr>
+        <td>TCOV</td>
+        <td>Total experimental coverage of sequencing data at the position of interest</td>
+    </tr>
+    <tr>
+        <td>AAREF</td>
+        <td>Amino acid called at the position of interest in the reference genome, designated by its single letter amino acid abbreviation</td>
+    </tr>
+    <tr>
+        <td>AASUB</td>
+        <td>Substituted amino acid called at the position in the experimentally identified mutant, designated by its single
+        letter amino acid abbreviation</td>
+    </tr>
+    <tr>
+        <td>VCOV</td>
+        <td>Coverage of mutant calls at the position of interest</td>
+    </tr>
+    <tr>
+        <td>AAFREQ</td>
+        <td>Frequency of occurrence of the mutant, equal to VCOV/TCOV</td>
+    </tr>
+</table>
+<br/>
+For your convenience, we have supplied a .csv template that can be downloaded by clicking the following link. <br/>
+<br/>
+<span class="pagetext" >  <a href="help/Viral_Mutation_Comp.csv"> <img height=20px width=20px src='img/download.gif' /> Viral Mutation Comparator Template Table</a> </span><br/>
+<br/>
+</li>
+<li><span class='pn'>HIVE heptagon variants</span> - Supply mutation data directly from a HIVE-heptagon variant call file by
+choosing the appropriate HIVE object from your user home directory. Profiles must be run in a specific way in order to be 
+compatible with the Viral Mutation Comparator tool. In the<span class="pagetext"><a href="hlp.obj.svc-profiler.advanced.parameters.html">advanced parameters</a></span>
+section of the<span class="pagetext"><a href="hlp.svc-profiler.html">HIVE-heptagon profiler</a></span>the option for "Compute AA profile" must be enabled 
+by selecting "yes" from the dropdown menu. This parameter setting tells the algorithm to compute not only the nucleotide profile, but to convert bases by codon into 
+their corresponding amino acids. By default, this parameter is set to "no". Once submitted, a profiler computation object will appear in the computations tab of your 
+user home directory and will be available for selection as an input for the Viral Mutation Comparator tool.  
+</li>
+</ul>
+<br/>
+Click the "SUBMIT" button to run the process. For more information, please follow the links associated with the following
+topics:<br/>
+<br/>
+<a href="hlp.svc-viral-mutation-comp.advanced.parameters.html">Advanced computational parameters</a><br/>
+<br/>
+<a href="hlp.obj.system-params.html">System parameters</a><br/>
+<br/>
+<a href="hlp.obj.batch-params.html">Batch parameters</a>
+</description>

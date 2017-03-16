@@ -1,0 +1,72 @@
+version 0.7.2 (2015-Apr-17):
+  * bug fixes
+
+version 0.7.1 (2015-Feb-10):
+  * more date formats
+  * other fixes
+
+version 0.7 (2014-Jan-28):
+  * hyperlinks support
+
+version 0.6 (2013-Dec-7):
+  * python 2.4 support
+  * python 3.3 support
+  * setuptools
+  * escape \t\r\n characters option
+  * bug fixes
+
+version 
+  * seperate csv files for each sheet (#37)
+  * #38 issue fix
+
+version 0.5 (2013-Jun-6):
+  * Select EOL terminator according to OS (#32)
+  * floating errors (#28)
+  * inlineStr support (#24)
+  * Add man/ directory for manual page (#23)
+  * Misinterpretation of & (#15)
+  and other fixes
+
+version 0.20 (2012-Aug-7)
+
+version 0.19 (2012-May-17):
+  * issue #12 fix, some kind of unknown excel app version
+
+version 0.18 (2012-Feb-19):
+  * Support for multi-region shared-strings (merge #11)
+
+version 0.17 (2012-Feb-14):
+  * issue #10 fix
+
+version 0.16 (2011-Oct-26):
+  * new date format
+
+version 0.15 (2011-Sep-16):
+  * datetime 1904 format support
+  * datetime format bug fix
+
+version 0.14 (2011-jul-15):
+  * recursively convert the xlsx files in a directory to csv (Zhehao Mao's patch)
+
+version 0.131 (2011-apr-19):
+  * skip empty lines option
+
+version 0.13 (2011-jan-16):
+  * sheet no bug fix
+
+version 0.12 (2010-dec-21):
+  * fix last column empty bug
+
+version 0.11 (2010-sep-13):
+  * no numFmt bugfix
+
+version 0.1 (2010-sep-12):
+  * better support for date/time formats
+  * two letter columns bug fixed
+  * sheets support added
+  * unicode fix
+  * boolean type
+  - thanks to Neil Killeen
+
+version 0.0 (2010-jun-11):
+  * xlsx to csv converter first release

@@ -1,0 +1,158 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+#header
+{
+    background: url('../img/topBarBlue_cobalt.png');    
+}
+
+#header .top
+{
+    min-height: 80px;
+}
+
+#header .top .hive
+{
+    float: left;
+    margin: 1em 1em 0 1em;
+}
+
+#header.minimized .top
+{
+    display: none;
+}
+
+#header .top .hive .albinoni
+{
+    font-size: x-small;
+    color: #ffff9f;
+    margin-left: 1em;
+}
+
+#header .top .institution
+{
+    float: left;
+    margin: 1em 1em 0 1em;
+    height: 40px;
+}
+
+#header .top:after
+{
+    content: "";
+    display: table;
+    clear: both;
+}
+
+#header .top .hive .logo img
+{
+    height: 40px;
+}
+
+#header .bottom
+{
+    position: relative;
+    min-height: 40px;
+}
+
+#header .bottom .hive
+{
+    display: none;
+    margin: .5em;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#header.minimized .bottom .hive
+{
+    display: block;
+}
+
+
+#header .bottom .menu
+{
+    min-height: 25px;
+    margin-top: .5em;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 50px;
+}
+
+#header.minimized .bottom .menu
+{
+    left: 75px;
+}
+
+#header .bottom .hive .logo img
+{
+    height: 25px;
+}
+
+#header .bottom .control
+{
+    margin: .5em;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+}
+
+#header .bottom .control a
+{
+    display: block;
+    background: url('../img/48/arrow-up.png');
+    background-size: 24px 24px;
+    background-repeat: no-repeat;    
+    width: 24px;
+    height: 24px;
+    opacity: 0.5;
+}
+
+#header .bottom .control a:hover
+{
+    opacity: 1;
+}
+
+#header.minimized .bottom .control a
+{
+    background: url('../img/48/arrow-down.png');
+    background-size: 24px 24px;
+    background-repeat: no-repeat;    
+}
+
+/* GWU */
+#header.gwu
+{
+    background: #004065;
+}
+
+#header.gwu .top .hive
+{
+    float: right;
+}

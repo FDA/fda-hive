@@ -1,0 +1,3 @@
+id,title,icon,description
+svc-align-tophat,TopHat,img-algo/svc-align-tophat.gif,Spliced read mapper for RNA-Seq
+svc-align-magic,Magic,img-algo/svc-align-magic.gif,Spliced read mapper for RNA-Seq

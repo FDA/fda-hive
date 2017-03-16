@@ -1,0 +1,117 @@
+<id>hlp.svc-align-blat.html</id>
+<title>BLAT</title>
+<definition>UCSC's BLAT Alignment Tool</definition>
+<description><span class="pagetext">BLAT</span>, or the 
+BLAST-like alignment tool, is a tool made available by 
+UCSC. BLAT uses indicies of the entire genome to identify 
+regions of sequence similarity. Indices do not require 
+as much memory as would the whole genome, so using them 
+as directives instead of storing the whole genome in 
+memory affords BLAT faster search speeds than BLAST. 
+This makes BLAT ideal for quickly identifying the 
+locations of sequences in a genome. For more general 
+information about BLAT, 
+<a href="https://genome.ucsc.edu/cgi-bin/hgBlat?command=start">click here</a>. 
+For more information about the differences between Blat and 
+Blast, <a href="https://genome.ucsc.edu/FAQ/FAQblat.html">click here</a>.
+<br/>
+<br/>
+All of the Align-X (externally adapted) aligners that have 
+been integrated into HIVE use the underlying HIVE-Hexagon 
+interface and will therefore use the same general parameters. 
+Parameter descriptions for HIVE-Hexagon can be found 
+<a href="hlp.svc-align-hexagon.html">here</a>.
+<br/><br/>
+Alternatively, the relevant General Parameters can be viewed 
+below:
+<br/>
+<dl>
+    <dt><span class='pn'>Name</span></dt>
+        <dd>
+            Here you can designate a name for this specific 
+            alignment process for simple search and retrieval 
+            from your user home directory.
+        </dd>
+<br/>
+    <dt><span class='pn'>Alignment Algorithm</span></dt>
+        <dd>
+            Here, BLAT is selected as the default alignment algorithm.
+        </dd>
+<br/>
+    <dt><span class='pn'>Sequence Read</span></dt>
+        <dd>
+            Select the query data for your alignment by clicking the 
+            arrow. A new window will pop up displaying all reads 
+            available to you through your user home directory. Select 
+            one or multiple reads by clicking on the corresponding row. 
+            To close the window click 
+            the <img src="img/use-delete.gif" width=15> icon in the top 
+            right corner. Your selected sequence(s) should now be 
+            visible in the Sequence Read field. Sequence reads can 
+            also be pre-populated if selected directly from your user 
+            home directory prior to clicking the HIVE-hexagon shortcut 
+            <img src="img/hiveicon.jpg" width=15> icon.
+        </dd>
+<br>
+    <dt><span class='pn'>Reference Genome</span></dt>
+        <dd>
+            Select the genome or set to be used as the reference for your 
+            alignment by clicking the arrow in the corresponding field. A new 
+            window will open displaying all genome objects available to you. 
+            Select one or multiple references by clicking the containing row. 
+            To close the window click the <img src="img/use-delete.gif" width=15> 
+            icon in the top right corner. Your selected reference object(s) 
+            should appear in the Reference Genome field. Like reads, references 
+            can be pre-populated if selected from your user home directory and 
+            accessing HIVE-hexagon through the shortcut by clicking the 
+            <img src="img/hiveicon.jpg" width=15> icon.
+        </dd>
+<br/>
+    <dt><span class='pn'>Minimum Match Length</span></dt>
+        <dd>
+            The alignments produced may vary in length. This option allows the 
+            user to choose a preferred length of alignment by discarding all 
+            alignments shorter in length than the specified value.
+        </dd>
+<br/>        
+    <dt><span class='pn'>Matches to Keep</span></dt>
+        <dd>
+            Reported alignments can be filtered by choosing one of five options 
+            related to the associated score of the alignments:
+            <ul>
+                <li><i>First Match</i> reports the first hit found by Hexagon regardless 
+                of optimization or scoring</li>
+                <li><i>Best first match</i> will take a small sampling of initial 
+                matches and report the highest scoring hit of those found</li>
+                <li><i>All matches within acceptable thresholds</i> will report any 
+                alignment found which meets the criteria specified at job request</li>
+                <li><i>All equally best alternative matches</i> will find all possible 
+                optimal alignments for a given short read but report only those found 
+                with the highest score</li>
+                <li><i>Random vote between equally best alternative matches</i>, the 
+                default selection, will find all possible optimal alignments 
+                for a given read but will randomly choose and report a single hit 
+                from the pool of highest scoring alignments</li>
+            </ul>
+        </dd>
+
+    <dt><span class='pn'>Mismatches</span></dt> 
+        <dd>
+            A mismatch in an alignment occurs when the query and reference align at most points 
+            in a given region but have different nucleotides at a single position in the same 
+            region. Potential alignments are not discarded due solely to mismatches, but the 
+            cumulative alignment score reflects a penalty associated with mismatches. The Mismatch 
+            Percentage is equal to the total number of mismatches divided by the total number of 
+            positions (or Mismatch % = total # mismatches/total # positions). This filter removes 
+            alignments with a mismatch % greater than the specified value.
+            <ul>
+                <li><i>Percent Allowed</i> allows the user to designate the percentage 
+                of mismatches allowed over which alignments will not be reported.</li>
+                <li><i>Computed on</i> allows the user to designate whether to compute 
+                the mismatch percent based on the length of the query, the entire 
+                alignment, or the designated minimum match length.</li>
+            </ul>
+        </dd>
+<br/>
+</dl>
+</description>

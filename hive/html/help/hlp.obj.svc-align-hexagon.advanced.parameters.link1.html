@@ -1,0 +1,150 @@
+<id>hlp.obj.svc-align-hexagon.advanced.parameters.link1.html</id>
+<title>HIVE-Hexagon</title>
+<definition>DNA Sequence Alignment</definition>
+<description>
+HIVE alignments are highly customizable to meet 
+the flexible demands of a variety of use-cases. 
+The following provides instruction and discussion 
+about advanced alignment parameters.
+<br/>
+<br/>
+<br/>
+<span class='heading'>Advanced Parameters</span>:
+<ul style="padding-left:4%">
+<dl>
+<dt><span class='pn'>Alignment Directionality</span></dt>
+    <dd>
+        This parameter allows the user to choose whether sequences 
+        will be aligned in a Forward or Bi-directional manner by 
+        selection from the drop-down menu. The default is Bi-directional.
+            <ul>
+                <li>
+                    <i>Forward</i> - aligns in the forward direction
+                </li>
+                <li>
+                    <i>Bi-directional</i> - aligns in the forward and reverse directions
+                </li>
+            </ul>
+    </dd>
+<br/>
+<dt><span class='pn'>Alignment Tail Extension</span></dt>
+    <dd>
+        Extension can be performed in Conservative Compact or Aggressive 
+        Extended mode according to the selection from the drop-down menu. 
+        The default is set to Conservative Compact.
+            <ul>
+                <li>
+                    <i>Aggressive Extended</i> - facilitates continued alignment
+                    of sequences until the threshold of mismatches encountered is
+                    reached, resulting in lower sensitivity but higher coverage.
+                </li>
+                <li>
+                    <i>Conservative Compact</i> - terminates an alignment as soon 
+                    as a higher score is obtained, providing higher sensitivity but 
+                    lower coverage.  The Conservative Compact mode is a good choice 
+                    when working with small genomes that have a higher mutation rate.
+                </li>
+            </ul>
+    </dd>
+<br/>
+<dt><span class='pn'>Allowed number of gaps during extension</span></dt>
+    <dd>
+        The user can specify the maximum number of insertions 
+        and deletions allowed during the seed extension phase 
+        of alignment. Default is set to 0.
+    </dd>
+<br/>
+<dt><span class='pn'>Intelligent Diagonal</span></dt>
+    <dd>
+        HIVE allows the ability to compute only the region 
+        surrounding the diagonal of alignment scoring matrix 
+        under the assumption that the best score should lie 
+        near the diagonal. If a user is uncertain, they can 
+        specify to compute the Complete matrix. Default is 
+        set to Diagonal of a given size.
+    </dd>
+<br/>
+<dt><span class='pn'>Intelligent K-mer Jump in Read</span></dt>
+    <dd>
+        Increasing the seed size in large genomes improves the 
+        alignment speed significantly at a potential cost of 
+        loss of sensitivity. The value 1 means no loss in sensitivity. 
+        The size of the seed is the maximum recommended value. If 
+        auto is chosen it will be set to 1 for small genomes and 2 
+        for large genomes. Default is auto.
+    </dd>
+<br/>
+<dt><span class='pn'>Intelligent K-mer Jump in Reference</span></dt>
+    <dd>
+        The same logic as for Intelligent K-mer Jump in Read above 
+        applies, but with respect to the reference genome instead of 
+        the short read. Default is auto.
+    </dd>
+<br/>
+<dt><span class='pn'>K-Mer Extension Minimal Length Percent</span></dt>
+    <dd>
+        The minimal length of the extension must be equal to this 
+        percentage of the seed length. Default is set to 66 for 66%.
+    </dd>
+<br/>
+<dt><span class='pn'>K-Mer Extension Mismatch Allowance Percent</span></dt>
+    <dd>
+        This parameter allows the user to define the percentile of 
+        mismatches allowed during extension of alignments. If 0 is 
+        entered, all positions are computed using the Smith-Waterman 
+        algorithm. Default is set to 25 for 25%.
+    </dd>
+<br/>
+<dt><span class='pn'>Optimal Alignment Search</span></dt>
+    <dd>
+        This option allows the user to choose whether to find the optimal alignment using 
+        the Smith-Waterman algorithm (default setting) or quickly look up highly scoring hits 
+        by making selecting Only Identities from the drop-down menu.
+        <ul>
+            <li>
+                <i>Smith-Waterman algorithm</i> - a dynamic programming algorithm that employs a substitution 
+                matrix to yield the highest scoring local alignment. The time required by the algorithm to 
+                return the optimal alignment greatly increases with an increase in sequence length.
+            </li>
+            <li>
+                <i>Only Identities</i> - if the user is not interested in optimal alignments and merely wants 
+                to identify high scoring potential hits, the Only Identities option will produce results at a 
+                faster rate.
+            </li>
+        </ul>
+    <dd>
+<br/>
+<dt><span class='pn'>Over-represented K-mer suppression</span></dt>
+    <dd>
+        Some K-mers appear in data much more than is to be expected by random 
+        occurrence. This parameter allows the elimination of K-mer hits which 
+        are this percentage more abundant than expected. Default set to 20 for 20%.
+    </dd>
+<br/>
+<dt><span class='pn'>Self-overlapping seed matches</span></dt>
+    <dd>
+        In the case where seeding produces multiple hits overlapping the same 
+        seed, this parameter allows the user to choose to ignore overlapping 
+        seed matches (the default) or consider all possible overlapping matches. 
+        Ignoring overlapping seed matches decreases required computation time.
+    </dd>
+<br/>
+<dt><span class='pn'>Use Read Self Similarly</span></dt>
+    <dd>
+        Selecting the Use self similarity optimization (default) option allows 
+        the aligner to index and count identical reads instead of aligning each 
+        identical read separately.
+    </dd>
+<br/>
+<dt><span class='pn'>Width of Intelligent Diagonal</span></dt>
+    <dd>
+        As mentioned in the Intelligent Diagonal description above, HIVE allows 
+        computation of a defined region around the diagonal of the matrix as 
+        opposed to computation of the entire matrix, including regions which are 
+        known to have no potential of containing the highest scoring path. Setting 
+        the parameter to auto will specify a width equal to the length of the seed.
+    </dd>
+<br/>
+</dl>
+<a href="hlp.obj.svc-align-hexagon.advanced.parameters.html">Click here to go back to Advanced Parameters</a>.
+</description>

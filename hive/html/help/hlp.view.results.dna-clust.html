@@ -1,0 +1,38 @@
+<!--
+$Id$
+vim: set et ts=4 sts=4:
+-->
+<id>hlp.view.results.dna-clust.html</id>
+<title>Sequence hierarchical clustering results</title>
+<definition>The clustering engine's end output is a tree structure whose leaves are the input data. It is displayed graphically in the form of a phylogram.</definition>
+<description>
+<dl>
+    <dt>Clustering phylogram</dt>
+    <dd>
+        <p>This is a graphical view of the hierarchical clustering result. Input items (alignment profiling results) are represented as leaves of the tree, displayed as labeled circles. You can click on the leaf-circles to enable or disable the corresponding SNP frequency graph on the right.</p>
+        <p>Phylogram branches can be collapsed or expanded by clicking on the inner nodes, represented as squares.</p>
+        <p>The phylogram can be downloaded in SVG format by clicking on the link below it. Note that some web browsers (e.g. Google Chrome) may refuse to download the file until you click on "keep" or "allow". Others may open the SVG file inside the browser itself, and you will need to use <span class="nobr">Ctrl-S</span> or File&rarr;Save to save it.</p>
+        <p>Below the phylogram, there are controls to change its shape (circular or rectangular) and the branch scale (choosing "none" makes the phylogram easier to interpret if some branches are much longer than others).</p>
+    </dd>
+
+    <dt>Downloads</dt>
+    <dd>
+        <p>Raw output of the hierarchical clustering engine can be downloaded if needed for further analysis.</p>
+    </dd>
+
+    <dt>SNP frequencies</dt>
+    <dd>
+        <p>Up to 10 SNP frequency graphs for alignment profiling results (which were selected by clicking leaves in the phylogram or checking items in the <em>Select profilings</em> tab) for the selected reference (chosen in the <em>Select reference</em> tab).</p>
+    </dd>
+
+    <dt>Select profilings</dt>
+    <dd>
+        <p>A table of the alignment profiling results which were used as input to the clustering engine. Checking a table item will highlight the corresponding leaf-circle in the phylogram, and will enable the SNP frequency graph in the <em>SNP frequencies</em> tab.</p>
+    </dd>
+
+    <dt>Select references</dt>
+    <dd>
+        <p>A table of the references from the reference genome which were used to calculate the clustering. Clicking on a table item will select the corresponding parts of the profiling data for display in the <em>SNP frequencies</em> tab.
+    </dd>
+</dl>
+</description>

@@ -1,0 +1,268 @@
+<id>hlp.obj.svc-align-hexagon.advanced.parameters.html</id>
+<title>HIVE-Hexagon</title>
+<definition>DNA Sequence Alignment</definition>
+<description>
+HIVE alignments are highly customizable to meet 
+the flexible demands of a variety of use-cases. 
+The following provides instruction and discussion 
+about advanced alignment parameters.
+<br/>
+<br/>
+<br/>
+<span class='heading'>Advanced Parameters</span>:
+<ul style="padding-left:4%">
+
+<dl>
+    <dt><span class='pn'>Reference Annotation Filter</span></dt>
+        <dd>
+            Clicking on the arrow of the dropdown menu allows 
+            you to select any annotation file available to you 
+            in your user home directory. This file will be used 
+            as the source for the type of annotation designated 
+            in the corresponding "Reference Annotation Types" field. 
+            If selected, alignments will only be reported for 
+            regions annotated by this designation.
+        </dd>
+<br/>
+    <dt><span class='pn'>Reference Annotation Types</span></dt>
+        <dd>
+            Opening the dropdown menu allows selection of the type 
+            of annotation included in the source file designated by 
+            the corresponding "Reference Annotation Filter" field.
+        </dd>
+<br/>
+    <dt><span class='pn'>Force Reindexing of Subject</span></dt>
+        <dd>
+            Here you can designate a name for this specific 
+            alignment process for simple search and retrieval 
+            from your user home directory.
+        </dd>
+<br/>
+    <dt><span class='pn'>Advanced Parameters</span></dt> <!-- really should rename this... -->
+        <dd>
+            <a href="hlp.obj.svc-align-hexagon.advanced.parameters.link1.html">
+            Click here to view subparameter descriptions</a>.
+        </dd>
+<br/>
+    <dt><span class='pn'>Alignment Filters</span></dt>
+        <dd>
+            <span class='pn'>Repeat and Transposition Discovery</span> - This 
+            parameter allows the user to perform more detailed multi-pass 
+            lookups in order to identify repeats and transpositions, or repeats 
+            only, by selection of the preferred option from the drop-down menu. 
+            Inclusion of this search comes at the expense of a longer run-time, 
+            so the default is set to exclude this search.
+        </dd>
+<br/>
+    <dt><span class='pn'>Alignment Parameters</span></dt>
+<dd>
+            <a href="hlp.obj.svc-align-hexagon.advanced.parameters.link2.html">
+            Click here to view subparameter descriptions</a>.
+        </dd>
+<br/>
+    <dt><span class='pn'>Alignment Test-Run Slice</span></dt>
+        <dd>
+            This allows a user to conduct a test-run of parameters 
+            by specifying the size of a subset of sequences to run 
+            per computational thread. The default of all indicates 
+            to run all sequences in the alignment. To use the test-run 
+            feature, the user must specify a number of sequences to 
+            run on each thread.
+        </dd>
+<br/>
+    <dt><span class='pn'>Low Complexity Filter</span></dt>
+        <dd>
+            Some subjects are well known to have regions or entire sequences 
+            of low complexity and a high degree of repeats. With these subjects 
+            in mind, HIVE allows the user to specify masking such that regions 
+            of both reads and references can be excluded from the alignment by 
+            defining the minimal entropy threshold and a window size of the 
+            sequence to be ignored.
+            <ul>
+                <li>
+                    <span class='pn'>Reference masking</span> - The first dropdown menu 
+                    allows the user to define the Minimal Shannon Entropy of a region of 
+                    the reference genome allowed to be included in an alignment. Default 
+                    is 0 - permissive, which allows all regions to be included. The second 
+                    dropdown menu allows the user to specify the Window Size of the 
+                    reference genome to ignore if the calculated entropy drops below the 
+                    specified Minimal Shannon Entropy. Default of do not mask low complexity 
+                    regions allows inclusion of all regions regardless of calculated entropy.
+                </li>
+                <li>
+                    <span class='pn'>Short read filtration</span> - The first dropdown menu 
+                    allows the user to define the Minimal Shannon Entropy of a region of any 
+                    short read allowed to be included in an alignment. Default is 0 - permissive, 
+                    which allows all regions to be included. The second dropdown menu allows 
+                    the user to specify the Window Size of all short reads to ignore if the 
+                    calculated entropy drops below the specified Minimal Shannon Entropy. 
+                    Default of do not mask low complexity regions allows inclusion of all 
+                    regions regardless of calculated entropy.
+                </li>
+            </ul>
+        </dd>
+<br/>
+    <dt><span class='pn'>Markovnikov rule on filtered matches</span></dt>
+        <dd>
+            Checking this parameter will dictate that, for some read with two or more identically scoring candidate regions, Hexagon will call a single alignment for the region 
+            with the most coverage.
+        </dd>
+<br/>
+    <dt><span class='pn'>Maximum Number of hits per Read to Consider</span></dt>
+        <dd>
+            In the case where an individual read hits multiple locations on 
+            the reference, this parameter allows the user to designate a 
+            maximum number of hits per that read to be considered for optimal 
+            alignment. Because optimal alignment is a computationally heavy step, 
+            minimizing the count of candidates to undergo optimal alignment 
+            helps to decrease overall required computation time. The default is 
+            set to 200.
+        </dd>
+<br/>
+    <dt><span class='pn'>Number of Computational Subjects per Single Thread</span></dt>
+        <dd>
+            This parameter allows the user to specify the maximum number of 
+            sequences per thread to be aligned by a single compute node.
+        </dd>
+<br/>
+    <dt><span class='pn'>Paired end filters</span></dt>
+        <dd>
+            Paired end filters are specifically designed for use on paired 
+            end reads sets. Normally, selecting any set of paired ends R1 and 
+            R2 as Sequence Read inputs in Hexagon does not tell Hexagon to 
+            acknowledge them as a forward and reverse paired end reads. Rather, 
+            Hexagon treats them as two unrelated reads. However, checking any of 
+            the paired end filters will tell Hexagon to recognize the reads as 
+            originating from two ends of one continuous sequence. 
+            <a href="hlp.obj.svc-align-hexagon.advanced.parameters.link4.html">
+            Click here to view Paired End Filters descriptions</a>.
+        </dd>
+<br/>
+    <dt><span class='pn'>Score Filter</span></dt>
+        <dd>
+            Each alignment produces a score based on matches, mismatches, 
+            insertions, deletions and gaps.  Usually, a higher score is 
+            correlated with a better alignment.  This option allows the user 
+            to eliminate alignment scores below a specified threshold. The 
+            default setting of None will report all alignments and discard 
+            nothing.</li>
+            
+        </dd>
+<br/>
+    <dt><span class='pn'>Use Double Length Hash Optimization</span></dt>
+        <dd>
+            Double hashing helps to resolve potential hash collisions occurring 
+            when two different values (in this case, regions of the genome) result 
+            in the same hash value. In this case, the second hash is set 
+            automatically to the identical length of the first. Double hashing is 
+            more computationally costly and therefore is not done by default. However, 
+            it may be good technique to enable for genomes with known regions of 
+            long repeats and low complexity.</li>
+            
+        </dd>
+<br/>
+    <dt><span class='pn'>Use Exact Match Preference Optimization</span></dt>
+        <dd>
+            In the case where a read seeds to multiple locations, this 
+            option limits consideration only to those positions which 
+            exactly match the read.
+        </dd>
+</dl>
+<a href="hlp.svc-align-hexagon.html">Click here to go back to General Parameters</a>.
+</description>
+
+<!-- 
+<li><span class='pn'>Reference Annotation Filter</span> - Clicking on the arrow of the dropdown menu allows you to select any annotation file available to you in your user home directory.
+This file will be used as the source for the type of annotation designated in the corresponding "Reference Annotation Types" field. If selected, alignments will only be reported for regions
+annotated by this designation.</li>
+<li><span class='pn'>Reference Annotation Types</span> - Opening the dropdown menu allows selection of the type of annotation included in the source file designated by the corresponding
+Reference Annotation Filter" field. </li>
+
+<li><span class='pn'>Advanced Parameters</span> - </li>
+<ul><li><span class='pn'>Alignment Directionality</span> - This parameter allows the user to choose whether sequences will be aligned in a Forward or Bi-directional (forward and reverse) manner
+ by selection from the drop-down menu. Default is Bi-directional.</li>
+    <li><span class='pn'>Alignment Tail Extension</span> - Extension can be performed in Conservative Compact or Aggressive Extended mode according to the selection from the drop-down menu.
+    The Aggressive Extended option facilitates continued alignment of sequences until the threshold of mismatches encountered is reached, resulting in lower sensitivity but higher coverage.
+     The Conservative Compact option terminates an alignment as soon as a higher score is obtained, providing higher sensitivity but lower coverage.  The Conservative Compact mode is a good
+     choice when working with small genomes that have a higher mutation rate. Default is set to Conservative Compact.</li>
+    <li><span class='pn'>Allowed number of gaps during extension</span> - The user can specify the maximum number of insertions and deletions allowed during the seed extension phase of alignment.
+    Default is set to 3. </li>
+    <li><span class='pn'>Intelligent Diagonal</span> - HIVE allows the ability to compute only the region surrounding the diagonal of alignment scoring matrix under the assumption that the best
+    score should lie near the diagonal. If a user is uncertain, they can specify to compute the Complete matrix. Default is set to Diagonal of a given size. </li>
+    <li><span class='pn'>Intelligent K-mer Jump in Read</span> - Increasing the seed size in large genomes improves the alignment speed significantly at a potential cost of loss of sensitivity.
+    The value 1 means no loss in sensitivity. The size of the seed is the maximum recommended value. If auto is chosen it will be set to 1 for small genomes and 2 for the large genomes.
+    Default is auto.</li>
+    <li><span class='pn'>Intelligent K-mer Jump in Reference</span> - The same logic as for Intelligent K-mer Jump in Read above applies, but with respect to the reference genome instead of the
+     short read. Default is auto.</li>
+    <li><span class='pn'>K-mer Extension Minimal Length Percent</span> - The minimal length of the extension must be equal to this percentage of the seed length. Default is set to 66 for 66%. </li>
+    <li><span class='pn'>K-mer Extension Mismatch Allowance Percent</span> - This parameter allows the user to define the percentile of mismatches allowed during extension of alignments.  If
+    0 is entered, all positions are computed using the Smith-Waterman algorithm. Default is set to 25 for 25%. </li>
+    <li><span class='pn'>Optimal Alignment Search</span> - This option allows the user to choose whether to find the optimal alignment using the Smith-Waterman algorithm (default setting) or
+    quickly look up highly scoring hits by making selecting Only Identities from the drop-down menu.  The Smith-Waterman algorithm is a dynamic programming algorithm that employs a
+    substitution matrix to yield the highest scoring local alignment. The time required by the algorithm to return the optimal alignment greatly increases with an increase in sequence
+    length.  If the user is not interested in optimal alignments and merely wants to identify high scoring potential hits, the Only Identities option will produce results at a faster rate.</li>
+    <li><span class='pn'>Over-represented K-Mer suppression    </span> - Some K-mers appear in data much more than is to be expected by random occurrence. This parameter allows the elimination
+    of K-mer hits which are this percentage more abundant than expected. Default set to 20 for 20%.  </li>
+    <li><span class='pn'>Self overlapping seed matches</span> - In the case where seeding produces multiple hits overlapping the same seed, this parameter allows the user to choose to ignore
+    overlapping seed matches (the default) or consider all possible overlapping matches. Ignoring overlapping seed matches decreases required computation time.</li>
+    <li><span class='pn'>Use Read Self Similarity</span> - Selecting the Use self similarity optimization (default) option allows the aligner to index and count identical reads instead of
+    aligning each identical read separately. </li>
+    <li><span class='pn'>Width of Intelligent Diagonal</span> - As mentioned in the Intelligent Diagonal description above, HIVE allows computation of a defined region around the diagonal
+     of the matrix as opposed to computation of the entire matrix, including regions which are known to have no potential of containing the highest scoring path. Setting the parameter to auto will specify a width equal to the length of the seed. </li>
+</ul>
+<li><span class='pn'>Alignment Filters</span> - </li>
+<ul><li>Repeat and Transposition Discovery<span class='pn'></span> - This parameter allows the user to perform more detailed multi-pass lookups in order to identify repeats and transpositions, or repeats only, by selection of the preferred
+ option from the drop-down menu. Inclusion of this search comes at the expense of a longer run-time, so the default is set to exclude this search.</li>
+</ul>
+<li><span class='pn'>Alignment Parameters</span> - </li>
+<ul><li><span class='pn'>Alignment Scope</span> - Alignment of sequences across the reference genome can be done locally or globally by choosing the appropriate value from the drop-down menu. A Local alignment tries to find the
+ best match in particular regions of the genome whereas a Global alignment tries matching the entire sequence length to the reference genome (Figure 6). Global alignments are good for
+ similarity and identity searches between the sequences. Local alignments are better suited for identifying conserved residues or domains.</li>
+    <li><span class='pn'>Gap Continuation Cost</span> - This is the scoring cost associated with continuation of a gap, default set to -4.</li>
+    <li><span class='pn'>Gap Opening Cost</span> - This is the scoring cost associated with opening a gap. In a biological scenario,
+    single base insertions or deletions are less probable than larger insertions or deletions.  For this reason, a gap opening is assigned a higher penalty than continuation
+     of a gap while computing the alignment score.  If gaps continue over multiple positions after the gap has already been opened, they are more likely the result of a
+     true insertion or deletion with potential evolutionary significance.  Thus, the default Gap open penalty has a more negative value than the default Gap next penalty. Default
+     set to -12.</li>
+    <li><span class='pn'>Match Benefit</span> - This is the associated score for a matching position, default set to 5.</li>
+    <li><span class='pn'>Mismatch Continuation Penalty</span> - This the is scoring cost associated with calling a mismatch adjacent to a position with a mismatch, default set to -6.</li>
+    <li><span class='pn'>Mismatch Penalty</span> - This is the scoring cost associated with a mismatch between the query and reference, default set to -4.</li>
+    <li><span class='pn'>Seed K-mer</span> - A seed is a short fragment of the query sequence used to search for nucleotide similarity. Seed length determines the size of the K-mer to
+     look up in a hash table.  Higher seed values make the alignment faster but have a potential of decreasing the sensitivity of the method. The default seed length is set at 11 letters,
+      corresponding to the seed length employed by the BLAST algorithm. Alternative seed lengths pre-populate the drop-down menu. </li>
+    <li><span class='pn'>Shorter Terminus Alignment    </span> - Alignment coverage near the end (terminus) of a reference segment is often less than ideal due to the Minimum Match Length
+     threshold. For example, if the Minimum Match Length parameter is set to 30 but you have a read that exactly matches 20 base pairs up to the end of segment, this exact match over the
+      area that matters will be excluded because it is shorter than the specified threshold. This parameter essentially allows specification of a different match length threshold in the
+      region of the terminus. Default set to 0 means to use the default Minimum Match Length. </li>
+</ul>
+<li><span class='pn'>Alignment Test-Run Slice</span> - This allows a user to conduct a test-run of parameters by specifying the size of a subset of sequences to run per computational
+thread. The default of all indicates to run all sequences in the alignment. To use the test-run feature, the user must specify a number of sequences to run on each thread. </li>
+<li><span class='pn'>Low complexity filter</span> - Some subjects are well known to have regions or entire sequences of low complexity and a high degree of repeats. With these subjects
+in mind, HIVE allows the user to specify masking such that regions of both reads and references can be excluded from the alignment by defining the minimal entropy threshold and a window
+size of the sequence to be ignored. </li>
+<ul><li><span class='pn'>Reference masking</span> - The first dropdown menu allows the user to define the Minimal Shannon Entropy of a region of the reference genome allowed to be
+ included in an alignment. Default is 0 - permissive, which allows all regions to be included. The second dropdown menu allows the user to specify the Window Size of the reference
+  genome to ignore if the calculated entropy drops below the specified Minimal Shannon Entropy. Default of do not mask low complexity regions allows inclusion of all regions regardless
+   of calculated entropy.</li>
+    <li><span class='pn'>Short read filtration</span> - The first dropdown menu allows the user to define the Minimal Shannon Entropy of a region of any short read allowed to be
+    included in an alignment. Default is 0 - permissive, which allows all regions to be included. The second dropdown menu allows the user to specify the Window Size of all
+    short reads to ignore if the calculated entropy drops below the specified Minimal Shannon Entropy. Default of do not mask low complexity regions allows inclusion of all
+    regions regardless of calculated entropy.
+    </li>
+</ul>
+<li><span class='pn'>Maximum Number of Hits per Read to Consider</span> - In the case where an individual read hits multiple locations on the reference, this parameter allows the user
+to designate a maximum number of hits per that read to be considered for optimal alignment. Because optimal alignment is a computationally heavy step, minimizing the count of candidates
+to undergo optimal alignment helps to decrease overall required computation time. Default is set to 200.</li>
+<li><span class='pn'>Number of Computational Subjects per Single Thread</span> - This parameter allows the user to specify the maximum number of sequences per thread to be aligned by
+a single compute node.</li>
+<li><span class='pn'>Score Filter</span> - Each alignment produces a score based on matches, mismatches, insertions, deletions and gaps.  Usually, a higher score is correlated with
+a better alignment.  This option allows the user to eliminate alignment scores below a specified threshold. The default setting of None will report all alignments and discard nothing.</li>
+<li><span class='pn'>Use Double Length Hash Optimization</span> - Double hashing helps to resolve potential hash collisions occurring when two different values (in this case, regions
+ of the genome) result in the same hash value. In this case, the second hash is set automatically to the identical length of the first. Double hashing is more computationally costly
+  and therefore is not done by default. However, it may be good technique to enable for genomes with known regions of long repeats and low complexity.</li>
+<li><span class='pn'>Use Exact Match Preference Optimization</span> - In the case where a read seeds to multiple locations, this option limits consideration only to those positions
+which exactly match the read.</li>
+</ul>
+</description>
+
+-->

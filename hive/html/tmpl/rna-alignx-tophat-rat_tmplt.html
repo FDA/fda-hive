@@ -1,0 +1,148 @@
+<!--
+ $Id$
+vim: set et ts=4 sts=4:
+-->
+
+<script src="ui/default-object-ui.js" > </script>
+<script src="js-algo/algo.js" > </script>
+<script src="js-algo/algo-hexagon.js" > </script>
+<script src="ui/dna-hexagon-ui.js" > </script>
+
+
+<script>
+
+
+
+/* examples */
+/*
+dna_hexagon_defaults_ui.subject_help = [
+    {name:"help", url:"http://help/hlp.something.html"},
+    {name:"more", url:"http://help/hlp.other.html", icon: "dna", description:"More help here!"} 
+];
+
+dna_hexagon_defaults_ui.inputList.subject=11283;
+dna_hexagon_defaults_ui.visualElements.subject=false;
+dna_hexagon_defaults_ui.left_panel = {background:"img/tree.gif"};
+*/
+
+dna_hexagon_defaults_ui.proctype = "svc-align-tophat";
+
+dna_hexagon_defaults_ui.customize_before_submission_callback=function()
+{
+    /*  example */
+    
+        dna_hexagon_defaults_ui.setDefaultProcParameters([
+            "name", "human genome alignment",
+            "alignSelector", "svc-align-tophat"
+        ]);
+        
+        dna_hexagon_defaults_ui.setVisibleAligners("http://objects/svc-align-choice-rna.csv");
+    
+}
+
+dna_hexagon_defaults_ui.customize_before_computing_callback=function()
+{
+    /*  example */
+    /*
+        dna_hexagon_defaults_ui.setDefaultProcParameters([
+            "name", "human genome alignment"
+        ]);
+    */
+}
+
+dna_hexagon_defaults_ui.init();
+
+
+    
+</script>
+    
+<form name="form-hexagon" method=get POST action="dna.cgi" enctype="multipart/form-data" >
+<table width="100%" border="0" id="dvWholePanel">
+    <tr style="vertical-align:top">
+        <td width="48%" id="dvLeftPanel"></td>
+        <td width="2%" align=center>
+            <div style="width:100%">
+                <script>valgoSectionHeader("Input Data","img/keyboard.gif","sectInput1","", true, {extraBarClasses:["HIVE_section_border_bottomless"], id:"dvTopBar"})</script>
+            </div>
+            <div class="HIVE_oneliner" style="width:100%">
+                <div style="HIVE_onelined">
+                    <div class="HIVE_section_topless">
+                        <table id='sectInput1' width="100%" border=0>
+                            <tr>
+                                 <td id="dvHexagonSubject-visual" align=right valign=bottom width="50%" ></td>
+                                 <td id="dvHexagonQuery-visual" align=left valign=bottom width="50%" ></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="centerer">
+                        <div class="centered">
+                            <script>document.write(ovis("algoBlock","sectVis","<img border=0 width=48 src='img/algoout.gif' />|<img border=0 width=48 src='img/algoin.gif' />"))</script>
+                        </div>
+                    </div>
+
+                    <span id="algoBlock">
+                        <div id="dvHexagonAlgorithm-visual" ></div>
+                        <div id="dvProcess-visual" ></div>
+                        <div id="dvProcessSubmitter"></div>
+                        <div id="dvProgressViewer"></div>
+                        <div class="centerer">
+                            <div class="centered">
+                                <img border=0 src="img/algoout.gif" width=48 />
+                            </div>
+                        </div>
+                    </span>
+                </div>
+                <div id="dvHexagonSubjectHelp" class="HIVE_onelined"></div>
+            </div>
+        </td>
+        <td width="48%" id="dvRightPanel"></td>
+    </tr>
+</table>
+
+<table width="100%" border="0"><tr><td width="48%"></td><td width="2%" align=center>
+    
+    <span id="resultBlock" class="sectHid">
+    <div class="HIVE_section" >
+        <script>valgoSectionHeader("<div id='dvProcessChildren-visual'></div>","img/results.gif","sectOutput1" , "<span class='sectHid' id='dvToolbardna-hexagon'></span>", true)</script>
+        
+        <table id="sectOutput1" class="HIVE_sect1">
+            <tr >
+                <td id="dvHitListViewer" valign=top></td>
+                <td id="dvHitListInfoViewer" valign=top></td>
+            </tr>
+        </table>    
+    </div>
+    </span>
+</td><td width="48%"></td></tr>
+</table>    
+        
+</form>
+
+
+<span class="sectHid" id='dsToolbarHexagonWaitingDV'><pre>
+type,align,order,name,title,icon,path,url,description
+html,right,0,next,<b>while you are waiting: &rarr;</b>,,/next,,Choose what would you like to do next  
+,right,1,files,Modify and Resubmit,img-algo/svc-align-hexagon.gif,/resubmit,?cmd=dna-hexagon&id=-$(::dna_hexagon_ID),Modify parameters and resubmit this computation using the same template
+</pre></span>
+
+<span class="sectHid" id='dsToolbarHexagonDoneDV'><pre>
+type,align,order,name,title,icon,path,url,description
+html,right,0,next,<b>what can you do next: &rarr;</b>,,/next,,Choose what would you like to do next  
+,right,1,modresubmit,Modify and Resubmit,img-algo/svc-align-hexagon.gif,/resubmit,?cmd=dna-hexagon&id=-$(::dna_hexagon_ID),Modify parameters and resubmit this computation using the same template
+,right,2,files,Profiling Tools,img-algo/dna-tools.gif,/profiler,,"Reference based assembly and profiling analysis"
+,right,2,files,Sequence Profiling,img-algo/svc-profiler.gif,/profiler/profiler,?cmd=dna-profiler&parent_proc_ids=$(::dna_hexagon_ID),"Proceed to sequence profiling analysis: basecalling, SNP computations, etc..."
+,right,3,recombinant,Reference Recombination,img-algo/svc-recomb.gif,/profiler/recombinant,?cmd=dna-recomb&parent_proc_ids=$(::dna_hexagon_ID),"Proceed to sequence recombination discovery analysis"
+,right,4,populator,Population Analysis,img-algo/hive-population.gif,/profiler/population,?cmd=dna-popul&parent_proc_ids=$(::dna_hexagon_ID),"Proceed to population analysis computations"
+</pre></span>
+
+<span class='sectHid'>
+    <span id="RV-name-TEMPLATE"><textarea %RV-INTERFACE-TAGS% cols=80 rows=1 >%RV-INTERFACE-VALUE%</textarea></span>
+</span>
+<form name="form-dna-hexagon">
+    <div id="floating-dna-hexagon"></div>
+</form>
+    
+
+
+

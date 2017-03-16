@@ -1,0 +1,78 @@
+
+<!--
+ $Id$
+-->
+<script > 
+    gInitList+="menu_init();"
+
+    function menu_init()
+    {
+        setLocationTitle("portal: Blast");
+
+        var arr = new Array (
+            {name: 'dna-blast'}
+
+        );
+
+        var v= vjDV.add("dvPortalViewer",1024,350);
+        v.selected=0;//v.maxtabs=1;
+        for ( var iv=0; iv<arr.length; ++iv ) {
+            vjDS.add("Accumulating the Availale Algorithms", "ds"+arr[iv].name, "innerText://ds"+arr[iv].name+"DV" );
+            var viewer=new vjTableView({
+                data: "ds"+arr[iv].name,
+                formObject: document.forms["form-portal"],
+                cols:[
+                    {name:'name', hidden:true },
+                    {name:'icon', hidden:true},
+                    {name:'description', wrap:true }
+                ],
+                precompute:"if(!node.url && node.name)node.url='?cmd='+node.name;",
+                iconSize:32,
+                bgColors:['#DfDfff','#ffffff'] ,
+                isok:true });
+            vjDV.dvPortalViewer.add( arr[iv].name, "process", "tab", [viewer] );
+                
+        }
+        vjDV.dvPortalViewer.render();
+        vjDV.dvPortalViewer.load();
+
+
+    }
+</script>
+
+
+
+<form name="menu" action="seq.cgi" method="GET" >
+
+    <div class="HIVE_section" >
+        <table border=0 width=100% >
+            <tr >
+                <td class="HIVE_section_title">
+                    <a name="files"></a>
+                    <table><tr><td><img src="img/file.gif" width=48 /></td><td>Blast Arsenal</td></tr></table>
+                </td>
+            </tr>
+            <tr>
+                <td class="HIVE_sect1" valign=top align=center>
+                    <span id="dvPortalViewer"></span>
+                </td>
+            </tr>
+        </table>    
+    </div>
+
+    
+    
+</form>
+
+
+<form name="form-portal">
+<span class="sectHid" id='dsdna-blastDV'><pre>
+icon,name,title,description
+img-algo/svc-align-blast.gif,dna-blast,Standard dna-blast ,choose this to align sequence reads to a reference genomes using BLAST 
+img-subject/viruses-original.jpg,dna-blast-virus,Virus specific dna-blast, choose this to align viral sequence reads to a reference viral genomes using BLAST         
+img-subject/bacteria.png,dna-blast-bacteria,Bacteria specific dna-blast,choose this to align bacterial sequence reads to a reference bacterial genomes using BLAST          
+img-subject/HumanWGS.jpg,dna-blast-HumanWGS,Human whole genome specific dna-blast, choose this to align human sequence reads to a whole genome human reference using BLAST    
+img-subject/exome.gif,dna-blast-exome, Exome specific dna-blast, choose this to align exome sequence reads to a exome reference using BLAST
+img-subject/transcriptome.jpg,dna-blast-transcriptome, Transcriptome specific dna-blast, choose this to align transcriptome sequence reads to a transcriptome reference using BLAST
+</pre></span>
+</form>

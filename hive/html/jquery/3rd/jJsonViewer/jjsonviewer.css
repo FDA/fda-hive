@@ -1,0 +1,127 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+.jjson-container {
+    font-size: 13px;
+    line-height: 1.2;
+    font-family: monospace;
+    padding-left: 0;
+    margin-left: 20px;
+    overflow: auto;
+}
+.jjson-container,
+.jjson-container ul{
+    list-style: none !important;
+}
+.jjson-container ul{
+    padding: 0px !important;
+    padding-left: 20px !important;
+    margin: 0px !important;
+}
+
+.jjson-container li {
+    position: relative;
+}
+
+.jjson-container > li  > .key,
+.jjson-container .array .key {
+    display: none;
+}
+
+.jjson-container .array .object .key {
+    display: inline;
+}
+
+.jjson-container li:after {
+    content: ",";
+}
+
+.jjson-container li:last-child:after {
+    content: "";
+}
+
+.jjson-container .null {
+    color: #999;
+}
+.jjson-container .string {
+    color: #4e9a06;
+}
+.jjson-container .number {
+    color: #a40000;
+}
+.jjson-container .boolean {
+    color: #c4a000;
+}
+.jjson-container .key {
+    color: #204a87;
+}
+.jjson-error {
+    margin: 10px;
+    color: rgb(239, 62, 62);
+}
+.jjson-container .expanded {
+    cursor: pointer;
+}
+.jjson-container .expanded:before {
+    content: "-";
+    font-size: 1.2em;
+    width: 13px;
+    text-align: center;
+    line-height: 13px;
+    font-family: sans-serif;
+    color: #933;
+    position: absolute;
+    left: -15px;
+    top: 3px;
+}
+
+.jjson-container .collapsed:before {
+    content: "+";
+    font-size: 1.1em;
+    color: #000;
+    top: 1px;
+}
+
+.jjson-container li .collapsed ~ .close:before {
+    content: "... ";
+    color: #999;
+}
+
+.jjson-container .hidden ~ ul {
+  display: none;
+}
+
+.jjson-container span {
+    position: static !important;
+    float: none;
+    font-size: inherit;
+    font-weight: inherit;
+    opacity: inherit;
+    text-shadow: inherit;
+}

@@ -1,0 +1,74 @@
+<!--
+ $Id$
+-->
+</head>
+<body onLoad="gInit();">
+
+<div id="header">
+    <div class="top">
+        <div class="hive">
+            <div>
+                <a class="logo" href="?cmd=main"><img src="img/HIVE_logo_transparent_small.png"></a>
+            </div>
+            <div>
+                <a class="albinoni" target='new' href='https://www.google.com/search?q=babajanyan+polyphonic+sonata' title='HIVE version: Arnold Babajanian'>version Babajanian</a>
+            </div>
+        </div>
+        <div class="institution">
+            <a href="?">
+                <!-- img class="institution" src="img/institution_logo.png" -->
+            </a>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="hive">
+            <a class="logo" href="?cmd=main"><img src="img/HIVE_logo_transparent_small.png"></a>
+        </div>
+        <div class="menu">
+            <div id="dvMenu"></div>
+        </div>
+    </div>
+</div>
+
+<form name="form-menu">
+    <span id="dvUser-container"  style="position: absolute;"></span> 
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#header').hivetoolbar();
+    });
+</script>
+
+<span id="dvNotifications-container" style="position: absolute;"></span>
+
+<span class="sectHid" id='dsToolbarMainDV'><pre>
+id,align,order,name,title,icon,path,url
+toolbar,left,1,welcome,Welcome,"img/hiveicon.jpg",/welcome,?cmd=main
+toolbar,left,4,about,About HIVE,"img/hivelogo18June.jpg",/about,?cmd=main-about
+</pre></span>
+
+
+
+<style>
+.show {
+    z-index:1000;
+    position: absolute;
+    background-color:white;
+    border: 1px solid blue;
+    padding: 0px;
+    display: block;
+    margin: 0;
+    list-style-type: none;
+    list-style: none;
+}
+
+.hide {
+    display: none;
+}
+
+.show ul{ list-style: none; padding-left:1px; padding-right:1px;}
+.show li{ list-style: none; padding-left:0px;}
+.show a { border: 0 !important; text-decoration: none; }
+.show a:hover { text-decoration: underline !important; }
+</style>

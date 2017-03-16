@@ -1,0 +1,5 @@
+<id>hlp.algo.smithWatermanOptimizations</id>
+<title>Smith-Waterman Optimizations</title>
+<definition>Choose whether to compute a diagonal of specified length or to compute the entire substitution matrix</definition>
+<description> This parameter is used to optimize the Smith-Waterman algorithm by computing only the highly probable alignment diagonal.  The width determines the seed length.  Greater seed length or width is more expensive to compute but has a potential of constructing high scoring alignments with larger gaps and mismatches.  Smaller values make the search faster but have a potential of missing longer gaps, thus diminishing the gapped alignment sensitivity.  Setting this parameter to “auto” tells the algorithm to choose the value equal to the length of the seed. </description>
+

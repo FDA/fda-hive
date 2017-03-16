@@ -1,0 +1,93 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+.record-viewer div.choice {
+    margin-left: 0px;
+    position: relative;
+}
+
+.record-viewer div.choice .caret {
+    /*float: right;
+    margin: 15px;*/
+    position: absolute;
+    right: 15px;
+    top: 15px;
+}
+
+.record-viewer div.choice input {
+    border: none;
+    width: 90%;
+    height: 31px;
+}
+
+.record-viewer div.choice.readonly input {
+    background-color: #eee !important;
+}
+
+.record-viewer div.choice ul {
+    padding-left: .5em;
+}
+
+.record-viewer div.choice div.popup {
+    display: none;
+    min-width: 160px;
+    max-height: 250px;
+    width: 100%;
+    margin-left: 0px;
+    position: absolute;
+    z-index: 100;
+    left: 0px;
+    top: 100%;
+    padding: 0px;
+    font-size: 14px;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 4px;
+    -webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+    box-shadow: 0 6px 12px rgba(0,0,0,.175);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.record-viewer div.choice div.popup table.table {
+    margin-bottom: 0px;
+}
+
+.record-viewer div.choice.open div.popup {
+    display: block;
+}
+
+.record-viewer div.choice.changed input {
+    background-color: lightgray !important;
+}

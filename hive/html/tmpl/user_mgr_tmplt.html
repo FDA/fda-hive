@@ -1,0 +1,120 @@
+<!--
+ $Id$
+-->
+<script>
+    gInitList += "user_mgr();";
+
+    function user_mgr() {
+
+        var dsname = "dsMgrUsr";
+        vjDS.add("Loading...",dsname, "http://?cmd=inactive", null, "id,First,Last,Email");
+
+        var viewerList = new vjTableView(
+                {
+                    name : 'list',
+                    icon : 'list',
+                    data : dsname,
+                    hidden : false,
+                    bgColors : [ '#f2f2f2', '#ffffff' ],
+                    cols : [
+                            {
+                                name : 'id',
+                                hidden : false,
+                                title : 'ID'
+                            }, {
+                                name : 'name',
+                                hidden : false,
+                                title : 'Name',
+                                wrap : true
+                            }, {
+                                name : 'last',
+                                hidden : false,
+                                title : "Last"
+                            }, {
+                                name : 'email',
+                                hidden : false,
+                                title : 'e-Mail',
+                                wrap : true
+                            } ],
+                    checkable : false,
+                    defaultIcon : 'rec',
+                    iconSize : 0,
+                    maxTxtLen : this.maxTxtLen,
+                    defaultEmptyText : 'no accessible information to show',
+                    selectCallback: user_mgr_activate_user,
+                    geometry : {
+                        width : '100%'
+                    },
+                    isok : true
+                });
+
+        var dvname = "dvUserMgr";
+        vjDV.add(dvname, "100%", 300);
+        vjDV[dvname].add('Inactive users', 'user', "tab", [ viewerList ]);
+        vjDV[dvname].render();
+        vjDV[dvname].load();
+
+        dsname = "dsGroupMgr";
+        vjDS.add("Loading...",dsname, "http://?cmd=inactive&ugrp=1", null, "id,group");
+        var viewerList = new vjTableView(
+                {
+                    name : 'list',
+                    icon : 'list',
+                    data : dsname,
+                    hidden : false,
+                    bgColors : [ '#f2f2f2', '#ffffff' ],
+                    cols : [
+                            {
+                                name : 'id',
+                                hidden : false,
+                                title : 'ID'
+                            }, {
+                                name : 'group',
+                                hidden : false,
+                                title : 'Group Path',
+                                wrap : true
+                            } ],
+                    checkable : false,
+                    defaultIcon : 'rec',
+                    iconSize : 0,
+                    maxTxtLen : this.maxTxtLen,
+                    defaultEmptyText : 'no accessible information to show',
+                    selectCallback: user_mgr_activate_group,
+                    geometry : {
+                        width : '100%'
+                    },
+                    isok : true
+                });
+
+        dvname = "dvGroupMgr";
+        vjDV.add(dvname, "100%", 300);
+        vjDV[dvname].add('Inactive memberships', 'user-group', "tab", [ viewerList ]);
+        
+        vjDV[dvname].render();
+        vjDV[dvname].load();
+    }
+    
+    function user_mgr_refresh(viewer, responseText, response) {
+        alert(responseText);
+        viewer.getData(0).reload(null, true);
+    }
+    
+    function user_mgr_activate_user( viewer, node, ir ,ic ) {
+        if( confirm('Are you sure you want to activate this account for?\n\n' + node.First + ' ' + node.Last) ) {
+            linkCmd('userV3&raw=1&emailAct=' + node.Email, viewer, user_mgr_refresh);
+        }
+    }
+    
+    function user_mgr_activate_group( viewer, node, ir ,ic ) {
+        if( confirm('Are you sure you want to activate this membership?\n\n' + node.group) ) {
+            linkCmd('userV4&raw=1&ugrpid=' + node.id, viewer, user_mgr_refresh);           
+        }
+    }
+</script>
+<span id="sectGeneral"><div class="HIVE_section">
+        <span class="HIVE_section_title">User management</span>
+        <div class="HIVE_sect1" id="dvUserMgr"></div>
+
+        <div class="HIVE_sect1" id="dvGroupMgr"></div>
+    </div></span>
+

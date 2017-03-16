@@ -1,0 +1,93 @@
+<!--
+ $Id$
+vim: set et ts=4 sts=4:
+-->
+<script src="js-algo/algo.js"></script>
+<script src="js/vjProfilerView.js"></script>
+<script src="js-obj/svc-profiler.js"></script>
+<script src="ui/dna-profiler-ui.js"></script>
+<script src='js/vjDataSeries.js'></script>
+<script src='js-graph/vjSVG_plot.js'></script>
+<script src='js-graph/vjSVG_base.js'></script>
+<script src='js-graph/vjSVG_Axis.js'></script>
+<script src='js-graph/vjSVG_primitive.js'></script>
+<script src='js/vjSVGView.js'></script>
+<script src='js-graph/vjSVG_Defaults.js'></script>
+<script src='js-graph/vjSVG_General.js'></script>
+<script>
+if(isMode("batch")) { 
+    process_qpsvc="svc-batcher";
+    process_initialPresets.batch_svc="dna-profiler";
+}
+</script>
+
+<form name="form-process" method=get POST action="dna.cgi" enctype="multipart/form-data" >
+
+    <table class="HIVE_section"><tr><td><span id="dvProfilerZoom-visual"></td></tr></table>
+    <table class="HIVE_section"><tr><td><span id="dvAnnotZoom-visual"></td></table>
+    <table class="HIVE_section"><tr><td><span id="dvhistpopup-visual"></td></table>
+
+    <table width="100%" border="0" id="dvWholePanel">
+        <tr>
+            <td width="48%" id="dvLeftPanel"></td>
+            <td width="2%" align=center>
+                <div class="HIVE_oneliner" style="width:100%">
+                    <span id="algoBlock">
+                        <div id="dvProcess-visual" ></div>
+                      <div id="dvProcessBatchable"></div>
+                        <img border=0 src="img/algoin.gif" width=48 /><br/>
+                        <div id="dvProcessSubmitter"></div>
+                        <div id="dvProcessSubmitterAll">
+                            <input type=button onClick='process_submitAll(this)' name='_all_submitter' size=20 value='Analyse All References' />
+                        </div>
+                        <div id="dvProgressViewer"></div>
+                        <img border=0 src="img/algoout.gif" width=48 />
+                    </span>
+                </div>
+            </td>
+            <td width="48%" id="dvRightPanel"></td>
+        </tr>
+    </table>
+    
+    <table width="100%" border="0">
+        <tr>
+            <td width="48%"></td>
+            <td width="2%" align=center>
+                <span id="resultBlock" class="sectHid" >
+                    <div class="HIVE_section" >
+                        <script>valgoSectionHeader("Next-Gen Profile", "img-algo/svc-profiler.gif", "sectOutput1", "<span class='sectVis' id='dvprocessToolbar'></span>", true)</script>
+    
+                        <table id="sectOut1" class="HIVE_sect1">
+                            <tr >
+                                <td id="dvProfilerViewer" valign=top></td>
+                                <td id="dvProfilerInfoViewer" valign=top></td>
+                            </tr>
+                        </table>    
+                    </div>
+                </span>
+            </td>
+            <td width="48%"></td>
+        </tr>
+    </table>    
+  
+</form>
+
+
+
+
+<span class="sectHid" id='dsprocessToolbarWaitingDV'><pre>
+type,align,order,name,title,icon,path,url,description
+html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next  
+,left,1,home,Home Page,img/home.png,home,?cmd=home,Jump to Home Page
+,left,1,modresubmit,Modify and Resubmit,img-algo/svc-profiler.gif,/resubmit,?cmd=dna-profiler&id=-$(::process_ID),Modify parameters and resubmit this computation using the same template
+,left,1,dna-hexagon,Back to Alignment,img-algo/svc-align-hexagon.gif,/hexagon,?cmd=dna-hexagon&id=$(::alignID),Review Alignment Process
+</pre></span>
+
+<span class="sectHid" id='dsprocessToolbarDoneDV'><pre>
+type,align,order,name,title,icon,path,url,description
+html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next  
+,left,1,home,Home Page,img/home.png,/home,?cmd=home,Jump to Home Page
+,left,1,modresubmit,Modify and Resubmit,img-algo/svc-profiler.gif,/resubmit,?cmd=dna-profiler&id=-$(::process_ID),Modify parameters and resubmit this computation using the same template
+,left,1,dna-hexagon,Back to Alignment,img-algo/svc-align-hexagon.gif,/hexagon,?cmd=dna-hexagon&id=$(::alignID),Review Alignment Process
+,left,1,dna-clust,Hierarchical Clustering,img-algo/svc-clust.png,/dna-clust,?cmd=dna-clust&profileID=$(::process_ID)&referenceID=$(::genomeID),"Classify related profiling results by comparing their SNP frequencies"
+</pre></span>

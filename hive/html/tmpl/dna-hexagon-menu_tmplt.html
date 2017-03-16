@@ -1,0 +1,113 @@
+
+<!--
+ $Id$
+-->
+<script > 
+    gInitList+="menu_init();"
+    var cmdMode=docLocValue("cmdMode");if(!cmdMode)cmdMode="";
+    var mode = JSON.parse(docLocValue("menuMode"));
+    if(!mode)
+        mode={};
+
+    function menu_init()
+    {
+        setLocationTitle("portal: dna-hexagon");
+        
+        var section_title = mode.aligner + ' arsenal';
+        var titleEl = gObject("cmdModeTitle") 
+        if( titleEl ) {
+            titleEl.innerHTML = section_title;
+        }
+        
+        if(mode.aligner =='dna-hexagon') {
+            mode.aligner ="powerful HIVE-Hexagon native engine";
+        }
+        var name = mode.type;
+        if(!name) name = mode['<!--section-->type'];
+        var arr = new Array (
+            {name: name, title: mode.aligner}
+        );
+
+        var v= vjDV.add("dvPortalViewer",1024,350);
+        
+        v.selected=0;//v.maxtabs=1;
+        for ( var iv=0; iv<arr.length; ++iv ) {
+            var dsName = "ds"+arr[iv].name;
+            vjDS.add("Accumulating the Availale Algorithms", dsName, "innerText://ds"+arr[iv].name+"DV" ).evaluator=true;
+            vjDS[dsName].parser = function (ds,text) {
+                var arrObj = ["subject","query","ids"];
+                var returnText = reportSubjectQuery(ds,text,arrObj); 
+                return returnText;
+            }
+            var viewer=new vjTableView({
+                data: "ds"+arr[iv].name,
+                formObject: document.forms["form-portal"],
+                cols:[
+                    {name:'name', hidden:true },
+                    {name:'icon', hidden:true},
+                    {name:'description', wrap:true }
+                ],
+                precompute:"if(!node.url && node.name)node.url='?cmd=dna-hexagon&cmdMode='+cmdMode+'-'+node.name.replace(/\"/g,'');",
+                iconSize:48,
+                iconWidth:48,
+                bgColors:['#f2f2f2','#ffffff'] ,
+                newSectionWord:"--",
+                newSectionColumn:1,
+                isok:true });
+            vjDV.dvPortalViewer.add( arr[iv].title, "process", "tab", [viewer] );
+                
+        }
+        vjDV.dvPortalViewer.frame='none';
+        vjDV.dvPortalViewer.render();
+        vjDV.dvPortalViewer.load();
+        
+
+    }
+    
+</script>
+
+
+    <div class="HIVE_section" >
+        <table border=0 width=100% >
+            <tr >
+                <td class="HIVE_section_title">
+                    <a name="files"></a>
+                    <table><tr><td><img src="img/file.gif" width=48 /></td><td><span id="cmdModeTitle">dna-hexagon arsenal</span></td></tr></table>
+                </td>
+            </tr>
+            <tr>
+                <td class="HIVE_sect1" valign=top align=center>
+                    <span id="dvPortalViewer"></span>
+                </td>
+            </tr>
+        </table>    
+    </div>
+    
+
+
+<form name="form-portal">
+<span class="sectHid" id='dsdnaDV'><pre>
+icon,name,title,description
+&lt;!--::mode.icon//--&gt;, ,Standard &lt;!--::mode.aligner//--&gt;,choose this to align sequence reads to a reference genomes using &lt;!--::mode.aligner//--&gt;
+img-subject/viruses-original.jpg,virus,Virus specific &lt;!--::mode.aligner//--&gt;, choose this to align viral sequence reads to a reference viral genomes using &lt;!--::mode.aligner//--&gt;   
+img-subject/bacteria.png,bacteria,Bacteria specific &lt;!--::mode.aligner//--&gt;,choose this to align bacterial sequence reads to a reference bacterial genomes using &lt;!--::mode.aligner//--&gt;        
+img-subject/HumanWGS.jpg,human-wgs,Human whole genome specific &lt;!--::mode.aligner//--&gt;, choose this to align human sequence reads to a whole genome human reference using &lt;!--::mode.aligner//--&gt;        
+img-subject/exome.gif,human-exome, Exome specific &lt;!--::mode.aligner//--&gt;, choose this to align exome sequence reads to a exome reference &lt;!--::mode.aligner//--&gt;
+img-subject/transcriptome.jpg,human-transcriptome, Transcriptome specific &lt;!--::mode.aligner//--&gt;, choose this to align transcriptome sequence reads to a transcriptome reference using &lt;!--::mode.aligner//--&gt;
+,--,Different Levels of Homology discovery,description
+img-subject/viruses-original.jpg,related,Distant relative &lt;!--::mode.aligner//--&gt;, Discover distant homologs using &lt;!--::mode.aligner//--&gt;
+</pre></span>
+
+<span class="sectHid" id='dsrnaDV'><pre>
+icon,name,title,description
+img-subject/HumanWGS.jpg,human-rna-seq,Human Alignment using &lt;!--::mode.aligner//--&gt;, choose this to align human sequence reads to a human reference using Magic    
+img-subject/exome.gif,rat-rna-seq, Rat Alignment using &lt;!--::mode.aligner//--&gt;, choose this to align rat sequence reads to a rat reference using Magic
+</pre></span>
+</form>
+
+
+
+
+
+
+

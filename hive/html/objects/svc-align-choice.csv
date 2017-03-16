@@ -1,0 +1,9 @@
+id,title,icon,description
+svc-align-hexagon,HIVE-hexagon,img-algo/svc-align-hexagon.gif,Native HIVE-hexagon algorithm optimized for High Performance Cloud computing environments 
+svc-align-blast,NCBI-blast,img-algo/svc-align-blast.gif,NCBI blast algorithm developped by National Center for Biotechnology information
+svc-align-bowtie,Bow-Tie,img-algo/svc-align-bowtie.gif,Bow Tie algorithm developped by...
+svc-align-tophat,TopHat,img-algo/svc-align-tophat.gif,Spliced read mapper for RNA-Seq
+svc-align-magic,Magic,img-algo/svc-align-magic.gif,Spliced read mapper for RNA-Seq
+svc-align-bwa,BWA,img-algo/svc-align-bwa.gif,Burrow Wheeler Algorithm
+svc-align-clustal,Clustal,img-algo/svc-align-clustal.gif,Clustal multiple alignment
+svc-align-mafft,MAFFT,img-algo/svc-align-mafft.gif,MAFFT multiple alignment

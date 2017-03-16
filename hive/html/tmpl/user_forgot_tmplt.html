@@ -1,0 +1,53 @@
+<!--
+ $Id$
+-->
+<script>
+    gInitList += "user_forgot_init();";
+    
+    function user_forgot_init() {
+        setLocationTitle("forgot password: HIVE");
+        var email = cookieGet('email');
+        if( email && email.length > 0) {
+            gObject("inpLogin").value = email;
+        }
+        gObject("inpLogin").focus();
+    }
+</script>
+
+<table width="100%" class="HIVE_table">
+    <tr>
+        <td valign='middle' align='right' width="50%">
+            <form name='frm_login' action='' method=post enctype="multipart/form-data">
+                <table class="HIVE_table">
+                    <tr>
+                        <td align='right'>&nbsp;</td>
+                        <td class="HIVE_variable">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td colspan='2' align='center'>Please, enter your email address.<br/>
+                            Email message will be sent with instructions on how to recover your password.</td>
+                    </tr>
+                    <tr>
+                        <td align='right'>&nbsp;</td>
+                        <td class="HIVE_variable">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td align='right' class="HIVE_variable">Email address</td>
+                        <td><input id='inpLogin' name='login' type='text' size='70' /></td>
+                    </tr>
+                    <tr>
+                        <td align='right'></td>
+                        <td align='center' class="HIVE_variable"><input type='submit' value="Request" /></td>
+                    </tr>
+                    <tr>
+                        <td align='right'>&nbsp;</td>
+                        <td class="HIVE_variable">&nbsp;</td>
+                    </tr>
+                </table>
+                <input name='cmd' value='forgot' type='hidden' />
+                <input name='follow' value='login' type='hidden' />
+            </form>
+        </td>
+        <td valign=middle align=left><img border=0 width=48 border=0 src="img/user.gif" /></td>
+    </tr>
+</table>

@@ -1,0 +1,935 @@
+<div class="content">
+    <div class="main-content" id='flexLayoutExample'></div>
+</div>
+
+<?php
+    header('X-Frame-Options: GOFORIT'); 
+?>
+
+<script type="text/javascript" src="d3js/core/d3.js"></script>
+<script type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/progress_circular.js"></script>
+<script type="text/javascript" src="d3js/dynamic_pie.js"></script>
+<script  src='js/vjIFrameView.js'> </script>
+
+<style>
+.myButton {
+    -moz-box-shadow:inset 0px -3px 7px 0px #29bbff;
+    -webkit-box-shadow:inset 0px -3px 7px 0px #29bbff;
+    box-shadow:inset 0px -3px 7px 0px #29bbff;
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #2dabf9), color-stop(1, #0688fa));
+    background:-moz-linear-gradient(top, #2dabf9 5%, #0688fa 100%);
+    background:-webkit-linear-gradient(top, #2dabf9 5%, #0688fa 100%);
+    background:-o-linear-gradient(top, #2dabf9 5%, #0688fa 100%);
+    background:-ms-linear-gradient(top, #2dabf9 5%, #0688fa 100%);
+    background:linear-gradient(to bottom, #2dabf9 5%, #0688fa 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#2dabf9', endColorstr='#0688fa',GradientType=0);
+    background-color:#2dabf9;
+    -moz-border-radius:3px;
+    -webkit-border-radius:3px;
+    border-radius:3px;
+    border:1px solid #0b0e07;
+    display:inline-block;
+    cursor:pointer;
+    color:#efefef;
+    font-family:Arial;
+    font-size:20px;
+    padding:9px 23px;
+    text-decoration:none;
+    text-shadow:0px 1px 0px #263666;
+}
+.myButton:hover {
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #0688fa), color-stop(1, #2dabf9));
+    background:-moz-linear-gradient(top, #0688fa 5%, #2dabf9 100%);
+    background:-webkit-linear-gradient(top, #0688fa 5%, #2dabf9 100%);
+    background:-o-linear-gradient(top, #0688fa 5%, #2dabf9 100%);
+    background:-ms-linear-gradient(top, #0688fa 5%, #2dabf9 100%);
+    background:linear-gradient(to bottom, #0688fa 5%, #2dabf9 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#0688fa', endColorstr='#2dabf9',GradientType=0);
+    background-color:#0688fa;
+}
+.myButton:active {
+    position:relative;
+    top:1px;
+}
+</style>
+
+<script type="text/javascript">
+google.load("visualization", "1", {packages:["corechart"]});
+setLocationTitle("pathogenAnalysis: HIVE");
+
+$.loadLayoutManager();
+$.loadCSS('css/look_and_feel/velvet.css');
+$.loadScript('jsx/widgets/jquery/demo/jquery.customlayout.js');
+$.loadScript('jsx/widgets/jquery/demo/jquery.testtoolbar.js');
+
+$(document).ready(function() {
+    
+    var lastClicked=0;
+    var ncbiUrl = "static://<iframe name='ncbiframe' width='100%' height='1000px' src='https://www.ncbi.nlm.nih.gov/taxonomy/?term=%ACTUALNCBIURL%'></iframe>";
+    var ncbiUrl2 = "static://<iframe name='ncbiframe2' width='100%' height='1000px' src='https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=%ACTUALNCBIURL%'></iframe>";
+    var cdcUrl = "static://<iframe name='cdcframe' width='100%' height='1000px' src='http://search.cdc.gov/search?query=%ACTUALNCBIURL%&affiliate=cdc-main&output=embed'></iframe>";
+    var webMdFrame = "static://<iframe name='webmdframe' width='100%' height='1000px' src='http://www.webmd.com/default.htm'></iframe>";
+    var allLoaded = 0;
+    
+    
+    vjDS.add("", "dsSubmitButton", "static://<div id='submitButton' style='width: 30%;top: 50%;left: 50%;position: absolute;transform: translate(-50%,-50%);'><a class='myButton' click='submitForProcess'>Press to Submit for Processing</a></div>");
+    vjDS.add("", "dsDropBoxTitle", "static://<div style='font-size:120%;font-weight:bold;font-family:Century Gothic;text-align:center;'>New Samples</div>");
+    vjDS.add("", "dsDownloaderTitle", "static://<div style='font-size:120%;font-weight:bold;font-family:Century Gothic;text-align:center;'>Samples being Analyzed</div>");
+    vjDS.add("", "dsCensuscopeTitle", "static://<div style='font-size:120%;font-weight:bold;font-family:Century Gothic;text-align:center;'>Results</div>");
+    vjDS.add("","dsDropBox","http://?cmd=dropboxlist&raw=1");
+    vjDS.add("","dsDownloader","http://?cmd=objList&mode=csv&actions=1&parP=child&prop=svcTitle,status,progress100,name,uri,created,_type&files=*.csv&info=1&cnt=50&type=^svc-archiver$,^svc-download$&start=0&raw=1");
+    vjDS.add("","dsSensuscope","http://?cmd=objList&mode=csv&actions=1&parP=child&prop=_type,_summary,created,category,_type&info=1&cnt=50&type=^nuc-read,svc-dna-screening$&start=0&files=*&raw=1");
+    
+    vjDS.add("", "dsOtherCW", "static://<div style='font-size:120%;font-weight:bold;font-family:Century Gothic;text-align:center;'><a href='http://search.cdc.gov/search?query=%ACTUALCDCURL%&affiliate=cdc-main&output=embed'target='_blank'>Go to CDC</a></div><div style='font-size:120%;font-weight:bold;font-family:Century Gothic;text-align:center;'><a href='http://www.webmd.com/search/search_results/default.aspx?query=%ACTUALWMURL%' target='_blank'>Go to Web Md</a></div>");
+    vjDS.add("", "dsOtherC", "static://<div style='font-size:120%;font-weight:bold;font-family:Century Gothic;text-align:center;'><a href='http://search.cdc.gov/search?query=%ACTUALCDCURL%&affiliate=cdc-main&output=embed' target='_blank'>Go to CDC</a></div>");
+    
+    vjDS.dsDropBox.register_callback(universalDSCallback);
+    vjDS.dsDownloader.register_callback(universalDSCallback);
+    vjDS.dsSensuscope.register_callback(universalDSCallback);
+    
+    vjDS.add("","dsGraph1","static://");
+    vjDS.add('', 'dsProgress', 'static://');
+    vjDS.add('', 'dsGraph1Tmp', 'static://');
+    vjDS.add("NCBI data", "dsPubMed", "");
+    vjDS.add("NCBI data", "dsPubMed2", "");
+    vjDS.add("CDC data", "dsCdc", "");
+    vjDS.add("WebMD data", "dsWebMd", "");
+    
+    var myTblView = new vjTableView({
+        data: "dsVoid",
+        selectCallback: tableCallback 
+    });
+    
+    var summaryPieChart = new vjD3JS_DynamicPie ({
+        data: "dsGraph1",
+        labelCol: 1,
+        dataCol: 0,
+        colorDomain: true,
+        tblParsedCallback: summaryChartCallback,
+        onClickCallback: summaryChartClickCallback,
+        csvTbl: true
+    });
+    
+    treeViewDropbox = new vjTreeView({
+        title: "DropBox",
+        data:"dsDropBox",
+          showLeaf: true,
+           autoexpand: "all",
+           selectCaptureCallback : selectDropBoxTreeCallBack,
+           callbackRendered: callBackDropbox
+      });
+    treeViewDownloader = new vjTreeView({
+        data:"dsDownloader",
+          showLeaf: true,
+           autoexpand: "all",
+           selectCaptureCallback : selectProgressTreeCallBack,
+           callbackRendered: callBackDownloader
+      });
+    treeViewCensuscope = new vjTreeView({
+        data:"dsSensuscope",
+          showLeaf: true,
+           autoexpand: "all",
+           selectCaptureCallback : selectCensuscopeTreeCallBack,
+           callbackRendered: callBackCensuscope
+      });
+    
+    var buildModal = false;
+
+    var config = {
+            layout: {
+                  items:[
+                  {
+                      id: 'fileList',
+                      top: '0',
+                      left: '0',
+                      right: '30%',
+                      bottom: '100%',
+                      layout: {
+                          layoutType: 'vertical',
+                        allowResize: false,
+                          items:[{
+                              id: 'objectTabs',
+                              size: '28%',
+                              allowMaximize: false,
+                              overflow: "auto",
+                              view:{
+                                  name: "dataview",
+                                  options:{ instance: [new vjHTMLView({data: "dsDropBoxTitle"}), treeViewDropbox]}
+                              }
+                          },{
+                              id: 'objectTabs',
+                              size: '33%',
+                              allowMaximize: false,
+                              overflow: "auto",
+                              view:{
+                                  name: "dataview",
+                                  options:{ instance:  [new vjHTMLView({data: "dsDownloaderTitle"}),treeViewDownloader]}
+                              }
+                          },{
+                              id: 'objectTabs',
+                              size: "*",
+                              allowMaximize: false,
+                              overflow: "auto",
+                              view:{
+                                  name: "dataview",
+                                  options:{ instance:  [new vjHTMLView({data: "dsCensuscopeTitle"}),treeViewCensuscope]}
+                              }
+                          }]
+                      }                  
+              },
+              {
+                  id: 'center',
+                  top: '0',
+                  left: '30%',
+                  right: '100%',
+                  bottom: '100%'                        
+              }]
+           }
+        };
+    
+
+    //filters out the unneeded data from different DS's
+    var intersectDropDown;
+    var intersectDropDown2;
+    function universalDSCallback (viewer, content)
+    {
+        if (allLoaded < 2)
+        {
+            allLoaded ++;
+            return;
+        }
+        
+        
+        dropBoxFiles = [];
+        var downloaderFiles = [];
+        var sensuscopeFiles = [];
+        
+        treeViewDropbox.render();
+        treeViewDownloader.render();
+        treeViewCensuscope.render();
+        
+        dropBoxFiles = iterateTree(treeViewDropbox.tree.root, dropBoxFiles);
+        downloaderFiles = iterateTree(treeViewDownloader.tree.root, downloaderFiles);
+        intersectDropDown = intersect (dropBoxFiles, downloaderFiles);
+        
+        //intersectDropDown = intersectDropDown.concat (intersectDropDown2);
+        
+        if (intersectDropDown.length > 0)
+        {
+            filterTreeView(treeViewDownloader.tree.root, -1, -1, intersectDropDown);
+            treeViewDownloader.refresh();
+            filterTreeView(treeViewDownloader.tree.root, -1, -1, dropBoxFiles);
+            treeViewDownloader.refresh();
+            
+            filterTreeView(treeViewDropbox.tree.root, -1, -1, intersectDropDown, true);
+            treeViewDropbox.refresh();
+        }
+        
+        filterCensuscopeTree(treeViewCensuscope.tree.root, -1, -1, "dna-alignx_screenResult.csv");
+        treeViewCensuscope.refresh();
+        downloaderFiles = [];
+        downloaderFiles = iterateTree(treeViewDownloader.tree.root, downloaderFiles);
+        sensuscopeFiles = iterateTree(treeViewCensuscope.tree.root, sensuscopeFiles);
+        intersectDropDown2 = intersect (downloaderFiles, sensuscopeFiles);
+        filterTreeView(treeViewDownloader.tree.root, -1, -1, intersectDropDown2, true);
+        treeViewDownloader.refresh();
+        filterTreeView(treeViewCensuscope.tree.root, -1, -1, dropBoxFiles);
+        treeViewCensuscope.refresh(); 
+    };
+    
+    function filterCensuscopeTree (treeView, parent, index, fileName)
+    {
+        if (treeView.leafnode && treeView._file && treeView._file.indexOf(fileName) >= 0)
+            return;
+        if (treeView._file && treeView._file.indexOf(fileName) < 0 && parent != -1 && parent.children)
+        {
+            parent.children.splice(index, 1);
+            return true;
+        }
+        
+        for (var i = 0; i < treeView.children.length; i++)
+        {
+            if (filterCensuscopeTree (treeView.children[i], treeView, i, fileName)) i--;
+        }
+        
+        return;
+    };
+    
+       function intersect(arr1, arr2)
+       {
+           var toReturn = [];
+           
+           for (var i = 0; i < arr1.length; i++)
+           {
+               if (arr2.indexOf(arr1[i]) >= 0)
+                   toReturn.push(arr1[i]);
+           }
+           
+           return toReturn;
+       }
+    
+       var leafIndex = 0;
+    function iterateTree (tree, nodeArray)
+    {
+        if (tree.leafnode)
+        {
+            var name = tree.name.replace(/\s+/g, '');
+            nodeArray.push(name);
+            tree.irow = leafIndex;
+            leafIndex++;
+            return nodeArray;
+        }
+        
+        for (var i = 0; i < tree.children.length; i++)
+            var tmpArr = iterateTree(tree.children[i], nodeArray);
+        
+        return nodeArray;
+    };
+    
+    function callBackDownloader(viewer, content, pageRequest)
+    {
+        if (!intersectDropDown || intersectDropDown.length == 0)
+            return;
+        
+        filterTreeView(treeViewDownloader.tree.root, -1, -1, intersectDropDown);
+        treeViewDownloader.refresh();
+        filterTreeView(treeViewDownloader.tree.root, -1, -1, dropBoxFiles);
+        treeViewDownloader.refresh();
+    };
+    
+    function callBackDropbox(viewer, content, pageRequest)
+    {
+        if (!intersectDropDown || intersectDropDown.length == 0)
+            return;
+        
+        filterTreeView(treeViewDropbox.tree.root, -1, -1, intersectDropDown, true);
+        treeViewDropbox.refresh();
+    };
+    
+    function callBackCensuscope(viewer, content, pageRequest)
+    {
+        if (!intersectDropDown || intersectDropDown.length == 0)
+            return;
+        
+        var downloaderFiles = [];
+        var sensuscopeFiles=[];
+
+        filterCensuscopeTree(treeViewCensuscope.tree.root, -1, -1, "dna-alignx_screenResult.csv");
+        treeViewCensuscope.refresh();
+        downloaderFiles = iterateTree(treeViewDownloader.tree.root, downloaderFiles);
+        sensuscopeFiles = iterateTree(treeViewCensuscope.tree.root, sensuscopeFiles);
+        intersectDropDown2 = intersect (downloaderFiles, sensuscopeFiles);
+        filterTreeView(treeViewDownloader.tree.root, -1, -1, intersectDropDown2, true);
+        treeViewDownloader.refresh();
+        filterTreeView(treeViewCensuscope.tree.root, -1, -1, dropBoxFiles);
+        treeViewCensuscope.refresh();
+    };
+    
+    function filterTreeView (treeView, parent, index, nameArray, negate)
+    {
+        var name = treeView.name.replace(/\s+/g, '');
+        
+        if (negate)
+        {
+            if (treeView.leafnode && nameArray && nameArray.indexOf(name) >= 0)
+            {
+                parent.children.splice(index, 1);
+                return true;
+            }
+            for (var i = 0; i < treeView.children.length; i++)
+            {
+                if (filterTreeView (treeView.children[i], treeView, i, nameArray, negate)) i--;
+
+                if (treeView.children.length == 0 && parent != -1)
+                {
+                    parent.children.splice(index, 1);
+                    return true;
+                }
+            }
+            
+            return;
+        }
+        
+        if (treeView.leafnode && nameArray && nameArray.indexOf(name) >= 0)
+            return;
+        if (nameArray && nameArray.indexOf(name) < 0 && parent != -1 && parent.children)
+        {
+            parent.children.splice(index, 1);
+            return true;
+        }
+        
+        for (var i = 0; i < treeView.children.length; i++)
+        {
+            if (filterTreeView (treeView.children[i], treeView, i, nameArray)) i--;
+            
+            if (treeView.children.length == 0 && parent != -1)
+            {
+                parent.children.splice(index, 1);
+                return true;
+            }
+        }
+        
+        return;
+    };
+    
+    //intermediate function
+    function bahBlah (viewer, node)
+    {
+        tableCallback(viewer, {matchname: node.data.label});
+    };
+    
+    //opens up the pop up and refreshed the DS that will show the ncbi link
+    function tableCallback (viewer, rowObj, ir, ic, cellObj)
+    {
+        if (!buildModal)
+        {
+            $('body').append(buildModalWindow());
+            buildModal = true;
+        }
+        
+        //var dataToUse = "dsOtherC";
+        var dataToUse = "dsOtherCW";
+        
+        if ((rowObj.cols && rowObj.cols[3]=="Pathogen") || (lastClicked && lastClicked.label == "Pathogen"))
+        {
+            dataToUse = "dsOtherCW";
+        }
+        
+        vjDS[dataToUse].url = vjDS[dataToUse].url.replace("%ACTUALCDCURL%",protectFields(rowObj.matchname));
+        vjDS[dataToUse].url = vjDS[dataToUse].url.replace("%ACTUALWMURL%",protectFields(rowObj.matchname));
+        
+        //$.getLayoutManager().remove("otherRes");
+         
+         $('#testModalWindow').on('shown.bs.modal', function (e) {
+             $('#testModalLayout').layoutmanager({
+                 saveState: false,
+                 config: {
+                     layout: {
+                        items:[{
+                            id: 'iFrameArea2',
+                            top: '0',
+                            left: '0',
+                            right: '80%',
+                            bottom: '100%',
+                            allowMaximize: false,
+                            tabs:{
+                                  items: [{
+                                      active:false,
+                                      title:'NCBI',
+                                      name:'ncbi',
+                                      view: {
+                                            name: 'dataview',
+                                            options: {
+                                                dataViewer: 'vjIFrameView',
+                                                 dataViewerOptions: { data: "dsPubMed" }
+                                            }
+                                           }
+                                  },{
+                                      active:true,
+                                      title:'Taxonomy Browser',
+                                      name:'ncbi2',
+                                      view: {
+                                            name: 'dataview',
+                                            options: {
+                                                dataViewer: 'vjIFrameView',
+                                                 dataViewerOptions: { data: "dsPubMed2" }
+                                            }
+                                           }
+                                  }]
+                            } 
+                        },{
+                            id: 'iFrameArea3',
+                            top: '0',
+                            left: '80%',
+                            right: '100%',
+                            bottom: '100%',
+                            allowMaximize: false,
+                            tabs:{
+                                  items: [{
+                                      active:false,
+                                      title:'Other Resources',
+                                      name:'otherRes',
+                                      view: {
+                                            name: 'dataview',
+                                            options: {
+                                                dataViewer: 'vjHTMLView',
+                                                 dataViewerOptions: { data: dataToUse }
+                                            }
+                                           }
+                                  }]
+                            } 
+                        }]
+                     }
+                }
+             });
+         });
+             
+         $('#testModalWindow').modal('show');
+         vjDS["dsPubMed"].reload (ncbiUrl.replace("%ACTUALNCBIURL%",protectFields(rowObj.matchname)),true);
+         if (!window.frames['ncbiframe']) window.frames['ncbiframe']={src:""};
+          window.frames['ncbiframe'].src="https://www.ncbi.nlm.nih.gov/taxonomy/?term="+protectFields(rowObj.matchname);
+          
+          vjDS["dsPubMed2"].reload (ncbiUrl2.replace("%ACTUALNCBIURL%",protectFields(rowObj.taxid)),true);
+         if (!window.frames['ncbiframe2']) window.frames['ncbiframe2']={src:""};
+          window.frames['ncbiframe2'].src="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id="+protectFields(rowObj.taxid);
+    };
+    
+    //jquery function for generating the modal window (pop up)
+    function buildModalWindow() 
+    {
+        var wnd = $(document.createElement('div'))
+                        .addClass('modal fade')
+                        .attr({
+                            id: 'testModalWindow',
+                            tabindex: -1,
+                            role: "dialog",
+                            'aria-labelledby': "testModalLabel"
+                        })
+                        .append(
+                            $(document.createElement('div'))
+                                .addClass('modal-dialog modal-lg')
+                                .attr({ role: "document" })
+                                .append(
+                                    $(document.createElement('div'))
+                                        .addClass('modal-content')
+                                        .append(
+                                            $(document.createElement('div'))
+                                                .addClass('modal-header')
+                                                .append(
+                                                    $(document.createElement('button'))
+                                                        .addClass('close')
+                                                        .attr({
+                                                            type: "button",
+                                                            'data-dismiss': "modal",
+                                                            'aria-label': "Close"
+                                                        })
+                                                        .append(
+                                                            $(document.createElement('span'))
+                                                                .attr({ 'aria-hidden': "true" })
+                                                                .html('&times;')
+                                                        )
+                                                )
+                                                .append(
+                                                    $(document.createElement('h4'))
+                                                        .addClass('modal-title')
+                                                        .attr({ id: 'testModalLabel' })
+                                                        .text('More Information')
+                                                )
+
+                                        )
+                                        .append(
+                                            $(document.createElement('div'))
+                                                .addClass('modal-body')
+                                                .append(
+                                                    $(document.createElement('div'))
+                                                    .attr({ id: 'testModalLayout' })
+                                                )
+                                        )
+                                )
+                        )
+        return wnd;
+    };
+    
+    
+    function sleep(milliseconds) {
+        var start = new Date().getTime();
+           for (var i = 0; i < 1e7; i++) {
+               if ((new Date().getTime() - start) > milliseconds){
+                   break;
+               }
+        }
+       };
+        
+    //colors: [, "#ff8000", "#00ff80", "#ff007f", "#8000ff", "#7fff00", "#ffff00", "#0000ff", "#0080ff", "#ff0080", "#d9ff35", "#5b35ff", "#ff5b35", "#ffc035", "#35ffc0", "#35ffd1", "#d135ff", "#6c35ff", "#ff6c35", "#ffd135"],
+    var possibleCategoriesColors = [{name:"Archaea", color: "#00ffff"}, {name:"Fungi", color: "#00ff80"}, {name:"Metazoa", color: "#ff007f"},
+                                    {name:"Veridiplantae", color: "#8000ff"}, {name:"Bacteria", color: "#7fff00"}, {name:"Viroids", color: "#ffff00"},
+                                    {name:"Viruses", color: "#0000ff"}, {name:"Rodophyta", color: "#ff0080"}, {name:"Amoebozoa", color: "#d9ff35"}];
+    
+       //generates the appropriate table and colors for the summary pie chart
+    function summaryChartCallback (viewer)
+    {
+        var i=0;
+        
+        //wait for the second datasource to finish
+        do
+        {
+            sleep(500);
+            i++;
+        }while (vjDS["dsGraph1Tmp"].state != "done" && i < 5);
+        if (i == 5) return;            
+        
+        var pathogenTbl = new vjTable(vjDS["dsGraph1Tmp"].data, 0, vjTable_propCSV, undefined, undefined, undefined, undefined, 1);
+        
+        var table = viewer.tblArr;
+        var countCol, rankCol;
+        var dataInfo = {};
+        var colorsToPush = [];
+        
+        for (var i = 0; i < table.hdr.length; i++)
+        {
+            if (table.hdr[i].name == "count" || table.hdr[i].name == "matchCnt")
+                countCol = i;
+            else if (table.hdr[i].name == "path")
+                rankCol = i;
+        }
+        
+        for (var i = 0; i < table.rows.length; i++)
+        {
+            var curRowCols = table.rows[i].cols;
+            var curPath = curRowCols[rankCol];
+            var taxID = table.rows[i].taxid;
+            
+            var j;
+            
+            if (pathogenTbl.rows[i].taxid == taxID && pathogenTbl.rows[i].name != "0")
+               {
+                   curRowCols[rankCol] = "Pathogen";
+                   if (colorsToPush.indexOf ("red") < 0)
+                       colorsToPush.push ("red");
+                   continue;
+               }
+                        
+            for (j = 0; j < possibleCategoriesColors.length; j++)
+            {
+                if (curPath.indexOf ("/"+possibleCategoriesColors[j].name+":") > -1)
+                {
+                    curRowCols[rankCol] = possibleCategoriesColors[j].name;
+                       if (colorsToPush.indexOf (possibleCategoriesColors[j].color) < 0)
+                           colorsToPush.push (possibleCategoriesColors[j].color);
+                    break;
+                }
+            }
+            if (j >= possibleCategoriesColors.length)
+            {
+                curRowCols[rankCol] = "No Rank";
+                if (colorsToPush.indexOf ("#c0c0c0") < 0)
+                       colorsToPush.push ("#c0c0c0");
+            }
+        }
+        
+        for (var i = 0; i < table.rows.length; i++)
+        {
+            var curRowCols = table.rows[i].cols;
+            
+            if (dataInfo[curRowCols[rankCol]])
+                dataInfo[curRowCols[rankCol]] += parseInt(curRowCols[countCol]);
+            else
+                dataInfo[curRowCols[rankCol]] = parseInt(curRowCols[countCol]);
+        }
+        
+        table.hdr = [{name: "count"}, {name: "rank"}];
+        table.rows = [];
+        
+        for (var key in dataInfo)
+            table.rows.push({count: dataInfo[key] , rank: key});
+        
+        summaryPieChart.colors = colorsToPush;
+        
+        return table;
+    };
+    
+    //generates 2 extra views when the summary chart was clicked on and moves the summary chart out of the way.
+    function summaryChartClickCallback (viewer, node, b, c)
+    {
+        var areaId = viewer.container;
+        var area = $("#"+areaId).closest(".layout-area");
+        if (area.hasClass("maximize"))
+        {
+            var btn1 = area.find(".infobox-toolbar"); //this si the maximize button in the top right hand corner on the area maximized
+            btn1.children("button").click();
+        }
+        
+        lastClicked = node.data;
+        
+        var manager = $.getLayoutManager();
+        manager.remove("secondGraph");
+
+        manager.moveArea("center", {top:"0", right:"65%", left:"30%", bottom:"50%"}, 500);
+        manager.remove("anotherArea1");
+        manager.remove("anotherArea2");
+        
+        manager.append({
+              layout: {
+                items:[
+                {
+                    id: 'anotherArea2',
+                    top: '50%',
+                    left: '30%',
+                    right: '100%',
+                    bottom: '100%',
+                    overflow: 'auto',
+                    allowMaximize: true,
+                       view: {
+                           name: 'dataview',
+                           options:{
+                                  instance: myTblView //must add the table first. if add it later, then everything gets messed up and nothing gets drawn
+                           }
+                       }                      
+                },{
+                    id: 'anotherArea1',
+                    top: '0',
+                    left: '65%',
+                    right: '100%',
+                    bottom: '50%%',
+                    allowMaximize: true,
+                       view: {
+                        name: 'dataview',
+                        options: {
+                            dataViewer: 'vjD3JS_DynamicPie',
+                            dataViewerOptions: {
+                                data: "dsGraph1",
+                                labelCol: 1,
+                                    dataCol: 4,
+                                    onClickCallback: bahBlah,
+                                    tblParsedCallback: detailChartCallback,
+                                    colors: [node.data.color, "#e6e6e6"],
+                                    csvTbl: true
+                               }
+                           }
+                       }                      
+                }]
+            }
+        });
+    };
+    
+    //when the summary pie chart slice was clicked on, pull up anotehr pie chart with a table, this will parse out the uneeded rows. 
+    function detailChartCallback (viewer)
+       {
+        var i=0;
+        while (vjDS["dsGraph1Tmp"].state != "done")
+            i++;
+        
+        var pathogenTbl = new vjTable(vjDS["dsGraph1Tmp"].data, 0, vjTable_propCSV, undefined, undefined, undefined, undefined, 1);
+        
+        var table = viewer.tblArr;
+        var countCol, rankCol, matchCol;
+        var dataInfo = {};
+        
+        for (var i = 0; i < table.hdr.length; i++)
+        {
+            if (table.hdr[i].name == "count" || table.hdr[i].name == "matchCnt")
+                countCol = i;
+            else if (table.hdr[i].name == "path")
+                rankCol = i;
+            else if (table.hdr[i].name == "matchname")
+                matchCol = i;
+        }
+        
+        for (var i = 0; i < table.rows.length; i++)
+        {
+            var curRowCols = table.rows[i].cols;
+            var curPath = curRowCols[rankCol];
+            var taxID = table.rows[i].taxid;
+            
+            if (lastClicked.label == "Pathogen" && pathogenTbl.rows[i].taxid == taxID && pathogenTbl.rows[i].name != "0")
+               {
+                   curRowCols[rankCol] = "Pathogen";
+                   continue;
+               }
+            
+            var j;
+            for (j = 0; j < possibleCategoriesColors.length; j++)
+            {
+                if (curPath.indexOf ("/"+possibleCategoriesColors[j].name+":") > -1)
+                {
+                    curRowCols[rankCol] = possibleCategoriesColors[j].name;
+                    break;
+                }
+            }
+            if (j >= possibleCategoriesColors.length)
+                curRowCols[rankCol] = "No Rank";
+        }
+        
+        for (var i = 0; i < table.rows.length; i++)
+        {
+            var curRowCols = table.rows[i].cols;
+            
+            if (curRowCols[rankCol] != lastClicked.label)
+            {
+                table.rows.splice(i,1);
+                i--;
+            }
+        }
+        
+        myTblView.tblArr=table;
+        myTblView.refresh();
+        return table;        
+       };
+       
+       function selectCensuscopeTreeCallBack (dv, node) 
+       {
+           //this will be read id (since that will result)
+           var objID = node.id; //later this will be extracted from the node. This is the screeningId
+        var manager = $.getLayoutManager();
+        var index = node.irow;
+        
+        vjDS["dsGraph1"].reload("http://?cmd=ionncbiTax&downloadCSVFile=1&screenType=dna-alignx_screenResult.csv&cnt=1000&screenId=" +objID+"&mode=csv", true);
+        vjDS["dsGraph1Tmp"].reload("http://?cmd=ionTaxPathogenInfo&downloadCSVFile=1&screenType=dna-alignx_screenResult.csv&screenId=" +objID+"&mode=csv", true);
+          
+        if (node.identifier != "date" && node.identifier != "boxName")
+        {
+            clearCenterArea(manager);
+               manager.append({
+                 layout: {
+                       items:[{
+                           id: 'center',
+                           top: '0',
+                        left: '30%',
+                        right: '100%',
+                        bottom: '100%',
+                        allowMaximize: true,
+                        view: {
+                            name: 'dataview',
+                            options: {
+                                instance: summaryPieChart
+                            }
+                        }
+                       }]
+                }
+               });
+        }
+    };
+    
+    var lastItemSelected;
+       function selectDropBoxTreeCallBack (dv, node) 
+       {
+           //this will be read id (since that will result)
+           var objID = node.id; //later this will be extracted from the node. This is the screeningId
+        var manager = $.getLayoutManager();
+        var index = node.irow;
+        lastItemSelected = node.path;
+        
+        if (node.identifier != "date" && node.identifier != "boxName")
+        {
+            clearCenterArea(manager);
+               manager.append({
+                 layout: {
+                       items:[{
+                           id: 'center',
+                           top: '0',
+                        left: '30%',
+                        right: '100%',
+                        bottom: '100%',
+                        allowMaximize: true,
+                        view: {
+                            name: 'dataview',
+                            options: {
+                                dataViewer: "vjHTMLView",
+                                dataViewerOptions: {
+                                      data: "dsSubmitButton"
+                                }
+                            }
+                        }
+                       }]
+                }
+               });
+        }
+        
+        $("#submitButton").click(submitForProcess);
+    };
+    
+    //function that getss called when the submit button gets pressed. reqeust gets submitted and button gets dissabled 
+    function submitForProcess ()
+    {
+        var nUrl = "http://dmDownloader.cgi?cmd=-qpProcSubmit&svc=dmDownloader&raw=1&prop.svc-download.uri.19=%22dropbox%3A/"+lastItemSelected+"%22&"
+                +"prop.svc-download.datasource.7=0&prop.svc-download.download_concurrency.11=1&prop.svc-download._type=svc-download&prop.svc-download.setAction.2.11=2";
+        
+        var dsName = "dsSubmit" + parseInt(Math.random()*10000);
+        vjDS.add("", dsName, nUrl);
+        vjDS[dsName].reload(nUrl, true);
+        
+        sleep(500);
+        clearCenterArea($.getLayoutManager());
+        vjDS["dsDownloader"].reload(vjDS["dsDownloader"].url, true);
+        vjDS["dsDropBox"].reload(vjDS["dsDropBox"].url, true);
+        vjDS["dsSensuscope"].reload(vjDS["dsSensuscope"].url, true);
+        intersectDropDown=[];
+    }
+    
+    function selectProgressTreeCallBack (dv, node) 
+       {
+           //this will be read id (since that will result)
+           var objID = node.id; //later this will be extracted from the node. This is the screeningId
+        var manager = $.getLayoutManager();
+        var uniqueID = "unique" + parseInt(Math.random()*10000);
+
+        vjDS["dsProgress"].reload("http://?cmd=-qpRawCheck&showreqs=0&reqObjID="+objID, true);
+          
+        if (node.identifier != "date" && node.identifier != "boxName")
+        {
+            clearCenterArea(manager);
+               manager.append({
+                 layout: {
+                       items:[{
+                           id: 'center',
+                           top: '0',
+                           left: '30%',
+                           right: '100%',
+                           bottom: '100%',
+                           allowMaximize: true,
+                           view: {
+                               name: 'dataview',
+                               options:{
+                                   dataViewer: "vjD3JS_ProgressCircular",
+                                   dataViewerOptions: {
+                                       data: 'dsProgress',
+                                       uniqueID: uniqueID,
+                                       label: "Total Progress",
+                                       callbackParsed: progressDone,
+                                       height: 1300,
+                                       width: 1300,
+                                       csvTbl: true
+                                   }
+                               }
+                        }
+                       }]
+                  }
+               });
+               
+               for (var key in vjDV)
+               {
+                   var cur = vjDV[key];
+                   
+                   if (typeof cur == "object")
+                   {
+                       if (cur.uniqueID == uniqueID)
+                           $("#" + cur.container).attr("style", "top: 50%;left: 50%;position: absolute;transform: translate(-50%,-50%);"); //this will center the div with the progress
+                   }
+               }
+               
+        }
+    };
+    
+    function progressDone (viewer)
+    {
+        if (viewer.progressPercentage && viewer.progressPercentage == "100")
+        {
+            sleep(500);
+            clearCenterArea($.getLayoutManager());
+            vjDS["dsDropBox"].reload(vjDS["dsDropBox"].url, true);
+            vjDS["dsSensuscope"].reload(vjDS["dsSensuscope"].url, true);
+        }
+    }
+    
+    function clearCenterArea (manager)
+    {
+        manager.remove("center");
+        manager.remove("secondGraph");
+        manager.remove("anotherArea1");
+        manager.remove("anotherArea2");
+    }
+    
+    $('#flexLayoutExample').layoutmanager({
+        saveState: false,
+        config: config
+    });
+});
+</script>
+
+
+
+
+
+
+

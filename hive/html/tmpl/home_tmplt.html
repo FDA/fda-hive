@@ -1,0 +1,155 @@
+<script type="text/javascript" language="JavaScript1.1"
+    src="js/vjDirectoryView.js"></script>
+
+<!--     <script type="text/javascript" language="JavaScript1.1" -->
+<!--     src="js/vjObjType_u-hiveseq.js"></script> -->
+<script type="text/javascript" language="JavaScript1.1"
+    src="js/vjJavaScript.js"></script>
+<!--     <script type="text/javascript" language="JavaScript1.1"
+<script type="text/javascript" language="JavaScript1.1"
+    src="js-obj/svc-spectraPeakDetection.js"></script> -->
+
+
+<script>
+
+
+    
+    google.load("visualization", "1", {packages:["corechart"]});
+    
+    gInitList += "home_init();";
+
+    setLocationTitle("home: HIVE");
+    var home_GlistMaxTxtLen = 40;
+    var home_fileSelectionCounter=0;
+    var home_searchString=docLocValue("search");
+    if(home_searchString)home_searchString="&search="+home_searchString;else home_searchString="";
+    
+    var currentFolder="";
+
+    /*
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+    _/
+    _/ File Based Lists and Trees 
+    _/
+    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+     */
+     
+    
+    function home_init() 
+    {
+        /* if( cookieGet("explorer_hint_Hidden",false) ) {
+            gObject('explorer_hint_row').style.display="none";
+        } */
+        var explorer,hiveseq;
+        gAjaxPreSubmissionCallback=function(){
+            gUserLoginAccess(0,{'folder':explorer.currentFolder});
+        }
+        
+        var width=parseInt(__getCurrentComputedStyle(gObject('element_toget_metrics_1'),'width'))
+        +parseInt(__getCurrentComputedStyle(gObject('element_toget_metrics_2'),'width'));
+        
+        var home_GFolderGeomX=400;//0.25*width-5;
+        var home_GlistGeomY=gPgH - getElementAbsolutePos(gObject('element_toget_metrics_1')).y -100;
+        var home_GObjectGeomX=width-home_GFolderGeomX-20;
+        var previewHeight=0.4*home_GlistGeomY-50;
+        vjDS.add("composing preview intro", "dsEmpty" , "static://"); 
+        vjDS.add("composing preview intro", "dsPreviewIntro" , "static://preview:Select a hive object to see details"); 
+        vjDS.add("Computing alignment hitlist", "dsAlignerHitList" , "static://"); 
+        vjDS.add("Computing next-gen quality controls", "dsSeqQualityControl1" , "static://"); 
+        vjDS.add("Retrieving quality histograms.", "dsSeqQualityControl2" , "static://"); 
+
+        var valgoGenomeColors = new Array();
+        for (var it = 0; it < gClrTable.length; ++it) valgoGenomeColors[it] = pastelColor(gClrTable[(it + 1) % (gClrTable.length)]); // make colors for those
+
+        var viewerFSTree;
+        var folderURL = "http://?cmd=objList&type=folder&prop=name,childs&mode=csv";
+        
+        explorer=new vjExplorerUsrView({
+            container:"dvExplorer",
+            folders_DV_attributes : {
+                width : home_GFolderGeomX,
+                height : home_GlistGeomY
+            },
+            tables_DV_attributes : {
+                width : home_GObjectGeomX,
+                height : home_GlistGeomY-previewHeight,
+                maxtabs : 8,
+                isok:true
+            },
+            previews_DV_attributes : {
+                width : home_GObjectGeomX,
+                height : previewHeight,
+                maxtabs : 8,
+                hideDV:false
+            },
+            useCookies : true
+            
+        });
+//         var viewerPreviewIntro = new vjHTMLView ({
+//             data: 'dsPreviewIntro',
+//             name:'',
+//             isok:true});
+        
+//         var viewerPreviewEmpty= new vjHTMLView ({
+//             data: 'dsEmpty',
+//             name:'',
+//             isok:true});
+        
+
+        
+
+        explorer.init();
+
+        
+//         explorer.previews_DV.add("preview", "graph", "tab", [viewerPreviewIntro,viewerPreviewEmpty] );//.viewtoggles=1;
+//         explorer.previews_DV.tabs.preview.columns=2;
+        explorer.render();
+        explorer.load(true, true);
+
+    }
+    
+    
+
+</script>
+<!--  
+<form name='form-toolbarhome'>
+    <table>
+        <tr>
+            <td><span id="dvToolbarhome"></span></td>
+            <td></td>
+        </tr>
+    </table>
+</form>
+
+ -->
+ 
+<div class="HIVE_section" style="width:100%">
+
+<!-- <table class="HIVE_section"><tr><td><span id="dvExplorer-visual"></span></td></table> -->
+    <table border='0' width='100%' >
+        <tr>
+            <td id='element_toget_metrics_1' class="HIVE_sect1" width="1%" valign=top rowspan='2'>
+                <form name="form-dvExplorer_Folders" action="dmUploader.cgi"
+                    method="post" enctype="multipart/form-data">
+                    <span id="dvExplorer_Folders"></span>
+                </form>
+            </td>
+            <td id='element_toget_metrics_2' class="HIVE_sect1" valign=top>
+                <form name="form-dvExplorer_Tables" action="dmUploader.cgi"
+                    method="post" enctype="multipart/form-data">
+                    <span id="dvExplorer_Tables"></span>
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td  class="HIVE_sect1" valign=top colspan='2'>
+                <form name="form-dvExplorer_Previews" >
+                    <span id="dvExplorer_Previews"></span>
+                </form>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<form name="hiddenform"></form>
+

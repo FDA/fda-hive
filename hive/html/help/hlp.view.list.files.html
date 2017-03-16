@@ -1,0 +1,18 @@
+<id>hlp.view.list.files.html</id>
+<title>Files visual data container</title>
+<definition>List files available to user</definition>
+<description>The <span class="pagetext">files</span> tabs is one instance of the <a href="hlp.view.dataContainer.html">data container</a> model which visually organizes data through the combined use of toolbar controls and content-specific tables.<br></br>
+
+The file-specific layout provides information about each non-sequence/non-genomic file in the user's space. Content can be made available through <a href="hlp.tool.dmDownloader.html">uploading or retrieval</a> from local computers and publicly databases, sharing by other users and in some cases directly through HIVE (for publicly available data).<br></br>
+
+The file table contains six columns:<br></br>
+1. A checkbox which, upon selection, provides the user additional options including downloading to the local computer, deleting the file(s) from the repository, editing certain rewritable metadata attributes (also accessible from the <a href="hlp.view.details.filesAndSequences.html">details</a> tab in the adjacent viewer), and setting the <a href="hlp.obj.sharing.html">permissions</a> associated with the file<br></br>
+2. A HIVE-assigned unique identification number<br></br>
+3. The size of the file<br></br>
+4. A path hierarchy
+5. A name for the file, the default for which is the file name upon retrieval by HIVE. (This information can be changed via the metadata icon in the <a href="hlp.view.dataContainer.html">toolbar</a> or in the adjacent <a href="hlp.view.details.filesAndSequences.html">details</a> tab)<br></br>
+6. The source of file - for example SRA, RefSeq, etc.<br></br>
+
+The view can alternately be represented as a hierarchy which clusters entities first by protocol (http, ftp, etc), then by a path identifier, and then file name. Selection of checkboxes next to each member allows the user to <a href="hlp.tool.Hexagon.html">align</a>, delete, <a href="hlp.obj.sharing.html">share</a> and <a href="hlp.view.details.filesAndSequences.html">edit</a> the selected sequence, just as the list allows. The user may navigate between list and hierarchy views by clicking the <img border="0" src="img/list.gif" width="12"/> <span class="pagetext">list</span> icon and <img border="0" src="img/tree.gif" width="12"/> <span class="pagetext">hierarchy</span> icon in the lower left of the box, respectively.
+
+</description>

@@ -1,0 +1,13 @@
+<id>hlp.tool.dmDownloader.external.html</id>
+<title>Data Retrieval Pipeline</title>
+<definition>Interface allowing upload of local files or download of external files</definition>
+<description>There are several options for downloading data from external sources.<br></br>
+
+The most common way to download the data is to input the URL directly inot the <span class="pagetext">URL</span> tab.  The URL may be full path (EX: http://www.ebi.ac.uk/ena/data/view/CAG46501&display=fasta), but it may also be provided without the protocol (EX: www.ebi.ac.uk/ena/data/view/CAG46501&display=fasta).  If entered without protocol, the user should specify the data source from which the data will be retrieved using the <span class="pagetext">Datasource</span> select box below. For example, the URL may be the Bioproject ID from NCBI, in which case the user should specify the data source as <span class="pagetext">NCBI Bioproject Genome</span>,
+<span class="pagetext">NCBI Bioproject Exome</span> or <span class="pagetext">NCBI Bioproject Proteome</span> in the <span class="pagetext">Data Source</span> select box and input the ID into the <span class="pagetext">URL</span> field.
+If one or many URLs come from different sources, each must be individually specified (EX: http://, ftp://, etc.. ) or a range must be provided (EX: Bioproject ID range: 59189-59202).<br></br>
+
+The <span class="pagetext">External List</span> field can be used when supplying a number of accessions to the same external source. The <span class="pagetext">User Name</span> and <span class="pagetext">Password</span> fields can be used if there are security protocols required to access the database. (The user must already have an account to access the database, HIVE does not grant access to secured databases.) The <span class="pagetext">Name</span> field allows the user to rename the file for easy reference once it is in HIVE. The <span class="pagetext">Concurrency of Download</span> select box allows the user to select the degree of parallelization necessary for the proposed job.<br></br>
+
+The user can toggle back to local uploader by clicking the <img border="0" src="img/upload.gif" width="18"/> <span class="pagetext">local file uploader</span> icon at the bottom left of this box.
+</description>

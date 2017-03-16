@@ -1,0 +1,771 @@
+<!--
+$Id$
+vim: set et ts=4 sts=4:
+-->
+<script type="application/javascript" language="JavaScript1.1" src="js/vjTableViewX2.js" ></script>
+
+<script  src='js/vjSVGView.js'> </script>
+<script  src='js/vjPluggableToolbar.js'> </script>
+<script  src='js/vjTreeSeries.js'> </script>
+<script  src='js-graph/vjSVG_Phylogram.js'> </script>
+<script  src='js-graph/vjSVG_base.js'> </script>
+<script  src='js-graph/vjSVG_primitive.js'> </script>
+<script  src='js-graph/vjSVG_plot.js'> </script>
+<script  src='js-graph/vjSVG_HeatMap.js'> </script>
+<script  src='js/vjIFrameView.js'> </script>
+<script src='js-graph/vjSVG_SOM.js'></script>
+<script type="text/javascript" src="d3js/core/d3.js"></script>
+<script type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/stackable_group_bars.js"></script>
+<script type="text/javascript" src="d3js/phylog_tree.js"></script>
+
+<script>
+if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
+javaScriptEngine.include("js-graph/vjSVG_plot.js");
+javaScriptEngine.include("js-graph/vjSVG_base.js");
+javaScriptEngine.include("js-graph/vjSVG_Axis.js");
+javaScriptEngine.include("js-graph/vjSVG_primitive.js");
+javaScriptEngine.include("js-graph/vjSVG_Defaults.js");
+javaScriptEngine.include("js-graph/vjSVG_General.js");
+</script>
+
+
+
+<script type="application/javascript">
+
+google.load("visualization", "1", {
+    packages : [ "corechart" ]
+});
+gInitList += "tblqryx2_init();";
+
+var tablev;
+var formName='formTblqryX2';
+var iframewidth=800;
+var NCBIFrameDatasource="static://<iframe name='ncbiframe' width="+iframewidth+" height=800 src='https://www.ncbi.nlm.nih.gov/pubmed/?term=%ACTUALNCBIURL%%20Hip%20Arthroplasty'></iframe>";
+//var MedDevFrameDatasource="static://<iframe name='ncbiframe' width="+iframewidth+" height=800 src='http://comb/cdrh-meddev/searchResults.aspx?search=%ACTUALMEDDEVURL%hip%20arthroplasty'></iframe>";
+sizeAtUndo=-1;
+tqs = [];
+redoCommands = [];
+//latestCommand = -1;
+latestReqID = -1;
+allPluginsList = [];
+lengthOfTqs=-1;
+
+function tblqryx2_init()
+{
+    vjDS.add("Student T-Test", "dsStatTest", "static:// ");
+    vjDS.add("Student T-Test", "dsStatTestManhattan", "static:// ");
+    vjDS.add("Bayesian Stat", "dsBStat", "static:// ");
+    vjDS.add("Pearson Correlation", "dsPearsonCorrHeat", "static:// ");
+    vjDS.add("Pearson Correlation", "dsPearsonCorrMax", "static:// ");
+    vjDS.add("Pearson Heatmap", "dsPearsonHeatmapMap", "static:// ");
+    vjDS.add("Fourier Even", "dsFourier", "static://");
+    vjDS.add("Fourier Graph", "dsFourierGraph", "static://");
+    vjDS.add("Kaplan Meier", "dsKaplanMeier", "static://");
+    vjDS.add("Dictionary Table", "dsDicTbl", "static://");
+    
+    //checking if these parameters were given to us in the url to this page 
+    var objs = docLocValue("objs", -1);
+    var tqsId = docLocValue("tqsId", -1);
+    var tbls = docLocValue("tbl", -1);
+    var dataId = docLocValue("dataId", -1);
+    var cols = docLocValue("cols", -1);
+  
+    var fromHitList=docLocValue("extendAnnot",-1);
+    
+    var urlToUse = "qpbg_tblqryx4://";
+    if (tbls == -1)
+        urlToUse += "_.csv//spcTypeObj=tblqryx2&cnt=1000&raw=1";
+    else
+        urlToUse += tbls + "//spcTypeObj=tblqryx2&cnt=1000&raw=1";
+    
+    if (objs != -1)
+       {
+        urlToUse += "&objs=" + objs;
+        latestCommand = "objs";
+    }
+    if (tqsId != -1)
+        urlToUse += "&tqsId=" + tqsId;
+    if (dataId != -1)
+        urlToUse += "&dataId=" + dataId;
+    if (cols != -1)
+        urlToUse += "&cols=" + cols;
+    
+    
+       var urlToPut = "static://";
+       if (urlToUse != "qpbg_tblqryx4://_.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200")
+       {
+           urlToPut = urlToUse;
+           urlToPut = urlExchangeParameter(urlToPut, "cols", "0-200");
+       }
+       if (objs !=-1 && fromHitList != -1){
+           var ionObjs = docLocValue("ionObjs");
+           var cnt = docLocValue('cnt') ? docLocValue('cnt') : 50;
+           if (ionObjs.length){
+               urlToPut = "cmd=alCount&extendAnnot=1&cnt="+cnt+"&objs=" + objs + "&ionObjs=" + ionObjs;
+           }
+           else {
+               urlToPut = "cmd=alCount&extendAnnot=1&cnt=50&objs=" + objs;
+           }
+           var profilerID = docLocValue("profilerID");
+           if (profilerID.length){
+               urlToPut += "&profilerID=" + profilerID;
+           }
+           urlToPut = vjDS.escapeQueryLanguage(urlToPut);
+           urlToPut = "qpbg_tblqryx4://_.csv//dataCmd="+urlToPut + "&cnt="+cnt;
+       }
+
+    myGraphViewer = new vjGoogleGraphView({
+        data: 'dsTblQryX2', //the graph will be generated from this data source
+        name: 'basicGraph',
+        options:{
+            colors:vjPAGE.colorsACGT,
+            width: 800, height: 300, chartArea :{height:'100%', width: '100%' },
+            legend: 'none',
+            isStacked:true,
+            pieSliceText: 'label'
+            },
+          series:[]
+    });
+    
+    this.menuUpdateCallback = function (viewer, url) 
+      {
+           var curtqs = tableviewArr.arrayPanels[tableviewArr.arrayPanels.length-1].tqsObj;
+           
+           for (var i = 0; i < curtqs.length; i++)
+           {
+               if (curtqs[i].op == "collapsewithstat" )
+               {
+                   curtqs[i].arg["reverse"] = false;
+                   var cols = curtqs[i].arg.colSet.toString();
+                   var colArray = [];
+       
+                   
+                   while (cols.indexOf(",") >= 0)
+                   {
+                       var toPut = cols.substring(0,cols.indexOf(","));
+                       cols = cols.substring (cols.indexOf(",")+1);
+                       colArray.push ("$"+toPut);
+                   }
+                   colArray.push ("$" + cols);
+                   curtqs[i].arg["formulas"] = colArray;
+               } 
+           }
+           
+            var ds=new vjDataSource();
+           return urlExchangeParameter(url, "tqs", ds.escapeQueryLanguage(JSON.stringify(curtqs)));
+      }
+    
+    vjDS.add("Table query result", "dsTblQryX2", urlToPut);
+    vjDV.add("dvTable", "100%", 800);
+    tableviewArr = new vjTableControlX2({
+        data: "dsTblQryX2" ,
+        name:'table',
+        icon:'table',
+        graph: myGraphViewer,
+        formObject: document.forms[formName],
+        multiSelect:true,
+        colorCategorizer:true,
+        callbackRendered: tableRendered,
+        localSortDisable:true,
+        menuUpdateCallbacks: [this.menuUpdateCallback],
+        isok:true
+    });
+    //tableviewArr.onTableRenderedCallbacks.push(tableRendered);
+    
+    for (var key in tableviewArr.arrayPanels.plugins)
+        allPluginsList.push(key);
+    
+    tablev=tableviewArr.arrayPanels[tableviewArr.arrayPanels.length-1];
+    if (fromHitList) {
+        tablev.maxTxtLen = 32;
+    }
+
+
+    vjDV["dvTable"].add("Result", "table", "tab", tableviewArr.arrayPanels);
+    vjDV["dvTable"].render();
+    vjDV["dvTable"].load();
+
+    var ts = new vjTreeSeries({
+        title: "hierarchical clustering tree",
+        name: "dsTree",
+        url: "static://",
+        dataFormat: "newick",
+        type: "rectangular"
+    });
+
+    var phylogram = new vjSVG_Phylogram();
+    phylogram.add(ts);
+
+    var treeViewer = new vjD3JS_TreeView({
+        data: 'dsTree',
+        height: 800,
+        newick: true,
+        openLevels:3
+    });
+
+
+    var ets=new vjTreeSeries({
+        title: "hierarchical clustering tree",
+        name: "dsExtTree",
+        url: "static://",
+        dataFormat: "newick",
+        type: "rectangular"
+    });
+
+    var extphylogram = new vjSVG_Phylogram();
+    extphylogram.add(ets);
+
+    var extTreeViewer=new vjSVGView({
+            chartArea: {width: "95%", height: "95%"}
+            ,formObject: document.forms[formName]
+            ,plots: [extphylogram]
+        });
+
+    vjDV.add("dvExternalCommandOutputs", 1200, 800);
+
+    myHeatmapPlot = new vjSVG_HeatMap({
+        color: {min: "blue", max: "red", mid:"white"},
+        heat_image_url: "http://?cmd=-qpData&req="+latestReqID+"&dname=heatmap.png",
+        heat_image_min_cells: 10000,
+        legend_range: {min_text: "minimum", mid_text: "", max_text: "maximum"}
+    });
+    myHeatmapPlot.add(new vjDataSeries({
+        url: "static://",
+        name: "dsHeatmapMap",
+        id: "heat",
+        type: "raw",
+        minCellSize: 50,
+        isok: true
+    }));
+    var leftSeries = new vjTreeSeries({
+        url: "static://",
+        name: "dsHeatmapLeft",
+        id: "left",
+        isok: true
+    });
+    var topSeries = new vjTreeSeries({
+        url: "static://",
+        name: "dsHeatmapTop",
+        id: "top",
+        isok: true
+    });
+    myHeatmapPlot.add(leftSeries);
+    myHeatmapPlot.add(topSeries);
+
+    var dsSom = new vjDataSeries({
+        url: "static://",
+        name: "dsSom",
+        id: "som",
+        type: "raw",
+        isok: true
+    });
+    var dsRows = new vjDataSeries({
+        url: "static://",
+        name: "dsRows",
+        id: "rows",
+        type: "raw",
+        isok: true
+    });
+
+    plot = new vjSVG_SOM();
+
+    plot.add(dsSom);//this will in the future add to the this.collection in vjSVG_SOM
+    plot.add(dsRows);
+
+    var mySomViewer = new vjSVGView({
+        chartArea: {width: "95%", height: "95%"},
+        plots: [plot],
+        isok: true
+    });
+
+
+
+    var myHeatmapViewer = new vjSVGView({
+        chartArea: {width: "95%", height: "95%"},
+        plots: [myHeatmapPlot]
+    });
+
+
+    var heatmapViewerToolbar=new vjPanelView({
+        data:['dsVoid', 'dsTblQryX2'],
+        iconSize:24,
+        formObject: document.forms[formName],
+        showTitles:true,
+        rows: [
+            {name:'saveHeatmapSet', align:'left', order:-1 ,title: 'Save for future calculations' ,  type:'color', value: '#66FFFF', showTitleForInputs: true},
+            {name:'flipx', align:'left', order:0 ,title: 'Flip along x-axis' ,  type:'button'},
+            {name:'flipy', align:'left', order:1 ,title: 'Flip along y-axis' ,  type:'button'},
+            {name:'saveimage', align:'left', order:2 ,title: 'Save image' ,  type:'button'},
+            {name:'changeColorScheme', align:'left', order:3 ,title: 'Change Color Scheme', path:'/changeColorScheme'},
+            {name:'min', align:'left', order:3 ,title: 'Pick minimum', type: 'color', value:"#0000FF", showTitleForInputs: true, path:'/changeColorScheme/min'},
+            {name:'max', align:'left', order:4 ,title: 'Pick maximum', type: 'color', value:"#FFFF00", showTitleForInputs: true, path:'/changeColorScheme/max'}
+            ]
+        });
+
+    var treeViewerToolbar=new vjPanelView({
+        data:['dsVoid', 'dsTblQryX2'],
+        iconSize:24,
+        formObject: document.forms[formName],
+        showTitles:true,
+        rows: [
+            {name:'saveTreeSet', align:'left', order:-1 ,title: 'Save for future calculations' ,  type:'color', value: '#66FFFF', showTitleForInputs: true},
+            {name:'flipx', align:'left', order:0 ,title: 'Flip vertically' ,  type:'button'},
+            {name:'flipy', align:'left', order:1 ,title: 'Flip horizantally' ,  type:'button'},
+            {name:'saveimage', align:'left', order:2 ,title: 'Save image' ,  type:'button'}
+            ]
+        });
+
+    var myKMView= new vjGoogleGraphView({
+        data: 'dsKaplanMeier',
+        series:[
+                {col:0, title: "Days"},
+                {col:1, title: "Survival"}
+                ],
+        options:{
+            width : gPgW*0.6,
+            height : 250,
+            chartArea : {
+                top : 20,
+                left : 80,
+                height : '80%',
+                width : '80%'
+            },
+            hAxis: {title: "Days"},
+            vAxis : {title: "Survival"}
+        },
+        type: "line",
+        isok: true
+    });
+
+    var myStatTestViewer=new vjTableView({
+        data: 'dsStatTest',
+        formObject: document.forms[formName],
+           bgColors: ['#f2f2f2', '#ffffff'],
+
+        isok: true
+    });
+    
+    var statTestToolbar = new vjPanelView({
+        data:['dsVoid', 'dsTblQryX2'],
+        iconSize:24,
+        formObject: document.forms[formName],
+        showTitles:true,
+        rows: [
+            {name:'downloadPic', align:'left', order:1 ,title: 'Download files', icon: 'save', showTitleForInputs: true, path: '/downloadPic', url: downloadStatTest}
+            ]
+       });
+    
+    var statTestManhattanPlot= new vjGoogleGraphView({
+        data:"dsStatTestManhattan",
+        series:[
+                {col:0, title: "Identifier"},
+                {col:1, title: "Log P"}
+                ],
+        options:{
+            width : gPgW*0.6,
+            height : 250,
+            chartArea : {
+                top : 20,
+                left : 80,
+                height : '80%',
+                width : '80%'
+            },
+            hAxis: {title: "Identifier"},
+            vAxis : {title: "-log(p)"}
+        },
+        type:"scatter",
+        isok: true
+    });
+    
+    var myBStatViewer=new vjTableView({
+        data: 'dsBStat',
+        formObject: document.forms[formName],
+        bgColors: ['#f2f2f2', '#ffffff'],
+
+        isok: true
+    });
+    
+    var BStatToolbar = new vjPanelView({
+        data:['dsVoid', 'dsTblQryX2'],
+        iconSize:24,
+        formObject: document.forms[formName],
+        showTitles:true,
+        rows: [
+            {name:'downloadPic', align:'left', order:1 ,title: 'Download files', icon: 'save', showTitleForInputs: true, path: '/downloadPic', url: downloadBStat}
+            ]
+        });
+    
+    var myPearsonMatrix=new vjTableView({
+        data: 'dsPearsonCorrHeat',
+        formObject: document.forms[formName],
+        bgColors: ['#f2f2f2', '#ffffff'],
+
+        isok: true
+    });
+    
+    var myPearsonBest=new vjTableView({
+        data: 'dsPearsonCorrMax',
+        formObject: document.forms[formName],
+        bgColors: ['#f2f2f2', '#ffffff'],
+        selectCallback: myPearsonCallback, 
+        isok: true
+    });
+    
+    var myPearsonHeatmapPlot = new vjSVG_HeatMap({
+        color: {min: "blue", max: "yellow", mid:"black"},
+        heat_image_min_cells: 10000
+    });
+    myPearsonHeatmapPlot.add(new vjDataSeries({
+        url: "static://",
+        name: "dsPearsonHeatmapMap",
+        id: "heat",
+        type: "raw",
+        minCellSize: 50,
+        isok: true
+    }));
+    
+    var myPearsonHeatmapViewer = new vjSVGView({
+        chartArea: {width: "95%", height: "95%"},
+        plots: [myPearsonHeatmapPlot]
+    });
+    
+    
+       var fourierViewerToolbar=new vjPanelView({
+        data:['dsVoid', 'dsTblQryX2'],
+        iconSize:24,
+        formObject: document.forms[formName],
+        showTitles:true,
+        rows: [
+            {name:'downloadPic', align:'left', order:1 ,title: 'Download files', icon: 'save', showTitleForInputs: true, path: '/downloadPic'},
+            {name: 'even', align:'left', order:1 ,title: 'Download Frequency Table',  showTitleForInputs: true, path: '/downloadPic/even', url: downloadEven}
+            ]
+        });
+    var myFourierEven=new vjTableView({
+        data: 'dsFourier',
+        formObject: document.forms[formName],
+        options: {width: "100%"},
+        bgColors: ['#f2f2f2', '#ffffff'],
+        selectCallback: myFourierCallback, 
+        isok: true
+    });
+    
+    myFourierGraph=new vjD3JS_StackableGroupBars({
+        data: "dsFourier",
+        //height: 800,
+        cols: [],
+        labelCol:"ID"
+    });
+    
+    var myDicTbl=new vjTableView({
+        data: 'dsDicTbl',
+        formObject: document.forms[formName],
+        options: {width: "100%"},
+        bgColors: ['#f2f2f2', '#ffffff'],
+        selectCallback: myFourierCallback, 
+        isok: true
+    });
+    
+    vjDV["dvExternalCommandOutputs"].add("Heatmap", "graph", "tab", [myHeatmapViewer]);
+    vjDV["dvExternalCommandOutputs"].add("Clustering Tree","tree","tab",[treeViewer]);
+    vjDV["dvExternalCommandOutputs"].add("Basic Graphs","pie","tab",[myGraphViewer]);
+    vjDV["dvExternalCommandOutputs"].add("Self Organizing Map","scatter","tab",[mySomViewer]);
+    vjDV["dvExternalCommandOutputs"].add("Student T-Test","scatter","tab",[statTestToolbar, myStatTestViewer, statTestManhattanPlot]);
+    vjDV["dvExternalCommandOutputs"].add("Bayesian Stat","scatter","tab",[BStatToolbar, myBStatViewer]);
+    vjDV["dvExternalCommandOutputs"].add("Pearson Correlation","scatter","tab",[myPearsonHeatmapViewer, myPearsonMatrix, myPearsonBest]);
+    vjDV["dvExternalCommandOutputs"].add("Fourier Transform","scatter","tab",[fourierViewerToolbar, myFourierEven, myFourierGraph]);
+    vjDV["dvExternalCommandOutputs"].add("Kaplan Meier", "graph", "tab", [myKMView]);
+    vjDV["dvExternalCommandOutputs"].add("Dictionary Table", "scatter", "tab", [myDicTbl]);
+    vjDV["dvExternalCommandOutputs"].render();
+    vjDV["dvExternalCommandOutputs"].load();
+
+    vjDS.add("Table query result", "dsNCBIFrame", NCBIFrameDatasource.replace("%ACTUALNCBIURL%",""));
+    //vjDS.add("Table query result", "dsMedDevicesFrame", MedDevFrameDatasource.replace("%ACTUALMEDDEVURL%",""));
+
+   // var ncbiIFrameViewer=new vjIFrameView({data:"dsNCBIFrame"});
+    //var medDevicesIFrameViewer=new vjIFrameView({data:"dsMedDevicesFrame"});
+   // vjDV.add("dvFrames",iframewidth,800);
+    //vjDV["dvFrames"].add("NCBI references","table","tab",[ncbiIFrameViewer]);
+   // vjDV["dvFrames"].add("MedDevices","table","tab",[medDevicesIFrameViewer]);
+
+    //vjDV["dvFrames"].render();
+    //vjDV["dvFrames"].load();
+
+    myHeatmapPlot.registerOnclickCallback(function(irows, icols, type, value, param) {
+        //alert("onclick: { irows: " + irows + ", icols: " + icols + ", type: " + type + ", value: " + value + ", param: " + param + "}");
+
+
+        vjDS["dsNCBIFrame"].reload(NCBIFrameDatasource.replace("%ACTUALNCBIURL%",protectFields(value)),true);
+        //vjDS["dsMedDevicesFrame"].reload(MedDevFrameDatasource.replace("%ACTUALMEDDEVURL%",protectFields(value+"%20")),true);
+        window.frames['ncbiframe'].src="http://www.ncbi.nlm.nih.gov/pubmed/?term="+protectFields(value);
+
+    });
+    /*
+    //currently there is not on lick call back for tree series
+    phylogram.register_callback({obj:phylogram, func: function (value){
+        //alert("onclick: { irows: " + irows + ", icols: " + icols + ", type: " + type + ", value: " + value + ", param: " + param + "}");
+
+
+        vjDS["dsNCBIFrame"].reload(NCBIFrameDatasource.replace("%ACTUALNCBIURL%",protectFields(value)),true);
+        vjDS["dsMedDevicesFrame"].reload(MedDevFrameDatasource.replace("%ACTUALMEDDEVURL%",protectFields(value+"%20")),true);
+        window.frames['ncbiframe'].src="http://www.ncbi.nlm.nih.gov/pubmed/?term="+protectFields(value);
+
+    }});*/
+    
+    plot.registerOnclickCallback(function(irows,icols,type,value,param){
+        alert ("Closest Row: " + value);    
+    });
+    
+    vjDV.add("dvCommandLog", 800,800);
+
+    commandLogViewer = new vjTableView({
+        data:['dsTblQryX2'],
+        formObject: document.forms[formName],
+        bgColors:['#f2f2f2','#ffffff'],
+        url: "static://",
+        name: "dvCommandLog",
+        id: "command",
+        isok:true
+    });
+
+    var commandLogViewerToolbar=new vjPanelView({
+        data:['dsVoid', 'dsTblQryX2'],
+        iconSize:24,
+        formObject: document.forms[formName],
+        showTitles:true,
+        rows: [
+            {name:'saveCommands', align:'left', order:0 ,title: 'Save the commands in a TQS file',  icon:'save', url: downloadFunc},
+            {name:'undoCommand', align:'left', order:-1 ,title: 'Undo the latest command',  icon:'recRevert', url: undoFunc},
+            {name:'redoCommand', align:'left', order:1 ,title: 'Redo the latest command',  icon:'recRedo', url: redoFunc}
+            ]
+        });
+
+    vjDV["dvCommandLog"].add("Command Log", "graph", "tab", [commandLogViewerToolbar, commandLogViewer]);
+    vjDV["dvCommandLog"].render();
+    vjDV["dvCommandLog"].load();
+};
+
+function myFourierCallback (viewer, node, irow, icol, cellHeader)
+{
+    if (cellHeader.name.indexOf(" Even") < 0 && cellHeader.name.indexOf(" Odd") < 0)
+        return;
+    
+    var actualColName;
+    if (cellHeader.name.indexOf(" Even") > 0)
+        actualColName = cellHeader.name.substring (0, cellHeader.name.indexOf(" Even"));
+    else
+        actualColName = cellHeader.name.substring (0, cellHeader.name.indexOf(" Odd"));
+    
+    myFourierGraph.cols = [{name: actualColName + " Even"}, {name: actualColName + " Odd"}];
+
+    myFourierGraph.composerFunction(myFourierGraph, "", viewer.data);
+};
+
+function myPearsonCallback (viewer, node)
+{
+    var tqsToUse = [{op: "hidecol", arg: {cols: "*"}},
+                    {op: "appendcol", arg: {name: "Name Column", formula: "$0"}},
+                    {op: "appendcol", arg: {name: "New " + node.cols[0], formula: "${"+node.cols[0]+"}"}},
+                    {op: "appendcol", arg: {name: "New " + node.cols[1], formula: "${"+node.cols[1]+"}"}},
+                    ];
+    if (!vjDS["dsPearsonNewDS"])
+        vjDS.add("Pearson Heatmap", "dsPearsonNewDS", "static:// ");
+    
+    var nTqs = tqs.concat(tqsToUse);
+    var nUrl = urlExchangeParameter (oldUrl, "tqs", vjDS["dsPearsonNewDS"].escapeQueryLanguage(JSON.stringify(nTqs))); 
+        
+    vjDS["dsPearsonNewDS"].reload(nUrl, true);
+};
+
+function downloadFunc(vv, table, irow, icol)
+{
+    var url = "?cmd=-qpData&req="+latestReqID+"&dname=tqs.json&dsaveas=abcdef1.json";
+    download(url);
+};
+
+function download(url) 
+{
+    var pom = document.createElement('a');
+    pom.setAttribute('href', url);
+    pom.setAttribute('download', "abcdef.json");
+    pom.setAttribute ('onclick', "document.execCommand('SaveAs',true,'file.html');");
+    document.execCommand('SaveAs',true,'file.html');
+    document.body.appendChild(pom);
+    pom.click();
+    document.body.appendChild(pom);
+};
+
+function undoFunc(vv, table, irow, icol)
+{
+    if (lengthOfTqs < 0)    
+        lengthOfTqs = tqs.length;
+    
+    if (lengthOfTqs <= 0)
+        return;
+
+    
+    redoCommands[redoCommands.length] = tqs[tqs.length-1];
+    sizeAtUndo = tqs.length;
+    if (allPluginsList.indexOf(tqs[tqs.length-1].op)){
+        sizeAtUndo--;
+        redoCommands[redoCommands.length] = tqs[tqs.length-2];
+        lengthOfTqs--;
+    }
+
+    var url = urlExchangeParameter(oldUrl, "tqsCnt", lengthOfTqs-1);
+    vjDS["dsTblQryX2"].reload(url,true);
+    lengthOfTqs--;
+};
+
+function redoFunc(vv, table, irow, icol)
+{
+    if (sizeAtUndo == -1 || lengthOfTqs > tqs.length)
+        return;
+
+/*     tqs[tqs.length] = redoCommands[redoCommands.length-1];
+    redoCommands.splice(redoCommands.length-1, 1); */
+    sizeAtUndo++;
+
+    var url = urlExchangeParameter(oldUrl, "tqsCnt", sizeAtUndo);
+    url = urlExchangeParameter(url, "tqs",  vjDS["dsTblQryX2"].escapeQueryLanguage(JSON.stringify(tqs)));
+    vjDS["dsTblQryX2"].reload(url,true);
+    lengthOfTqs++;
+};
+
+function constructLogViewerTable(that)
+{
+    that.tblArr = new vjTable("", 0, vjTable_propCSV);
+    that.tblArr.hdr = [{name: "Operation"}];
+    that.tblArr.rows = [];
+    var totalAdded = 0;
+
+    if (lengthOfTqs != 0){
+        for (var irow = 0; (lengthOfTqs>=0 && irow< lengthOfTqs) || irow < tqs.length; irow++)
+        {
+            var operation = tqs[irow];
+            var toPrint ="";
+            
+            if (operation.toPrint)
+                toPrint = operation.toPrint;
+            
+            if (toPrint != "")
+            {
+                that.tblArr.rows[totalAdded] = { cols: [tqs[irow].op], "Operation": toPrint };
+                totalAdded++;
+            }
+        }
+    }
+
+    that.tblArr.syncCols();
+    that.refresh();
+};
+
+function tableRendered (viewer,text)
+{
+    viewer=tablev;
+    
+    vjDV["dvExternalCommandOutputs"].onClickTabSelect("Basic Graphs", 3);
+
+    tqs = viewer.tqsObj;
+    
+    if (latestReqID == -1)
+        latestReqID = vjQP.req;
+
+    for (var i = 0; viewer.tqsObj && i < viewer.tqsObj.length; i ++)
+    {
+        if( viewer.tqsObj[i].op == "heatmap") {
+            myHeatmapPlot.heat_image_url = "?cmd=-qpData&req="+latestReqID+"&dname=heatmap.png";
+            vjDS["dsHeatmapMap"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=heatmap.csv",true);
+            //vjDS["dsHeatmapMap"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=heatmap.png",true);
+            vjDS["dsHeatmapTop"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=vertical.tre",true);
+            vjDS["dsHeatmapLeft"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=horizontal.tre",true);
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("Heatmap", 0);
+        }
+        if( viewer.tqsObj[i].op == "tree" ) {
+            vjDS["dsTree"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=cluster.tre", true);
+            vjDS["dsExtTree"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=cluster1.tre", true);
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("Clustering Tree", 1);
+        }
+        if( viewer.tqsObj[i].op == "som" ) {
+            vjDS["dsSom"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=color.csv", true);
+            vjDS["dsRows"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=geom.csv", true);
+
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("Self Organizing Map", 4);
+        }
+        if( viewer.tqsObj[i].op == "statTest" ) {
+            vjDS["dsStatTest"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=stat.csv", true);
+            vjDS["dsStatTestManhattan"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=graphData.csv", true);
+
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("Student T-Test", 5);
+        }
+        if( viewer.tqsObj[i].op == "bStat" ) {
+            vjDS["dsBStat"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=bayesianStat.csv", true);
+
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("Bayesian Stat", 6);
+        }
+        if( viewer.tqsObj[i].op == "pearsonCorr" ) {
+            vjDS["dsPearsonHeatmapMap"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=pearsonHeatmap.csv", true);
+            vjDS["dsPearsonCorrHeat"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=matrix.csv", true);
+            vjDS["dsPearsonCorrMax"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=bestMatch.csv", true);
+
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("Pearson Correlation", 7);
+        }
+        if( viewer.tqsObj[i].op == "fourier" ) {
+            vjDS["dsFourier"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=FourierTransform.csv", true);
+            //vjDS["dsFourierOdd"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=FourierTransformOdd.csv", true);
+
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("Fourier Transform", 8);
+        }
+        if( viewer.tqsObj[i].op == "kaplanmeier") {
+            vjDS["dsKaplanMeier"].reload("http://?cmd=-qpData&req="+vjQP.req+"&dname=kaplan-meier.csv",true);
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("Kaplan Meier", 9);
+        }
+/*         if( viewer.tqsObj[i].op == "dictionaryTable") {
+            vjDS["dsDicTbl"].reload("http://?cmd=-qpData&req="+vjQP.req+"&dname=dictionaryResult.csv",true);
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("DictionaryTable", 10);
+        } */
+    }
+    
+    constructLogViewerTable(commandLogViewer);
+}
+
+function downloadStatTest(viewer)
+{
+    var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=stat.csv";
+    vjDS["dsStatTest"].reload(url,true,"download");
+}
+
+function downloadBStat(viewer)
+{
+    var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=bayesianStat.csv";
+    vjDS["dsBStat"].reload(url,true,"download");
+}
+
+function downloadEven(viewer)
+{
+    var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=FourierTransform.csv";
+    vjDS["dsFourier"].reload(url,true,"download");
+}
+
+
+</script>
+<form name="formTblqryX2">
+<center>
+    <div id="dvTable"></div>
+    <input type='button' onclick='tableRendered()' size='0' />
+    <div id="selections"></div>
+
+    <table>
+        <tr>
+            <td width="50%">
+                <div id="dvExternalCommandOutputs"></div>
+            </td>
+            <td width="50%">
+                 <div id="dvCommandLog"></div>
+
+            </td>
+        </tr>
+    </table>
+
+</center>
+</form>

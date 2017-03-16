@@ -1,0 +1,98 @@
+<!--
+ $Id$
+-->
+<script>
+    gInitList+="user_pswd_init();";
+
+    function user_pswd_init()
+    {
+        var preset, xp = 0;
+        if( cookieGet('preset') ) {
+            preset = cookieGet('preset');
+        }
+        cookieDelete('preset');
+        if( cookieGet('xp') ) {
+            gObject("xpInp").value = cookieGet('xp');
+        }
+        if( cookieGet('emailAct') ) {
+            gObject("eInp").value = cookieGet('emailAct');
+        }
+        cookieDelete('xp');
+        cookieDelete('emailAct');
+        if( cookieGet('followTo') ) {
+            gObject("follow").value = cookieGet('followTo');
+        }
+        cookieDelete('followTo');
+
+        var els = document.forms["form-userSet"].elements;
+        if( preset && preset.length > 0) {
+            gObject("pswdCurrent").className = "sectHid";
+            els["pswdCurrentInp"].value = preset;
+            els["newpass1Inp"].focus();
+            gObject("titleUsrPswd").innerHTML = "Password reset";
+        } else {
+            gObject("cmd").value = "pswdChange";
+            gObject("titleUsrPswd").innerHTML = "Password change";
+            els["pswdCurrentInp"].focus();
+        }
+    }
+
+    gForm_onEnterCallback = function(ctrl, e) {
+        if (ctrl.tabIndex > 0) {
+            var gap = 10000000, dst;
+            for ( var i = 0; i < ctrl.form.elements.length; i++) {
+                var idx = ctrl.form.elements[i].tabIndex;
+                if (idx > ctrl.tabIndex && gap > (idx - ctrl.tabIndex)) {
+                    gap = idx - ctrl.tabIndex;
+                    dst = ctrl.form.elements[i];
+                }
+            }
+            if (dst != ctrl) {
+                dst.focus();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function user_pswd_submit(form) {
+        if( gObject("pswdCurrent").className != "sectHid" && !gObject("pswdCurrentInp").value ) {
+            gObject("err_msg").innerHTML = 'Current password required!';
+            gObject("pswdCurrentInp").focus();
+            return false;
+        }
+        return true;
+    }
+</script>
+
+<form name='form-userSet' action='' method='post' enctype="multipart/form-data" onsubmit="return user_pswd_submit(this);" onKeyPress="return gOnFormEnter(event)">
+    <span id="sectGeneral"><div class="HIVE_section">
+            <span class="HIVE_section_title" id="titleUsrPswd">Password Update</span>
+            <div class="HIVE_sect1">
+                <table>
+                    <tr>
+                        <td valign=top>
+                            <table width="100%" class="HIVE_table">
+                                <tr id="pswdCurrent">
+                                    <td align=right class="HIVE_variable">Current Password</td>
+                                    <td align=left><input id="pswdCurrentInp" name="pswd" type="password" tabIndex="1" /> <span class="REC_error">- required</span></td>
+                                </tr>
+                                <tr>
+                                    <td align=right class="HIVE_variable">New Password</td>
+                                    <td align=left><input id="newpass1Inp" name="newpass1" type="password" tabIndex="2" /> <small>requirements: at least 8 symbols long, one lower case, one upper case and one numeral.</small></td>
+                                </tr>
+                                <tr>
+                                    <td align=right class="HIVE_variable">Confirm Password</td>
+                                    <td align=left><input name="newpass2" type="password" tabIndex="3" /></td>
+                                </tr>
+                                <tr>
+                                    <td align=right></td>
+                                    <td align=left><input type='submit' value='Save' tabIndex="4" /><span class="REC_error" id="err_msg"></span></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div> </span> <input type='hidden' name="cmd" id="cmd" value="pswdSet" /> <input type='hidden' id='follow' name="follow" value="login" /> <input type='hidden' name="x" id="xpInp" /> <input type='hidden' name="login" id="eInp" />
+</form>

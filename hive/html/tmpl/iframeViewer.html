@@ -1,0 +1,40 @@
+<!--
+ $Id$
+-->
+<html>
+<link rel="stylesheet" href="css/hive.css" type="text/css" />
+<script src="js/basic.js"></script>
+
+    <script type="text/javascript">
+
+        function iframe_fileSelected(thisform, hiddenFileInput, descriptionInput)
+        {
+            var gform=document.forms[thisform];
+            var flnm=gform.elements[hiddenFileInput].value;
+            var ppos=flnm.lastIndexOf("/");
+            if(ppos==-1)ppos=flnm.lastIndexOf("\\");
+            if(ppos==-1)ppos=0;
+            gform.elements[descriptionInput].value=flnm.substring(ppos+1);
+
+        }
+        
+        function  iframe_fileBrowseClick(thisform, hiddenFileInput)
+        {
+            document.forms[thisform].elements[hiddenFileInput].click();
+
+        }
+        </script>
+
+
+<form name='iFrameForm' action="dmUploader.cgi" method="post" enctype="multipart/form-data" > 
+<div id="iFrameDiv">
+</div>
+</body>
+</html>
+
+
+
+
+
+
+

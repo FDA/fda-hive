@@ -1,0 +1,23 @@
+# current build mode
+makefile.mode
+
+# object directories
+debug-*/**
+pdebug-*/**
+release-*/**
+
+# python compiled things
+*.pyc
+pyhive.so
+
+# symlinks that need to be created manually if needed for the site
+hive/html/doc
+hive/html/*.cgi
+
+# various temporaries
+*.swp
+*.orig
+callgrind.out.*
+
+# caches
+tags

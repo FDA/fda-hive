@@ -1,0 +1,91 @@
+<id>hlp.svc-dna-insilico.html</id>
+<title>HIVE DNA-insilico</title>
+<definition>Generate synthetic data for testing</definition>
+<description>
+
+The <span class='toolname'>HIVE DNA-insilico</span> tool generates synthetic reads and recombinants to be used in testing and validation pipelines for various NGS platforms 
+and appliances. The user can input genomes of reference organisms, along with specifications for noise, quality, and other attributes, and will return properly formatted <em>in silico</em> 
+data in accordance with the user's requests. <br/>
+<br/>
+To generate either randomized reads or recombinants, the tool requires specification of one or several genome sequences from which to cut the read fragments. The key difference between 
+these to services is that the randomizer will return a number of individual "short reads" (in accordance with user input) whereas the recombinant generator will return a single contiguous 
+sequence object containing sequence fragments cut from all specified genomes. <br/>
+<br/>
+Once computation is complete, the newly generated <em>in silico</em> reads or recombinants will appear as objects in the user's home directory. These sequence objects can then be analyzed 
+by a number of HIVE NGS tools or exported for validation of external bioinformatics software and pipelines. <br/>
+<br/>
+Please see the information below regarding specification of individual parameters:<br/>
+<br/>
+<span class='heading'>General inputs and parameters</span>:
+<ul style="padding-left:4%">
+<li><span class='pn'>Name</span> - Specify a name for the computation and its resultant dataset.</li>
+<li><span class='pn'>Task</span> - Choose whether to generate a file containing random reads or a single recombinant.</li>
+<li><span class='pn'>Hide read identification information</span> - Choose whether the ID line(s) in the output will report the genome position from which reads were cut or only enumerate 
+    reads by applying increasing integer identification numbers.</li>
+<li><span class='pn'>Strandedness</span> - Designate the type of nucleic material the synthetic reads should mimic: single stranded (in the forward or reverse orientation) or double 
+    stranded.</li>   
+<li><span class='pn'>Random Reads</span> - The parameters in this segment apply only to read randomizer, not recombinant generation. 
+    <ul>
+    <li><span class='pn'>Format</span> - Specify to report the output as a .fasta or a .fastq (with quality values).</li>
+    <li><span class='pn'>Number of Reads</span> - Designate the number of individual short reads the output file should contain.</li>
+    <li><span class='pn'>Length</span> - The <em>minimum length</em> and <em>maximum length</em> specify the respective length limitations for the reads in the output file. <em>Distribution 
+        Type</em> allows selection of a uniform, normal, Poisson, or exponential distribution of reads with respect to the range of lengths allowable.</li>
+    </ul>
+<li><span class='pn'>Add low complexity</span> - Specify repeats to be included in the reads.</li> 
+    <ul>
+    <li><span class='pn'>Sequences to add</span> - Designate a low complexity nucleotide sequence (repeat) as a string using characters A, C, T, G, or N.</li>
+    <li><span class='pn'>Frequency (perc)</span> - Specify the frequency as the percentage of reads in which the low complexity region should appear.</li>
+    <li><span class='pn'>Minimum length</span> - Specify the minimum length (in characters) of the repeat string to include (starting from the first position).</li>
+    <li><span class='pn'>Maximum length</span> - Specify the maximum length (in characters) of the repeat string to include. (Maximum length set to -1 means to include the entire length of 
+        the repeat.</li>
+    </ul>
+<li><span class='pn'>Add primers</span></li>
+    <ul>
+    <li><span class='pn'>Primer sequences</span> - Designate the primer sequence as a string using characters A, C, G, and T.</li>
+    <li><span class='pn'>Frequency (perc)</span> - Specify the frequency as the percentage of reads in which a primer should appear.</li>
+    <li><span class='pn'>Minimum length</span> - Designate the minimum length of the primer to append to the reads.</li>
+    </ul>
+<li><span class='pn'>Generate paired end reads</span></li>
+    <ul>
+    <li><span class='pn'>Generate paired end file</span> - Choose whether to generate individual or paired end reads.</li>
+    <li><span class='pn'>Maximum distance</span> - Designate the maximum distance (in bases) between the ends of each pair.</li>
+    <li><span class='pn'>Minimum distance</span> - Designate the minimum distance (in bases) between the ends of each pair. Note: this can accommodate overlapping regions.</li>
+    <li><span class='pn'>Library length distribution</span> - Choose the overall distribution of lengths to the resulting paired end library: uniform, normal, or Poisson.</li>
+    </ul>
+<li><span class='pn'>Phred quality score</span></li>
+    <ul>
+    <li><span class='pn'>Quality distribution</span> - Simulated quality scores can be added following a uniform distribution or following the curve typical of Illumina quality.</li>
+    <li><span class='pn'>Maximum Phred score</span> - Specify that maximum score to report.</li>
+    <li><span class='pn'>Minimum Phred score</span> - Specify the minimum score to report.</li>
+    </ul>
+<li><span class='pn'>Output filters</span> - The <em>Low Complexity Filter</em> allows exclusion of any regions of the randomly generated reads or recombinants that are considered to be of low 
+    complexity according to their computed Shannon entropy. Select the desired level of strictness from the left dropdown <em>Minimal Shannon Entropy</em> box (corresponding to entropy values) and 
+    the number of bases to exclude from the right <em>Window Size</em> dropdown menu.</li>
+<li><span class='pn'>Noise</span> - Designate the frequency (as a percent) of <em>Random noise</em> to be included in the output sequence. If including noise, specify the relative ratios of specific single 
+point mutations by altering the corresponding values in the table below.</li>
+</ul>
+<br/>
+<span class='heading'>Advanced inputs and parameters</span>:
+<ul style="padding-left:4%">
+<li><span class='pn'>Use preloaded genome file</span> - Designate the HIVE object for the genome or genomes from which to generate the reads and recombinants.</li>
+<li><span class='pn'>Use preloaded mutation table (CSV)</span> - Designate the HIVE object for the mutation table (uploaded as a .csv) from which to add mutations.</li>
+<li><span class='pn'>Reference Sequence</span></li>
+    <ul>
+    <li><span class='pn'>Reference construction</span> - For genomes containing multiple reference sequences, first select the <em>Genome File</em> and then the desired constituent <em>Sequence</em> 
+    from the corresponding drop boxes. Also designate the <em>Start Range</em> and <em>End Range</em> positions of the range from which to generate the results. End range of -1 means there is no 
+    limit to the end position (it can be up to the full length of     the genome.) Choose the <em>orientation</em> of the reads to be forward, reverse, complement, or reverse complement. Click the 
+    <img src="img/recAddMore.gif" width=15> icon to add reference segments from the same genome.</li> 
+    <li><span class='pn'>Ploidy</span> - Designate the number of copies of chromosomes the reads should mimic.</li>
+    <li><span class='pn'>Proportional coverage</span> - If multiple genomes or segments are selected, proportion allows specification of the abundance of regions of one sequence with respect to the 
+    proportional abundance of others.</li>
+    </ul>
+<li><span class='pn'>Introduce mutations</span> - Insert a string corresponding to a single point <em>Variant</em>, insertion, or deletion to be included at the specified <em>Position</em> in the 
+    generated reads/recombinants. <em>Frequency</em> of occurrence and associated <em>Quality</em> Phred score can also be designated. <em>Allele</em> can be used in cases where the mimicked organism 
+    has a ploidy greater than one. The value entered designates the number of copies in which the mutation should appear. (By default, this value is set to 0 meaning the mutation should appear in all 
+    copies.) <em>Mutation bias</em> allows designation of a specific position range with respect to the read frame at which the mutation should begin. Click the <img src="img/recAddMore.gif" width=15> 
+    to add an additional mutation. </li>
+<li>Click the <img src="img/recAddMore.gif" width=15> to add an additional reference sequence.</li>
+</ul>
+<br/>
+Click the <em>SUBMIT</em> button to run the computation.
+</description>

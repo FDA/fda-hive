@@ -1,0 +1,192 @@
+<!--
+$Id: dna-screening-new_tmplt.html 4112 2013-09-13 23:57:20Z kate $
+vim: set et ts=4 sts=4:
+-->
+<script type="application/javascript" src="js/vjTree.js"></script>
+<script type="application/javascript" src='js/vjDataSeries.js'></script>
+<script type="application/javascript" src='js/vjTreeSeries.js'></script>
+<script type="application/javascript" src='js/vjTaxonomyView.js' ></script>
+<script type="text/javascript" src="d3js/core/d3.js"></script>
+<script type="text/javascript" src="d3js/core/d3.csv.js"></script>
+<script type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/sunburst_hierarchy.js"></script>
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" id="jumpNewPage">
+    <a href = "#">
+        Click to go to old Censuscope webpage
+    </a>
+</div>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+<script src="js-obj-new/svc-dna-screening.js"></script>
+<script type="application/javascript">
+
+setLocationTitle("censuScope: HIVE");
+
+var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+var process_svc="svc-dna-screening";
+var process_qpsvc="dna-screening";
+var thisQuery=docLocValue("query");
+
+var algoProcess=new valgoProcess(thisProcessID,  process_qpsvc, process_svc);
+algoProcess.visibleParameters = ["name", "query", "alignSelector", "subject", "Sample", "CensusIterations", 
+                                 "CensuslimitIterations", "taxDepth", "method", "filterNs", "selfStopping", "deepScanning"];
+                                 
+if (thisQuery)
+{
+    algoProcess.initialPresets = { query: thisQuery,
+                                    name: "query:s=["+thisQuery+"] as objlist; return s[0].name;"};
+}
+
+algoProcess.submitButtonName="SUBMIT";
+
+var thisQuery=docLocValue("query");
+var process_cmdMode=docLocValue("cmdMode");
+var process_initialPresets={};
+var thisProcessID = 0;
+
+function isMode(mode)
+{
+    return (!process_cmdMode || (process_cmdMode.indexOf("-"+mode)==-1 && process_cmdMode.indexOf(mode)!=0)) ? false : true;
+}
+
+if(isMode("batch")) { 
+    algoProcess.qpSvc="svc-batcher";
+    algoProcess.initialPresets.batch_svc="dna-screening";
+}
+
+algoProcess.doneComputing = function (viewer, reqid, stat)
+{
+    thisProcessID = docLocValue("id");
+    
+     if(stat>=5) {
+        var exposeAlignments = vjDV[algoProcess.recViewerName].getElement("storeAlignments");
+        if (exposeAlignments && exposeAlignments.value != 0){
+            valgoToolbarDoneList= //<!-- type,align,order,name,title,icon,path,url,description // -->
+                ",right,2,alignment,Aligning Tools,img-algo/dna-tools.gif,/alignment,,Reference based assembly and profiling analysis\n"+
+                ",right,2,aligner,Hexagon Alignment,img-algo/hive-hexagon.gif,/alignment/aligner,?cmd=dna-hexagon-new&id=$(::thisProcessID),Proceed to alignment, Alignment, etc...\n";
+        }
+    }
+};
+
+algoProcess.inputLoaded = function (viewer){
+    //if (!isResultsMode()) {
+        algoProcess.readFromDocLoc(["alignmentInput"]);
+        var alObjID=algoProcess.getValue("alignmentInput", "join");
+        var name = algoProcess.getValue("name");
+        if(alObjID){
+            algoProcess.setValue("alignmentInput",alObjID.split(",").join(";"));
+            algoProcess.setValue("name","Screening for object "+ alObjID);
+            algoProcess.setValueList({name: "query:s=["+alObjID+"] as objlist; return s[0].name; "});
+        }
+        algoProcess.readFromDocLoc(["query"]);
+        var thisObjID=algoProcess.getValue("query", "join");
+        if(thisObjID){
+            algoProcess.setValueList({"query": thisObjID.split(",")});
+            algoProcess.setValue("name","Screening for objects "+thisObjID);
+            algoProcess.setValueList({name: "query:s=["+thisObjID+"] as objlist; return s[0].name; "});
+        }
+        algoProcess.setValue("split",'-');
+        //valgoProcess_inputChanged();
+        //algoProcess.setValue("slice",1000000000);
+        //algoProcess.viewer.redraw();
+
+        //alert(algoProcess.getValue("split"))
+    //}
+    return;
+};
+
+//
+// Override default file description to allow for a user friendly description
+// This is done by matching the file name to determine the type of file
+//
+
+algoProcess.allDownloadsGetDescription = function (filename){
+    // Default description is what type of file it is.
+    var description = filename.replace(/[^.]*\./, "").toUpperCase() + " file";
+    
+    // Check for different expected censuscope output files based off of file name
+    if( filename.match(/gicenteric/gi) ) {
+        description = "GI Based Results CSV File";
+    } else if ( filename.match(/screenResult/gi) ) {
+        description = "Screen Results CSV File";
+    } else if ( filename.match(/screenShannon/gi) ) {
+        description = "Shannon Entropy Convergece Graph";
+    }
+    
+    return description;
+};
+
+//
+// Override default file name to return a user friendly 'pretty' name
+//
+
+algoProcess.prettyFileName = function (filename) {
+    var prettyFileName = filename;
+    
+    if( filename.match(/gicenteric/gi) ) {
+        prettyFileName = "GI Based Results";
+    } else if ( filename.match(/screenResult/gi) ) {
+        prettyFileName = "Screen Results";
+    } else if ( filename.match(/screenShannon/gi) ) {
+        prettyFileName = "Shannon Screen";
+    }
+    
+    return prettyFileName;
+};
+
+//
+// Override download URLs for custome downloads (post-processing of files in dna.cgi)
+//
+
+algoProcess.allDownUrlModification = function () {    
+    var j = "javascript: var ing_url = 'http://?cmd=objFile&ids='+node.id+'&filename='+node.value;\
+        if(node.value.match(/gicenteric/gi)) {ing_url = 'http://?cmd=ionncbiTax&percentage=1&downloadCSVFile=1&screenType=dna-alignx_gicenteric.csv&ginumber=1&screenId='+node.id+'&mode=csv';}\
+        else if(node.value.match(/screenResult/gi)) {}\
+        else if(node.value.match(/screenShannon/gi)) {}\
+        vjDS.add('', 'dsDownSrc', 'static://');\
+        vjDS['dsDownSrc'].reload(ing_url,true,'download');"
+        
+    return j;
+    // Tax Based ID Results
+    //http://10.107.2.14/usr/torcivia/dna.cgi?cnt=1000&cmd=ionncbiTax&downloadCSVFile=1&screenId=3098140&screenType=dna-alignx_screenResult.csv&percentage=1&mode=csv
+            
+     // GI Based Results
+    //http://10.107.2.14/usr/torcivia/dna.cgi?&cmd=ionncbiTax&percentage=1&downloadCSVFile=1&screenType=dna-alignx_gicenteric.csv&ginumber=1&screenId=3098140&mode=csv
+};
+
+$(document).ready(function() 
+{
+    var topVal = $("#header").height() + 45;
+    $(".content").attr("style", "top: "+ topVal +"px; ");
+
+        
+    globalAlgo = $('#mainAlgoArea').algoview({
+        algoObj: algoProcess,
+        svcType: "svc-dna-screening",
+        algoTitle: "CensuScope"
+    });
+    
+    $("#jumpNewPage").on("click", function (eventData){
+            var url = window.location.href;
+            setCookie("jumpNewPageCensuscope", "false", 7);
+            
+            if (url.indexOf("&") >= 0)
+                linkURL("?cmd=dna-screening" + url.substring(url.indexOf("&")));
+            else
+                linkURL("?cmd=dna-screening");
+            
+            eventData.preventDefault();
+    });
+});
+</script>
+
+

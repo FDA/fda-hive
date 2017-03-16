@@ -1,0 +1,304 @@
+<!--
+ $Id$
+-->
+<script>
+    gInitList += "usermod_init();";
+
+    var user_grp = new Array;
+    var user_grp_all = new Array;
+
+    function usermod_init() {
+        if (cookieGet('ugrp')) {
+            user_grp = cookieGet('ugrp').split(/[\s,]+/);
+        }
+        cookieDelete('ugrp');
+        if (cookieGet('ugrp_all')) {
+            user_grp_all = cookieGet('ugrp_all').split(/[\s,]+/);
+        }
+        cookieDelete('ugrp_all');
+
+        var els = document.forms["form-userSet"].elements;
+        var reg = cookieGet('newreg');
+        cookieDelete('newreg');
+        if( reg ) {
+            gObject("titleUsr").innerHTML = "New User Registration";
+            gObject("pswdCurrent").className = "sectHid";
+            gObject("follow").value = '';
+            gObject("newreg").value = reg;
+            els["login"].focus();
+        } else {
+            gObject("titleUsr").innerHTML = "User Profile";
+            els["login"].readOnly = true;
+            els["firstName"].focus();
+        }
+        var email = reg ? '' : cookieGet('email');
+        email = email ? email.toLowerCase() : '';
+        els["login"].value = email;
+        if (cookieGet('fn')) {
+            els["firstName"].value = cookieGet('fn');
+        }
+        if (cookieGet('ln')) {
+            els["lastName"].value = cookieGet('ln');
+        }
+        cookieDelete('fn');
+        cookieDelete('ln');
+
+        vjDV.add("dvUserTreeViewer", 650, 800);
+        vjDS.add("Retrieving user/group hierarchy", "dsUserTree", "http://?cmd=usrList&ugrp=1&raw=1&active=1");
+        vjDV.dvUserTreeViewer
+                .add(
+                        "hierarchy",
+                        "tree",
+                        "tab",
+                        [ new vjTreeView(
+                                {
+                                    data : 'dsUserTree',
+                                    showRoot : 1,
+                                    formObject : document.forms['form-userSet'],
+                                    showLeaf : true,
+                                    showChildrenCount : true,
+                                    autoexpand : 1,
+                                    checkPropagate : false,
+                                    doNotPropagateUp : true,
+                                    notSelectable : true,
+                                    checkBranches : true,
+                                    checkLeafs : true,
+                                    selectDoesExpand : true,
+                                    precompute: function(view, tbl, ir) {
+                                        var node = tbl.rows[ir];
+                                        node.title = node.name;
+                                        delete node.name;
+                                    },
+                                    postcompute : function(view, node) {
+                                        if (node.email && node.email.toLowerCase() == email) {
+                                            node.description = node.title;
+                                            node.title += "&nbsp;&nbsp;&nbsp;<a onclick='user_addSubGroup(\'" + node.path + "\')'\><img width='15' height='15' title='Add subgroup' src='img/plus.gif' /></a>";
+                                        }
+                                        if (!node.id) {
+                                            node.uncheckable = true;
+                                        } else if (arrayCross(node.id, user_grp)) {
+                                            node.checked = 1;
+                                            node.origin = 1;
+                                            view.doSelect(node, '_original', false, true);
+                                        } else if (arrayCross(node.id, user_grp_all)) {
+                                            node.checked = 1;
+                                            node.origin = 2;
+                                            view.doSelect(node, '_pending', false, true);
+                                        }
+                                    },
+                                    checkLeafCallback : user_userGrpClick,
+                                    checkBranchCallback : user_userGrpClick,
+                                    isok : true
+                                }) ]);
+        vjDS.add("infrastructure: Help document for registration","dsHelpRegistration","http://help/hlp.page.register.html")
+        vjDV.dvUserTreeViewer.add("help", "help", "tab", [new vjHelpView({ data: 'dsHelpRegistration' })]);
+        vjDV.dvUserTreeViewer.render();
+        vjDV.dvUserTreeViewer.load();
+    }
+
+    function user_addSubGroup(parent_path) {
+        var nm = prompt("Please enter new group name");
+        nm = nm.replace(/[\0\n\f\r\t\v]+/g, ' ').replace(/^\s+/, '').replace(
+                /[\s\.,;]+$/, '').replace(/\s+/g, ' ');
+        if (nm) {
+            var m = (' ' + nm + ' ').replace(
+                    /\s(and|for|off|from|to|a|the|at|on|into|in)\s/gi, ' ')
+                    .replace(/[^\w\d]/g, ' ').match(/\s[\w\d]/g);
+            var abbr = m ? m.join('=').replace(/[=\s]+/g, '').toUpperCase()
+                    : '';
+            do {
+                abbr = prompt(
+                        "Please enter new group abbreviated name (letters and digits ONLY)",
+                        abbr);
+            } while (abbr && !/^[\w\d]+$/.test(abbr));
+            if (abbr
+                    && confirm("Create new group?\n\nName: '" + nm
+                            + "'\nAbbreviation: '" + abbr + "'\n\n")) {
+                linkCmd("grpAdd&raw=1&name=" + escape(nm) + "&abbr="
+                        + escape(abbr) + "&parent=" + escape(parent_path),
+                        "dsUserTree", user_addSubGroup_Callback);
+            }
+        }
+    }
+
+    function user_addSubGroup_Callback(param, text) {
+        if (!/^\s*ok\s*$/i.test(text)) {
+            alert(text);
+        } else {
+            vjDS[param].state = '';
+            vjDS[param].load();
+        }
+    }
+
+    function user_userGrpClick(viewer, node) {
+        if (node.checked > 0) {
+            node.selected = node.origin == 1 ? '_original'
+                    : node.origin == 2 ? 'pending' : '_added';
+        } else {
+            node.selected = node.origin ? '_deleted' : 0;
+        }
+    }
+
+    gForm_onEnterCallback = function(ctrl, e) {
+        if (ctrl.tabIndex > 0) {
+            var gap = 10000000, dst;
+            for ( var i = 0; i < ctrl.form.elements.length; i++) {
+                var idx = ctrl.form.elements[i].tabIndex;
+                if (idx > ctrl.tabIndex && gap > (idx - ctrl.tabIndex)) {
+                    gap = idx - ctrl.tabIndex;
+                    dst = ctrl.form.elements[i];
+                }
+            }
+            if (dst != ctrl) {
+                dst.focus();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function user_addUserGrp(params, node, op) {
+        if (node.id) {
+            params.value += node.id + ",";
+        }
+    }
+
+    function user_iterGrpSet(form) {
+        if (gObject("pswdCurrent").className != "sectHid"
+                && !gObject("pswdCurrentInp").value) {
+            gObject("err_msg").innerHTML = 'Current password required!';
+            gObject("pswdCurrentInp").focus();
+        } else {
+            var v = vjDV.locate("dvUserTreeViewer.hierarchy.0");
+            if (form && v) {
+                var e = form.elements["groups"];
+                e.value = '';
+                v.enumerate(user_addUserGrp, e, true, 0, null);
+                if (e.value) {
+                    return true;
+                } else {
+                    gObject("err_msg").innerHTML = 'Choose at least one group!';
+                }
+            }
+        }
+        return false;
+    }
+</script>
+<style>
+
+.TREEVIEW_table_selected_original
+{
+    border:1px solid;
+    font-size:95%;
+    background-color: #a0a0ff;
+    color: #ffff00;
+    border-color: #000064;
+}
+
+.TREEVIEW_table_selected_pending
+{
+    border:1px solid;
+    font-size:95%;
+    background-color: #FFFF00;
+    color: #ffff00;
+    border-color: #000064;
+}
+
+.TREEVIEW_table_selected_added
+{
+    border:1px solid;
+    font-size:95%;
+    background-color: #cfffcf;
+    color: #ffff00;
+    border-color: #646464;
+}
+
+.TREEVIEW_table_selected_deleted
+{
+    border:1px solid;
+    font-size:95%;
+    background-color: #ffc0c0;
+    color: #ffff00;
+    border-color: #000064;
+}
+</style>
+
+<form name='form-userSet' action='' method='post' enctype="multipart/form-data" onsubmit="return user_iterGrpSet(this);" onKeyPress="return gOnFormEnter(event)">
+
+<span id="sectGeneral" ><div class="HIVE_section">
+    <span class="HIVE_section_title" id="titleUsr"></span>
+    <div class="HIVE_sect1" >
+        <table >
+            <tr>
+                <td valign=top>
+                    <table width="100%" class="HIVE_table">
+                        <tr>
+                            <td align=right class="HIVE_variable">Email address</td>
+                            <td align=left><input name="login" type="text" size=40 tabIndex="1" /> </td>
+                        </tr>
+                        <tr>
+                            <td align=right class="HIVE_variable">First Name</td>
+                            <td align=left><input name="firstName" type="text" size=60 tabIndex="2" /></td>
+                        </tr>
+                        <tr>
+                            <td align=right class="HIVE_variable">Last Name</td>
+                            <td align=left><input name="lastName" type="text" size=60 tabIndex="3" /></td>
+                        </tr>
+                        <tr id="pswdCurrent">
+                            <td align=right class="HIVE_variable">Current Password</td>
+                            <td align=left><input id="pswdCurrentInp" name="pswd" type="password" tabIndex="4" />
+                                <span class="REC_error">- required</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align=right class="HIVE_variable">New Password</td>
+                            <td align=left><input name="newpass1" type="password" tabIndex="5" />
+                                <small>requirements: at least 8 symbols long, one lower case, one upper case and one numeral.</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align=right class="HIVE_variable">Confirm Password</td>
+                            <td align=left><input name="newpass2" type="password" tabIndex="6" /></td>
+                        </tr>
+                        <tr>
+                            <td align=right></td>
+                            <td align=left><input type='submit' value='Save' tabIndex="7" /></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td valign=top class="HIVE_variable" align=left>
+                    <b>Group membership:</b> <span class="REC_error" id="err_msg"></span>
+                    
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span id="dvUserTreeViewer"></span>
+                    <table class='HIVE_variable'>
+                        <tr>
+                            <td colspan='7'>Membership legend:</td>
+                        </tr>
+                        <tr>
+                            <td class='TREEVIEW_table_selected_original' width="25"></td><td>Active</td>
+                            <td width="10"></td><td></td>
+                            <td class='TREEVIEW_table_selected_pending' width="25"></td><td>Pending approval</td>
+                            <td width="10"></td><td></td>
+                            <td class='TREEVIEW_table_selected_added' width="25"></td><td>Added</td>
+                            <td width="10"></td><td></td>
+                            <td class='TREEVIEW_table_selected_deleted' width="25"></td><td>Deleted</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+</div></span>
+
+<input type="hidden" name="groups" />
+<input type='hidden' name="cmd" value="userSet" />
+<input type='hidden' id="follow" name="follow" value="home" />
+<input type='hidden' id="newreg" name="newreg" />
+</form>

@@ -1,0 +1,58 @@
+<id>hlp.page.main.about.html</id>
+<title>About HIVE</title>
+<definition>High-performance Integrated Virtual Environment</definition>
+<description>
+
+<p>The <span class='toolname'>High-performance Integrated Virtual Environment (HIVE)</span> is a specialized platform developed by CBER's High Performance Computing Core staff 
+containing a sequence read archive linked directly to the high-performance cluster. This environment provides web access for authorized users to deposit, retrieve, annotate and 
+compute on next-generation sequencing (NGS) data, and to analyze the outcomes using web-interface visual environments built in collaboration with research scientists and 
+regulatory personnel.  HIVE has additional applications for analysis of post market, adverse events, and metagenomic data.</p>
+
+<span class='heading'>ARCHITECTURE:</span><br />
+<p>HIVE is a multicomponent cloud infrastructure for storage and computations, and it is comprised of two main logical elements:</p>
+<ul>
+    <li><span class='pn'>Distributed Storage Library</span> - A unified, standardized, secure NGS storage infrastructure based on the NIH/NCBI SRA model</li>
+    <li><span class='pn'>Distributed Computational Powerhouse</span> - Highly parallelized cloud computing environment of virtualized services and algorithms designed to perform bioinformatics analysis of sequence data</li>
+</ul>
+
+<p>The HIVE infrastructure allows FDA researchers and their collaborators to perform big data analysis in a manner both efficient and secure. HIVE pipeline steps which facilitate this increased efficiency include:</p>
+<ul>
+    <li><span class='pn'>Experimental metadata</span> - The HIVE portal allows researchers to create experiment, sample, protocol, and other important metadata records. Using customizable web pages, a researcher can document specific details pertinent to any experiment, including scientific protocols and biological sample descriptions directly in the HIVE interface. During this process, identification numbers/names are assigned to metadata records. The scientist can then append those identifiers to the related samples prior to submission for in-house or out-house sequencing. When the resulting NGS data are available, HIVE pipelines can pick up the files through a secure channel from the data file providers and upload them into the HIVE system staging location.</li>
+    <li><span class='pn'>Deposition</span>- Data is then verified, validated, parsed, and subjected to appropriate quality control procedures, which render diagrams available for inspection by the bioinformatics professional and/or the data owner. Once approved and encrypted, data are then split into smaller pieces and migrated into the distributed storage system. After the submission is indexed and registered in the metadata archive, the researcher is notified and given the opportunity to define security credentials and permission profiles for the data in accordance with institution standards. At this point, data is considered to be integrated into HIVE storage, and can therefore subsequently be searched, downloaded, or subjected to biocuration, depending on privacy settings.</li>
+    <li><span class='pn'>Bioinformatics </span> - Using web-driven visual interfaces, the scientist can search and select one or many datasets for computations. A number of tools have been created by HIVE specifically for NGS data analysis, and an additional pool of existing, widely known tools have been optimized for and adapted to the parallelized HIVE infrastructure: these tools can be used to run computations on selected datasets. The scope and number of these tools are not limited and will be updated based on needs and requests from the scientific user community.</li>
+</ul>
+<p>HIVE developments and deliverables can be described in terms of three major components: 1) novel, massively parallel infrastructure; 2) custom software for Big Data analysis; and 3) interfaces combining the two.</p>
+<br />
+
+<span class='heading' id="infrastructure">INFRASTRUCTURE:</span><br />
+<ul>
+    <li><span class='pn'>User registration/accounting and permission access control system</span> - The advanced permissions model utilized by HIVE allows simple, yet powerful, control of both user data and algorithmic elements in accordance with the hierarchical organization of the institution. This model provides capabilities of controlling and auditing all actions on every object in the system. The security models employed have been designed for sensitive data in accordance with the standards defined by NIH and the system is designated as FISMA Moderate.</li>
+    <li><span class='pn'>Distributed storage system</span> - This layer of software and drivers is the key component for file/archive management and the backbone for the deposition pipeline. </li>
+    <li><span class='pn'>Data deposition backend</span> - This feature provides the capability to automatically download, upload, and update external datasets to HIVE data repositories.</li>
+    <li><span class='pn'>Database of metadata </span> - Metadata is an important part of all experiments and analyses. For example, metadata capture can extract significant characteristics from short read data obtained from NGS technologies. This database houses all experiment- and study-specific information collected and classified into categories designed as part of the metadata.</li>
+    <li><span class='pn'>Uniprot data parser backend processes</span> - This parser allows users to retrieve specific information from the Protein Information Resource (PIR). Information can be filtered and retrieved based on a specific user query.</li>
+</ul>
+
+
+
+
+<span class='heading'>INTERFACES:</span><br/>
+<ul>
+    <li><span class='pn'>HIVE secure web-portal home page</span> includes access to sequence datasets, user files, available algorithmic utilities, analysis pipelines, and results of 
+    computations.</li>
+    <li><span class='pn'>User self-registration</span> web pages allow creation a new accounts, required for accessing the system resources.</li>
+    <li><span class='pn'>Registration authentication</span> and supervisor confirmation notification system allows management of account registration through a system of confirmation 
+    emails and provides functionality for group administrators to verify joining members.</li>
+    <li><span class='pn'>NGS HIVE-hexagon alignment web-interface</span> facilitates quick and efficient identification of millions of short reads.</li>
+    <li><span class='pn'>NGS BLAST alignment web-interface</span> computes alignments using a parallelized adaptation of BLAST for optimal performance within HIVE.</li> 
+    <li><span class='pn'>HIVE-heptagon sequence profiling interface</span> for NGS data profiling on reference genomes performs statistically accurate base-calling and SNP 
+    discovery</li>
+    <li><span class='pn'>Metagenomic variability poly-plot</span> renders clear visualization of quasi-species variation and speciation dynamics.</li>
+    <li><span class='pn'>Viral and/or bacterial DNA recombination site interface</span> facilitates visualization of recombination events in a pool of viral isolates.</li>
+    <li><span class='pn'>SNV-distribution interface</span> plots the distribution of SNPs relative to their functions, cellular localizations, and involvement in pathways.</li>
+    <li><span class='pn'>Quality control interface</span> enables visualization of different QC procedure outputs for simple validation and verification of NGS data.</li>
+    <li><span class='pn'>A web-based application for analyzing ELISA</span> where an imported experiment can be evaluated and the resulting graph, data, and error analysis are displayed.</li>
+</ul>
+</description>
+
+<script src="//cdn.rawgit.com/noelboss/featherlight/1.4.0/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>

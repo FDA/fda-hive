@@ -1,0 +1,35 @@
+<id>hlp.svc-profiler-refcmp.html</id>
+<title>NGS-Sanger Comparison Tool </title>
+<definition>Provides direct comparison of an NGS sequencing dataset and Sanger sequence covering the same genomic region</definition>
+<description>The <span class="pagetext">NGS-Sanger comparison tool</span>, or the "Sangerator," allows direct comparison of both
+individual read base calls and consensus base call of an NGS sequencing dataset to the corresponding position of a previously generated Sanger file.<br/>
+<br/>
+INPUTS AND PARAMETERS</br>
+<strong>Name:</strong> Allows the user to specify an identifying name for the process for easy future search and access within the system.<br/>
+<strong>HIVE-heptagon profiling output object:</strong> Designates the object containing the relevant computations by the HIVE-heptagon base and SNP-caller for the associated NGS file(s).<br/>
+<strong>Select reference segment:</strong> This allows the user to choose a specific segment of the reference used in alignment and profiling for comparison. For example, if the reference used for profiling was the human genome, the reference segment designated here may be a particular chromosome. If, however, you have supplied a reference genome or set composed of identifiers at the gene level, you can select an individual gene from the dropdown menu. Available selections will be pre-determined and pre-populated based on the reference set selected.<br/>
+<strong>Sequences to compare:</strong> This array of inputs allows you to select your Sanger sequence(s) for comparison<br/>
+<ol>
+<li><strong>Sanger file:</strong> Choose the appropriate Sanger sequencing file from the list of objects available to in your user home directory</li>
+<li><strong>Sequence number:</strong> If comparing more than one Sanger sequence, this field allows you to designate an order for the sequences to be displayed in the output results table</li>
+<li><strong>Offset relative to profiling result:</strong> This field allows you to either specify a known positional offset between your Sanger and NGS read sequences. For example, if you know your reads do not cover the reference segment of interest until position 50 but your Sanger sequence has coverage from end to end, you would specify "50" as the offset. If you do not know the offset, the default value of "-1" signals the system to determine the offset during processing.</li>
+<li><strong>+ Sequences to compare:</strong> Clicking the plus (+) icon here will provide a new row to specify additional Sanger files for comparison.</li>
+</ol><br/>
+PROCESSING<br/>
+Once you click the "Submit" button, the page will refresh and a progress bar will appear below the inputs section. Here you can track the progress of the entire process and all subprocesses in terms of submission time, processing status and time elapsed.<br/>
+<br/>
+RESULTS<br/>
+When the computations are complete, the Results box at the bottom of the page will now display a table showing your comparisons. Column headings of the table are described below.<br/>
+<strong>Position:</strong> This designates the position of the sequence with respect to the beginning of the Sanger file<br/>
+<strong>Sequence n:</strong> "n" is an integer corresponding to the input "sequence number" above. This signifies that the values in the following two columns are for comparison of this sequence.<br/>
+<strong>Cosine similarity:</strong> Value in this column is the cosine similarity measurement for the comparison. Values close to 0 imply poor matching, values close to 1 imply good matches.<br/>
+<strong>Chi squared test:</strong> Value in this column is the chi squared calculation for the comparison. Values close to 0 imply poor matching, values close to 1 imply good matches.<br/>
+<strong>Hexagon consensus:</strong> This column reports the consensus for the position given by the HIVE-hexagon alignment coverage. <br/>
+<strong>Count A:</strong> Reports the count of calls of nucleotide A at the given position in the NGS alignment <br/>
+<strong>Count C:</strong> Reports the count of calls of nucleotide C at the given position in the NGS alignment <br/>
+<strong>Count G:</strong> Reports the count of calls of nucleotide G at the given position in the NGS alignment <br/>
+<strong>Count T:</strong> Reports the count of calls of nucleotide T at the given position in the NGS alignment <br/>
+<strong>Count Insertions:</strong> Reports the count of any insertions at the given position in the NGS alignment <br/>
+<strong>Count Deletions:</strong> Reports the count of any deletions A at the given position in the NGS alignment <br/>
+<strong>Count Total:</strong> Reports the total count of all nucleotide alignments (covereage) at the given position <br/>
+Note that cells in the cosine and chi squared columns will be highlighted if the values fall below the specified threshold, signifying a mismatch between the nucleotide reported by the original Sanger file at that position and the corresponding base call of the NGS file.</description>

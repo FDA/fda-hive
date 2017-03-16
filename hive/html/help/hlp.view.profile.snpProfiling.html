@@ -1,0 +1,9 @@
+<id>hlp.view.profile.snpProfiling</id>
+<title>SNP profiling – profile tab</title>
+<definition>View graphs of Coverage, Entropy, Quality and SNPs plotted against position</definition>
+<description> The default view shows two graphs stacked on top of each other.  The top graph shows forward and reverse coverage as a function of position on the reference genome (or consensus, depending on the user’s selection), where coverage is the number of reads aligned to a specific position.
+The bottom graph shows variations from the reference (or consensus) sequence at a given position as colored peaks.  Each nucleotide is designated by a specific color.  Holding the mouse over a peak will display an information box containing the position in the sequence, the nucleotide variation and the percentage of that variation with respect to all reads at that position.
+Below the graphs but above the tabs are more viewing options.  Two additional graphs, entropy and quality, may be selected and viewed.
+The entropy graph displays entropy associated with each position, scaled to a value between 0.00 and 1.00.  Entropy values close to 1.00 imply the occurrence of the variable base at that position is completely random, whereas entropy values closer to 0.00 imply non-randomness of a given SNP.  If the user disabled the entropy analysis in the commands section before computing the profile, the entropy graph will display a straight continuous line with slope of 0.
+The quality graph displays the quality associated with each position as a <a href="hlp.obj.phred.html">phred</a> score.
+The <span class="pagetext">x</span> icons allow the user to hide a specific graph, the <span class="pagetext">+</span> icon allows the user to show a graph. </description>

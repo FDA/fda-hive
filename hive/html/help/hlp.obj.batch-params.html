@@ -1,0 +1,261 @@
+<id>hlp.obj.batch-params.html</id>
+<title>Batch Parameters</title>
+<definition>Advanced options for submitting computations in batch mode</definition>
+<description>
+Batch mode enables the request of a large number of identical processes through a single submission.<br/>
+<br/>
+<span class='heading'>Batch Parameters</span>:
+<ul style="padding-left:4%">
+    <dt><span class='pn'>Batch service</span></dt>
+        <dd>
+            This parameter, usually located under the 
+            General parameters tab, must be set to "Batch 
+            Mode" in order to allow for submission of 
+            jobs as a batch of identically configured jobs. 
+            For example, selecting "Batch Mode" from the 
+            dropdown menu on the HIVE-hexagon general input 
+            page will reload the page for use in batch mode. 
+            It is important to specify this selection prior 
+            to modifying any other parameters to avoid loss 
+            of configured parameters upon page reloading. 
+            Alternatively, any HIVE service with batch 
+            capabilities can be launched in batch mode by 
+            appending "&cmdMode=-&batchMode=true" to the 
+            end of the general service URL.
+        </dd>
+<br/>
+    <dt><span class='pn'>Batch description</span></dt>
+        <dd>
+            For each Batch Description, all Parameters that have 
+            been specified with a Value will have their inputs 
+            grouped, in order of entry into the interface, into 
+            a number of groups equal to the total number of inputs 
+            for the specified Parameter divided by the Value for 
+            that Parameter. Alignments will be created using 
+            these groups, with the first group for one Parameter 
+            aligned to the first group for a second Parameter, a 
+            2nd group for one parameter with the 2nd group for the 
+            other parameter, and so on. If the quantities of total 
+            groups for each Parameter created based on their 
+            Values are not the same, then the remaining groups for 
+            any Parameter will not be aligned with anything 
+            (unless the Saturated parameter is enabled as 
+            explained below).
+            <ul>
+                <li>
+                    Each additional Batch Description added using 
+                    the "+Batch Description" option will permute 
+                    with any other groups of Batch Description 
+                    fields that have parameters entered into their 
+                    Parameter lists. 
+                </li>
+                <li>
+                    <span class='pn'>Parameter list</span> - The 
+                    Parameter list contains a Parameter drop down 
+                    box and a Value field that can be changed 
+                    depending on the method of batch submission 
+                    that is desired.
+                    <ul>
+                        <li>
+                            <span class='pn'>Parameter</span> - You 
+                            can choose to organize your groups by 
+                            Sequence Read, Minimum Match Length, 
+                            Percent Mismatch Allowed, or Reference 
+                            Genome. Additional Parameter/Value fields 
+                            can be added by clicking the "+Parameter 
+                            list" button.
+                        </li>
+                        <li>
+                            <span class='pn'>Value</span> - This value 
+                            corresponds to the Parameter specified in 
+                            the corresponding Parameter drop down box 
+                            and dictates the number of parameter inputs 
+                            considered per group for the parameter. 
+                            When specifying several value combinations, 
+                            separate the values using a semicolon (;).
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <span class='pn'>Saturated</span> - In the case that 
+                    the groups created by the Parameters under one Batch 
+                    Description do not correspond to each other in a 
+                    perfect 1:1 ratio, checking Saturated will tell the 
+                    service batcher to take the remaining unpaired group(s) 
+                    under one Parameter and create a request forcing the 
+                    remaining group(s) of that Parameter to follow the 
+                    specification of the last group of the other 
+                    Parameter(s).
+                </li>
+            </ul>
+        </dd>
+<br/>
+
+<hr>
+<span class='heading'>Hexagon specific batch considerations</span>:
+<ul style="padding-left:4%">
+<br/>
+    <dt><span class='pn'>Value restrictions</span></dt>
+        <dd>
+            For batch Parameters of Percent Mismatch Allowed 
+            and Minimum Match Length, the corresponding Value 
+            should always be 1: it is not reasonable to have 
+            multiple values of Percent Mismatch Allowed or 
+            Minimum Match Length per individual alignments. 
+            For Sequence Read and Reference Genome batch 
+            Parameters, the specifed Values determine the 
+            number of sequence reads or genomes to group 
+            together. Groupings are organized by their 
+            order of entry into the related General 
+            parameter fields.
+        </dd>
+</ul>
+<br/>
+    <dt><span class='pn'>Permutations</span>:</dt>
+    <ul style="padding-left:4%"><br/>
+            <dt><span class='pn'>To batch paired end reads while keeping 
+            each pair in its own distinct alignment</span></dt>
+                <dd>
+                    For a pair of reads, R1 and R2, if you want R1 
+                    and R2 to be aligned together against one or more 
+                    reference genome(s), modify the Values of Sequence 
+                    Read and/or Reference Genome under Parameter list 
+                    as follows:
+                    <ul>
+                        <li>
+                            <span class='pn'>To align paired end reads against 
+                            one reference genome</span> - Order your paired end 
+                            reads (in the Sequence Read field under the General 
+                            parameters tab) so that R1 and R2 of each sample are 
+                            adjacent to each other. (Note that when selecting 
+                            multiple sequence reads or reference genomes from 
+                            the file explorer holding Ctrl and clicking the 
+                            individual files, they are loaded into the interface 
+                            in the order of selection.) Under the Batch tab, 
+                            select Sequence Read under the Parameter drop down 
+                            box and set the corresponding Value to 2. This tells 
+                            Service batcher to group every two sequence reads, 
+                            in order of entry into the Sequence Read field, in 
+                            an alignment against the selected reference genome. 
+                            In this case, service batcher will produce a number 
+                            of alignments equal to the number of sample pairs 
+                            designated.
+                        </li>
+                        <li>
+                            <span class='pn'>To align paired end reads to a 
+                            single group composed of multiple reference 
+                            genomes</span> - Add all of the genomes to the 
+                            Reference Genome field under the General parameters 
+                            tab, select Sequence Read under the Parameter drop 
+                            down box and set Value to 2.
+                        </li>
+                        <li>
+                            <span class='pn'>To align paired end reads to many 
+                            individual reference genomes</span> - First, select 
+                            Sequence Read under the Parameter drop down box and 
+                            set Value to 2. Again, R1 and R2 in a pair of 
+                            paired end reads must be listed next to each other. 
+                            Then, use the "+Batch Description" button to add a 
+                            new set of Parameters by which to batch. Select 
+                            Reference Genome as a Parameter from the drop down 
+                            box in the second "Batch Description" set and specify 
+                            its Value as 1. This tells service batcher to align 
+                            each set of paired end reads against each reference 
+                            genome individually. The batcher will produce a 
+                            number of alignments equal to the number of sample 
+                            pairs, multipled by the number of reference genomes 
+                            in the reference genome field.
+                        </li>
+                        <li>
+                            <span class='pn'>To align paired end reads to more 
+                            than one group of more than one reference genomes</span> 
+                            - Select Sequence Read under the Parameter drop down 
+                            box and set Value to 2, keeping in mind that R1 and 
+                            R2 for each sample must be adjacent to each other. 
+                            Then, use the "+Batch Description" button to add a 
+                            second parameter. Select Reference Genome as the new 
+                            Parameter from the drop down menu and set Value equal 
+                            to the number of Reference Genomes that are to be 
+                            considered per group of reference genomes. Service 
+                            batcher will then assign a number of groups of 
+                            reference genomes equal to the number specified in 
+                            Value according to the order in which they were input 
+                            in the Reference Genome field under the General 
+                            parameters tab. The number of alignments produced will 
+                            be equal to the number of pairs multiplied by the 
+                            quantity of the number of reference genomes divided 
+                            by the corresponding batcher Value for Reference 
+                            Genomes.
+                        </li>
+                    </ul>
+            </dd>
+<br/> 
+            <dt><span class='pn'>To batch multiple alignments while 
+            varying Percent Mismatch Allowed and/or Minimum Match 
+            Length</span></dt>
+                <dd>
+                    Additional values for these two parameters can be 
+                    added under the General parameters tab in the relevant 
+                    fields using semicolons (;) as delimiters for the 
+                    different percent mismatches and/or minimum match 
+                    lengths. For example:
+                    <ul>
+                        <li>
+                            <span class='pn'>For both Percent Mismatch 
+                            Allowed and Minimum Match Length</span> - 
+                            the Value in the Parameter List under the 
+                            Batch Description tab should always be 1.
+                        </li>
+                        <li>
+                            <span class='pn'>In order to batch the same 
+                            alignment computed with various different 
+                            Minimum Match Lengths</span> - First, list 
+                            all of the Minimum Match Lengths you want 
+                            in your different computations in the 
+                            Minimum Match Length parameter field under 
+                            the General parameters tab. These values 
+                            should be separated by semicolons. Next, 
+                            under the Batch tab, click "+Batch Description" 
+                            to add a new Batch Description field and 
+                            select Minimum Match Length under the Parameter 
+                            drop down box of the new Batch Description. 
+                            Set its Value to 1.
+                        </li>
+                    </ul>
+<br/>
+            <dt><span class='pn'>To batch alignments of groups of 
+            more than one read aligned to more than one group 
+            of reference genomes</span></dt>
+                <dd>Where the groups of sequence reads and/or 
+                reference genomes contain different numbers of 
+                sequence read or reference genome files:
+                <ul>
+                    <li>
+                        <span class='pn'>Similar to an individual read 
+                        or reference genome file</span> - A folder 
+                        containing one or more files can be selected in 
+                        the file explorer as an input into the Hexagon 
+                        interface. Selecting a folder instead of an 
+                        individual file will load all of the objects 
+                        contained within the folder as one group of 
+                        alignment inputs. This can be used to align groups 
+                        of different numbers of reads to groups of 
+                        different numbers of reference genomes. Under the 
+                        Batch tab, select the first Parameter of 
+                        interest, Sequence Read or Reference Genome, and 
+                        set the Value to 1. Then, add a new Batch 
+                        Description and select the other Parameter of 
+                        interest, changing its corresponding Value to 1. 
+                        This method tells the service batcher to batch 
+                        every individual folder (containing any number 
+                        of files), effectively allowing you to set 
+                        different numbers of reads or references to align 
+                        for each alignment in batch mode. Without using 
+                        folders, you are only able to designate one 
+                        Value of reads and/or references for a batched 
+                        alignment at a time.
+                    </li>
+                </ul>
+                </dd>
+    </ul>
+</description>

@@ -1,0 +1,119 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+.layout-infobox-tabs a.home {
+    background: url("/img/home.png") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.help {
+    background: url("/img/help.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.all {
+    background: url("/img/folder-apps.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.genomes {
+    background: url("/img/dna.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.reads {
+    background: url("/img/dnaold.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.annotations {
+    background: url("/img/rec.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.files {
+    background: url("/img/ico-file.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.images {
+    background: url("/img/ico-image.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.computations {
+    background: url("/img/svc-process.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.data-loading {
+    background: url("/img/dataload.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs a.details {
+    background: url("/img/rec.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+}
+
+.layout-infobox-tabs .ui-tabs-nav .ui-tabs-active {
+    margin-bottom: -2px !important;
+}
+
+.layout-infobox-panel .genomes {
+    background: url("/img/dna.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+    padding-left: 30px !important;
+}
+
+.layout-infobox-panel .genomes {
+    background: url("/img/dna.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+    padding-left: 30px !important;
+}
+
+.layout-infobox-panel .details {
+    background: url("/img/rec.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+    padding-left: 30px !important;
+}

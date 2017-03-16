@@ -1,0 +1,24 @@
+<id>hlp.obj.svc-profiler.tab-summary.html</id>
+<title>Summary of SNP Profile Results</title>
+<definition>View statistics of computed SNP profile</definition>
+<description>This is the default view of the SNP profiling results.  A table displays quantitative information about the computed SNP profile belonging to three categories.<br/>
+<br/>
+<span class='heading'>General Information</span> gives the length of the selected reference genome (or consensus) and the number of reference genes involved.<br/>
+<br/>
+<span class='heading'>Mapped Regions</span> contains information on reads that map to the reference genome.<br/>
+<ul>
+<li><span class='pn'>Total Contig Length</span> is the length when all contigs are placed end to end.  When there is only one contig (in the case of the reference genome) the contig
+length will be the length of the entire genome.</li>
+<li><span class='pn'>Mapped Coverage (% Reference)</span> tells the percent of the reference genome that is hit by the selected sequences.</li>
+<li><span class='pn'>Average Coverage of Contigs</span> is the average number of reads per nucleotide in the contigs.</li>
+<li><span class='pn'>RPCM</span>, similar to RPKM, is the number of reads per reported contigs per million mapped total reads.</li>
+<li><span class='pn'>Total Number of Contigs</span> is the number of contigs that make up the consensus sequence.</li>
+</ul>
+<span class='heading'> Unmapped Regions</span> displays information on reads that do not map to the selected reference genome or consensus.<br/>
+<ul>
+<li><span class='pn'>Total Length of the Unmapped Regions</span> gives the number of positions in the reference that do not map to the sequence.</li>
+<li><span class='pn'>Unmapped Regions (% Reference)</span> converts the number of unmapped positions into a percentage of the reference.</li>
+<li><span class='pn'>Average Coverage of Gaps</span> is the average number of reads per position that map to gaps.</li>
+<li><span class='pn'>Total Number of Gaps Found</span> gives the number of positions for which a gap is present in the alignment.</li>
+</ul>
+</description>

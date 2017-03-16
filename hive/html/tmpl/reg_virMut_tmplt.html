@@ -1,0 +1,65 @@
+<!--
+$Id: reg_virMut_tmplt.html 4112 2013-09-13 23:57:20Z kate $
+vim: set et ts=4 sts=4:
+-->
+
+<!DOCTYPE html>
+<html>
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script src="js-obj-new/svc-reg_virMut.js"></script>
+<script type="application/javascript" language="JavaScript1.1" src="js/vjTableViewX2.js" ></script>
+<script  src='js/vjPluggableToolbar.js'> </script>
+<script type="text/javascript" language="JavaScript1.1" src="js/vjGoogleGraphView.js"></script>
+  
+<script>
+google.load("visualization", "1", {packages:["corechart"]});
+
+    // Set the DNA Pipeline title bar
+    setLocationTitle("Virus Mutation Comparator");
+    
+    var algoProcess=new valgoProcess(docLocValue("id"),  "viral-mutation-comp", "svc-viral-mutation-comp" );
+    
+    algoProcess.visibleParameters=["name", "formatAlternatives", "formatSubmitter", "formatHIVE","frequencyThreshold", "algosToReport", "AAconsensus","enrichment","skipSynonymous","collapseIdenticalAAMutations"];
+    
+    algoProcess.submitButtonName="SUBMIT";
+    algoProcess.docLocsToBorrow=["query","subject"];
+    algoProcess.recViewerName = 'DV_Parameter_view';
+
+    // Set the function for whenever there is a change in the form 
+    algoProcess.inputChanged = function(viewer,elem) {
+        console.log("inputChanged");
+    };
+    
+    algoProcess.callbackLoaded=function(viewer){
+      console.log("inputloaded");
+      return;
+    };
+    
+    algoProcess.initialPresets={
+         name:"> ",
+         service:"viral-mutation-comp",
+         algo: "query:alloftype('algorithm-script',{target_page:'reg_virMut'})[0]" 
+
+    };
+    
+    $(document).ready(function() 
+    {
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: "svc-reg_virMut",
+            algoTitle: "Viral Mutation Comparator"
+        });
+     });
+  
+  
+</script>

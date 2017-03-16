@@ -1,0 +1,37 @@
+<!--
+ $Id$
+-->
+
+
+<form name="QP_htmlform">
+
+    <div class="HIVE_section" >
+            <table width="97%" class="HIVE_sect1" >
+                <tr>
+                    <td width=30% class="HIVE_section_title" id='cgiLocation'>
+                        HIVE portal
+                    </td>
+                    <td class="QP_variable" width=200 >
+                        <a href='javascript:linkSelf("-qpCheck&req="+document.forms["QP_htmlform"].elements["req"].value)'>Request ID:</a>
+                        <input type=text size=5 name="req" value=""><input type=hidden name="cmd" value="-qpCheck">
+                    </td>
+                    <td id="QP_stat"></td>
+                    <td id="QP_timespan"></td>
+                    <td id="QP_progress"></td>
+                    <td id="QP_bgProgress"></td>
+                    
+                </tr>
+                <tr>
+                    <td colspan=6  >
+                        <span id="QP_sectFormDetails">
+                            <span id="QP_form"  ></span>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+            
+        
+    </div>
+
+</form>
+    

@@ -1,0 +1,18 @@
+<id>hlp.dna-hexagon.html</id>
+<title>Algorithm Parameters</title>
+<definition>Adjustable parameters allow for customization of alignment</definition>
+<description>Descriptions of alignment algorithm parameters can be find by moving the mouse over a topic, however, additional information is included for select topics below:<br></br>
+<br></br>
+ALIGNMENT FILTERS:<br></br>
+Repeat and Transposition discovery - Tell the alignment engine to perform more detailed multi-pass lookups in order to identify repeats and transpositions at the expense of a longer run-time.<br></br>
+Score Filter - Each alignment produces a score based on matches, mismatches, insertions, deletions and gaps.  Usually, a higher score is correlated with a better alignment.  This option allows the user to eliminate alignments with lower scores.  The default is set to “None” meaning all alignments are reported and nothing is discarded.<br></br>
+<br></br>
+ALIGNMENT PARAMETERS:<br></br>
+Alignment Costs - The alignment is produced by scoring all matches, mismatches and gaps.  Matches are rewarded whereas mismatches and gaps are penalized.  The default values already populate the textboxes, but a user may specify any cost for each of the four scoring criteria. In a biological scenario, single base insertions or deletions are less probable than larger insertions or deletions.  For this reason, a gap opening is assigned a higher penalty than continuation of a gap while computing the alignment score.  If gaps continue over multiple positions after the gap has already been opened, they are more likely the result of a true insertion or deletion with potential evolutionary significance.  Thus, the default Gap Opening Cost has a more negative value than the default Gap Continuation Cost.<br></br>
+Seed K-mer -The “Seed” length determines the size of the N-mer to look up in a hash table.  Higher seed values make the alignment faster but have a potential of decreasing the sensitivity of the method.<br></br>
+<br></br>
+OTHERS: <br></br>
+Alignment Algorithm, Query Data and Reference Genomes should all be pre-populated by previous selections, but may be modified at this time. <br></br>
+Number of Computational Subjects per Single Thread - allows user to pick the maximum individual "chunk size" for parallelization of computations<br></br>
+
+</description>

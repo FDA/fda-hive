@@ -1,0 +1,213 @@
+<!--
+$Id$
+vim: set et ts=4 sts=4:
+-->
+<id>hlp.svc-clust.html</id>
+<title>HIVE-Octagon</title>
+<definition>Sequence hierarchical clustering</definition>
+<description>
+<span class='toolname'>HIVE-Octagon</span> allows the user to perform 
+comparative analysis of multiple variant calling (profiling) results. 
+The user has the ability to visualize the hierarchical relationship 
+between SNP frequences in different samples in the form of a downloadable 
+phylogram or NEWICK raw data file.
+<br/><br/>
+Parameters may be modified to customize hierarchical clustering 
+of sequences of SNP frequencies for alignment profiling results.
+<br/><br/><br/>
+<span class='heading'>Input Parameters</span>:
+<ul style="padding-left:4%">
+<dl>
+    <dt><strong>Name</strong></dt>
+    <dd>
+        <p>Specify a filename for the resulting computation.</p>
+    </dd>
+
+    <dt><strong>Reference genome</strong></dt>
+    <dd>
+        <p>Select the reference genome(s) from which the SNV profiles were generated. 
+        More than one reference genome can be selected from the HIVE file explorer by holding Ctrl 
+        while selecting individual files. Click Submit to add the selected references to the 
+        computation.</p>
+    </dd>
+
+    <dt><strong>Reference genes</strong></dt>
+    <dd>
+        <p>Select the specific reference gene(s) from your reference genome(s) for which 
+        the SNV profiles will be compared. Alignment profiling results for references outside
+        this list will be ignored. If this list is empty, alignment profiling results for
+        all references in the reference genome will be examined.</p>
+    </dd>
+
+    <dt><strong>HIVE-Heptagon profiling results to compare</strong></dt>
+    <dd>
+        <p>Select the specific profile computations to be included in the comparison. More than 
+        one profile can be selected from the HIVE file explorer by holding Ctrl while selecting the 
+        individual files.</p>
+    </dd>
+
+    <dt><strong>Clustering algorithm</strong></dt>
+    <dd>
+        <ul>
+            <li><em>Neighbor joining</em>&nbsp;&mdash; <a
+                href="http://en.wikipedia.org/wiki/Neighbor_joining">an
+                algorithm by Saitou and Nei</a> that tries to minimize the overall
+                phylogenetic tree length; the algorithm is well-regarded, but slower
+                than single link and complete link.</li>
+            <li><em>Fast neighbor joining</em>&nbsp;&mdash; An <a
+                href="https://www.nada.kth.se/~isaac/publications/fast_neighbor_joining.html">
+                algorithm by Elias and Lagergen</a> which is somewhat less accurate
+                than neighbor joining, but much faster on large collections of
+                alignment profiles.</li>
+            <li><em>Single link</em>&nbsp;&mdash; the distance between two
+                clusters of profiles is the minimum of the distances between their
+                included profiles; this algorithm is the fastest for clustering
+                large collections of alignment profiles. Its downside is the
+                "chaining effect", occasionally producing long, unbranched
+                phylogenetic structures.</li>
+            <li><em>Complete link</em>&nbsp;&mdash; the distance between two
+                clusters of profiles is the maximum of the distances between their
+                included profiles; its downside is a high sensitivity to outliers.</li>
+        </ul>
+        <p></p>
+    </dd>
+
+    <dt><strong>Distance function</strong></dt>
+    <dd>
+        <p>The distance function measures the distance between two SNP frequency sequences.</p>
+        <ul>
+            <li><em>Euclidean distance</em>, i.e. <img
+                src="img-algo/euclidean-metric.png" style="vertical-align: middle;" /></li>
+            <li><em>Manhattan distance</em>, also known as the taxicab
+                metric, i.e. <img src="img-algo/manhattan-metric.png"
+                style="vertical-align: middle;" /></li>
+            <li><em>Maximum distance</em>, also known as the uniform metric,
+                i.e. <img src="img-algo/maximum-metric.png"
+                style="vertical-align: middle;" /></li>
+            <li><em>p-Norm</em> or the <em>L<sup>p</sup></em> metric, i.e. <img
+                src="img-algo/p-norm.png" style="vertical-align: middle;" />; the
+                value of <em>p</em> can be specified as a parameter.</li>
+            <li><em>Canberra distance</em>, i.e. <img
+                src="img-algo/canberra-distance.png" style="vertical-align: middle;" /></li>
+            <li><em>Cosine similarity</em>, i.e. <img
+                src="img-algo/cosine-similarity.png" style="vertical-align: middle;" /></li>
+            <li><em>Pearson correlation coefficient</em>, i.e. <img
+                src="img-algo/pearson-similarity.png"
+                style="vertical-align: middle;" />; squared or uncentered variants
+                of Pearson similarity can be used by selecting the appropriate
+                parameter values.</li>
+        </ul>
+        <p></p>
+    </dd>
+    
+<br/>
+For information about advanced parameters, click the following link:<br/>
+<a href="hlp.svc-clust.html">HIVE-Octagon Advanced Parameters</a><br/>
+
+<br/>
+For additional information about batch and system parameters, please follow the links for the appropriate topics:<br/>
+<a href="hlp.obj.system-params.html">System parameters</a><br/>
+<a href="hlp.obj.batch-params.html">Batch parameters</a>
+
+
+<!-- 
+
+The following parameters were moved to the Advanced Parameters file hlp.svc-clustAdvanced.html
+
+
+    <dt><strong>Distance function parameters</strong></dt>
+    <dd>
+        <ul>
+            <li><em>p</em>&nbsp;&mdash; value of <em>p</em> for the <em>p</em>-norm
+                distance function</li>
+            <li><em>Pearson squared</em>&nbsp;&mdash; whether to use the
+                squared variant for the Pearson similarity, i.e. <img
+                src="img-algo/pearson-squared.png" style="vertical-align: middle;" /></li>
+            <li><em>Pearson uncentered</em>&nbsp;&mdash; whether to use the
+                uncentered variant for the Pearson similarity, i.e. <img
+                src="img-algo/pearson-uncentered.png"
+                style="vertical-align: middle;" /></li>
+        </ul>
+        <p></p>
+    </dd>
+
+    <dt><strong>Noise filtering for unfiltered profiling data</strong></dt>
+    <dd>
+        <p>This option allows noise filtering to be applied to any
+            profiling results that were generated without filtering, e.g. in
+            order to compare a collection of profiling results among which some were
+            generated with noise filtering and some were not.</p>
+        <ul>
+            <li><em>Automatically filter 95% noise</em>&nbsp;&mdash; data
+                from those profiles that had not already had noise filtering done
+                when they had been generated will pass through an automatic noise
+                filtering stage.</li>
+            <li><em>Do not filter noise</em>&nbsp;&mdash; no additional
+                noise filtering will be done; this may lead to flawed comparison
+                between profiles that already had filtering done when they had been
+                generated and those that had not.</li>
+        </ul>
+        <p></p>
+    </dd>
+
+    <dt><strong>References with incomplete profiling data</strong></dt>
+    <dd>
+        <p>This option controls what happens if some alignment profiling
+            results have data against a reference and others do not.</p>
+        <ul>
+            <li><em>Treat missing data as SNP-free</em>&nbsp;&mdash;
+                profiling results which do not have data for the reference will be
+                treated as if the data existed and was identical to the reference
+                genome, i.e. SNP-free.</li>
+            <li><em>Skip in calculation</em>&nbsp;&mdash; alignment
+                profiling results against a reference will be skipped unless <em>all</em>
+                of the selected profiling results have data against that reference.</li>
+        </ul>
+        <p></p>
+    </dd>
+
+    <dt><strong>Minimum coverage</strong></dt>
+    <dd>
+        <p>SNP data for positions with coverage below the specified
+            minimum will be ignored (assumed to be 0). This option can be useful
+            for experimenting with the effect of higher required coverage on
+            hierarchical clustering without needing to recompute profiling each
+            time.</p>
+    </dd>
+
+    <dt><strong>SNP frequency range to consider</strong></dt>
+    <dd>
+        <p>
+            <em>Except</em> for positions satisfying one of the conditions below,
+            SNP frequencies outside the specified range will be ignored (assumed
+            to be 0). This option can be useful for focusing the clustering
+            algorithm on a specific type of mutation.
+        </p>
+        <ul><li>All profiles as long as one profile meets constraint</dt>
+            <p>    For any genomic position, if SNP frequency data from at least one
+                profile at that position satisfied the frequency range constraint,
+                then the SNP frequency data from all other profiles at that
+                position <strong>will</strong> be considered (i.e. will <strong>not</strong>
+                be assumed to be 0). This exception is enabled by default.
+                </p></li>
+            <li>Position range +/- around position that meets constraint
+            <p>
+                For any genomic position, if SNP frequency data from at least one
+                profile at that position satisfied the frequency range constraint,
+                then the SNP frequency that from all profiles for positions within
+                a given range of that position <strong>will</strong> be considered
+                (i.e. will <strong>not</strong> be assumed to be 0). This exception
+                can be set only if the "All profiles..." exception above is
+                enabled.
+                </p></li>
+        </ul>
+    </dd>
+    <dt><strong>Save generated shrunk sequences</strong></dt>
+    <dd>
+        <p>Setting this parameter to "yes" will generate and save a fasta
+            file containing the sequences filtered according to the Advanced
+            Parameters for SNP frequency range to consider.</p>
+    </dd>
+-->
+</dl>
+</description>

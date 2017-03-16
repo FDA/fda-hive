@@ -1,0 +1,490 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+/*  COLORS
+Light-gray
+#e5e5e5
+#eee
+
+
+Switch Blue
+#337ab7
+
+HIVE BANNER Blue
+#0149ad
+-->Shade Lighter
+   #0f56b9
+---->Shade Lighter
+    #87afe6 -> #c3dff8 for highlight
+
+HIVE LOGO Yellow
+#f5d237
+
+
+*/
+
+body {
+    font-family: 'Roboto' , Arial , "Helvetica Neue", Helvetica, sans-serif;
+    /*background-color: #edeef0;*/}
+
+.col-xs-3-5 {
+    width: 28%;
+    float: left;
+    position: relative;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;}
+
+.col-xs-4 {
+   width: 36%;}
+
+hr {
+ margin-top: 0px;
+ margin-bottom: 5px;
+ color: #f9f9f9;}
+
+
+.fixed_h { 
+    height:600px;
+    background-color: #fff;  
+    box-shadow: 0px 1px 3px #eeeeee;}
+
+.content { 
+    overflow: auto;
+    height: 540px; 
+    width: 100%;}
+
+.content .top-pad{
+    background-color: #f5f5f5;}
+
+.con-pad {
+    padding-top: 20px;
+    padding-left: 20px;
+    padding-right: 15px;}
+
+.sides-pad{
+    padding-left: 20px;
+    padding-right: 15px;}
+.top-pad{
+    padding-top: 20px;}
+
+.no-pad {
+    padding: 0px;}
+
+.float_right {
+    float:right;}
+
+
+.btn_wide {
+    width: 200px;
+    font-weight: lighter;
+    letter-spacing: 1px;
+    border-radius: 0px;
+    padding-top: 10px;
+    margin-top: 10px;
+    background-color: #0149ad;}
+
+.btn-primary:focus,
+.btn-primary.focus {
+  color: #fff;
+  background-color: #1766d3;
+  border-color: #0149ad;
+}
+.btn-primary:hover {
+  background-color: #0f56b9;
+}
+
+.container_fixed {
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+  width: 1200px;}
+
+.row{
+    margin-left: 0px;
+    margin-right: 0px;}
+
+
+.ban_top{
+    background-color: #0149ad;
+   /* background-color: #e5e5e5;*/
+    /*background-color: #4e4e4e;*/
+    height:35px;
+    width: inherit;
+    position: relative;
+    top:0px;
+   /* border-left: 2px solid #6285af;*/}
+
+
+
+
+.ban_top .btn-xs{
+    margin-top: 7px;
+    border-color: #0f56b9;
+    border-radius: 0px;
+}
+
+.ban_bot{
+    background-color: #eee;
+    height:30px;
+    width: inherit;
+    position: relative;
+    bottom: 5px;}
+
+.form-control {
+  display: block;
+  width: 100%;
+  height: 22px;
+  padding: 6px 12px;
+  margin-top: 7px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #666;
+  border-radius: 2px;}
+
+.panel-heading{
+    height: 15px;
+    padding-top: 1px;
+    border-radius: 0px;
+    border: none;}
+
+.panel{
+    border: none;
+    border-radius: 0px;
+    box-shadow: none;}
+
+
+p.switch {
+    color: #0149ad;
+    transition: color 0.5s;
+    margin: 0px 0px 0px;}
+
+p.switch:hover {
+       color: #000000;}
+
+p.switch:after {
+   font-family: 'FontAwesome';
+   
+    content:  "\f068";
+   text-decoration: none;
+   cursor: pointer;
+}
+
+p.switch.collapsed:after {
+    text-decoration: none;
+    content: "\f067";
+}
+
+#select_all_dep {
+   font-family: 'FontAwesome';
+    content: "\f068";
+   text-decoration: none;
+   cursor: pointer;
+}
+
+#select_all_dep:after {
+    content:  '\f067';
+   text-decoration: none;
+}
+
+
+/*----------- TREE VIEWER -----------*/
+
+ul, li {
+    padding: 0px !important;
+    margin: 0px;
+    list-style: none;}
+
+.tree , .highlight {
+    transition: background-color 200ms ease-in-out;
+    cursor: pointer;}
+
+.tree:hover , .highlight_hover , .highlight:hover {
+    background-color: #d8e9f8;
+    transition: background-color 200ms ease-in-out;}
+
+p.child:active, p.grandchild:active {
+    font-style: italic;
+    color: #337ab7;}
+
+p.child{
+    padding-left: 30px;    }
+
+
+p.grandchild{
+    padding-left: 60px;}
+
+.selected{
+    background: #f0f2f5;
+    border-right: 2px solid #0149ad;
+    margin-left: 20px;
+    padding-left: -20px;}
+
+.deselected{
+    background: none;
+    border-right: 0px solid #0149ad;
+    margin-left: 20px;
+    padding-left: 0px;}
+
+.selected_inhereted{
+    background: #c3dff8;
+    border-left: 2px solid #6285af;}
+
+/*---------- TREE VIEWER END -----------*/
+
+
+
+/* ----------- SCROLL BAR ----------- */
+
+/* IE */
+body {
+    scrollbar-face-color      : #e5e5e5;
+    scrollbar-arrow-color     : #e5e5e5;
+    scrollbar-track-color     : #f9f9f9;
+    scrollbar-shadow-color    : #f9f9f9;
+    scrollbar-highlight-color : #f9f9f9;}
+
+
+/* CHROME */
+.content::-webkit-scrollbar {
+    position: static;
+  width: .4em; }
+
+.content::-webkit-scrollbar,
+.content::-webkit-scrollbar-thumb {
+  overflow:visible;
+  border-radius: 1px;}
+
+.content::-webkit-scrollbar-thumb {
+  background: rgba(155,155,155,.2); }
+
+.content::-webkit-scrollbar-thumb:hover {
+  opacity: 100;
+  overflow:visible;
+  border-radius: 4px;}
+
+
+/* ----------- SCROLL BAR END ----------- */
+
+
+
+
+/* ----------- FONT STYLING ----------- */
+
+h1, h3, h4, h5,h6,p {
+    color: #555;}
+
+h3 {
+    margin-top: 15px;
+    color: #f0f2f5;
+    border: none;}
+
+p {
+    font-size: 12px;
+    line-height: 1.2em;}
+
+.ban_top a{
+    color: #f5d237;
+    transition: color 0.3s;}
+.ban_top a:hover {
+    color: #fff;
+    transition: color 0.3s;}
+
+.ban_top h3,.ban_top h4, .ban_top h5, .ban_top h6{
+    color: #87afe6;
+    font-weight: 500;}
+
+
+
+.tabs .col-xs-10{
+     white-space: nowrap;
+    overflow:hidden;}
+
+
+.tabs .col-xs-10>p:hover {
+    overflow: visible !important;
+    transform:translateX(-150px);
+    transition: transform 3s ease-out;
+    transition-delay: 0.5s;}
+
+/* ----------- FONT STYLING END ----------- */
+
+
+
+/* ----------- CHECK BOX STYLING ---------- */
+
+.des-ckbox{
+    padding-top: 5px;
+    margin-bottom: 3px;
+    padding-bottom: 10px;
+    font-size: 10px;
+    font-style: italic;
+    color: #818181;}
+
+.checkbox {
+    margin-top: 0px;
+    margin-bottom: 3px;
+    padding-left: 15px; }
+
+.checkbox label {
+    display: inline-block;
+    position: relative;
+    padding-left: 1px;} 
+
+.checkbox label p {
+    margin-left: 5px;
+    } 
+
+
+    .checkbox label::before {
+      content: "";
+      display: inline-block;
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: -3;
+      margin-left: -15px;
+      border: 1px solid #cccccc;
+      border-radius: 1px;
+      background-color: #fff;
+      -webkit-transition: border 0.15s ease-in-out, color 0.15s ease-in-out;
+      -o-transition: border 0.15s ease-in-out, color 0.15s ease-in-out;
+      transition: border 0.15s ease-in-out, color 0.15s ease-in-out; }
+
+
+    .checkbox label::after {
+      display: inline-block;
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      left: 0;
+      top: 0;
+      margin-left:-15px; 
+      padding-left: 2px;
+      font-size: 12px;
+      color: #0149ad; }
+
+  .checkbox input[type="checkbox"] {
+    opacity: 0; }
+
+    .checkbox input[type="checkbox"]:hover + label::before {
+      outline: thin dotted;
+      outline: 5px auto -webkit-focus-ring-color;
+      outline-offset: -2px; }
+
+    .checkbox input[type="checkbox"]:checked + label::after {
+      font-family: 'FontAwesome';
+      content: "\f00c";
+      margin-top: -1px;
+      color:green;}
+
+.checkbox input[type="checkbox"]:indeterminate + label::after {
+      font-family: 'FontAwesome';
+      content: "\f00d";
+      top: 3;
+      margin-top: -3px;
+      padding-left: 3px;
+      color:#c30000;
+    border-color: indianred;
+      font-size: 14px;}
+
+  .checkbox.checkbox-inline {
+    margin-top: 0; }
+
+/* ----------- CHECK BOX STYLING END ----------- */
+
+/* ----------- RADIO BTN STYLING ---------- */
+.radio {
+  padding-left: 15px; }
+  .radio label {
+    display: inline-block;
+    position: relative;
+    padding-left: 5px; }
+    .radio label::before {
+      content: "";
+      display: inline-block;
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: 0;
+      margin-left: -15px;
+      border: 1px solid #cccccc;
+      border-radius: 50%;
+      background-color: #fff;
+      -webkit-transition: border 0.15s ease-in-out;
+      -o-transition: border 0.15s ease-in-out;
+      transition: border 0.15s ease-in-out; }
+    .radio label::after {
+      font-weight: bolder;
+      display: inline-block;
+      position: absolute;
+      content: " ";
+      width: 8px;
+      height: 8px;
+      left: 3px;
+      top: 3px;
+      margin-left: -15px;
+      border-radius: 50%;
+      background-color: #0149ad;
+      -webkit-transform: scale(0, 0);
+      -ms-transform: scale(0, 0);
+      -o-transform: scale(0, 0);
+      transform: scale(0, 0);
+      -webkit-transition: -webkit-transform 0.1s cubic-bezier(0.8, -0.33, 0.2, 1.33);
+      -moz-transition: -moz-transform 0.1s cubic-bezier(0.8, -0.33, 0.2, 1.33);
+      -o-transition: -o-transform 0.1s cubic-bezier(0.8, -0.33, 0.2, 1.33);
+      transition: transform 0.1s cubic-bezier(0.8, -0.33, 0.2, 1.33); }
+  .radio input[type="radio"] {
+    opacity: 0; }
+    .radio input[type="radio"]:focus + label::before {
+      outline: thin dotted;
+      outline: 5px auto -webkit-focus-ring-color;
+      outline-offset: -2px; }
+    .radio input[type="radio"]:checked + label::after {
+      -webkit-transform: scale(1, 1);
+      -ms-transform: scale(1, 1);
+      -o-transform: scale(1, 1);
+      transform: scale(1, 1); }
+    .radio input[type="radio"]:disabled + label {
+      opacity: 0.65; }
+      .radio input[type="radio"]:disabled + label::before {
+        cursor: not-allowed; }
+  .radio.radio-inline {
+    margin-top: 0; }
+.radio:first-of-type {
+   margin-top: 0; 
+}
+  .radio.radio-inline {
+    margin-top: 0; }
+
+/* ----------- RADIO BTN STYLING END ---------- */
+
+
+

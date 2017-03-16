@@ -1,0 +1,91 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+/*
+.layout-infobox-tabs .panel-heading {
+    z-index: 50;
+}
+*/
+.layout-infobox-tabs .panel-body {
+    overflow: auto;
+}
+
+.layout-infobox-tabs .panel-heading .nav-tabs li {
+    margin-bottom: -2px;
+}
+
+.layout-infobox-tabs .panel-body .view-area {
+    position: relative;
+}
+
+.layout-infobox-tabs ul li a {
+    padding: 0.2em 0.5em 0.2em 0.5em;
+}
+
+.layout-infobox-tabs ul li a.icon {
+    padding: 0.2em 0.5em 0.2em 2em !important;
+}
+
+.layout-infobox-tabs ul li ul.tab-control-menu {
+    position: absolute;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    top: 0;
+    z-index: 100;
+    padding: .2em;
+}
+
+.layout-infobox-tabs ul li span.activity-icon {
+    background-position: center center;
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    margin-left: .5em;
+    cursor: pointer;
+    opacity: 0; 
+    filter: alpha(opacity=0);
+}
+
+.layout-infobox-tabs ul li span.close-tab {
+    background-image: url("images/remove-16.png");
+}
+
+.layout-infobox-tabs ul li span.clone-tab {
+    background-image: url("images/clone-16.png");
+}
+
+.layout-infobox-tabs ul li:hover span.activity-icon {
+    opacity: 0.5; 
+    filter: alpha(opacity=50);
+}
+
+.layout-infobox-tabs ul li:hover span.activity-icon:hover {
+    opacity: 1; 
+    filter: alpha(opacity=100);
+}

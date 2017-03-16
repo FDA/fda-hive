@@ -1,0 +1,3 @@
+[submodule "vlib/xlib/xlsx2csv"]
+	path = vlib/xlib/xlsx2csv
+	url = https://github.com/dilshod/xlsx2csv.git

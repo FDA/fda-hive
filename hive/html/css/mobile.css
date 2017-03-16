@@ -1,0 +1,913 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+.ui-page {
+    background: #FFFFF0;
+}
+
+.ui-page .ui-header {
+    background: #FFF0C5;
+}
+
+.ui-content {
+    font-size: 0.95em !important;
+    padding: 5px !important;
+}
+
+.ui-title {
+    margin-right: 10% !important;
+}
+
+
+h2 {
+    font-size: 1.1em !important;
+    margin: 2px !important;
+    padding-top: 5px !important;
+    padding-bottom: 2px !important;
+}
+
+h3 {
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+    font-size: 0.95em;
+}
+
+a {
+    color:rgb(33,33,33);
+}
+
+#controls,.controls-container {
+    padding-left: 20px;
+}
+
+#controls .geneInputBtn,.queryInputField {
+    width: 100px !important;
+    margin-right: 4x !important;
+}
+
+#biomuta #controls #btn_biomuta_sbt {
+    /*    width: 100px;*/
+
+}
+
+
+
+
+table {
+    margin: auto !important;
+}
+
+#line {
+}
+
+.defaultText {
+    width: 150px;
+}
+
+.defaultTextActive {
+    color: #a1a1a1;
+    font-style: italic;
+}
+
+/* Add alternating row stripes */
+.table-stripe tbody tr:nth-child(odd) td {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Add stroke to the header and last item */
+.table-stripe thead th {
+    border-bottom: 3px solid rgba(0, 0, 0, 0.1);
+    background-color: rgba(225, 225, 225, 1);
+    text-align: center;
+}
+
+
+.invalid-msgs {
+    display: none;
+    font-size: 11 px;
+    color: red;
+}
+
+#homemenu {
+    position: absolute;
+    top: 40%;
+    margin-left: 20%;
+}
+
+.header-hivelogo {
+    float: left !important;
+    margin-left: -5px !important;
+}
+
+#goBackButton {
+    float: left;
+    margin-left: 5px;
+}
+
+.results-container {
+    display: none;
+}
+
+#update .ui-btn-up-c {
+    text-shadow: 0 1px 0 #000000 !important;
+}
+
+.tips {
+    color: #818181;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.superscript {
+    position: relative;
+    top: -0.5em;
+    font-size: 65%;
+    color: #003300;
+}
+
+.legend rect {
+    fill: white;
+    stroke: black;
+    opacity: 0.8;
+}
+
+.ui-fullsize .ui-btn-inner,.ui-fullsize .ui-btn-inner {
+    font-size: 11px !important;
+}
+
+.header {
+    background: rgba(38, 56, 155, 1);
+    /*   background-color: rgba(255, 240, 197, 1);*/
+    height: 36px;
+    overflow: hidden;
+    color: #d0d9ff;
+
+    width: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    padding-left: 5px;
+    font-weight: bold;
+
+
+}
+
+.title {
+    background: rgba(38, 56, 155, 1);
+    /*   background-color: rgba(255, 240, 197, 1);*/
+    overflow: hidden;
+    color: #d0d9ff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: bold;
+
+}
+div.header div.text {
+    position: fixed;
+    top: 10%;
+    left:25%;
+}
+
+body  {
+    min-width: 100%;
+    max-width: 100%;
+    margin-right: 0px;
+    margin-left: 0px;
+    height: 100%;
+    overflow: hidden;
+    overflow-x:hidden;
+
+}
+
+.process {
+    overflow-y: auto;
+    min-width: 100%;
+    max-width: 100%;
+}
+
+.top {
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    position: fixed;
+    z-index: 9999;
+    overflow: hidden;
+    /*transition: left .15s;*/
+    box-shadow: 0px 0px 10px 1px #444;
+}
+
+.processinner {
+    font-family: "Arial Narrow", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: rgb(250, 250, 250);
+    height: 100%;
+    display: inline-block;
+    width: 100%;
+    margin-top:3%;
+    position: relative;
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(240, 240, 240);
+    box-shadow: 1px 1px 1px .5px #888888;
+
+}
+
+.processDate {
+    float: left;
+    display: inline-block;
+    padding: 2% 0px 2px 0%;
+    width: 48%;
+    font-size: 18px;
+    text-align: center;
+
+
+}
+
+.processHeader{
+    font-size: 22px;
+    background:rgba(0,0,0,.08);
+    color:rgb(38,56,155);
+    padding-left:2%;
+    padding-right:2%;
+    padding-top:2%;
+    padding-bottom:2%;
+}
+.processName {
+    display: inline-block;
+    position: relative;
+    text-align: left;
+    display: inline-block;
+    width: 75%;
+
+}
+
+.processImg {
+    display: inline-block;
+    position: relative;
+    display: inline-block;
+    height: auto;
+        width: 10%;
+    margin-right:1 %;
+    margin-top:2px;
+    float:right;
+    align:center;
+    margin: auto;
+}
+
+
+.processsRest {
+    float:right ;
+    width: 100%;
+    display: block;
+    font-size: 14px;
+    text-align: left;
+    text-align: left;
+    display: inline;
+    width: 50%;
+    border-left: 1px solid rgb(240, 240, 240);
+    padding-left:1%;
+}
+
+.processDetails{
+    width:100%;
+    border-bottom: 1px solid rgb(240, 240, 240);
+    border-top: 1px solid rgb(240, 240, 240);
+    height:100%;
+    display: inline-block;
+    color: rgba(114, 114, 114);
+    background: rgb(250, 250, 250);
+    padding-top:2%;
+    padding-bottom:2%;
+
+
+}
+
+
+div.rectangle {
+    width: 100%;
+    height: 1px;
+    position: absolute;
+    background: #000000;
+    bottom: 0;
+    left: 0;
+}
+#tab1 {background: #3b50ce;}
+#tab2 {background: #3b50ce;}
+#tab3 {background: #3b50ce;}
+
+#topBottomSVG {
+    position: absolute;
+    right: 0px;
+    bottom: 1px;
+    height: 5px;
+    width: 100%;
+    background: #3b50ce;
+}
+
+
+.table {
+    table-layout: fixed;
+    width: 100%;
+    word-wrap: break-word;
+    height: 100%;
+}
+
+.divtable {
+    padding-bottom: 5px;
+    padding-right: 5%;
+    padding-left: 5%;
+    padding-top: 1px;
+    display: block;
+    overflow-x: hidden;
+    transition: width 0.15s;
+    transition: margin-left .15s;
+    
+}
+
+.progressbar1 {
+    height: 8px;
+    width: 95%;
+    padding: 0px 0px 0px 0px;
+    display: inline-block;
+    margin-top:2%;
+    margin-bottom:0.8%;
+    border: 1px solid rgb(240, 240, 240);
+    background:rgba(0,0,0,.06);
+    margin-right:2.5%;
+    margin-left:2.5%;
+
+}
+
+.progressbarDONE{
+    background: rgb(59,80,206);
+    height:100%;
+    -webkit-transition: width 2s; /* For Safari 3.1 to 6.0 */
+    transition: width 0.25s;
+    width:0%;
+
+}
+
+
+.loginlogo {
+    position: absolute;
+    width: 95%;
+    align:center;
+    top: 15%;
+    overflow: hidden;
+    bottom:0;
+}
+
+.login {
+    min-width: 100%;
+    max-width: 100%;
+    margin-right: 0px;
+    margin-left: 0px;
+    width:100%;
+    background: linear-gradient(rgba(0, 82, 170, 1), rgba(0, 92, 180, 1));
+    /* Standard syntax (must be last) */
+    height: 100%;
+    overflow: hidden;
+    height: 100vh;
+    overflow: hidden;
+    overflow-x:hidden;
+
+}
+
+.emaillogin {
+    width: 90%;
+    margin-right: 6%;
+    margin-left: 4%;
+    float: left;
+    border-radius: 2px;
+    border-color: rgb(150, 150, 150);
+    height: 30px;
+    border-width: 1px;
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 0px;
+    top: 15%;
+    background: rgba(255, 255, 252, 1);
+}
+
+.psswdlogin {
+    width: 90%;
+    margin-right: 6%;
+    margin-left: 4%;
+    float: left;
+    bottom: 0;
+    border-radius: 2px;
+    border-color: rgb(150, 150, 150);
+    height: 30px;
+    border-width: 1px;
+    text-align: center;
+    font-size: 16px;
+    border-top-color: rgb(235, 235, 235);
+    background: rgba(255, 255, 252, 1);
+}
+
+.loginsubmit {
+    width: 90%;
+    margin-right: 6%;
+    margin-left: 4%;
+    float: left;
+    margin-top: 3%;
+    margin-bottom: 5%;
+    border-color: rgb(150, 150, 150);
+    height: 30px;
+    border-width: 0px;
+    background: rgba(254, 205, 64, 1);
+    /* Standard syntax (must be last) */
+    text-align: center;
+    color: rgba(0, 107, 215, 1);
+    font-size: 20px;
+    font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+
+
+}
+
+.enter {
+    top: 50%;
+    height: 100%;
+    position: relative;
+}
+
+.tabs input[type=radio] {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+}
+
+.tabs {
+    width: 33.33%;
+    float: left;
+    list-style: none;
+    position: relative;
+    margin: 0px auto;
+    display: inline;
+    background-color: #3b50ce;
+
+}
+
+.tabs li {
+    float: left;
+}
+
+.tabs label {
+    text-align: center;
+    display: block;
+    padding: 10px 0px;
+    color: #d0d9ff;
+    font-size: 20px;
+    font-family: "Arial Narrow", Arial, sans-serif;
+    font-size: 18px;
+    /*background: rgb(40, 40, 40);*/
+    cursor: pointer;
+    position: relative;
+    top: 0px;
+
+}
+
+input[type="radio"]:checked+label {
+    background: #5BC0DE;
+}
+
+
+.switch{
+    margin-right: 6%;
+    margin-left: 4%;
+    float: left;
+    margin-top: 3%;
+    height: 30px;
+    /* Standard syntax (must be last) */
+    text-align: center;
+    color: rgba(0, 107, 215, 1);
+    font-size: 20px;
+    font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+}
+
+.menu{
+    overflow: hidden;
+    position: fixed;
+
+}
+#hamburger{
+    cursor: pointer;
+    display: block;
+    height: 24px;
+    padding: 3px 4px 3px;
+    margin-right:8%;
+    margin-top: 0%;
+    float:right;
+    position:relative;
+    display: inline;
+    width: 25px;
+
+}
+
+/*
+The  stripes in the hamburger button
+*/
+#hamburger div {
+    background-color: #d0d9ff;
+    border: 1px solid #d0d9ff;
+    height: 2px;
+    margin-top: 3px;
+    width: 90%;
+}
+.nav {
+    left: 0px;
+    top: 0px;
+    position: fixed;
+    z-index: 1;
+    width:0%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    overflow-x:hidden;
+    overflow-y:auto ;
+    background: rgba(250,250,250,1);
+    -webkit-transition: width 0.10s; /* For Safari 3.1 to 6.0 */
+    transition: width 0.10s;
+    overflow: hidden;
+    box-shadow: 3px 3px 25px #000000;
+    padding-bottom:10%;
+
+
+}
+
+
+.nav ul {
+    list-style: none;
+    margin: 0;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+
+}
+
+.nav li {
+    font-size: 20px;
+    font-family: "Arial Narrow", Arial, sans-serif;
+    font-size: 18px;
+    padding: 15px;
+    overflow: hidden;
+    color:rgb(33,33,33);
+
+}
+.nav li a {
+    color: rgb(33,33,33);
+    text-decoration: none;
+}
+.nav li:active {
+    background:rgba(0,0,0,.08);
+}
+
+
+/*
+The Layer that will be layed over the content
+so that the content is unclickable while menu is shown
+*/
+#contentLayer {
+    display: none;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 30%;
+    z-index: 5;
+}
+#content {
+    background-color: #FFFFFF;
+    padding: 52px 10px 10px 10px;
+    position: relative;
+    width: auto;
+    min-height: 1000px;
+    -webkit-box-shadow:  -10px 0px 9px 0px rgba(0, 0, 0, 0.4);
+    box-shadow:  -10px 0px 9px 0px rgba(0, 0, 0, 0.4);
+}
+
+.menu{
+    width:0%;
+
+    transition-property: width;
+    transition-duration: 1s;
+    transition-timing-function: linear;
+    transition-delay: 2s;
+
+    overflow:hidden;
+}
+
+.mobileMenu {
+    background-color:black;
+    height:100%;
+}
+
+
+.super {
+  height: 100%;
+  width: 100%;
+  -webkit-transition: all 1s ease;
+  -moz-transition: all 1s ease;
+  -o-transition: all 1s ease;
+  -ms-transition: all 1s ease;
+  transition: all 1s ease;
+      z-index: 3;
+  position: absolute;
+  left: 0; /*or bottom, top, right*/
+  transition: left .15s;
+  background-color: rgba(0, 0, 0, 0.0196078);
+
+    position: absolute;
+    left: 0; /*or bottom, top, right*/
+    transition: left .15s;
+    background-color: rgba(0, 0, 0, 0.0196078);
+
+
+}
+
+.TABLEVIEW_table
+{
+
+    font-family: "Arial Narrow", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;    width:90%%;
+    overflow:auto;
+    border-collapse:collapse;
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(240, 240, 240);
+    box-shadow: 1px 1px 10px .5px #888888;
+
+
+}
+
+.TABLEVIEW_table_cell
+{
+    border: 1px solid;
+    border-color: rgb(150, 150, 150);
+    margin:0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+
+    font-size:14px;
+    padding-top:1%;
+    padding-bottom:1%;
+}
+
+
+
+.TABLEVIEW_table_highlighted
+{
+    border: 1px solid;
+    font-size:14px;
+    color:#FECD40;
+    border-color: rgb(150, 150, 150);
+    background-color:  #3b50ce;
+    padding-top:1%;
+    padding-bottom:1%;
+
+}
+
+
+.TABLEVIEW_table_selected1
+{
+    font-size:14px;
+    border: 1px solid;
+    color:#FECD40;
+    border-color: rgb(150, 150, 150);
+    background-color:  #3b50ce;
+    padding-top:1%;
+    padding-bottom:1%;
+}
+
+
+.TABLEVIEW_table_td
+{
+    white-space:nowrap;
+    padding: 0px 10px 2px 10px;
+}
+
+.TABLEVIEW_table th
+{
+    font-size: 18px;
+    background:rgba(0,0,0,.08);
+    color:rgb(38,56,155);
+    z-index: 10000;
+    overflow: hidden;
+
+}
+
+
+.progressingMobile {
+    z-index: 1000300;
+    position:absolute;
+/*    overflow:auto; */
+
+    /* IE 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
+
+    /* IE 5-7 */
+    filter: alpha(opacity=70);
+
+    /* Netscape */
+    -moz-opacity: 0.7;
+
+    /* Safari 1.x */
+    -khtml-opacity: 0.7;
+
+    /* Good browsers */
+    opacity: 0.7;
+    height:100%;
+    width:100%;
+    bottom:0;
+/*     top: 0; */
+/*     left: 0; */
+    background-image: url('../img/progress.gif');
+    background-repeat: no-repeat;
+    background-size:30px;
+
+    background-position: center center;
+}
+
+
+
+
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    src: local('Open Sans'), local('OpenSans'), url('http://themes.googleusercontent.com/static/fonts/opensans/v5/cJZKeOuBrn4kERxqtaUH3T8E0i7KZn-EPnyo3HZu7kw.woff') format('woff');
+}
+
+h1 {
+    font-family: 'Open sans',arial,sans-serif;
+    color:#FECD40;
+    text-align:center;
+}
+.circle
+{
+width: 5%;
+height: 15px;
+border-radius: 100%;
+text-align: center;
+position: absolute;
+margin-top: 15%;
+border: 1px solid rgba(0,0,0,.5);
+margin-left:3%;
+display:none;
+ transition:visibility 0s linear 0.2s,opacity 0.2s linear;
+ 
+}
+
+.Options
+{
+float:left;
+z-index:99999999999999999999999999;
+position:fixed;
+width:90%;
+height:0%;
+left: 5%;
+transition:height .3s;
+background-color: rgb(249,249,249);
+ transition:visibility 0s linear 0.05s,opacity 0.05s linear;
+-webkit-transition:height .3s; /* Safari */
+border-style: solid;
+border-width: 1px;
+border-color: rgb(240, 240, 240);
+box-shadow: 1px 1px 10px .5px #888888;
+display:none;
+}
+.navOptions {
+    left: 0px;
+    top: 0px;
+    width:100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    overflow-x:hidden;
+    overflow-y:auto ;
+    -webkit-transition: width 0.10s; /* For Safari 3.1 to 6.0 */
+    overflow: hidden;
+     padding-bottom:10%;
+        
+    
+}
+.navOptions ul {
+    list-style: none;
+    margin: 0;
+    width: 100%;
+    padding: 0;
+     overflow: hidden;
+     
+}
+
+.navOptions li {
+    font-size: 20px;
+    font-family: "Arial Narrow", Arial, sans-serif;
+    font-size: 18px;
+    padding: 15px;
+     overflow: hidden;
+     color:rgb(33,33,33);
+     
+}
+.navOptions li a {
+    color: rgb(33,33,33);
+    text-decoration: none;
+}
+.navOptions li:active {
+    background:rgba(0,0,0,.08); 
+}
+
+.tableWrapper{
+        border-style: none;
+        border-width: 1px;
+    border-color: rgb(240, 240, 240);
+}
+@import url(../style.css?aea6f0a);
+
+#chart1 {
+  width: 960px;
+  height: 500px;
+  border: solid 1px #ccc;
+}
+
+text {
+  font: 10px sans-serif;
+}
+
+.background {
+  fill: none;
+  pointer-events: all;
+}
+
+#chart1 .node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+#chart1 .link {
+  stroke: #999;
+  stroke-opacity: .6;
+  stroke-width: 1.5px;
+}
+
+#chart2, #chart3 {
+  width: 960px;
+  height: 180px;
+  border: solid 1px #ccc;
+}
+
+#chart2 path, #chart3 line {
+  fill: none;
+  stroke: #333;
+}
+
+#chart3 line {
+  shape-rendering: crispEdges;
+}
+
+#chart4 {
+  margin-left: -40px;
+  height: 506px;
+}
+
+#chart4 .background {
+  fill: #ddd;
+}
+
+#chart4 .dot {
+  stroke: #000;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #fff;
+  shape-rendering: crispEdges;
+}

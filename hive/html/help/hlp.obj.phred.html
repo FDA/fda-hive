@@ -1,0 +1,6 @@
+<id>hlp.obj.phred</id>
+<title>Phred quality score</title>
+<definition>A higher score indicates lower probability of incorrect-calling</definition>
+<description>Phred, a program developed for the Human Genome Project, calculates a number of parameters related peak values and resolutions for each base in a sequence.  The parameter values are then used to look up a score in a corresponding table with generated from experiments on known sequences.  The Phred quality score, Q, is defined with respect to the base-calling error probabilities, P, such that:
+<span class="equations">Q = -10log10P</span>
+Thus, any Phred score over 20 implies a less than 1% chance that the base is called incorrectly.  The higher the Phred score, the lower the associated probability of incorrect base-calling.</description>
