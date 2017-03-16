@@ -25,6 +25,7 @@ it provides computations as a service by introducing agnostic abstraction layer 
 and the computational tasks requested by users. The novel paradigm of relocating computations closer to the
 data, instead of moving data to computing cores has proven to be the key for optimal flow of tasks and data
 through network infrastructure.
+
 ![computations](doc/images/computations.png)
 
 - **Data-warehousing:** HIVE honeycomb data model was specifically created for adopting complex hierarchy
@@ -40,12 +41,14 @@ share and manipulate data and computations of all types.  As an Integrator platf
 means to develop (C/C++, Python, Perl, JavaScript, R) and integrate existing almost any open source or
 commercial tools using generic adaptation framework to integrate command line tools. Additionally web-API
 provides means to drive HIVE to perform data quality control and complex computations on behalf of remote users.
+
 ![integration](doc/images/integration.png)
 
 - **Visualization:** HIVE provides number of scientific visualization components using technologies as HTML5,
 SVG, D3JS within its Data Driven Document context. The native data and metadata and computational results provided
 in JSON, CSV-based communication protocols, which are used to generate interactive, user driven, customizable
 tools allow bioinformaticians to manipulate terabytes of extra-large data using only an Internet browser.
+
 ![visualization](doc/images/visualization.png)
 
 This release of the HIVE software is aligned with the President’s call for “Leveraging American Ingenuity through
@@ -68,6 +71,7 @@ wants to benefit the healthcare of humans and to apply this for a great many sci
 is with greatest pleasure and recognition of the work of many dedicated and talented scientists and developers that today
 I am sharing this platform with you.  
 ![Vahan Simonyan](doc/images/vahan_simonyan.jpg)
+
 Vahan Simonyan,  
 PhD, Physics and Mathematics  
 Lead Scientist, HIVE Project Director,  
@@ -75,7 +79,7 @@ Center for Biologics Evaluation and Research,
 Food and Drug Administration
 
 #### Source repository
-    GitHub (https://github.com/fda-hive) is the location of HIVE open source codebase.
+  GitHub (https://github.com/fda-hive) is the location of HIVE open source codebase.
 
 #### The MIT Open Source License
 
