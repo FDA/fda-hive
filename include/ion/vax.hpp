@@ -240,8 +240,8 @@ namespace slib {
             void errorReport(sIO * err, idx pos=0){
                 if(!pos)pos=flNmPos;
                 err->printf("ERROR in %s: %s\n",flName.ptr(pos),errCode);
-                err->printf("%"DEC" %.*s\n",lineCount+1,(int)(nextLine-lineStart),lineStart+srcStart);
-                err->printf("%"DEC" %.*s\n",lineCount+2,128,nextLine+srcStart);
+                err->printf("%" DEC " %.*s\n",lineCount+1,(int)(nextLine-lineStart),lineStart+srcStart);
+                err->printf("%" DEC " %.*s\n",lineCount+2,128,nextLine+srcStart);
                 if(err!=&errIO && errIO.length())
                     err->printf(errIO.ptr());
             }

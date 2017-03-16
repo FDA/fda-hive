@@ -283,7 +283,7 @@ namespace slib {
             const char * getRecordBody (RecordResult * pRecordResult, sStr * bodyText, idx cut=sNotIdx){
                 if(cut!=sNotIdx)bodyText->cut(cut);
                 if(pRecordResult->cType==eCTypeReal ) {bodyText->printf("%lf",*(real*)pRecordResult->body);}
-                else if(pRecordResult->cType==eCTypeIdx ) { bodyText->printf("%"DEC,*(idx *)pRecordResult->body);}
+                else if(pRecordResult->cType==eCTypeIdx ) { bodyText->printf("%" DEC,*(idx *)pRecordResult->body);}
                 else {bodyText->printf("%.*s",(int)pRecordResult->size,(const char * )pRecordResult->body);}
                 return bodyText->ptr();
             }

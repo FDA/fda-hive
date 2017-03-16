@@ -204,15 +204,15 @@
 
 #define sIon_outTextBody(_v_buf, _v_pRecordCType, _v_pRecordBody, _v_sz ) { \
     if((_v_pRecordCType)==sIon::eCTypeIdx) { \
-            (_v_buf)->printf("%"DEC,*(idx*)(_v_pRecordBody)); \
+            (_v_buf)->printf("%" DEC,*(idx*)(_v_pRecordBody)); \
         } \
         else if((_v_pRecordCType)==sIon::eCTypeIndexOnly) { \
-            (_v_buf)->printf("%"DEC,*(idx*)(_v_pRecordBody)); \
+            (_v_buf)->printf("%" DEC,*(idx*)(_v_pRecordBody)); \
         } \
         else if((_v_pRecordCType)==sIon::eCTypeReal) { \
             (_v_buf)->printf("%lf",*(real*)(_v_pRecordBody)); \
         }else if((_v_pRecordCType)==sIon::eCTypeIdxRange) { \
-            (_v_buf)->printf("%"DEC",%"DEC"", (idx)((int *)(_v_pRecordBody))[1], (idx)((int *)(_v_pRecordBody))[0] ); \
+            (_v_buf)->printf("%" DEC ",%" DEC "", (idx)((int *)(_v_pRecordBody))[1], (idx)((int *)(_v_pRecordBody))[0] ); \
         }else if((_v_pRecordCType)==sIon::eCTypeString) { \
             if( *(char*)(_v_pRecordBody)!=0 ) {\
                 idx il=0; \
@@ -232,12 +232,12 @@
 
 #define sIon_outTextBodyInternal(_v_buf, _v_pRecordCType, _v_pRecordBody, _v_sz ) { \
     if((_v_pRecordCType)==sIon::eCTypeIdx) { \
-            (_v_buf)->printf("%"DEC,*(idx*)(_v_pRecordBody)); \
+            (_v_buf)->printf("%" DEC,*(idx*)(_v_pRecordBody)); \
         } \
         else if((_v_pRecordCType)==sIon::eCTypeReal) { \
             (_v_buf)->printf("%lf",*(real*)(_v_pRecordBody)); \
         }else if((_v_pRecordCType)==sIon::eCTypeIdxRange) { \
-            (_v_buf)->printf("%"DEC":%"DEC"", (idx)((int *)(_v_pRecordBody))[1], (idx)((int *)(_v_pRecordBody))[0] ); \
+            (_v_buf)->printf("%" DEC ":%" DEC "", (idx)((int *)(_v_pRecordBody))[1], (idx)((int *)(_v_pRecordBody))[0] ); \
         }else if((_v_pRecordCType)==sIon::eCTypeString) { \
             if( *(char*)(_v_pRecordBody)!=0 ) {\
                 idx il=0; \
