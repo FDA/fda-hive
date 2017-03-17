@@ -366,7 +366,7 @@ namespace slib
         {
             printf("Matrix:\n");
             for (idx x=0; x<_npoints; x++) {
-                printf("%3"DEC": ", x);
+                printf("%3" DEC ": ", x);
                 for (idx y=0; y<_npoints; y++)
                     printf("%7.4g ", dist(x, y));
                 printf("\n");

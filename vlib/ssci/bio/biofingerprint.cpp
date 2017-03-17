@@ -333,7 +333,7 @@ idx sBioFingerPrint::calcPopFitness(ChromInfo *chr, sVec<idx> * listPop)
     for(idx i = 0; i < count; ++i) {
         ::printf(" %" DEC, bitC[i]);
     }
-//    ::printf("\nCalculating Distance Matrix for n= % "DEC" \n", n);
+//    ::printf("\nCalculating Distance Matrix for n= %" DEC " \n", n);
 //    ::printf("\n");
     for(idx i = 0; i < count; ++i) {
 //        i1 = getPattern(chr, i);

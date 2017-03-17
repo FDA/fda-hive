@@ -563,7 +563,7 @@ PERF_NEXT("DYNAMIC");
             }
 
             DEBUG_START(1)
-                if(is2==1)::printf("%3d>",(int)is1);//(int) mat(is1,is2));//    ::printf("%3"DEC">",is1);
+                if(is2==1)::printf("%3d>",(int)is1);//(int) mat(is1,is2));//    ::printf("%3" DEC ">",is1);
                 if(*vt<=0)::printf("   %c%c  |",sBioseq::mapRevATGC[(idx)let1],sBioseq::mapRevATGC[(idx)let2]);
                 else ::printf(" %2x%c%c%2d|", (int)*vt, sBioseq::mapRevATGC[(idx)let1],sBioseq::mapRevATGC[(idx)let2],(int)(is1-*st+1) );
             DEBUG_END()
@@ -1008,7 +1008,7 @@ if(is2>0){
 //        mat(is1, is2)=0;
 
 //if(is1==is2)
-    //    ::printf("%3d>",(int)is1);//(int) mat(is1,is2));//    ::printf("%3"DEC">",is1);
+    //    ::printf("%3d>",(int)is1);//(int) mat(is1,is2));//    ::printf("%3" DEC ">",is1);
 //else
 //if(mat(is1,is2)>vertable[is2-is1]){
 //    vertable[is2-is1]=mat(is1,is2);

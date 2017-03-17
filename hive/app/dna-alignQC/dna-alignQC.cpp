@@ -286,7 +286,7 @@ idx DnaAlignQC::OnExecute(idx req)
         righttail.resize(qrybuflen - tailflag+1);
         righttail[qrybuflen - tailflag] += qryrpt;
 
-//        ::printf("% "DEC, iter);
+//        ::printf("%" DEC, iter);
 //        ::printf("%s", outInfo.ptr(0));
     }
 
