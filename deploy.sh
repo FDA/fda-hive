@@ -833,7 +833,7 @@ elif [[ "${USER}" == "root" ]]; then
         if [[ "${OSxx}" == "ubuntu" ]]; then
             apt-get --assume-yes install \
                 mc zip unzip xz-utils wget curl htop dstat netcat \
-                socat xfsprogs nfs-common system-storage-manager lvm2 \
+                socat xfsprogs nfs-common lvm2 \
                 perl psmisc iotop bzip2
         else
             yum install --assumeyes \
