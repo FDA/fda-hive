@@ -33,7 +33,7 @@ DROP TABLE IF EXISTS `QPLock`;
 CREATE TABLE `QPLock` (
   `reqID` bigint(20) NOT NULL COMMENT 'request ID if positive, or private-use handle if negative',
   `key` varchar(767) NOT NULL COMMENT '767 is max length of mysql varchar key; really should be 4096 - max linux path length',
-  `purgeTm` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT 'if purgeTm < NOW(), lock has expired',
+  `purgeTm` timestamp NOT NULL DEFAULT '1970-01-01 00:00:01' COMMENT 'if purgeTm < NOW(), lock has expired',
   PRIMARY KEY (`key`),
   KEY `qplock_reqid` (`reqID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
