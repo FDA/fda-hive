@@ -1,0 +1,8 @@
+libmysql-dev
+libpcre3
+libpcre3-dev
+libsqlite3
+libmagickwand-dev
+
+
+Install ImageMagick (tested with 7.0)

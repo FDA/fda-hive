@@ -225,7 +225,7 @@ sImage * sImage::resize(const char* pic_dst, udx width, udx height, EAspect keep
                 } else if( keepAspect == eAspectHeight ) {
                     width = m_width * height / m_height;
                 }
-                rc = MagickResizeImage(wand, width, height, LanczosFilter, 1);
+                rc = MagickResizeImage(wand, width, height, LanczosFilter);
                 if( rc == MagickTrue ) {
                     rc = MagickWriteImage(wand, pic_dst);
                     if( rc == MagickTrue ) {
