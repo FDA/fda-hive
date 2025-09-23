@@ -39,20 +39,29 @@ if [ "$QPRIDE_BIN" = "" ]; then
     QPRIDE_BIN='./'
 fi
 
+for tool in `echo -n 'abyss-1.3.5/bin'`; do
+    PATH=$QPRIDE_BIN/$tool:$PATH
+done
+
+echo "PATH '$PATH'"
+
 if [ "$kmerSize" = "" ]; then
     echo "no kmerSize is given, using kmerSize=32"
     kmerSize=32
 fi
+#kmerSize=32
 
 cd "$workDir" || exit 10;
 echo "cd $workDir"
 
 if [ "$ends" = "2" ]; then
+    #echo "abyss-pe name=this $kmerSize n=10 in='input1.fastq input2.fastq'"
     echo "abyss-pe name=this $kmerSize in='input1.fastq input2.fastq'"
     abyss-pe name=this $kmerSize in='input1.fastq input2.fastq'
 fi
 
 if [ "$ends" = "1" ]; then
+        #echo "ABYSS -k$kmerSize -c10 input.fa -o this-contigs.fa"
         echo "ABYSS $kmerSize input.fa -o this-contigs.fa"
         ABYSS $kmerSize input.fa -o this-contigs.fa
 fi

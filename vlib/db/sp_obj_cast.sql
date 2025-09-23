@@ -5,7 +5,7 @@ DELIMITER //
 
 CREATE PROCEDURE `sp_obj_cast`(
     IN p_group_id BIGINT UNSIGNED,
-    IN p_member_sql VARCHAR(65535),
+    IN p_member_sql VARCHAR(21844),
     IN p_obj_domainID BIGINT UNSIGNED,
     IN p_obj_id BIGINT UNSIGNED,
     IN p_type_domainID_from BIGINT UNSIGNED,

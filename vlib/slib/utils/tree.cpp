@@ -33,41 +33,6 @@
 
 using namespace slib;
 
-#if 0
-struct ForCallBack
-{
-        sTabular *tbl;
-        sVec <idx> *values;
-        sVec <idx> *uIDs;
-        idx horizontal;
-};
-
-static idx myCallBack(sStr &out, sHierarchicalClustering &clust, idx x, void *param_)
-{
-    struct ForCallBack * param = static_cast<ForCallBack*>(param_);
-    if (x >= param->values->dim())
-        return 0;
-
-    if (param->horizontal)
-    {
-        if(!param->uIDs || !param->uIDs->dim())
-            param->tbl->printCell(out, (*(param->values))[x], 0);
-        else {
-            for( idx iu=0; iu<param->uIDs->dim(); ++iu  ) {
-                if(iu)out.printf(" ");
-                param->tbl->printCell(out, (*(param->values))[x], (*(param->uIDs))[iu]);
-            }
-
-        }
-    }
-    else
-    {
-        param->tbl->printCell(out, -1, (*(param->values))[x]);
-    }
-
-    return 1;
-}
-#endif
 
 struct PrintNewickCallbackParam {
     sTabular * tbl;
@@ -157,12 +122,10 @@ idx rememberReorder (sHierarchicalClusteringTree & tree, idx curPosInTree, idx c
     sHierarchicalClusteringTree::Tnode & node = tree.getNodeVec()[curPosInTree];
 
     if (curPosInTree < tree.dimLeaves()) {
-        // leaf node
         (*newOrder)[curPosInVec] = curPosInTree;
         return curPosInVec + 1;
     }
 
-    // inner node
     curPosInVec = rememberReorder(tree, curPosInVec, node.out[0], newOrder);
     curPosInVec = rememberReorder(tree, curPosInVec, node.out[1], newOrder);
 
@@ -264,7 +227,6 @@ idx sTree::generateTree (sStr & out,sVec < idx > * columnsToUse, sVec <idx > * r
 
     sVec <idx> * objToUse = horizontal ? rowsToUse : columnsToUse;
 
-    //idx colCnt=(columnsToUse && columnsToUse->dim()) ? columnsToUse->dim() : tbl->cols();//! the total number of columns to go through
 
     DistCallbackParam dist_cb_param;
     dist_cb_param.tbl = tbl;
@@ -275,15 +237,18 @@ idx sTree::generateTree (sStr & out,sVec < idx > * columnsToUse, sVec <idx > * r
     dist_cb_param.horizontal = horizontal;
     dist_cb_param.distMethod = distMethod;
 
-    idx cnt = horizontal ? dist_cb_param.rowCnt : dist_cb_param.colCnt; // count of objToUse
+    idx cnt = horizontal ? dist_cb_param.rowCnt : dist_cb_param.colCnt;
 
     print_bench("to setup %" DEC " items (%s)", cnt, horizontal ? "horizontal" : "vertical");
 
-    sHierarchicalClustering * nj;
-    if( jMethod==FAST ) {
+    sHierarchicalClustering * nj = 0;
+
+   if( jMethod == FAST ) {
         nj = new sFastNeighborJoining();
+    } else if (jMethod == REGULAR){
+        nj = new sNeighborJoining();
     } else {
-        nj = new sNeighborJoining ();
+        nj= new sCompleteLinkClustering();
     }
 
     nj->resetDistance(cnt, distCallback, &dist_cb_param);
@@ -316,41 +281,6 @@ idx sTree::generateTree (sStr & out,sVec < idx > * columnsToUse, sVec <idx > * r
     }
     print_bench("to make new leaf order");
 
-#if 0
-    sVec <real> perRowAverage;
-    if (horizontal)
-    {
-        sHierarchicalClusteringTree & tree = nj->getTree();
-
-        perRowAverage.resize(tree.dim());
-        //sHierarchicalClusteringTree root = tree.getNodeVec();
-        reorderIterate (tree, &tree.getRoot() - tree.getNodeVec().ptr(), &perRowAverage, *newOrder, *columnsToUse, tbl);
-
-        //rememberReorder (tree,  &tree.getRoot() - tree.getNodeVec().ptr(), 0, newOrder);
-
-        sVec<idx> leafOrder;
-        tree.getLeaves(leafOrder);
-
-        //newOrder->resize(leafOrder.dim());
-
-        for (idx i=0; i < leafOrder.dim(); i++)
-        {
-            idx newPos=leafOrder[i];
-            (*newOrder)[i]=(*objToUse)[newPos];
-        }
-    }
-    print_bench("to make averages");
-
-
-    ForCallBack obj;
-
-    obj.tbl = tbl;
-    obj.values = newOrder;
-    obj.uIDs=uIDs;
-    obj.horizontal = horizontal;
-
-    nj->printNewick(out,sHierarchicalClusteringTree::Newick_PRINT_DISTANCE|sHierarchicalClusteringTree::Newick_PRINT_LEAF_NAMES,myCallBack,&obj);
-#endif
 
     PrintNewickCallbackParam print_newick_callback_param;
     print_newick_callback_param.tbl = tbl;
@@ -361,6 +291,8 @@ idx sTree::generateTree (sStr & out,sVec < idx > * columnsToUse, sVec <idx > * r
     nj->printNewick(out, sHierarchicalClusteringTree::Newick_PRINT_DISTANCE|sHierarchicalClusteringTree::Newick_PRINT_LEAF_NAMES, printNewickCallback, &print_newick_callback_param);
 
     print_bench("to print Newick");
+
+    delete nj;
 
     return 0;
 }

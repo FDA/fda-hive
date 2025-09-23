@@ -27,14 +27,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
 function vjD3JS_SunburstHierarchy( viewer )
 {
     var thiSS = this;
     
         loadCSS("d3js/css/sunburst_hierarchy.css");
-        vjD3View.call(this,viewer); // inherit default behaviours of the DataViewer
-        //this.csvParserFunction=d3.csv.parseRows;
+        vjD3View.call(this,viewer);
         
         if (viewer.width) this.width=viewer.width; else this.width=750;
         if (viewer.height) this.height=viewer.height; else this.height=600;
@@ -48,58 +46,43 @@ function vjD3JS_SunburstHierarchy( viewer )
         viewer.maxLevel ? this.maxLevel = viewer.maxLevel : this.maxLevel = 0;
         this.colorCol = viewer.colorCol;
         
-        this.categClrArr={};//{'superkingdom':0, 'kingdom':1, 'family':2 , 'maxlight': 5};        
+        this.categClrArr={};
         this.click = viewer.funclick;
 
 
-        // Use d3.text and d3.csv.parseRows so that we do not need to have a header
-        // row, and can receive the csv as an array of arrays.
-        /*d3.text("visit-sequences.csv", function(text) {
-          var csv = d3.csv.parseRows(text);
-          var json = buildHierarchy(csv);
-          createVisualization(json);
-        });
-*/
     this.d3Compose=function(data){
-        // Main function to draw and set up the visualization, once we have the data.
-        //function createVisualization(json) {
                 
         this.d3Compose_prv(data);
         
-        var trail= this.d3svg.append("g").attr("id","trail");//thiSS.d3area.append("svg").attr("id","#trail"); // d3.select("#trail")
+        var trail= this.d3svg.append("g").attr("id","trail");
         
         var json = buildHierarchy(data,this.colPath,this.colCount, this.colTaxid);
-                //createVisualization(json);
         
-        // Dimensions of sunburst.
         var width = this.width;
         var height = this.height;
-        var radius = Math.min(width, height) / 2  ;
+        var radius = Math.min(width, height-80) / 2  ;
 
-        // Breadcrumb dimensions: width, height, spacing, width of tip/tail.
         var b = {
           w: 95, h: 30, s: 3, t: 10
         };
 
-        // Mapping of step names to colors.
         function clr(d,i){
-                if(!d.color){
+            if(!d.color){
                     return 'lightgray';
-                }
-                var shade = 2*d.lev_depth/thiSS.maxLevel;
-                var max_lev = 0.75;
-                return lightenColor (d.color,1-(1./(1.1+shade)));
-                //return d.color;
-                //var shade=thiSS.categClrArr[d.category] ? thiSS.categClrArr[d.category] : (thiSS.categClrArr[d.category]=thiSS.categClrDensity++);
-//                var shade=thiSS.categClrArr[d.category] ? thiSS.categClrArr[d.category] : (d.lev_depth);
-//                shade =  
-//                Math.exp (d.lev_depth - thiSS.maxLevel);
-//                return lightenColor (d.color, Math.pow (1.1, d.lev_depth - thiSS.maxLevel) );
-                }
+            }
+            var shade = 2*d.lev_depth/thiSS.maxLevel;
+            var max_lev = 0.75;
+            
+            var colorCode = d.color;
+            var tmpColor = new vjColor(colorCode);
+            if(tmpColor.lightness() < 0.4)
+                    return colorCode;
+            
+            return lightenColor (colorCode,1-(1./(1.1+shade)));
+        }
 
         
         
-        // Total size of all segments; we set this later, after loading the data.
         var totalSize = 0; 
 
         var vis = this.d3svg
@@ -108,7 +91,7 @@ function vjD3JS_SunburstHierarchy( viewer )
             .append("svg:g")
             .attr("id", "container")
             .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-        var explanation= vis.append("g").attr("id","explanation");//thiSS.d3area.append("svg").attr("id","#trail"); // d3.select("#trail")
+        var explanation= vis.append("g").attr("id","explanation");
         var perc = explanation.append("svg:text").attr("id","percentage")
             .attr("transform", "translate(-40,10)");
 
@@ -124,20 +107,29 @@ function vjD3JS_SunburstHierarchy( viewer )
 
         
 
-          // Basic setup of page elements.
           initializeBreadcrumbTrail();
 
-          // Bounding circle underneath the sunburst, to make it easier to detect
-          // when the mouse leaves the parent g.
           vis.append("svg:circle")
               .attr("r", radius)
               .style("opacity", 0);
 
-          // For efficiency, filter nodes to keep only those large enough to see.
           var nodes = partition.nodes(json)
               .filter(function(d) {
-              return (d.dx > 0.005); // 0.005 radians = 0.29 degrees
+              return (d.dx > 0.005);
               });
+          
+          var maxDepth = 0;
+          for(var i = 0; i < nodes.length; i++){
+              if (maxDepth < nodes[i].depth) maxDepth = nodes[i].depth;
+          }
+          
+          if(maxDepth >= 30)
+              $(perc[0]).css("font-size", "1em");
+          else if(maxDepth >= 20)
+              $(perc[0]).css("font-size", "1.5em");
+          else if(maxDepth >= 8)
+              $(perc[0]).css("font-size", "2em");
+
 
           var path = vis.data([json]).selectAll("path")
               .data(nodes)
@@ -145,15 +137,13 @@ function vjD3JS_SunburstHierarchy( viewer )
               .attr("display", function(d) { return d.depth ? null : "none"; })
               .attr("d", arc)
               .attr("fill-rule", "evenodd")
-              .style("fill", function(d,i) {return clr(d,i);})//{ return colors[d.name]; })
+              .style("fill", function(d,i) {return clr(d,i);})
               .style("opacity", 1)
                 .on("click", extclick)
               .on("mouseover", mouseover);
 
-          // Add the mouseleave handler to the bounding circle.
           d3.select("#container").on("mouseleave", mouseleave);
 
-          // Get total size of the tree = value of root node from partition.
           totalSize = path.node().__data__.value;
          
 
@@ -162,7 +152,6 @@ function vjD3JS_SunburstHierarchy( viewer )
                 funcLink( thiSS.click, this, node );
         }
 
-        // Fade all but the current sequence, and show it in the breadcrumb trail.
         function mouseover(d) {
 
           var percentage = (100 * d.value / totalSize).toPrecision(3);
@@ -170,11 +159,7 @@ function vjD3JS_SunburstHierarchy( viewer )
           if (percentage < 0.1) {
             percentageString = "< 0.1%";
           }
-
-//          perc.text(percentageString);
-  //        perc.style("visibility","");
-         // .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-          
+        
           d3.select("#percentage")
               .text(percentageString);
 
@@ -184,11 +169,9 @@ function vjD3JS_SunburstHierarchy( viewer )
           var sequenceArray = getAncestors(d);
           updateBreadcrumbs(sequenceArray, percentageString);
 
-          // Fade all the segments.
           d3.selectAll("path")
               .style("opacity", 0.3);
 
-          // Then highlight only those that are an ancestor of the current segment.
           vis.selectAll("path")
               .filter(function(node) {
                         return (sequenceArray.indexOf(node) >= 0);
@@ -196,17 +179,13 @@ function vjD3JS_SunburstHierarchy( viewer )
               .style("opacity", 1);
         }
 
-        // Restore everything to full opacity when moving off the visualization.
         function mouseleave(d) {
 
-          // Hide the breadcrumb trail
           d3.select("#trail")
                 .style("visibility", "hidden");
 
-          // Deactivate all segments during transition.
           d3.selectAll("path").on("mouseover", null);
 
-          // Transition each segment to full opacity and then reactivate it.
           d3.selectAll("path")
               .transition()
               .duration(1000)
@@ -219,8 +198,6 @@ function vjD3JS_SunburstHierarchy( viewer )
           .style("visibility", "hidden");
         }
 
-        // Given a node in a partition layout, return an array of all of its ancestor
-        // nodes, highest first, but excluding the root.
         function getAncestors(node) {
           var path = [];
           var current = node;
@@ -232,19 +209,15 @@ function vjD3JS_SunburstHierarchy( viewer )
         }
 
         function initializeBreadcrumbTrail() {
-          // Add the svg area.
-          //var trail //=d3.select("#sequence").append("svg:svg")
           trail.attr("width", width)
               .attr("height", 50)
               .attr("font-weight", 600)
               .style("fill", "#000");
-          // Add the label at the end, for the percentage.
           trail.append("svg:text")
             .attr("id", "endlabel")
             .style("fill", "#000");
         }
 
-        // Generate a string that describes the points of a breadcrumb polygon.
         function breadcrumbPoints(d, i) {
           var points = [];
           points.push("0,0");
@@ -252,16 +225,15 @@ function vjD3JS_SunburstHierarchy( viewer )
           points.push(b.w + b.t + "," + (b.h / 2));
           points.push(b.w + "," + b.h);
           points.push("0," + b.h);
-          if (i > 0) { // Leftmost breadcrumb; don't include 6th vertex.
+          if (i > 0) {
             points.push(b.t + "," + (b.h / 2));
           }
           return points.join(" ");
         }
 
-        // Update the breadcrumb trail to show the current sequence and percentage.
         function updateBreadcrumbs(nodeArray, percentageString) {
 
-                var Nout=5; // By default there is 1
+                var Nout=5;
                 var printable=nodeArray.length-Nout+1;
                 var space = 1;
                 if (printable < 2){
@@ -270,18 +242,14 @@ function vjD3JS_SunburstHierarchy( viewer )
                 if(printable<1){
                     printable=1;
                 }
-          // Data join; key function combines name and depth (= position in sequence).
-          var g = // thiSS.d3area.append("svg") // d3.select("#trail")
-              //.attr("id","#trail")
-              trail.selectAll("g")
-              .data(nodeArray, function(d) { return d.shortname + d.depth; });
+          var g = trail.selectAll("g")
+                    .data(nodeArray, function(d) { return d.shortname + d.depth; });
 
-          // Add breadcrumb and label for entering nodes.
           var entering = g.enter().append("svg:g");
 
           entering.append("svg:polygon")
               .attr("points", breadcrumbPoints)
-              .style("fill", function(d,i) {return clr(d);});//{ return colors[d.name]; });
+              .style("fill", function(d,i) {return clr(d);});
 
           entering.append("svg:text")
               .attr("x", (b.w + b.t) / 2)
@@ -291,7 +259,6 @@ function vjD3JS_SunburstHierarchy( viewer )
               .text(function(d) { return d.shortname; })
               .style("font-size","10px");;
 
-          // Set position for entering and updating nodes.
           g.attr("transform", function(d, i) {
                   if(d.lev_depth==1)
                           return "translate(0, 0)";
@@ -300,14 +267,12 @@ function vjD3JS_SunburstHierarchy( viewer )
                   else return "translate(-200, 0)";
           });
 
-          // Remove exiting nodes.
           g.exit().remove();
 
           if (Nout > nodeArray.length){
               Nout = nodeArray.length;
           }
          
-          // Now move and update the percentage at the end.
           trail.select("#endlabel")
               .attr("x", (Nout+0.5) * (b.w + b.s) + (space)*b.w/2)
               .attr("y", b.h / 2)
@@ -315,20 +280,12 @@ function vjD3JS_SunburstHierarchy( viewer )
               .attr("text-anchor", "middle")
               .text(percentageString);
 
-          // Make the breadcrumb trail visible, if it's hidden.
                 trail.style("visibility", function (d,i){
-                  //if(d.lev_depth>0 && d.lev_depth<printable)
-                //        return "hidden";
-                  //else 
                           return "";
                 });
 
         }
 
-        // Take a 2-column CSV and transform it into a hierarchical structure suitable
-        // for a partition layout. The first column is a sequence of step names, from
-        // root to leaf, separated by hyphens. The second column is a count of how 
-        // often that sequence occurred.
                 function buildHierarchy(csv, colPath, colCount, colTaxid) {
                         var colorNum = 0;
                         
@@ -346,9 +303,8 @@ function vjD3JS_SunburstHierarchy( viewer )
                                 var colTax = csv[i][colTaxid];
 
                                 if (colTax == "n/a"){colTax="-1";}
-                                // Append the current node
                                 sequence = sequence.concat (csv[i].matchname+":"+colTax+":"+csv[i].rank+":0/");
-                                if (isNaN(size)) { // e.g. if this is a header row
+                                if (isNaN(size)) {
                                         continue;
                                 }
                                 sequence = sequence.substring(0, sequence.length - 1);
@@ -375,14 +331,13 @@ function vjD3JS_SunburstHierarchy( viewer )
                                             j++;
                                         }
                                         if (colTax == "NO_INFO"){
-                                            nodeName = "no match";
+                                            nodeName = "no_match";
                                             j++;
                                         }
                                         var nodeRank = spl[2];
                                         
                                         var childNode;
                                         if (j + 1 < parts.length) {
-                                                // Not yet at the end of the sequence; move down the tree.
                                                 var foundChild = false;
                                                 for (var k = 0; k < children.length; k++) {
                                                         if (children[k]["name"] == nodeName) {
@@ -391,7 +346,6 @@ function vjD3JS_SunburstHierarchy( viewer )
                                                                 break;
                                                         }
                                                 }
-                                                // If we don't already have a child node for this branch, create it.
                                                 if (!foundChild) {
                                                     
                                                         childNode = {
@@ -420,7 +374,6 @@ function vjD3JS_SunburstHierarchy( viewer )
                                                 currentNode = childNode;
                                                 
                                         } else {
-                                                // Reached the end of the sequence; create a leaf node.
                                                 childNode = {
                                                         "name" : nodeName,
                                                         "shortname" : shortName,

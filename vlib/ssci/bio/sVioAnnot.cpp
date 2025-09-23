@@ -29,36 +29,28 @@
  */
 #include <ssci/bio/sVioAnnot.hpp>
 
-//const char * getonelinefromBuffer(char * buf, const char * fileContent);
 
 struct GBFloorDescription;
 
     struct GBFloorDescription{
-        const char * floorTag;  //floorTag helps to find the floornumber
+        const char * floorTag;
         GBFloorDescription * children;
-        bool specificTreatment; //To treat continuation. if some are extened to more than one line, then it retuns true
+        bool specificTreatment;
     };
 
-    //Helps to find desired elements in CDS and is directed to sFeatures
-    //0 represents: if nothing is found returns null
     GBFloorDescription sCDS[]={
-        //{"/gene=",0,true},
     {"/locus_tag=",0,true},
     {"/product=",0,true},
     {"/protein_id=",0,true},
-   // {"/note=",0,true},
-  //  {"/db_xref=",0,true},
         {"/",0,false},
         {0,0}
     };
 
-    //Helps to find CDS in FEATURES block
     GBFloorDescription sFeatures[]={
         {"CDS",sCDS,true},
         {"mat_peptide",sCDS,true},
         {0,0}
     };
-    //Helps to find parent elements. CDS is child of FEATURES.
   GBFloorDescription searchSystem[]={
         {"LOCUS",0,true},
         {"DEFINITION",0,true},
@@ -67,24 +59,6 @@ struct GBFloorDescription;
         {"//",0,true},
         {0,0}
     };
-/*
-    struct GBdesc{
-        sStr locus,start,end;
-        //bool complement;
-        sStr curLocus, curData, curTag, curPath, curValue ;
-    };
-
-    GBdesc gbd;
-    udx locusNum=0;
-    udx cdsNum=0,tagNum=0;
-    udx matPepNum = 0, matPepTagNum = 0;
-    idx header = 0;
-    sStr dataFlag(" ");
-    sStr compText("");
-    sStr joinText("");
-    bool complement = false;
-    bool join = false;
-*/
 idx sVioAnnot::progressReport(idx progress, idx percent)
 {
     idx rc = 1;
@@ -116,7 +90,6 @@ const char * getonelinefromBuffer(char * buf, const char * fileContent, idx len)
 }
 
 
-//void gbdDumper(const char * locus, const char * tag, const char * path, const char *value, sStr & lineEx)
 void gbdDumper(const char * locus, const char * data, const char * tag, const char * path, const char *value, sStr & lineEx)
 {
     sStr buf; sString::searchAndReplaceSymbols(&buf,tag,0,"/=","",0,true,true,true,true);
@@ -133,17 +106,13 @@ void gbdDumper(const char * locus, const char * data, const char * tag, const ch
     sString::escapeForCSV(sPath,path);
     sString::escapeForCSV(sValue,clValue);
 
-    //To be replaced by inserting data into a tree object:
-    //::printf("%s,%s,%s,%s\n",sLocus.ptr(),sTag.ptr(),sPath.ptr(),sValue.ptr());
-    //lineEx.printf("%s,%s,%s,%s\n",sLocus.ptr(),sTag.ptr(),sPath.ptr(),sValue.ptr());
     lineEx.printf("%s,%s,%s,%s,%s\n",sLocus.ptr(),sData.ptr(), sTag.ptr(),sPath.ptr(),sValue.ptr());
 }
 
-//void specificTreatmentFunction ( const char * tagName, const char * value, bool isContinued, sStr & lineExp )
 void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * value, bool isContinued, sStr & lineExp )
 {
     sStr buf;
-    sStr path(" ");//path=locusNum.cdsNum.tagNum
+    sStr path(" ");
 
     sString::searchAndReplaceSymbols(&buf,value,0,sString_symbolsBlank," ",0,true,true,true,true);
     if(buf.length())sString::cleanEnds(buf.ptr(), 0,sString_symbolsBlank,true);
@@ -154,11 +123,11 @@ void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * v
         gbd.locus.printf(0,"%s",text);
         char * p=strchr(gbd.locus,' ');
         if(p)*p=0;
-        cdsNum=0; tagNum=0;//new locus, reset cdsNum and tagNum
+        cdsNum=0; tagNum=0;
         matPepNum = 0, matPepTagNum = 0;
     }
     else {
-        if(isContinued){ // This is continuing the previous content we are gluing with the current tags value
+        if(isContinued){
             if(gbd.curValue.length())gbd.curValue.printf(" ");
             gbd.curValue.printf("%s",text);
             if (gbd.curLocus.length()==0){
@@ -168,25 +137,20 @@ void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * v
         }
     }
 
-    // custom code to handle different tags in a special manner
     if(strcmp(tagName,"CDS")==0 || strcmp(tagName,"mat_peptide")==0){
-        if (strcmp(tagName,"CDS")==0) {++cdsNum; tagNum=1;} //new CDS reset tagNum
-        if (strcmp(tagName,"mat_peptide")==0) {++matPepNum; matPepTagNum=1;} //new mat_peptide reset matPepTagNum
+        if (strcmp(tagName,"CDS")==0) {++cdsNum; tagNum=1;}
+        if (strcmp(tagName,"mat_peptide")==0) {++matPepNum; matPepTagNum=1;}
         dataFlag.cut(0);
         dataFlag.printf(0,"%s",tagName);
 
-       // for (udx i=0; i<strlen(text);++i) {
             if(strncmp(text+0,"complement",10)==0 ){ complement = true; }
             if(strncmp(text+0,"join",4)==0){ join = true; }
-        //}
         if (complement) {
-            compText.printf(text);
+            compText.printf("%s", text);
         }
         if (join){
-            joinText.printf(text);
+            joinText.printf("%s", text);
         }
-        //idx i=0,delim=0;
-        //while (text[i] == '.') {i++;} delim=i;
         buf.cut(0);
         sString::searchAndReplaceSymbols(&buf,text,0,"..",0,0,true,true,true,true);
 
@@ -195,8 +159,7 @@ void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * v
         if (strncmp("<",startRw,1)==0) { gbd.start.printf(0,"%s",startRw.ptr(1));}
         else { gbd.start.printf(0,"%s",startRw.ptr(0));}
         gbd.start.add0();
-//
-        gbd.end.cut(0); //gbd.end.resize(sizeof(text)-gbd.start.length()-delim+1);
+        gbd.end.cut(0);
         sStr endRw; endRw.printf(0,"%s",sString::next00(buf,1));
         if (strncmp(">",endRw,1)==0) { gbd.end.printf(0,"%s",endRw.ptr(1));}
         else { gbd.end.printf(0,"%s",endRw.ptr(0));}
@@ -205,12 +168,10 @@ void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * v
     else if (strcmp(dataFlag.ptr(0),"CDS")==0) ++tagNum;
     else if (strcmp(dataFlag.ptr(0),"mat_peptide")==0) ++matPepTagNum;
 
-    // this is a change in a tag // if(strcmp(gbd.curTag.ptr(0),tagName)==0 )
     if(gbd.curValue.length()!=0) {
-        path.cut(0); //path.printf("%" DEC ".%" DEC ".%" DEC,locusNum,cdsNum,tagNum);
+        path.cut(0);
         if (strcmp(dataFlag.ptr(0),"CDS")==0) path.printf("%" DEC ".1.%" DEC ".%" DEC,locusNum,cdsNum,tagNum);
         if (strcmp(dataFlag.ptr(0),"mat_peptide")==0) path.printf("%" DEC ".2.%" DEC ".%" DEC,locusNum,matPepNum,matPepTagNum);
-        // custom code for dumping different tags in a special way
         if (strcmp(gbd.curTag.ptr(),"CDS")==0 || strcmp(gbd.curTag.ptr(),"mat_peptide")==0) {
             if (join==false && complement==false) {
                 lineExp.printf("%s,%s,%s,%s,%s,%s\n",gbd.locus.ptr(),dataFlag.ptr(),"range", gbd.curPath.ptr(), gbd.start.ptr(),gbd.end.ptr());
@@ -228,10 +189,10 @@ void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * v
             gbd.curPath.cut(0);
         }
 
-        else if (gbd.curPath.length()>1) {//regular dump
-            gbdDumper(gbd.curLocus.ptr(),gbd.curData.ptr(),gbd.curTag.ptr(), gbd.curPath.ptr(), gbd.curValue.ptr(),lineExp); // Dumping
+        else if (gbd.curPath.length()>1) {
+            gbdDumper(gbd.curLocus.ptr(),gbd.curData.ptr(),gbd.curTag.ptr(), gbd.curPath.ptr(), gbd.curValue.ptr(),lineExp);
              }
-        else if (strcmp(gbd.curTag.ptr(),"CDS")!=0 && strcmp(gbd.curTag.ptr(),"mat_peptide")!=0) { //the very first LOCUS dump
+        else if (strcmp(gbd.curTag.ptr(),"CDS")!=0 && strcmp(gbd.curTag.ptr(),"mat_peptide")!=0) {
             header = header + 1 ;
             gbd.curPath.cut(0);
             gbd.curPath.printf("%" UDEC ".%d.%d.%" DEC,locusNum,0,0,header);
@@ -249,11 +210,10 @@ void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * v
            header = 0;
            return;
     }
-    // we end up here ONLY after we dumped the previous content and are switching fresh tag
     gbd.curLocus.printf(0,"%s",gbd.locus.ptr());
     gbd.curPath.printf(0,"%s",path.ptr());
     gbd.curData.printf(0,"%s",dataFlag.ptr());
-    gbd.curTag.printf(0,tagName);
+    gbd.curTag.printf(0,"%s", tagName);
     gbd.curValue.printf(0,"%s",text);
 
 }
@@ -261,37 +221,33 @@ void sVioAnnot::specificTreatmentFunction ( const char * tagName, const char * v
 bool sVioAnnot::extractedInfo(char * mystring, int FloorNum[],int & currentFloor ,int & FoundLineNonBlankPos, int & quoteCount, bool & continueationMode, int & line_num, int & find_result,sStr & lineLine){
     struct GBFloorDescription * searchingLayers = 0;
     bool flag=true;
-    int nonBlankPos=0;  //Parent line without spaces
-          for(nonBlankPos=0; strchr(" \t\r\n",mystring[nonBlankPos])!=NULL; ++nonBlankPos) // scan inside of the string until we find non blank symbol
+    int nonBlankPos=0;
+          for(nonBlankPos=0; strchr(" \t\r\n",mystring[nonBlankPos])!=NULL; ++nonBlankPos)
               {}
 
-          if(quoteCount%2==0){ // even number of quotes ? .. we are not in continuation of the next line mode
+          if(quoteCount%2==0){
               quoteCount=0;
               continueationMode=false;
               if( nonBlankPos==0){
                   searchingLayers=searchSystem;
                   currentFloor=0;
               }
-              //looks for child elements with spaces less than 20
               else if( nonBlankPos==12 && FloorNum[0]!=-1){
                  searchingLayers=searchSystem;
                  searchingLayers->specificTreatment=true;
                  continueationMode=true;
                  flag=false;
-                             //return false;
               }
               else if( nonBlankPos <20 && FloorNum[0]!=-1 ) {
                   searchingLayers=searchSystem[FloorNum[0]].children;
                   currentFloor=1;
               }
-              //looks for child elements with spaces greater than 20
               else if( nonBlankPos >20 && FloorNum[1]!=-1 && FloorNum[0]!=-1) {
 
                   currentFloor=2;
                   searchingLayers=searchSystem[FloorNum[0]].children[FloorNum[1]].children;
               }
               else {
-                  //currentFloor=0;
                   return false;
               }
               if (flag){
@@ -301,8 +257,6 @@ bool sVioAnnot::extractedInfo(char * mystring, int FloorNum[],int & currentFloor
                       if ((strstr(mystring+nonBlankPos,searchingLayers[i].floorTag))==mystring+nonBlankPos)
                       {
                           FloorNum[currentFloor]=i;
-                    //printf("--------------------- flooor %i %i-th element ------------------------------------------------\n",currentFloor , FloorNum[currentFloor]);
-                    //printf("%s", mystring);
                           find_result++;
                           FoundLineNonBlankPos=nonBlankPos;
                           break;
@@ -310,11 +264,10 @@ bool sVioAnnot::extractedInfo(char * mystring, int FloorNum[],int & currentFloor
                       line_num++;
                   }
 
-       //            if(searchingLayers[i].floorTag!=0 && nonBlankPos>FoundLineNonBlankPos) // this is possible only if this is a continuation of a previous line
                   if(FloorNum[currentFloor]==-1 || (searchingLayers[i].floorTag==0 && searchingLayers[FloorNum[currentFloor]].floorTag==NULL) )
                       return false;
 
-                  if(!searchingLayers[FloorNum[currentFloor]].specificTreatment) // ignore this ?
+                  if(!searchingLayers[FloorNum[currentFloor]].specificTreatment)
                       return false;
               }
           }else{
@@ -391,12 +344,9 @@ void RangeExtraction(char * value,sVec <idx> * startArray,sVec <idx> * endArray)
 }
 
 
-//==============================================
-//
-//==============================================
 
 void sVioAnnot::composeIdAndIdType(const char * myId,const char * myIdType, sStr & ididType){
-    ididType.printf(0,"%s",myId); // id\0idType
+    ididType.printf(0,"%s",myId);
     ididType.add0();
     ididType.printf("%s",myIdType);
 }
@@ -413,7 +363,7 @@ void sVioAnnot::addRecordRelationShipCounterForSeqID(sVioDB * myDB, sStr & myLin
 
     for (idx iid=0; iid<myIdList.dim(); ++iid){
         idx recordNum = 0;
-        if(myDB->SetRecordIndexByBody((const void *)myIdList[iid].ptr(0), idxType_id, &recordNum, myIdList[iid].length()+1 )){ // check if this Record existed
+        if(myDB->SetRecordIndexByBody((const void *)myIdList[iid].ptr(0), idxType_id, &recordNum, myIdList[iid].length()+1 )){
             recordNum=myDB->AddRecord(idxType_id,(const void *)myIdList[iid].ptr(0), myIdList[iid].length()+1);
         }
         myDB->AddRecordRelationshipCounter(idxType_id, recordNum, 1);
@@ -421,7 +371,7 @@ void sVioAnnot::addRecordRelationShipCounterForSeqID(sVioDB * myDB, sStr & myLin
 
         idx idTypeRecord =0;
         sStr idt; idt.printf("%s",sString::next00(myIdList[iid].ptr(0),1));
-        if(myDB->SetRecordIndexByBody((const void *)idt.ptr(0), idxType_idType, &idTypeRecord, idt.length()+1 )){ // check if this Record existed
+        if(myDB->SetRecordIndexByBody((const void *)idt.ptr(0), idxType_idType, &idTypeRecord, idt.length()+1 )){
             idTypeRecord=myDB->AddRecord(idxType_idType,(const void *)idt.ptr(0), idt.length()+1);
         }
         myDB->AddRecordRelationshipCounter(idxType_idType, idTypeRecord, 1);
@@ -430,49 +380,28 @@ void sVioAnnot::addRecordRelationShipCounterForSeqID(sVioDB * myDB, sStr & myLin
 
 idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bool combineFile)
 {
-    // Initialize vioDB
    idx maxRelationShip=3;
    idx numberOfType=32;
 
-    // _/_____________________________________
-    // _/                                     |
-    // _/ Prepare input files for vioDB       |
-    // _/_____________________________________|
-    //--the first parameter : the final vioDB file name
-    //--the second parameter: tag
-    //--the third parameter : how many types you will have in your viodb file
-    //--the fourth parameter: the maximum of the relationships you will have
 
    sVioDB db(vioFileName,"vioAnnot",numberOfType,maxRelationShip);
 
-   //This is a an array, that you tell which realtion it points to
     idx relationlistId[3]={2,3,4};
     idx relationlistRange[1]={1};
     idx relationlistIdType[1]={1};
     idx relationlistRefSource[1]={1};
 
-     // Afterwards, you can do the first step ==> addtype
-     // the first parameter : the etype of the element
 
-     // the second parameter: how many relationship it will have
-     // the third parameter : the relation list you build before.
-     // the fourth parameter: the name you want to name your type, and give the onbased index of this type
 
-     //void AddType(sVioDB::ctype type,idx relCnt,idx * relationlist,const char * typename, idx indexOneBased);
-     //db.AddType(sVioDB::eOther,3,relationlistGINUMBER,"giNum", 1);            // ie: 367460291
-      db.AddType(sVioDB::eString,sDim(relationlistId),relationlistId,"id",1);  // ie: CP003231, dnaA ,  MYM_0001 , AEX13815.1 , GI:367460292 , Chromosomal replication initiator protein dnaA
-      db.AddType(sVioDB::eOther,sDim(relationlistRange),relationlistRange,"range", 2);      // ie: 1,1425
-      db.AddType(sVioDB::eString,sDim(relationlistIdType),relationlistIdType,"idType",3);          // ie: gene, locus_tag, protein_id, db_xref, product
-      db.AddType(sVioDB::eString,sDim(relationlistRefSource),relationlistRefSource,"refSrce", 4);       // ie: Human Genome Chromosomes v19 buil37
+      db.AddType(sVioDB::eString,sDim(relationlistId),relationlistId,"id",1);
+      db.AddType(sVioDB::eOther,sDim(relationlistRange),relationlistRange,"range", 2);
+      db.AddType(sVioDB::eString,sDim(relationlistIdType),relationlistIdType,"idType",3);
+      db.AddType(sVioDB::eString,sDim(relationlistRefSource),relationlistRefSource,"refSrce", 4);
 
       for (idx iDummy=5; iDummy<33; ++iDummy){
           sStr dummyName; dummyName.printf(0,"dmmy_%" DEC "",iDummy);
           db.AddType(sVioDB::eString,sDim(relationlistRefSource),relationlistRefSource, dummyName.ptr(0),iDummy);
       }
-     //___________________________________________
-    //|                                          |
-    //|    Reading GenBank File And Add Record   |
-    //|__________________________________________|
 
    int FloorNum[10] ,FoundLineNonBlankPos=0,quoteCount=0;
    int currentFloor=0;
@@ -488,7 +417,7 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
        return -3;
    }
 
-   if (strncmp("LOCUS",srcFile.ptr(0),5)!=0){ // detect if the file is GB or not
+   if (strncmp("LOCUS",srcFile.ptr(0),5)!=0){
        return -6;
    }
 
@@ -503,9 +432,6 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
 #endif
        for (idx l=0;l<length && *src;l++)
        {
-          /* if( !progressReport(l, ((length - (endpos-src)) * 50.0) / (length)) ) {
-               return -1;
-           }*/
            src=getonelinefromBuffer(mystring,src,endpos-src);
            if (sLen(mystring)==0) continue;
            sStr extractedLine;
@@ -517,12 +443,6 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
                continue;
            }
            idx recNumTag=rangeN-1;
-                           //CP003231,,LOCUS,1.0.0.1,CP003231 837480 bp DNA circular BCT 22-MAR-2012
-                           //CP003231,,DEFINITION,1.0.0.2,"Mycoplasma hyorhinis GDL-1, complete genome."
-                           //CP003231,CDS,range,1.1.9.1,7919,9295
-                           //CP003231,CDS,locus_tag,1.1.9.2,MYM_0009
-                           //NM_152542,mat_peptide,range,1.2.1.1,573,1601
-                           //NM_152542,mat_peptide,gene,1.2.1.2,PPM1K
            if (extractedLine.length()>6){
                  sStr lineSeparByZero;
                  sString::searchAndReplaceSymbols(&lineSeparByZero,extractedLine,0,",",0,0,true,true,false,true);
@@ -563,13 +483,10 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
                            sVec <idx> startArray; sVec <idx> endArray;
                            RangeExtraction(value.ptr(0),&startArray,&endArray);
                            for (idx i=0;i<startArray.dim();i++){
-                              // ::printf("Num %" DEC " start %" DEC " end %" DEC "\n",i,startArray[i],endArray[i]);
                                rangeVec.add();
                                rangeVec[i].start = startArray[i];
                                rangeVec[i].end = endArray[i];
                            }
-                           //store the max of the subranges to the first subrange
-                           //since we handle the range list as on joined range
                            if(startArray.dim())rangeVec[0].max=rangeVec[startArray.dim()-1].end;
                        }
                        else {
@@ -580,33 +497,32 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
                        }
                        db.AddRecord(idxType_range,rangeVec.ptr(), sizeof(struct startEnd)*rangeVec.dim());
 
-                       db.AddRecordRelationshipCounter(idxType_range, rangeN, 1); // preparing container for seqID (=locus)
-                       db.AddRecordRelationshipCounter(idxType_range, rangeN, 1); // preparing container for id = feature (=CDS,mat_peptide)
-                       db.AddRecordRelationshipCounter(idxType_range, rangeN, 1); // preparing container for id = gi
+                       db.AddRecordRelationshipCounter(idxType_range, rangeN, 1);
+                       db.AddRecordRelationshipCounter(idxType_range, rangeN, 1);
+                       db.AddRecordRelationshipCounter(idxType_range, rangeN, 1);
 
                        addRecordRelationShipCounterForSeqID(&db,lineSeparByZero,currentGi);
                        rangeN++;
                    }
 
                  if (strcmp(tagName,"locus_tag")==0 || strcmp(tagName,"protein_id")==0 || strcmp(tagName,"product")==0){
-              //____ Add Record for KindOfId of Locus_tag
                          idx recNumKind=0,recNumID=0;
 
-                         if(db.SetRecordIndexByBody((const void *)tagName.ptr(0), idxType_idType, &recNumKind, tagName.length()+1 )){ // check if this Record existed
+                         if(db.SetRecordIndexByBody((const void *)tagName.ptr(0), idxType_idType, &recNumKind, tagName.length()+1 )){
                              recNumKind=db.AddRecord(kindOfId_TYPE,(const void *)tagName.ptr(0), tagName.length()+1);
                          }
-                         db.AddRecordRelationshipCounter(idxType_idType, recNumKind, 1); // preparing container for id
+                         db.AddRecordRelationshipCounter(idxType_idType, recNumKind, 1);
 
                          sStr myididType;
                          composeIdAndIdType(value.ptr(0),tagName.ptr(0),myididType);
 
-                         if(db.SetRecordIndexByBody((const void *)myididType.ptr(0), idxType_id, &recNumID, myididType.length()+1 )) { // check if this Record existed for hash method
+                         if(db.SetRecordIndexByBody((const void *)myididType.ptr(0), idxType_id, &recNumID, myididType.length()+1 )) {
                              recNumID=db.AddRecord(idxType_id,(const void *)myididType.ptr(0), myididType.length()+1);
                          }
 
-                         db.AddRecordRelationshipCounter(idxType_id, recNumID, 1); // preparing container for range
-                         db.AddRecordRelationshipCounter(idxType_id, recNumID, 2); // preparing container for idType
-                         db.AddRecordRelationshipCounter(idxType_range, recNumTag, 1); // preparing container for id
+                         db.AddRecordRelationshipCounter(idxType_id, recNumID, 1);
+                         db.AddRecordRelationshipCounter(idxType_id, recNumID, 2);
+                         db.AddRecordRelationshipCounter(idxType_range, recNumTag, 1);
                  }
                }
            }
@@ -614,10 +530,6 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
        specificTreatmentFunction ( "TERMINATION_IMPOSSIBLE", "",false,tt);
       db.AllocRelation();
 
-      //___________________
-      //|                  |
-      //|   Add Relation   |
-      //|__________________|
 #ifdef _DEBUG
       ::printf("Start adding the relationships \n\n");
 #endif
@@ -649,9 +561,6 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
 
        for (idx l=0;l<lengthBis && *srcBis;l++)
        {
-                /* if( !progressReport(l, 50 + ((lengthBis - (endposBis-srcBis)) * 50.0) / lengthBis) ) {
-                      return -1;
-                  }*/
                   srcBis=getonelinefromBuffer(mystringBis,srcBis,endposBis-srcBis);
                   if (sLen(mystringBis)==0) continue;
                   sStr extractedLineBis;
@@ -706,7 +615,6 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
 
                                 idx recNumIdBis = 0;
                                 idx recTypeBis = 0;
-                                // add seqID
                                 recNumIdBis = db.GetRecordIndexByBody((const void *)mySeqid.ptr(0), idxType_id, mySeqid.length()+1 );
                                 db.AddRelation(idxType_range, 1, rangeNBis, recNumIdBis );
                                 db.AddRelation(idxType_id, 1, recNumIdBis,rangeNBis );
@@ -715,7 +623,6 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
                                 db.AddRelation(idxType_id, 2, recNumIdBis, recTypeBis);
                                 db.AddRelation(idxType_idType, 1, recTypeBis,recNumIdBis);
 
-                                // add feature
                                 recNumIdBis = db.GetRecordIndexByBody((const void *)myFeature.ptr(0), idxType_id, myFeature.length()+1 );
                                 db.AddRelation(idxType_range, 1, rangeNBis, recNumIdBis );
                                 db.AddRelation(idxType_id, 1, recNumIdBis, rangeNBis );
@@ -724,7 +631,6 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
                                 db.AddRelation(idxType_id, 2, recNumIdBis, recTypeBis);
                                 db.AddRelation(idxType_idType, 1, recTypeBis,recNumIdBis);
 
-                                // add gi
                                 recNumIdBis = db.GetRecordIndexByBody((const void *)currentGiBis.ptr(0), idxType_id, currentGiBis.length()+1 );
                                 db.AddRelation(idxType_range, 1, rangeNBis, recNumIdBis );
                                 db.AddRelation(idxType_id, 1, recNumIdBis, rangeNBis );
@@ -764,10 +670,6 @@ idx sVioAnnot::ParseGBfile(const char * inputGBFile, const char* vioFileName, bo
 
 }
 
-      //_________
-     //|         |
-     //|   API   |
-     //|_________|
 
 
 idx sVioAnnot::getTotalRecord(){
@@ -785,19 +687,11 @@ const char * sVioAnnot::getDataNameByRangeIndex(idx rangeIndex){
 idx sVioAnnot::GetAnnotRangeList( const char * idToUse, const char * idtype00, idx position, sVec < sVioAnnot::AnnotStruct  > * results,  sVec < sVioAnnot > * annotList, const char * dataName)
 {
 
-    //TriState:
-    //returns 1 : Annotation Files:YES , ID: FOUND      , RANGES: YES
-    //returns 0 : Annotation Files:YES , ID: FOUND      , RANGES: NO
-    //returns -1: Annotation Files:YES , ID: NOT FOUND  , RANGES: -
-//    idx recordStart = 1;
-    idx resultQuerySize=0,accumulatedRecords=0;//,idIndex=0;
+    idx resultQuerySize=0,accumulatedRecords=0;
     ++position;
-    // filter for idToUse: check in what file and what Record Number (Locus Index) you find this idToUse
-    // add into the vector accumulatedRecords
     for (idx al=0; al<annotList->dim(); al++) {
         sVioAnnot *Annot = annotList->ptr(al);
         if (!Annot) continue;
-        //   check if annotation has "Locus" as RecordType  ------------
         if( Annot->isGBstructure()) {
 
         }
@@ -829,7 +723,6 @@ idx sVioAnnot::GetAnnotRangeList( const char * idToUse, const char * idtype00, i
                     }
                     if(!foundinSubR)continue;
                 }
-    //TODO: fix the structure with the vector
                 sVioAnnot::AnnotStruct * as=results->add();
 
 
@@ -837,7 +730,7 @@ idx sVioAnnot::GetAnnotRangeList( const char * idToUse, const char * idtype00, i
                 sStr idTypeToCompare("protein");
                 if (dataName && strcmp(dataName,"CDS") != 0) idTypeToCompare.printf(0,"%s",dataName);
                 if(cntIDsForRange){
-                    for( idx iid=0; iid<cntIDsForRange; ++iid)  {  /* loop for id list */
+                    for( idx iid=0; iid<cntIDsForRange; ++iid)  {
                         const char * idPtr,*idTypePtr;
                         Annot->getIdTypeByRangeIndexAndIdIndex(locusResults[rs].index, iid, &idPtr, 0, &idTypePtr, 0);
 
@@ -853,8 +746,8 @@ idx sVioAnnot::GetAnnotRangeList( const char * idToUse, const char * idtype00, i
                 as->subRangeHit=subRangeHit;
                 as->annotFileIndex=al;
                 for(idx sR=0;sR<locusResults[rs].subRangesCnt; ++sR){
-                    as->rangeStart.vadd(1, locusResults[rs].ranges[sR].start-1);//convert ranges
-                    as->rangeEnd.vadd(1,locusResults[rs].ranges[sR].end-1);//      to zero base
+                    as->rangeStart.vadd(1, locusResults[rs].ranges[sR].start-1);
+                    as->rangeEnd.vadd(1,locusResults[rs].ranges[sR].end-1);
                 }
             }
 
@@ -864,29 +757,12 @@ idx sVioAnnot::GetAnnotRangeList( const char * idToUse, const char * idtype00, i
     return resultQuerySize;
 }
 
-    /**************************************************************
-     * This section is for the new structure: id (1), range (2), idType(3), refSource (4)
-     **************************************************************
-     */
-
-    /* _____________________________________
-     *   Record-Type|       Relations
-     * -------------|-----------------------
-     *    id        | range, idType, refSource
-     *    range     |         id
-     *    idType    |         id
-     *    refSource |         id
-     * _____________|_______________________
-     */
 
 
 
 
 
-/**************************************************************
- * Temp function to resolve conflict between GB format and new
- * generic Annotation Engine format.
- */
+
 bool sVioAnnot::isGBstructure(void) {
     sVioDB::TypeList * typelist_type = DB.GetTypePointer(1);
     const char * isLocus = (const char *)&typelist_type->tnameOfs;
@@ -910,11 +786,7 @@ idx sVioAnnot::getRltTypeIdx_Id2Rng(void) {
 }
 
 
-/*
- **************************************************************
- */
 
-// MOVE TO PRIVATE
 idx sVioAnnot::getIdIndex(const char * idToUse, const char * idTypeToUse) {
     sStr hashLookUpBuf("%s",idToUse);
     hashLookUpBuf.add0(1);
@@ -924,12 +796,10 @@ idx sVioAnnot::getIdIndex(const char * idToUse, const char * idTypeToUse) {
 
 }
 
-// MOVE PRIVATE
 idx sVioAnnot::getIdTypeIndex(const char * idToUse) {
     return DB.GetRecordIndexByBody((const void *)idToUse,idxType_idType,sLen(idToUse)+1);
 }
 
-// MOVE PRIVATE
 void sVioAnnot::getIdByIdIndex(sStr & myId, idx idIndex){
     idx bdsize;
     const char * id = (const char *)DB.Getbody(idxType_id,idIndex,&bdsize);
@@ -938,7 +808,6 @@ void sVioAnnot::getIdByIdIndex(sStr & myId, idx idIndex){
     }
 }
 
-// MOVE PRIVATE
 idx sVioAnnot::getNberOfIdsByRangeIndex(idx rangeIndex){
     idx relationCnt;
     idx relationTypeIndex;
@@ -947,10 +816,8 @@ idx sVioAnnot::getNberOfIdsByRangeIndex(idx rangeIndex){
     return relationCnt;
 }
 
-// MOVE PRIVATE
 void sVioAnnot::getIdTypeByRangeIndexAndIdIndex(idx rangeIndex, idx idIndex, const char ** idPtr, idx * pIdSize, const char ** idTypePtr, idx * pIdTypeSize )
 {
-    //rangeIndex++;
     idx relationTypeIndex, relationCnt;
     idx * indexPtrToId = DB.GetRelationPtr(idxType_range,rangeIndex,1,&relationCnt,&relationTypeIndex);
     const char * id = (const char *) DB.Getbody(relationTypeIndex,indexPtrToId[idIndex],pIdSize);
@@ -965,28 +832,17 @@ void sVioAnnot::getIdTypeByRangeIndexAndIdIndex(idx rangeIndex, idx idIndex, con
     if(idTypePtr)*idTypePtr=idtype;
 }
 
-// MOVE PRIVATE
 sVioAnnot::startEnd * sVioAnnot::getRangeJointsByRangeIndex(idx rangeIndex,idx * cntRangeJoints){
     return (startEnd *)DB.Getbody(idxType_range,rangeIndex,cntRangeJoints);
 }
 
 
-//--------------------------------------
-//---------------------------------------
 
 
-/**
- *  Returns all IDs associated with an IDTYPE in an annotation file
- *  idTypeToUse: char * to IDTYPE
- *  cntId : returns the count of ids
- *
- *  Function returns a pointer to the list of IDs
- */
 
 idx * sVioAnnot::getIdByIdType(const char * idTypeToUse, idx * cntId){
     idx index = DB.GetRecordIndexByBody((const void *)idTypeToUse,idxType_idType,sLen(idTypeToUse)+1);
     if (index){
-        //idx relationCnt = 0;
         idx relationTypeIndex =0;
         idx *indexPtrFromIdTypeToId = DB.GetRelationPtr(idxType_idType,index,1,cntId,&relationTypeIndex);
         return indexPtrFromIdTypeToId;
@@ -995,15 +851,6 @@ idx * sVioAnnot::getIdByIdType(const char * idTypeToUse, idx * cntId){
     return 0;
 }
 
-/*
- * Returns the RANGES by ID and IDTYPE.
- * idTypeToUse: IDTYPE
- * idToUse: ID
- * cntRanges: placeholder for ranges
- *
- * Function returns pointer to RANGES along with the range count
- *
- */
 
 
 idx * sVioAnnot::getNumberOfRangesByIdTypeAndId(const char * idTypeToUse, const char * idToUse, idx & cntRanges){
@@ -1021,14 +868,6 @@ idx * sVioAnnot::getNumberOfRangesByIdTypeAndId(const char * idTypeToUse, const 
     return 0;
 }
 
-/*
- * Returns all RANGES associated with an IDTYPE.
- * idTypeToUse: IDTYPE
-  * cntRanges: placeholder for ranges
- *
- * Function returns pointer to RANGES along with the range count
- *
- */
 
 
 idx * sVioAnnot::getNumberOfRangesByIdType(const char * idTypeToUse, idx &cntRanges){
@@ -1042,14 +881,8 @@ idx * sVioAnnot::getNumberOfRangesByIdType(const char * idTypeToUse, idx &cntRan
     return 0;
 }
 
-/**
- * USED:
- * app/dna-cgi/dna-cgi.cpp
- * 1434:annotObj.getAllIdTypes(listOfIdTypes);
- *
- */
 
-idx sVioAnnot::getAllIdTypes(sStr & buf, sVec<sMex::Pos> * bufposes/*=0*/) {
+idx sVioAnnot::getAllIdTypes(sStr & buf, sVec<sMex::Pos> * bufposes) {
     idx rcrdcnt = DB.GetRecordCnt(idxType_idType);
     idx bufposesstart = bufposes ? bufposes->dim() : 0;
     if (bufposes) {
@@ -1072,26 +905,8 @@ idx sVioAnnot::getAllIdTypes(sStr & buf, sVec<sMex::Pos> * bufposes/*=0*/) {
 }
 
 
-/*
-void sVioAnnot::getRangesListByPositionForId( ){
 
-}
-*/
-    //------------------------- End ------------------------//
 
-// CONTINUE API
-
-/**
- * Removes the reference ID in an associated profile.
- *
- * Accepts a const char * with header information
- *
- * example:
- * sHiveseq * Sub ();
- * sStr * idOut;
- * cleanIdFromProfiler(Sub.id(), idOut);
- *
- */
 
 void sVioAnnot::cleanIdFromProfiler(const char * idToClean, sStr & idOut)
 {
@@ -1114,60 +929,50 @@ void sVioAnnot::cleanIdFromProfiler(const char * idToClean, sStr & idOut)
     }
 }
 
-// MOVE PRIVATE
 idx sVioAnnot::sortVioAnnotFileRangesBasedOnSeqId(sVioAnnot * myAnnot){
-    if( !myAnnot->isok() ) {  // check if the file is in vioDB format
+    if( !myAnnot->isok() ) {
       return 0;
     }
     ParamsRangeSorter Param;
     Param.vioannot=myAnnot;
 
     idx cntId=0;
-    idx * idPtr = myAnnot->getIdByIdType("seqID",&cntId); // Get Id by idType not idTypeById
-    sDic < idx > doneSeqIDs; // in order to have the unique seqIDS
+    idx * idPtr = myAnnot->getIdByIdType("seqID",&cntId);
+    sDic < idx > doneSeqIDs;
 
     for (idx iid=0; iid< cntId; ++iid){
       idx cntRanges= 0;
       sStr myId;
       myAnnot->getIdByIdIndex(myId, idPtr[iid]);
 
-      if(doneSeqIDs.find(myId)) // avoid doing the sort for the same seqID
+      if(doneSeqIDs.find(myId))
           continue;
 
-      idx * indexRelationPtrToRange = myAnnot->getNumberOfRangesByIdTypeAndId("seqID",myId.ptr(), cntRanges); // get the pointer to the ranges corresponding to the specific seqID
+      idx * indexRelationPtrToRange = myAnnot->getNumberOfRangesByIdTypeAndId("seqID",myId.ptr(), cntRanges);
      if (!indexRelationPtrToRange) {
           continue;
-      }                                                                                         //  idx fromType, idx typeTo, idx recordFrom, idx relationCnt
-      myAnnot->DB.vioDBRelationSorter(indexRelationPtrToRange, VioAnnotRangeComparator , &Param, idxType_id, idxType_range , idPtr[iid], cntRanges ); // sorting the range set based on the range start
+      }
+      myAnnot->DB.vioDBRelationSorter(indexRelationPtrToRange, VioAnnotRangeComparator , &Param, idxType_id, idxType_range , idPtr[iid], cntRanges );
       myAnnot->FixUpMaxVirtualTree(indexRelationPtrToRange,cntRanges,&myAnnot->DB);
-      doneSeqIDs[myId.ptr(0)]=1; // add the seqID to the dictionary in order to avoid sorting multiple times
+      doneSeqIDs[myId.ptr(0)]=1;
 
     }
     return cntId;
 }
 
-/**
- * Prints information based on supplied ID, IDTYPE, and RANGE (start / end)
- *
- * whatToPrint: vector of strings - IDTypes that you're interested in returning information for w/ chromosome / seqID, rangestart, rangeend
- * outPut: return string (empty string)
- * nbOfLinePrinted: empty pointer to keep number of lines printed
- * cnt: max number returned
- */
 
 idx sVioAnnot::printInformationBasedOnIdAndIdType(const char * idTypeToSearch, const char * idToSearch, sVec < sStr > & whatToPrint, sStr & outPut, idx & nbOfLinePrinted, idx start, idx end, idx cnt, bool combineIdIdType){
     idx * indexRangePtr = 0;
     idx cntRanges = 0;
     if (idTypeToSearch && idToSearch && *idToSearch!=0){
-        indexRangePtr = getNumberOfRangesByIdTypeAndId(idTypeToSearch, idToSearch, cntRanges); // retrieve list of ranges that have id, idType matched
+        indexRangePtr = getNumberOfRangesByIdTypeAndId(idTypeToSearch, idToSearch, cntRanges);
     }
     else if (idTypeToSearch && (!idToSearch || *idToSearch ==0)){
-        //getNumberOfRangesByIdType(const char * idTypeToUse, idx &cntRanges){
-        indexRangePtr = getNumberOfRangesByIdType(idTypeToSearch, cntRanges); // retrieve list of ranges that have id, idType matched
+        indexRangePtr = getNumberOfRangesByIdType(idTypeToSearch, cntRanges);
     }
     if( !indexRangePtr || cntRanges == 0 )
         return 0;
-    sDic<sStr> idTypeAndId; // key: idType, value: id
+    sDic<sStr> idTypeAndId;
     sDic <idx> alreadyPrinted;
     for(idx irange = 0; irange < cntRanges; ++irange) {
         idTypeAndId.empty();
@@ -1179,7 +984,7 @@ idx sVioAnnot::printInformationBasedOnIdAndIdType(const char * idTypeToSearch, c
         idx cntRangeJoints;
         startEnd * rangePtr = getRangeJointsByRangeIndex(indexRangePtr[irange], &cntRangeJoints);
 
-        for(idx iid = 0; iid < cntIDsForRange; ++iid) { /* loop for id list */
+        for(idx iid = 0; iid < cntIDsForRange; ++iid) {
             const char * idPtr, *idTypePtr;
             getIdTypeByRangeIndexAndIdIndex(indexRangePtr[irange], iid, &idPtr, 0, &idTypePtr, 0);
 
@@ -1219,7 +1024,6 @@ idx sVioAnnot::printInformationBasedOnIdAndIdType(const char * idTypeToSearch, c
         }
         if (print == false) continue;
         sStr lineToPrint, cellToPrint;
-        bool firstCombined = false;
         bool notSpecial = false;
         for(idx ii = 0; ii < whatToPrint.dim(); ++ii) {
             if (strcasecmp(whatToPrint[ii].ptr(0), "rangeend")!=0 && strcasecmp(whatToPrint[ii].ptr(0), "rangestart") != 0 && strcasecmp(whatToPrint[ii].ptr(0), "chromosome") != 0 && strcasecmp(whatToPrint[ii].ptr(0), "seqID") != 0){
@@ -1228,7 +1032,6 @@ idx sVioAnnot::printInformationBasedOnIdAndIdType(const char * idTypeToSearch, c
             if( idTypeAndId.find(whatToPrint[ii].ptr()) ) {
                 sStr * idValue = idTypeAndId.get(whatToPrint[ii].ptr());
                 cellToPrint.printf("%s", idValue->ptr());
-                firstCombined = true;
             } else {
                 cellToPrint.printf("-");
             }
@@ -1237,7 +1040,6 @@ idx sVioAnnot::printInformationBasedOnIdAndIdType(const char * idTypeToSearch, c
                     cellToPrint.printf(";");
                 } else {
                     if (cellToPrint.length()) {
-                        // add cells (unless it is last one) to line
                         sString::escapeForCSV(lineToPrint, cellToPrint.ptr(), cellToPrint.length());
                     }
                     cellToPrint.cut(0);
@@ -1247,7 +1049,6 @@ idx sVioAnnot::printInformationBasedOnIdAndIdType(const char * idTypeToSearch, c
             notSpecial = false;
         }
         if (cellToPrint.length()) {
-            // add last cell to line
             sString::escapeForCSV(lineToPrint, cellToPrint.ptr(), cellToPrint.length());
         }
         if (alreadyPrinted.find(lineToPrint.ptr(0))) continue;
@@ -1279,13 +1080,12 @@ idx sVioAnnot::printInformationBasedOnIdTypeList(const char * sourceFileName,con
        idx cntRanges = 0;
 
        indexRangePtr = getNumberOfRangesByIdTypeAndId("seqID",seqID, cntRanges);
-        // create a dictionary from the idType list
        sDic <idx> idTypeFilterDic;
        for (idx i=0; i< idTypeFilterList.dim(); ++i){
            idTypeFilterDic[idTypeFilterList[i].ptr()] = 1;
        }
 
-       sDic<sStr> idTypeAndId; // key: idType, value: id
+       sDic<sStr> idTypeAndId;
        sDic <idx> alreadyPrinted;
        for(idx irange = 0; irange < cntRanges; ++irange) {
            idTypeAndId.empty();
@@ -1297,11 +1097,11 @@ idx sVioAnnot::printInformationBasedOnIdTypeList(const char * sourceFileName,con
            idx cntRangeJoints;
            startEnd * rangePtr = getRangeJointsByRangeIndex(indexRangePtr[irange], &cntRangeJoints);
 
-           for(idx iid = 0; iid < cntIDsForRange; ++iid) { /* loop for id list */
+           for(idx iid = 0; iid < cntIDsForRange; ++iid) {
                const char * idPtr, *idTypePtr;
                getIdTypeByRangeIndexAndIdIndex(indexRangePtr[irange], iid, &idPtr, 0, &idTypePtr, 0);
-               if (!idPtr && !idTypePtr) continue; // if there is no id and idType => no need to go further
-               if(idTypeFilterDic.find(idTypePtr) && sLen(idPtr) ==0 ){ // if idType is found in the idTypeFilter but there is no corresponding id value => break
+               if (!idPtr && !idTypePtr) continue;
+               if(idTypeFilterDic.find(idTypePtr) && sLen(idPtr) ==0 ){
                    print = false;
                }
                if (print==false) break;
@@ -1326,7 +1126,7 @@ idx sVioAnnot::printInformationBasedOnIdTypeList(const char * sourceFileName,con
                   const char * key = (const char *)idTypeAndId.id(ii);
                   sStr * idValue = idTypeAndId.get(key);
                   lineToPrint.cut(0);
-                  lineToPrint.printf("%" DEC ",%" DEC ",%s,1,%s,%s",rangePtr[0].start, rangePtr[0].end,key,idValue->ptr(0),seqID.ptr(0));  // "Start,End,Type,Signal,Description,Reference\n"
+                  lineToPrint.printf("%" DEC ",%" DEC ",%s,1,%s,%s",rangePtr[0].start, rangePtr[0].end,key,idValue->ptr(0),seqID.ptr(0));
                   if (alreadyPrinted.find(lineToPrint.ptr(0))) continue;
                   outPut.printf("%s\n", lineToPrint.ptr());
                   alreadyPrinted[lineToPrint.ptr(0)] = 1;
@@ -1382,8 +1182,7 @@ idx sVioAnnot::runBumperEngine(const char * contentInCSVFormat,idx sourceLength,
         tbl->printCell(myStart, ir, 1, 0, "");
         tbl->printCell(myEnd, ir, 2, 0, "");
         tbl->printCell(mySrc, ir, 3, 0, "");
-        tbl->printCell(myIdTypeId, ir, 4, 0,"", sTxtTbl::fForCSV);  // sStr & out, idx irow, idx icol, idx maxLen/*=0*/, const char * defValue/*=0*/, idx flags/*=0*/
-        // const char *
+        tbl->printCell(myIdTypeId, ir, 4, 0,"", sTxtTbl::fForCSV);
 
         idx start =0, end=0;
         sscanf(myStart,"%" DEC,&start);
@@ -1395,10 +1194,8 @@ idx sVioAnnot::runBumperEngine(const char * contentInCSVFormat,idx sourceLength,
     myBumper.print(tableOut);
     return error;
 }
-//MAKE PRIVATE
 idx sVioAnnot::VioAnnotRangeComparator(void * parameters, void * A, void * B,void * objSrc,idx i1,idx i2 )
 {
-//    ParamsRangeSorter * param=(ParamsRangeSorter *)parameters;
     startEnd * rangeA= (startEnd * )A, * rangeB=(startEnd * )B;
 
     return rangeA->start-rangeB->start;
@@ -1407,7 +1204,6 @@ idx sVioAnnot::VioAnnotRangeComparator(void * parameters, void * A, void * B,voi
 
 
 
-//MAKE PRIVATE
 struct ParamsRangeSorter{
     idx flags;
     sVioAnnot * vioannot;
@@ -1417,7 +1213,6 @@ struct ParamsRangeSorter{
     }
 };
 
-//MAKE PRIVATE - ask dinos
 idx sVioAnnot::deBrLUT[64]={
     0,  1,  2, 53,  3,  7, 54, 27,
     4, 38, 41,  8, 34, 55, 48, 28,
@@ -1468,11 +1263,9 @@ idx sVioAnnot::getRight(idx x,idx * level){
 
 void sVioAnnot::FixUpMaxVirtualTree(idx * relPtr,idx bodysize,sVioDB * DB)
 {
-//                idx * relPtr=0, bodysize=0;//TODO:asdfa
     idx depth=floor(log10(bodysize)/log10(2));
     idx virtualSize=pow(2,depth+1)-1;
 
-//    startEnd * range = (startEnd *)DB.Getbody(0,relPtr[0],&bodysize);
     idx rgType = getRangeTypeIdx();
     idx current = 0, bodysizeC=0, parent = 0, bodysizeP=0;
     startEnd * rangeC = 0, * rangeP = 0;
@@ -1481,13 +1274,11 @@ void sVioAnnot::FixUpMaxVirtualTree(idx * relPtr,idx bodysize,sVioDB * DB)
         current = relPtr[x-1];bodysizeC=0;
         rangeC = ( startEnd*)DB->Getbody(rgType,current,&bodysizeC);
         while( level<depth ) {
-//            current = relPtr[x-1];bodysizeC=0;
             x=getParent(x,&level);
             if(x>bodysize){ ++level;continue;}
             parent = relPtr[x-1];bodysizeP=0;
             rangeP = ( startEnd*)DB->Getbody(rgType,parent,&bodysizeP);
             if(!rangeC || !rangeP){::printf("ERROR\n");break;}
-            //they might be vector of subranges
             if(!rangeC->max) rangeC->max = rangeC->end;
             if(!rangeP->max) rangeP->max = rangeP->end;
             if(rangeC[0].max>rangeP[0].max)
@@ -1505,7 +1296,6 @@ idx sVioAnnot::searchInVirtualTree(idx * relPtr,idx bodysize,sVec<startEndNode> 
     if(start<0)start=0;
     if(!end || end<start)end=start;
     idx depth=floor(log10(bodysize)/log10(2)),rangeBodySize=0;
-//                idx virualSize=pow(2,depth);
     vtreeNode curr;curr.ind=getRoot(depth);curr.level=depth+1;curr.range=0;
 
     sVec<vtreeNode> stack;
@@ -1515,7 +1305,6 @@ PERF_START("Loop inside Tree");
         curr=*stack.ptr(stack.dim()-1);
         stack.cut(stack.dim()-1);
 
-        //check if we are out of bounds of the real tree
         if(curr.ind>bodysize){
             if(curr.level>0){
                 vtreeNode next;
@@ -1525,7 +1314,7 @@ PERF_START("Loop inside Tree");
             }
             continue;
         }
-        /*if(!curr.range) */curr.range= ( startEnd*)DB.Getbody(rgType,relPtr[curr.ind-1]?relPtr[curr.ind-1]:1,&rangeBodySize);
+curr.range= ( startEnd*)DB.Getbody(rgType,relPtr[curr.ind-1]?relPtr[curr.ind-1]:1,&rangeBodySize);
 
         idx subRangesCnt= (rangeBodySize/ sizeof(startEnd));
 
@@ -1556,7 +1345,7 @@ PERF_START("Loop inside Tree");
             nextR.level=curr.level-1;
             if(nextR.ind<bodysize){
                 nextR.range = ( startEnd*)DB.Getbody(rgType,relPtr[nextR.ind-1],0);
-                if(end >= curr.range->start && start<=nextR.range->max){ //  start >= curr.range->start &&
+                if(end >= curr.range->start && start<=nextR.range->max){
                     stack.vadd(1,nextR);
                 }
             }
@@ -1611,7 +1400,6 @@ bool sVioAnnot::printRangeSetSearch( sVec<idx> &startV, sVec<idx> &endV, idx rec
 
 
         for (idx rs=0; rs<resultSize; rs++){
-//            idx subRangeHit=0;
             if( !printSingleRangeSearch(resStruct[rs], params,myId.ptr() ) ) {
                 return false;
             }
@@ -1719,10 +1507,8 @@ bool sVioAnnot::printSingleAnnotation ( const char * id, const char * id_type, s
 
 
 
-// by Vahan
 idx * sVioAnnot::getRangesForGivenIDAndIDType(const char * srchID, const char * idtype, idx * pRelationCnt)
 {
-    // TODO ... need to loop through any id/idtype pair if idtype is specified.. not just LOCUS
     idx indexLocus = DB.GetRecordIndexByBody((const void *)srchID, generalLocus_TYPE, sLen(srchID)+1 );
 
     idx relationTypeIndex;

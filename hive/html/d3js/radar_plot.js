@@ -27,65 +27,16 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
-        var d = [
-                  [
-                    {axis:"Email",value:0.59},
-                    {axis:"Social Networks",value:0.56},
-                    {axis:"Internet Banking",value:0.42},
-                    {axis:"News Sportsites",value:0.34},
-                    {axis:"Search Engine",value:0.48},
-                    {axis:"View Shopping sites",value:0.14},
-                    {axis:"Paying Online",value:0.11},
-                    {axis:"Buy Online",value:0.05},
-                    {axis:"Stream Music",value:0.07},
-                    {axis:"Online Gaming",value:0.12},
-                    {axis:"Navigation",value:0.27},
-                    {axis:"App connected to TV program",value:0.03},
-                    {axis:"Offline Gaming",value:0.12},
-                    {axis:"Photo Video",value:0.4},
-                    {axis:"Reading",value:0.03},
-                    {axis:"Listen Music",value:0.22},
-                    {axis:"Watch TV",value:0.03},
-                    {axis:"TV Movies Streaming",value:0.03},
-                    {axis:"Listen Radio",value:0.07},
-                    {axis:"Sending Money",value:0.18},
-                    {axis:"Other",value:0.07},
-                    {axis:"Use less Once week",value:0.08}
-                  ],[
-                    {axis:"Email",value:0.48},
-                    {axis:"Social Networks",value:0.41},
-                    {axis:"Internet Banking",value:0.27},
-                    {axis:"News Sportsites",value:0.28},
-                    {axis:"Search Engine",value:0.46},
-                    {axis:"View Shopping sites",value:0.29},
-                    {axis:"Paying Online",value:0.11},
-                    {axis:"Buy Online",value:0.14},
-                    {axis:"Stream Music",value:0.05},
-                    {axis:"Online Gaming",value:0.19},
-                    {axis:"Navigation",value:0.14},
-                    {axis:"App connected to TV program",value:0.06},
-                    {axis:"Offline Gaming",value:0.24},
-                    {axis:"Photo Video",value:0.17},
-                    {axis:"Reading",value:0.15},
-                    {axis:"Listen Music",value:0.12},
-                    {axis:"Watch TV",value:0.1},
-                    {axis:"TV Movies Streaming",value:0.14},
-                    {axis:"Listen Radio",value:0.06},
-                    {axis:"Sending Money",value:0.16},
-                    {axis:"Other",value:0.07},
-                    {axis:"Use less Once week",value:0.17}
-                  ]
-                ];*/
 
-//var d;
 function vjD3JS_RadarView ( viewer )
 {
-    vjD3CategoryView.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjD3CategoryView.call(this,viewer);
 
     this.width=700;
     this.height=700;
+    this.nonSticky = false;
     if(!this.maxContributors)this.maxContributors=24;
+    if(this.allTraits=="all")this.allTraits=undefined;
 
     
     this.d3Compose=function(data){
@@ -95,7 +46,7 @@ function vjD3JS_RadarView ( viewer )
         if (data.length < 1) return;
         
         var thiSS=this;
-        var svg=this.d3svg;//area.append("svg");
+        var svg=this.d3svg;
         
         var options=this.options;
         
@@ -116,51 +67,64 @@ function vjD3JS_RadarView ( viewer )
             ExtraWidthX: 100,
             ExtraWidthY: 60,
             thiSS:thiSS,
+                        
             color: function (series){
-                //a=pastelColor( this.thiSS.categoryColors[(this.thiSS.colorshift+series)%this.thiSS.categoryColors.length],(1/(1.+series*series)));//d3.scale.category10(series);
-                //a=lightenColor (this.thiSS.categoryColors[(this.thiSS.colorshift+series)%this.thiSS.categoryColors.length],0*(1-(1/(1.0001+series))));
-                //a=this.thiSS.categoryColors[(this.thiSS.colorshift+series)%this.thiSS.categoryColors.length];
                 a=this.thiSS.categoryColors[(this.thiSS.colorshift+series)%this.thiSS.categoryColors.length];
                 return a;
             }
-            //,color: d3.scale.category10(series)
-            //color: function(ic,scale){shadeColor(this.categoryColors[(this.colorshift+ic)%this.categoryColors.length],scale)}  //d3.scale.category10()
         };
         var d=[];
         cfg.maxValue=0;
         if((typeof thiSS.sortOn!=='undefined') && (thiSS.sortOn!=null) ){
             data.sort(function(a, b) {
-                if( a[thiSS.traits[thiSS.sortOn]]<b[thiSS.traits[thiSS.sortOn]]) {
+                if( Math.abs(a[thiSS.traits[thiSS.sortOn]])<Math.abs(b[thiSS.traits[thiSS.sortOn]])) {
                     return 1;
                 }
-                if( a[thiSS.traits[thiSS.sortOn]]>b[thiSS.traits[thiSS.sortOn]]) {
+                if( Math.abs(a[thiSS.traits[thiSS.sortOn]])>Math.abs(b[thiSS.traits[thiSS.sortOn]])) {
                     return -1;
                 }
                 return 0;
             });
         }
-        for(var t=0; t<this.traits.length; ++t ) {
+        
+        var shownTraits= (this.allTraits && this.allTraits!="all" ) ? this.allTraits.split(",") : undefined ; 
+        
+        for(var t=0, T; t<this.traits.length ; ++t ) {
+            if(shownTraits){
+                
+                if(t>=shownTraits.length)
+                    break;
+                else 
+                    T=parseInt(shownTraits[t]);
+            }else T=t;
+                
+            
+            
             if(!d[t]){ d[t]=[];}
             
             var cnt=data.length < this.maxContributors ? data.length : this.maxContributors;
             var tscale=0;
             for ( var l=0; l<cnt; ++l) {
-                var val=parseFloat(data[l][this.traits[t]]);
+                var val=parseFloat(data[l][this.traits[T]]);
                 val*=val;
                 if(tscale<val)tscale=val;
             }if(!tscale)tscale=1;
+            if(cfg.thiSS.seriesScales  && cfg.thiSS.seriesScales[t]  ) 
+                  tscale/=cfg.thiSS.seriesScales[t];
             
             
             for ( var l=0; l<cnt; ++l) {
-                //var k= parseInt((l%2))==0 ? parseInt(l/2) : parseInt(cnt/2)+parseInt(l/2);
                 var k = l;
                     
                 if(!d[t][k])d[t][k]={}
-                var val=parseFloat(data[l][this.traits[t]]); // Math.abs(
+                var val=parseFloat(data[l][this.traits[T]]);
                 val*=val;
+            
                 
-                d[t][k]['axis']=data[l][this.id];//this.traits[t];
+                  
+                d[t][k]['axis']=data[l][this.id];
                 d[t][k]['value']=val/tscale;
+                cfg.maxValue = Math.max(cfg.maxValue,d[t][k]['value']);
             }
         }
         
@@ -173,33 +137,24 @@ function vjD3JS_RadarView ( viewer )
             }
           }
         }
-        cfg.maxValue = Math.max(
-                cfg.maxValue, d3.max(d, function(i){
-                    return d3.max(
-                        i.map(
-                            function(o){
-                                return o.value;
-                            }
-                        )
-                    )
-                }
-            )
-        );
+        if (d.length < 1) return;
+        
+        var dims = Math.min (cfg.w-cfg.ExtraWidthX, cfg.h-cfg.ExtraWidthY);
+        
         var allAxis = (d[0].map(function(i, j){return i.axis}));
         var total = allAxis.length;
-        var radius = cfg.factor*Math.min(cfg.w/2, cfg.h/2);
+        var radius = cfg.factor*dims/2;
         var Format = d3.format('%');
-        //svg.remove();
         
-        var g =  svg.attr("width", cfg.w+cfg.ExtraWidthX)
-                .attr("height", cfg.h+cfg.ExtraWidthY)
+        
+        var g =  svg.attr("width", dims+100)
+                .attr("height", dims+100)
                 .append("g")
                 .attr("transform", "translate(" + cfg.TranslateX + "," + cfg.TranslateY + ")");
                 ;
      
         var tooltip;
         
-        //Circular segments
         for(var j=0; j<cfg.levels-1; j++){
           var levelFactor = cfg.factor*radius*((j+1)/cfg.levels);
           g.selectAll(".levels")
@@ -214,14 +169,13 @@ function vjD3JS_RadarView ( viewer )
            .style("stroke", "grey")
            .style("stroke-opacity", "0.75")
            .style("stroke-width", "0.3px")
-           .attr("transform", "translate(" + (cfg.w/2-levelFactor) + ", " + (cfg.h/2-levelFactor) + ")");
+           .attr("transform", "translate(" + (dims/2-levelFactor) + ", " + (dims/2-levelFactor) + ")");
         }
      
-        //Text indicating at what % each level is
         for(var j=0; j<cfg.levels; j++){
           var levelFactor = cfg.factor*radius*((j+1)/cfg.levels);
           g.selectAll(".levels")
-           .data([1]) //dummy data
+           .data([1])
            .enter()
            .append("svg:text")
            .attr("x", function(d){return levelFactor*(1-cfg.factor*Math.sin(0));})
@@ -229,7 +183,7 @@ function vjD3JS_RadarView ( viewer )
            .attr("class", "legend")
            .style("font-family", "sans-serif")
            .style("font-size", "10px")
-           .attr("transform", "translate(" + (cfg.w/2-levelFactor + cfg.ToRight) + ", " + (cfg.h/2-levelFactor) + ")")
+           .attr("transform", "translate(" + (dims/2-levelFactor + cfg.ToRight) + ", " + (dims/2-levelFactor) + ")")
            .attr("fill", "#737373")
            .text(Format((j+1)*cfg.maxValue/cfg.levels));
         }
@@ -243,10 +197,10 @@ function vjD3JS_RadarView ( viewer )
                 .attr("class", "axis");
      
         axis.append("line")
-            .attr("x1", cfg.w/2)
-            .attr("y1", cfg.h/2)
-            .attr("x2", function(d, i){return cfg.w/2*(1-cfg.factor*Math.sin(i*cfg.radians/total));})
-            .attr("y2", function(d, i){return cfg.h/2*(1-cfg.factor*Math.cos(i*cfg.radians/total));})
+            .attr("x1", dims/2)
+            .attr("y1", dims/2)
+            .attr("x2", function(d, i){return dims/2*(1-cfg.factor*Math.sin(i*cfg.radians/total));})
+            .attr("y2", function(d, i){return dims/2*(1-cfg.factor*Math.cos(i*cfg.radians/total));})
             .attr("class", "line")
             .style("stroke", "grey")
             .style("stroke-width", "1px");
@@ -260,11 +214,8 @@ function vjD3JS_RadarView ( viewer )
             .attr("text-anchor", "middle")
             .attr("dy", "1.5em")
             .attr("transform", function(d, i){return "translate(0, -10)"})
-            //.attr("x", function(d, i){return 0;})
-            //.attr("y", function(d, i){return 0;})
-            //.attr("color", 'black')
-            .attr("x", function(d, i){return cfg.w/2*(1-cfg.factorLegend*Math.sin(i*cfg.radians/total))-60*Math.sin(i*cfg.radians/total);})
-            .attr("y", function(d, i){return cfg.h/2*(1-Math.cos(i*cfg.radians/total))-20*Math.cos(i*cfg.radians/total);})
+            .attr("x", function(d, i){return dims/2*(1-cfg.factorLegend*Math.sin(i*cfg.radians/total))-60*Math.sin(i*cfg.radians/total);})
+            .attr("y", function(d, i){return dims/2*(1-Math.cos(i*cfg.radians/total))-20*Math.cos(i*cfg.radians/total);})
         ;
      
      
@@ -273,8 +224,8 @@ function vjD3JS_RadarView ( viewer )
           g.selectAll(".nodes")
             .data(y, function(j, i){
               dataValues.push([
-                cfg.w/2*(1-(parseFloat(Math.max(j.value, 0))/cfg.maxValue)*cfg.factor*Math.sin(i*cfg.radians/total)), 
-                cfg.h/2*(1-(parseFloat(Math.max(j.value, 0))/cfg.maxValue)*cfg.factor*Math.cos(i*cfg.radians/total))
+                dims/2*(1-(parseFloat(Math.max(j.value, 0))/cfg.maxValue)*cfg.factor*Math.sin(i*cfg.radians/total)), 
+                dims/2*(1-(parseFloat(Math.max(j.value, 0))/cfg.maxValue)*cfg.factor*Math.cos(i*cfg.radians/total))
               ]);
             });
           dataValues.push(dataValues[0]);
@@ -285,7 +236,6 @@ function vjD3JS_RadarView ( viewer )
                          .attr("class", "radar-chart-serie"+series)
                          .style("stroke-width", "2px")
                          .style("stroke", cfg.color(series))
-                         //shadeColor(color, shade, base )
                          .attr("points",function(d) {
                              var str="";
                              for(var pti=0;pti<d.length;pti++){
@@ -323,13 +273,15 @@ function vjD3JS_RadarView ( viewer )
             .attr("alt", function(j){return Math.max(j.value, 0)})
             .attr("cx", function(j, i){
               dataValues.push([
-                cfg.w/2*(1-(parseFloat(Math.max(j.value, 0))/cfg.maxValue)*cfg.factor*Math.sin(i*cfg.radians/total)), 
-                cfg.h/2*(1-(parseFloat(Math.max(j.value, 0))/cfg.maxValue)*cfg.factor*Math.cos(i*cfg.radians/total))
+                dims/2*(1-(parseFloat(Math.max(j.value, 0))/cfg.maxValue)*cfg.factor*Math.sin(i*cfg.radians/total)), 
+                dims/2*(1-(parseFloat(Math.max(j.value, 0))/cfg.maxValue)*cfg.factor*Math.cos(i*cfg.radians/total))
             ]);
-            return cfg.w/2*(1-(Math.max(j.value, 0)/cfg.maxValue)*cfg.factor*Math.sin(i*cfg.radians/total));
+            var rrr=dims/2*(1-(Math.max(j.value, 0)/cfg.maxValue)*cfg.factor*Math.sin(i*cfg.radians/total));
+            return rrr;
             })
             .attr("cy", function(j, i){
-              return cfg.h/2*(1-(Math.max(j.value, 0)/cfg.maxValue)*cfg.factor*Math.cos(i*cfg.radians/total));
+              var rrr=dims/2*(1-(Math.max(j.value, 0)/cfg.maxValue)*cfg.factor*Math.cos(i*cfg.radians/total));
+              return rrr;
             })
             .attr("data-id", function(j){return j.axis})
             .style("fill", cfg.color(series)).style("fill-opacity", .9)
@@ -365,7 +317,6 @@ function vjD3JS_RadarView ( viewer )
      
           series++;
         });
-        //Tooltip
         tooltip = g.append('text')
                    .style('opacity', 0)
                    .style('font-family', 'sans-serif')
@@ -397,8 +348,7 @@ function vjRadarPanelView(viewer)
                  align : 'right',
                  description : 'Defines the number of nodes shown on radar',
                  order : '1',
-                 value : '12'
-                 //url : "javascript:var url='$(dataurl)';if(url.indexOf('?cmd')==-1)alert('nothing to download'); else funcLink(urlExchangeParameter(urlExchangeParameter(url,'readsAsFasta','1'),'down','1'))"
+                 value : '36'
              },
              {
                  name : 'sortOn',
@@ -411,8 +361,31 @@ function vjRadarPanelView(viewer)
                  description : 'Defines the sorting order of radar vector',
                  order : '2',
                  value : '0'
-                 //url : "javascript:var url='$(dataurl)';if(url.indexOf('?cmd')==-1)alert('nothing to download'); else funcLink(urlExchangeParameter(urlExchangeParameter(url,'readsAsFasta','1'),'down','1'))"
              },{
+                 name : 'allTraits',
+                 path : '/allTraits',
+                 type : 'text',
+                 forceUpdate : true,
+                 size : '7',
+                 prefix : 'traits',
+                 align : 'right',
+                 description : 'Defines the number of traits to be shown',
+                 order : '2',
+                 value : viewer.radarObject.allTraits ? viewer.radarObject.allTraits : "all"
+             },{
+                 name : 'traitsScales',
+                 path : '/traitsScales',
+                 type : 'text',
+                 forceUpdate : true,
+                 size : '7',
+                 prefix : 'scales',
+                 align : 'right',
+                 description : 'Defines the scaling factor ',
+                 order : '2',
+                 value : viewer.radarObject.traitsScales ? viewer.radarObject.traitsScales : ' '
+             },
+             
+             {
                      name:'apply', 
                      title: 'Apply' ,
                      order:2, 
@@ -426,8 +399,11 @@ function vjRadarPanelView(viewer)
 
         this.onApplyStar=function( container, param) 
         {
-            this.radarObject.maxContributors=this.findElement("starCnt").value;
-            this.radarObject.sortOn=this.findElement("sortOn").value;
+            this.radarObject.maxContributors=parseInt(this.findElement("starCnt").value);
+            this.radarObject.sortOn=parseInt(this.findElement("sortOn").value);
+            this.radarObject.allTraits=this.findElement("allTraits").value;
+            this.radarObject.seriesScales=this.findElement("traitsScales").value.split(",");
+            for(var i=0;i<this.radarObject.seriesScales.length; ++i)this.radarObject.seriesScales[i]=parseFloat(this.radarObject.seriesScales[i]);
             this.radarObject.refresh();
         }
 
@@ -448,8 +424,7 @@ function vjD3JS_RadarControl(viewer)
     this.panelViewer = new vjRadarPanelView({
         data: "dsVoid",
         width:this.width,
-        formObject: document.forms[viewer.formName],// viewer.formObject,
-        //formName: viewer.formName,
+        formObject: document.forms[viewer.formName],
         radarObject:this.radarViewer
     });
   

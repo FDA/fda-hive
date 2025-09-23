@@ -68,10 +68,10 @@ using namespace slib;
 
 bool sUSrv::init(void)
 {
-    TParent::init();
+    bool res = TParent::init();
     m_statisticsTimeFrequencySecs = cfgInt(0, "qm.statisticsTimeFrequencySecs", 300);
     m_statisticsTimeUnit = cfgInt(0, "qm.statisticsTimeUnit", 3600);
-    return true;
+    return res;
 }
 
 bool sUSrv::OnCommand(const char * command, const char * value)
@@ -99,7 +99,6 @@ idx sUSrv::OnMaintain(void)
         idx timeHasPassedSinceLastTime = t.time(&m_statisticsTimeLast);
         if( timeHasPassedSinceLastTime > m_statisticsTimeFrequencySecs ) {
             m_statisticsTimeLast = t;
-            // OnCommand("usage", 0);
             OnCommand("audit", 0);
         }
     }
@@ -109,36 +108,6 @@ idx sUSrv::OnMaintain(void)
 bool sUSrv::OnCommandUsage(const char * command, const char * value)
 {
     return false;
-/*
-    sUsr qpride("qpride", true);
-    if( !qpride.Id() ) {
-        logOut(eQPLogType_Warning, "Cannot sign in\n");
-        return 0;
-    }
-    qpride.m_SuperUserMode = true;
-
-    udx userId = 0;
-    if( value && value[0] ) {
-        sscanf(value, "%" UDEC, &userId);
-    }
-    sVarSet users;
-    if( userId ) {
-        qpride.db().getTable(&users, "select userID, email from UPUser where userID = %" UDEC, userId);
-    } else {
-        qpride.db().getTable(&users, "select userID, email from UPUser where type = 'user'");
-    }
-    for(idx iu = 0; iu < users.rows; ++iu) {
-        sUsrUsage * usage = sUsrUsage::get(qpride, users.uval(iu, 0));
-        if( usage ) {
-            usage->update(m_statisticsTimeUnit);
-            logOut(eQPLogType_Info, "Usage %s for %" UDEC " %s\n", usage->Id().print(), usage->account(), users.val(iu, 1));
-            delete usage;
-        } else {
-            logOut(eQPLogType_Info, "Usage for user %" UDEC " cannot be updated\n", users.uval(iu, 0));
-        }
-    }
-    return true;
-*/
 }
 
 bool sUSrv::OnCommandAudit(const char * command, const char * value)
@@ -148,10 +117,12 @@ bool sUSrv::OnCommandAudit(const char * command, const char * value)
         logOut(eQPLogType_Warning, "Cannot sign in\n");
     } else {
         const udx keep = cfgInt(0, "qm.auditKeepHours", 0);
+        const udx chunk = cfgInt(0, "qm.auditChunkSize", 10000);
         if( keep ) {
             sStr path;
             cfgStr(&path, 0, "qm.auditDumpFileTmpl");
             const udx now = time(0) - keep * 60 * 60;
+            udx maxID = 0;
             udx q = 1;
             if( path ) {
                 path.printf(".%" UDEC, now);
@@ -159,10 +130,16 @@ bool sUSrv::OnCommandAudit(const char * command, const char * value)
                 if( dump >= 0 ) {
                     sVarSet tbl;
                     sStr buf;
-                    q = 0; // reset count
+                    q = 0;
                     do {
                         tbl.empty();
-                        qpride.db().getTable(&tbl, "SELECT historyID, createTm, sid, userID, operation, comment FROM UPHistory WHERE createTm < FROM_UNIXTIME(%" UDEC ") LIMIT %" UDEC ",10000", now, q);
+                        qpride.db().getTable(&tbl, "SELECT historyID, createTm, sid, userID, operation, comment FROM UPHistory WHERE createTm < FROM_UNIXTIME(%" UDEC ")"
+                                        " ORDER BY historyID ASC LIMIT %" UDEC ",%" UDEC, now, q, chunk);
+                        if(qpride.db().Get_errno() != 0 ) {
+                            logOut(eQPLogType_Error, "Database error '%s'\n", qpride.db().Get_error().ptr());
+                            q = 0;
+                            break;
+                        }
                         if( tbl.rows ) {
                             const char * nm[] = { "id", "time", "session", "user", "operation", "details" };
                             buf.cut(0);
@@ -179,6 +156,7 @@ bool sUSrv::OnCommandAudit(const char * command, const char * value)
                                 break;
                             }
                             q += tbl.rows;
+                            maxID = tbl.uval(tbl.rows - 1, 0);
                         }
                     } while( tbl.rows );
                     fdatasync(dump);
@@ -186,14 +164,22 @@ bool sUSrv::OnCommandAudit(const char * command, const char * value)
                     if( !q ) {
                         sFile::remove(path);
                     } else {
-                        logOut(eQPLogType_Info, "Audit file '%s' %" UDEC " lines\n", path.ptr(), q);
+                        logOut(eQPLogType_Info, "Audit file '%s' %" UDEC " lines, histID %" UDEC, path.ptr(), q, maxID);
                     }
                 } else {
-                    logOut(eQPLogType_Error, "Cannot open audit dump file '%s': %s\n", path.ptr(), strerror(errno));
+                    logOut(eQPLogType_Error, "Cannot open audit dump file '%s': %s", path.ptr(), strerror(errno));
                 }
             }
             if( q ) {
-                qpride.db().execute("DELETE FROM UPHistory WHERE createTm < FROM_UNIXTIME(%" UDEC ")", now);
+                if( maxID ) {
+                    const udx qty = qpride.db().uvalue("SELECT COUNT(*) FROM UPHistory WHERE historyID <= %" UDEC, maxID);
+                    for( udx i = 0; i < qty; ++i ) {
+                        qpride.db().execute("DELETE FROM UPHistory WHERE historyID <= %" UDEC " LIMIT %" UDEC, maxID, chunk);
+                    }
+                    qpride.db().execute("DELETE FROM UPHistory WHERE historyID <= %" UDEC, maxID);
+                } else {
+                    qpride.db().execute("DELETE FROM UPHistory WHERE createTm < FROM_UNIXTIME(%" UDEC ")", now);
+                }
             }
         }
     }
@@ -203,7 +189,6 @@ bool sUSrv::OnCommandAudit(const char * command, const char * value)
 void sUSrv::purge(TPurgeData & data)
 {
     sUsr qpride("qpride", true);
-    //qpride.m_SuperUserMode = true;
     if( !qpride.Id() ) {
         logOut(eQPLogType_Warning, "Cannot sign in\n");
     } else {
@@ -221,17 +206,13 @@ void sUSrv::purge(TPurgeData & data)
             for(idx i = 0; i < res.rows; ++i) {
                 const udx domain_id = res.uval(i, 0);
                 const udx oid = res.uval(i, 1);
-                // TODO : what about cleaning up ion?
                 const sHiveId id(domain_id, oid, 0);
 #if !_DEBUG
-//                std::auto_ptr<sUsrObj> obj(qpride.objFactory(id));
-//                if( obj.get() && obj->purge() ) {
                 sUsrObj obj(qpride, id);
 #else
                 sUsrObj obj;
 #endif
                 if( obj.Id() && obj.purge() ) {
-                    // TODO : allow purging non-domain-0 object storage (requires support from sQPrideSrv::purgeDir and storage manager)
                     if( !domain_id ) {
                         data.objs.set(&id, sizeof(id));
                     }

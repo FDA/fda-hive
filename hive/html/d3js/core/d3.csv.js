@@ -47,22 +47,20 @@ d3.csv.parse = function(text) {
 };
 
 d3.csv.parseRows = function(text, f) {
-  var EOL = {}, // sentinel value for end-of-line
-      EOF = {}, // sentinel value for end-of-file
-      rows = [], // output rows
-      re = /\r\n|[,\r\n]/g, // field separator regex
-      n = 0, // the current line number
-      t, // the current token
-      eol; // is the current token followed by EOL?
+  var EOL = {},
+      EOF = {},
+      rows = [],
+      re = /\r\n|[,\r\n]/g,
+      n = 0,
+      t,
+      eol;
 
-  re.lastIndex = 0; // work-around bug in FF 3.6
+  re.lastIndex = 0;
 
-  /** @private Returns the next token. */
   function token() {
-    if (re.lastIndex >= text.length) return EOF; // special case: end of file
-    if (eol) { eol = false; return EOL; } // special case: end of line
+    if (re.lastIndex >= text.length) return EOF;
+    if (eol) { eol = false; return EOL; }
 
-    // special case: quotes
     var j = re.lastIndex;
     if (text.charCodeAt(j) === 34) {
       var i = j;
@@ -83,7 +81,6 @@ d3.csv.parseRows = function(text, f) {
       return text.substring(j + 1, i).replace(/""/g, "\"");
     }
 
-    // common case
     var m = re.exec(text);
     if (m) {
       eol = m[0].charCodeAt(0) !== 44;

@@ -51,7 +51,7 @@ static int Mex_init(pyhive::Mex * self, PyObject *args, PyObject *kwds)
     const char * flnm = 0;
     idx flg = sMex::fBlockDoubling;
     static const char * kwlist[] = { "data", "filename", "flags", NULL };
-    if( !PyArg_ParseTupleAndKeywords(args, kwds, "|s#ss:pyhive.Mex.__init__", (char**)kwlist, &src, &src_len, &flnm, &flg) ) {
+    if( !PyArg_ParseTupleAndKeywords(args, kwds, "|s#sl:pyhive.Mex.__init__", (char**)kwlist, &src, &src_len, &flnm, &flg) ) {
         return -1;
     }
     if( flg < 0 || flg >= sMex::fLast ) {
@@ -71,7 +71,7 @@ static int Mex_init(pyhive::Mex * self, PyObject *args, PyObject *kwds)
 static void Mex_dealloc(pyhive::Mex *self)
 {
     self->str.destroy();
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static inline int getFilehandle(pyhive::Mex *self)
@@ -79,7 +79,6 @@ static inline int getFilehandle(pyhive::Mex *self)
     return (int)((self->str.flags>>(sMex_FileHandleShift)) & 0xFFFF);
 }
 
-// sequence protocol
 
 static Py_ssize_t Mex_length(pyhive::Mex *self)
 {
@@ -93,13 +92,6 @@ static bool getPtrLength(PyObject * o, char ** pptr, idx * plength)
     if( pyhive::Mex * s = pyhive::Mex::check(o) ) {
         *pptr = s->str.ptr();
         *plength = s->str.length();
-        return true;
-    } else if( PyString_Check(o) ) {
-        Py_ssize_t pylength = 0;
-        if( PyString_AsStringAndSize(o, pptr, &pylength) != 0 ) {
-            return false;
-        }
-        *plength = pylength;
         return true;
     } else {
         PyErr_SetString(PyExc_TypeError, "string expected");
@@ -134,7 +126,7 @@ static PyObject* Mex_getitem(pyhive::Mex * self, Py_ssize_t i)
         PyErr_SetString(PyExc_IndexError, "index out of range");
         return NULL;
     }
-    return PyString_FromStringAndSize(self->str.ptr(i), 1);
+    return PyUnicode_FromStringAndSize(self->str.ptr(i), 1);
 }
 
 static int Mex_setitem(pyhive::Mex * self, Py_ssize_t i, PyObject * v)
@@ -146,7 +138,7 @@ static int Mex_setitem(pyhive::Mex * self, Py_ssize_t i, PyObject * v)
     if( i < 0 ) {
         i += self->str.length();
     }
-    if( i < 0 || i > self->str.length() /* note we allow write to last character */ ) {
+    if( i < 0 || i > self->str.length()) {
         PyErr_SetString(PyExc_IndexError, "index out of range");
         return -1;
     }
@@ -180,9 +172,9 @@ PyObject* Mex_getslice(pyhive::Mex * self, Py_ssize_t i1, Py_ssize_t i2)
     idx end = sMin<idx>(i2, self->str.length());
     idx len = end - start;
     if( start < self->str.length() && len > 0 ) {
-        return PyString_FromStringAndSize(self->str.ptr(start), len);
+        return PyUnicode_FromStringAndSize(self->str.ptr(start), len);
     } else {
-        return PyString_FromString("");
+        return PyUnicode_FromString("");
     }
 }
 
@@ -212,44 +204,16 @@ static PyObject* Mex_inplaceconcat(PyObject *o1, PyObject *o2)
     return (PyObject*)self;
 }
 
-// stringification: methods that operate on the whole buffer
 
 static PyObject * Mex_str(pyhive::Mex *self)
 {
     if( self->str.length() ) {
-        return PyString_FromStringAndSize(self->str.ptr(), self->str.length());
+        return PyUnicode_FromStringAndSize(self->str.ptr(), self->str.length());
     } else {
-        return PyString_FromString("");
+        return PyUnicode_FromString("");
     }
 }
 
-static int Mex_print(pyhive::Mex *self, FILE * file, int flags)
-{
-    if( flags & Py_PRINT_RAW ) {
-        if( !file ) {
-            PyErr_SetString(PyExc_ValueError, "Null FILE pointer");
-            return -1;
-        }
-        idx pos = 0;
-        idx len_remaining = self->str.length() - pos;
-        while(len_remaining > 0 ) {
-            idx len_printed = fwrite(self->str.ptr(pos), 1, len_remaining, file);
-            if( len_printed <= 0 ) {
-                break;
-            }
-            len_remaining -= len_printed;
-            pos += len_printed;
-        }
-        return 0;
-    } else {
-        PyObject * r = PyObject_Repr((PyObject*)self);
-        int ret = PyObject_Print(r, file, flags);
-        Py_XDECREF(r);
-        return ret;
-    }
-}
-
-// file-like object API; methods operate relative to self->last_line
 
 static PyObject * Mex_close(pyhive::Mex *self)
 {
@@ -259,14 +223,13 @@ static PyObject * Mex_close(pyhive::Mex *self)
 
 static PyObject * Mex_flush(pyhive::Mex *self)
 {
-    // no-op
     Py_RETURN_NONE;
 }
 
 static PyObject * Mex_fileno(pyhive::Mex *self)
 {
     if( int filehandle = getFilehandle(self) ) {
-        return PyInt_FromLong(filehandle);
+        return PyLong_FromLong(filehandle);
     } else {
         Py_RETURN_NONE;
     }
@@ -299,7 +262,6 @@ static void expand_for_newline(sStr & s, sMex::Pos & rec)
 
 static PyObject * Mex_iter(PyObject * self)
 {
-    // we are our own iterator - simply return a copy of ourselves
     Py_INCREF(self);
     return self;
 }
@@ -308,7 +270,7 @@ static PyObject * Mex_next(pyhive::Mex *self)
 {
     if( self->str.recNext(self->last_line, false, 0) ) {
         expand_for_newline(self->str, self->last_line);
-        return PyString_FromStringAndSize(self->str.ptr(self->last_line.pos), self->last_line.size);
+        return PyUnicode_FromStringAndSize(self->str.ptr(self->last_line.pos), self->last_line.size);
     } else {
         PyErr_SetNone(PyExc_StopIteration);
         return NULL;
@@ -331,7 +293,7 @@ static PyObject * Mex_read(pyhive::Mex *self, PyObject * args)
     }
     self->last_line.pos = pos;
     self->last_line.size = 0;
-    return size ? PyString_FromStringAndSize(self->str.ptr(pos), size) : PyString_FromString("");
+    return size ? PyUnicode_FromStringAndSize(self->str.ptr(pos), size) : PyUnicode_FromString("");
 }
 
 static PyObject * Mex_readline(pyhive::Mex *self, PyObject * args)
@@ -346,9 +308,9 @@ static PyObject * Mex_readline(pyhive::Mex *self, PyObject * args)
         if( size < 0 || size > self->last_line.size ) {
             size = self->last_line.size;
         }
-        return PyString_FromStringAndSize(self->str.ptr(self->last_line.pos), size);
+        return PyUnicode_FromStringAndSize(self->str.ptr(self->last_line.pos), size);
     } else {
-        return PyString_FromString("");
+        return PyUnicode_FromString("");
     }
 }
 
@@ -369,9 +331,9 @@ static PyObject * Mex_readlines(pyhive::Mex *self, PyObject * args)
     }
 
     if( start_pos < self->str.length() ) {
-        return PyString_FromStringAndSize(self->str.ptr(start_pos), self->last_line.pos + self->last_line.size - start_pos);
+        return PyUnicode_FromStringAndSize(self->str.ptr(start_pos), self->last_line.pos + self->last_line.size - start_pos);
     } else {
-        return PyString_FromString("");
+        return PyUnicode_FromString("");
     }
 }
 
@@ -472,12 +434,12 @@ static PyObject * Mex_writelines(pyhive::Mex *self, PyObject * args)
     idx num = PySequence_Size(seq);
     for(idx i=0; i<num; i++) {
         PyObject * str_obj = PySequence_GetItem(seq, i);
-        if( !str_obj || !PyString_Check(str_obj) ) {
+        if( !str_obj || !PyUnicode_Check(str_obj) ) {
             PyErr_SetString(PyExc_TypeError, "sequence of lines expected");
             return NULL;
         }
-        const char * src = PyString_AsString(str_obj);
-        if( !src || !Mex_write_buf(self, src, PyString_Size(str_obj)) ) {
+        const char * src = PyUnicode_AsUTF8(str_obj);
+        if( !src || !Mex_write_buf(self, src, PyUnicode_GET_LENGTH(str_obj)) ) {
             return NULL;
         }
     }
@@ -523,21 +485,21 @@ static PyObject * Mex_is_readonly(pyhive::Mex * self, void * closure)
 
 static PyObject * Mex_flags(pyhive::Mex * self, void * closure)
 {
-    static const idx flagmask = 0xFFFF; // upper bits used for file handle - don't expose it to python!
+    static const idx flagmask = 0xFFFF;
     return pyhive::idx2py(self->str.flags & flagmask);
 }
 
 static PySequenceMethods Mex_seqmethods = {
-    (lenfunc)Mex_length, // sq_length
-    Mex_concat, // sq_concat
-    0, // sq_repeat
-    (ssizeargfunc)Mex_getitem, // sq_item
-    (ssizessizeargfunc)Mex_getslice, // sq_slice
-    (ssizeobjargproc)Mex_setitem, // sq_ass_item
-    0, // sq_ass_slice
-    0, // sq_contains
-    Mex_inplaceconcat, // sq_inplace_concat
-    0 // sq_inplace_repeat
+    (lenfunc)Mex_length,
+    Mex_concat,
+    0,
+    (ssizeargfunc)Mex_getitem,
+    0,
+    (ssizeobjargproc)Mex_setitem,
+    0,
+    0,
+    Mex_inplaceconcat,
+    0
 };
 
 static PyMethodDef Mex_methods[] = {
@@ -568,13 +530,14 @@ static PyMethodDef Mex_methods[] = {
     { NULL }
 };
 
+static int Mex_getbuffer(pyhive::Mex * self, Py_buffer * view, int flags)
+{
+    return PyBuffer_FillInfo(view, (PyObject *)self, self->str.ptr(), self->str.length(), self->str.flags & sMex::fReadonly, flags);
+}
+
 static PyBufferProcs Mex_as_buffer = {
-    (readbufferproc)Mex_getreadbuffer, // bf_getreadbuffer;
-    (writebufferproc)Mex_getwritebuffer, // bf_getwritebuffer;
-    (segcountproc)Mex_getsegcount, // bf_getsegcount;
-    0, // bf_getcharbuffer;
-    0, // bf_getbuffer;
-    0  // bf_releasebuffer;
+    (getbufferproc)Mex_getbuffer,
+    0
 };
 
 static PyGetSetDef Mex_getsetters[] = {
@@ -584,48 +547,46 @@ static PyGetSetDef Mex_getsetters[] = {
 };
 
 static PyTypeObject MexType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.Mex",              // tp_name
-    sizeof(pyhive::Mex),       // tp_basicsize
-    0,                         // tp_itemsize
-    (destructor)Mex_dealloc,   // tp_dealloc
-    (printfunc)Mex_print,      // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    0,                         // tp_repr
-    0,                         // tp_as_number
-    &Mex_seqmethods,           // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    (reprfunc)Mex_str,         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    &Mex_as_buffer,            // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
-    "HIVE extensible memory buffer or mem-mapped file. Implements Python's string API (minimally; no encoding etc.), :ref:`file-like API <python:bltin-file-objects>`, and buffer API.", // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    Mex_iter,                  // tp_iter
-    (iternextfunc)Mex_next,    // tp_iternext
-    Mex_methods,               // tp_methods
-    0,                         // tp_members
-    Mex_getsetters,            // tp_getset
-    0,                         // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    (initproc)Mex_init,        // tp_init
-    0,                         // tp_alloc
-    Mex_new,                   // tp_new
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.Mex",
+    sizeof(pyhive::Mex),
+    0,
+    (destructor)Mex_dealloc,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    &Mex_seqmethods,
+    0,
+    0,
+    0,
+    (reprfunc)Mex_str,
+    0,
+    0,
+    &Mex_as_buffer,
+    Py_TPFLAGS_DEFAULT,
+    "HIVE extensible memory buffer or mem-mapped file. Implements Python's string API (minimally; no encoding etc.), :ref:`file-like API <python:bltin-file-objects>`, and buffer API.",
+    0,
+    0,
+    0,
+    0,
+    Mex_iter,
+    (iternextfunc)Mex_next,
+    Mex_methods,
+    0,
+    Mex_getsetters,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (initproc)Mex_init,
+    0,
+    Mex_new,
 };
 
-//static
 bool pyhive::Mex::typeinit(PyObject * mod)
 {
     if( PyType_Ready(&MexType) < 0 ) {
@@ -634,23 +595,29 @@ bool pyhive::Mex::typeinit(PyObject * mod)
     Py_INCREF(&MexType);
     PyModule_AddObject(mod, "Mex", (PyObject*)&MexType);
 
-    PyObject * mex_flag_mod = Py_InitModule3("pyhive.mex_flag", NULL, "pyhive.Mex flags\n\n"\
-        ".. py:data:: DEFAULT\n\n    = `pyhive.mex_flag.BLOCK_DOUBLING`\n\n"\
-        ".. py:data:: ALIGN_INTEGER\n\n    Align to 8 bytes (on 64-bit platforms)\n\n"\
-        ".. py:data:: ALIGN_PARAGRAPH\n\n    Align to 16 byes\n\n"\
-        ".. py:data:: ALIGN_PAGE\n\n    Align to page size\n\n"\
-        ".. py:data:: BLOCK_NORMAL\n\n    Grow by 1 KB\n\n"\
-        ".. py:data:: BLOCK_COMPACT\n\n    Grow by 128 bytes\n\n"\
-        ".. py:data:: BLOCK_PAGE\n\n    Grow by page size\n\n"\
-        ".. py:data:: BLOCK_DOUBLING\n\n    Grow by doubling existing allocation\n\n"\
-        ".. py:data:: SET_ZERO\n\n    Fill allocated memory with zeros\n\n"\
-        ".. py:data:: NO_REALLOC\n\n    Single allocation, no extension allowed\n\n"\
-        ".. py:data:: EXACT_SIZE\n\n    Do not allocate more memory than minimum required\n\n"\
-        ".. py:data:: READONLY\n\n    Readonly mode\n\n"\
-        ".. py:data:: MAP_REMOVE_FILE\n\n    If file already exists on disk, remove it\n\n"\
-        ".. py:data:: MAP_PRELOAD_PAGES\n\n    Pre-load mapped file into memory immediately\n\n"\
-        ".. py:data:: CREAT_EXCL\n\n    Open file handle in O_CREAT|O_EXCL POSIX mode\n\n"
-    );
+    static struct PyModuleDef mex_flag_mod_def = {
+        PyModuleDef_HEAD_INIT,
+        "pyhive.mex_flag",
+        "pyhive.Mex flags\n\n"\
+                ".. py:data:: DEFAULT\n\n    = `pyhive.mex_flag.BLOCK_DOUBLING`\n\n"\
+                ".. py:data:: ALIGN_INTEGER\n\n    Align to 8 bytes (on 64-bit platforms)\n\n"\
+                ".. py:data:: ALIGN_PARAGRAPH\n\n    Align to 16 byes\n\n"\
+                ".. py:data:: ALIGN_PAGE\n\n    Align to page size\n\n"\
+                ".. py:data:: BLOCK_NORMAL\n\n    Grow by 1 KB\n\n"\
+                ".. py:data:: BLOCK_COMPACT\n\n    Grow by 128 bytes\n\n"\
+                ".. py:data:: BLOCK_PAGE\n\n    Grow by page size\n\n"\
+                ".. py:data:: BLOCK_DOUBLING\n\n    Grow by doubling existing allocation\n\n"\
+                ".. py:data:: SET_ZERO\n\n    Fill allocated memory with zeros\n\n"\
+                ".. py:data:: NO_REALLOC\n\n    Single allocation, no extension allowed\n\n"\
+                ".. py:data:: EXACT_SIZE\n\n    Do not allocate more memory than minimum required\n\n"\
+                ".. py:data:: READONLY\n\n    Readonly mode\n\n"\
+                ".. py:data:: MAP_REMOVE_FILE\n\n    If file already exists on disk, remove it\n\n"\
+                ".. py:data:: MAP_PRELOAD_PAGES\n\n    Pre-load mapped file into memory immediately\n\n"\
+                ".. py:data:: CREAT_EXCL\n\n    Open file handle in O_CREAT|O_EXCL POSIX mode\n\n",
+        0
+    };
+    PyObject * mex_flag_mod = PyModule_Create(&mex_flag_mod_def);
+
     Py_INCREF(mex_flag_mod);
     PyModule_AddObject(mod, "mex_flag", mex_flag_mod);
 
@@ -673,7 +640,6 @@ bool pyhive::Mex::typeinit(PyObject * mod)
     return true;
 }
 
-//static
 pyhive::Mex * pyhive::Mex::check(PyObject * o)
 {
     if( o && o->ob_type == &MexType ) {
@@ -683,7 +649,6 @@ pyhive::Mex * pyhive::Mex::check(PyObject * o)
     }
 }
 
-//static
 pyhive::Mex * pyhive::Mex::create()
 {
     pyhive::Mex * self = (pyhive::Mex*)Mex_new(&MexType, 0, 0);

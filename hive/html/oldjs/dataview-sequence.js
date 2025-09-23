@@ -27,11 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Sequence viewer
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 vDV.generateSeqView=function( viewer , text) 
 {
@@ -45,22 +40,21 @@ vDV.generateSeqViewText=function( viewer, text)
     var wrap = ( isok(viewer.wrap) ) ? parseInt(viewer.wrap) : 60;
     var txtarr=text.split("\n");if(txtarr.length<=1)return ;
     
-    var mode='seq';  // a sequence is expected : 1 , mode is 0 
+    var mode='seq';
     var curlin='';
     var tseq="";
     for (var i=0 ; i<=txtarr.length ; ++i ) {
         var lin=(i<txtarr.length) ? txtarr[i] : ">";if(!lin.length)continue;
-        // see if the mode has changed 
         var prvmode=mode;
         if(lin.charAt(0)=='>')mode='id';
         else mode='seq'; 
         
        
-        if(mode==prvmode){ // mode has not changed -- glue and continue
+        if(mode==prvmode){
             curlin+=lin;
             continue;
         }
-        if(!curlin.length){ // mode has changed but there was nothing to draw
+        if(!curlin.length){
             curlin=lin;
             continue;
         }
@@ -75,14 +69,12 @@ vDV.generateSeqViewText=function( viewer, text)
         }
 
         
-        // if this is a sequence we are outputting
         curlin=curlin.replace(" ","").replace("\r","").replace("\t","");
         var wr = (wrap==0) ? curlin.length : wrap;
         for (var ipos=0; ipos<curlin.length; ipos+=wr){
             if(ipos+wr>curlin.length)wr=curlin.length-ipos;
-            var ss=curlin.substr(ipos, wr ); // get this wrapped piece
+            var ss=curlin.substr(ipos, wr );
 
-            //tseq+="&nbsp;&nbsp;&nbsp&nbsp;"+ss+"<br/>";
             tseq+="<tr><td></td><td class='HIVE_seq'>"+ss+"</td></tr>";
             if(!wr)break;
         }
@@ -95,11 +87,7 @@ vDV.generateSeqViewText=function( viewer, text)
         tt+=viewer.prefixHTML;
     }
     tt+="<table border=1 width='100%' width='100%' class='DV_table' >";
-        //tt+="<tr>";
-            //tt+="<td>";
                 tt+=tseq;
-            //tt+="</td>";
-        //tt+="</tr>";
     tt+="</table>";
     if(viewer.appendHTML && viewer.appendHTML.length) {
         tt+=viewer.appendHTML;
@@ -109,10 +97,5 @@ vDV.generateSeqViewText=function( viewer, text)
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Registration
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 vDV.registerViewer( "sequenceview", vDV.generateSeqView) ;
 

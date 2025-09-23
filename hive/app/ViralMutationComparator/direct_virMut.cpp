@@ -29,6 +29,7 @@
  */
 #include <qlib/QPrideProc.hpp>
 
+#include <qpsvc/qpsvc-dna-hexagon.hpp>
 #include <slib/utils.hpp>
 #include <slib/core.hpp>
 #include <ssci/bio/vax-bio.hpp>
@@ -58,7 +59,7 @@ class DirectVirMut: public sQPrideProc
 }
 
 #define findCOL_S(_v_b,_v_col) findCOL(_v_col) \
-    if(body ## _v_col) sString::changeCase(&_v_b,body ## _v_col,size ## _v_col , sString::eCaseHi );_v_b.add0();
+    if(body ## _v_col) {sString::changeCase(&_v_b,body ## _v_col,size ## _v_col , sString::eCaseHi );_v_b.add0();}
 
 #define findCOL_I(_v_col)  findCOL(_v_col) \
     if(body ## _v_col) sIScanf(val ## _v_col, body ## _v_col , size ## _v_col, 10 );
@@ -68,7 +69,6 @@ class DirectVirMut: public sQPrideProc
 
 
 struct MEASURE{
-        //idx row;
         idx AAPOS,TCOV,VCOV;
         real AAFREQ;
         char AAREF, AASUB;
@@ -83,7 +83,7 @@ idx DirectVirMut::OnExecute(idx req)
     real frequencyThreshold=formRValue("frequencyThreshold",0.1);
 
     idx rowCnt=0;
-    sDic <sDic <sDic < sVec <MEASURE> > > > originalMapping; // by patient, by position, by company -> substitution types
+    sDic <sDic <sDic < sVec <MEASURE> > > > originalMapping;
 
     sStr bufPath,failedPath00;
     const char * dstPath = reqAddFile(bufPath,"input.csv"); bufPath.add0();
@@ -100,11 +100,6 @@ idx DirectVirMut::OnExecute(idx req)
     #endif
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/  Reading objects and tables into one big container
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sVec<sHiveId> altIDs;
     sHiveId::parseRangeSet(altIDs, formValue("formatAlternatives"));
@@ -127,7 +122,8 @@ idx DirectVirMut::OnExecute(idx req)
             isHIVE=true;
 
             sHiveId aID(obj.propGet00("parent_proc_ids", &defBuf ));sUsrObj aObj( *user, aID);if(!aObj.Id())continue;defBuf.cut(0);
-            sHiveId qID(aObj.propGet00("query", &defBuf ));sUsrObj qObj( *user, qID);if(!qObj.Id())continue;defBuf.cut(0);
+
+            sHiveId qID(QPSvcDnaHexagon::getQuery00(aObj,defBuf));sUsrObj qObj( *user, qID);if(!qObj.Id())continue;defBuf.cut(0);
             if(!qObj.propGet00("name", &defBuf, ";"))continue;
             defSubjID=defBuf.ptr(0);
             char * s=strchr(defBuf.ptr(),'.');if(s){*s=0;defVisit=s+1;s=strchr(s+1,'.');if(s)*s=0;}
@@ -149,14 +145,12 @@ idx DirectVirMut::OnExecute(idx req)
             nameBuf.cut(0);
 
             sVax vax(sVax::fUseFStream, fl );
-            //sVax vax(sVax::fUseMMap, fl );
 
             idx iAAPOS=-2,iTCOV=-2,iVCOV=-2,iAAFREQ=-2,iAAREF=-2,iAASUB=-2,iUSUBJID=-2,iNGSPL=-2,iVISIT=-2,iVARDECT=-2;
             const char * bodyAAPOS=0,*bodyTCOV=0,*bodyAAREF=0,*bodyAASUB=0,*bodyVCOV=0,*bodyAAFREQ=0,*bodyUSUBJID=0,*bodyNGSPL=0,*bodyVISIT=0,*bodyVARDECT=0;
             idx valAAPOS=0,valTCOV=0,valVCOV=0;
             real valAAFREQ=0;
             idx sizeAAPOS=0,sizeTCOV=0,sizeAAREF=0,sizeAASUB=0,sizeVCOV=0,sizeAAFREQ=0,sizeUSUBJID=0,sizeNGSPL=0,sizeVISIT=0,sizeVARDECT=0;
-            //idx valAAPOS=0,valTCOV=0,valVCOV=0;
 
 
             idx len=0, buflen = 0; const char * id=0;
@@ -187,7 +181,6 @@ idx DirectVirMut::OnExecute(idx req)
                 }
 
                 if(isCLC==1) {
-                    //findCOL_S(b1,USUBJID);//if(!bodyUSUBJID) {bodyUSUBJID = defSubjID;sizeUSUBJID= sLen(defSubjID);}
                     idx iAAChange=-2,iCount=-2,iCoverage=-2,iFrequency=-2;
                     real valFrequency=0;
                     idx valCount=0,valCoverage=0,sizeAAChange=0,sizeCount=0,sizeCoverage=0,sizeFrequency=0;
@@ -225,7 +218,7 @@ idx DirectVirMut::OnExecute(idx req)
                     if(!sizeAASUB)
                         continue;
                 } else {
-                    findCOL_S(b1,USUBJID);//if(!bodyUSUBJID) {bodyUSUBJID = defSubjID;sizeUSUBJID= sLen(defSubjID);}
+                    findCOL_S(b1,USUBJID);
                     findCOL(NGSPL);
                     findCOL(VISIT);
                     findCOL_I(AAPOS);
@@ -275,6 +268,7 @@ idx DirectVirMut::OnExecute(idx req)
             #ifdef _DEBUG
                 ::printf("*** end FILE=%s\n",fl);
             #endif
+            if(sizeAAREF)sizeAAREF=0;
 
         }
 
@@ -288,15 +282,10 @@ idx DirectVirMut::OnExecute(idx req)
         return 0;
     }
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/  filtration and baseline collapse stage
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sDic <idx > compList;
     idx len;
-    sDic < sDic < sDic < sDic < idx > > > > finalMap ; // by position, by substitution , by patient , by the company type the counts
+    sDic < sDic < sDic < sDic < idx > > > > finalMap ;
     sDic < idx > finTotals;
     sStr sbaseline_keywords00;
     const char * baseline_keywords00 = formValues00("baseline_keywords", &sbaseline_keywords00);
@@ -312,17 +301,14 @@ idx DirectVirMut::OnExecute(idx req)
     it_inp.printf(0,"USUBJID,NGSPL,VISIT,AAPOS,TCOV,AAREF,AASUB,VCOV,AAFREQ,VARDECT\n");
 
 
-    //  iterating over samples
     for(idx p = 0; p < originalMapping.dim(); p++) {
         const char * pat = (const char *)(originalMapping.id(p));
         sDic <sDic <sVec <MEASURE> > > * oriPat=originalMapping.ptr(p);
 
-        //iterating over positions
         for(idx po = 0; po < oriPat->dim(); po++) {
             idx * pos = (idx*)oriPat->id(po);
             sDic <sVec <MEASURE> > * oriPo=oriPat->ptr(po);
 
-            //iterating over companies
             for(idx c = 0; c < oriPo->dim(); c++) {
                 const char * comp = (const char *)(oriPo->id(c,&len));
                 sVec <MEASURE> * oriCo=oriPo->ptr(c);
@@ -363,7 +349,6 @@ idx DirectVirMut::OnExecute(idx req)
                     howmanyprinted++;
                 }
 
-                //if(howManyNonBaseline==0 && m && m->AAFREQ >= frequencyThreshold ) {
                 if(howManyNonBaseline==0 && m && baselineFreq >= frequencyThreshold ) {
                     char sub[4];sub[0]=m->AAREF;sub[1]=m->AASUB;sub[2]=0;sub[3]=0;
                     ++finalMap[pos][sub][pat][comp];
@@ -392,11 +377,6 @@ idx DirectVirMut::OnExecute(idx req)
 
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/  composition stage
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     dstPath = reqAddFile(bufPath,"filtered.csv");
     bufPath.add0();
 
@@ -410,24 +390,21 @@ idx DirectVirMut::OnExecute(idx req)
         }
         fflt.printf("\n");
 
-        //  iterating over positions
         for(idx po = 0; po < finalMap.dim(); po++) {
             idx * pos = (idx *)(finalMap.id(po));
             sDic <sDic < sDic <idx> > > * finPos=finalMap.ptr(po);
 
-            //iterating over substitutions
             for(idx su = 0; su< finPos->dim(); su++) {
                 const char * sub= (const char *)finPos->id(su);
                 sDic < sDic <idx> > * finSub=finPos->ptr(su);
 
-                //iterating over patients
                 for(idx p = 0; p < finSub->dim(); p++) {
                     const char * pat = (const char *)(finSub->id(p));
                     sDic <idx> * finPat=finSub->ptr(p);
 
                     fflt.printf("%" DEC ",%c%" DEC "%c,%s",*pos,sub[0],*pos,sub[1],pat);
 
-                    for(idx i=0; i<compList.dim() ; ++i ) { // for(idx c = 0; c < finPat->dim(); c++) {
+                    for(idx i=0; i<compList.dim() ; ++i ) {
                         const void * comp=compList.id(i,&len);
                         idx * res =finPat->get( comp,len);
                         fflt.printf(",%" DEC,res ? *res : 0 );
@@ -447,11 +424,6 @@ idx DirectVirMut::OnExecute(idx req)
 
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/  final stage
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     dstPath = reqAddFile(bufPath,"results.csv");
     bufPath.add0();
 
@@ -468,11 +440,10 @@ idx DirectVirMut::OnExecute(idx req)
             idx * pos=(idx *)finalMap.id(ipo);
             fres.printf("%" DEC ",%" DEC ",",*pos,finTotals[ipo]);
 
-            sDic < sDic < sDic < idx > > > * finPos=finalMap.ptr(ipo); // by position, by substitution , by patient , by the company type the counts
+            sDic < sDic < sDic < idx > > > * finPos=finalMap.ptr(ipo);
             for( idx su=0; su<finPos->dim(); ++su) {
 
                 const char * sub= (const char *)finPos->id(su);
-                //sDic < sDic <idx> > * finSub=finPos->ptr(su);
                 fres.printf("%s%c%" DEC "%c",su ? "/":"" ,sub[0],*pos,sub[1]);
             }
 
@@ -484,7 +455,6 @@ idx DirectVirMut::OnExecute(idx req)
                 idx tot=0;
                 for(idx p = 0; p < finSub->dim(); p++) {
                     sDic <idx> * finPat=finSub->ptr(p);
-                    //tot+=finPat->dim();
                     for(idx c = 0; c < finPat->dim(); c++) {
                         tot+=*finPat->ptr(c);
                     }
@@ -524,10 +494,9 @@ idx DirectVirMut::OnExecute(idx req)
 
 int main(int argc, const char * argv[])
 {
-    //sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     DirectVirMut backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "viral-mutation-comp", argv[0]));
     return (int) backend.run(argc, argv);

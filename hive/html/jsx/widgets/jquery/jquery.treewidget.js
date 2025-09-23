@@ -48,7 +48,7 @@ $(function () {
             oThis = this;
             
             oThis.options.container = "treeWidgetDiv" + parseInt(Math.random() * 100000);
-            oThis.element.append($(document.createElement("div")).attr("id", oThis.options.container)); // add random number generation to the end of this 
+            oThis.element.append($(document.createElement("div")).attr("id", oThis.options.container));
             
             oThis.options.data = verarr(oThis.options.data);
             $(oThis.options.data).each(function(i, dsName){
@@ -65,7 +65,6 @@ $(function () {
             if (++oThis.options.dataCounter < oThis.options.data.length)
                 return;
                 
-            // If we are using a tree series, the series handles all precompute/postcompute steps
             if (oThis._hasTreeSeries()) {
                 oThis.options.tree = vjDS[oThis.options.data[0]].tree;
                 oThis.refresh();
@@ -125,21 +124,12 @@ $(function () {
                 if(!attach) attach = oThis.tree.root;
                 
                 
-/*                var usefulVars = {};
-                for (var key in attach){
-                    if (key.indexOf ("__") == 0)
-                        usefulVars[key] = attach[key];
-                }
-                attach = node;*/
                 for (var key in attach){
                     if (key.indexOf ("__") != 0)
                         delete attach[key];
                 }
                 for (var key in node)
                     attach[key] = node[key];
-/*                    
-                for(var key in usefulVars)
-                    attach[key] = usefulVars[key];*/
                 
                 $("#"+oThis.options.lastSelectedNode).children("span").remove();
                 oThis.options.lastSelectedNode = null;
@@ -147,7 +137,6 @@ $(function () {
                 if (oThis.options.onRefreshDoneCallback)
                     oThis.options.onRefreshDoneCallback (attach);
                 
-                /*oThis.tree.root = node;*/
             }else {
                 var tbl=new vjTable(content, 0, vjTable_propCSV);
                 tbl.mangleRows(oThis.options.exclusionObjRegex, "delete");
@@ -163,8 +152,6 @@ $(function () {
             }
         },
         
-        //actually compose the data structure that will go to jstree in order to get drawn
-        //can set flags for DragAndDrop and Checkboxes
         refresh: function(node){            
             var t;
             var refresh_all = false;
@@ -173,19 +160,14 @@ $(function () {
                 refresh_all = true;
             }
             treeStruct = {core: {data: []}, plugins: []};
-            //compusing the json tree structure
             oThis.options.treeStruct = [];
             t = oThis._outputNodeTreeView( node, 1, "root");
             treeStruct.core.data = t;
-            //oThis.treeStruct = t;
 
-            //the actual checkboxing and DnD            
             if (oThis.options.checkBranches || oThis.options.checkLeafs){
                 treeStruct.plugins.push("checkbox");
 
                 $('#'+oThis.options.container).on("select_node.jstree deselect_node.jstree", function(event, data) {
-                    //node.selected needs to be set
-                    //might need to correct for the tri-select state of the checkboxes. do not take care of parents right now
                     var node=oThis.tree.findByPath(data.node.id);
                     
                     node.checked = (event.type == "select_node") ? 1 : 0;
@@ -199,16 +181,13 @@ $(function () {
                 });
             }
 
-            //if Drag and Drop is activated. The callbacks passed into the widget will check for the information needed.
             if(oThis.options.drag) {
                 treeStruct.plugins.push("dnd");
                 treeStruct.core.check_callback = true;
                 $(document).on('dnd_start.vakata', function (event, data) {
-                    //console.log('Started');
                     if (oThis.options.dragCallonStart) oThis.options.dragCallonStart(oThis, data);
                 });
                 $(document).on('dnd_stop.vakata', function (event, data) {
-                    //console.log('Stopped');
                     if (oThis.options.dragCallonStop) oThis.options.dragCallonStop(oThis, data);
                 });
             }
@@ -217,14 +196,6 @@ $(function () {
                 treeStruct.plugins.push("contextmenu");
                 var structToReturn = {};
                 
-                /* 
-                 * The contextMenuOptions need to be in this format"
-                 * {
-                 *         name: name for the structure, to reference by
-                 *         title: this is what will appear to the user
-                 *         callback: the function that will be called once selected from the list
-                 * }
-                 */
                 
                 for (var jj = 0; jj < oThis.options.contextMenuOptions.length; jj++){
                     var curOptions = oThis.options.contextMenuOptions[jj];
@@ -248,7 +219,6 @@ $(function () {
             
             oThis.options.treeJson = treeStruct;
             $('#'+oThis.options.container).jstree(treeStruct);
-            //callback for opening a node in a tree
             $('#'+oThis.options.container).on("before_open.jstree", function(eventData, selection){
                 var node;
                 if (oThis.options.dataFormat == "ion")
@@ -297,9 +267,6 @@ $(function () {
                 eventData.stopPropagation();
                 eventData.preventDefault();
                 eventData.cancelBubble=true;
-/*                if (oThis.options.dataFormat == "ion"){
-                    oThis._additionalTreeButtons(node, selection.node.id, 1);
-                }*/
             });
             $('#'+oThis.options.container).on("after_close.jstree", function(eventData, selection){
                 var node;
@@ -311,7 +278,6 @@ $(function () {
                 if (!node) return;
                 node.__expanded = false;
             });
-            //callback for selecting a node from a tree
             $('#'+oThis.options.container).on("select_node.jstree", function(event, selection){
                 var node;
                 if (oThis.options.dataFormat == "ion")
@@ -335,7 +301,6 @@ $(function () {
                 if (linkCB)
                     linkCB (oThis, node );
             });
-            //Expanding the first n levels of the tree and also all of the nodes that were expanded previously
             $('#'+oThis.options.container).bind('loaded.jstree', function (event, data) {
                 var depth = oThis.options.autoexpand ;
                 var allToOpen = oThis._accumulateOpenNodes(oThis.tree.root, depth, [], "root_");
@@ -483,8 +448,6 @@ $(function () {
                                                     .text("all")
                                             )
                                             .change( function (eventData){
-                                                //to figure out which options was selected go through:
-                                                //eventData.target.options and see which ones selected is set to true
                                                 oThis._onPage(eventData.target.id, "select", this.value);
                                             })
                                         )
@@ -516,7 +479,6 @@ $(function () {
                                 )
                         );
                     $("#root_").children("span").remove();
-                    //$("#root_").children("ul").prepend();
                     if ($("#root_").children("ul").length) element.insertBefore($("#root_").children("ul"));
                     else $("#root_").append(element);
                     
@@ -564,8 +526,6 @@ $(function () {
                                                         .text("all")
                                                 )
                                                 .on("change", function (eventData){
-                                                    //to figure out which options was selected go through:
-                                                    //eventData.target.options and see which ones selected is set to true
                                                     
                                                     oThis._onPage(eventData.target.id, "select", this.value);
                                                 })
@@ -680,7 +640,6 @@ $(function () {
             if (direction == "select") actualNodePath = nodePathId.substring (0, nodePathId.indexOf("_select"));
             else actualNodePath = nodePathId.substring (0, nodePathId.indexOf("_span"));
             
-            //oThis.options.lastSelectedNode = actualNodePath;
             
             var node = oThis.findNodeByFakePath(oThis.options.treeStruct, actualNodePath+"_");
             if (!node) return;
@@ -689,7 +648,6 @@ $(function () {
             if (direction == "select"){
                 url=urlExchangeParameter(url, "brCnt", params );
                 
-                //cmd=brgetjson&sub=$root&brCnt=all&brStart=0&brSearchTotals=1
 
             }
             else if (direction == "right"){
@@ -706,7 +664,7 @@ $(function () {
                 url=urlExchangeParameter(url, "brStart", brStart);
                 url=urlExchangeParameter(url, "sub", node.__sub);
             }
-            else{ //for search
+            else{
                 if(params[0] == ':') {
                     url=urlExchangeParameter(url, "brInto", escape(params.substring(1)));
                     url=urlExchangeParameter(url, "brSearch", "-" );
@@ -714,11 +672,6 @@ $(function () {
                     url=urlExchangeParameter(url, "brSearch", escape(params));
                     url=urlExchangeParameter(url, "brInto", "-" );
                 }
-/*                url=urlExchangeParameter(url, "sub", node.__sub);
-                this.searchDic[node.__path]=o.value;
-                this.getData(0).reload(url,true);
-                return 1;
-                console.log("search");*/
             }
             
             vjDS[oThis.options.data[0]].reload(url, true);

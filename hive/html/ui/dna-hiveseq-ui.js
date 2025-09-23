@@ -61,17 +61,12 @@ var dna_algo_cansubmit = (isok(dna_hiveseq_ID) && dna_hiveseq_ID[0] != '-' ) ? f
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Main initialization
-// _/
 
 function process_inputLoaded()
 {
     if (queryIds) {
 
 
-//        var getIds_url = "?cmd=objList&type=u-hiveseq+&mode=csv&prop_val="+queryIds+"&prop=rec-count,name&raw=1";
         var getIds_url = "?cmd=propget&mode=csv&ids="+queryIds+"&prop=rec-count,name&raw=1";
         ajaxDynaRequestPage(getIds_url, "", function initialize_ids_submission(ajax, contentReturn){
             var tbl = new vjTable(contentReturn, 0, vjTable_propCSV);
@@ -96,7 +91,6 @@ function process_init()
     vjVIS.generate(new Array(
         {
             name : 'dvProcess',
-            // passive : (dna_hiveseq_defaults_ui.visualElements.parameters) ? false : true,
             role : 'input',
             title : "HIVE Sequence Manipulation Parameters",
             align : 'left',
@@ -108,18 +102,12 @@ function process_init()
             briefSpanTag: "RV-",
         isok:true}));
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ FileList: u-hiveseq
-    // _/
 
-    vjDS.add("Scanning Available Sequences ", "dsSeqNucReads" , "static:// " );
-    vjDS.add("Scanning Available Genomes", "dsSeqGenomes" , "static:// " );
-    var dsname="dsSeqNucReads"; //'ds-'+dvname+'-'+tabname;
+    vjDS.add("Scanning Available Sequences ", "dsSeqNucReads" , "static:
+    vjDS.add("Scanning Available Genomes", "dsSeqGenomes" , "static:
+    var dsname="dsSeqNucReads";
     var viewCmd= [
                   {name:new RegExp(/.*/), align:'left', hidden: true },
-//                  {name:'add', align:'left', order:1, hidden:false, showTitle : true , title:'Add', description: 'add new objects to the list' , icon:'plus', prohibit_new: true },
-                  //url:"javascript:vjDV.select('"+dvname+".add.0',true);"
                   {name:'refresh', align:'left', order:0, hidden: false, align:'left', title: 'Refresh' , icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS['"+dsname+"'].reload(null,true);"},
                   {name:'detail', align:'left', order:1, hidden: false, icon: 'eye', description: 'examine, review, edit details of the object' ,hidden:true },
                   {name:'download', align:'left', order:2, hidden: false, align:'left', title:'Download', description: 'download the content of this object to local computer', url:"?cmd=objFile&ids=$(ids)", icon: 'download', single_obj_only:true},
@@ -130,86 +118,18 @@ function process_init()
     var rowlist= viewCmd;
 
     var collist= [
-           {name:new RegExp(/.*/), hidden:true },// , url: (( typeof(recordviewer) == "function" ) ? recordviewer : vjHC.recordViewNode) },
+           {name:new RegExp(/.*/), hidden:true },
            {name:'id', hidden: false, title:'ID', order: 1 } ,
            {name:'name', hidden: false, title:'Name', wrap: true, order: 2 } ,
            {name:'rec-count', hidden: false, title:'Record', type: "largenumber", wrap: true, order: 3 } ,
            {name:'size', hidden: false, title:"Size" , align: "right", type: "bytes", order: 4 } ,
-//           {name:'hierarchy', hidden: false, title:"Hierarchy" , align: "left"} ,
            {name:'created', hidden: false, title:"Created" , align: "right", type: "datetime", order: 5 } ,
            {name:'source', hidden: false, title:'Source', wrap: true }
            ];
 
-//    var viewerSequenceFilePanel = new vjPanelView({
-//        data:["dsActions", dsname ],
-//        formObject: document.forms['form-sequenceList'],
-//        iconSize:24,
-//        hideViewerToggle:true,
-//        showTitles: false,
-//        rows:rowlist,
-//        isok:true }
-//    );
-//
-//    var viewerSequenceFileList=new vjTableView( {
-//        name:'list',
-//        icon:'list',
-//        data: dsname,
-//        formObject: document.forms['form-sequenceList'],
-//        //bgColors:bgColorMap,
-//        cols:collist,
-//        //vjHCAssociatedRecordViewer: recordviewer+".details.0" ,
-//        selectCallback: hiveseq_selectSequenceFile,
-//        checkCallback: hiveseq_checkSequenceFile,
-//        checkable:true,
-//        //objectsDependOnMe:[ dvname+'.'+tabname+'.'+cntViewersIn ],
-//        defaultIcon:'rec',
-//        iconSize:16,
-//        maxTxtLen:this.maxTxtLen,
-//        maxTextLenCutExtensionAfterSymbols: "." , // to cut extensions when maxTextLen is Reached
-//        defaultEmptyText:'no accessible information to show',
-//        geometry:{ width:'100%'},
-//        drag:true,
-//        dragRow:true,
-//        isok:true });
-//
-//    var dsGenomeName="dsSeqGenomes"; //'ds-'+dvname+'-'+tabname;
-//    var viewerGenomeFilePanel = new vjPanelView({
-//        data:["dsActions", dsGenomeName ],
-//        formObject: document.forms['form-sequenceList'],
-//        iconSize:24,
-//        hideViewerToggle:true,
-//        showTitles: false,
-//        rows:rowlist,
-//        isok:true }
-//    );
-//    var viewerSequenceFileTree=new vjTableView( {
-//        name:'list',
-//        icon:'list',
-//        data: dsGenomeName,
-//        formObject: document.forms['form-sequenceList'],
-//        //bgColors:bgColorMap,
-//        cols: collist,
-//        //vjHCAssociatedRecordViewer: recordviewer+".details.0" ,
-//        selectCallback: hiveseq_selectSequenceFile,
-//        checkCallback: hiveseq_checkSequenceFile,
-//        checkable:true,
-//        //objectsDependOnMe:[ dvname+'.'+tabname+'.'+cntViewersIn ],
-//        defaultIcon:'rec',
-//        iconSize:16,
-//        maxTxtLen:this.maxTxtLen,
-//        maxTextLenCutExtensionAfterSymbols: "." , // to cut extensions when maxTextLen is Reached
-//        defaultEmptyText:'no accessible information to show',
-//        geometry:{ width:'100%'},
-//        drag:true,
-//        dragRow:true,
-//        isok:true });
-//
-//    vjDV.add("dvSequenceFileListViewer",500,300);
-//    vjDV.dvSequenceFileListViewer.add(set_sequences, "dna", "tab", [ viewerSequenceFilePanel,viewerSequenceFileList ]);
-//    vjDV.dvSequenceFileListViewer.add("genomes", "dna", "tab", [ viewerGenomeFilePanel, viewerSequenceFileTree]);
     var width=(parseInt(__getCurrentComputedStyle(gObject('element_toget_metrics_1'),'width'))
     +parseInt(__getCurrentComputedStyle(gObject('element_toget_metrics_2'),'width')))/4;
-    var home_GFolderGeomX=300;//0.25*width-5;
+    var home_GFolderGeomX=300;
     var home_GlistGeomY=250;
     var home_GObjectGeomX=width-home_GFolderGeomX-20;
     
@@ -261,29 +181,14 @@ function process_init()
     explorer.render();
     explorer.load(true, true);
     
-// var dsurl =
-// "http://?cmd=objList&mode=csv&info=1&actions=1&cnt=100&prop=id,name,rec-count,size,created,hierarchy,_type";
-//    var dsnucreadurl = dsurl + "&type=nuc-read";
-//    var dsgenomeurl = dsurl + "&type=genome";
-//
-//
-//    vjDS["dsSeqNucReads"].reload(dsnucreadurl, true);
-//    vjDS["dsSeqGenomes"].reload(dsgenomeurl, true);
-//
-//    vjDV.dvSequenceFileListViewer.render();
-//    vjDV.dvSequenceFileListViewer.load();
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Sequence Content
-    // _/
     var hiveseq_previewGeometryX=500;
     var hiveseq_previewGeometryY=250;
 
-    vjDS.add("Scanning Available Sequence Lists", "dsSequenceContent" , "static:// " );
+    vjDS.add("Scanning Available Sequence Lists", "dsSequenceContent" , "static:
     vjDV.add("dvSequenceContentViewer",700,300);
 
-    vjDS.add("help","dsContentHelp","http://help/hlp.page.hiveseq.input.html");
+    vjDS.add("help","dsContentHelp","http:
     var helpviewer = new vjHelpView({
         data:'dsContentHelp'
     });
@@ -291,18 +196,10 @@ function process_init()
     vjDV.dvSequenceContentViewer.render();
     vjDV.dvSequenceContentViewer.load();
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ HIVESEq compositions
-    // _/
 
-    vjDS.add("infrastructure: Hiveseq composition", "dsHiveseqComposition" , "static:// " ).header=hiveseq_hdr;
+    vjDS.add("infrastructure: Hiveseq composition", "dsHiveseqComposition" , "static:
     vjDV.add("dvHiveseqCompositionViewer",500,300);
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Panels:
-    // _/
 
     var viewerHiveseqCompositionPanel = new vjPanelView({
         data:[ "dsVoid",  "dsHiveseqComposition" ],
@@ -330,9 +227,8 @@ function process_init()
 
     vjDV.dvHiveseqCompositionViewer.add(set_sequences, "dna", "tab", [ viewerHiveseqCompositionPanel,viewerHiveseqComposition ]);
 
-/*  Here goes the HELP link */
     if( !dsHelpSource ){
-        dsHelpSource = "http://help/hlp.page.hiveseq.html";
+        dsHelpSource = "http:
     }
     vjDS.add("infrastructure: Hiveseq composition help documentation","dsHelpHiveseq",dsHelpSource);
     vjDV.dvHiveseqCompositionViewer.add( "help", "help", "tab", [ new vjHelpView ({ data:'dsHelpHiveseq'})  ]);
@@ -341,7 +237,6 @@ function process_init()
     vjDV.dvHiveseqCompositionViewer.load();
 
 
-    //algoProcess=new valgoProcess(dna_hiveseq_ID,"form-hiveseqParameters", "dvHiveseqParameters","dna-hiveseq","svc-hiveseq", "   LAUNCH HIVESEQ    ");
     algoProcess = new valgoProcess(process_ID, process_formName,"dvProcess", process_qpsvc,process_svc, "    Launch!    ");
     algoProcess.callbackLoaded = process_inputLoaded;
     algoProcess.initialPresets = isok(process_ID) ? null : process_initialPresets;
@@ -364,8 +259,6 @@ function process_init()
 }
 
 function hiveseq_checkSequenceFile(viewer, node){
-    //var varseqdv = "dvSequenceFileListViewer."+set_sequences+".0";
-//    var addRows= {name:'arow', align:'left', title: 'Add' ,showTitle:true, is_obj_action: true, is_forced_action:true, icon:'plus' , description: 'append this item' ,  url: "javascript:hiveseq_addSequenceFile('dvSequenceFileListViewer._active._active')" };
     var addRows = c;
     var panelVV;
     if (viewer.container.indexOf(set_sequences) != -1 ){
@@ -376,13 +269,9 @@ function hiveseq_checkSequenceFile(viewer, node){
     }
     if(viewer.checkedCnt == 0 && panelVV.rows.length>6) panelVV.rows.pop();
     else if (viewer.checkedCnt >0 && panelVV.rows.length==6) panelVV.rows = panelVV.rows.concat(addRows);
-//    var seqList=vjDV.locate(viewer);
-//    if(seqList)seqList.rows=seqList.rows.concat(addRows);
 
     panelVV.render();
     panelVV.load();
-    //vjDV["dvSequenceFileListViewer"].render();
-    //vjDV["dvSequenceFileListViewer"].load();
 }
 function dna_hiveseq_doneComputing(viewer ,reqid, stat)
 {
@@ -393,10 +282,6 @@ function dna_hiveseq_doneComputing(viewer ,reqid, stat)
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Adding hiveseq
-// _/
 var nodeSelected;
 function hiveseq_selectSequenceFile(viewer, node )
 {
@@ -410,7 +295,7 @@ function hiveseq_selectSequenceFile(viewer, node )
     if( tab_Names.length ) {
         vjDV.dvSequenceContentViewer.remove(tab_Names);
     }
-    var dna_hiveseq_fullview = vjHO.fullview("u-hiveseq",node,{obj:vjDV.dvSequenceContentViewer},null,onConstruction);//,"hiveseq_SequenceContentViewer_loaded");
+    var dna_hiveseq_fullview = vjHO.fullview("u-hiveseq",node,{obj:vjDV.dvSequenceContentViewer},null,onConstruction);
     
     
 }
@@ -440,8 +325,8 @@ function hiveseq_SequenceContentViewer_rendered(hiveObj,viewers)
 function hiveseq_SequenceContentViewer_loaded(hiveObj,viewers)
 {
    hiveseq_hideViewer(viewers[4]);
-   hiveseq_hideViewer(viewers[6]);//"dvSequenceContentViewer.histogram.2");
-   hiveseq_hideViewer(viewers[8]);//"dvSequenceContentViewer.lengthwise.1");
+   hiveseq_hideViewer(viewers[6]);
+   hiveseq_hideViewer(viewers[8]);
 }
 
 function hiveseq_hideViewer(viewer)
@@ -485,7 +370,7 @@ function hiveseq_safeInsertIntoHiveseq(idlist, subset, resetprevious)
         if( subset && subset.length ){
             for( var is=0; is< subset.length; ){
                 var inext;
-                for(inext=is; inext<subset.length-1 && subset[inext]+1==subset[inext+1] ; ++inext ) // scan complete ranges
+                for(inext=is; inext<subset.length-1 && subset[inext]+1==subset[inext+1] ; ++inext )
                     ;
                 content+="\n"+idlist[it].id+","+subset[is]+","+subset[inext]+","+idlist[it].name;
                 is=inext+1;
@@ -519,28 +404,26 @@ function hiveseq_InsertTblIntoHiveseq(tbl)
         else return 1;
        });
 
-    var t="",tForProc="";//hiveseq_hdr;
+    var t="",tForProc="";
     var lstObjIDs = "";
     hiveseq_GTotalSequences=0;
     var oldId = 0;
     for (var ir=0, inext=0; ir< tbl.rows.length; ir=inext ) {
         var  cur=tbl.rows[ir];
 
-        for(var inext=ir+1; inext<tbl.rows.length ; ++inext ){ // if this is not the last one we compare the current row with the following to it
+        for(var inext=ir+1; inext<tbl.rows.length ; ++inext ){
             var  nxt =tbl.rows[inext];
 
 
-            if( cur.id!=nxt.id )  // the same id ?
+            if( cur.id!=nxt.id )
                 break;
 
 
             if( cur.rangeStart=="search")
                 break;
-            //if(tbl.rows[ir].rangeEnd=="all")
-            //    continue;
-            if(cur.rangeEnd+1<nxt.rangeStart) // not continuous overlapping pieces ?
+            if(cur.rangeEnd+1<nxt.rangeStart)
                 break;
-            if(cur.rangeEnd<nxt.rangeEnd) // take the maximal range
+            if(cur.rangeEnd<nxt.rangeEnd)
                 cur.rangeEnd=nxt.rangeEnd;
          }
         t+=cur.id+","+cur.rangeStart+","+cur.rangeEnd+","+cur.name+"\n";
@@ -558,11 +441,9 @@ function hiveseq_InsertTblIntoHiveseq(tbl)
         alert("dna-denovo contig extension algorithm can only accept one file at a time")
     }
     else {
-        vjDS.dsHiveseqComposition.reload("static://" + t, true);
+        vjDS.dsHiveseqComposition.reload("static:
         algoProcess.setValue("hiveseqQry", tForProc);
     
-        // To add parent_proc_ids
-        // var lstObjIDs = hsview.accumulate("node.id");
         algoProcess.setValue("parent_proc_ids", lstObjIDs.substring(0,
                 lstObjIDs.length - 1));
     
@@ -577,8 +458,7 @@ function hiveseq_InsertTblIntoHiveseq(tbl)
 function hiveseq_saveHiveseq()
 {
     var hsview=vjDV.locate("dvHiveseqCompositionViewer."+set_sequences+".1");var panelview=vjDV.locate("dvHiveseqCompositionViewer."+set_sequences+".0");
-    //var content=hsview.accumulate("true","'obj://'+node.id+','+node['range-start']+','+node['range-end']");
-    var content=hsview.accumulate("true","'obj://'+node.id+','+node['range-start']+','+node['range-end']");
+    var content=hsview.accumulate("true","'obj:
 
 
     if(!isok(content)){

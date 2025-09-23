@@ -41,7 +41,6 @@ using namespace slib::tblqryx4;
 
 void OutputColSource::setFormula(const sTabular * in_table, const ast::Node * fmla)
 {
-    // is this formula a simple $n / ${name} expression? Then we can simplify
     const char * input_col_name = 0;
     if( in_table && fmla && fmla->isDollarCall(&input_col_name, &input_col) ) {
         if( input_col_name ) {
@@ -89,7 +88,6 @@ bool OutputColumns::setFormat(idx icol, const char * fmt)
     }
 
     if( regexec(&_format_checker, fmt, 0, 0, 0) != 0 ) {
-        // unsupported format
         _cols[icol].ifmt_type = sVariant::value_NULL;
         _cols[icol].fmt_offset = -1;
         return false;
@@ -151,7 +149,6 @@ void OutputColumns::init(const sTabular * in_table, const char * rangeSet)
     static sStr namebuf;
     _in2out.resize(src_cnt);
     if( rangeSet && *rangeSet ) {
-        // set of *input* column IDs
         for(idx icol = 0; icol < src_cnt; icol++) {
             _in2out[icol] = -sIdxMax;
         }
@@ -182,12 +179,11 @@ void OutputColumns::init(const sTabular * in_table, const char * rangeSet)
     }
 }
 
-void OutputColumns::setMinMax(const char * minmaxSet/* = 0*/, const char * minmaxMain/* = 0*/)
+void OutputColumns::setMinMax(const char * minmaxSet, const char * minmaxMain)
 {
     sVec<idx> scan;
 
     if( minmaxSet && *minmaxSet ) {
-        // set of *output* column IDs
         scan.cut(0);
         sString::scanRangeSet(minmaxSet, 0, &scan, 0, 0, 0);
         for(idx i = 0; i < scan.dim(); i++) {
@@ -198,7 +194,6 @@ void OutputColumns::setMinMax(const char * minmaxSet/* = 0*/, const char * minma
     }
 
     if( minmaxMain && *minmaxMain ) {
-        // *output* column ID
         idx icol = atoidx(minmaxMain);
         if( icol >= 0 && icol < _cols.dim() ) {
             _cols[icol].minmax_status = OutputCol::minmax_MAIN;
@@ -211,10 +206,8 @@ bool OutputColumns::renameCol(idx icol, const char * name)
     if( !validCol(icol) )
         return false;
 
-    // clear the old name
     idx prev_iname = _cols[icol].iname;
     if( prev_iname >= 0 ) {
-        // clear the old name
         idx first_homonym = -1;
         if( _cols[icol].prev_homonym < 0 && _cols[icol].next_homonym >= 0 ) {
             first_homonym = _cols[icol].next_homonym;
@@ -227,7 +220,6 @@ bool OutputColumns::renameCol(idx icol, const char * name)
 
     idx *pfirst_homonym = _colNames.get(name);
     if( pfirst_homonym && *pfirst_homonym >= 0 ) {
-        // this name is already used by another column
         _cols[icol].iname = _cols[*pfirst_homonym].iname;
         idx prev_homonym = *pfirst_homonym;
         while( prev_homonym < icol && _cols[prev_homonym].next_homonym >= 0 && _cols[prev_homonym].next_homonym < icol )
@@ -460,10 +452,9 @@ OutputColumns::saveHandle OutputColumns::saveColumn(idx icol)
         return 0;
     }
     idx saveIndex;
-    // save only the source and type/format info
     OutputCol saved_col;
     saved_col.src = _cols[icol].src;
-    SharedFmla::incref(saved_col.src.shared_fmla); // don't delete the formula when saved_col goes out of scope and gets destructed
+    SharedFmla::incref(saved_col.src.shared_fmla);
     saved_col.itype = _cols[icol].itype;
     saved_col.ifmt_type = _cols[icol].ifmt_type;
     saved_col.fmt_offset = _cols[icol].fmt_offset;
@@ -547,7 +538,6 @@ void OutputBuffer::init(OutputColumns * out_cols, const sTabular * in_table, tbl
     _ctx = ctx;
     _cols = _out_cols->dim();
 
-    // set up association between column indices and source indices
     _icol2saved.resize(_cols);
     for(idx icol=0; icol < _cols; icol++) {
         _icol2saved[icol] = out_cols->saveColumn(icol);
@@ -589,7 +579,6 @@ bool OutputBuffer::setCell(idx icol, OutputColumns::saveHandle keep, idx in_row)
             } else {
                 _ctx->logInfo("Formula failed for column %" DEC " on input row %" DEC ": %s", icol, in_row, err_buf.ptr());
             }
-            // a formula failing is a non-fatal event; we log and continue
             c.val.setNull();
             c.len = 0;
             _buf.add0();
@@ -658,7 +647,6 @@ bool OutputFilter::initValues(sVariant * values)
         switch(_method) {
             case eMethod_list:
             case eMethod_inlist:
-                // should be handled by specific filter
                 break;
             case eMethod_equals:
             case eMethod_substring:
@@ -718,7 +706,7 @@ bool OutputFilter::initValues(sVariant * values)
     return true;
 }
 
-bool OutputRowFilter::init(sVariant * arg, const sTabular * in_table, OutputColumns * out_cols, OutputBuffer * out_buf, ExecContext * ctx, const char * opname/*=0*/)
+bool OutputRowFilter::init(sVariant * arg, const sTabular * in_table, OutputColumns * out_cols, OutputBuffer * out_buf, ExecContext * ctx, const char * opname)
 {
     _in_table = in_table;
     _use_in_table = false;
@@ -766,7 +754,6 @@ bool OutputRowFilter::init(sVariant * arg, const sTabular * in_table, OutputColu
             rows_raw[i] = values_val->getListElt(i)->asInt();
         }
         sSort::sort(rows_raw.dim(), rows_raw.ptr());
-        // record unique rows
         _rows.resize(rows_raw.dim());
         idx nrows = 0;
         for(idx i = 0; i < rows_raw.dim(); i++) {
@@ -792,7 +779,6 @@ bool OutputRowFilter::init(sVariant * arg, const sTabular * in_table, OutputColu
                 }
             } else if (cols_val->isList()) {
                 for (idx i=0; i<cols_val->dim(); i++) {
-                    // parseColsArg will resize _cols
                     if (!ParseUtils::parseColsArg(_cols, cols_val->getListElt(i), _out_cols, *_ctx, true)) {
                         INVALID_PARAMETER("Invalid cols");
                     }
@@ -814,7 +800,6 @@ bool OutputRowFilter::init(sVariant * arg, const sTabular * in_table, OutputColu
                 }
             } else if (incols_val->isList()) {
                 for (idx i=0; i<cols_val->dim(); i++) {
-                    // parseColsArg will resize _cols
                     if (!ParseUtils::parseColsArg(_cols, incols_val->getListElt(i), in_table, *_ctx, true)) {
                         INVALID_PARAMETER("Invalid incols");
                     }
@@ -840,7 +825,7 @@ bool OutputRowFilter::init(sVariant * arg, const sTabular * in_table, OutputColu
     return initValues(values_val);
 }
 
-bool OutputColFilter::init(sVariant * arg, const sTabular * in_table, OutputColumns * out_cols, OutputBuffer * out_buf, ExecContext * ctx, const char * opname/*=0*/)
+bool OutputColFilter::init(sVariant * arg, const sTabular * in_table, OutputColumns * out_cols, OutputBuffer * out_buf, ExecContext * ctx, const char * opname)
 {
     _in_table = in_table;
     _use_in_table = false;
@@ -1037,7 +1022,6 @@ OutputFilter::EResult OutputFilter::evalDataValue(sVariant * pdataval, bool allo
                 if( !allowFormula )
                     goto ERROR;
                 if( unlikely(!_specs[is].fmla->eval(_tmp_val, _ctx->qlangCtx())) ) {
-                    // non-fatal
                     sStr err_buf;
                     _ctx->logInfo("Failed formula on filtering input row %" DEC ": %s", _ctx->qlangCtx().getCurInputRow(), _ctx->qlangCtx().printError(err_buf));
                     _ctx->qlangCtx().clearError();
@@ -1066,13 +1050,11 @@ OutputFilter::EResult OutputFilter::evalDataValue(sVariant * pdataval, bool allo
                         pass = *pdataval < *pspecval;
                         break;
                     default:
-                        // should not happen, fall through to error below
                         break;
                 }
                 break;
             default:
                 ERROR:
-                // should not happen!
                 fprintf(stderr, "%s:%u: unexpected filter method\n", __FILE__, __LINE__);
                 assert(1);
         }
@@ -1095,7 +1077,6 @@ OutputRowFilter::EResult OutputRowFilter::eval(idx in_row, idx out_row)
         case eMethod_formula:
             for(idx is = 0; is < _specs.dim(); is++) {
                 if( unlikely(!_specs[is].fmla->eval(_tmp_val, _ctx->qlangCtx())) ) {
-                    // non-fatal
                     sStr err_buf;
                     _ctx->logInfo("Failed formula on filtering input row %" DEC ": %s", _ctx->qlangCtx().getCurInputRow(), _ctx->qlangCtx().printError(err_buf));
                     _ctx->qlangCtx().clearError();
@@ -1181,7 +1162,6 @@ OutputRowFilter::EResult OutputRowFilter::eval(idx in_row, idx out_row)
 bool OutputColFilter::eval(idx in_row, idx out_row)
 {
     if( _method == eMethod_list || _method == eMethod_inlist ) {
-        // trivial case, _results already prepared in init()
         _evaled = true;
         return true;
     }
@@ -1215,7 +1195,7 @@ bool OutputColFilter::eval(idx in_row, idx out_row)
             pdataval = &_tmp_val;
         } else {
             if( !_out_buf->initialized(icol) && !_out_buf->setCell(icol, in_row) )
-                return eResult_error;
+                return false;
 
             pdataval = &(_out_buf->val(icol));
         }
@@ -1223,7 +1203,7 @@ bool OutputColFilter::eval(idx in_row, idx out_row)
         bool pass = false;
         switch(evalDataValue(pdataval, false)) {
             case eResult_error:
-                return eResult_error;
+                return false;
             case eResult_print:
                 pass = true;
                 break;

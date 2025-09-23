@@ -43,14 +43,16 @@ void sQPSvc::getReqIds(sVec<idx>& vec) const
     }
 }
 
-void sQPSvc::setForm(sVar * form)
+void sQPSvc::setForm(sVar * form, const bool overwrite)
 {
     for(idx i = 0; i < form->dim(); ++i) {
         const char * id = (const char *)form->id(i);
         if( id ) {
-            idx vlen = 0;
-            const char * v = form->value(id, 0, &vlen);
-            m_form.inp(id, v, vlen);
+            if( overwrite || (!overwrite && !m_form.value(id)) ) {
+                idx vlen = 0;
+                const char * v = form->value(id, 0, &vlen);
+                m_form.inp(id, v, vlen);
+            }
         }
     }
 }
@@ -101,36 +103,52 @@ const char * sQPSvc::getLockString(sStr &buf, const sHiveId &objId)
     return buf.ptr(bufpos);
 }
 
-idx sQPSvc::launch(sUsr& user, idx grpID /* = 0 */, sHiveId * out_uprocID /* = 0 */, idx priority /* = 0 */)
+idx sQPSvc::launch(sUsr & user, idx grpID, sHiveId * out_uprocID, idx priority, idx sliceId)
 {
     if( !m_reqs.dim() ) {
-#if 0
-        fprintf(stderr, "submitting form:\n");
-        for (idx i=0; i<m_form.dim(); i++) {
-            const char * key = static_cast<const char*>(m_form.id(i));
-            const char * value = m_form.value(key);
-            fprintf(stderr, "  %s = %s\n", key, value);
+
+        sVec<sUsrProc> procObjs;
+        sQPrideBase::Service c_svc;
+        m_qp.serviceGet(&c_svc, getSvcName(), 0);
+        idx reqId = 0;
+
+        if( const udx projID = user.getProject() ) {
+            sStr sp("%" UDEC, projID);
+            m_form.inp("projectID", sp.ptr());
         }
-#endif
-        idx reqId = m_qp.reqProcSubmit( split(), &m_form, getSvcName(), 0, m_qp.eQPReqAction_Run, true, priority);
+        
+        sStr log, strObjList;
+        idx err = 0;
+        if (!grpID) {
+            sUsrProc * new_proc = makeObj(user, procObjs.add());
+            if( new_proc ) {
+                new_proc->IdStr(&strObjList);
+                strObjList.add0();
+                new_proc->reqID(reqId);
+                new_proc->service(getSvcName());
+                sUsrFolder * inbox = sSysFolder::Inbox(user);
+                if( inbox ) {
+                    inbox->attach(*new_proc);
+                    delete inbox;
+                }
+                if( out_uprocID ) {
+                    *out_uprocID = new_proc->Id();
+                }
+            }
+        }
+        err = sUsrProc::standardizedSubmission(&m_qp, &m_form, &user, procObjs, 1, &reqId, &c_svc, 0, &strObjList, &log);
+        if( err ) {
+            if( grpID ) {
+                m_qp.reqSetInfo(grpID, sQPrideBase::eQPInfoLevel_Error, "Failure to submit.\n%s", log.ptr());
+            }
+            m_qp.logOut(sQPrideBase::eQPLogType_Error, "Failure to submit.\n%s", log.ptr());
+            return 0;
+        }
         if( reqId ) {
             m_qp.grp2Req(reqId, &m_reqs, 0, 0);
             if( grpID ) {
                 for(idx i = 0; i < m_reqs.dim(); ++i) {
-                    m_qp.grpAssignReqID(m_reqs[i], grpID, 0);
-                }
-            } else {
-                sUsrProc * obj = makeObj(user);
-                if( obj ) {
-                    obj->reqID(reqId);
-                    obj->service(getSvcName());
-                    std::auto_ptr<sUsrFolder> inbox(sSysFolder::Inbox(user));
-                    if( inbox.get() ) {
-                        inbox->attach(*obj);
-                    }
-                    if( out_uprocID ) {
-                        *out_uprocID = obj->Id();
-                    }
+                    m_qp.grpAssignReqID(m_reqs[i], grpID, sliceId);
                 }
             }
         }

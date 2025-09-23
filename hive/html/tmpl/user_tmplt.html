@@ -20,11 +20,20 @@
         var els = document.forms["form-userSet"].elements;
         var reg = cookieGet('newreg');
         cookieDelete('newreg');
+        var cmplx = cookieGet('cmplx');
+        cookieDelete('cmplx');
+        var mlen = cookieGet('mlen');
+        cookieDelete('mlen');
+        var usym = cookieGet('usym');
+        cookieDelete('usym');
         if( reg ) {
             gObject("titleUsr").innerHTML = "New User Registration";
             gObject("pswdCurrent").className = "sectHid";
             gObject("follow").value = '';
             gObject("newreg").value = reg;
+            gObject("cmplx").className = parseInt(cmplx) ? "" : "sectHid";
+            gObject("usym").className = parseInt(usym) ? "" : "sectHid";
+            gObject("mlen").value = mlen;
             els["login"].focus();
         } else {
             gObject("titleUsr").innerHTML = "User Profile";
@@ -253,7 +262,8 @@
                         <tr>
                             <td align=right class="HIVE_variable">New Password</td>
                             <td align=left><input name="newpass1" type="password" tabIndex="5" />
-                                <small>requirements: at least 8 symbols long, one lower case, one upper case and one numeral.</small>
+                                <span id="cmplx"><small>requirements: at least <input type="text" id="mlen" size="2" readonly/> symbols long,
+                                    one lower case, one upper case, one numeral<div id="usym" style="display: inline;">, one special symbol</div></small></span>
                             </td>
                         </tr>
                         <tr>

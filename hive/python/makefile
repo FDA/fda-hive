@@ -35,15 +35,21 @@ endif
 include $(devdir)/build/makefile.meta
 
 DIST_LIST = \
-	pyhive
+	pyhive glymps msgfplus glycopeptidesearch refseq_processor adverse_event_dedup cart
 
-# MOVE!! your app from BUILD_LIST to DIST_LIST when it is ready to be deployed, DO NOT COPY!
+
 BUILD_LIST = \
 	$(DIST_LIST)
 
-.PHONY: all clean
-all clean::
+DOC_LIST = pyhive
+
+.PHONY: sync
+sync::
 	$(call make-list,$@,$(BUILD_LIST))
+
 .PHONY: dist
 dist::
 	$(call make-list,$@,$(DIST_LIST))
+.PHONY: doc
+doc::
+	$(call make-list,$@,$(DOC_LIST))

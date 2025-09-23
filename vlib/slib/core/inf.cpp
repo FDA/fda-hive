@@ -35,10 +35,7 @@ using namespace slib;
 
 template <int Tbits> idx sInf<Tbits>::learn(sMex * mex, idx cnt, sMex::Pos * poslist)
 {   
-    // the order of the hasher runs from 1 (single word)
-    // to cnt ... which means all notions are used 
     for(idx iO=1; iO<cnt; +iO)  
-    //for( const char * s=src;
     return len+1;
 }
 
@@ -48,24 +45,22 @@ template <int Tbits> idx sInf<Tbits> ::learn(const char * src00 , const char * s
     sMex t;
     sMex::Pos br;
     const char * s=src;
-    if(separ) // if separator is selected (like blanks) ... we skip the ones coming first
+    if(separ)
         while(strpbrk(*s,separ))++s;
     
-    // loop over characters in the string 
     while( *s ){
         br.pos=(idx)(s-src00);
-        if(separ) // if separator is given ... scan until next of those characters
+        if(separ)
             while(!strpbrk(*s,separ))++s;
-        else  // otherwise just position to the next 00 string
+        else
             while(*s++);
 
         br.size=(idx)(s-src00)-pos;
         t.add(pos);
 
-        if(separ) // if separator is selected ... we skip multiple occurences of those
+        if(separ)
             while(strpbrk(*s,separ))++s;
     }
-    // now call the real learning procedure 
     return learn(&t,t.pos()/sizeof(sMex::Pos));
 }
 

@@ -45,8 +45,7 @@ void sCmdLine::parse(const char * cmdLine, idx len, const char * separ)
         if(*ptr){
             idx which, cnt=dim();
             idx * p=set(ptr,0,&which);
-            //if(which<dim()-1)
-            if(cnt==dim()) // this was in the dictionary before
+            if(cnt==dim())
                 p=add(1);
             *p=which;
         }
@@ -62,8 +61,7 @@ void sCmdLine::init(idx argc, const char ** argv, const char ** envp)
         const char * ptr = argv[i];
         idx which,cnt=dim();
         idx * p=set(ptr,0,&which);
-        //if(which<dim()-1)
-        if(cnt==dim()) // this was in the dictionary before
+        if(cnt==dim())
               p=add(1);
         *p=which;
     }
@@ -73,16 +71,13 @@ void sCmdLine::init(idx argc, const char ** argv, const char ** envp)
         idx icpy;
 
         for(i=0;envp[i];i++) {
-            //const char * p=strchr(envp[i],'=');
             const char * p=envp[i];
             for( icpy=0; p[icpy]!='=' && p[icpy]; ++icpy)
                 buf[icpy]=p[icpy];
             buf[icpy]=0;
-            //if(p) *p=0; // remember the current
-            set(buf); // envp
+            set(buf);
             if(p[icpy]){
                 set(p+icpy+1);
-               // *p='='; // restore the environment
             }
         }
     }
@@ -103,16 +98,15 @@ idx sCmdLine::exeFunCaller(sCmdLine::exeCommand * cmdexe, const char * cmd, cons
 idx sCmdLine::exec(sCmdLine::exeCommand * cmds, sVar * externalVars, sStr * applog, sStr * dbglog, char * onecmd)
 {
     if(!dim())return 0;
-    idx len=0;//, iRemCmd=0;
+    idx len=0;
     sStr EquCmd;
     char * equCmd=EquCmd.resize(sFilePath::sSizeMax);
-    char * arg; // ="";
+    char * arg;
     const char * cmd="", * rCmd=0;
     char  *p ;
     sStr tmp;
 
 
-    //scan and execute commands one by one
     for(idx i = 0, iCmd = 0; i < dim();)
     {
         if(isError) {
@@ -126,22 +120,17 @@ idx sCmdLine::exec(sCmdLine::exeCommand * cmds, sVar * externalVars, sStr * appl
         else
             arg=get(i);
 
-        // search for the command
         for(iCmd=1; (cmd=cmds[iCmd].cmd)!=0; ++iCmd){
             len = sLen(arg);
             const char * pe=strchr(arg,'=');if(pe)len=pe-arg;
-            if( !strncmp(arg,cmd ,len) && ( strcmp(cmd,"-set") == 0 || ((arg[len]=='=' || arg[len]=='.' || arg[len]==0) && cmd[len] == 0) ) ){ // //-set commands are treated specially
-            //if( !strncasecmp(arg,cmd,len ) ){ // //-set commands are treated specially
-                //iRemCmd=i;
+            if( !strncmp(arg,cmd ,len) && ( strcmp(cmd,"-set") == 0 || ((arg[len]=='=' || arg[len]=='.' || arg[len]==0) && cmd[len] == 0) ) ){
                 rCmd=arg;
                 break;
             }
         }
-        // is this a -- command ? - even if it is not in our list we should try finding the macro : so we always treat it
-        if(cmd==0 && arg[0]=='-' && arg[1]=='-') {iCmd=1; cmd=rCmd=arg;len=2;}// cmdCmd
+        if(cmd==0 && arg[0]=='-' && arg[1]=='-') {iCmd=1; cmd=rCmd=arg;len=2;}
 
 
-        // command not found ? skip it
         if(!cmds[iCmd].cmd || !cmds[iCmd].cmdFun){
             ++i;
             if(arg[0]=='-') {
@@ -151,26 +140,20 @@ idx sCmdLine::exec(sCmdLine::exeCommand * cmds, sVar * externalVars, sStr * appl
             continue;
         }
 
-        // prepare equCmd whyle analysing "command=equCmd argument" synthax
         if( (p=strchr(arg+len,'='))!=0 ){
-            //strcpy(equCmd,arg+len+1); // if there is an equal sign , read until the next
-            strcpy(equCmd,p+1); // if there is an equal sign , read until the next
-            //arg[len]=0;
+            strcpy(equCmd,p+1);
             *p=0;
         }
         else equCmd[0]=0;
 
-        // is this a no-argument command ?
-        if(cmds[iCmd].kind==argNone){ // no arguments, just execute
+        if(cmds[iCmd].kind==argNone){
 
             if(applog)applog->printf(sCmdLine_EXE"%s \n",rCmd);
             isError=exeFunCaller(&cmds[iCmd],rCmd, 0, equCmd, 0) ;
             ++i;continue;
         }
 
-        // prepare the arguments for argument having commands
         tmp.cut(0);
-        // digest the description until  // to make double zero string list
         sVar vars;
         sStr cmdDesc;
         if( !externalVars ) {
@@ -179,37 +162,32 @@ idx sCmdLine::exec(sCmdLine::exeCommand * cmds, sVar * externalVars, sStr * appl
             sString::searchAndReplaceSymbols(&cmdDesc,tmp.ptr(),0,"/" sString_symbolsBlank,0,0,true,true,true);
             tmp.cut(0);
         }
-        // scan all arguments until the next command
         const char * varnam=cmdDesc.ptr();
-        if(!externalVars &&  varnam[0]=='=') // this is equCmd
+        if(!externalVars &&  varnam[0]=='=')
             varnam=sString::next00(varnam);
 
         for( ++i; i<dim() && (arg=get(i))[0]!='-'; ++i ){
             if(arg[0]=='\\') ++arg;
 
             if( !externalVars && varnam) {
-                //vars.inp(varnam, (arg[0]=='\\') ? arg+1 : arg);
                 vars.inp(varnam, arg);
                 varnam=sString::next00(varnam);
             }
-            // if this is a one by one argument command ... execute it
             if(cmds[iCmd].kind==argOneByOne) {
                 if(applog)applog->printf(sCmdLine_EXE"%s %s\n",rCmd, arg);
                 isError=exeFunCaller(&cmds[iCmd],rCmd, arg, equCmd, externalVars? externalVars : &vars) ;
             }
-            // concatenate the arguments for multiple at once commands
             else if(cmds[iCmd].kind==argAllSpacedList)
                 tmp.printf("%s%s",tmp.length() ? " " : "", arg );
             else if(cmds[iCmd].kind==argAllZeroList)
                 tmp.add(arg,sLen(arg)+1);
         }
 
-        // check if argument requiring command is called without arguments
         if(!onecmd && rCmd[1]!='-' && (cmds[iCmd].kind==argAllZeroList || cmds[iCmd].kind==argAllSpacedList ) && !tmp.ptr()){
             if(applog)applog->printf(sCmdLine_ERR"command requires arguments\n",rCmd);
             if(applog)applog->printf(sCmdLine_ACT"see the description for '%s' command\n",rCmd);
             isError=1;
-        }else {  // execute
+        }else {
             if(cmds[iCmd].kind==argAllZeroList){
                 tmp.add(__,2);
                 if(applog)applog->printf(sCmdLine_EXE"%s %s ... \n",rCmd,tmp.ptr());
@@ -225,7 +203,6 @@ idx sCmdLine::exec(sCmdLine::exeCommand * cmds, sVar * externalVars, sStr * appl
             return 0;
 
 
-        // end of the single command treatment
     }
     return isError;
 }

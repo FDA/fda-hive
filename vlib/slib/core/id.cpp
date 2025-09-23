@@ -29,15 +29,17 @@
  */
 
 #include <slib/core/id.hpp>
+#include <slib/core/dic.hpp>
 #include <assert.h>
 #include <regex.h>
 #include <ctype.h>
 
 using namespace slib;
 
-// static members
 sDic<udx> sHiveId::_urlToDomainId;
 sDic<sStr> sHiveId::_domainIdToUrl;
+sDic<sHiveId> sHiveId::_domainIdToId;
+bool sHiveId::_printDomainAsUrl = false;
 const sHiveId sHiveId::zero;
 
 static inline bool validDomainIdStart(char c)
@@ -72,15 +74,14 @@ bool sHiveId::setDomainId(udx dom_id)
         if( !decodeDomainId(dombuf, dom_id) ) {
             return false;
         }
-        _domain_id = encodeDomainId(dombuf); // canonicalize
+        _domain_id = encodeDomainId(dombuf);
         return true;
     }
     _domain_id = 0;
     return true;
 }
 
-// static
-udx sHiveId::encodeDomainId(const char * dom, idx len/* = 0 */)
+udx sHiveId::encodeDomainId(const char * dom, idx len)
 {
     if( !dom || !*dom ) {
         return 0;
@@ -89,9 +90,9 @@ udx sHiveId::encodeDomainId(const char * dom, idx len/* = 0 */)
         len = sIdxMax;
     }
     udx out = 0;
-    for(udx i = 0; i < sizeof(_domain_id) && i < len && dom[i]; ++i) {
+    for(idx i = 0; i < (idx)sizeof(_domain_id) && i < len && dom[i]; ++i) {
         char c = tolower(dom[i]);
-        if( i > sizeof(_domain_id) - 1 ) {
+        if( i > (idx)sizeof(_domain_id) - 1 ) {
             return 0;
         }
         if( i ) {
@@ -109,7 +110,6 @@ udx sHiveId::encodeDomainId(const char * dom, idx len/* = 0 */)
     return out;
 }
 
-// static
 bool sHiveId::decodeDomainId(char * outbuf, udx dom)
 {
     sSet(outbuf, 0, sizeof(_domain_id) + 1);
@@ -131,7 +131,6 @@ bool sHiveId::decodeDomainId(char * outbuf, udx dom)
     return true;
 }
 
-// static
 bool sHiveId::validDomainId(const char * dom, idx len)
 {
     if( !dom || !dom[0] ) {
@@ -153,7 +152,6 @@ bool sHiveId::validDomainId(const char * dom, idx len)
     return true;
 }
 
-// returns length parsed
 static idx parse_obj_ion_id(sHiveId & id, const char * s, idx pos, idx s_len)
 {
     idx len_parsed = 0;
@@ -164,7 +162,6 @@ static idx parse_obj_ion_id(sHiveId & id, const char * s, idx pos, idx s_len)
             obj_id = next_obj_id;
             len_parsed++;
         } else {
-            // overflow
             len_parsed = 0;
             obj_id = 0;
             break;
@@ -178,7 +175,6 @@ static idx parse_obj_ion_id(sHiveId & id, const char * s, idx pos, idx s_len)
                 ion_id = next_ion_id;
                 len_parsed++;
             } else {
-                // overflow
                 len_parsed = 0;
                 ion_id = 0;
                 break;
@@ -222,7 +218,6 @@ static idx len_http_schema(const char * s, idx pos, idx s_len)
     if( s_len - pos < 8 ) {
         return 0;
     }
-
     if( strncasecmp(s + pos, "http://", 7) == 0 ) {
         return 7;
     } else if( strncasecmp(s + pos, "https://", 8) == 0 ) {
@@ -231,25 +226,24 @@ static idx len_http_schema(const char * s, idx pos, idx s_len)
     return 0;
 }
 
-idx sHiveId::parse(const char * s, idx len /*=0*/)
+idx sHiveId::parse(const char * s, idx len)
 {
     reset();
 
+    idx dequote = 0;
     if( !len ) {
-        len = sIdxMax;
+        len = sLen(s);
     }
-
     if( !s || len < 0 || !s[0] ) {
         return 0;
     }
-
+    if( (s[0] == '"' && s[len - 1] == '"') || (s[0] == '\'' && s[len - 1] == '\'') ) {
+        ++s;  dequote = 2; len -= dequote;
+    }
     idx len_parsed = 0;
-
     if( likely(isdigit(s[0])) ) {
-        // fastest path: [0-9]+(\\.[0-9]+)?
         len_parsed = parse_obj_ion_id(*this, s, 0, len);
     } else if( (len_parsed = parse_short_domain_id_dot(*this, s, 0, len)) > 0 ) {
-        // fast path: [a-zA-Z_][a-zA-Z0-9_]{0,7}\\.[0-9]+(\\.[0-9]+)?
         idx len_obj_ion_parsed = parse_obj_ion_id(*this, s, len_parsed, len);
         if( len_obj_ion_parsed ) {
             len_parsed += len_obj_ion_parsed;
@@ -258,8 +252,6 @@ idx sHiveId::parse(const char * s, idx len /*=0*/)
             len_parsed = 0;
         }
     } else if( len_http_schema(s, 0, len) ) {
-        // slow path: url/[0-9]+(\\.[0-9]+)?
-        // where url is up to 2083 bytes
         for(idx i = 0; i < _urlToDomainId.dim(); i++) {
             idx url_len = 0;
             const char * url = static_cast<const char *>(_urlToDomainId.id(i, &url_len));
@@ -279,11 +271,9 @@ idx sHiveId::parse(const char * s, idx len /*=0*/)
             }
         }
     }
-
-    return len_parsed;
+    return len_parsed + (len_parsed ? dequote : 0);
 }
 
-// static
 idx sHiveId::parseRangeSet(sVec<sHiveId>& out, const char * s, idx len, idx * pLenParsed)
 {
     if( !s || !*s ) {
@@ -296,7 +286,6 @@ idx sHiveId::parseRangeSet(sVec<sHiveId>& out, const char * s, idx len, idx * pL
     while( (!len || i < len) && s[i] ) {
         if( s[i] == '-' ) {
             if( !canRangeSpec ) {
-                // cannot have a range spec here - parse failure
                 break;
             }
             canRangeSpec = false;
@@ -305,7 +294,6 @@ idx sHiveId::parseRangeSet(sVec<sHiveId>& out, const char * s, idx len, idx * pL
             continue;
         } else if( strchr(" \t\n,;/", s[i]) ) {
             if( inRangeSpec ) {
-                // cannot have a separator in the middle of a range - parse failure
                 break;
             }
             canRangeSpec = true;
@@ -316,7 +304,7 @@ idx sHiveId::parseRangeSet(sVec<sHiveId>& out, const char * s, idx len, idx * pL
         sHiveId cur;
         idx curParseLen = cur.parse(s + i, len ? len - i : 0);
         if( !curParseLen ) {
-            break; // parse failure
+            break;
         }
         i += curParseLen;
 
@@ -326,13 +314,12 @@ idx sHiveId::parseRangeSet(sVec<sHiveId>& out, const char * s, idx len, idx * pL
             assert (out.dim());
             idx iprev = out.dim() - 1;
             if( cur.domainId() != out[iprev].domainId() ) {
-                break; // we cannot have a range between different HIVE domains
+                break;
             }
             if( pLenParsed ) {
                 *pLenParsed = i;
             }
             if( cur.objId() == out[iprev].objId() ) {
-                // object ids constant, ion ids range
                 idx step = cur.ionId() >= out[iprev].ionId() ? 1 : -1;
                 for( udx ion_id = out[iprev].ionId() + step; step > 0 ? ion_id <= cur.ionId() : ion_id >= cur.ionId(); ion_id += step ) {
                     sHiveId * next = out.add(1);
@@ -340,7 +327,6 @@ idx sHiveId::parseRangeSet(sVec<sHiveId>& out, const char * s, idx len, idx * pL
                     next->setIonId(ion_id);
                 }
             } else {
-                // object ids range, ion ids assumed to be constant
                 idx step = cur.objId() >= out[iprev].objId() ? 1 : -1;
                 for( udx obj_id = out[iprev].objId() + step; step > 0 ? obj_id <= cur.objId() : obj_id >= cur.objId(); obj_id += step ) {
                     sHiveId * next = out.add(1);
@@ -359,11 +345,11 @@ idx sHiveId::parseRangeSet(sVec<sHiveId>& out, const char * s, idx len, idx * pL
     return out.dim();
 }
 
-const char * sHiveId::print(sStr & out, bool domain_id_as_url/*=false*/) const
+const char * sHiveId::print(sStr & out, bool domain_id_as_url) const
 {
     idx startLen = out.length();
-    if( _domain_id ) {
-        if( domain_id_as_url ) {
+    if( _domain_id || _printDomainAsUrl ) {
+        if( domain_id_as_url || _printDomainAsUrl ) {
             const char * url = domainIdAsUrl();
             idx url_len = sLen(url);
             if( url_len ) {
@@ -385,11 +371,11 @@ const char * sHiveId::print(sStr & out, bool domain_id_as_url/*=false*/) const
     return out.ptr(startLen);
 }
 
-idx sHiveId::print(char * out, bool domain_id_as_url/*=false*/) const
+idx sHiveId::print(char * out, bool domain_id_as_url) const
 {
     idx ret = 0;
-    if( _domain_id ) {
-        if( domain_id_as_url ) {
+    if( _domain_id || _printDomainAsUrl ) {
+        if( domain_id_as_url || _printDomainAsUrl ) {
             const char * url = domainIdAsUrl();
             idx url_len = sLen(url);
             if( url_len ) {
@@ -417,7 +403,7 @@ idx sHiveId::print(char * out, bool domain_id_as_url/*=false*/) const
     return ret;
 }
 
-const char * sHiveId::printSQL(sStr & out, const char * prefix /* = 0 */, bool no_ion /* = false */) const
+const char * sHiveId::printSQL(sStr & out, const char * prefix, bool no_ion) const
 {
     const char * p1 = prefix ? prefix : "";
     const char * p2 = prefix ? "." : "";
@@ -426,8 +412,7 @@ const char * sHiveId::printSQL(sStr & out, const char * prefix /* = 0 */, bool n
     return out.ptr(pos);
 }
 
-// static
-const char * sHiveId::printVec(sStr & out, const sVec<sHiveId> & vec, const char * separ/*=","*/, bool domain_id_as_url/*=false*/)
+const char * sHiveId::printVec(sStr & out, const sVec<sHiveId> & vec, const char * separ, bool domain_id_as_url)
 {
     idx startLen = out.length();
     for( idx i=0; i<vec.dim(); i++ ) {
@@ -439,19 +424,49 @@ const char * sHiveId::printVec(sStr & out, const sVec<sHiveId> & vec, const char
     return out.ptr(startLen);
 }
 
-// static
-bool sHiveId::mapDomainIdUrl(const udx domain_id, const char * url)
+bool sHiveId::mapDomainIdUrl(const udx domain_id, const char * url, const sHiveId & id)
 {
-    char dombuf[sizeof(_domain_id) + 1];
-    decodeDomainId(dombuf, domain_id);
-    if( !validDomainId(dombuf, sizeof(dombuf) - 1) ) {
-        return false;
+    if( url && url[0] ) {
+        char dombuf[sizeof(_domain_id) + 1];
+        decodeDomainId(dombuf, domain_id);
+        if( validDomainId(dombuf, sizeof(dombuf) - 1) ) {
+            sStr * purl = _domainIdToUrl.get(&domain_id, sizeof(domain_id));
+            udx * pdom = _urlToDomainId.get(url);
+            sHiveId * pid = _domainIdToId.get(&domain_id, sizeof(domain_id));
+            if( purl && strcasecmp(url, purl->ptr()) == 0 && pdom && domain_id == *pdom && pid && id == *pid ) {
+                return true;
+            } else if( purl || pdom || pid ) {
+                return false;
+            }
+            purl = static_cast<sStr *>(_domainIdToUrl.set(&domain_id, sizeof(domain_id)));
+            pdom = static_cast<udx *>(_urlToDomainId.setString(url));
+            pid = static_cast<sHiveId *>(_domainIdToId.set(&domain_id, sizeof(domain_id)));
+            if( purl && pdom && pid ) {
+                purl->printf(0, "%s", url);
+                *pdom = domain_id;
+                *pid = id;
+                return true;
+            }
+        }
     }
-    sStr * purl = static_cast<sStr *>(_domainIdToUrl.set(&domain_id, sizeof(domain_id)));
-    purl->cut(0);
-    purl->add(url);
+    return false;
+}
 
-    udx * pdom = static_cast<udx *>(_urlToDomainId.setString(url));
-    *pdom = domain_id;
-    return true;
+bool sHiveId::mapDomainIdUrl(const char * domain_id, const char * url, const sHiveId & id)
+{
+    if( url && url[0] ) {
+        const idx len = sLen(domain_id);
+        if( validDomainId(domain_id, len) ) {
+            udx dom = encodeDomainId(domain_id, len);
+            return mapDomainIdUrl(dom, url, id);
+        }
+    }
+    return false;
+}
+
+void sHiveId::mapDomainReset()
+{
+    _urlToDomainId.empty();
+    _domainIdToUrl.empty();
+    _domainIdToId.empty();
 }

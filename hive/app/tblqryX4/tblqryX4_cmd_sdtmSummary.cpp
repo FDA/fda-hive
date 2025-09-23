@@ -45,11 +45,11 @@ namespace slib {
                 sVec < sHiveId > sdtmObjs;
 
                 struct paramList {
-                        char tbl[16];                      // "lb"
-                        char groupBy[32];                  // "STUDYID"
-                        char patientField[32];             // "USUBJID"
-                        char paramField[32];              //  "LBTESTCD"
-                        char paramVal[32];                //  "BILI"
+                        char tbl[16];
+                        char groupBy[32];
+                        char patientField[32];
+                        char paramField[32];
+                        char paramVal[32];
                 } cur_params;
 
                 sIonWander * iWander;
@@ -83,7 +83,6 @@ namespace slib {
                 };
 
                 sStr bufValues;
-                //const char * baseStat[4]={"Normal",">1xULN",">2xULN",">3xULN"};
                 const char * baseStat[4];
 
                 struct studyStat {
@@ -131,8 +130,6 @@ namespace slib {
 
                 const char * getName() { return "sdtm_summary"; }
 
-                //bool getSdTmDatabase(sUsr * usr,sIonWander & iWander,sVec < sHiveId > & sdtmObj);
-                //bool retrieveMeasurementsValues(sIonWander & iWander, const char * p, sDic < sDic <real> > & summary_dic);
 
                 bool computesOutTable() { return false; }
                 bool needsInTableReinterpret() { return true; }
@@ -145,20 +142,17 @@ namespace slib {
     };
 };
 
-// =====================================
-//         tqs=[{"op":"sdtmSummary","arg":{"objID":"3101158","measurements":["ALP","ALT","AST","BILI"],"keywords":"liver"}}]";
-//
-// ======================================
 
 bool SdtmSummaryCommand::init(const char * op_name, sVariant * arg)
 {
-    // "measurements": is an array
     if (sVariant * measurements = arg->getDicElt("measurements"))
     {
         const char * p=measurements->asString(); idx len = sLen(p);
         idx iskip=0;
-        if(*p=='['){++p; len-=1; }; if(*p=='"'){++p; len-=1;};
-        if (p[len-2]=='"') iskip+=1; if (p[len-1]==']') iskip+=1;
+        if(*p=='['){++p; len-=1;}
+        if(*p=='"'){++p; len-=1;}
+        if (p[len-2]=='"'){iskip+=1;}
+        if (p[len-1]==']'){iskip+=1;}
         len = len -iskip;
         sString::searchAndReplaceSymbols(&measurements00,p,len,",", 0,0,true,false,true, true);
     }
@@ -179,10 +173,6 @@ bool SdtmSummaryCommand::init(const char * op_name, sVariant * arg)
     return true;
 }
 
-// =====================================
-//
-//
-// =====================================
 
 
 void SdtmSummaryCommand::updateSingleFieldParam (efieldName fn, const char * value){
@@ -209,7 +199,6 @@ void SdtmSummaryCommand::updateSingleFieldParam (efieldName fn, const char * val
 
 
 bool getSdTmDatabase(sUsr * usr,sIonWander & iWander,sVec < sHiveId > & objs) {
-    //if (!sHiveIon::loadIonFile(usr,objs,iWander,"ion.ion")) {
     if (!sHiveIon::loadIonFile(usr,objs,iWander,"sdtmIon.ion")) {
         return false;
     }
@@ -242,13 +231,12 @@ void SdtmSummaryCommand::launchMyQry(const char * qry, sStr * errMsg, sDic <sStr
     iWander->traverse();
 }
 
-// for one specific Param
 idx SdtmSummaryCommand::listOfPatientFromOneGroup(const char * group_name, sDic <sStr> * patientDic){
     sStr query;
-    query.printf(0,"a=find.row(tbl=%s,name=%s,value=%s);",cur_params.tbl,cur_params.groupBy,group_name); // STUDY
-    query.printf("b=find.row(tbl=a.tbl,#R=a.#R,name=%s);",cur_params.paramField);            // Measurement rows
-    query.printf("c=find.row(tbl=b.tbl,#R=b.#R,value=%s);",cur_params.paramVal);            // Measurement Name
-    query.printf("d=find.row(tbl=c.tbl,#R=c.#R,name=%s);",cur_params.patientField);         // patient List
+    query.printf(0,"a=find.row(tbl=%s,name=%s,value=%s);",cur_params.tbl,cur_params.groupBy,group_name);
+    query.printf("b=find.row(tbl=a.tbl,#R=a.#R,name=%s);",cur_params.paramField);
+    query.printf("c=find.row(tbl=b.tbl,#R=b.#R,value=%s);",cur_params.paramVal);
+    query.printf("d=find.row(tbl=c.tbl,#R=c.#R,name=%s);",cur_params.patientField);
     query.printf("dict(d.value,1);");
 
     launchMyQry(query.ptr(),0,patientDic);
@@ -257,15 +245,6 @@ idx SdtmSummaryCommand::listOfPatientFromOneGroup(const char * group_name, sDic 
 
 }
 
-/*
-
-
- static idx traverserCallback(sIon * ion, sIonWander * wander, sIonWander::StatementHeader * statement, sIon::RecordResult * reslist );
-
-iWander->callbackFunc =  sBioseqSNP::traverserCallback;
-iWander->callbackFuncParam = rangeVec;
-
-*/
 
 idx SdtmSummaryCommand::listOfGroups(sDic <sStr> * resultDic) {
 
@@ -283,11 +262,8 @@ idx SdtmSummaryCommand::measurementCallback (sIon * ion, sIonWander * wander, sI
 
     measurement * mm = (measurement *) wander->callbackFuncParam;
 
-    // 1: #R => row number | 2: name => header name |3: value | 4: tbl => table name
 
     if( memcmp(statement->label,"b",1)==0) {
-                //seqID|pos|record|type|id
-            idx rowNum = *((idx*) (reslist[1].body));
             sStr hdr; hdr.addString( (const char *)(reslist[2].body), reslist[2].size);
 
             const char * listHdr[] = { "STUDYID","USUBJID","LBSTNRHI","LBSTRESN","LBDY"};
@@ -317,7 +293,6 @@ idx SdtmSummaryCommand::collectionMeasurement(sDic <sStr> * resultDic, sDic < sD
     iWander->resultCumulator=0;
 
     if (iWander->traverseCompile(query.ptr(), query.length())){
-        // something is wrong
         return 0;
     }
 
@@ -334,52 +309,45 @@ idx SdtmSummaryCommand::collectionMeasurement(sDic <sStr> * resultDic, sDic < sD
 
     launchMyQry(query.ptr(),0,resultDic);
 
-    if (abc.m_value.dim()) {   // {RowIndex: {"USUBJID": {pos, size}, "STUDYID":{pos,size}, "LBDY":{pos,size},}}
+    if (abc.m_value.dim()) {
 
-        sDic < sDic < sDic<real> > > tmptotP; // {STUDYID:{USUBJID: {day: value, day: value}}
+        sDic < sDic < sDic<real> > > tmptotP;
         if (!totP) {
             totP = &tmptotP;
         }
 
         char tmpBuf[128];
         sStr delMe;
-        // Loop through row index
         for (idx ir=0; ir<abc.m_value.dim(); ++ir) {
 
             sDic < sMex::Pos > * tmp=abc.m_value.ptr(ir);
 
-            // STUDYID
             sDic < sDic <real> > * vv = totP->set(bufValues.ptr(tmp->get("STUDYID")->pos),tmp->get("STUDYID")->size);
 
-            // USUBJID: {day: value, day1: value1}
             delMe.cut(0);
             delMe.addString(bufValues.ptr(tmp->get("USUBJID")->pos),tmp->get("USUBJID")->size);
-            //::printf("%s \n", delMe.ptr());
             sDic <real> * v = vv->set(bufValues.ptr(tmp->get("USUBJID")->pos),tmp->get("USUBJID")->size);
 
-            // USUBJID: {day: value, day1: value1}
             if (tmp->find("LBDY") && tmp->find("LBSTNRHI") && tmp->find("LBSTRESN")) {
-                      // UPPER limit of normal  and  get BASE limit of normal
                 const char * keyList[2] = {"LBSTNRHI","LBSTRESN"};
 
                 for (idx ik=0; ik < sDim(keyList); ++ik) {
                     const char * curk = keyList[ik];
 
                     idx sL = tmp->get(curk)->size;
-                    memcpy(tmpBuf,bufValues.ptr(tmp->get(curk)->pos),sL); // get the value in form of string of the current key
+                    memcpy(tmpBuf,bufValues.ptr(tmp->get(curk)->pos),sL);
                     if (tmpBuf[0] && (tmpBuf[0]!='N')) {
                         if (sL +4 <128) {
                             for (idx ic=sL; ic < sL+5; ++ic) {tmpBuf[ic]=0;}
                         }
-                        real r; sscanf(tmpBuf,"%lg",&r);  // turn it to a real number
+                        real r; sscanf(tmpBuf,"%lg",&r);
 
                         sL = tmp->get("LBDY")->size;
-                        memcpy(tmpBuf,bufValues.ptr(tmp->get("LBDY")->pos),sL); // get the value in form of string of the current key
+                        memcpy(tmpBuf,bufValues.ptr(tmp->get("LBDY")->pos),sL);
 
                         tmpBuf[sL] = '_'; sL+=1;
-                        memcpy(tmpBuf+sL,curk,sLen(curk)); // get the day number in form of string
+                        memcpy(tmpBuf+sL,curk,sLen(curk));
                         sL+=8;
-                        // FORMAT: {1_LBSTRESN: 12.5, 5_LBSTRESN: 15.02, 1_LBSTNRHI: 14.5, 5_LBSTNRHI: 20.02}
                         *(v->set(tmpBuf,sL))=r;
                     }
 
@@ -398,9 +366,7 @@ idx SdtmSummaryCommand::performSummary(sDic <real> * summary_dic) {
     idx tot=0;
     sDic <sStr> result;
     sStr query;
-    // list of group in one table
     idx totGroup = listOfGroups(&result);
-   // list of patient by one group
     idx len=0;
 
     sDic <sStr> patient_dic;
@@ -419,7 +385,6 @@ idx SdtmSummaryCommand::performSummary(sDic <real> * summary_dic) {
 
     return tot;
 }
-//  retrieve values for a specific measurement, and do some statistics
 
 bool SdtmSummaryCommand::retrieveMeasurementsValues(sDic < studyStat > & summary_dic){
 
@@ -427,11 +392,9 @@ bool SdtmSummaryCommand::retrieveMeasurementsValues(sDic < studyStat > & summary
     sDic <sStr> result;
     collectionMeasurement(&result, &tot_study_patient);
 
-    // at this point, we get tot_study_patient consisting of {STUDYID1 : {USUBJID1: {day1: value1, day2: value2}, USUBJID2: {day1: value1}}}
 
     sStr out;
 
-    // loop through STUDY
 
     idx tot_hasDayOne = 0, idLen =0;
     real valBase = -1, ratio = -1;
@@ -443,13 +406,10 @@ bool SdtmSummaryCommand::retrieveMeasurementsValues(sDic < studyStat > & summary
         sDic < sDic <real> > * cur_study = tot_study_patient.ptr(is);
 
         tot_hasDayOne = 0;
-        // loop through USUBJIDs, i.e, over patients
         for (idx ip=0; ip < cur_study->dim(); ++ip) {
 
-            const char * pat_id = (const char *)cur_study->id(ip, &idLen);
             sDic <real> * days_dic = cur_study->ptr(ip);
 
-            // FORMAT: {1_LBSTRESN: 12.5, 5_LBSTRESN: 15.02, 1_LBSTNRHI: 14.5, 5_LBSTNRHI: 20.02}
             valBase = ratio = -1;
 
             if (days_dic->find("1_LBSTRESN",10)) {
@@ -463,7 +423,6 @@ bool SdtmSummaryCommand::retrieveMeasurementsValues(sDic < studyStat > & summary
 
                 real * valUpper = days_dic->get("1_LBSTNRHI",10);
                 ratio = *valUpper / valBase;
-//                out.printf("%s,%.3lf\n",pat_id,ratio);
                 if (ratio >3) {
                     threeUln+=1;
                 } else if (ratio > 2) {
@@ -477,16 +436,6 @@ bool SdtmSummaryCommand::retrieveMeasurementsValues(sDic < studyStat > & summary
 
         }
 
-        /*out.printf("===============================================\n");
-        out.printf("Current parameter %s\n", cur_params.paramVal);
-
-        out.printf("Normal     : %.@lf \n", (normal/tot_hasDayOne) *100);
-        out.printf("1 < x < 2  : %.2lf \n", (oneUln/tot_hasDayOne) *100);
-        out.printf("2 < x < 3  : %.2lf \n", (twoUln/tot_hasDayOne) *100);
-        out.printf("x > 3      : %.2lf \n", (threeUln/tot_hasDayOne) *100);
-
-        out.printf("==> TOTAL PATIENT: %" DEC " and baseLine: %" DEC " \n", cur_study->dim(), tot_hasDayOne);
-*/
         const char * cur_study_id = (const char *)tot_study_patient.id(is,&idLen);
         if (!summary_dic.find(cur_study_id,idLen)) {
             summary_dic.set(cur_study_id,idLen);
@@ -514,23 +463,17 @@ bool SdtmSummaryCommand::retrieveMeasurementsValues(sDic < studyStat > & summary
 
 
     }
-    //::printf("%s",out.ptr());
 
 
     return true;
 }
 
-//      BILI,
-//
-//
 
 
 idx SdtmSummaryCommand::performLiverSummary(sStr & measurements00, sDic < studyStat > & summary_dic) {
 
     updateCurrentParams("lb","STUDYID","USUBJID");
 
-    // loooping over each params value like:
-    //              BILI, ASP, ALT
     for (const char * p = measurements00.ptr(0); p ; p = sString::next00(p)) {
 
         updateSingleFieldParam(eParamField,"LBTESTCD");
@@ -551,8 +494,6 @@ bool SdtmSummaryCommand::compute(sTabular * tbl)
         return false;
     }
 
-    // ==================
-    // Setting up ionDB
 
     sIonWander curWander;
 
@@ -563,11 +504,6 @@ bool SdtmSummaryCommand::compute(sTabular * tbl)
 
     iWander = &curWander;
 
-    /* ********************************************
-     *          Statistics
-     *  *******************************************
-     */
-    // dict = {"BILI":{"N": 535,""}}
 
 
 
@@ -576,28 +512,24 @@ bool SdtmSummaryCommand::compute(sTabular * tbl)
     if (strncasecmp(keyWords,"liver",5)==0) {
         sStr outputPath;
         _ctx.qproc().reqSetData(_ctx.outReqID(), "file://sdtmSummary.csv",0,0);
-        _ctx.qproc().reqDataPath(_ctx.outReqID(), "sdtmSummary.csv",&outputPath); // getting the path
-        sFile::remove(outputPath); // if for some reasons the file existed, remove it
+        _ctx.qproc().reqDataPath(_ctx.outReqID(), "sdtmSummary.csv",&outputPath);
+        sFile::remove(outputPath);
 
         sDic < studyStat > summary_dic;
 
         performLiverSummary(measurements00, summary_dic);
         idx idLen=0;
 
-        sFil delMe(outputPath); // open the file to write
-        //sStr delMe;
+        sFil delMe(outputPath);
         delMe.printf("Study Id,Lab Test,total Patients,Missing Base Value (Pct),Normal (Pct)");
-        // preparing Header
         for (idx ibs=0; ibs < sDim(baseStat); ++ibs) {
             delMe.printf(",%s",baseStat[ibs]);
         }
         delMe.printf("\n");
-        // studyid,param,totN,notBase
         for (idx ist=0; ist < summary_dic.dim(); ++ist) {
             const char * study_id = (const char *) summary_dic.id(ist,&idLen);
             delMe.printf("%.*s",(int)idLen,study_id);
             studyStat * cur_st = summary_dic.ptr(ist);
-            // looping through each parameter
             for (idx ipar=0; ipar < cur_st->totN.dim(); ++ipar) {
                 const char * cur_par = (const char *) cur_st->totN.id(ipar,&idLen);
 
@@ -624,14 +556,10 @@ bool SdtmSummaryCommand::compute(sTabular * tbl)
     }
 
 
-    // {patient: rowNum: }
 
 
 
 
-    // ===========================================================
-    //  ========================// END // =====================
-    // ===========================================================
 
     return true;
 

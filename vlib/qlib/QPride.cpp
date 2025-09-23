@@ -52,7 +52,7 @@ sQPride::sQPride(const char * defline00, const char * service) {
         appMode |= eQPApp_Console;
     }
     if (conn) {
-        sQPrideBase::init(conn, service);
+        init(conn, service);
     }
 }
 

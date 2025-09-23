@@ -51,7 +51,6 @@ bool sHiveTools::traveseProp(sUsrObj & obj, sUsr & user, const char * prop, cons
 
     idx logpos1 = 0, logpos2 = 0;
     if( log ) {
-        // prefix error msg
         logpos1 = log->pos();
         log->printf("\nerr.%s._err=", obj.IdStr());
         logpos2 = log->pos();
@@ -63,14 +62,12 @@ bool sHiveTools::traveseProp(sUsrObj & obj, sUsr & user, const char * prop, cons
     }
     if( !v || !v->isDic() || !v->dim() ) {
         if( log && log->pos() == logpos2 ) {
-            // no result and no error -> ok
             log->cut0cut(logpos1);
             return true;
         }
         return false;
     }
     if( log ) {
-        // remove prefix since no msg was added
         log->cut0cut(logpos1);
     }
     sVariant tmpv;
@@ -99,17 +96,13 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
     }
     const bool isDnaSvc = sIs("dna-", pSvc->name);
     if( so && isDnaSvc) {
-        // expand some props for dna specific services using folder structure
         if( !traveseProp(*so, *user, "query", "child", "'nuc-read' | 'svc-dna-refClust'", log) ||
             !traveseProp(*so, *user, "subject", "child", "'genome'", log) ) {
-            return 0; // failure
+            return 0;
         }
     }
-    // here we consider few parallelization options
     idx cntParallel = 1;
 
-    // determines what are the splitting objects
-    // can be hiveal, hiveseq
     const char * splitType = so ? so->propGet("scissors", &sScissors) : 0;
     if( !splitType ) {
         splitType = pForm->value("scissors");
@@ -118,7 +111,6 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
         splitType = "hiveseq";
     }
 
-    /// determines the filed we split on and the sizes of the chunks
     const char * splitOn = so ? so->propGet("split", &sSplitOn) : 0;
     if( !splitOn ) {
         splitOn = pForm->value("split", "query");
@@ -131,9 +123,7 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
         splitPart = pForm->value("slice", sHiveseq::defaultSliceSizeS);
     idx singleSplitOn = (so && so->propGetI("splitSingle")) ? so->propGetI("splitSingle") : 0;
 
-    // determines if additional subsetting is to be done within the counts of the split objects
-    const char * subSet = so ? so->propGet("subSet") : 0;    //if(!subSet)subSet=pForm->value("subSet",sHiveseq::defaultSliceSizeS);
-    //sString::searchAndReplaceSymbols(&subSets, subSet,0, ";", 0,0,true,true,true, true); subSet=subSets.ptr(0);
+    const char * subSet = so ? so->propGet("subSet") : 0;
     sVec<idx> subsetN;
     if( subSet ) {
         sString::scanRangeSet(subSet, 0, &subsetN, -1, 0, 0);
@@ -146,7 +136,7 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
         for( idx s_id = 0 ; s_id < subectIDs.dim() ; ++s_id){
             sUsrObj objSub(*user,subectIDs[s_id]);
             tot_size+=objSub.propGetI("size");
-            if ( tot_size>100000000000 ){ //more than 40G. 86G is NT as of March 2015
+            if ( tot_size>100000000000 ){
                 if( log ) {
                     log->printf("\n Size of reference genome file%s too big.\n"
                         " Use Blast or Censuscope for faster results.", subectIDs.dim()>1?"s":"");
@@ -158,12 +148,10 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
 
     sStr log_prefix;
     if( splitOn ) {
-        // tokenize the list of split factors
         sStr lst;
         sString::searchAndReplaceSymbols(&lst, splitOn, 0, ",\r\n", 0, 0, true, true, true, true);
-        // read the list of split chunk sizes
         sVec<idx> splitP;
-        sString::scanRangeSet(splitPart, 0, &splitP, 0, 0, 0); // who did put -1 in the shift ?
+        sString::scanRangeSet(splitPart, 0, &splitP, 0, 0, 0);
         const char * spl;
         idx is;
 
@@ -175,18 +163,16 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
             log->printf( "Unknown biomode: %" DEC, hiveseqModeArg);
             return 0;
         }
-        // scan through the number of sequences and count the parallelizations size
         for(spl = lst, is = 0; spl; spl = sString::next00(spl), is = sMin(is + 1, splitP.dim() - 1)) {
             const char * spl_vals = pForm->value(spl);
             if( !spl_vals && so ) {
                 spl_vals = so->propGet00(spl, &splitSubs, "\n");
             }
-            // split request on a parameter but no parameter has been specified
             if( !spl_vals ) {
                 cntParallel = cntParallel ? cntParallel : 1;
                 continue;
             }
-            if( strcmp(spl, "list") == 0 ) { // check if we are parallelizing on a provided list
+            if( strcmp(spl, "list") == 0 ) {
                 sVec<idx> lstN;
                 sString::scanRangeSet(spl_vals, 0, &lstN, 0, 0, 0);
                 cntParallel *= lstN.dim();
@@ -199,7 +185,6 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
                 }
                 sStr * fileSlices = 0;
                 if (pFileSlices){
-                    // assume *pFileSlices does not need to be deallocated!
                     *pFileSlices = fileSlices = new sStr();
                     fileSlices->addString("file index,start row\n0,0\n");
                 }
@@ -235,7 +220,6 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
                 }
                 cntParallel *= totCnt > 0 ? ((totCnt - 1) / splitP[is] + 1) : 0;
                 if (cntParallel <= 1 && fileSlices ){
-                    // Destroy the container and the pointer to 0
                     delete fileSlices;
                     fileSlices = 0;
                     *pFileSlices = 0;
@@ -283,7 +267,7 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
                     if( !tdim ) {
                         tdim = 1;
                     }
-                    tdim = ceil(((real) (tdim - 1)) / splitP[is]) * splitP[is]; //+1;
+                    tdim = ceil(((real) (tdim - 1)) / splitP[is]) * splitP[is];
                     dim += tdim;
                 }
                 if( !dim ) {
@@ -293,7 +277,6 @@ idx sHiveTools::customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, 
                 sStr splitters;
                 for(const char *spl_val = spl_vals00; spl_val; spl_val = sString::next00(spl_val)) {
                     if( (singleSplitOn && spl_val == spl_vals00) || !singleSplitOn) {
-                        // just use first item to produce dim
                         splitters.printf(";%s", spl_val);
                     }
                 }

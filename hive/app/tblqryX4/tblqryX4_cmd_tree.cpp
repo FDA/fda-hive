@@ -31,7 +31,6 @@
 #include <slib/utils.hpp>
 #include "tblqryX4_cmd.hpp"
 #include <ssci/math.hpp>
-//#include <ssci/math/clust/clust2.hpp>
 
 #define PRFX "tree-"
 #define OUTFILE "cluster.tre"
@@ -119,8 +118,6 @@ bool TreeCommand::compute(sTabular * tbl)
             rowSet.vadd(1,i);
     }
 
-    //idx distMethod=pForm->ivalue(PRFX"distMethod",sClust_DISTANCE_EUCLIDIAN);
-    //idx clustMethod=pForm->ivalue(PRFX"clustMethod",sClust_LINKAGE_MIN);
 
     if(!uid || uid.dim() == 0)
         uid.vadd(1,0);
@@ -134,11 +131,9 @@ bool TreeCommand::compute(sTabular * tbl)
 
     sVec <idx> nothing;
     sTree::generateTree(out, &(colSetImg), &(rowSet),tbl, &nothing,1,&(uid), buildMethod);
-    //sTree::generateTree(out, &columnsToUse, &rowsToUse,tbl, &nothing,1,&uIDs, method);
 
     sMatrix mat;
     mat.parseTabular(tbl, &(rowSet), &(colSetImg), 0, 0,0,dataMode,readNumsAsNums ? true : false);
-    //mat.parseTabular(tbl, &rowsToUse, &columnsToUse, 0, 0,0,dataMode,readNumsAsNums ? true : false);
 
     return true;
 }

@@ -39,45 +39,35 @@
 
 using namespace slib;
 
-#define    BUF        513    /* Maximum length of numeric string. */
+#define    BUF        513
 
-/*
- * Flags used during conversion.
- */
-#define    LONG        0x01    /* l: long or double */
-#define    LONGDBL        0x02    /* L: long double */
-#define    SHORT        0x04    /* h: short */
-#define    SUPPRESS    0x08    /* *: suppress assignment */
-#define    POINTER        0x10    /* p: void * (as hex) */
-#define    NOSKIP        0x20    /* [ or c: do not skip blanks */
-#define    LONGLONG    0x400    /* ll: long long (+ deprecated q: quad) */
-#define    INTMAXT        0x800    /* j: intmax_t */
-#define    PTRDIFFT    0x1000    /* t: ptrdiff_t */
-#define    SIZET        0x2000    /* z: size_t */
-#define    SHORTSHORT    0x4000    /* hh: char */
-#define    UNSIGNED    0x8000    /* %[oupxX] conversions */
+#define    LONG        0x01
+#define    LONGDBL        0x02
+#define    SHORT        0x04
+#define    SUPPRESS    0x08
+#define    POINTER        0x10
+#define    NOSKIP        0x20
+#define    LONGLONG    0x400
+#define    INTMAXT        0x800
+#define    PTRDIFFT    0x1000
+#define    SIZET        0x2000
+#define    SHORTSHORT    0x4000
+#define    UNSIGNED    0x8000
 
-/*
- * The following are used in integral conversions only:
- * SIGNOK, NDIGITS, PFXOK, and NZDIGITS
- */
-#define    SIGNOK        0x40    /* +/- is (still) legal */
-#define    NDIGITS        0x80    /* no digits detected */
-#define    PFXOK        0x100    /* 0x prefix is (still) legal */
-#define    NZDIGITS    0x200    /* no zero digits detected */
-#define    HAVESIGN    0x10000    /* sign detected */
+#define    SIGNOK        0x40
+#define    NDIGITS        0x80
+#define    PFXOK        0x100
+#define    NZDIGITS    0x200
+#define    HAVESIGN    0x10000
 
-/*
- * Conversion types.
- */
-#define    CT_CHAR        0    /* %c conversion */
-#define    CT_CCL        1    /* %[...] conversion */
-#define    CT_STRING    2    /* %s conversion */
-#define    CT_INT        3    /* %[dioupxX] conversion */
-#define    CT_FLOAT    4    /* %[efgEFG] conversion */
+#define    CT_CHAR        0
+#define    CT_CCL        1
+#define    CT_STRING    2
+#define    CT_INT        3
+#define    CT_FLOAT    4
 
 static const char *__sccl(char *, const char *);
-static idx parsefloat(const char **buf, const char *bufend, char *tempbuf, char *tempend); //, locale_t);
+static idx parsefloat(const char **buf, const char *bufend, char *tempbuf, char *tempend);
 
 idx sString::bufscanf(const char *textScan, const char *textScanEnd, const char *formatDescription, ...)
 {
@@ -91,23 +81,22 @@ idx sString::bufscanf(const char *textScan, const char *textScanEnd, const char 
 
 idx sString::vbufscanf(const char *textScan, const char *textScanEnd, const char *formatDescription, va_list marker)
 {
-    int c;            /* character from format, or conversion */
-    size_t width;        /* field width, or 0 */
-    char *p;        /* points into all kinds of strings */
-    unsigned int n;            /* handy integer */
-    int flags;        /* flags as defined above */
-    char *p0;        /* saves original value of p when necessary */
-    int nassigned;        /* number of fields assigned */
-    int nconversions;    /* number of conversions */
-    int nread;        /* number of characters consumed from buf */
-    int base = 0;        /* base argument to conversion function */
-    char ccltab[256];    /* character class table for %[...] */
-    char tempbuf[BUF];        /* buffer for numeric and mb conversions */
-    wchar_t *wcp;        /* handy wide character pointer */
-    size_t nconv;        /* length of multibyte sequence converted */
+    int c;
+    size_t width;
+    char *p;
+    unsigned int n;
+    int flags;
+    char *p0;
+    int nassigned;
+    int nconversions;
+    int nread;
+    int base = 0;
+    char ccltab[256];
+    char tempbuf[BUF];
+    wchar_t *wcp;
+    size_t nconv;
     mbstate_t mbs;
 
-    /* `basefix' is used to avoid `if' tests in the integer scanner */
     static short basefix[17] =
         { 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
@@ -133,10 +122,6 @@ idx sString::vbufscanf(const char *textScan, const char *textScanEnd, const char
             goto literal;
         width = 0;
         flags = 0;
-        /*
-         * switch on the format.  continue if done;
-         * break once format type is derived.
-         */
 again:        c = *formatDescription++;
         switch (c) {
         case '%':
@@ -163,7 +148,7 @@ literal:
                 flags |= LONG;
             goto again;
         case 'q':
-            flags |= LONGLONG;    /* not quite */
+            flags |= LONGLONG;
             goto again;
         case 't':
             flags |= PTRDIFFT;
@@ -187,9 +172,6 @@ literal:
             width = width * 10 + c - '0';
             goto again;
 
-        /*
-         * Conversions.
-         */
         case 'd':
             c = CT_INT;
             base = 10;
@@ -214,7 +196,7 @@ literal:
 
         case 'X':
         case 'x':
-            flags |= PFXOK;    /* enable 0x prefixing */
+            flags |= PFXOK;
             c = CT_INT;
             flags |= UNSIGNED;
             base = 16;
@@ -227,7 +209,6 @@ literal:
 
         case 'S':
             flags |= LONG;
-            /* FALLTHROUGH */
         case 's':
             c = CT_STRING;
             break;
@@ -240,22 +221,21 @@ literal:
 
         case 'C':
             flags |= LONG;
-            /* FALLTHROUGH */
         case 'c':
             flags |= NOSKIP;
             c = CT_CHAR;
             break;
 
-        case 'p':    /* pointer format is like hex */
+        case 'p':
             flags |= POINTER | PFXOK;
-            c = CT_INT;        /* assumes sizeof(uintmax_t) */
-            flags |= UNSIGNED;    /*      >= sizeof(uintptr_t) */
+            c = CT_INT;
+            flags |= UNSIGNED;
             base = 16;
             break;
 
         case 'n':
             nconversions++;
-            if (flags & SUPPRESS)    /* ??? */
+            if (flags & SUPPRESS)
                 continue;
             if (flags & SHORTSHORT)
                 *va_arg(marker, char *) = nread;
@@ -278,23 +258,13 @@ literal:
         default:
             goto match_failure;
 
-        /*
-         * Disgusting backwards compatibility hack.    XXX
-         */
-        case '\0':    /* compat */
+        case '\0':
             return (EOF);
         }
 
-        /*
-         * We have a conversion that requires input.
-         */
         if (textScan >= textScanEnd)
             goto input_failure;
 
-        /*
-         * Consume leading white space, except for formats
-         * that suppress this.
-         */
         if ((flags & NOSKIP) == 0) {
             while (isspace(*textScan)) {
                 nread++;
@@ -303,20 +273,11 @@ literal:
                 else
                     goto input_failure;
             }
-            /*
-             * Note that there is at least one character in
-             * the buffer, so conversions that do not set NOSKIP
-             * ca no longer result in an input failure.
-             */
         }
 
-        /*
-         * Do the conversion.
-         */
         switch (c) {
 
         case CT_CHAR:
-            /* scan arbitrary characters (sets NOSKIP) */
             if (width == 0)
                 width = 1;
             if (flags & LONG) {
@@ -383,10 +344,8 @@ literal:
             break;
 
         case CT_CCL:
-            /* scan a (nonempty) character class (sets NOSKIP) */
             if (width == 0)
-                width = (size_t)~0;    /* `infinity' */
-            /* take only those things in the class */
+                width = (size_t)~0;
             if (flags & LONG) {
                 wchar_t twc;
                 unsigned int nchars;
@@ -476,7 +435,6 @@ literal:
             break;
 
         case CT_STRING:
-            /* like CCL, but zero-length string OK, & no NOSKIP */
             if (width == 0)
                 width = (size_t)~0;
             if (flags & LONG) {
@@ -549,12 +507,10 @@ literal:
             continue;
 
         case CT_INT:
-            /* scan an integer as if by the conversion function */
 #ifdef hardway
             if (width == 0 || width > sizeof(tempbuf) - 1)
                 width = sizeof(tempbuf) - 1;
 #else
-            /* size_t is unsigned, hence this optimisation */
             if (--width > sizeof(tempbuf) - 2)
                 width = sizeof(tempbuf) - 2;
             width++;
@@ -562,24 +518,8 @@ literal:
             flags |= SIGNOK | NDIGITS | NZDIGITS;
             for (p = tempbuf; width; width--) {
                 c = *textScan;
-                /*
-                 * Switch on the character; `goto ok'
-                 * if we accept it as a part of number.
-                 */
                 switch (c) {
 
-                /*
-                 * The digit 0 is always legal, but is
-                 * special.  For %i conversions, if no
-                 * digits (zero or nonzero) have been
-                 * scanned (only signs), we will have
-                 * base==0.  In that case, we should set
-                 * it to 8 and enable 0x prefixing.
-                 * Also, if we have not scanned zero digits
-                 * before this, do not turn off prefixing
-                 * (someone else will turn it off if we
-                 * have scanned any nonzero digits).
-                 */
                 case '0':
                     if (base == 0) {
                         base = 8;
@@ -591,33 +531,28 @@ literal:
                         flags &= ~(SIGNOK|PFXOK|NDIGITS);
                     goto ok;
 
-                /* 1 through 7 always legal */
                 case '1': case '2': case '3':
                 case '4': case '5': case '6': case '7':
                     base = basefix[base];
                     flags &= ~(SIGNOK | PFXOK | NDIGITS);
                     goto ok;
 
-                /* digits 8 and 9 ok iff decimal or hex */
                 case '8': case '9':
                     base = basefix[base];
                     if (base <= 8)
-                        break;    /* not legal here */
+                        break;
                     flags &= ~(SIGNOK | PFXOK | NDIGITS);
                     goto ok;
 
-                /* letters ok iff hex */
                 case 'A': case 'B': case 'C':
                 case 'D': case 'E': case 'F':
                 case 'a': case 'b': case 'c':
                 case 'd': case 'e': case 'f':
-                    /* no need to fix base here */
                     if (base <= 10)
-                        break;    /* not legal here */
+                        break;
                     flags &= ~(SIGNOK | PFXOK | NDIGITS);
                     goto ok;
 
-                /* sign ok only as first character */
                 case '+': case '-':
                     if (flags & SIGNOK) {
                         flags &= ~SIGNOK;
@@ -626,41 +561,24 @@ literal:
                     }
                     break;
                     
-                /*
-                 * x ok iff flag still set & 2nd char (or
-                 * 3rd char if we have a sign).
-                 */
                 case 'x': case 'X':
                     if (flags & PFXOK && p ==
                         tempbuf + 1 + !!(flags & HAVESIGN)) {
-                        base = 16;    /* if %i */
+                        base = 16;
                         flags &= ~PFXOK;
                         goto ok;
                     }
                     break;
                 }
 
-                /*
-                 * If we got here, c is not a legal character
-                 * for a number.  Stop accumulating digits.
-                 */
                 break;
         ok:
-                /*
-                 * c is legal: store it and look at the next.
-                 */
                 *p++ = c;
                 if (textScan < textScanEnd)
                     textScan++;
                 else
-                    break;        /* EOF */
+                    break;
             }
-            /*
-             * If we had only a sign, it is no good; push
-             * back the sign.  If the number ends in `x',
-             * it was [sign] '0' 'x', so push back the x
-             * and treat it as [sign] '0'.
-             */
             if (flags & NDIGITS) {
                 if (p > tempbuf) {
                     textScan--;
@@ -707,7 +625,6 @@ literal:
             break;
 
         case CT_FLOAT:
-            /* scan a floating point number as if by strtod */
             if (width == 0 || width > sizeof(tempbuf) - 1)
                 width = sizeof(tempbuf) - 1;
             if ((width = parsefloat(&textScan, textScanEnd, tempbuf, tempbuf + width)) == 0)
@@ -736,84 +653,44 @@ match_failure:
     return (nassigned);
 }
 
-/*
- * Fill in the given table from the scanset at the given format
- * (just after `[').  Return a pointer to the character past the
- * closing `]'.  The table has a 1 wherever characters should be
- * considered part of the scanset.
- */
 static const char *
 __sccl(char *tab, const char *formatDescription)
 {
     int c, n, v;
 
-    /* first `clear' the whole table */
-    c = *formatDescription++;        /* first char hat => negated scanset */
+    c = *formatDescription++;
     if (c == '^') {
-        v = 1;        /* default => accept */
-        c = *formatDescription++;    /* get new first char */
+        v = 1;
+        c = *formatDescription++;
     } else
-        v = 0;        /* default => reject */
+        v = 0;
 
-    /* XXX: Will not work if sizeof(tab*) > sizeof(char) */
     (void) memset(tab, v, 256);
 
     if (c == 0)
-        return (formatDescription - 1);/* format ended before closing ] */
+        return (formatDescription - 1);
 
-    /*
-     * Now set the entries corresponding to the actual scanset
-     * to the opposite of the above.
-     *
-     * The first character may be ']' (or '-') without being special;
-     * the last character may be '-'.
-     */
     v = 1 - v;
     for (;;) {
-        tab[c] = v;        /* take character c */
+        tab[c] = v;
 doswitch:
-        n = *formatDescription++;        /* and examine the next */
+        n = *formatDescription++;
         switch (n) {
 
-        case 0:            /* format ended too soon */
+        case 0:
             return (formatDescription - 1);
 
         case '-':
-            /*
-             * A scanset of the form
-             *    [01+-]
-             * is defined as `the digit 0, the digit 1,
-             * the character +, the character -', but
-             * the effect of a scanset such as
-             *    [a-zA-Z0-9]
-             * is implementation defined.  The V7 Unix
-             * scanf treats `a-z' as `the letters a through
-             * z', but treats `a-a' as `the letter a, the
-             * character -, and the letter a'.
-             *
-             * For compatibility, the `-' is not considerd
-             * to define a range if the character following
-             * it is either a close bracket (required by ANSI)
-             * or is not numerically greater than the character
-             * we just stored in the table (c).
-             */
             n = *formatDescription;
             if (n == ']' || n < c) {
                 c = '-';
-                break;    /* resume the for(;;) */
+                break;
             }
             formatDescription++;
-            /* fill in the range */
             do {
                 tab[++c] = v;
             } while (c < n);
-#if 1    /* XXX another disgusting compatibility hack */
-            c = n;
-            /*
-             * Alas, the V7 Unix scanf also treats formats
-             * such as [a-c-e] as `the letters a through e'.
-             * This too is permitted by the standard....
-             */
+#if 1                c = n;
             goto doswitch;
 #else
             c = *formatDescription++;
@@ -824,19 +701,18 @@ doswitch:
 #endif
             break;
 
-        case ']':        /* end of scanset */
+        case ']':
             return (formatDescription);
 
-        default:        /* just another character */
+        default:
             c = n;
             break;
         }
     }
-    /* NOTREACHED */
 }
 
 static idx
-parsefloat(const char **ptextScan, const char *textScanEnd, char *tempbuf, char *tempend) //, locale_t locale)
+parsefloat(const char **ptextScan, const char *textScanEnd, char *tempbuf, char *tempend)
 {
     char *commit, *p;
     int infnanpos = 0, decptpos = 0;
@@ -845,18 +721,9 @@ parsefloat(const char **ptextScan, const char *textScanEnd, char *tempbuf, char 
         S_DIGITS, S_DECPT, S_FRAC, S_EXP, S_EXPDIGITS
     } state = S_START;
     unsigned char c;
-    const char *decpt = "."; // localeconv_l(locale)->decimal_point;
+    const char *decpt = ".";
     bool gotmantdig = 0, ishex = 0;
 
-    /*
-     * We set commit = p whenever the string we have read so far
-     * constitutes a valid representation of a floating point
-     * number by itself.  At some point, the parse will complete
-     * or fail, and we will ungetc() back to the last commit point.
-     * To ensure that the file offset gets updated properly, it is
-     * always necessary to read at least one character that doesn't
-     * match; thus, we can't short-circuit "infinity" or "nan(...)".
-     */
     commit = tempbuf - 1;
     for (p = tempbuf; p < tempend; ) {
         c = **ptextScan;
@@ -893,7 +760,7 @@ reswitch:
                  c != "NFINITY"[infnanpos]))
                 goto parsedone;
             if (infnanpos == 1 || infnanpos == 6)
-                commit = p;    /* inf or infinity */
+                commit = p;
             infnanpos++;
             break;
         case S_NAN:
@@ -929,7 +796,7 @@ reswitch:
             if (c == 'X' || c == 'x') {
                 ishex = 1;
                 break;
-            } else {    /* we saw a '0', but no 'x' */
+            } else {
                 gotmantdig = 1;
                 goto reswitch;
             }
@@ -945,21 +812,15 @@ reswitch:
         case S_DECPT:
             if (c == decpt[decptpos]) {
                 if (decpt[++decptpos] == '\0') {
-                    /* We read the complete decpt seq. */
                     state = S_FRAC;
                     if (gotmantdig)
                         commit = p;
                 }
                 break;
             } else if (!decptpos) {
-                /* We didn't read any decpt characters. */
                 state = S_FRAC;
                 goto reswitch;
             } else {
-                /*
-                 * We read part of a multibyte decimal point,
-                 * but the rest is invalid, so bail.
-                 */
                 goto parsedone;
             }
         case S_FRAC:
@@ -994,7 +855,7 @@ reswitch:
         if (textScanEnd - *ptextScan > 0)
             (*ptextScan)++;
         else
-            break;    /* EOF */
+            break;
     }
 
 parsedone:

@@ -27,14 +27,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// TODO be able to read configs for connect from another section : not just QPride
 
 #define my_socket_defined
-typedef int my_socket; /* File descriptor for sockets */
+typedef int my_socket;
 
-#include <limits.h> // for INT_MIN / INT_MAX
-#include <mysql/mysql.h>
-#include <mysql/mysqld_error.h>
+#include <limits.h>
+#include <mysql.h>
+#include <mysqld_error.h>
 #define conDB   ((MYSQL *)dbConn)
 
 
@@ -48,18 +47,21 @@ typedef int my_socket; /* File descriptor for sockets */
 
 using namespace slib;
 
+static sTime slib_mysqldbg_wall_clock;
 #if _DEBUG_off
 #include <slib/core/tim.hpp>
-static sTime slib_mysqldbg_wall_clock;
-#define MYSQLDBG(fmt,...) ::fprintf(stderr, "%s:%u (%.2g s) : "fmt"\n", __FILE__, __LINE__, slib_mysqldbg_wall_clock.clock(0, 0, true), __VA_ARGS__)
+#define MYSQLDBG(fmt,...) {{time_t tt = time(0);struct tm & t = *localtime(&tt);::fprintf(stderr, "%d/%d/%d %d:%d:%d %i %s:%u %lu (%.2g s) : " fmt "\n", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, getpid(), __FILE__, __LINE__, mysql_thread_id(conDB), slib_mysqldbg_wall_clock.clock(0, 0, true), __VA_ARGS__);}}
+#define MYSQLDBG2(func,line,fmt, ...) {{time_t tt = time(0);struct tm & t = *localtime(&tt);::fprintf(stderr, "%d/%d/%d %d:%d:%d %i %s:%u %lu (%.2g s) : " fmt "\n", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, getpid(), func, line, mysql_thread_id(conDB), slib_mysqldbg_wall_clock.clock(0, 0, true), __VA_ARGS__);}}
 #else
 #define MYSQLDBG(...)
+#define MYSQLDBG2(...)
 #endif
+
+#define hasError() ihasError(__func__, __LINE__)
 
 char * sSql::protect(sStr & to, const char* from, udx length)
 {
     idx pos = to.length();
-
     if( !length ) {
         length = sLen(from);
     }
@@ -100,7 +102,7 @@ char * sSql::protectName(sStr & to, const char * from, udx length)
     return to.ptr(pos);
 }
 
-char * sSql::protectSubstringLike(sStr& to, const char* from, udx length/* = 0*/)
+char * sSql::protectSubstringLike(sStr& to, const char* from, udx length)
 {
     idx pos = to.length();
     if( !length ) {
@@ -141,7 +143,7 @@ char * sSql::protectBlob(sStr& to, const void * from, udx length)
     to.addString("X'");
     idx hex_pos = to.length();
     if( length ) {
-        to.add(0, length * 2 + 1); // extra byte required for snprintf's final 0
+        to.add(0, length * 2 + 1);
     }
     for(udx i = 0; i < length; i++) {
         unsigned int from_byte = ((unsigned char *)from)[i];
@@ -157,15 +159,12 @@ static char * static_exprInList(sStr & to, const char * lhs, const T_list * list
 {
     idx pos = to.length();
     if( ilast > istart ) {
-        to.addString("(", 1); // reserve space for outer parentheses
+        to.addString("(", 1);
 
         idx istart_sparse = -1, iend_sparse = -1;
         idx istart_cur = istart, num_dense_spans = 0;
         bool need_outer_paren = false;
 
-        // First pass: identify spans of at least MIN_DENSE_RANGE densely packged values.
-        // Print them out as range expressions, mark their indices as negative to avoid
-        // reusing in second pass.
         while( istart_cur < ilast ) {
             idx istart_dense = istart_cur, iend_dense = istart_cur;
             while( istart_dense < ilast ) {
@@ -174,7 +173,6 @@ static char * static_exprInList(sStr & to, const char * lhs, const T_list * list
                     iend_dense++;
                 }
                 if( T_retr(list, ind[iend_dense]) - T_retr(list, ind[istart_dense]) >= MIN_DENSE_RANGE ) {
-                    // Found densely packed range
                     need_outer_paren = true;
                     bool need_inner_paren = num_dense_spans > 0 || iend_dense + 1 < ilast;
                     if( need_inner_paren ) {
@@ -193,7 +191,6 @@ static char * static_exprInList(sStr & to, const char * lhs, const T_list * list
                         to.printf(" OR %s > ", lhs);
                         to.addNum(max_val);
                     } else {
-                        // transform ">="/"<=" to ">"/"<" to save a byte, except when value is outside T's value range
                         if( min_val > T_min ) {
                             to.printf("%s > ", lhs);
                             to.addNum(min_val - 1);
@@ -214,7 +211,6 @@ static char * static_exprInList(sStr & to, const char * lhs, const T_list * list
                         to.addString(")");
                     }
 
-                    // Mark printed indices to avoid reuse
                     for(idx i = istart_dense; i <= iend_dense; i++) {
                         ind[i] = -sIdxMax;
                     }
@@ -222,7 +218,6 @@ static char * static_exprInList(sStr & to, const char * lhs, const T_list * list
                     num_dense_spans++;
                     break;
                 } else {
-                    // Found sparse range
                     if( istart_sparse < 0 ) {
                         istart_sparse = istart_cur;
                     }
@@ -233,7 +228,6 @@ static char * static_exprInList(sStr & to, const char * lhs, const T_list * list
             istart_cur = iend_dense + 1;
         }
 
-        // Second pass: print sparse values (i.e. those whose indices were not marked as negative)
         if( istart_sparse >= 0 ) {
             if( iend_sparse < 0 ) {
                 iend_sparse = ilast - 1;
@@ -243,11 +237,9 @@ static char * static_exprInList(sStr & to, const char * lhs, const T_list * list
                 to.addString(negate ? " AND " : " OR ");
             }
             if( T_retr(list, ind[istart_sparse]) == T_retr(list, ind[iend_sparse]) ) {
-                // exactly one value in sparse span - equality expression
                 to.printf("%s %s ", lhs, negate ? "!=" : "=");
                 to.addNum(T_retr(list, ind[istart_sparse]));
             } else {
-                // multiple values in sparse span - IN (...)
                 to.printf("%s %s (", lhs, negate ? "NOT IN" : "IN");
                 T cur_val = 0, prev_val = 0;
                 for(idx i = istart_sparse; i <= iend_sparse; i++, prev_val = cur_val) {
@@ -270,7 +262,7 @@ static char * static_exprInList(sStr & to, const char * lhs, const T_list * list
             to.addString(")");
         } else {
             idx len_no_paren = to.length() - pos - 1;
-            memmove(to.ptr(pos), to.ptr(pos + 1), len_no_paren); // including terminal 0 not counted in length()
+            memmove(to.ptr(pos), to.ptr(pos + 1), len_no_paren);
             to.cut0cut(pos + len_no_paren);
         }
     } else if( empty_list_is_true ) {
@@ -294,8 +286,7 @@ namespace {
     }
 };
 
-// static
-char * sSql::exprInList(sStr & to, const char * lhs, const idx * list, idx cnt, bool negate, bool empty_list_is_true/* = false*/)
+char * sSql::exprInList(sStr & to, const char * lhs, const idx * list, idx cnt, bool negate, bool empty_list_is_true)
 {
     sVec<idx> ind(sMex::fExactSize);
     if( cnt ) {
@@ -305,8 +296,7 @@ char * sSql::exprInList(sStr & to, const char * lhs, const idx * list, idx cnt, 
     return static_exprInList<idx, idx, static_exprInList_retr<idx>, -sIdxMax, sIdxMax>(to, lhs, list, ind.ptr(), 0, cnt, negate, empty_list_is_true);
 }
 
-// static
-char * sSql::exprInList(sStr & to, const char * lhs, const int * list, idx cnt, bool negate, bool empty_list_is_true/* = false*/)
+char * sSql::exprInList(sStr & to, const char * lhs, const int * list, idx cnt, bool negate, bool empty_list_is_true)
 {
     sVec<idx> ind(sMex::fExactSize);
     if( cnt ) {
@@ -316,8 +306,7 @@ char * sSql::exprInList(sStr & to, const char * lhs, const int * list, idx cnt, 
     return static_exprInList<int, int, static_exprInList_retr<int>, INT_MIN, INT_MAX>(to, lhs, list, ind, 0, cnt, negate, empty_list_is_true);
 }
 
-// static
-char * sSql::exprInList(sStr & to, const char * lhs, const udx * list, idx cnt, bool negate, bool empty_list_is_true/* = false*/)
+char * sSql::exprInList(sStr & to, const char * lhs, const udx * list, idx cnt, bool negate, bool empty_list_is_true)
 {
     sVec<idx> ind(sMex::fExactSize);
     if( cnt ) {
@@ -327,8 +316,7 @@ char * sSql::exprInList(sStr & to, const char * lhs, const udx * list, idx cnt, 
     return static_exprInList<udx, udx, static_exprInList_retr<udx>, 0, sUdxMax>(to, lhs, list, ind, 0, cnt, negate, empty_list_is_true);
 }
 
-//static
-char * sSql::exprInList(sStr& to, const char* domid_expr, const char* objid_expr, const sHiveId * list, idx cnt, bool negate/* = false*/, bool empty_list_is_true/* = false*/)
+char * sSql::exprInList(sStr& to, const char* domid_expr, const char* objid_expr, const sHiveId * list, idx cnt, bool negate, bool empty_list_is_true)
 {
     if( domid_expr ) {
         idx pos = to.length();
@@ -339,7 +327,7 @@ char * sSql::exprInList(sStr& to, const char* domid_expr, const char* objid_expr
             sSort::sort<const sHiveId, idx>(cnt, list, ind.ptr());
             for(idx i = 0; i < cnt; ) {
                 udx domain_id = list[ind[i]].domainId();
-                idx next_i = cnt; // by default, stop loop after this iteration
+                idx next_i = cnt;
                 for(idx j = i + 1; j < cnt; j++) {
                     if( list[ind[j]].domainId() != domain_id ) {
                         next_i = j;
@@ -386,14 +374,9 @@ char * sSql::exprInList(sStr& to, const char* domid_expr, const char* objid_expr
     }
 }
 
-bool sSql::hasError(void)
+bool sSql::ihasError(const char * func, unsigned int line)
 {
     if( m_had_deadlocked && m_in_transaction > 0 ) {
-        // A deadlock in the middle of a transaction means all subsequent
-        // queries until an explicit client-side rollback are unreliable -
-        // they may either go into the failed transaction, or be executed in
-        // auto-commit mode as new transactions, depending on exactly when an
-        // automatic server-side rollback happens. Both alternatives are bad.
         return true;
     }
 
@@ -401,7 +384,7 @@ bool sSql::hasError(void)
     if( m_mysql_errno ) {
         m_mysql_error.printf(0, "%s", mysql_error(conDB));
         errB.printf(0, "Error %" UDEC ": %s\n", m_mysql_errno, m_mysql_error.ptr());
-        MYSQLDBG("%s", errB.ptr());
+        MYSQLDBG2(func,line,"%s", errB.ptr());
     } else {
         errB.cut0cut();
         m_mysql_error.cut0cut();
@@ -409,18 +392,18 @@ bool sSql::hasError(void)
     return m_mysql_errno != 0;
 }
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/ construction && connection
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
-
 idx sSql::realConnect(void)
 {
+    if( m_lib_init < 1 ) {
+        if( mysql_library_init(0, nullptr, nullptr) != 0 ) {
+            hasError();
+            return status;
+        }
+    }
+    ++m_lib_init;
     if( !dbConn ) {
-        dbConnDel = dbConn = (void*) mysql_init(NULL);
+        dbConn = (void*) mysql_init(NULL);
+        dbConnDel = dbConn;
     }
     const char * db = dataB.ptr(ofsDB);
     const char * user = dataB.ptr(ofsUser);
@@ -437,39 +420,53 @@ idx sSql::realConnect(void)
         if( p ) {
             sscanf(p, "%" UDEC, &port);
         }
-        if( mysql_real_connect(conDB, s.ptr(), user, pass, db, (unsigned int) port, 0, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS) ) {
-            status = eConnected;
-            unsigned int timeout = 3;
-            mysql_options(conDB, MYSQL_OPT_READ_TIMEOUT, (const void *) &timeout);
-            mysql_set_character_set(conDB, "utf8");
+        unsigned int timeout = rwTimeout / 2;
+        if( mysql_options(conDB, MYSQL_OPT_CONNECT_TIMEOUT, (const void *) &timeout) == 0 ) {
+            timeout = rwTimeout;
+            my_bool reconnect = 1;
+            if( mysql_options(conDB, MYSQL_OPT_READ_TIMEOUT, (const void *) &timeout) == 0 &&
+                mysql_options(conDB, MYSQL_OPT_WRITE_TIMEOUT, (const void *) &timeout) == 0 &&
+                mysql_optionsv(conDB, MYSQL_OPT_RECONNECT, (void *)&reconnect) == 0 ) {
+                if( mysql_real_connect(conDB, s.ptr(), user, pass, db, (unsigned int) port, 0, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS) ) {
+                    MYSQLDBG("New connection %lu", mysql_thread_id(conDB));
+                    status = eConnected;
+                    mysql_set_character_set(conDB, "utf8");
+                }
+            }
         }
         hasError();
     }
     return status;
 }
 
-idx sSql::connect(const char * db, const char * serverlist, const char * user, const char * pass) // , bool multistatement
+idx sSql::connect(const char * db, const char * serverlist, const char * user, const char * pass, const udx rwtmout)
 {
-    status =eDisconnected;
-    //if(multistatement)conDB->set_option(new mysqlpp::MultiStatementsOption(true));
+    status = eDisconnected;
     errB.cut(0);
-    if(!serverlist)serverlist="localhost" __;
-    ofsDB=dataB.length(); dataB.add(db,sLen(db)+1);
-    ofsUser=dataB.length(); dataB.add(user,sLen(user)+1);
-    ofsPasswd=dataB.length(); dataB.add(pass,sLen(pass)+1);
-    ofsServerList=dataB.length();dataB.add(serverlist,sLen(serverlist)+1);
+    if( !serverlist ) {
+        serverlist = "localhost" __;
+    }
+    ofsDB = dataB.length();
+    dataB.add(db, sLen(db) + 1);
+    ofsUser = dataB.length();
+    dataB.add(user, sLen(user) + 1);
+    ofsPasswd = dataB.length();
+    dataB.add(pass, sLen(pass) + 1);
+    ofsServerList = dataB.length();
+    dataB.add(serverlist, sLen(serverlist) + 1);
     dataB.add0(1);
-    if(permanentConnection) {
+    rwTimeout = rwtmout;
+    if( permanentConnection ) {
         realConnect();
-        if(status != eConnected) {
+        if( status != eConnected ) {
             if( !errB ) {
                 errB.printf(0, "Failure: cannot connect to any of the specified servers\n");
             }
             status = eFailure;
         }
+    } else {
+        return eConnected;
     }
-    else { return eConnected;}
-
     return status;
 }
 
@@ -482,19 +479,15 @@ sString::SectVar sSql::gSetVars[]={
     {0,"[QPride]" _ "pageSize" __,"%" DEC "=20","%s",&sSql::gSet.pageSize},
     {0,"[QPride]" _ "rndTbl" __,"%s=random","%s",&sSql::gSet.rndTbl},
     {0,"[QPride]" _ "debug" __,"%" DEC "=0",0,&sSql::gSet.debug},
+    {0,"[QPride]" _ "rwTimeoutSec" __,"%" UDEC "=120",0,&sSql::gSet.rwTimeout},
     {0}
     };
-sSql::gSettings sSql::gSet={"sSql_db","localhost","sSql_user","sSql_password",1,50,"random",0};
+sSql::gSettings sSql::gSet={"sSql_db","localhost","sSql_user","sSql_password",1,50,"random",0,120};
 
-idx sSql::connect(const char * filenm, const char *) // , bool multistatement
+idx sSql::connect(const char * filenm, const char *)
 {
     sFil inp(filenm, sFil::fReadonly);
-    /**
-     * temporary patch to cover for the problem that every piece of the code is reading
-     * cfg file everywhere instead of having common cfg object read it once
-     */
     if( !inp.ok() && strpbrk(filenm, "\\/") == 0 ) {
-        // lookup in home
         const char * hm = getenv(
 #ifdef WIN32
             "USERPROFILE"
@@ -513,42 +506,38 @@ idx sSql::connect(const char * filenm, const char *) // , bool multistatement
         sString::cleanMarkup(&rst, inp.ptr(), inp.length(), "//" _ "/*" __, "\n" _ "*/" __, "\n", 0, false, false, true);
         sString::xscanSect(rst.ptr(), rst.length(), gSetVars);
     }
-    return connect(gSet.db, gSet.server, gSet.user, gSet.pass);
+    return connect(gSet.db, gSet.server, gSet.user, gSet.pass, gSet.rwTimeout);
 }
 
 idx sSql::connect(const char * defline)
 {
-    char flnm[1024],sect[128];
-
-    if( defline ){
-        if ( sscanf(defline,"db=%s server=%s user=%s pass=%s",gSet.db,gSet.server,gSet.user,gSet.pass) ==4 ){
-            return connect(gSet.db, gSet.server, gSet.user,gSet.pass);
-        }else if(sscanf(defline,"config=%s section=%s",flnm,sect)>=1 ){
-            return connect(flnm,sect);
+    if( defline ) {
+        char flnm[1024], sect[128];
+        if( sscanf(defline, "db=%s server=%s user=%s pass=%s", gSet.db, gSet.server, gSet.user, gSet.pass) == 4 ) {
+            return connect(gSet.db, gSet.server, gSet.user, gSet.pass, gSet.rwTimeout);
+        } else if( sscanf(defline, "config=%s section=%s", flnm, sect) >= 1 ) {
+            return connect(flnm, sect);
         }
     }
-    return connect(HIVE_DB, "localhost", HIVE_DB_USER, HIVE_DB_PWD);
+    return connect(HIVE_DB, "localhost", HIVE_DB_USER, HIVE_DB_PWD, rwTimeout);
 }
 
 void sSql::disconnect(void)
 {
-    if(dbConnDel){
-        mysql_close((MYSQL * )dbConnDel);
-        dbConnDel=dbConn=0;
-        mysql_library_end();
+    if( dbConnDel ) {
+        MYSQLDBG("Closing connection %lu", mysql_thread_id((MYSQL*)dbConnDel));
+        mysql_ping((MYSQL*)dbConnDel);
+        hasError();
+        mysql_close((MYSQL*)dbConnDel);
+        dbConnDel = dbConn = 0;
+        if (--m_lib_init < 1) {
+            mysql_library_end();
+        }
     }
-    status=eDisconnected;
+    status = eDisconnected;
     m_in_transaction = 0;
 }
 
-
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/ query execution
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
 bool sSql::execute(const char * sqlfmt, ...  )
 {
@@ -570,19 +559,19 @@ static bool isMysqlDeadlock(udx err)
     return err == ER_LOCK_DEADLOCK || err == ER_XA_RBDEADLOCK || err == ER_LOCK_WAIT_TIMEOUT;
 }
 
-// for testing purposes - set sSql object's state as if a deadlock had been detected
 void sSql::pretendDeadlock()
 {
     MYSQLDBG("Pretending a deadlock has occurred (transaction level %" UDEC ")", m_in_transaction);
     m_mysql_errno = ER_LOCK_DEADLOCK;
-    m_mysql_error.cutAddString(0, "Deadlock found when trying to get lock; try restarting transaction");
+    m_mysql_error.cutAddString(0, "(pretend) Deadlock found when trying to get lock; try restarting transaction");
     m_had_deadlocked = true;
 }
 
 bool sSql::exec(const char * sql)
 {
-//PERF_START("SQL-ing");
-    // above change '_DEBUG_off' to just '_DEBUG' to see sql and its result in STDERR
+    if( status != eConnected ) {
+        return hasError();
+    }
     if( !sql ) {
         sql = sqlB.ptr();
     }
@@ -590,27 +579,50 @@ bool sSql::exec(const char * sql)
     MYSQLDBG("%s", sql);
 
     if( m_had_deadlocked && m_in_transaction > 0 ) {
-        // A deadlock in the middle of a transaction means all subsequent
-        // queries until an explicit client-side rollback are unreliable -
-        // they may either go into the failed transaction, or be executed in
-        // auto-commit mode as new transactions, depending on exactly when an
-        // automatic server-side rollback happens. Both alternatives are bad.
         MYSQLDBG("In deadlocked transaction (level %" UDEC ") - refusing query until rollback", m_in_transaction);
         return false;
     }
 
-    // If not in the middle of a transaction and get a deadlock, simply wait a bit
-    // and try to resubmit the query.
-    // If not in the middle of a transaction and (maybe eventually) succeed,
-    // unset the deadlocked flag.
-    // If in the middle of a transaction and get a deadlock, break immediately:
-    // subsequent queries will either go into the failed transaction (and fail),
-    // or go into new auto-committed transaction if automatic server-side rollback
-    // happens (causing inconsistent data). So the transaction must be rolled back,
-    // but sSql's caller is responsible for handling that logic.
+#if _DEBUG_off
+    if( strncasecmp(sql, "select", 6) == 0 ) {
+        sStr expl("EXPLAIN %s", sql), buf;
+        mysql_query(conDB, expl);
+        idx moreRes = 0;
+        do {
+            buf.cut(0);
+            MYSQL_RES *result = mysql_store_result(conDB);
+            if( result ) {
+                idx num_fields = mysql_num_fields(result);
+                MYSQL_FIELD * field;
+                while( (field = mysql_fetch_field(result)) ) {
+                    buf.printf(",%s", field->name);
+                }
+                buf.printf("\n");
+                MYSQL_ROW row;
+                while( (row = mysql_fetch_row(result)) != 0 ) {
+                    for(idx i = 0; i < num_fields; i++) {
+                        const char * pp = row[i];
+                        buf.printf("%s%s", i > 0 ? "," : "", pp ? pp : "ZerO");
+                    }
+                }
+                buf.printf("\n");
+                mysql_free_result(result);
+            }
+            moreRes = mysql_next_result(conDB);
+            MYSQLDBG("\n%s", buf.ptr(1));
+        } while( moreRes == 0 );
+    }
+#endif
     for(idx i = 0; i < max_deadlock_retries; i++) {
-        mysql_query(conDB, sql);
+        mysql_real_query(conDB, sql, sLen(sql));
         m_mysql_errno = mysql_errno(conDB);
+        hasError();
+        if( m_in_transaction <= 0 && m_mysql_errno == 2013 ) {
+            if (mysql_reset_connection(conDB) == 0 && mariadb_reconnect(conDB) == 0) {
+                MYSQLDBG("Restored lost connection %lu, attempt %" DEC "/%" DEC, mysql_thread_id(conDB), i, max_deadlock_retries);
+                continue;
+            }
+        }
         if( isMysqlDeadlock(m_mysql_errno) ) {
             MYSQLDBG("Deadlock detected, mysql error code %" UDEC, m_mysql_errno);
             m_had_deadlocked = true;
@@ -624,7 +636,6 @@ bool sSql::exec(const char * sql)
         sTime::randomSleep(max_deadlock_wait_usec);
     }
     return !hasError();
-//PERF_END();
 }
 
 idx sSql::getTable(const char * sql, sVarSet * mresult, sMex * blb)
@@ -637,51 +648,52 @@ idx sSql::getTable(const char * sql, sVarSet * mresult, sMex * blb)
     }
     idx totCnt = 0;
     if( exec(sql) ) {
-//PERF_START("SQL-ROWS-READING");
         idx moreRes = 0;
         bool hasColIds = false;
         do {
-            MYSQL_RES *result = mysql_store_result(conDB);
+            MYSQL_RES * result = mysql_store_result(conDB);
             if( result ) {
-                idx num_fields = mysql_num_fields(result);
-                if( mresult && !hasColIds ) {
-                    MYSQL_FIELD* field;
-                    idx c = 0;
-                    while( (field = mysql_fetch_field(result)) ) {
-                        mresult->setColId(c++, field->name);
+                const idx num_fields = mysql_num_fields(result);
+                if( num_fields ) {
+                    if( mresult && !hasColIds ) {
+                        MYSQL_FIELD* field;
+                        idx c = 0;
+                        while( (field = mysql_fetch_field(result)) ) {
+                            mresult->setColId(c++, field->name);
+                        }
+                        hasColIds = true;
                     }
-                    hasColIds = true;
-                }
-                MYSQL_ROW row;
-                // we need to make sure result set is completely read
-                while( (row = mysql_fetch_row(result)) != 0 ) {
-                    if( mresult ) {
-                        mresult->addRow();
-                        for(idx i = 0; i < num_fields; i++) {
-                            const char * pp = row[i];
-                            bool isnull = (pp && strcmp(pp, "NULL")) ? false : true;
-                            mresult->addCol(isnull ? 0 : pp, isnull ? 0 : sLen(pp));
+                    MYSQL_ROW row;
+                    while( (row = mysql_fetch_row(result)) != NULL ) {
+                        if( mresult ) {
+                            mresult->addRow();
+                            for(idx i = 0; i < num_fields; ++i) {
+                                const char * pp = row[i];
+                                bool isnull = (pp && strcmp(pp, "NULL")) ? false : true;
+                                mresult->addCol(isnull ? 0 : pp, isnull ? 0 : sLen(pp));
+                                ++totCnt;
+                            }
+                        } else if( blb ) {
+                            for(idx i = 0; i < num_fields; ++i) {
+                                blb->add(row[i], sLen(row[i]));
+                                ++totCnt;
+                            }
+                        } else {
                             ++totCnt;
                         }
-                    } else if( blb ) {
-                        for(idx i = 0; i < num_fields; i++) {
-                            blb->add(row[i], sLen(row[i]));
-                            ++totCnt;
-                        }
-                    } else {
-                        ++totCnt;
                     }
                 }
                 mysql_free_result(result);
+            } else if( hasError() ) {
+                break;
             }
             moreRes = mysql_next_result(conDB);
         } while( moreRes == 0 );
-        if( !m_mysql_errno && moreRes > 0 ) {
+        if( !m_mysql_errno && moreRes != 0 ) {
             hasError();
         } else {
             MYSQLDBG("rows: %" DEC " cols: %" DEC " cells: %" DEC "%s", mresult ? mresult->rows : -1, mresult ? mresult->cols : -1, totCnt, mresult ? ((mresult->rows * mresult->cols != totCnt) ? " RESULT IS NOT SQUARE" : "") : "");
         }
-//PERF_END();
     }
     if( !permanentConnection ) {
         disconnect();
@@ -706,7 +718,9 @@ bool sSql::resultOpen(const char * sqlfmt, ...)
 
 void sSql::resultClose(void)
 {
-    while(resultNext());
+    if( status == eConnected ) {
+        while( resultNext() );
+    }
 }
 
 #if _DEBUG
@@ -714,32 +728,36 @@ idx sSql_row_count = 0;
 #endif
 bool sSql::resultNext(void)
 {
-    if( m_res ) {
+    if( status == eConnected ) {
+        if( m_res ) {
 #if _DEBUG
-        MYSQLDBG("result %p done %" DEC " rows read", m_res, sSql_row_count);
-        sSql_row_count = 0;
+            MYSQLDBG("result %p done %" DEC " rows read", m_res, sSql_row_count);
+            sSql_row_count = 0;
 #endif
-        mysql_free_result((MYSQL_RES*)m_res);
-        m_res_ids.empty();
-        m_res = 0;
-        if( mysql_next_result((MYSQL *) dbConn) > 0 ) {
-            hasError();
-            return false;
-        }
-    }
-    m_res = mysql_store_result((MYSQL *) dbConn);
-    if( m_res ) {
-        MYSQLDBG("result %p stored %" DEC " columns", m_res, (idx)(mysql_num_fields((MYSQL_RES*) m_res)));
-        MYSQL_FIELD * field = 0;
-        while( (field = mysql_fetch_field((MYSQL_RES*) m_res)) ) {
-            idx * cid = m_res_ids.setString(field->name, field->name_length);
-            if( cid ) {
-                *cid = m_res_ids.dim() - 1;
+            mysql_free_result((MYSQL_RES *)m_res);
+            m_res_ids.empty();
+            m_res = 0;
+            if( mysql_next_result(conDB) != 0 ) {
+                hasError();
+                return false;
             }
         }
-    } else {
-        hasError();
+        m_res = mysql_store_result(conDB);
+        if( m_res ) {
+            const udx nflds = mysql_num_fields((MYSQL_RES *)m_res);
+            MYSQLDBG("result %p stored %" DEC " columns", m_res, nflds);
+            if( nflds ) {
+                MYSQL_FIELD * field = 0;
+                while( (field = mysql_fetch_field((MYSQL_RES *)m_res)) ) {
+                    idx * cid = m_res_ids.setString(field->name, field->name_length);
+                    if( cid ) {
+                        *cid = m_res_ids.dim() - 1;
+                    }
+                }
+            }
+        }
     }
+    hasError();
     return m_res;
 }
 
@@ -767,10 +785,9 @@ idx sSql::resultColId(const char * const name)
     return id ? *id : -1;
 }
 
-const char * sSql::resultValue(idx col, const char * defval /* = 0 */, idx * value_len/* = 0 */)
+const char * sSql::resultValue(idx col, const char * defval, idx * value_len)
 {
     if( m_res && col >= 0 && col < m_res_ids.dim() ) {
-        //MYSQLDBG("col%" DEC " value '%s'", col, ((MYSQL_ROW)m_res_row)[col]);
         if( value_len && m_res_lengths ) {
             *value_len = ((unsigned long*)m_res_lengths)[col];
         }
@@ -861,22 +878,12 @@ time_t sSql::time_value(const char * sql, time_t defval)
     return ret;
 }
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/ tabled result outputs
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
 void sSql::outTblValues(sStr * str,sVarSet * valtbl, const char * fields00, const char * srch00, const char * srchflds00, idx maxfoundout)
 {
-    //const char * val=0;
-    //idx pos=str->length();
 
     for ( idx ivis=0,i=valtbl->start ; i< valtbl->rows ; ++i) {
         sDic < sMex::Pos > * curRec=valtbl->tbl.ptr(i);
-//const char * tmpID=(const char *)valtbl->tbl.id(i);
 
         bool isin=true;
         if(srch00){
@@ -884,7 +891,6 @@ void sSql::outTblValues(sStr * str,sVarSet * valtbl, const char * fields00, cons
             for( const char * fld=fields00; fld; fld=sString::next00(fld) ){
                 sMex::Pos * ppos=curRec->get(fld);if(!ppos)continue;
                 if(!srchflds00 || sString::compareChoice( fld, srchflds00,0,false, 0)!=sNotIdx ) {
-                    //if(strstr((const char * )(valtbl->buf.ptr(ppos->pos)),srch)){isin=true; break;}
                     if(sString::searchSubstring( (const char * )(valtbl->buf.ptr(ppos->pos)), 0, srch00,1, 0,srchCaseSensitive ? false : true )){isin=true; break;}
                 }
             }
@@ -893,14 +899,13 @@ void sSql::outTblValues(sStr * str,sVarSet * valtbl, const char * fields00, cons
 
 
         if(!isin)continue;
-        if(ivis>0)str->printf(endlSymb);
+        if(ivis>0)str->printf("%s", endlSymb);
 
         idx j;
         if(fields00){
             const char * fld;
             for( j=0,fld=fields00; fld; fld=sString::next00(fld) ,++j){
-                //if(str->length()>pos)
-                if(j)str->printf(separSymb);
+                if(j)str->printf("%s", separSymb);
                 sMex::Pos * ppos=curRec->dictCnt() ? curRec->get(fld) : curRec->ptr(j);
                 if(ppos && ppos->size){
                     if(isRawOut){
@@ -909,13 +914,12 @@ void sSql::outTblValues(sStr * str,sVarSet * valtbl, const char * fields00, cons
                     }
                     else str->printf("%s",valtbl->buf.ptr(ppos->pos));
                 }
-                else str->printf(nullSymb);
+                else str->printf("%s", nullSymb);
 
             }
         }else {
             for( j=0; j<curRec->dim(); ++j ){
-                //if(str->length()>pos)
-                if(j)str->printf(separSymb);
+                if(j)str->printf("%s", separSymb);
                 sMex::Pos * ppos=curRec->ptr(j);
                 if(ppos && ppos->size){
                     if(isRawOut){
@@ -923,11 +927,10 @@ void sSql::outTblValues(sStr * str,sVarSet * valtbl, const char * fields00, cons
                         str->printf("%s",t.ptr());
                     }else str->printf("%s",valtbl->buf.ptr(ppos->pos));
                 }
-                else str->printf(nullSymb);
+                else str->printf("%s", nullSymb);
 
             }
         }
-        //str->printf(",-");
         ++ivis;
         if(maxfoundout!=0 && ivis>maxfoundout)break;
 
@@ -982,7 +985,7 @@ idx sSql::parseFromCSV(const char * tblnm, const char * collist, const char * co
         sql.printf(" values (");
         if(rowprfx)sql.printf("%s,",rowprfx);
 
-        sStr bfr;sString::searchAndReplaceStrings(&bfr,line,0,"," __," // " __,0,true); // do handle correctly emptynesses ,,
+        sStr bfr;sString::searchAndReplaceStrings(&bfr,line,0,"," __," // " __,0,true);
         sString::searchAndReplaceStrings(bfr.ptr(),0,"//" _,0,0,true);
         for( icol=0, p=bfr.ptr(); p ;  p=sString::next00(p) , ++icol) {
             if(icol)sql.printf(",");
@@ -990,7 +993,6 @@ idx sSql::parseFromCSV(const char * tblnm, const char * collist, const char * co
             sStr tmp;
             sString::searchAndReplaceStrings(&tmp,p,0,"\'" _ "\"" __,"\\\'" _ "\\\"" __,0,false);
             sString::cleanEnds(tmp.ptr(),0,sString_symbolsBlank,true);
-            //sString::cleanEnds(&tmp,p,0,sString_symbolsBlank,true);
             if(tmp.length())sql.printf("%s",tmp.ptr());
             if(collistquote[icol]=='1')sql.printf("'");
         }
@@ -1006,7 +1008,7 @@ idx sSql::parseFromCSV(const char * tblnm, const char * collist, const char * co
 
 idx sSql::joinFromMultipleTables(sVarSet * pidlist, const char * sqllist00,const char * colnamelst00, idx recCol)
 {
-    const char * ppls=colnamelst00; //, * recIDcol=ppls;
+    const char * ppls=colnamelst00;
     sMex::Pos * pp;
     sVarSet res;getTable(sqllist00,&res);
     pidlist->cols=1;
@@ -1015,8 +1017,6 @@ idx sSql::joinFromMultipleTables(sVarSet * pidlist, const char * sqllist00,const
 
         ppls=colnamelst00;
         for( idx cc=0; cc<res.cols; ++cc) {
-            //if(cc==recCol)recIDcol=ppls;
-//            const char * dd=res(i,cc);
             pp=curRec->set(ppls);pp->pos=pidlist->buf.length();pidlist->buf.add( res(i,cc,&pp->size));pidlist->buf.add(__,2);
             ppls=sString::next00(ppls);
         }
@@ -1029,12 +1029,10 @@ idx sSql::joinFromMultipleTables(sVarSet * pidlist, const char * sqllist00,const
 
         colnamelst00=ppls;
         for( idx i=0;i<res.rows; ++i) {
-            //const char * llllrec=res(i,recCol);
             sDic < sMex::Pos > * curRec=pidlist->tbl.get(res(i,recCol));
             if(!curRec)continue;
             ppls=colnamelst00;
             for (idx j = 0; j < res.cols; ++j) {
-                //const char * dde=res(i,j);
 
                 if(j==recCol)continue;
                 pp=curRec->set(ppls);pp->pos=pidlist->buf.length();pidlist->buf.add( res(i,j,&pp->size));pidlist->buf.add(__,2);
@@ -1064,7 +1062,6 @@ idx sSql::outFromMultipleTables(sStr * out, const char * sqllist00,const char * 
     if(idlist.rows>orirows)idlist.rows=orirows;
 
     outTblValues(out,&idlist,colnamelst00,srch ? sql.ptr() : 0 ,0);
-    //out->printf("%s\n",bfr.ptr());
     return res;
 
 }
@@ -1090,7 +1087,7 @@ void sSql::Schema::load( sSql * sql, const char * tables00, const char * exclCol
 
         sql->getTable( tmp.printf(0,"describe %s",tl), &rs);
         td->quotes=dat.length();
-        dat.add(0,(rs.rows+1)); // 2*(rs.rows+1) if we reserve twice more for blob data lengths
+        dat.add(0,(rs.rows+1));
         td->fields=dat.length();
         td->isUpd=true;
 
@@ -1107,21 +1104,13 @@ void sSql::Schema::load( sSql * sql, const char * tables00, const char * exclCol
                 qt[ivis]='1';
             }else if(strstr(bb,"int") || strstr(bb,"double") || strstr(bb,"float")  ){
                 qt[ivis]='0';
-            }/*else if(strstr(bb,"blob") ){
-                qt[ivis]='0';
-                ++ivis;
-                dat.printf("%s%s",ivis ? "," : "" , qq);
-                qt[ivis]='1';
+            }else continue;
 
-            }*/else continue;
-
-            //const char * dlf=rs(ir,0);
             dat.printf("%s%s",ivis ? "," : "" , qq);
             ++ivis;
         }
         dat.add0(2);
 
-        //const char * sss=dat.ptr(td->fields);
         tmp.printf(0,"%s",dat.ptr(td->fields));
         td->fields00=dat.length();
         sString::searchAndReplaceSymbols(&dat,tmp.ptr(),0,",",0,0,true,true,false);
@@ -1161,7 +1150,6 @@ char * sSql::Schema::searchSql(sStr * srchSql, const char * srch,const char * an
             bool isnot=strstr(op,"nt") ? true : false;
             if( sString::compareChoice(op,opList,&opNum,true,0,true)==-1 )continue;
             const char * prf=(ishas) ? "%" : "";
-            //const char * prf="";
             const char * suff=(ishas) ? "%" : "";
         char * Vval=sString::next00(op); if(!Vval)break;
         sString::cleanEnds(Vval, 0, "\'\"" sString_symbolsBlank, true);
@@ -1198,8 +1186,8 @@ char * sSql::Schema::searchSql(sStr * srchSql, const char * srch,const char * an
             if( strcmp(par,"any")==0) {
                 const char * fl; idx ir;
                 for ( ir=0, fl=ligschema->fields00(il) ; fl ; fl=sString::next00(fl), ++ir ) {
-                    if(strstr(fl,"count(") || strstr(fl,"group_concat(") || strstr(fl,"length(") )continue; // we do not look this in agregate fields
-                    if( anyExclusions00 && sString::compareChoice(fl,anyExclusions00,0,false,0,true)!=-1)continue; // exclude some fields from any
+                    if(strstr(fl,"count(") || strstr(fl,"group_concat(") || strstr(fl,"length(") )continue;
+                    if( anyExclusions00 && sString::compareChoice(fl,anyExclusions00,0,false,0,true)!=-1)continue;
                     if(ir) fltrset[il].printf(" or ");
                     quo=((fldQuotes[ir]=='1') || ishas ) ? "\'" : "";
                     fltrset[il].printf("%s %s %s%s%s%s%s", fl ,  sString::next00(opSQL,opNum) , quo, prf,val,suff, quo);
@@ -1225,29 +1213,25 @@ char * sSql::Schema::searchSql(sStr * srchSql, const char * srch,const char * an
                 somedone=true;
             }
             if(!somedone)fltrset[il].cut(0);
-            //break;
         }
 
         sStr loc;
         idx ivis,il,iall;
-        // this composes a select statement chosing a single parameter
         for( il=0,iall=0; il<fltrset.dim(); ++il ) {if(fltrset[il].length()==0)continue;++iall;}
         if(iall) {
             for( il=0, ivis=0; il<fltrset.dim(); ++il ) {
                 if(fltrset[il].length()==0)continue;
-                if(ivis)loc.printf(" union " ); ++ivis;
+                if(ivis)loc.printf(" union " );
+                ++ivis;
                 if(iall<2)loc.printf("%s", fltrset[il].ptr() );
                 else loc.printf("(%s)", fltrset[il].ptr() );
             }
             if(combine) {
                 if(!strcmp(combine ,"or")) {
                     srchSql->printf(" union %s ",loc.ptr() );
-                }else { ////sStr oo;if(srchSql->ptr())oo.printf("%s",srchSql->ptr());
-                    //srchSql->printf(" %s ",combine);
-                    //srchSql->printf(" %s in ( select recID from %s where ",ligschema->idCol,ligschema->idTbl);
+                }else {
                     sStr old;if(srchSql->ptr())old.printf("%s",srchSql->ptr());
                     srchSql->printf(0,"select %s from (%s ",ligschema->idCol,old.ptr());
-                    //if(strcmp(par,"any")!=0)srchSql->printf("group by %s ",ligschema->idCol);
                     srchSql->printf(") T%" DEC " where %s in (%s) ",iTblD, ligschema->idCol, loc.ptr());
                     iTblD+=2;
                 }
@@ -1346,11 +1330,8 @@ idx sSql::Schema::ensureIDRow(sSql * ligFam, idx recID,const char * tblnm)
 {
 
     sSql::Schema * ligschema=this;
-    //sStr sql;
     idx recIN=0;
-    //ligFam->sscanfTable( sql.printf(0,"select %s from %s where recID=%" DEC "",ligschema->idCol,tblnm,recID),"%" DEC "",&recIN);
     recIN=ligFam->ivalue(0,"select %s from %s where recID=%" DEC "",ligschema->idCol,tblnm,recID);
-    //if(!recIN){ligFam->execute(sql.printf(0,"insert into %s (%s) values (%" DEC ")",tblnm,ligschema->idCol,recID));}
     if(!recIN)ligFam->execute("insert into %s (%s) values (%" DEC ")",tblnm,ligschema->idCol,recID);
     return recIN;
 }

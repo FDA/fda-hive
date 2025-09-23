@@ -34,24 +34,20 @@ google.load("visualization", "1", {packages:["corechart"]});
 vjHO.register('svc-CDRH-scripts').Constructor=function ()
 {
     
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         console.log("Constructing Full view from svc-CDRH-scripts.js");
         var id = docLocValue("id");
         
-        vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files=*.{csv,sc,zip,pdb}&mode=csv&prop=none&ids="+algoProcessID, 0, "id,name,path,value");
-        vjDS.add("", "dsResult", "http://?cmd=objFile&filename=result.csv&ids="+id);
+        vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http:
+        vjDS.add("", "dsResult", "http:
         
         var scatterGraph=new vjGoogleGraphView({
             data: 'dsResult',
              type:"scatter",
-             //series:[ {name:'binding_score', title:'Binding Score'}, {name: 'ddG', title: "ddg(R.E.U.)"}, {name: 'ABC', role:"tooltip"}],
-             //options: { title:'ddG vs. Binding Score', width: 600, height: 600, colors:vjPAGE.colorsACGT},
              selectCallback: someCallback
         });
     
-        //cmd=objList&mode=csv&actions=1&parIds=16270&parP=child&prop=svcTitle,status,progress100,name,uri,created,_type&info=1&cnt=50&type=^svc-archiver$,^svc-download$&start=0&raw=1
         tbl = new vjTableControlX2({
             data: "dsResult"
         });

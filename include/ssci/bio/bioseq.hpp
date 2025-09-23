@@ -34,16 +34,12 @@
 #include <slib/core/str.hpp>
 #include <slib/core/vec.hpp>
 #include <slib/core/dic.hpp>
+#include <slib/core/rc.hpp>
 
 #define sBIO_ATGC_SEQ_2BIT
 
 namespace slib {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ sBioseq class -main sequence container virtual class
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     class sBioseq
     {
 
@@ -56,7 +52,6 @@ namespace slib {
             virtual ~sBioseq()
             {
             }
-            // row/sequence/spot count
             virtual idx dim(void)
             {
                 return 0;
@@ -65,14 +60,6 @@ namespace slib {
             typedef idx (*callbackType)(void *param, sStr * buf, idx initid, idx initseq, idx initqua, idx seqlen);
             callbackType print_callback;
             void * print_callbackParam;
-            /* Example of declaration
-             *      sFilterseq::filterParams params;
-                    params.complexityEntropy = 1.2;
-                    params.complexityWindow = 30;
-                    Sub.print_callback = sFilterseq::sequenceFilterStatic;
-                    Sub.print_callbackParam = &params;
-             *
-             */
 
             typedef enum EBioMode_enum
             {
@@ -82,16 +69,22 @@ namespace slib {
 
             static bool isBioModeLong (idx mode) { return mode==eBioModeLong;}
             static bool isBioModeShort (idx mode) { return mode==eBioModeShort;}
-            // number of reads in a row - 1 - based, 0 - whole row!!!
             enum eReadTypes
             {
                 eReadBiological,
                 eReadAll,
                 eReadTechnical
             };
-//        virtual idx num(idx num, idx readtypes = eReadBiological){return 0;} // bio = 0 | all = 1 | tech = 2
 
-            // len/seq/qua/id of a read in a row : (-1) all, otherwise the index
+            typedef enum ESequenceOrientation_enum
+            {
+                eSeqForward             = 0,
+                eSeqForwardComplement   = 2,
+                eSeqReverse             = 1,
+                eSeqReverseComplement   = 3
+            } ESeqDirection;
+
+
             virtual idx len(idx num, idx iread = 0)
             {
                 return 0;
@@ -135,7 +128,7 @@ namespace slib {
             virtual void setmode(EBioMode)
             {
                 return;
-            } // mode
+            }
             virtual EBioMode getmode()
             {
                 return eBioModeShort;
@@ -178,14 +171,8 @@ namespace slib {
                     return (qua[i / 8] & (((idx) 1) << (i % 8))) ? 0 : 40;
                 return (qua[i]);
             }
-            /**
-             * return the count of the bioseq file in long mode
-             */
             idx longcount()
             {
-                /**
-                 *  it counts manually all the repetitions included for each row and returns the final count
-                 */
                 idx longdim = 0;
                 for(idx i = 0; i < dim(); i++) {
                     longdim += rpt(i);
@@ -193,27 +180,34 @@ namespace slib {
                 return longdim;
             }
 
-            /**
-             * start, end - are 1 - based, 0 means whole range
-             * return number of rows printed
-             */
             idx printFastX(sStr * outFile, bool isFastq, idx start = 0, idx end = 0, idx shift = 0, bool keepOriginalId = false, bool appendLength = false, idx iread = 0, sVec<idx> * randomIdQueries = 0, bool restoreNs = true, idx filterNs = 0);
-            /**
-             * row - 0-based sequence number in the set
-             * start - 0-based starting position within read, negative means starting from the end
-             * length - length of the subsequence of the read, 0 means whole read
-             * shift - shift ID to start with
-             * keepOriginalId - explicitly show Original ID
-             * iread - SRA stores forward and reverse reads together, set iread=0 to skip this functionality
-             * isRevCmp - print if 0 (rev), or 1 (complement) or 2 (reverse complement)
-             * restoreNs - if true, it will print the N's in the sequence
-             * filterNs - percentage of N's that it will allow to print, if = 40, it means 40 percent of the length
-             */
-//            idx printFastXRow(sFil * outFile, bool isFastq, idx row, idx start = 0, udx length = 0, idx shift = 0, bool keepOriginalId = false, bool numIdOnly = false, const char *appendID = 0, idx iread = 0, idx isRevCmp = 0, bool filterNs = 0);
-            idx printFastXRow(sStr * outFile, bool isFastq, idx row, idx start = 0, udx length = 0, idx shift = 0, bool keepOriginalId = false, bool numIdOnly = false, const char *appendID = 0, idx iread = 0, idx isRevCmp = 0, bool restoreNs = true, idx filterNs = 0, bool appendRptCount = true, bool SAMCompatible = false);
+            idx printFastXRow(sStr * outFile, bool isFastq, idx row, idx start = 0, udx length = 0, idx shift = 0, bool keepOriginalId = false, bool numIdOnly = false, const char *appendID = 0, idx iread = 0, ESeqDirection isRevCmp = eSeqForward, bool restoreNs = true, idx filterNs = 0, bool appendRptCount = true, bool SAMCompatible = false, bool printRepeats = false);
+            idx printSAMRow(sStr & out, idx row, idx iread, idx flag, bool keepOriginalId, bool printQualities);
 
+
+            idx seqstr_2Bit(sStr * buf, idx num, idx start = 0, idx lenseq = 0, idx isrev = 0, idx iscomp = 0);
         public:
             idx printFastXData(sStr * outFile, idx seqlen, const char *seqid, const char *seqs, const char *qua, idx subrpt, idx iread = 0);
+            idx printSequence(sStr *outFile, idx row, idx start = 0, idx length = 0, ESeqDirection isRevCmp = eSeqForward, bool restoreNs = true);
+            sRC printQualities(sStr & outBuf, idx row, idx iread, bool isRev);
+
+            idx countNs(idx num, idx start = 0, idx seqlen = 0){
+                const char * seqqua1 = qua(num);
+                if (!seqqua1){
+                    return 0;
+                }
+                bool quaBit = getQuaBit(num);
+                if (!seqlen){
+                    seqlen = len(num);
+                }
+                idx NCount = 0;
+                for(idx i = start; i < start + seqlen; ++i) {
+                    if( Qua(seqqua1, i, quaBit) == 0 ) {
+                        NCount++;
+                    }
+                }
+                return NCount;
+            }
             static idx atgcModel;
             sStr idstr, seqstr, quastr, outstr;
 
@@ -222,11 +216,6 @@ namespace slib {
                 eATGC = 0,
                 eACGT
             };
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-            // _/
-            // _/ Statics
-            // _/
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
             static void initModule(idx initmodel);
 
@@ -258,13 +247,8 @@ namespace slib {
             static const char * pHash(idx hash, idx len);
             static bool matchIUPAC(char atgc, char iupac);
 
-            //#ifdef sBIO_ATGC_SEQ_2BIT
 #define compressATGC compressATGC_2Bit
 #define uncompressATGC uncompressATGC_2Bit
-            //#else
-            //    #define compressATGC compressATGC_1Byte
-            //    #define uncompressATGC uncompressATGC_1Byte
-            //#endif
 
             static unsigned char mapATGC[256];
             static unsigned char mapRevATGC[5];
@@ -301,11 +285,9 @@ namespace slib {
             static ProtAA * AAFindByLet(char let);
 
         private:
-            //mapCodeAA should alwayd be used through mapCodon function to ensure the right genetic code
-            //listAA should also remain private to avoid hacks around mapCodeAA. Use through functions that do Codon->AA or mappedCodon->AA
             static ProtAA listAA[];
             static sVec<idx> mapCodeAA;
-            static unsigned char mapAAlet2ilist[256]; //! map from char code to 1 + index of ProtAA, or 0 (invalid)
+            static unsigned char mapAAlet2ilist[256];
 
         public:
             static ProtAA * getListAA(){
@@ -338,16 +320,13 @@ namespace slib {
             static idx proteinDecode(char * prot, const char * dna, idx len, bool nozero = false);
             static idx proteinVariantsFromSNP(char * pro, char * dna, idx dlen, idx pos, const char * ale, char * * variants = 0, idx * pcntVariants = 0);
 
-//        static bool complexityFilter( const char * seq, idx len ,idx complexityWindow, real complexityEntropy );
-//        static idx primersFilter(const char *seq, idx seqlen, const char *primer, idx primlen, idx flags);
 
-            //! Iterates over nmers of a protein FASTA file; ignores sequence ID lines
             class ProteinNmerIter {
                 public:
                     enum EState {
-                        eOK, //!< nmer at current position has been read
-                        eEOF, //!< end of file
-                        eError //!< invalid file format
+                        eOK,
+                        eEOF,
+                        eError
                     };
                 private:
                     const char * _prot;
@@ -363,22 +342,17 @@ namespace slib {
                 public:
                     void init(idx nmer_len, const char * prot, idx prot_len = 0);
                     ProteinNmerIter(idx nmer_len = 0, const char * prot = 0, idx prot_len = 0) { init(nmer_len, prot, prot_len); }
-                    //! get current nmer, normalized to upper-case
                     const char * operator*() const { return _buf.ptr(); }
                     operator bool() const { return _state == eOK; }
                     EState getState() const { return _state; }
-                    //! get current position in protein FASTA, corresponding to start of the current nmer
                     idx getPos() const { return _prot_pos[0]; }
-                    //! get last line which was read (0-based, possibly in middle of nmer if error happened)
                     idx getLastLine() const { return _line; }
-                    //! get last position which was read (0-based, possibly in middle of nmer if error happened)
                     idx getLastLetterPos() const { return _pos; }
-                    //! read next nmer
                     ProteinNmerIter & operator++();
             };
 
             enum EBlastMatrix {
-                eBlosumDefault = 0, //!< = eBlosum62
+                eBlosumDefault = 0,
                 eBlosum45,
                 eBlosum50,
                 eBlosum62,
@@ -395,7 +369,6 @@ namespace slib {
 
                 BlastMatrix() { sSet(this); }
 
-                //! get the score at specified row/column
                 idx getScore(idx irow, idx icol) const {
                     if( irow > icol ) {
                         sSwap(irow, icol);
@@ -404,7 +377,6 @@ namespace slib {
                     return letters[index];
                 }
 
-                //! generate a map from letter to number such that AA which are likely to substitute get assigned numbers which are clustered together
                 bool makeLinearizedMap(sDic<idx> & out_map) const;
             };
             static const BlastMatrix * getBlastMatrix(EBlastMatrix m = eBlosumDefault);
@@ -422,17 +394,15 @@ namespace slib {
             }
 
             void attach(sBioseq * bioseq, idx seqNum = 0, idx seqCnt = sIdxMax, idx partialRangeStart = 0, idx partialRangeLen = sIdxMax);
-            void reindex(void); // re-indexing function
-            sBioseq * ref(idx * inum, idx *seqCnt=0, idx mode=-1); // returns the sBioseq * object and its offset
-            idx refsList(idx inum); // returns the RefSeq structure associated to an offset
+            void reindex(void);
+            sBioseq * ref(idx * inum, idx *seqCnt=0, idx mode=-1);
+            idx refsList(idx inum);
 
             virtual void setmode(EBioMode mode)
             {
                 if( biosR.dim() > 0 ) {
                     biosR[0]->setmode(mode);
                 }
-//            ref (&inum)->setmode(inum);
-//            totDim = ref(&inum)->dim();
                 return;
             }
 
@@ -449,7 +419,6 @@ namespace slib {
                 totDimVioseqlist = 0;
             }
 
-            // row/sequence/spot count
             virtual idx dim(void)
             {
                 if( totDimVioseqlist > 0 ) {
@@ -480,7 +449,6 @@ namespace slib {
 
             virtual idx len(idx inum, idx iread = 0)
             {
-//            return ref(&inum)->len(inum,iread);
                 idx s;
                 if( totDimVioseqlist > 0 ) {
                     idx newnum = biosR[0]->long2short(inum);
@@ -496,7 +464,6 @@ namespace slib {
 
             virtual const char * seq(idx inum, idx iread = 0)
             {
-//            return ref(&inum)->seq(inum,iread,ipos,ilen);
                 const char *s;
                 if( totDimVioseqlist > 0 ) {
                     idx newnum = biosR[0]->long2short(inum);
@@ -511,7 +478,6 @@ namespace slib {
             }
             virtual const char * qua(idx inum, idx iread = 0)
             {
-//            return ref(&inum)->qua(inum, iread);
                 const char *s;
                 if( totDimVioseqlist > 0 ) {
                     idx newnum = biosR[0]->long2short(inum);
@@ -526,7 +492,6 @@ namespace slib {
             }
             virtual const char * id(idx inum, idx iread = 0)
             {
-//            return ref(&inum)->id(inum, iread);
                 const char *s;
                 if( totDimVioseqlist > 0 ) {
                     s = biosR[0]->id(inum);
@@ -535,9 +500,6 @@ namespace slib {
                     setmode(eBioModeLong);
                     s = biosR[0]->id(newnum);
                     setmode(eBioModeShort);
-//                EBioMode newtemp = biosR[0]->getmode();
-//                biosR[0]->setmode(eBioModeLong);
-//                biosR[0]->setmode(newtemp);
                 } else {
                     s = ref(&inum)->id(inum, iread);
                 }
@@ -545,15 +507,9 @@ namespace slib {
             }
             virtual idx rpt(idx inum, idx iread = 0)
             {
-//            return ref(&inum)->rpt(inum, iread);
                 idx s;
                 if( totDimVioseqlist > 0 ) {
                     s = 1;
-//                idx newnum=biosR[0]->long2short(inum);
-//                EBioMode newtemp = getmode();
-//                setmode(eBioModeShort);
-//                s = ref(&newnum)->rpt(newnum);
-//                setmode(newtemp);
                 } else {
                     s = ref(&inum)->rpt(inum, iread);
                 }
@@ -561,15 +517,9 @@ namespace slib {
             }
             virtual idx sim(idx inum, idx iread = 0)
             {
-//            return ref(&inum)->sim(inum, iread);
                 idx s;
                 if( totDimVioseqlist > 0 ) {
                     s = 0;
-//                idx newnum=biosR[0]->long2short(inum);
-//                EBioMode newtemp = getmode();
-//                setmode(eBioModeShort);
-//                s = ref(&newnum)->sim(newnum);
-//                setmode(newtemp);
                 } else {
                     s = ref(&inum)->sim(inum, iread);
                 }
@@ -691,28 +641,26 @@ namespace slib {
 
         private:
 
-            // each record defines a multiple or a single sequences in the container
             struct RefSeq
             {
-                    idx bioNum; // the serial number of sBioseq in the biosP this sequence originates from
-                    idx seqNum; // the first sequence being pushed
-                    idx seqCnt; // how many is being pushed in current mode
-                    idx longseqCnt; // how many is being pushed in long mode
-                    idx shortseqCnt; // how many is being pushed in short mode
-                    idx partialRangeStart; // start of the range within a sequence
-                    idx partialRangeEnd; // end of the range within a sequence
+                    idx bioNum;
+                    idx seqNum;
+                    idx seqCnt;
+                    idx longseqCnt;
+                    idx shortseqCnt;
+                    idx partialRangeStart;
+                    idx partialRangeEnd;
             };
 
-            sVec<sBioseq *> biosR; // managed sBioseq objects;
-            sVec<RefSeq> refs; // list of references from this bioseq
+            sVec<sBioseq *> biosR;
+            sVec<RefSeq> refs;
 
             sVec<idx> seqInd;
-            idx totDim; // total dimension
+            idx totDim;
             idx totDimVioseqlist;
-            bool needsReindex; // flag signifying the need to reindex the sBioseqSet
+            bool needsReindex;
     };
 
-} // namespace
+}
 
-#endif // sBio_seq_hpp
-
+#endif 

@@ -39,6 +39,5 @@ namespace slib
     
 };
 
-#endif // xLib_zip_h
-
+#endif 
 

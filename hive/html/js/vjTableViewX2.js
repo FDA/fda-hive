@@ -37,8 +37,7 @@ function vjTableViewX2(viewer) {
      if (this.objCls)
             return;
 
-    vjDataViewViewer.call(this, viewer); // inherit default behaviours of the
-                                            // DataViewer
+    vjDataViewViewer.call(this, viewer);
 
     if(this.isStickyHeader===undefined)
         this.isStickyHeader=true;
@@ -60,6 +59,7 @@ function vjTableViewX2(viewer) {
         this.checkIndeterminateTitle = "Partially selected";
     if(this.checkIndeterminateHeaderTitle === undefined)
         this.checkIndeterminateHeaderTitle = "Partially selected; click to select all";
+    if (this.nonSticky === undefined) this.nonSticky = true;
 
     if(this.drag)this.drag=new dragDrop();
     if(this.dropableAttrs===undefined)this.dropableAttrs=['dragDropable'];
@@ -99,7 +99,7 @@ function vjTableViewX2(viewer) {
     }
     if (!this.geometry)
         this.geometry = {
-            width : '100%'
+            width: (this.width ? this.width : '100%'),
         };
 
     this.setNodeExpandState = function (node) {
@@ -110,11 +110,6 @@ function vjTableViewX2(viewer) {
             node.treenode.expanded=(( node.treenode.depth <= this.autoexpand ) || this.autoexpand == 'all');
         }
     };
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Table viewer constructors
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.resizeBody = function(argsArr) {
         var html_el = argsArr[0];
@@ -124,11 +119,9 @@ function vjTableViewX2(viewer) {
     };
     this.composerFunction = function(viewer, content, page_request) {
 
-        if (vjDS[this.data[0]].qpbg_params) this.metadata_reqId = vjDS[this.data[0]].qpbg_params.RQ.dataID;
+        if (vjDS[this.data].qpbg_params && vjDS[this.data].qpbg_params.RQ) this.metadata_reqId =  vjDS[this.data].qpbg_params.RQ.dataID ;
 
-        // use only data[0] for session id checks - matters for table viewers using additional non-tabular data sources (e.g. sharing_tmplt)
         var t_sessionID = this.getDataSessionID(0);
-        //if (!(this.data && t_sessionID && t_sessionID == this.contentID && this.tblArr)) {
             this.tblArr = new vjTable(content, 0, this.parsemode);
             this.tblArr = new vjTable(content, 0, this.parsemode);
             if (!(this.parsemode & vjTable_hasHeader)) {
@@ -156,7 +149,6 @@ function vjTableViewX2(viewer) {
             if (this.inclusionObjRegex)
                 this.tblArr.mangleRows(this.inclusionObjRegex, "delete", true);
 
-            // append additional columns
             var appendCols = verarr(this.appendCols);
             for (var ic = 0; ic < appendCols.length; ++ic) {
                 if (!this.appendCols[ic].header || !this.appendCols[ic].header.name)
@@ -200,13 +192,10 @@ function vjTableViewX2(viewer) {
                     this.tree.enumerate(this.treePrecompute, this);
             }
 
-            // apply styles to rows
-            // perform column specific configuration
             if (this.cols)
                 this.tblArr.customizeColumns(this.cols);
 
             this.sortIndex = new Array();
-            // turning unstable sort to stable by always assigning order
             var maxOrder = 0;
             for (var is = 0; is < this.tblArr.hdr.length; ++is) {
                 if (this.tblArr.hdr[is].order) {
@@ -242,40 +231,7 @@ function vjTableViewX2(viewer) {
                 this.noContent = true;
             else if (this.noContent)
                 this.noContent = false;
-        //}
 
-        /* // old color logic?
-        for (var i = 0; i < this.tblArr.hdr.length; i++)
-        {
-            if (this.tblArr.hdr[i].name.indexOf("_")==0)
-            {
-                var tmp = new Array();
-
-                var hdrName = this.tblArr.hdr[i].name;
-                for (var ir = 0 ; ir < this.dim(); ir++)
-                {
-                    if (this.tblArr.rows[ir][hdrName] == "1")
-                        tmp.push (ir);
-                }
-
-                var a = hdrName.indexOf("_",2);
-                var b = hdrName.indexOf("_",a+1);
-                var idx = hdrName.substr(a+1, b-a-1);
-                var colName = hdrName.substr(b+1);//figure out column number here, put in the correct slot
-
-                var ir;
-                for (ir = 0; ir < this.ColColor.length; ir ++)
-                {
-                    if (this.ColColor[ir].index == idx)
-                    {
-                        this.ColColor[ir].col = colName;
-                        this.ColColor[ir].array = tmp;
-                    }
-                }
-                this.tblArr.hdr.splice(i, 1);
-                i--;
-            }
-        }*/
 
         this.tblArr.syncCols();
         this.clearColors();
@@ -304,9 +260,9 @@ function vjTableViewX2(viewer) {
             this.stickyHeader();
         }
 
-        //this.addColorCategorizer(null, true);
         
         if(this.drag)this.setDnDobjects();
+        if(this.postRefresh) this.postRefresh();
     };
 
     this.findByDOM=function(obj){
@@ -350,7 +306,7 @@ function vjTableViewX2(viewer) {
         if(!Int(ttHeight))return;
         var tblHeight= __getCurrentComputedStyle(tbl, 'height');
         var isVertBar=parseInt(ttHeight)>=parseInt(tblHeight)?false:true;
-        if(!isVertBar)return; //no need to create sticky headers
+        if(!isVertBar)return;
         var ttWidth= __getCurrentComputedStyle(divCont, 'width');
         var tblWidth= __getCurrentComputedStyle(tbl, 'width');
         var isHorizBar=parseInt(ttWidth)>=parseInt(tblWidth)?false:true;
@@ -370,7 +326,7 @@ function vjTableViewX2(viewer) {
                 var t_td_width=__getCurrentComputedStyle(tds[i], 'width');
                 if(this.icon_ColumnIndex==i && parseFloat(t_td_width)<this.iconSize)t_td_width=this.iconSize +"px";
                 ths[i].style.width =parseFloat(t_td_width)-border+"px";
-                tds[i].style.width = parseFloat(t_td_width)+"px";//__getCurrentComputedStyle(tds[i], 'width');
+                tds[i].style.width = parseFloat(t_td_width)+"px";
 
 
             }
@@ -411,7 +367,7 @@ function vjTableViewX2(viewer) {
 
         var cls = "class='" + this.className + "'";
         var clsCell = "class='" + this.className + "_cell'";
-        if(!this.isNheader && this.isStickyHeader){//} && !__isIE) {
+        if(!this.isNheader && this.isStickyHeader){
 
             tt += "<div id='"+this.container+"_table_header_div' style='overflow-x:hidden;' ";
             tt+=" >"
@@ -433,7 +389,7 @@ function vjTableViewX2(viewer) {
             if(__isIE)tt+=";min-height:0%";
             tt+="' onscroll='var ht=gObject(\""+this.container+"_table_header_div\");ht.scrollLeft=this.scrollLeft;'>";
         }
-        tt += "<table id='"+this.container+"_table'"//+(this.isStickyHead?"_header' style='position:absolute'":"'")+" "
+        tt += "<table id='"+this.container+"_table'"
                 + cls
                 + " "
                 + (this.geometry && this.geometry.width ? "width='"
@@ -441,8 +397,6 @@ function vjTableViewX2(viewer) {
                 + " "
                 + (this.geometry && this.geometry.height ? "height='"
                         + this.geometry.height + "'" : "") + " >";
-        // -----------------------------
-        // Headers
         if (!this.isNheader) {
         tt+="<thead>";
 
@@ -502,7 +456,6 @@ function vjTableViewX2(viewer) {
                 var withSortIcon=false;
                 if(!this.isNSortEnabled && !col.isNSortEnabled){
                     var imgsrc="img/arrow_sort_"+(col.isNdesc?"up":"down")+ (!isok(col.sorted)?'':'_highlighted') +".gif";
-                    //tt+="<table><tr><td>";
                     tt+="<img height='12' id='"+this.container + "_header_" + ic+"_sorter' src='"+imgsrc+"'";
                     tt += " onClick='vjObjEvent(\"onHeaderSort\", \""
                         + this.objCls + "\","+ic+");' ";
@@ -531,8 +484,6 @@ function vjTableViewX2(viewer) {
         tt+="</thead>";
           }
 
-        // -----------------------------
-        // Body
          tt+="<tbody>";
         this.checkedCnt = 0;
         var allRowsCount=this.dim();
@@ -754,7 +705,7 @@ function vjTableViewX2(viewer) {
 
         var oldShift = ir;
         var onSelected = false;
-        if (!this.multiSelect)  // || !gKeyShift
+        if (!this.multiSelect)
             this.oldShift = undefined;
         if(this.multiSelect ){
             if (this.oldShift != undefined && gKeyShift){
@@ -818,11 +769,6 @@ function vjTableViewX2(viewer) {
         return this.selectedCnt;
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Table viewer Event Handlers
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.formCheckSwitchTriState = function(checknam, state, indet_checked_state, indet_title) {
         var o = gObject(checknam);
@@ -861,7 +807,6 @@ function vjTableViewX2(viewer) {
                 ++cntchk;
             }
         }
-        // alert(cntchk + "=="+this.dim()+"///" + cursel )
 
         if (gObject(prfx + "all")) {
             if (cursel == -1) {
@@ -869,7 +814,6 @@ function vjTableViewX2(viewer) {
                         (ischecked ? true : false), false,
                         this.checkIndeterminateHeaderTitle);
             } else {
-                // elems[prfx+"all"].checked=(cntchk==this.dim()-1);
                 this.formCheckSwitchTriState(prfx + "all",
                         cntchk == 0 ? 0
                                 : (cntchk == this.dim() ? 1 : -1), false,
@@ -925,7 +869,6 @@ function vjTableViewX2(viewer) {
         if (!this.tblArr || ir>=this.dim())
             return;
         var row = this.row(ir);
-        //alerJ("row in vjTableView",row)
         if (!this.checkable || row.styleHasCheckmark === -1 || row.styleNoCheckmark)
             return;
 
@@ -934,7 +877,6 @@ function vjTableViewX2(viewer) {
         return this.onCheckmarkSelected(this.container, gObject(prfx + ir), ir);
     };
 
-    // ##########
     this.colorCell=function(ir, ic,color)
     {
         var node = this.row(ir);
@@ -944,7 +886,7 @@ function vjTableViewX2(viewer) {
 
         var cell_cords = "" + ir + "-" + ic;
         var isExisted = this.cellsColored.indexOf(cell_cords);
-        if ( isExisted != -1) // if existed => discolor the cell
+        if ( isExisted != -1)
         {
             var cell_element = gObject(this.container + "_" + ir + "_" + ic);
             if(!cell_element)
@@ -964,7 +906,6 @@ function vjTableViewX2(viewer) {
             return;
         }
         
-        // not existed => color cell
         this.cellsColored.push(cell_cords);
         this.cellsTotalSelected++;
         
@@ -991,22 +932,26 @@ function vjTableViewX2(viewer) {
 
     };
  
-    this.colorRow=function(ir, ic,color) {
+    this.colorRow=function(ir, ic,color, force) {
         var node = this.row(ir);
         
         if (color == -1) color = "white";
         if (!this.rowsColored[ir]) this.rowsColored[ir]=({array:new Array()});
         
         
-        if (this.rowsColored[ir].array.indexOf(color) > -1)
+        if (this.rowsColored[ir].array.indexOf(color) > -1 && !force)
         {
             this.rowsColored[ir].array.pop(color);
             this.rowsTotalSelected--;
             if (this.rowsColored[ir].array.length == 0)
                 this.rowsColored[ir].array=new Array();
         }
-        else{
+        else if (!force){
             this.rowsColored[ir].array.push(color);
+            this.rowsTotalSelected++;
+        }
+        else{
+            this.rowsColored[ir].array=[color];
             this.rowsTotalSelected++;
         }
         
@@ -1250,13 +1195,11 @@ function vjTableViewX2(viewer) {
                     }
                     this.prvCategSelCol=ic;
                 }
-                // ###############
                 else if(this.actualBigPanel.currentType == "color cell" && ic<this.tblArr.hdr.length && ic>=0  )
                 {
                     var nodeCur=this.row(ir);
                     var cell_cords = "" + ir + "-" + ic;
                     var cell_val = this.tblArr.rows[ir].cols[ic];
-                    //var take_cell_cords = 0;
                     if (this.actualBigPanel.takeCellCords != undefined) {
                         cell_val = cell_cords;
                     }
@@ -1276,15 +1219,14 @@ function vjTableViewX2(viewer) {
                         position[0].arg[curSel] = new Array(); 
                     }
                     
-                    var index = position[0].arg[this.actualBigPanel.currentSelector].indexOf(cell_val); // isc 
+                    var index = position[0].arg[this.actualBigPanel.currentSelector].indexOf(cell_val);
                     if (index > -1)
                         position[0].arg[this.actualBigPanel.currentSelector].splice(index,1);
                     else
-                        position[0].arg[this.actualBigPanel.currentSelector].push(cell_val); // isc
+                        position[0].arg[this.actualBigPanel.currentSelector].push(cell_val);
 
                     this.actualBigPanel.currentColor = this.actualBigPanel.currentColor;
                     this.colorCell(ir,ic,this.actualBigPanel.currentColor);
-                    // check other element 
                     
                 }
 
@@ -1486,7 +1428,7 @@ function vjTableViewX2(viewer) {
         gX=_dragOffsetX+event.clientX-_startX;
         gY=_dragOffsetY+event.clientY-_startY ;
         deb.innerHTML="gX:"+parseInt(event.clientX)+"   --  gY:"+parseInt(event.clientY) +
-        "  -- style:" +_draggable.style.position +  " --//-- element.left="+_draggable.style.left + "element.top="+_draggable.style.top ;
+        "  -- style:" +_draggable.style.position +  " --
 
         deb.innerHTML+="\t\t\tTarget:"+_draggable.id;
 
@@ -1603,16 +1545,16 @@ function vjTableViewX2(viewer) {
         var dataurl=dataS.url;
         var datacnt=docLocValue("cnt",0,dataurl);
         var datastart=docLocValue("start","0",dataurl);
-        if(datacnt!="1000000" || datacnt==0){                //if there is no pager or 'all' (all=1000000) has been selected then enable sort
-            if(dataS.dataSize!==undefined){                    //if there pager and dataSize provided from the menu
-                if(dataS.dataSize>this.dim() )    //if datasize > than the displayed number of rows don't enable sorter
+        if(datacnt!="1000000" || datacnt==0){
+            if(dataS.dataSize!==undefined){
+                if(dataS.dataSize>this.dim() )
                     return 0;
             }
-            else if( parseInt(datastart)!=0){                //if datasize not provided but start position in url is provided and
-                return 0;                                        //non-zero then don't enable sorter
+            else if( parseInt(datastart)!=0){
+                return 0;
             }
-            else if(this.dim()==parseInt(datacnt))    //Finally if start is not provided and number of the rows displayed
-                return 0;                                            //are less than the counter then enable sorter.
+            else if(this.dim()==parseInt(datacnt))
+                return 0;
         }
         return 1;
     };
@@ -1651,7 +1593,7 @@ function vjTableViewX2(viewer) {
 
         var stripe = 10;
         var width = stripe * colors.length;
-        var svgText = '<?xml version="1.0" standalone="no"?><svg width="' + stripe * colors.length + '" height="' + stripe * colors.length + '" version="1.1" xmlns="http://www.w3.org/2000/svg">';
+        var svgText = '<?xml version="1.0" standalone="no"?><svg width="' + stripe * colors.length + '" height="' + stripe * colors.length + '" version="1.1" xmlns="http:
         for (var ic=0; ic<colors.length; ic++) {
             var x1 = ic * stripe;
             var x2 = (ic + 1) * stripe;
@@ -1660,8 +1602,6 @@ function vjTableViewX2(viewer) {
         }
         svgText += '</svg>';
 
-        // Note: requires IE-10 (or any version of Firefox or Chrome)
-        // non-base64 svg data uris fail in Firefox
         o.style.backgroundImage = "url('data:image/svg+xml;base64," + window.btoa(svgText) + "')";
         return true;
     };
@@ -1686,7 +1626,7 @@ function vjTableControlX2(viewer)
     this.oldHeaderSelected;
     this.oldHeaderSelectedNum;
     this.tableInfo={};
-    if (!viewer.graph)  this.graph = new vjGoogleGraphView();
+    if (!viewer.graph)  this.graph = new vjGoogleGraphView({});
     else this.graph = viewer.graph;
     this.vData = viewer.data;
     if(!viewer.menuUpdateCallbacks) this.menuUpdateCallbacks = [];
@@ -1702,7 +1642,7 @@ function vjTableControlX2(viewer)
 
     
     this.graphDS = "ds_graph_" + this.objCls;
-    vjDS.add("Graph data", this.graphDS, "static://");
+    vjDS.add("Graph data", this.graphDS, "static:
     
     viewer.isStickyHeader = true;
     this.tableViewer = new vjTableViewX2(viewer);
@@ -1717,26 +1657,37 @@ function vjTableControlX2(viewer)
         }
     }
 
-    //when the table gets rendered we need to request the metadata file (this tells us about the types of columns and what rows/columns need to be colored, how many of each there are)
-    //the tqs file that is requested are the current tqs commands
     this.tableRenderedCallCount = 0;
     this.onTableRenderedCallbacks= new Array();
     this.onTableRenderedCallbacks.push (
          function(content, page_request, that) {
             var url = "?cmd=-qpData&req="+that.tableViewer.metadata_reqId+"&raw=1&grp=1&dname=metadata.json&default=error:%20"+that.tableViewer.metadata_reqId+"%20metadata.json%20not%20found";
-            //alert (url);
             ajaxDynaRequestPage(url, {objCls: objcls, callback:'metadata_parser'}, vjObjAjaxCallback);
          }
     );
     this.onTableRenderedCallbacks.push (
             function(content, page_request, that) {
                var url = "?cmd=-qpData&req="+that.tableViewer.metadata_reqId+"&raw=1&grp=1&dname=tqs.json&default=error:%20"+that.tableViewer.metadata_reqId+"%20tqs.json%20not%20found";
-               //alert (url);
                ajaxDynaRequestPage(url, {objCls: objcls, callback:'tqs_parser'}, vjObjAjaxCallback);
             }
     );
     
-    var urlToPut = "http://?cmd=objQry&qry=alloftype('plugin_tblqry').map({{visualization:.visualizationArr,argument:.argumentsArr,tqsToUseOnApply:.tqsToUseOnApply,panelDesc:.panelDesc,keyWords:.keyWordArr,panelIcon:.panelIcon,panelName:.panelName,panelTitle:.panelTitle,panelUrl:.panelUrl,panelObjQry:.panelObjQry,panelPath:.panelPath,toPrint:.toPrint,notUpdatePage:.notUpdatePage}})&raw=1";
+    this.tableViewer.postEditTable = function(){
+        let rows_visibility = ['plus','graphs','analyze','reset','download', 'vdj'];
+        let noData = !vjDS[this.data] || (vjDS[this.data] &&  (vjDS[this.data].data === "" || vjDS[this.data].data.indexOf("error:") === 0))
+            this.actualBigPanel.plugins.general.rows.forEach(function(row){
+                if (rows_visibility.indexOf(row.name) >= 0)
+                    row.hidden = noData ? true  : false
+            })
+        
+        this.actualBigPanel.rebuildPluginTrees();
+    };
+    
+    var urlToPut = "http:
+    if (this.pluginsUrl)
+    {
+        var urlToPut = this.pluginsUrl;
+    }
     vjDS.add("Table query result", "plugins", urlToPut);
 
     
@@ -1745,22 +1696,27 @@ function vjTableControlX2(viewer)
                       {name:'source', order:-3 ,title: 'Data Source' , icon:'database' , description: 'select Source', path:"/source", hidden: true},
                       {name:'plus', order:-2 ,title: 'New Column' , icon:'plus' , description: 'add new column' ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'newcontrol');", path:"/plus" },
                       {name:'graphs', order:-1 ,title: 'Graphs' , icon:'pie' , description: 'select graphic to build', path:"/graphs"},
-                      {name:'diagrams', order:1 ,title: 'Diagrams' , description: 'select graphic to build', menuHorizontal:false, path:"/graphs/diagrams"},
-                          {name:'column', order:-1 ,title: 'Column' , description: 'select column graph', menuHorizontal:false, path:"/graphs/diagrams/column" ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'colgraph');" },
-                          {name:'line', order:-1 ,title: 'Line' , description: 'select line to build',menuHorizontal:false, path:"/graphs/diagrams/line" ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'linegraph');" },
-                          {name:'pie', order:-1 ,title: 'Pie' , description: 'select pie to build', menuHorizontal:false, path:"/graphs/diagrams/pie" ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'piegraph');" },
-                          {name:'scatter', order:-1 ,title: 'Scatter' , description: 'select scatter to build', menuHorizontal:false, path:"/graphs/diagrams/scatter" ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'scattergraph');" },
+                        {name:'diagrams', order:1 ,title: 'Diagrams' , description: 'select graphic to build', menuHorizontal:false, path:"/graphs/diagrams"},
+                        {name:'column', order:-1 ,title: 'Column' , description: 'select column graph', menuHorizontal:false, path:"/graphs/diagrams/column" ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'colgraph');" },
+                        {name:'line', order:-1 ,title: 'Line' , description: 'select line to build',menuHorizontal:false, path:"/graphs/diagrams/line" ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'linegraph');" },
+                        {name:'pie', order:-1 ,title: 'Pie' , description: 'select pie to build', menuHorizontal:false, path:"/graphs/diagrams/pie" ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'piegraph');" },
+                        {name:'scatter', order:-1 ,title: 'Scatter' , description: 'select scatter to build', menuHorizontal:false, path:"/graphs/diagrams/scatter" ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'scattergraph');" },
                       
                       {name:'pager', icon:'page' , align:'right',order:19, title:'per page', description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000], value0:30},
-                      {name:'search', align:'right',order:20, isSubmitable: true, prohibit_new: true },
+                      {name:'search', align:'right',order:20, isSubmitable: true},
                       {name:'analyze', align:'left', order:0, icon:'graph' , title:'Analysis', path: '/analyze' },
                       {name:'glueControl', align:'left', order:1, icon:'copy' , title:'Glue Tables', path: '/glue'  ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'glueControl');"},
                       {name:'reset', align:'left', order:4, icon:'refresh' , title:'Reset Table', path: '/reset'  ,  url: "javascript:vjObjEvent(\"onResetTable\", \"" + objcls+ "\");javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")"},
                       {name:'download', align:'left', order:2, icon:'save' , title:'Download the table', path: '/download' },
-                      {name:'partOfTable', align:'left', order:1, title:'Download visible part of the table', path: '/download/partOfTable', url: "javascript:vjObjEvent(\"onPartOfTable\", \"" + objcls+ "\");" },
-                      {name:'entireTable', align:'left', order:2, title:'Download the entire table', path: '/download/entireTable', url: "javascript:vjObjEvent(\"onEntireTable\", \"" + objcls+ "\");"},
-                      {name:'archiveTable', align:'left', order:3, title:'Archive the entire table', path: '/download/archiveTable', url: "javascript:vjObjEvent(\"onArchiveTable\", \"" + objcls+ "\");"}
-                      ];   
+                         {name:'partOfTable', align:'left', order:1, title:'Download visible part of the table', path: '/download/partOfTable', url: "javascript:vjObjEvent(\"onPartOfTable\", \"" + objcls+ "\");" },
+                         {name:'entireTable', align:'left', order:2, title:'Download the entire table', path: '/download/entireTable', url: "javascript:vjObjEvent(\"onEntireTable\", \"" + objcls+ "\");"},
+                         {name:'archiveTable', align:'left', order:3, title:'Archive the entire table', path: '/download/archiveTable', url: "javascript:vjObjEvent(\"onArchiveTable\", \"" + objcls+ "\");"}
+                      ];
+    
+    
+    if(viewer.extraGeneral){
+        generalRows = generalRows.concat(viewer.extraGeneral);
+    }
     var generalRowsToPush;
     
     if (!this.dissableBtns)
@@ -1771,7 +1727,7 @@ function vjTableControlX2(viewer)
         
         for (var i = 0; i < generalRows.length; i++)
         {
-            if (this.dissableBnts.indexOf(generalRows[i].name) >= 0)
+            if (this.dissableBtns.indexOf(generalRows[i].name) >= 0)
                 continue;
             else
                 generalRowsToPush.push(generalRows[i]);
@@ -1784,6 +1740,7 @@ function vjTableControlX2(viewer)
                     {name:'back', order:-1 ,title: 'Back' , icon:'recRevert' , description: 'return to main toolbar' ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'general');" },
                     {name:'objs',  order:1 ,title: 'Object ID' , description: 'object ID of the table source', type:"explorer", explorerObjType: "u-file+,table+,process+,!svc-download,!svc-archiver,!image", size: 8, isSubmitable:true, multiSelect: true },
                     {name:'tbl',  order:2 ,title: 'Table Name', description: "table name", size: 8, showTitleForInputs:true, path: "/tbl/" },
+                    {name:'missingNonfatal',  order:2.5 ,title: 'Missing Table OK', description: "An object that will be missing specific file name will be skipped", type:"checkbox", showTitleForInputs:true},
                     {name:'tqsId',  order:3 ,title: 'TQS File Object ID', description: "table name", type:"explorer", size: 16, explorerObjType: "u-tqs", explorerFileExt: "json", isSubmitable:true },
                     {name:'objQry',  order:4 ,title: 'Query', description: 'object query of the table source', type:"text", size: 64, isSubmitable:true },
                     {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', url: "javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
@@ -1799,8 +1756,9 @@ function vjTableControlX2(viewer)
                      {name:'namex', path:"/namex", order:1, showTitleForInputs: false , title: "Name for x-axis", type: "text" },
                      {name:'doHistogram', order:1, showTitleForInputs: false , value: false, title: "Histogram mode", type: "checkbox" },
                      {name:'doIntegral', order:2, showTitleForInputs: false , value: false, title: "Integral mode", type: "checkbox" },
+                     {name:'doError', path:"/doError", order:3, value:'#dfff80', type:'color', readonly:true , showTitleForInputs: true , title: "Error Bars", url: "javascript:vjObjEvent(\"onGraph\",\""+objcls+"\",\"doError\", 'colgraph')" },
                      {name:'clear', icon:'refresh', order:50, title:'Clear', url: "javascript:vjObjEvent(\"onClearAll\", \"" + objcls+ "\",'colgraph');" },
-                     {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true, prohibit_new: true, url: "javascript:vjObjEvent(\"onGraph\", \"" + objcls+ "\",\"generate\", 'colgraph');javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
+                     {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true,url: "javascript:vjObjEvent(\"onGraph\", \"" + objcls+ "\",\"generate\", 'colgraph');javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
                title: "Column Graph",
                toPrint: "Built Column Graph"
            },
@@ -1813,7 +1771,7 @@ function vjTableControlX2(viewer)
                      {name:'rhs', order:6, showTitleForInputs: false , title: "Formula for Right Hand Side", type: "text" },
                      {name:'hidecol', order:7, showTitleForInputs: false , title: "Column to hide", type: "text" },
                      {name:'lhs', order:1, title:'Formula for Left Hand Side', type:"text" },
-                     {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true, prohibit_new: true, url: "javascript:vjObjEvent(\"onGlue\", \"" + objcls+ "\");javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
+                     {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true,url: "javascript:vjObjEvent(\"onGlue\", \"" + objcls+ "\");javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
                title: "Glue tables together",
                toPrint: "Glued 2 tables together"
            },
@@ -1825,8 +1783,9 @@ function vjTableControlX2(viewer)
                      {name:'namex', path:"/namex", order:1, showTitleForInputs: false , title: "Name for x-axis", type: "text" },
                        {name:'doHistogram', order:1, showTitleForInputs: false , value: false, title: "Histogram mode", type: "checkbox" },
                         {name:'doIntegral', order:2, showTitleForInputs: false , value: false, title: "Integral mode", type: "checkbox" },
+                       {name:'doError', path:"/doError", order:3, value:'#dfff80', type:'color', readonly:true , showTitleForInputs: true , title: "Error Bars", url: "javascript:vjObjEvent(\"onGraph\",\""+objcls+"\",\"doError\", 'colgraph')" },
                      {name:'clear', icon:'refresh', order:50, title:'Clear', url: "javascript:vjObjEvent(\"onClearAll\", \"" + objcls+ "\",'linegraph');" },
-                     {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true, prohibit_new: true, url: "javascript:vjObjEvent(\"onGraph\", \"" + objcls+ "\",\"generate\", 'linegraph');javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
+                     {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true,url: "javascript:vjObjEvent(\"onGraph\", \"" + objcls+ "\",\"generate\", 'linegraph');javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
             title: "Line Graph",
                toPrint: "Built Line Graph"
            },
@@ -1838,7 +1797,7 @@ function vjTableControlX2(viewer)
                  {name:'clear', icon:'refresh', order:50, title:'Clear', url: "javascript:vjObjEvent(\"onClearAll\", \"" + objcls+ "\",'piegraph');" },
                    {name:'doHistogram', order:1, showTitleForInputs: false , value: false, title: "Histogram mode", type: "checkbox" },
                     {name:'doIntegral', order:2, showTitleForInputs: false , value: false, title: "Integral mode", type: "checkbox" },
-                 {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true, prohibit_new: true, url: "javascript:vjObjEvent(\"onGraph\", \"" + objcls+ "\",\"generate\", 'piegraph');javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
+                 {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true,url: "javascript:vjObjEvent(\"onGraph\", \"" + objcls+ "\",\"generate\", 'piegraph');javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
             title: "Pie Graph",
                  toPrint: "Built Pie Graph"
            },
@@ -1850,8 +1809,9 @@ function vjTableControlX2(viewer)
                  {name:'namex', path:"/namex", order:1, showTitleForInputs: false , title: "Name for x-axis", type: "text" },
                    {name:'doHistogram', order:1, showTitleForInputs: false , value: false, title: "Histogram mode", type: "checkbox" },
                     {name:'doIntegral', order:2, showTitleForInputs: false , value: false, title: "Integral mode", type: "checkbox" },
+                   {name:'doError', path:"/doError", order:3, value:'#dfff80', type:'color', readonly:true , showTitleForInputs: true , title: "Error Bars", url: "javascript:vjObjEvent(\"onGraph\",\""+objcls+"\",\"doError\", 'colgraph')" },
                  {name:'clear', icon:'refresh', order:50, title:'Clear', url: "javascript:vjObjEvent(\"onClearAll\", \"" + objcls+ "\",'scattergraph');" },
-                 {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true, prohibit_new: true, url: "javascript:vjObjEvent(\"onGraph\", \"" + this.objCls+ "\",\"generate\", 'scattergraph');javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
+                 {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true,url: "javascript:vjObjEvent(\"onGraph\", \"" + this.objCls+ "\",\"generate\", 'scattergraph');javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
             title: "Scatter Graph",
             toPrint: "Built Scatter Graph"
            },
@@ -1860,9 +1820,8 @@ function vjTableControlX2(viewer)
                  {name:'back', order:-1 ,title: 'Back' , icon:'recRevert' , description: 'return to main toolbar' ,  url: "javascript:vjObjEvent(\"onPanelOpen\", \"%PANNELCLASS%\",'general');" },
                  {name:'newname' , path:"/newname", order: 1, type: "text", url: "javascript:vjObjEvent(\"onAddNewColumn\", \"" + objcls+ "\");", title:'Column Name' },
                  {name:'newformula', path:"/newformula", order: 2, description: 'add formula for new column' , type:'text', title:'Formula' },
-                 //{name:'colType', path:"/colType", order: 3, type:'select', options:[['-1',' '], ['0','String'],['1','Integer'],['2','Real']], title: 'Choose Column Type (Optional)'},
-                 {name:'search', align:'right',order:10, isSubmitable: true, prohibit_new: true },
-                 {name:'apply', order:8 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true, prohibit_new: true, url: "javascript:vjObjEvent(\"onAddNewColumn\", \"" + objcls+ "\");vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
+                 {name:'search', align:'right',order:10, isSubmitable: true},
+                 {name:'apply', order:8 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true,url: "javascript:vjObjEvent(\"onAddNewColumn\", \"" + objcls+ "\");vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }],
             title: "New Column",
             icon: "plus"
            },
@@ -1872,16 +1831,17 @@ function vjTableControlX2(viewer)
                  {name:'sort', order: 2, title: '   &darr;   Sort' , path: "/sort"},
                  {name:'sortType', order: 2, title: 'Chose Type of Sorting' , path: "/sort/sortType", value:0, options: [[0,""], [1,"Ascending"],[2,"Descending"]], type:'select'},
                  {name:'filterOnCol', order:0, title:'Select Column to Filter on', description: 'Select Column to Filter on and Hide Rows'},
-                 //{name:'colType', order:3, hidden:true, title:'Change Column Type', description: 'Change the type of the column', type:'select', options:[['0','Integer'],['1','String']], showTitleForInputs:true, url: "javascript:vjObjEvent(\"onChgColType\", \"" + objcls+ "\")"},
                  {name:'stringExpression',  order:1, hidden:true, size:'40', type: "text", path: "/stringExpressionBtn/stringExpression", title: "Expression"},
                  {name:'stringExpressionBtn',  order:4, hidden:true, title:' &darr;   Filter', showTitleForInputs: true, url: "javascript:vjObjEvent(\"onExpHide\", \"" + objcls+ "\");"},
                  {name:'stringExpressionNegationCheck',  order:1, hidden:true, type: "checkbox", title: "Check for Negation", path: "/stringExpressionBtn/stringExpressionNegationCheck"},
                  {name:'stringExpressionRegCheck',  order:2, hidden:true, type: "checkbox", title:"Check for Regular Expressions", path: "/stringExpressionBtn/stringExpressionRegCheck"},
                  {name:'stringExpressionCaseSens',  order:3, hidden:true, type: "checkbox", title:"Check for Case Sensitive", path: "/stringExpressionBtn/stringExpressionCaseSens"},
+                 {name:'stringExpressionFormulaCheck',  order:3, hidden:true, type: "checkbox", title:"Check for Formula Expressions", path: "/stringExpressionBtn/stringExpressionFormulaCheck"},
                  {name:'intExpression',  order:6, hidden:true, title: '  &darr;   Filter', showTitleForInputs: true, url: "javascript:vjObjEvent(\"onExpHide\", \"" + objcls+ "\");"},
-                 {name:'intFromExpression',  order:4, hidden:true, title: 'From', showTitleForInputs:true, size:'5', type: "text", path: "/intExpression/intFromExpression"},
-                 {name:'intToExpression',  order:5, hidden:true, title: 'To', showTitleForInputs:true, size:'5', type: "text", path: "/intExpression/intToExpression"},
+                 {name:'intFromExpression',  order:4, hidden:true, title: 'From', showTitleForInputs:true, size:'15', type: "text", path: "/intExpression/intFromExpression"},
+                 {name:'intToExpression',  order:5, hidden:true, title: 'To', showTitleForInputs:true, size:'15', type: "text", path: "/intExpression/intToExpression"},
                  {name:'intExclusiveExpression',  order:6, hidden:true, title: 'Exclusive', showTitleForInputs:true, size:'5', type: "checkbox", path: "/intExpression/intExclusiveExpression"},
+                 {name:'intFormulaCheck',  order:6, hidden:true, title: 'Formula', showTitleForInputs:true, size:'5', type: "checkbox", path: "/intExpression/intFormulaCheck"},
                  {name:'stringColoration',  order:1, hidden:true, size:'40', type: "text", path:"/stringColorationBtn/stringColoration", title: "Expression"},
                  {name:'stringColorationBtn',  order:5, hidden:true, title:'   &darr;   Color', showTitleForInputs:true, url: "javascript:vjObjEvent(\"onColorizeRows\", \"" + objcls+ "\");"},
                  {name:'stringColorationNegationCheck',  order:5, hidden:true, type: "checkbox", title: "Check for Negation", path: "/stringColorationBtn/stringColorationNegationCheck"},
@@ -1894,21 +1854,18 @@ function vjTableControlX2(viewer)
                  {name:'stringFiltcolor', order:10, hidden:true, value:"#ff9999", title: 'Choose color' ,  type:'color', showTitleForInputs: true , title: "Select color", path:"/stringColorationBtn/stringFiltcolor"},
                  {name:'rename', order: 14, title: ' Rename' , showTitleForInputs:true, type: "text", url: "javascript:vjObjEvent(\"onRenameHeader\", \"" + objcls+ "\");" },
                  {name:'del', order: 15, icon:'delete' , title:'Delete Column', description: 'hide the column', url: "javascript:vjObjEvent(\"onDeleteColumn\", \"" + objcls+ "\");vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" },
-                 {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true, prohibit_new: true, url: "javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }
+                 {name:'apply', order:100 ,title: 'Apply' , icon:'recSet' , description: 'load data', isSubmitable: true,url: "javascript:vjObjEvent(\"onUpdate\",\"%PANNELCLASS%\")" }
                  ]
            }
        };
-    //this.tableViewer.actualBigPanel.rebuildPluginTrees();
     
     
     var tbl_data = "ds_%PANNELCLASS%_tbl_data";
 
-    //this.tableViewer.actualBigPanel._original_onChangeElementValue = this.tableViewer.actualBigPanel.onChangeElementValue;
     myonChangeElementValue = function(container, nodepath, elname) {
-        //this._original_onChangeElementValue(container, nodepath, elname);
         var node = this.tree.findByPath(nodepath);
         if (nodepath == "/objs") {
-            vjDS[this.tbl_data].reload("http://?cmd=propget&files=%2A.{csv,tsv,tab}&ids="+node.value+"&mode=csv", true);
+            vjDS[this.tbl_data].reload("http:
         } else if (nodepath == "/tbl/tbl-*") {
             var tblNode = this.tree.findByPath("/tbl");
             if (tblNode && tblNode.children) {
@@ -1927,9 +1884,7 @@ function vjTableControlX2(viewer)
         var rows = this.rows;
         var newrows = [];
         for (var i=0; i<rows.length; i++) {
-            //if (!rows[i].path || rows[i].path.indexOf("/tbl/") != 0) {
-                newrows.push(rows[i]);
-            //}
+            newrows.push(rows[i]);
         }
         var fileTbl = new vjTable(content, 0, vjTable_propCSV);
         newrows.push({name: "tbl-*", order: 100, title: "<em>All files</em>", path: "/tbl/tbl-*", value: "", type: "checkbox", isSubmitable:true, noMatch:true})
@@ -1969,21 +1924,18 @@ function vjTableControlX2(viewer)
         clearAllCallback: "function:vjObjFunc(\"onClearAll\", \"" + objcls+ "\");",
         keyWords: this.keyWords,
         container: "pluggin"+Math.floor(Math.random()*1111111),
-        plugins: plugginsToPush,
+        plugins: Object.assign(plugginsToPush, viewer.extraPluggins),
         tbl_data: tbl_data,
         tbl_dataCallback: myTblDataCallback,
         onChangeElementValueCallback: myonChangeElementValue,
         notUpdateCallback: "function:vjObjFunc(\"notUpdate\", \"" + objcls+ "\");",
         notToOpenArgs: this.notToOpenArgs,
-        isok: true
+        table: this
     });
     
-    //notToOpenArgs: {"editcontrol": ["rename", "del"], "load": [], "graphs":[]},
 
-    //remember all of the panels created that need to be attached
     this.arrayPanels=[this.tableViewer.actualBigPanel];
 
-    //these parse the metadata and the tqs files when they are loaded
     this.metadata_parser = function (params,data)
     {
         if (data.indexOf("error: ") != 0) {
@@ -2018,8 +1970,6 @@ function vjTableControlX2(viewer)
         this.tableViewer.actualBigPanel.onPanelOpen(objcls, 'general');
     };
 
-    //manages the panel that needs to be opened. If a filtering column is opened the appropriate fields need to be set to visible (string vs int)
-    //along with apropriate values need to be filled into the text boxes had values in them before loading
     this.onPanelOpen=function(view, name)
     {
         if (this.tableViewer.actualBigPanel.noPanelOpen && this.tableViewer.actualBigPanel.noPanelOpen.indexOf(name) > -1)
@@ -2049,9 +1999,11 @@ function vjTableControlX2(viewer)
         this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpression", "value", "");
         this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionNegationCheck", "value", 0);
         this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionCaseSens", "value", 0);
+        this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionFormulaCheck", "value", 0);
         this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFromExpression", "value", "");
         this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intToExpression", "value", "");
         this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intExclusiveExpression", "value", 0);
+        this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFormulaCheck", "value", 0);
         
         this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringColoration", "value", 0);
         this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringColorationRegCheck", "value", 0);
@@ -2065,7 +2017,6 @@ function vjTableControlX2(viewer)
         this.tableViewer.actualBigPanel.currentColor = undefined;
         this.tableViewer.actualBigPanel.currentType = undefined;
 
-        //this loop actually fills the text boxes with appopriate values
         for (var i = 0; i < tqs.length; i++)
         {
             if (name == "editcontrol")
@@ -2086,6 +2037,8 @@ function vjTableControlX2(viewer)
                             this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionNegationCheck", "value", 1);
                         if ( tqs[i].caseSensitive == true)
                             this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionCaseSens", "value", 1);
+                        if ( tqs[i].formula == true)
+                            this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionFormulaCheck", "value", 1);
                     }
                     else
                     {
@@ -2095,6 +2048,8 @@ function vjTableControlX2(viewer)
                             this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intToExpression", "value", tqs[i].arg.value.max);
                         if ( tqs[i].arg.value.exclusive == true)
                             this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intExclusiveExpression", "value", 1);
+                        if ( tqs[i].formula)
+                            this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFormulaCheck", "value", 1);
                     }
                 }
                 else if (tqs[i].op == "rowcategory" && (typeof(tqs[i].arg.value) == "string" && tqs[i].arg.value.indexOf(this.oldHeaderSelected) > 0))
@@ -2142,20 +2097,16 @@ function vjTableControlX2(viewer)
                         else
                         {
                             if (part1[0] == ">")
-                                this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intToColoration", "value", parseInt(part1.substring(2,space)));
-                            else
                                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFromColoration", "value", parseInt(part1.substring(2,space)));
+                            else
+                                this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intToColoration", "value", parseInt(part1.substring(2,space)));
                         }
-                        this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFiltcolor", "value", tqs[i].color);
+                            
                     }
                 }
                 else if (tqs[i].op == "sort" && tqs[i].col == this.oldHeaderSelected)
                 {
                     this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "sortType", "value", tqs[i].arg.reverse ? 2 : 1);
-                }
-                else
-                {
-
                 }
             }
             else if (name == tqs.op)
@@ -2185,7 +2136,6 @@ function vjTableControlX2(viewer)
              }
         }
 
-        //these 2 loops are responsible for coloring the rows and the columns appropriately depending of whether they apply to the panel opened
        
 
         if (!(!this.tableInfo.output||!this.tableInfo.output.columns.categories))
@@ -2202,7 +2152,6 @@ function vjTableControlX2(viewer)
         }
     };
 
-    //prepares the url approprately
     this.menuUpdateCallback=function(tempViewer, url)
     {
         var extCmd="";
@@ -2213,20 +2162,20 @@ function vjTableControlX2(viewer)
             url = url.replace(/%26cnt%3D[0-9]*/g,new_value_count);
         }
         
-        if (url == "static://")
-            url = "qpbg_tblqryx4://_.csv//";
+        if (url == "static:
+            url = "qpbg_tblqryx4:
         
         if (url.indexOf("objs=") >= 0 && (url.indexOf("objQry=") >=0 || url.indexOf("objList") >= 0))
         {
             if (latestCommand && latestCommand == "objs")
             {
-                url = "qpbg_tblqryx4://_.csv//";
+                url = "qpbg_tblqryx4:
                 url = urlExchangeParameter(url, "objQry", this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objQry").value);
                 latestCommand = "objQry";
             }
             else
             {
-                url = "qpbg_tblqryx4://_.csv//&cnt=100";
+                url = "qpbg_tblqryx4:
                 url = urlExchangeParameter(url, "objs", this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objs").value);
                 latestCommand = "objs";
             }
@@ -2250,7 +2199,6 @@ function vjTableControlX2(viewer)
                 var endB = actualTqsToUse.indexOf("]");
                 var actualElem = actualTqsToUse.substring (startB+2, endB);
                 
-                //will go through the last TQS element to see if anythng matches actualElem
                 var tblTqs = this.tableViewer.tqsObj;
                 if (tblTqs[tblTqs.length-1].arg[actualElem]){
                     var element = tblTqs[tblTqs.length-1].arg[actualElem];
@@ -2281,7 +2229,6 @@ function vjTableControlX2(viewer)
             this.tableViewer.tqsObj = this.tableViewer.tqsObj.concat (verarr(jsonAT));
         }
         
-        // this is a temporary solution to col and row category. For now, all of the categories will be moved to the end. later, we will come up with something else
         var last = this.tableViewer.tqsObj[this.tableViewer.tqsObj.length-1];
         for (var i = 0; i < this.tableViewer.tqsObj.length; i++)
         {
@@ -2299,19 +2246,23 @@ function vjTableControlX2(viewer)
         
 
         var ds=new vjDataSource();
-        if (this.tableViewer.actualBigPanel.plugins["load"]!=undefined && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objs").value && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objs").value.length && url == "static://"){
-            url = "qpbg_tblqryx4://_.csv//&cnt=100&cols=0-1000";
+        if (this.tableViewer.actualBigPanel.plugins["load"]!=undefined && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objs").value && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objs").value.length && url == "static:
+            url = "qpbg_tblqryx4:
             url = urlExchangeParameter(url, "objs", this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objs").value);
             latestCommand = "objs";
         }
-        else if (this.tableViewer.actualBigPanel.plugins["load"]!=undefined && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objQry") && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objQry").value && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objQry").value.length && url == "static://"){
-            url = "qpbg_tblqryx4://_.csv//&cols=0-1000";
+        else if (this.tableViewer.actualBigPanel.plugins["load"]!=undefined && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objQry") && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objQry").value && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objQry").value.length && url == "static:
+            url = "qpbg_tblqryx4:
             url = urlExchangeParameter(url, "objQry", this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("objQry").value);
             latestCommand = "objQry";
         }
 
         if (this.tableViewer.actualBigPanel.plugins["load"]!=undefined && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("tqsId").value && this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("tqsId").value.length){
             url = urlExchangeParameter(url, "tqsId", this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("tqsId").value);
+        }
+        var missingNonfatal = this.tableViewer.actualBigPanel.plugins["load"].tree.findByName("missingNonfatal").value;
+        if(missingNonfatal){
+            url = urlExchangeParameter(url, "missing-tbl", "nonfatal");
         }
         
         url = urlExchangeParameter(url, "extCmd", extCmd);
@@ -2340,7 +2291,7 @@ function vjTableControlX2(viewer)
         }
             
 
-        var tblName = url.split("//")[1];
+        var tblName = url.split("
         if (this.tableViewer.actualBigPanel.plugins["load"]!=undefined){
             var tblNode = this.tableViewer.actualBigPanel.plugins["load"].tree.findByPath("/tbl");
             if (tblNode.children.length) {
@@ -2355,9 +2306,9 @@ function vjTableControlX2(viewer)
             }
         }
         if (url.match(/^qpbg_[^:]+:\/\//)) {
-            var spl1 = url.split("://");
-            var spl2 = spl1.slice(1).join("://").split("//");
-            url = spl1[0] + "://" + tblName + "//" + spl2.slice(1).join("//");
+            var spl1 = url.split(":
+            var spl2 = spl1.slice(1).join(":
+            url = spl1[0] + ":
         } else {
             url = urlExchangeParameter(url, "tbl", tblName);
         }
@@ -2411,7 +2362,6 @@ function vjTableControlX2(viewer)
         if (this.tableViewer.actualBigPanel.plugins[currentPanel].toPrint)
             currentTqs.toPrint = this.tableViewer.actualBigPanel.plugins[currentPanel].toPrint;
         
-        //this.tableViewer.actualBigPanel.plugins[currentPanel].tree.findByName(this.tableViewer.actualBigPanel.plugins[currentPanel].rows[k].name).value
         for (var k = 0; k < this.tableViewer.actualBigPanel.plugins[currentPanel].rows.length; k++)
         {
             var type = this.tableViewer.actualBigPanel.plugins[currentPanel].rows[k].type;
@@ -2435,8 +2385,8 @@ function vjTableControlX2(viewer)
     
     this.onPartOfTable = function (obj)
     {
-         vjDS.add("Visible Part of table download", "dsTblPart", "static://");
-         vjDS["dsTblPart"].reload(vjDS[this.data].url,true,"download");
+         vjDS.add("Visible Part of table download", "dsTblPart", "static:
+         vjDS["dsTblPart"].reload(vjDS[this.tableViewer.data].url,true,"download");
     };
     
     this.notUpdate = function (viewer, panel)
@@ -2450,12 +2400,10 @@ function vjTableControlX2(viewer)
     {
         var nameTbl = window.prompt("Name of table to be downloaded: ","Tbl");
         
-        vjDS.add("Full table download", "dsTblFull", "static://");
+        vjDS.add("Full table download", "dsTblFull", "static:
         if (oldUrl == "")
         {
-            var fullUrl = vjDS[this.data].url;
-            //fullUrl = urlExchangeParameter(fullUrl, "cnt", "-");
-            // need to remove all count in plain text format and encoded format 
+            var fullUrl = vjDS[this.tableViewer.data].url;
             if (fullUrl.indexOf("%26cnt%3D") !=-1){
                 fullUrl = fullUrl.replace(/%26cnt%3D[0-9]*/g,"");
             }
@@ -2466,14 +2414,13 @@ function vjTableControlX2(viewer)
                 fullUrl = fullUrl.replace(/cnt=[0-9]*/g,"");
             }
 
-            var indx1 = fullUrl.indexOf("//");
+            var indx1 = fullUrl.indexOf("
             var short = fullUrl.substring(indx1 + 2);
-            var indx2 = short.indexOf("//");
+            var indx2 = short.indexOf("
             fullUrl = fullUrl.substring(0, indx1+2) + short.substring(0, indx2) + ":::" + nameTbl + ".csv" + short.substring(indx2);
             fullUrl = urlExchangeParameter(fullUrl, "cols", "-");
             fullUrl = urlExchangeParameter(fullUrl, "start", "-");
             
-            //fullUrl = urlExchangeParameter(fullUrl, "dsaveas", nameTbl + ".csv");
             vjDS["dsTblFull"].reload(fullUrl, true, "download");
             return;
         }
@@ -2483,11 +2430,9 @@ function vjTableControlX2(viewer)
         url = urlExchangeParameter(url, "start", "-");
         url = urlExchangeParameter(url, "cnt", "-");
         url = urlExchangeParameter(url, "cols", "-");
-        // url = urlExchangeParameter(url, "dsaveas", nameTbl + ".csv");
-        //url = url.replace(new RegExp('^(qpbg_[^:]+://([^/]*%0[aA][^/]*)?)//'), "$1:::"+nameTbl+".csv//");
-        var indx1 = url.indexOf("//");
+        var indx1 = url.indexOf("
         var short = url.substring(indx1 + 2);
-        var indx2 = short.indexOf("//");
+        var indx2 = short.indexOf("
         url = url.substring(0, indx1+2) + short.substring(0, indx2) + ":::" + nameTbl + ".csv" + short.substring(indx2);
         
         vjDS["dsTblFull"].reload(url, true, "download");
@@ -2497,12 +2442,10 @@ function vjTableControlX2(viewer)
     {
         var nameTbl = window.prompt("Name of table to be downloaded: ","Tbl");
         
-        vjDS.add("Full table download", "dsArchTbl", "static://");
+        vjDS.add("Full table download", "dsArchTbl", "static:
         if (oldUrl == "")
         {
-            var fullUrl = vjDS[this.data].url;
-            //fullUrl = urlExchangeParameter(fullUrl, "cnt", "-");
-            // need to remove all count in plain text format and encoded format
+            var fullUrl = vjDS[this.tableViewer.data].url;
             if (fullUrl.indexOf("%26cnt%3D") !=-1){
                 fullUrl = fullUrl.replace(/%26cnt%3D[0-9]*/g,"");
             }
@@ -2517,9 +2460,9 @@ function vjTableControlX2(viewer)
             fullUrl = urlExchangeParameter(fullUrl, "arch", "1");
             fullUrl = urlExchangeParameter(fullUrl, "arch_dstname", nameTbl + ".csv");
             
-            var indx1 = fullUrl.indexOf("//");
+            var indx1 = fullUrl.indexOf("
             var short = fullUrl.substring(indx1 + 2);
-            var indx2 = short.indexOf("//");
+            var indx2 = short.indexOf("
             fullUrl = fullUrl.substring(0, indx1+2) + short.substring(0, indx2) + ":::" + nameTbl + ".csv" + short.substring(indx2);
             fullUrl = urlExchangeParameter(fullUrl, "cols", "-");
             fullUrl = urlExchangeParameter(fullUrl, "start", "-");
@@ -2535,20 +2478,17 @@ function vjTableControlX2(viewer)
         url = urlExchangeParameter(url, "cols", "-");
         url = urlExchangeParameter(url, "arch", "1");
         url = urlExchangeParameter(url, "arch_dstname", nameTbl + ".csv");
-        //url = url.replace(new RegExp('^(qpbg_[^:]+://([^/]*%0[aA][^/]*)?)//'), "$1:::all.csv//");
         
-        var indx1 = url.indexOf("//");
+        var indx1 = url.indexOf("
         var short = url.substring(indx1 + 2);
-        var indx2 = short.indexOf("//");
+        var indx2 = short.indexOf("
         url = url.substring(0, indx1+2) + short.substring(0, indx2) + ":::" + nameTbl + ".csv" + short.substring(indx2);
                 
         vjDS["dsArchTbl"].reload(url, true);
     };
 
-    //this clears all table color selections that apply to this particular panel
     this.onClearAll = function (tempViewer, panelName)
     {
-        //remove all the coloring of rows and columns from the specified panel
         this.tableViewer.clearColors();
         this.tableViewer.tqsObj.push({op:"clearColors", panel: panelName});
 
@@ -2641,17 +2581,16 @@ function vjTableControlX2(viewer)
     };
     
 
-    //this builds a specified graph (line, pie, scatter, column)
     this.onGraph = function (tempViewer, category, graphType)
     {
-        //record what graph is being built on what subset
         var color;
         
         if (category == "generate")
         {
             var allCategs = this.tableViewer.arrayOfCategories;
             var colx = -1;
-            var coly = new Array();            
+            var coly = new Array();  
+            var colError = new Array();
             var toPushTqs = this.tableViewer.findInTqs(this.tableViewer.tqsObj, [["op", "basicGraph"]]);
             
             if (!toPushTqs || toPushTqs.length == 0)
@@ -2670,7 +2609,8 @@ function vjTableControlX2(viewer)
                         colx = this.tableViewer.tqsObj[i].arg.values[0];
                     else if (this.tableViewer.tqsObj[i].categ.indexOf("y") >=0)
                         coly = this.tableViewer.tqsObj[i].arg.values;
-                    
+                    else if (this.tableViewer.tqsObj[i].categ.indexOf("doError") >=0)
+                        colError = this.tableViewer.tqsObj[i].arg.values;
                 }
             }
 
@@ -2684,7 +2624,6 @@ function vjTableControlX2(viewer)
             {
                 var doHistogram=this.tableViewer.actualBigPanel.plugins["colgraph"].tree.findByName("doHistogram").value;
                 var doIntegral=this.tableViewer.actualBigPanel.plugins["colgraph"].tree.findByName("doIntegral").value;
-                 
                  
                 this.graph.data = [this.vData];
                 this.graph.name = "Column Graph";
@@ -2703,7 +2642,9 @@ function vjTableControlX2(viewer)
                         }];
 
                 for (var i = 0 ; i < coly.length; i++)
-                    this.graph.series.push({name:this.tableViewer.tblArr.hdr[coly[i]].name});
+                    this.graph.series.push({name:this.tableViewer.tblArr.hdr[coly[i]].name});                
+                for (var i = 0 ; i < colError.length; i++)
+                    this.graph.series.push({name:this.tableViewer.tblArr.hdr[colError[i]].name, role: "interval"});
 
                 this.graph.type = 'column';
                 this.graph.doHistogram=doHistogram;
@@ -2736,6 +2677,8 @@ function vjTableControlX2(viewer)
 
                 for (var i = 0 ; i < coly.length; i++)
                     this.graph.series.push({name:this.tableViewer.tblArr.hdr[coly[i]].name});
+                for (var i = 0 ; i < colError.length; i++)
+                    this.graph.series.push({name:this.tableViewer.tblArr.hdr[colError[i]].name, role: "interval"});
 
                 this.graph.type = 'line';
                 this.graph.doHistogram=doHistogram;
@@ -2787,6 +2730,8 @@ function vjTableControlX2(viewer)
 
                 for (var i = 0 ; i < coly.length; i++)
                     this.graph.series.push({name:this.tableViewer.tblArr.hdr[coly[i]].name});
+                for (var i = 0 ; i < colError.length; i++)
+                    this.graph.series.push({name:this.tableViewer.tblArr.hdr[colError[i]].name, role: "interval"});
 
                 this.graph.type = 'scatter';
                 this.graph.doHistogram=doHistogram;
@@ -2799,7 +2744,6 @@ function vjTableControlX2(viewer)
         }
 
         var viewerToUse;
-        //making the tables actually visible to the user
         if (graphType == "linegraph")
             viewerToUse = this.tableViewer.actualBigPanel.plugins["linegraph"];
         else if (graphType == "colgraph")
@@ -2813,18 +2757,17 @@ function vjTableControlX2(viewer)
             color = viewerToUse.tree.findByPath("/colorx");
         else if (category == "y")
             color = viewerToUse.tree.findByPath("/colory");
+        else if (category == "doError")
+            color = viewerToUse.tree.findByPath("/doError");
 
         this.tableViewer.actualBigPanel.startColorCategorizer(this.tableViewer.actualBigPanel, graphType, category+color.value, color.value, "color col");
     };
 
     this.onChgColType = function (tempViewer)
     {
-        //add a proper operation to the list.
-        //for now, this is not being handled on the back end. can remove this functionality (for now)
 
         var newType;
         this.editColumnControl.enumerate(function(param, node) { if(node.name == "colType") newType = node; });
-//        var ds=new vjDataSource();
 
         if (!newType.value)
             return;
@@ -2833,16 +2776,10 @@ function vjTableControlX2(viewer)
 
         if (newType == 1)
             toSet = "string";
-
-        //here, need to name sure on how to specify the new column type
-//        query = ds.escapeQueryLanguage("setincoltype(\""+this.oldHeaderSelected+"\",\""+toSet+"\");");
-
-        //this.prepareOut+=query;
     };
     
     this.onSort = function (tempViewer)
     {
-        //add a proper filter operation depending on what type of input it is
         var sortNode;
         sortNode = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/sort/sortType");
 
@@ -2853,10 +2790,8 @@ function vjTableControlX2(viewer)
         this.tableViewer.tqsObj.push(toPush);
     };
 
-    //filter for what types of expressions need to stay visible (technecally the name of the function is wrong)
     this.onExpHide = function (tempViewer)
     {
-        //add a proper filter operation depending on what type of input it is
         var newType,to,from;
         newType = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/stringExpressionBtn/stringExpression");
         to = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/intExpression/intToExpression");
@@ -2868,8 +2803,9 @@ function vjTableControlX2(viewer)
         if (this.tableInfo.output == undefined)
             return;
 
-        if ((this.tableInfo.output.columns.types[this.oldHeaderSelectedNum] == "string" && !newType.value) ||
-                (this.tableInfo.output.columns.types[this.oldHeaderSelectedNum] != "string" && (!to.value && ! from.value)))
+        var colType = this.tableInfo.output.columns.types[this.oldHeaderSelectedNum];
+        if (( (colType == "string" || colType == "object ID") && !newType.value) ||
+                ((colType != "string" && colType != "object ID") && (!to.value && ! from.value)))
             return;
 
         var toPush={op:"filter", arg:{col:{name:this.oldHeaderSelected}}, col:this.oldHeaderSelected};
@@ -2877,16 +2813,17 @@ function vjTableControlX2(viewer)
         
         var oldObj = this.findInTqsPos(this.tableViewer.tqsObj, [["op", "filter"], ["col", this.oldHeaderSelected]]);
 
-        if (this.tableInfo.output.columns.types[this.oldHeaderSelectedNum] == "string" && newType.value!= " ")
+        if ((colType == "string" || colType == "object ID") && newType.value!= " ")
         {
             toPush.arg.negate = false;
             toPush.arg.caseSensitive = false;
 
-            var negation="", regexp="", caseSens="";
+            var negation="", regexp="", caseSens="", formula = "";
             var neg = "!";
             negation = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/stringExpressionBtn/stringExpressionNegationCheck");
             regexp = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/stringExpressionBtn/stringExpressionRegCheck");
             caseSens = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/stringExpressionBtn/stringExpressionCaseSens");
+            formula = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/stringExpressionBtn/stringExpressionFormulaCheck");
             
             if (newType.value.indexOf(";") > 0){
                 var allVals = [];
@@ -2930,21 +2867,26 @@ function vjTableControlX2(viewer)
             if (negation.value)
             {
                 toPush.arg.negate = true;
-                toPrintStr += "not "
+                toPrintStr += "not ";
             }
             toPrintStr += newType.value;
             if(caseSens.value)
             {
                 toPush.arg.caseSensitive = true;
-                toPrintStr += " (case sensitive)"
+                toPrintStr += " (case sensitive)";
+            }
+            if(formula.value){
+                toPush.formula = true;
+                toPush.arg.method = "formula";
             }
         }
         else
         {
             var fromInt = parseFloat (from.value);
             var toInt = parseFloat (to.value);
-            var exclusive="";
+            var exclusive="", formula = "";
             exclusive = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/intExpression/intExclusiveExpression");
+            formula = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/intExpression/intFormulaCheck");
 
             toPush.arg.method = "range";
 
@@ -2953,8 +2895,6 @@ function vjTableControlX2(viewer)
                 toPush.arg.value = {min: fromInt, max: toInt};
                 toPrintStr += "from " + fromInt + " to " + toInt;
             }
-            else if (!toInt && !fromInt)
-                return;
             else if (!fromInt)
             {
                 toPush.arg.value = {max: toInt};
@@ -2971,6 +2911,11 @@ function vjTableControlX2(viewer)
                 toPush.arg.value.exclusive = true;
                 toPrintStr += " exclusively";
             }
+            if (formula.value)
+            {
+                toPush.arg.method = "formula";
+                toPush.arg.value = from.value ? from.value : to.value ;
+            }
 
         }
 
@@ -2981,10 +2926,8 @@ function vjTableControlX2(viewer)
             this.tableViewer.tqsObj.push (toPush);
     };
 
-    //add an appropriate command to the tqs in order to colorize appropriate rows
     this.onColorizeRows = function (tempViewer)
     {
-        //add a proper filter tag. with the correct color and the approprate options
 
         var newType,to,from;
         newType = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/stringColorationBtn/stringColoration");
@@ -2998,13 +2941,15 @@ function vjTableControlX2(viewer)
         var query;
         if (this.tableInfo.output == undefined)
             return;
-        if ((this.tableInfo.output.columns.types[this.oldHeaderSelectedNum] == "string" && !newType.value) ||
-                (this.tableInfo.output.columns.types[this.oldHeaderSelectedNum] != "string" && (!to.value && ! from.value)))
+        
+        var colType = this.tableInfo.output.columns.types[this.oldHeaderSelectedNum]; 
+        if (((colType == "string" || colType == "object ID") && !newType.value) ||
+                ((colType != "string" && colType != "object ID") && (!to.value && ! from.value)))
             return;
         
         var oldObj = this.findInTqsPos(this.tableViewer.tqsObj, [["op", "filter"], ["col", this.oldHeaderSelected]]);
 
-        if (this.tableInfo.output.columns.types[this.oldHeaderSelectedNum] == "string" && newType.value!= " ")
+        if ((colType == "string" || colType == "object ID") && newType.value!= " ")
         {
             clr = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/stringColorationBtn/stringFiltcolor");
             var negation="", regexp="";
@@ -3058,28 +3003,22 @@ function vjTableControlX2(viewer)
             this.tableViewer.tqsObj.push (toPush);
     };
 
-    //will add the appropriate tqs command in order to delete a certain column in the table
     this.onDeleteColumn=function(viewerCls)
     {
-        //add a proper option to the tqs, with the proper column name
 
         tempViewer = vjObj.find(viewerCls);
         var colName;
         var ds=new vjDataSource();
         var query;
-        //colName = viewer.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/rename");
         
 
         this.tableViewer.tqsObj.push({ op: "hidecol", arg: {col: {name: this.oldHeaderSelected}}, toPrint: "Deleted column " + this.oldHeaderSelected});
     };
 
-    //will rename a header of some column
     this.onRenameHeader=function(controlCls)
     {
-        //add proper operation here, to rename the current column
 
         var control = vjObj.find(controlCls);
-        //control.tableViewer.tblArr.hdr
         var rename;
         rename = this.tableViewer.actualBigPanel.plugins["editcontrol"].tree.findByPath("/rename");
 
@@ -3089,19 +3028,16 @@ function vjTableControlX2(viewer)
         this.tableViewer.tqsObj.push({ op: "renamecol", arg: { col: {name: this.oldHeaderSelected}, to: rename.value }, toPrint: "Renamed column " + this.oldHeaderSelected + " to " + rename.value});
     };
 
-    //will add a new column to the table based on the formula specified
     this.onAddNewColumn = function (viewerCls)
     {
         tempViewer = vjObj.find(viewerCls);
         var colnode, fomulaNode, colType="";
         colnode = this.tableViewer.actualBigPanel.plugins["newcontrol"].tree.findByPath("/newname");
         formulaNode = this.tableViewer.actualBigPanel.plugins["newcontrol"].tree.findByPath("/newformula");
-        //colType = this.tableViewer.actualBigPanel.plugins["newcontrol"].tree.findByPath("/colType");
 
         this.tableViewer.tqsObj.push({ op: "appendcol", arg: { name: colnode.value, formula: formulaNode.value }, toPrint: "Added new column " + "\"" + colnode.value + "\" based on formula " + formulaNode.value});
     };
 
-    //overrides on click cell. if a header is selected, them the filtering panel will be opened
     this.onClickCell=function(viewer, node, ir, ic)
     {
         if(ir<0)
@@ -3112,9 +3048,8 @@ function vjTableControlX2(viewer)
             this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "filterOnCol", "title", "Working with column " + node.name);
             this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "colType", "hidden", false);
 
-            //here might need to change what is actually written in the text boxes of what is selected
 
-            if (this.tableInfo.output.columns.types[ic] == "string" )
+            if (this.tableInfo.output.columns.types[ic] == "string" || this.tableInfo.output.columns.types[ic] == "object ID")
             {
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpression", "hidden", false);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionBtn", "hidden", false);
@@ -3125,9 +3060,9 @@ function vjTableControlX2(viewer)
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionNegationCheck", "hidden", false);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionRegCheck", "hidden", false);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionCaseSens", "hidden", false);
+                this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionFormulaCheck", "hidden", false);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringColorationNegationCheck", "hidden", false);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringColorationRegCheck", "hidden", false);
-                //this.editColumnControl.tree.findByPath("/intensity").readonly=false;
 
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intToExpression", "hidden", true);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFromExpression", "hidden", true);
@@ -3138,6 +3073,7 @@ function vjTableControlX2(viewer)
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intExclusiveColor", "hidden", true);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFiltcolor", "hidden", true);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intExclusiveExpression", "hidden", true);
+                this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFormulaCheck", "hidden", true);
             }
             else if ((this.tableInfo.output.columns.types[ic] == "real" || this.tableInfo.output.columns.types[ic] == "integer"))
             {
@@ -3151,7 +3087,7 @@ function vjTableControlX2(viewer)
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intExclusiveExpression", "hidden", false);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFiltcolor", "hidden", false);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFiltcolor", "readonly", false);
-                //this.editColumnControl.tree.findByPath("/intensity").hidden=false;
+                this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "intFormulaCheck", "hidden", false);
 
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpression", "hidden", true);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionBtn", "hidden", true);
@@ -3163,7 +3099,7 @@ function vjTableControlX2(viewer)
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionCaseSens", "hidden", true);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringColorationNegationCheck", "hidden", true);
                 this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringColorationRegCheck", "hidden", true);
-                //this.editColumnControl.tree.findByPath("/intensity").readonly=true;
+                this.tableViewer.actualBigPanel.applyChangeRow ("editcontrol", "stringExpressionFormulaCheck", "hidden", true);
             }
 
             this.tableViewer.actualBigPanel.plugins["editcontrol"].rows[2].value=node.name;
@@ -3174,7 +3110,6 @@ function vjTableControlX2(viewer)
             this.tableViewer.actualBigPanel.onPanelOpen(viewer, "editcontrol");
         }
 
-        //will also update the total number of rows and columns currently selected under this pannel
         if (!(!this.selections.tree))
         {
             this.selections.tree.findByPath("/rows").title = this.tableViewer.rowsTotalSelected + " rows currently selected";
@@ -3186,7 +3121,6 @@ function vjTableControlX2(viewer)
             this.onClickCellCallback(viewer, node, ir, ic);
     };
     
-    //creates the panel with total number of rows and columns selected
     this.selections= new vjPanelView({
         data: ["dsVoid", viewer.data ],
         iconSize: 16,
@@ -3202,10 +3136,7 @@ function vjTableControlX2(viewer)
     });
 
 
-    //add all of the specified fields to the columns specified (by whoever creates this controller)
    
     this.arrayPanels=this.arrayPanels.concat([this.selections, this.tableViewer]);
-    //return this.arrayPanels.concat([this.selections, this.graph, this.tableViewer]);
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjTableViewX2.js"

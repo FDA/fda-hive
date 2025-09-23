@@ -37,7 +37,7 @@
 namespace slib 
 { 
 
-    class sSynonym { // synonym table 
+    class sSynonym {
 
     private:
         sMex _buf;
@@ -45,7 +45,7 @@ namespace slib
     public:    
         sSynonym() {}
 
-        void set(const char * data00, idx datasize, const char * dicOn00, sString::eCase caseLOUP=sString::eCaseNone) // the same as set() but the name of the variable is the format string 
+        void set(const char * data00, idx datasize, const char * dicOn00, sString::eCase caseLOUP=sString::eCaseNone)
         {
             sStr tmp;
             idx ofs=_buf.pos();

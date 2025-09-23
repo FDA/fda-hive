@@ -32,7 +32,7 @@ DROP TABLE IF EXISTS `UPObjMax`;
 
 CREATE TABLE `UPObjMax` (
   `objID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `cdate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `cdate` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`objID`),
   KEY `cdate_idx` (`cdate`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

@@ -69,9 +69,70 @@ namespace slib {
 
             static const char * contentTypeByExt(const char * flnm = 0);
 
-            static void outFormData(sVar * form, const char * formflnm = 0, bool truncate = false); // this is to debug the list of variable value pairs in HTML
-            static FILE * grabInData(FILE * readfrom, const char * * envp, const char * postFile = 0); // this is to debug the list of variable value pairs in HTML
+            struct sFileData
+            {
+                idx index;
+                idx size;
+                idx written;
+                idx lastMod;
+
+                sFileData()
+                    : index(-1), size(-1), written(-1), lastMod(-1)
+                {
+                }
+            };
+
+            struct sPartPair
+            {
+                typedef sVec<sPartPair> TParts;
+                udx start;
+                udx end;
+
+                sPartPair() : start(0), end(0) {}
+                sPartPair(udx s, udx e) : start(s), end(e) {}
+
+                bool overlaps(const sPartPair &pair) const
+                {
+                    return start <= pair.end && pair.start <= end;
+                }
+                bool neighbour(const sPartPair &pair) const
+                {
+                    return start == pair.end + 1 || pair.start == end + 1;
+                }
+                bool merge(const sPartPair &pair)
+                {
+                    if (overlaps(pair) || neighbour(pair))
+                    {
+                        start = sMin<udx>(start, pair.start);
+                        end = sMax<udx>(end, pair.end);
+                        return true;
+                    }
+                    return false;
+                }
+                bool operator<(const sPartPair &pair) const
+                {
+                    return end < pair.start;
+                }
+                bool operator>(const sPartPair &pair) const
+                {
+                    return start > pair.end;
+                }
+                static idx comparator(void *param, void *array, idx i1, idx i2)
+                {
+                    idx res = ((sPartPair *)array)[i1].start - ((sPartPair *)array)[i2].start;
+                    if (!res)
+                    {
+                        res = i1 - i2;
+                    }
+                    return res;
+                }
+            };
+
+            static sPartPair::TParts parseRange(char * rangeHeader,udx max = sUdxMax);
+
+            static void outFormData(sVar * form, const char * formflnm = 0, bool truncate = false);
+            static FILE * grabInData(FILE * readfrom, const char * * envp, const char * postFile = 0);
     };
 
 }
-#endif // sLib_std_html_hpp
+#endif 

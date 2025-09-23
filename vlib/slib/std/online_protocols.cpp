@@ -40,26 +40,22 @@ idx sConClient::connect(const char * strHostName,idx nHostPort, idx timeOut)
     tmOut=timeOut;
     _sockLib.init();
 
-    struct hostent* pHostInfo;   /* holds info about a machine */
-    struct sockaddr_in Address;  /* Internet socket address stuct */
+    struct hostent* pHostInfo;
+    struct sockaddr_in Address;
     long nHostAddress;
     
-    // make a socket
     hSocket=(idx)socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);if(hSocket == SOCKET_ERROR)return err();
 
-    // set options
     timeval t;t.tv_sec=(long)timeOut; t.tv_usec=0;
     if(setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&t, sizeof(t))==SOCKET_ERROR) return err();
 
 
-    // get IP address from name and fill address struct 
     pHostInfo=gethostbyname(strHostName);if(!pHostInfo)return err();
     memcpy(&nHostAddress,pHostInfo->h_addr,pHostInfo->h_length);
     Address.sin_addr.s_addr=nHostAddress; 
     Address.sin_port=htons((u_short)nHostPort);
     Address.sin_family=AF_INET;
     
-    /* connect to host */
     if(::connect(hSocket,(struct sockaddr*)&Address,sizeof(Address))== SOCKET_ERROR)return err();
     
     
@@ -67,17 +63,7 @@ idx sConClient::connect(const char * strHostName,idx nHostPort, idx timeOut)
 }
 
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/                                          _/
-_/  ACTION FUNCTIONS                        _/
-_/                                          _/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
-/* 
-        downloads HTTP text from <urlText> with CGI/POST <data> until <timeOut> .
-*/
 
 void * sConClient::getHTTP(sMex * http, const char * urlText,const char * data, idx datalen, idx timeout, idx allowreloc)
 {
@@ -86,54 +72,47 @@ void * sConClient::getHTTP(sMex * http, const char * urlText,const char * data, 
     idx pos=http->pos();
     if(!urlText)return 0;
 
-    // get the url and the port number 
     const char * p=strstr(urlText,"http://");if(!p)p=urlText;else p+=7;
     sString::copyUntil(&url,p,0,":/");
     const char * fileB=strchr(p,'/');if(!fileB)fileB="";else ++fileB;
-    p=sString::searchSubstring(p,0,":",1,"?",false);if(p)portN=atoi(p+1); //  strchr(p,':')
+    p=sString::searchSubstring(p,0,":",1,"?",false);if(p)portN=atoi(p+1);
     if(!data)data="";
 
 
-    //vFile cgiM("tmp.tmp");cgiM.cut(0);
     sStr cgiM;
     
-    if(!strncmp(data,"POSTMULTI",9)){data+=10; /* if not a post method */
+    if(!strncmp(data,"POSTMULTI",9)){data+=10;
         sStr boundary;sString::copyUntil(&boundary,data,0,"\r\r\n");
         cgiM.printf(
             "POST /%s HTTP/1.0\r\n"
             "Accept: text/html, text/plain\r\n"
-            //"Content-Type: application/x-www-form-urlencoded\r\n"
             "Content-Type: multipart/form-data; boundary=%s\r\n"
             "Host: %s:%" DEC "\r\n"
             "Content-Length: %" DEC "\r\n"
-            //"Connection: Keep-Alive\r\n"
             "\r\n"
             ,fileB,boundary.ptr(),url.ptr(),portN,datalen-10);
         cgiM.add(data,datalen-10);
         cgiM.add("\r\n\r\n",2);
 
     }
-    else if(!strncmp(data,"POST",4)){data+=5; /* if not a post method */
+    else if(!strncmp(data,"POST",4)){data+=5;
         cgiM.printf(
             "POST /%s HTTP/1.0\r\n"
             "Accept: text/html, text/plain\r\n"
-            //"User-Agent: Mozilla/4.0 (compatible; vLib)\r\n"
             "Content-Type: application/x-www-form-urlencoded\r\n"
             "Host: %s:%" DEC "\r\n"
             "Content-Length: %" DEC "\r\n"
-            //"Connection: Keep-Alive\r\n"
             "\r\n"
             ,fileB,url.ptr(),portN,datalen-5);
         cgiM.add(data,datalen-5);
         cgiM.add("\r\n\r\n",2);
     }
     else {if(!strncmp(data,"GET",4))data+=4;
-        cgiM.printf(   /* get request */
+        cgiM.printf(
             "GET /%s%s%s HTTP/1.0\r\n"
             "Accept: text/html, text/plain\r\n"
             "User-Agent: vLib\r\n"
             "Host: %s:%" DEC "\r\n"
-            //"Connection: Keep-Alive\r\n"
             "\r\n"
             ,fileB,( data && *data) ? "?": "" , data,url.ptr(),portN);
     }
@@ -155,20 +134,15 @@ void * sConClient::getHTTP(sMex * http, const char * urlText,const char * data, 
         sString::cleanEnds((char *)reloc.ptr(), reloc.pos(),sString_symbolsBlank,true);
         if(sLen(reloc.ptr())){
             http->cut(pos);
-            //url.printf("%s",reloc.ptr()); 
             return sConClient::getHTTP(http, (const char *)reloc.ptr(),data, datalen, timeout, allowreloc-1);
 
         } 
     }
-    //vMem::Del(srcM);
 
     return http->ptr();
 }
 
 
-/*
-        sends mail from <from> to <to>  with content <content>.
-*/
 
 idx sConClient::sendMail(sStr * responseout,  const char * server, idx portN, const char * from, const char * recipients, const char * to, const char * cc,const char * subject, const char * content, idx timeout)
 {

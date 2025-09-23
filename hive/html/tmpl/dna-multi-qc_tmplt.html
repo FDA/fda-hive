@@ -9,72 +9,45 @@
 </script>
 
 <script src="js-obj-new/svc-dna-multi-qc.js"></script>
-<script type="application/javascript" language="JavaScript1.1" src="js/vjTableViewX2.js" ></script>
-<script  src='js/vjPluggableToolbar.js'> </script>
+<script type="application/javascript" language="JavaScript1.1" src="js/vjTableViewX2.js"></script>
+<script src='js/vjPluggableToolbar.js'> </script>
 <script type="text/javascript" language="JavaScript1.1" src="js/vjGoogleGraphView.js"></script>
 
 <script>
-    setLocationTitle("multi-qc: HIVE");
+    setLocationTitle("NGS Quality Controls Between Files: HIVE");
 
     var thisProcessID = docLocValue("id");
     if (!thisProcessID)
         thisProcessID = 0;
     var process_svc = "svc-dna-multi-qc";
     var process_qpsvc = "dna-multi-qc";
-    
-    //vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files="+vjDS.escapeQueryLanguage("*.{out,csv,vcf,json,png,tsv,txt,fasta,fastq,fa,idx}")+"&mode=csv&prop=none&ids="+thisProcessID, 0, "id,name,path,value");
-    //vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files="+vjDS.escapeQueryLanguage("*.{out,csv,vcf,json,png,tsv,txt,fasta,fastq,fa,idx}")+"&mode=csv&prop=none&ids="+thisProcessID, 0, "id,name,path,value");
 
-    var algoProcess = new valgoProcess(thisProcessID, process_qpsvc,
-            process_svc);
-    //algoProcess.callbackLoaded = inputLoaded;
-    algoProcess.visibleParameters = [ "name", "query_objId" ];
+    vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files=regex:.csv$&files_size=true&mode=csv&prop=&ids="+thisProcessID, 0, "id,name,path,value,size");
+
+    var algoProcess = new valgoProcess(thisProcessID, process_qpsvc, process_svc);
+    algoProcess.visibleParameters = ["name", "query_objId"];
 
     algoProcess.autoexpand = thisProcessID.length ? "all" : 1;
     algoProcess.noResultViewers = true;
 
     algoProcess.submitButtonName = "SUBMIT";
-    //var process_cmdMode = docLocValue("cmdMode");
     var process_initialPresets = {};
     var thisProcessID = 0;
 
     function isMode(mode) {
-        return (!process_cmdMode || (process_cmdMode.indexOf("-" + mode) == -1 && process_cmdMode
-                .indexOf(mode) != 0)) ? false : true;
+        return (!process_cmdMode || (process_cmdMode.indexOf("-" + mode) == -1 && process_cmdMode.indexOf(mode) != 0)) ? false : true;
     }
 
-    algoProcess.inputLoaded = function(viewer) {
-
+    algoProcess.inputLoaded = function (viewer) {
     }
-    algoProcess.doneComputing = function(viewer, reqid, stat) {
-        thisProcessID = docLocValue("id");
+    algoProcess.noResultViewers = false;
 
-        if (stat >= 5) {
-            var nam = algoProcess.getValue("name"); // this is how you get the variables from the input form in JS
-
-            currentCompletionState = "computed";
-            algoWidgetObj.iterateAlgoJSON(algoWidgetObj.optionsForPage.subTabs,
-                    "algoMenu");
-
-            // this is how you call the Hive Object to construct you result viewers
-            //
-            var node = {
-                _type : 'svc-dna-multi-qc', // your back-end service name
-                id : docLocValue("id"), // read the id from the URL
-            };
-            // for the next line, need to define the hiveobject fullview
-            var simECG = vjHO.fullview(node._type, node,
-                    $.getAlgoViewManager().options.jsonForPage.subTabs.results);
-            return true;
-        }
-    }
-
-    $(document).ready(function() {
+    gInitList += "multiQCInit();";
+    function multiQCInit() {
         globalAlgo = $('#mainAlgoArea').algoview({
-            algoObj : algoProcess,
-            svcType : "svc-dna-multi-qc",
-            algoTitle : "MultiQC"
+            algoObj: algoProcess,
+            svcType: "svc-dna-multi-qc",
+            algoTitle: "NGS Quality Controls Between Files"
         });
-    });
+    };
 </script>
-

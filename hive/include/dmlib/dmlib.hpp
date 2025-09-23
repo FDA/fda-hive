@@ -69,22 +69,18 @@ class dmLib
                 File();
                 bool init(const char * path, const char * name);
 
-                // original file name
                 const char * const name(sStr * buf = 0) const
                 {
                     return _get(_name, buf);
                 }
-                // original file path + name with in archive
                 const char * const path(sStr * buf = 0) const
                 {
                     return _get(_path, buf);
                 }
-                // original directory
                 const char * const dir(sStr * buf = 0) const
                 {
                     return _get(_dir, buf);
                 }
-                // physical location on disk with safe name
                 const char * const location(sStr * buf = 0) const
                 {
                     return _get(_location, buf);
@@ -110,18 +106,15 @@ class dmLib
                     return val;
                 }
 
-                sStr _location; // safe path
-                sStr _path; // original path
-                sStr _dir; // part of path w/o filename
-                const char * _name; // points to within _path
+                sStr _location;
+                sStr _path;
+                sStr _dir;
+                const char * _name;
                 idx _size;
                 char _md5[33];
                 idx _id;
         };
 
-        /**
-         *  max_depth - how many levels of unpacking is allowed
-         */
         dmLib(udx max_unpack_depth = ~0, udx max_collect_depth = ~0)
             : _max_unpack_depth(max_unpack_depth), _max_collect_depth(max_collect_depth), _unpack_depth(0), _collect_depth(0)
         {
@@ -144,35 +137,11 @@ class dmLib
             return !curr || (curr->_id > _list.dim());
         }
 
-        /**
-         * callback function for progress report
-         * return false to stop the process
-         */
         typedef idx (*callbackFunc)(void * param, idx FSSize);
 
-        /**
-         * recursive unpack of recognized by extension archives, compressed files, etc
-         * path - location to process, file or directory
-         * name - readable location name
-         * log - detailed log
-         * msg - user friendly messages
-         */
         bool unpack(const char * path, const char * name = 0, sStr * log = 0, sStr * msg = 0, callbackFunc callb = 0, void * callbParam = 0, idx callbsecs = 10);
-        /**
-         * erases all temporary objects with in path
-         */
         static void clean(const char * path);
 
-        /**
-         * Compresses items identified by srcPath to dstPath
-         * srcPath - file or directory
-         * dstPath - if directory, result will be placed here with name of srcPath + proper extension
-         *           otherwise tar archive will be created with name of dstPath + proper extension
-         * log - detailed log
-         * msg - user friendly messages
-         * name - contains resulting file path and name + proper extension
-         * returns true on success
-         */
         enum EPackAlgo {
             eUnspecified = 0,
             eNone,
@@ -182,17 +151,11 @@ class dmLib
             eZip,
         };
 
-        /**
-         * return count of file in archive, <0 if error
-         */
         static idx arcDim(const char * path);
         static bool pack(const char * srcPath, sStr & dstPath, EPackAlgo algo, sStr * log = 0, sStr * msg = 0, sStr * name = 0, callbackFunc callb = 0, void * callbParam = 0, idx callbSecs = 10, bool deletePackedFiles = false, bool packAllFiles = false);
 
     protected:
 
-        /**
-         * return false on abort
-         */
         bool collect(const char * path, const char * meta, sStr & log, sStr & msg, idx level, callbackFunc callb, void * callbParam, idx callbsecs);
 
         const udx _max_unpack_depth, _max_collect_depth;
@@ -201,4 +164,4 @@ class dmLib
 
 };
 
-#endif // sDmLib_hpp
+#endif 

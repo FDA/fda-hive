@@ -35,7 +35,8 @@
 #include <slib/std/file.hpp>
 #include <violin/violin.hpp>
 #include <qlib/QPrideProc.hpp>
-#include <dmlib/dmlib.hpp>
+#include <xlib/dmlib.hpp>
+#include <violin/alignparse.hpp>
 
 using namespace slib;
 
@@ -51,23 +52,25 @@ class DnaAlignX
             eIndexerMessage_Aborted
         } EIndexerMessage;
 
-        DnaAlignX(sQPrideProc & qprideproc)
-            : qp(qprideproc), subjectIdxLockId(0), flagSet(sBioseqAlignment::fAlignForward), subbiomode(sBioseq::eBioModeShort), qrybiomode(sBioseq::eBioModeShort), separateHiveseqs(false), qryInFastQ(false), keepOriginalSubId(false),
+        DnaAlignX(sQPrideProc & qprideproc, sUsrObj * algo)
+            : qp(qprideproc), subjectIdxLockId(0), flagSet(sBioseqAlignment::fAlignForward), subbiomode(sBioseq::eBioModeShort),
+              qrybiomode(sBioseq::eBioModeShort), separateHiveseqs(false), algorithm(algo), qryInFastQ(false), keepOriginalSubId(false),
               keepOriginalQryId(false), keepRefNs(true), scoreFilter(0), seedSize(28), evalueFilter(0), minMatchLength(75),
-               maxMissQueryPercent(15), frmProduceRandomReadsForNT(false), Sub(qp.user), Qry(qp.user)
+               maxMissQueryPercent(15), frmProduceRandomReadsForNT(false), isMinMatchPercentage(false), Sub(qp.user), Qry(qp.user)
         {
         }
         virtual ~DnaAlignX();
 
+        inline const char * getAlgorithmName()
+        {
+            return algorithm ? algorithm->propGet("name") : 0;
+        }
+
         virtual void readParams(sVar * pForm, sUsr * user, sVec<sUsrProc> & objs);
+        bool evalScriptTmplt(const sHiveId & id, sUsrQueryEngine & ql, sStr & scriptName, const idx cnt);
 
         EIndexerMessage IndexSubject(sStr & subjectIndexDir);
 
-        //! Sort and uniquify subject IDs
-        /*! \param buf string from formValue with subject IDs like "foo.1.2" or "1.2" or "1" or "http://example.com/hive/1.2";
-         *  \param subIdList the container to return the vector of sorted and unique sHiveIds
-         *  \returns true if there was a change in the list of subject HiveIds and false if HiveIds
-         *          were already sorted and unique */
         inline bool subjectSort(sStr * buf = 0, sVec<sHiveId> * subIdList = 0)
         {
             static sStr lbuf;
@@ -78,7 +81,7 @@ class DnaAlignX
                 qp.formValue("subject", buf);
             }
 
-            sVec<sHiveId> lsubIdList, suSubIdList /*sort unique*/;
+            sVec<sHiveId> lsubIdList, suSubIdList;
             if( !subIdList ) {
                 subIdList = &suSubIdList;
             }
@@ -134,12 +137,12 @@ class DnaAlignX
 
         inline udx updateSubjectProp(void)
         {
-            if( !qp.objs.dim() )
-                return 0;
-            sUsrObj & o = qp.objs[0];
-            sVec<sHiveId> subIdList;
-            if( subjectSort(0, &subIdList) ) {
-                return o.propSetHiveIds("subject", subIdList);
+            if( qp.objs.dim() ) {
+                sUsrObj & o = qp.objs[0];
+                sVec<sHiveId> subIdList;
+                if( subjectSort(0, &subIdList) ) {
+                    return o.propSetHiveIds("subject", subIdList);
+                }
             }
             return 0;
         }
@@ -152,7 +155,6 @@ class DnaAlignX
 
             return qp.cfgInt(0, "dna-alignx.singleSubjectIndexPersistent", 1) > 0;
         }
-        // confirms subject is applicable for algorithm
         virtual bool subjectVerify(const char * tax, sStr * err)
         {
             if( tax && tax[0] && sString::compareChoice("NT", tax, 0, true, 0, true) != -1 ) {
@@ -165,35 +167,35 @@ class DnaAlignX
         }
         virtual DnaAlignX::EIndexerMessage subjectDump(const char * subjectPath, idx start = 0, idx cnt = 0);
 
-        virtual const char * queryGet(sStr * buf = 0)
+        virtual const char * queryGet(sStr * buf = 0, bool get_pair = false)
         {
             static sStr lbuf;
-            return qp.formValue("query", buf ? buf : &lbuf);
+            return qp.formValue(get_pair?"query_paired":"query", buf ? buf : &lbuf);
         }
 
-        EIndexerMessage queryIndexChunk(sStr & queryFiles, idx qStart, idx qEnd);
+        EIndexerMessage queryIndexChunk(sStr & queryFiles, idx qStart, idx qEnd, bool index_pair = false);
 
         virtual bool queryVerify(sDic<sBioseq> * qry, sStr * err)
         {
             return true;
         }
 
-        virtual EIndexerMessage Align(const char * query);
+        virtual bool isPairedEndMandatory()
+        {
+            return false;
+        }
 
-        virtual idx ParseAlignment(const idx keepAllMatches, sDic<idx> * unalignedList);
+        virtual EIndexerMessage Align(const char * query, const char * query_pair = 0);
 
-        //! Returns the extension of the output file for the aligner selected.
-        /*! \returns Pointer to extension.
-         */
+        virtual idx ParseAlignment(const idx keepAllMatches, sDic<idx> * unalignedList, FileAlParser * alignParser);
+
         virtual const char * resultExtension(void) const = 0;
-
-        virtual idx fillAlignmentMap(sFil & fl, sVec<idx> & alignmentMap, sDic<idx> * unalignedList) = 0;
 
         virtual bool getPathsForFinalProcessing(sStr & paths00)
         {
             return false;
         }
-        idx FinalProcessing();
+        idx FinalProcessing(FileAlParser * alignParser);
 
     protected:
 
@@ -204,35 +206,42 @@ class DnaAlignX
         idx subjectIdxLockId, flagSet;
         sBioseq::EBioMode subbiomode, qrybiomode;
         bool separateHiveseqs;
-        sStr algorithm;
+        sUsrObj * algorithm;
         bool qryInFastQ, keepOriginalSubId, keepOriginalQryId, keepRefNs;
         idx scoreFilter, seedSize;
         sStr subjectFile00;
-        sStr additionalArguments, additionalCommandLineParameters;
-        sStr resourceRoot, referenceAnnotationFile;
+        sStr scriptTemplate;
+        sStr referenceAnnotationFile;
         real evalueFilter;
         idx minMatchLength, maxMissQueryPercent;
-        bool frmProduceRandomReadsForNT;
+        bool frmProduceRandomReadsForNT,isMinMatchPercentage;
         sHiveseq Sub, Qry;
         sDic<sHiveseq> QryList;
 
-        const char * const getWorkDir(bool algo = false)
+        const char * const getWorkDir(sUsrQueryEngine * ql, const bool no_algo = false)
         {
             static sStr workDir;
             workDir.cut0cut(0);
             qp.cfgStr(&workDir, 0, "qm.tempDirectory");
             if( workDir ) {
-                workDir.printf("%s-qry-%" DEC "/%s", qp.svc.name, qp.reqId, algo ? algorithm.ptr() : "");
+                workDir.printf("%" DEC, qp.reqId);
+                sDir::makeDir(workDir.ptr());
+                if( !no_algo ) {
+                    workDir.printf("/%s", getAlgorithmName());
+                }
+                if( ql ) {
+                    ql->registerBuiltinStringPtr("tempWorkDir", &workDir, true);
+                }
             }
-            return workDir;
+            return workDir.ptr();
         }
 };
 
 class DnaAlignXBlastOutput: public DnaAlignX
 {
     public:
-        DnaAlignXBlastOutput(sQPrideProc & qprideproc)
-            : DnaAlignX(qprideproc), blastMode(sBioAlBlast::eBlastStandardOut)
+        DnaAlignXBlastOutput(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignX(qprideproc, algo), blastMode(sBioAlBlast::eBlastStandardOut)
         {
             qp.formValue("output_fmt", &output_format, "blast_out");
         }
@@ -244,25 +253,6 @@ class DnaAlignXBlastOutput: public DnaAlignX
             return output_format;
         }
 
-        idx fillAlignmentMap(sFil & fl, sVec<idx> & alignmentMap, sDic<idx> * unalignedList)
-        {
-            idx cntFound = 0;
-            const char * ext = resultExtension();
-            if( strcmp(ext, "tsv") == 0 ) {
-                cntFound = fl.recCnt(true);
-            } else if( strcmp(ext, "blast_out") == 0 ) {
-                // Default blast_out output files
-                sIO log;
-                cntFound = sBioAlBlast::SSSParseAlignment(&log, fl.ptr(), fl.length(), &alignmentMap, scoreFilter, minMatchLength, maxMissQueryPercent, idMap.dim() ? &idMap : 0, 0, 0, blastMode, unalignedList);
-                if( log ) {
-                    qp.logOut(qp.eQPLogType_Debug, "%s", log.ptr());
-                }
-            } else {
-                qp.reqSetInfo(qp.reqId, qp.eQPInfoLevel_Warning, "Unknown output format specified '%s'", ext);
-                cntFound = -1;
-            }
-            return cntFound;
-        }
         virtual bool subjectVerify(const char * tax, sStr * err)
         {
             if( tax && tax[0] && sString::compareChoice("NT", tax, 0, true, 0, true) != -1 ) {
@@ -285,8 +275,8 @@ class DnaAlignXBlastOutput: public DnaAlignX
 class DnaAlignXSAMOutput: public DnaAlignX
 {
     public:
-        DnaAlignXSAMOutput(sQPrideProc & qprideproc)
-            : DnaAlignX(qprideproc)
+        DnaAlignXSAMOutput(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignX(qprideproc, algo)
         {
         }
         virtual ~DnaAlignXSAMOutput()
@@ -296,32 +286,26 @@ class DnaAlignXSAMOutput: public DnaAlignX
         {
             return "sam";
         }
-        idx fillAlignmentMap(sFil & fl, sVec<idx> & alignmentMap, sDic<idx> * unalignedList)
-        {
-            return sVioseq2::convertSAMintoAlignmentMap(fl.ptr(), fl.length(), &alignmentMap, idMap.dim() ? &idMap : 0, minMatchLength, maxMissQueryPercent);
-        }
 
 };
 
 class DnaAlignXBlastProteinPackager: public DnaAlignXBlastOutput
 {
     public:
-        DnaAlignXBlastProteinPackager(sQPrideProc & qprideproc)
-            : DnaAlignXBlastOutput(qprideproc)
+        DnaAlignXBlastProteinPackager(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXBlastOutput(qprideproc, algo)
         {
         }
         virtual ~DnaAlignXBlastProteinPackager()
         {
         }
-        virtual idx ParseAlignment(const idx keepAllMatches, sDic<idx> * unalignedList)
+        virtual idx ParseAlignment(const idx keepAllMatches, sDic<idx> * unalignedList, FileAlParser * alignParser)
         {
-            const idx ret = DnaAlignXBlastOutput::ParseAlignment(keepAllMatches, unalignedList);
+            const idx ret = DnaAlignXBlastOutput::ParseAlignment(keepAllMatches, unalignedList, alignParser);
 
             idx cnt = 0;
             for(const char * p = subjectFile00; p; p = sString::next00(p), ++cnt) {
-                // Add check to see if there is any regex if not then skip; to avoid database call if no regex
-                // look for files with specific extension in outPath which has result file prefix in it like /tmp/blastx
-                sStr dst, src("%s%" DEC ".%s", getWorkDir(true), cnt, resultExtension()); // ex: blastx123.blast_out
+                sStr dst, src("%s%" DEC ".%s", getWorkDir(0), cnt, resultExtension());
                 sFilePath flnm(src, "req-%%flnm");
                 if( !qp.reqAddFile(dst, flnm) || !sFile::rename(src, dst) ) {
                     qp.reqSetInfo(qp.reqId, qp.eQPInfoLevel_Warning, "Failed to save slice output");
@@ -336,7 +320,7 @@ class DnaAlignXBlastProteinPackager: public DnaAlignXBlastOutput
         {
             idx cnt = 0;
             for(const char * p = subjectFile00; p; p = sString::next00(p), ++cnt) {
-                sFilePath buf(getWorkDir(true), "req-%%flnm%" DEC ".%s", cnt, resultExtension());
+                sFilePath buf(getWorkDir(0), "req-%%flnm%" DEC ".%s", cnt, resultExtension());
                 qp.grpDataPaths(qp.grpId, buf, &paths, qp.vars.value("serviceName"), " ");
             }
             return paths;
@@ -347,8 +331,8 @@ class DnaAlignXBlastProteinPackager: public DnaAlignXBlastOutput
 class DnaAlignXBlast: public DnaAlignXBlastOutput
 {
     public:
-        DnaAlignXBlast(sQPrideProc & qprideproc)
-            : DnaAlignXBlastOutput(qprideproc)
+        DnaAlignXBlast(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXBlastOutput(qprideproc, algo)
         {
         }
         virtual ~DnaAlignXBlast()
@@ -357,7 +341,6 @@ class DnaAlignXBlast: public DnaAlignXBlastOutput
 
         virtual idx subjectGetChunkSize() const
         {
-            // makeblastdb fails on machines will small memory (24GB) on NT (>100GB)
             return (idx) 32 * 1024 * 1024 * 1024;
         }
 };
@@ -365,8 +348,8 @@ class DnaAlignXBlast: public DnaAlignXBlastOutput
 class DnaAlignXBlastX: public DnaAlignXBlastProteinPackager
 {
     public:
-        DnaAlignXBlastX(sQPrideProc & qprideproc)
-            : DnaAlignXBlastProteinPackager(qprideproc)
+        DnaAlignXBlastX(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXBlastProteinPackager(qprideproc, algo)
         {
             blastMode = sBioAlBlast::eBlastProteinOut;
             keepOriginalQryId=true;
@@ -385,8 +368,6 @@ class DnaAlignXBlastX: public DnaAlignXBlastProteinPackager
         }
         virtual DnaAlignX::EIndexerMessage subjectDump(const char * subjectPath, idx start = 0, idx cnt = 0)
         {
-            // for blastx we need to grab all object files (protein fastAs?) and unpack them if needed
-            // this is all here because we are not supporting proteins in as sBioseqSet
             sStr ssStr;
             const char * sublist = subjectGet(&ssStr);
             sStr tokenizedSubList;
@@ -409,7 +390,7 @@ class DnaAlignXBlastX: public DnaAlignXBlastProteinPackager
                     if( sFile::symlink(filePath, symlinksPath) ) {
                         dmLib dm;
                         sStr log;
-                        if( dm.unpack(symlinksPath, algorithm, &log, &log, sQPrideProc::reqProgressFSStatic, &qp, qp.svc.lazyReportSec) ) {
+                        if( dm.unpack(symlinksPath, getAlgorithmName(), &log, &log, sQPrideProc::reqProgressFSStatic, &qp, qp.svc.lazyReportSec) ) {
                             for(const dmLib::File * curFile = dm.first(); !dm.end(curFile); curFile = dm.next(curFile)) {
                                 subjectFile00.printf("%s", curFile->location());
                                 subjectFile00.add0();
@@ -436,8 +417,8 @@ class DnaAlignXBlastX: public DnaAlignXBlastProteinPackager
 class DnaAlignXTBlastX: public DnaAlignXBlastProteinPackager
 {
     public:
-        DnaAlignXTBlastX(sQPrideProc & qprideproc)
-            : DnaAlignXBlastProteinPackager(qprideproc)
+        DnaAlignXTBlastX(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXBlastProteinPackager(qprideproc, algo)
         {
             blastMode = sBioAlBlast::eBlastProteinOut;
             subbiomode = sBioseq::eBioModeLong;
@@ -450,12 +431,11 @@ class DnaAlignXTBlastX: public DnaAlignXBlastProteinPackager
 
 };
 
-// Uses blast output
 class DnaAlignXBlat: public DnaAlignXBlastOutput
 {
     public:
-        DnaAlignXBlat(sQPrideProc & qprideproc)
-            : DnaAlignXBlastOutput(qprideproc)
+        DnaAlignXBlat(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXBlastOutput(qprideproc, algo)
         {
         }
         virtual ~DnaAlignXBlat()
@@ -475,7 +455,6 @@ class DnaAlignXBlat: public DnaAlignXBlastOutput
         }
         virtual idx subjectGetChunkSize() const
         {
-            // blat cannot handle references files more than ~3-4Gb
             return (idx) 1 * 1024 * 1024 * 1024;
         }
 };
@@ -483,8 +462,8 @@ class DnaAlignXBlat: public DnaAlignXBlastOutput
 class DnaAlignXBowtie: public DnaAlignXSAMOutput
 {
     public:
-        DnaAlignXBowtie(sQPrideProc & qprideproc)
-            : DnaAlignXSAMOutput(qprideproc)
+        DnaAlignXBowtie(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXSAMOutput(qprideproc, algo)
         {
         }
         virtual ~DnaAlignXBowtie()
@@ -495,8 +474,8 @@ class DnaAlignXBowtie: public DnaAlignXSAMOutput
 class DnaAlignXBowtie2: public DnaAlignXSAMOutput
 {
     public:
-        DnaAlignXBowtie2(sQPrideProc & qprideproc)
-            : DnaAlignXSAMOutput(qprideproc)
+        DnaAlignXBowtie2(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXSAMOutput(qprideproc, algo)
         {
         }
         virtual ~DnaAlignXBowtie2()
@@ -507,8 +486,8 @@ class DnaAlignXBowtie2: public DnaAlignXSAMOutput
 class DnaAlignXBWA: public DnaAlignXSAMOutput
 {
     public:
-        DnaAlignXBWA(sQPrideProc & qprideproc)
-            : DnaAlignXSAMOutput(qprideproc)
+        DnaAlignXBWA(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXSAMOutput(qprideproc, algo)
         {
         }
         virtual ~DnaAlignXBWA()
@@ -519,8 +498,8 @@ class DnaAlignXBWA: public DnaAlignXSAMOutput
 class DnaAlignXTophat: public DnaAlignXSAMOutput
 {
     public:
-        DnaAlignXTophat(sQPrideProc & qprideproc)
-            : DnaAlignXSAMOutput(qprideproc)
+        DnaAlignXTophat(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXSAMOutput(qprideproc, algo)
         {
             subbiomode = sBioseq::eBioModeLong;
             qrybiomode = sBioseq::eBioModeLong;
@@ -551,13 +530,12 @@ class DnaAlignXTophat: public DnaAlignXSAMOutput
             }
             return true;
         }
-        idx ParseAlignment(const idx keepAllMatches, sDic<idx> * unalignedList)
+        idx ParseAlignment(const idx keepAllMatches, sDic<idx> * unalignedList, FileAlParser * alignParser)
         {
-            const idx ret = DnaAlignXSAMOutput::ParseAlignment(keepAllMatches, unalignedList);
-            // pickup accepted_hits.bam into reqData
+            const idx ret = DnaAlignXSAMOutput::ParseAlignment(keepAllMatches, unalignedList, alignParser);
             idx cnt = 0;
             for(const char * p = subjectFile00; p; p = sString::next00(p), ++cnt) {
-                sStr pathT("%s%" DEC "/accepted_hits_sorted.bam", getWorkDir(true), cnt);
+                sStr pathT("%s%" DEC "/accepted_hits_sorted.bam", getWorkDir(0), cnt);
                 pathT.add0(2);
                 const char * dst = qp.reqAddFile(pathT, _bam);
                 if( !sFile::rename(pathT, dst) ) {
@@ -572,32 +550,32 @@ class DnaAlignXTophat: public DnaAlignXSAMOutput
         {
             return qp.grpDataPaths(qp.grpId, _bam, &paths, qp.vars.value("serviceName"), " ");
         }
-//        virtual idx fillAlignmentMap(sFil & fl, sVec<idx> & alignmentMap, sDic<idx> * unalignedList)
-//        {
-//            sDic<idx> subIds;
-////            // > 1 million reference sequences, mmap to disk to avoid heap memory abuse
-////            if( Sub.dim() > 1000000 ) {
-////                sStr tempSubDir;
-////                cfgStr(&tempSubDir, 0, "qm.tempDirectory");
-////                tempSubDir.printf("%" DEC "-%s", reqId, "subids.dic");
-////                subIds.init(tempSubDir);
-////            }
-//            // Create dictionary for Sub Id's
-//            sFilterseq::parseDicBioseq(subIds, Sub, 0);
-//            return sVioseq2::convertSAMintoAlignmentMap(fl.ptr(), fl.length(), &alignmentMap, idMap.dim() ? &idMap : 0, minMatchLength, maxMissQueryPercent, &subIds, 0, false);
-//        }
-
     private:
         static const char * const _bam;
 };
 const char * const DnaAlignXTophat::_bam = "req-accepted_hits_sorted.bam";
 
+class DnaAlignXHisat2: public DnaAlignXSAMOutput
+{
+    public:
+        DnaAlignXHisat2(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXSAMOutput(qprideproc, algo)
+        {
+            subbiomode = sBioseq::eBioModeLong;
+            qrybiomode = sBioseq::eBioModeLong;
+            qryInFastQ = true;
+        }
+        virtual ~DnaAlignXHisat2()
+        {
+        }
+};
+
 class DnaAlignXMultiple: public DnaAlignX
 {
         typedef DnaAlignX TParent;
     public:
-        DnaAlignXMultiple(sQPrideProc & qprideproc)
-            : DnaAlignX(qprideproc)
+        DnaAlignXMultiple(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignX(qprideproc, algo)
         {
             subbiomode = sBioseq::eBioModeLong;
             qrybiomode = sBioseq::eBioModeLong;
@@ -623,7 +601,7 @@ class DnaAlignXMultiple: public DnaAlignX
             }
             return DnaAlignX::subjectVerify(tax, err);
         }
-        virtual const char * queryGet(sStr * buf = 0)
+        virtual const char * queryGet(sStr * buf = 0, bool get_pair = false)
         {
             return subjectGet(buf);
         }
@@ -631,17 +609,14 @@ class DnaAlignXMultiple: public DnaAlignX
         {
             return "ma";
         }
-        virtual idx fillAlignmentMap(sFil & fl, sVec<idx> & alignmentMap, sDic<idx> * unalignedList)
-        {
-            return sBioseqAlignment::readMultipleAlignment(&alignmentMap, fl.ptr(), fl.length(), sBioseqAlignment::eAlRelativeToMultiple, 0, true);
-        }
+
 };
 
 class DnaAlignXMafft: public DnaAlignXMultiple
 {
     public:
-        DnaAlignXMafft(sQPrideProc & qprideproc)
-            : DnaAlignXMultiple(qprideproc)
+        DnaAlignXMafft(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXMultiple(qprideproc, algo)
         {
         }
         virtual ~DnaAlignXMafft()
@@ -652,8 +627,8 @@ class DnaAlignXMafft: public DnaAlignXMultiple
 class DnaAlignXClustal: public DnaAlignXMultiple
 {
     public:
-        DnaAlignXClustal(sQPrideProc & qprideproc)
-            : DnaAlignXMultiple(qprideproc)
+        DnaAlignXClustal(sQPrideProc & qprideproc, sUsrObj * algo)
+            : DnaAlignXMultiple(qprideproc, algo)
         {
         }
         virtual ~DnaAlignXClustal()
@@ -661,5 +636,5 @@ class DnaAlignXClustal: public DnaAlignXMultiple
         }
 };
 
-#endif // sDnaAlignX_hpp
+#endif
 

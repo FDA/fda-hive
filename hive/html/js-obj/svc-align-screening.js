@@ -44,7 +44,7 @@ vjHO.register('svc-align-screening').Constructor = function() {
     
     this.urlSet = {
             'hitlist' : {
-                active_url : "http://?cmd=alCount&zeroHits=0&start=0&cnt=50"+ (this.subsetCount ? "&childProcessedList="+ this.subsetCount : ""),
+                active_url : "http:
             }
     };
     

@@ -38,12 +38,6 @@
 #include <slib/core/str.hpp>
 #include <slib/utils/tbl.hpp>
 
-// from Lapack
-//void dgeev( char* jobvl, char* jobvr, int* n, double* a, int* lda, double* wr, double* wi, double* vl, int* ldvl, double* vr, int* ldvr, double* work, int* lwork, int* info );
-//#include <cblas.h>
-//#include <lapacke.h>
-//#include <clapack.h>
-//#include <gsl/gsl_math.h>
 
 namespace slib
 {
@@ -84,7 +78,6 @@ namespace slib
             MatrixDicHeaders(void){cols=0;rows=0;colset=0;rowset=0;}
         };
         static void matOutput(sStr * out, void * , real * pVal, idx row, idx col, bool forCSV=true);
-        //static void matOutputDicHeader(sStr * out, MatrixDicHeaders  * op, real * pVal, idx row, idx col);
 
         void out(sStr * ot, void * param=0, bool transpose=false, bool header=false, const char * fmt="%lf", MatrixOutput ho=0,idx colstart=0, idx colend=0, idx rowstart=0, idx rowend=0) const;
         void out(const char * flnm, void * param=0, bool transpose=false, bool header=false, const char * fmt="%lf", MatrixOutput ho=0, idx colstart=0, idx colend=0, idx rowstart=0, idx rowend=0) const;
@@ -169,15 +162,15 @@ namespace slib
             idx n=cols();
             sVec <idx> iters;iters.resize(n);
             sAlgebra::matrix::eigen(
-                   1,           /* switch for computing evectors ...*/
-                   0,         /* orthogonal Hessenberg reduction? */
-                   0,       /* normalize Eigenvectors? .........*/
-                   n,             /* size of matrix ..................*/
-                   ptr(0,0),           /* input matrix ....................*/
-                   evecs->ptr(0,0),         /* Eigenvectors ....................*/
-                   evals,         /* real parts of eigenvalues .......*/
-                   evals+n,         /* imaginary parts of eigenvalues ..*/
-                   iters.ptr(0)            /* Iteration counter ...............*/
+                   1,
+                   0,
+                   0,
+                   n,
+                   ptr(0,0),
+                   evecs->ptr(0,0),
+                   evals,
+                   evals+n,
+                   iters.ptr(0)
                    );
             if(issort)sAlgebra::matrix::diagSort(n,evals,evecs->ptr(0,0),issort);
 
@@ -202,8 +195,7 @@ namespace slib
 
 }
 
-#endif // sLib_math_func_hpp
-
+#endif 
 
 
 

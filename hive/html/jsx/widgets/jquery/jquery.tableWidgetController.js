@@ -34,7 +34,7 @@ $(function () {
     $.widget("view.tableWidgetController", {
         options:{
             data: "dsVoid",
-            layoutManagerFunc: "$.getLayoutManager()", //this can be swapped out for something different in case another form of the layout manager is needed
+            layoutManagerFunc: "$.getLayoutManager()",
             dataCounter: 0,
             tableTabName: "Results Table",
             mainArea: "mainArea",
@@ -48,20 +48,19 @@ $(function () {
         _create: function () {
             oThis = this;
             
-            //setting up all of the datasources that could be used in the future for graphics drawing
-            vjDS.add("Student T-Test", "dsStatTest", "static:// ");
-            vjDS.add("Student T-Test", "dsStatTestManhattan", "static:// ");
-            vjDS.add("Bayesian Stat", "dsBStat", "static:// ");
-            vjDS.add("Pearson Correlation", "dsPearsonCorrHeat", "static:// ");
-            vjDS.add("Pearson Correlation", "dsPearsonCorrMax", "static:// ");
-            vjDS.add("Pearson Heatmap", "dsPearsonHeatmapMap", "static:// ");
-            vjDS.add("Fourier Even", "dsFourier", "static://");
-            vjDS.add("Fourier Graph", "dsFourierGraph", "static://");
-            vjDS.add("Kaplan Meier", "dsKaplanMeier", "static://");
-            vjDS.add("Dictionary Table", "dsDicTbl", "static://");
-            vjDS.add("Clustering Tree", "dsTree", "static://");
+            vjDS.add("Student T-Test", "dsStatTest", "static:
+            vjDS.add("Student T-Test", "dsStatTestManhattan", "static:
+            vjDS.add("Bayesian Stat", "dsBStat", "static:
+            vjDS.add("Pearson Correlation", "dsPearsonCorrHeat", "static:
+            vjDS.add("Pearson Correlation", "dsPearsonCorrMax", "static:
+            vjDS.add("Pearson Heatmap", "dsPearsonHeatmapMap", "static:
+            vjDS.add("Fourier Even", "dsFourier", "static:
+            vjDS.add("Fourier Graph", "dsFourierGraph", "static:
+            vjDS.add("Kaplan Meier", "dsKaplanMeier", "static:
+            vjDS.add("Dictionary Table", "dsDicTbl", "static:
+            vjDS.add("Clustering Tree", "dsTree", "static:
             
-            vjDS.add("Command Log", "dsCommandLog", "static://");
+            vjDS.add("Command Log", "dsCommandLog", "static:
             
             oThis.options.myGraphViewer = new vjGoogleGraphView({
                 data: oThis.options.data,
@@ -89,7 +88,6 @@ $(function () {
                 isok:true
             });
             
-            //to construct the 
             for (var key in oThis.options.tableViewer.arrayPanels.plugins)
                 oThis.options.allPluginsList.push(key);
             
@@ -152,7 +150,6 @@ $(function () {
                     }]
                 }
             });
-            //manager.remove("tmpTranslatedTable");
             manager.remove('results');
             if (this.options.completedCallback)
                 this.options.completedCallback(manager);
@@ -211,12 +208,12 @@ $(function () {
                 if( viewer.tqsObj[i].op == "heatmap") {
                     var myHeatmapPlot = new vjSVG_HeatMap({
                         color: {min: "blue", max: "#ffc200", mid:"white"},
-                        heat_image_url: "http://?cmd=-qpData&req="+latestReqID+"&dname=heatmap.png",
+                        heat_image_url: "http:
                         heat_image_min_cells: 10000,
                         legend_range: {min_text: "minimum", mid_text: "", max_text: "maximum"}
                     });
                     myHeatmapPlot.add(new vjDataSeries({
-                        url: "static://",
+                        url: "static:
                         name: "dsHeatmapMap",
                         id: "heat",
                         type: "raw",
@@ -224,13 +221,13 @@ $(function () {
                         isok: true
                     }));
                     var leftSeries = new vjTreeSeries({
-                        url: "static://",
+                        url: "static:
                         name: "dsHeatmapLeft",
                         id: "left",
                         isok: true
                     });
                     var topSeries = new vjTreeSeries({
-                        url: "static://",
+                        url: "static:
                         name: "dsHeatmapTop",
                         id: "top",
                         isok: true
@@ -266,9 +263,9 @@ $(function () {
                         }
                       });
                       
-                      vjDS["dsHeatmapMap"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=heatmap.csv",true);
-                    vjDS["dsHeatmapTop"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=vertical.tre",true);
-                    vjDS["dsHeatmapLeft"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=horizontal.tre",true);
+                      vjDS["dsHeatmapMap"].reload("http:
+                    vjDS["dsHeatmapTop"].reload("http:
+                    vjDS["dsHeatmapLeft"].reload("http:
                   }
                 else if( viewer.tqsObj[i].op == "tree" ) {
                     var treePanel = new vjPanelView({
@@ -310,18 +307,18 @@ $(function () {
                         }
                       });
                     
-                      vjDS["dsTree"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=cluster.tre", true);
+                      vjDS["dsTree"].reload("http:
                   }
                 else if( viewer.tqsObj[i].op == "som" ) {
                     var dsSom = new vjDataSeries({
-                        url: "static://",
+                        url: "static:
                         name: "dsSom",
                         id: "som",
                         type: "raw",
                         isok: true
                     });
                     var dsRows = new vjDataSeries({
-                        url: "static://",
+                        url: "static:
                         name: "dsRows",
                         id: "rows",
                         type: "raw",
@@ -330,7 +327,7 @@ $(function () {
 
                     plot = new vjSVG_SOM();
 
-                    plot.add(dsSom);//this will in the future add to the this.collection in vjSVG_SOM
+                    plot.add(dsSom);
                     plot.add(dsRows);
 
                     var mySomViewer = new vjSVGView({
@@ -362,8 +359,8 @@ $(function () {
                         }
                       });
                         
-                      vjDS["dsSom"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=color.csv", true);
-                      vjDS["dsRows"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=geom.csv", true);
+                      vjDS["dsSom"].reload("http:
+                      vjDS["dsRows"].reload("http:
                   }
                 else if( viewer.tqsObj[i].op == "statTest" ) {
                     var myStatTestViewer=new vjTableView({
@@ -429,8 +426,8 @@ $(function () {
                         }
                       });
                     
-                      vjDS["dsStatTest"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=stat.csv", true);
-                      vjDS["dsStatTestManhattan"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=graphData.csv", true);
+                      vjDS["dsStatTest"].reload("http:
+                      vjDS["dsStatTestManhattan"].reload("http:
                   }
                 else if( viewer.tqsObj[i].op == "bStat" ) {
                     var myBStatViewer=new vjTableView({
@@ -474,7 +471,7 @@ $(function () {
                         }
                       });
                     
-                      vjDS["dsBStat"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=bayesianStat.csv", true);
+                      vjDS["dsBStat"].reload("http:
                   }
                 else if( viewer.tqsObj[i].op == "pearsonCorr" ) {
                     var myPearsonMatrix=new vjTableView({
@@ -498,7 +495,7 @@ $(function () {
                         heat_image_min_cells: 10000
                     });
                     myPearsonHeatmapPlot.add(new vjDataSeries({
-                        url: "static://",
+                        url: "static:
                         name: "dsPearsonHeatmapMap",
                         id: "heat",
                         type: "raw",
@@ -534,9 +531,9 @@ $(function () {
                         }
                       });
                     
-                      vjDS["dsPearsonHeatmapMap"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=pearsonHeatmap.csv", true);
-                      vjDS["dsPearsonCorrHeat"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=matrix.csv", true);
-                      vjDS["dsPearsonCorrMax"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=bestMatch.csv", true);
+                      vjDS["dsPearsonHeatmapMap"].reload("http:
+                      vjDS["dsPearsonCorrHeat"].reload("http:
+                      vjDS["dsPearsonCorrMax"].reload("http:
                   }
                 else if( viewer.tqsObj[i].op == "fourier" ) {
                        var fourierViewerToolbar=new vjPanelView({
@@ -587,10 +584,10 @@ $(function () {
                         }
                       });
                     
-                      vjDS["dsFourier"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=FourierTransform.csv", true);
+                      vjDS["dsFourier"].reload("http:
                   }
                 else if( viewer.tqsObj[i].op == "kaplanmeier") {
-                      vjDS["dsKaplanMeier"].reload("http://?cmd=-qpData&req="+vjQP.req+"&dname=kaplan-meier.csv",true);
+                      vjDS["dsKaplanMeier"].reload("http:
                   }
                 else if (viewer.tqsObj[i].op == "basicGraph"){
                     manager.append({
@@ -641,7 +638,7 @@ $(function () {
                   }
               }
               
-              vjDS["dsCommandLog"].reload("static://" + strToUse, true);
+              vjDS["dsCommandLog"].reload("static:
           },
           _downloadFunc: function (vv, table, irow, icol) {
               var url = "?cmd=-qpData&req="+latestReqID+"&dname=tqs.json&dsaveas=tqs.json";
@@ -748,7 +745,7 @@ $(function () {
                               {op: "appendcol", arg: {name: "New " + node.cols[1], formula: "${"+node.cols[1]+"}"}},
                               ];
               if (!vjDS["dsPearsonNewDS"])
-                  vjDS.add("Pearson Heatmap", "dsPearsonNewDS", "static:// ");
+                  vjDS.add("Pearson Heatmap", "dsPearsonNewDS", "static:
               
               var nTqs = tqs.concat(tqsToUse);
               var nUrl = urlExchangeParameter (oldUrl, "tqs", vjDS["dsPearsonNewDS"].escapeQueryLanguage(JSON.stringify(nTqs))); 
@@ -757,17 +754,17 @@ $(function () {
           },
           downloadStatTest: function (viewer)
           {
-              var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=stat.csv";
+              var url = "http:
               vjDS["dsStatTest"].reload(url,true,"download");
           },
           downloadBStat: function (viewer)
           {
-              var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=bayesianStat.csv";
+              var url = "http:
               vjDS["dsBStat"].reload(url,true,"download");
           },
           downloadEven: function (viewer)
           {
-              var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=FourierTransform.csv";
+              var url = "http:
               vjDS["dsFourier"].reload(url,true,"download");
           }
     });

@@ -85,38 +85,25 @@ bool CleanerCommand::init(const char * op_name, sVariant * arg)
     return true;
 }
 
-static bool contains (sVec <idx> vector, idx toCheck)
-{
-    for (idx i = 0; i < vector.dim(); i ++)
-    {
-        if (vector[i] == toCheck)
-            return true;
-    }
-
-    return false;
-}
 
 bool CleanerCommand::compute(sTabular * tbl)
 {
-    if (!rowSet || rowSet.dim() < 1)
-    {
-        char p [16];
-        sprintf (p, "0-%" DEC, tbl->rows()-1);
-        sString::scanRangeSet(p,0,&(rowSet),0ll,0ll,0ll);
+    if( !rowSet || rowSet.dim() < 1 ) {
+        char p[24];
+        sprintf(p, "0-%" DEC, tbl->rows() - 1);
+        sString::scanRangeSet(p, 0, &(rowSet), 0ll, 0ll, 0ll);
     }
 
     sDic < sDic < sVec < idx > > > rowsToUseDicDic;
     sText::categoryListParseCsv(tbl , &(rowSet), &rowsToUseDicDic , 0, &(colSet));
 
-    // run the same algorihtm for every categorization schema
     if (colSet && colSet.dim() > 0)
     {
-        //sVariantTbl * tblToReturn;
         sTxtTbl * anotherTbl = new sTxtTbl();
         const char * someVal = static_cast <const char *> (rowsToUseDicDic.id(0));
         sDic < sVec < idx > > & rowsToUseDic = rowsToUseDicDic[someVal];
 
-        sMatrix matrixForCurCategory; //we use this matrix after the normalized
+        sMatrix matrixForCurCategory;
 
 
         sVec <idx> columnsForCurCategory;
@@ -129,7 +116,6 @@ bool CleanerCommand::compute(sTabular * tbl)
                 continue;
             }
 
-            //all of the standard deviations for the different values in the category column
             sVec <real> stdDevForCurCategory; stdDevForCurCategory.add(rowsToUseDic.dim());
 
             for (idx x = 0; x < rowsToUseDic.dim(); x++)
@@ -169,7 +155,6 @@ bool CleanerCommand::compute(sTabular * tbl)
                 _ctx.logTrace("Current column is %" DEC "\n", ii);
         }
 
-        //tblToReturn = new sVariantTbl (columnsForCurCategory.dim());
         anotherTbl->initWritable(columnsForCurCategory.dim(),sTblIndex::fTopHeader,",");
 
         for (idx rr = -1; rr < rowSet.dim(); rr++)
@@ -196,4 +181,3 @@ bool CleanerCommand::compute(sTabular * tbl)
 
     return true;
 }
-

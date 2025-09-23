@@ -27,12 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/**
- * ### Wholerow plugin
- *
- * Makes each node appear block level. Making selection easier. May cause slow down for large trees in old browsers.
- */
-/*globals jQuery, define, exports, require */
 (function (factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
@@ -63,7 +57,6 @@
                         this.hide_dots();
                     }, this))
                 .on("init.jstree loading.jstree ready.jstree", $.proxy(function () {
-                        //div.style.height = this._data.core.li_height + 'px';
                         this.get_container_ul().addClass('jstree-wholerow-ul');
                     }, this))
                 .on("deselect_all.jstree", $.proxy(function (e, data) {
@@ -91,15 +84,6 @@
                         var tmp = $.Event('contextmenu', { metaKey : e.metaKey, ctrlKey : e.ctrlKey, altKey : e.altKey, shiftKey : e.shiftKey, pageX : e.pageX, pageY : e.pageY });
                         $(e.currentTarget).closest(".jstree-node").children(".jstree-anchor").first().trigger(tmp);
                     }, this))
-                /*!
-                .on("mousedown.jstree touchstart.jstree", ".jstree-wholerow", function (e) {
-                        if(e.target === e.currentTarget) {
-                            var a = $(e.currentTarget).closest(".jstree-node").children(".jstree-anchor");
-                            e.target = a[0];
-                            a.trigger(e);
-                        }
-                    })
-                */
                 .on("click.jstree", ".jstree-wholerow", function (e) {
                         e.stopImmediatePropagation();
                         var tmp = $.Event('click', { metaKey : e.metaKey, ctrlKey : e.ctrlKey, altKey : e.altKey, shiftKey : e.shiftKey });
@@ -131,7 +115,6 @@
             obj = parent.redraw_node.apply(this, arguments);
             if(obj) {
                 var tmp = div.cloneNode(true);
-                //tmp.style.height = this._data.core.li_height + 'px';
                 if($.inArray(obj.id, this._data.core.selected) !== -1) { tmp.className += ' jstree-wholerow-clicked'; }
                 if(this._data.core.focused && this._data.core.focused === obj.id) { tmp.className += ' jstree-wholerow-hovered'; }
                 obj.insertBefore(tmp, obj.childNodes[0]);
@@ -139,6 +122,4 @@
             return obj;
         };
     };
-    // include the wholerow plugin by default
-    // $.jstree.defaults.plugins.push("wholerow");
 }));

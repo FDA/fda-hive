@@ -250,12 +250,30 @@ p.grandchild{
 .deselected{
     background: none;
     border-right: 0px solid #0149ad;
+    border-left: 0px solid #ad0157;
     margin-left: 20px;
     padding-left: 0px;}
 
 .selected_inhereted{
     background: #c3dff8;
     border-left: 2px solid #6285af;}
+
+
+
+.rotate_90{
+    -moz-transition: all 0.8s ease;
+    -webkit-transition: all 0.8s ease;
+    transition: all 0.8s ease;
+}
+
+.rotate_90.down{
+    -moz-transform:rotate(90deg);
+    -webkit-transform:rotate(90deg);
+    transform:rotate(90deg);
+}
+
+
+
 
 /*---------- TREE VIEWER END -----------*/
 

@@ -34,6 +34,8 @@
 #include <slib/std.hpp>
 #include <ulib/usr.hpp>
 #include <ion/sIon.hpp>
+#include <violin/hiveseq.hpp>
+#include <violin/hiveal.hpp>
 
 namespace sviolin
 {
@@ -41,22 +43,19 @@ namespace sviolin
     {
         protected:
             sUsr * myUser;
-            sStr pathList00;
 
 
         public:
             idx ionCnt;
             sDic < sIonWander> wanderList;
+            sStr pathList00;
+
         public:
-            sHiveIon(sUsr * user, const char * objList=0, const char * iontype=0,  const char * file=0 ) { ionCnt=0;init(user, objList, iontype,  file ); }
 
-          /*  ~sHiveIon(){
-                for(idx i=0; i<wanderList.dim(); ++i){
-                     wanderList[i].destroy();
-                }
-            };*/
+            sHiveIon(sUsr * user, const char * objList=0, const char * iontype=0, const char * file=0 ) { init(user, objList,  iontype, file ); }
 
-            sHiveIon * init(sUsr * user, const char * objList=0, const char * iontype=0,  const char * file=0 );
+
+            sHiveIon * init(sUsr * user, const char * objList=0, const char * iontype=0, const char * filenameWithoutExtension00=0 );
             sIonWander * addIonWander(const char * wandername, const char * iql, idx iqllen);
             sIonWander * addIonWander(const char * wandername, const char * iql, ... ){
                 sStr buf;
@@ -129,6 +128,9 @@ namespace sviolin
                 return genericWander.ionList.dim();
             }
 
+            void getPathList00(sStr & path00) {
+                path00.add(pathList00.ptr(),pathList00.length());
+            }
 
     };
 
@@ -148,11 +150,23 @@ namespace sviolin
                     infoParams() {cntStart=curIndex=0;cnt=20;printDots=true;};
             };
 
-            //idx annotMap(sIO * io, sBioseq * sub, sDic <sStr > * dic,const char * seqidFrom00, idx countResultMax=sIdxMax, idx startResult=0, idx contSequencesMax=sIdxMax , idx header =1);
-            /*static idx annotMap(void * hiveIonPointer ,sIO * io, sBioseq * sub, sDic <sStr > * dic,const char * seqidFrom00, idx countResultMax=sIdxMax, idx startResult=0, idx contSequencesMax=sIdxMax , idx header =1)
-            {
-                return ((sHiveIonSeq * )hiveIonPointer)->annotMap(io, sub, dic,seqidFrom00, countResultMax, startResult, contSequencesMax, header );
-            }*/
+            static idx locateSeqId(const char * seqId, idx * seqLen) {
+                if (!seqId) {
+                    return -1;
+                }
+
+                idx idStartPos=0;
+                (*seqLen)=sLen(seqId);
+                const char * space = strpbrk(seqId," ");
+                if (space) {
+                    *seqLen=space-seqId;
+                }
+                if (seqId[0]=='>') {
+                    (*seqLen)=(*seqLen)-1;
+                    idStartPos+=1;
+                }
+                return idStartPos;
+            }
             idx annotMap(sIO * io, sBioseq * sub, sDic <sStr > * dic,const char * seqidFrom00, idx countResultMax=sIdxMax, idx startResult=0, idx contSequencesMax=sIdxMax , idx outPutWithHeader=0, sStr * header=0);
             static idx annotMap(void * hiveIonPointer ,sIO * io, sBioseq * sub, sDic <sStr > * dic,const char * seqidFrom00, idx countResultMax=sIdxMax, idx startResult=0, idx contSequencesMax=sIdxMax ,idx outPutWithHeader=0, sStr * header=0)
             {
@@ -167,8 +181,7 @@ namespace sviolin
 }
 
 
-#endif // sHiveSeq_hpp
-
+#endif 
 
 
 

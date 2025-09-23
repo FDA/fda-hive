@@ -49,15 +49,15 @@ vjHO.register('svc-velvet').Constructor=function ()
                 },
         ];
         var dsArray=[
-                    {name: "dsNameHere", url: "http://?cmd=dodo&id=$id"},
-                    {name: "dsAlgoSpec", url: "http://?cmd=propspec&type="+algoProcess.svcProcType},
-                    {name: "dsAlgoVals", url: "http://?cmd=propget&mode=csv&ids=$id&files=*"},
-                    {name: "dsProgress", url: "http://?cmd=-qpRawCheck&showreqs=0&reqObjID=$id"},
-                    {name: "dsProgress_download", url: "http://?cmd=-qpRawCheck&showreqs=0&reqObjID=$id" },
-                    {name: "dsProgress_info", url: "http://?cmd=-qpReqInfo&reqObjID=$id"},
-                    {name: "dsProgress_inputs", url: "http://?cmd=objQry&qry=allusedby($id).csv(['_type','_brief','created','svc','submitter'],{info:true.cnt:20})"},
-                    {name: "dsProgress_outputs", url: "http://?cmd=objQry&qry=allusedby($id).filter({._type!~/folder/}).csv(['_type','_brief','created','svc','submitter'],{info:true.cnt:20})"},
-                    {name: "dsHelp", url: "http://help/hlp.svc-single_velvet-pipeline.html"}
+                    {name: "dsNameHere", url: "http:
+                    {name: "dsAlgoSpec", url: "http:
+                    {name: "dsAlgoVals", url: "http:
+                    {name: "dsProgress", url: "http:
+                    {name: "dsProgress_download", url: "http:
+                    {name: "dsProgress_info", url: "http:
+                    {name: "dsProgress_inputs", url: 'http:
+                    {name: "dsProgress_outputs", url: 'http:
+                    {name: "dsHelp", url: "http:
         ];
         
         for(i=0; i<moveParams.length; ++i) { 
@@ -65,7 +65,7 @@ vjHO.register('svc-velvet').Constructor=function ()
             for( var ir=0; ir< moveParams[i].params.length; ++ir) {
                 t+="<span id='RV-"+moveParams[i].params[ir]+"'></span>";
             }
-            dsArray.push( {name: moveParams[i].ds, url: "static://"+t});
+            dsArray.push( {name: moveParams[i].ds, url: "static:
         }
         
            
@@ -120,7 +120,7 @@ vjHO.register('svc-velvet').Constructor=function ()
                                             {
                                                 tabId: 'otherStuff',
                                                 tabName: "Some Other Stuff",
-                                                visible: true, //this is also modified by the algoview. just lets know if the tab is visible or not
+                                                visible: true,
                                                 position: {posId: 'blah', top:'50%', bottom:'100%', left:'0', right:'75%'}
                                             }
                                         ]
@@ -140,7 +140,6 @@ vjHO.register('svc-velvet').Constructor=function ()
                                     }
                                 },
                                 helpDS: "dsHelp"
-                                //some div name here or the data source 
                             },
                             {
                                 tabId: 'system',
@@ -148,7 +147,6 @@ vjHO.register('svc-velvet').Constructor=function ()
                                 showSubmitButton: "<input id='submitterInput' type=button class='toSubmitBtn' onClick='vjObjEvent(\"onSubmitRequest\",\""+algoProcess.objCls+"\")' name='BUTTON-submitter' size=20 value='"+algoProcess.submitButtonName+"' />",
                                 inactive: true,
                                 position: {posId: 'layout_inputs', top:'0', bottom:'50%', left:'0', right:'75%'},
-                                //some div name here or the data source
                                 viewerConstructor: {
                                     dataViewer: 'vjHTMLView',
                                     dataViewerOptions: {
@@ -163,7 +161,6 @@ vjHO.register('svc-velvet').Constructor=function ()
                                 showSubmitButton: "<input id='submitterInput' type=button class='toSubmitBtn' onClick='vjObjEvent(\"onSubmitRequest\",\""+algoProcess.objCls+"\")' name='BUTTON-submitter' size=20 value='"+algoProcess.submitButtonName+"' />",
                                 inactive: true,
                                 position: {posId: 'layout_inputs', top:'0', bottom:'50%', left:'0', right:'75%'},
-                                //some div name here or the data source 
                                 viewerConstructor: {
                                     dataViewer: 'vjHTMLView',
                                     dataViewerOptions: {
@@ -254,15 +251,6 @@ vjHO.register('svc-velvet').Constructor=function ()
                                         }
                                     }
                                 }
-                                /* ,
-                                {
-                                    tabId: 'nextSteps',
-                                    tabName: "Next Steps",
-                                    visible: false,
-                                    position: {posId: 'middle', top:'0', bottom:'100%', left:'0', right:'75%'},
-                                    divId: 'DV_dvprocessToolbar_toolbar_0'
-                                    //some div name here or the data source 
-                                } */
                              ]
                          },
                           results: {
@@ -278,13 +266,12 @@ vjHO.register('svc-velvet').Constructor=function ()
     };
                 
                 
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         var id = docLocValue("id");
-        vjDS.add("", "dsDetails", "static://");
-        vjDS.add("", "dsResult", "http://?cmd=propget&ids="+id+"&files=*.{fa,log,txt,sh}&mode=csv");
-        vjDS.add("", "dsDownload", "static://");
+        vjDS.add("", "dsDetails", "static:
+        vjDS.add("", "dsResult", "http:
+        vjDS.add("", "dsDownload", "static:
         vjDS["dsResult"].parser = this.someFunction;
         
         var filesStructureToAdd = {
@@ -313,9 +300,9 @@ vjHO.register('svc-velvet').Constructor=function ()
     this.preview = function(node, whereToAdd)
     {
         var id = docLocValue("id");
-        vjDS.add("", "dsDetails", "static://");
-        vjDS.add("", "dsResult", "http://?cmd=propget&ids="+id+"&files=*.{fa,log,txt,sh}&mode=csv");
-        vjDS.add("", "dsDownload", "static://");
+        vjDS.add("", "dsDetails", "static:
+        vjDS.add("", "dsResult", "http:
+        vjDS.add("", "dsDownload", "static:
         vjDS["dsResult"].parser = this.someFunction;
         
         var filesStructureToAdd = {
@@ -344,9 +331,9 @@ vjHO.register('svc-velvet').Constructor=function ()
     this.mobile = function(node, whereToAdd)
     {
         var id = docLocValue("id");
-        vjDS.add("", "dsDetails", "static://");
-        vjDS.add("", "dsResult", "http://?cmd=propget&ids="+id+"&files=*.{fa,log,txt,sh}&mode=csv");
-        vjDS.add("", "dsDownload", "static://");
+        vjDS.add("", "dsDetails", "static:
+        vjDS.add("", "dsResult", "http:
+        vjDS.add("", "dsDownload", "static:
         vjDS["dsResult"].parser = this.someFunction;
         
         var filesStructureToAdd = {
@@ -372,7 +359,6 @@ vjHO.register('svc-velvet').Constructor=function ()
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
     };
     
-    //these functions must be defined by the template
     this.ingestSomethingLikeThat = function (table,row,col)
     {
         algoWidgetObj.removeTabs("details", "results");
@@ -380,8 +366,7 @@ vjHO.register('svc-velvet').Constructor=function ()
         processID = docLocValue("id")
         if (table.ingestedRow.indexOf(row.irow) !=-1) return;
         var url = "?cmd=objFile&arch=1&ids=" + processID + "&filename=" + row["velvet results file"] + "&arch_dstname="+ row["velvet results file"]+"&backend=1";
-        //alert("ingesting ..." + url)
-        vjDS["dsDownload"].reload("qpbg_http://" +url,true);
+        vjDS["dsDownload"].reload("qpbg_http:
         alert ("Your selected item is being ingested. You can monitor the progress from within data loading tab");
         row.download = "<img src='img/done.gif' width=12 height=12 />";
         table.ingestedRow.push(row.irow);
@@ -413,7 +398,7 @@ vjHO.register('svc-velvet').Constructor=function ()
         }
         
         processID = docLocValue("id")
-        var url = "http://?cmd=objFile&ids=" + processID + "&filename=" + row["velvet results file"];
+        var url = "http:
         vjDS["dsDetails"].reload(url,true);
     };
     
@@ -440,7 +425,7 @@ vjHO.register('svc-velvet').Constructor=function ()
         }
         
         processID = docLocValue("id")
-        var url = "http://?cmd=objFile&ids=" + processID + "&filename=" + row["velvet results file"];
+        var url = "http:
         vjDS["dsDetails"].reload(url,true,"download");
     };
     

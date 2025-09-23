@@ -40,8 +40,8 @@ ifndef MAKE_MODE
 endif
 ifndef MAKE_MODE
     -include $(abs_devdir)/makefile.mode
-    MAKE_MODE ?= release
-    MAKE_CXX_FLAGS=-O3 -DNDEBUG
+    MAKE_MODE ?= debug
+    MAKE_CXX_FLAGS ?= -g -D_DEBUG
 endif
 
 ifndef MAKE_OUT
@@ -51,70 +51,126 @@ ifndef MAKE_OUT
     -include $(abs_devdir)/makefile.dir
 endif
 
+
 rname = $(MAKE_MODE)-$(SLIB_PLATFORM)-$(SLIB_ARCH)
 
-ADOPT_TOP_CXXFLAGS=
-# ImageMagick could be found on local system
-IMAGEMAGICK_LIB = $(shell pkg-config --libs MagickWand MagickCore)
-IMAGEMAGICK_CFLAGS = $(shell pkg-config --cflags MagickWand MagickCore)
-ifneq ($(IMAGEMAGICK_LIB),)
-    HAS_IMAGEMAGICK = 1
-    ADOPT_TOP_CXXFLAGS += $(space)-DHAS_IMAGEMAGICK
+ifeq ($(adoption),)
+    adoption = $(abspath $(realpath $(abs_devdir)/adoption))
+    ifeq ($(adoption),)
+        adoption = $(abspath $(realpath $(abs_devdir)/../adoption))
+        ifeq ($(adoption),)
+            adoption = $(abspath $(realpath /home/qpride/adoption))
+        endif
+    endif
 endif
-# PCRE could be found on local system
-PCRE_LIB = $(shell pkg-config --libs 'libpcre >= 8.20')
-PCRE_CFLAGS = $(shell pkg-config --cflags 'libpcre >= 8.20')
-ifneq ($(PCRE_LIB),)
-    HAS_PCRE = 1
-    ADOPT_TOP_CXXFLAGS +=$(space)-DHAS_PCRE
-endif
-# SQLite could be found on local system
-SQLITE3_LIB = $(shell pkg-config --libs sqlite3)
-SQLITE3_CFLAGS = $(shell pkg-config --cflags sqlite3)
-ifneq ($(SQLITE3_LIB),)
-    HAS_SQLITE3 = 1
-    ADOPT_TOP_CXXFLAGS +=$(space)-DHAS_SQLITE3
+ifneq ($(adoption),)
+    adoption_build=$(adoption)/$(rname)
+    ADOPT_TOOL_PATH = $(adoption)/$(rname)/bin
 endif
 
-MYSQL_LIB = $(shell mysql_config --libs)
+ifeq ($(INSTALLING),)
+	SQLDB_LIB = $(shell pkg-config --silence-errors --libs mariadb)
+	SQLDB_CFLAGS = $(shell pkg-config --silence-errors --cflags mariadb)
+	ifneq ($(SQLDB_LIB),)
+		HAS_SQLDB = 1
+	else
+		SQLDB_LIB = -L/usr/lib64/mysql -lmysqlclient
+		SQLDB_CFLAGS = -I/usr/include/mysql
+		HAS_SQLDB = 1
+	endif
+	IMAGEMAGICK_LIB = $(shell pkg-config --silence-errors --libs 'MagickWand >= 7')
+	IMAGEMAGICK_CFLAGS = $(shell pkg-config --silence-errors --cflags 'MagickWand >= 7')
+	ifneq ($(IMAGEMAGICK_LIB),)
+		HAS_IMAGEMAGICK = 1
+		ADOPT_TOP_CXXFLAGS += $(space)-DHAS_IMAGEMAGICK7 -DHAS_IMAGEMAGICK
+	else
+		IMAGEMAGICK_LIB = $(shell pkg-config --silence-errors --libs 'MagickWand >= 6')
+		IMAGEMAGICK_CFLAGS = $(shell pkg-config --silence-errors --cflags 'MagickWand >= 6')
+		ifneq ($(IMAGEMAGICK_LIB),)
+			HAS_IMAGEMAGICK = 1
+			ADOPT_TOP_CXXFLAGS += $(space)-DHAS_IMAGEMAGICK
+		endif
+	endif
+	PCRE_LIB = $(shell pkg-config --libs 'libpcre >= 8.20')
+	PCRE_CFLAGS = $(shell pkg-config --cflags 'libpcre >= 8.20')
+	ifneq ($(PCRE_LIB),)
+		HAS_PCRE = 1
+		ADOPT_DEFINES += -DHAS_PCRE
+	endif
+	SQLITE3_LIB = $(shell pkg-config --libs sqlite3)
+	SQLITE3_CFLAGS = $(shell pkg-config --cflags sqlite3)
+	ifneq ($(SQLITE3_LIB),)
+		HAS_SQLITE3 = 1
+		ADOPT_DEFINES += -DHAS_SQLITE3
+	endif
+	OPENSSL_LIB = $(shell pkg-config --libs 'openssl')
+	OPENSSL_CFLAGS = $(shell pkg-config --cflags 'openssl')
+	ifneq ($(OPENSSL_LIB),)
+		HAS_OPENSSL = 1
+		ADOPT_DEFINES += -DHAS_OPENSSL
+	endif
+endif
 
-include $(abs_devdir)/build/makefile.build
+find-tool = $(shell PATH="$(ADOPT_TOOL_PATH):$${PATH}" which $1; if [ $$? -ne 0 ]; then echo $1; echo $2 1>&2; fi)
+
+SASSC ?= $(call find-tool,sassc,"Please install sassc from your distro's package manager or https://github.com/sass/sassc")
+
+SITEFILE=0
+ifeq ($(SITE),)
+    -include ~/.hive.site
+	ifneq ($(SITE),)
+		SITEFILE=1
+	endif
+endif
+
+ifdef PACKAGING
+    include $(abs_devdir)/build/makefile.package
+else
+    include $(abs_devdir)/build/makefile.build
+endif
 include $(abs_devdir)/build/makefile.platform
 
 curdir = $(subst $(abs_devdir),,$(abs_curdir))
 ifeq ($(curdir),$(abs_curdir))
-   # devdir is external, load any local settings, like CXXFLAGS, LDFLAGS
    -include makefile.local
    curdir = $(abspath $(shell pwd))
    MAKE_OUT_DFLT ?= $(curdir)
 else
-   # we are inside devdir - full source tree
    MAKE_OUT_DFLT ?= $(abs_devdir)
 endif
 MAKE_OUT ?= $(MAKE_OUT_DFLT)
 
 MAKE_CMD=$(MAKE) --no-print-directory devdir="$(abs_devdir)" MAKE_MODE="$(MAKE_MODE)" \
-    MAKE_CXX_FLAGS="$(MAKE_CXX_FLAGS)" MAKE_OUT="$(MAKE_OUT)" INSTALLING=$(INSTALLING)
+    MAKE_CXX_FLAGS="$(MAKE_CXX_FLAGS)" MAKE_OUT="$(MAKE_OUT)" PACKAGING="$(PACKAGING)" INSTALLING=$(INSTALLING)
 
 bldout = $(MAKE_OUT)/$(rname)
-objdir   = $(bldout)/obj
-libdir   = $(bldout)/lib
-bindir   = $(bldout)/bin
+objdir = $(bldout)/obj
+libdir = $(bldout)/lib
+bindir = $(bldout)/bin
+hpdir = $(bldout)/hivepacks
 
-TOP_CXXFLAGS = -I$(abs_devdir)/include -I$(abs_devdir)/hive/include$(ADOPT_TOP_CXXFLAGS)
+reactbindir = $(devdir)/hive/html/r
+reactlibdir = $(bldout)/react
 
-# circular dependencies between qlib/ulib, slib/xlib - so we need to include both twice
+TOP_CXXFLAGS = -I$(abs_devdir)/include -I$(abs_devdir)/hive/include $(ADOPT_TOP_CXXFLAGS)
+
 VLIB_LIB = -lqlib -lulib -lqlib -lulib -lqlang -lssci -lssql -lslib -lxlib -lion -lslib -lxlib
 
 ext_dev_lib = $(abs_devdir)/$(rname)/lib
 ifeq ("$(ext_dev_lib)","$(libdir)")
-    TOP_LDFLAGS = -lpthread -ldl -lm -L$(libdir)
+    l2 = $(OPENSSL_LIB) -lpthread -ldl -lm -L$(libdir) -lrt
 else
-    TOP_LDFLAGS = -lpthread -ldl -lm -L$(ext_dev_lib) -L$(libdir)
+    l2 = $(OPENSSL_LIB) -lpthread -ldl -lm -L$(ext_dev_lib) -L$(libdir) -lrt
+endif
+ifeq ($(MAKE_MODE),debug)
+    TOP_LDFLAGS = -Wl,-rpath,$(abs_devdir)/$(rname)/lib $(l2)
+else
+    TOP_LDFLAGS = -Wl,-rpath-link,$(abs_devdir)/$(rname)/lib $(l2)
 endif
 
-# used in some makefiles to provide defines with defaults to be compiled in
-HIVE_DB_CXXFLAGS=-DHIVE_DB_HOST=\"localhost\" -DHIVE_DB=\"hive\" -DHIVE_DB_USER=\"hive\" -DHIVE_DB_PWD=\"hive123\"
+HIVE_DB_CXXFLAGS=-DHIVE_DB_HOST=\"qpridesrv:3306\" -DHIVE_DB=\"QPride\" -DHIVE_DB_USER=\"qpride\" -DHIVE_DB_PWD=\"q666pride\" $(SQLDB_CFLAGS)
+MYSQL_LIB = $(SQLDB_LIB)
+MYSQL_LIB_STATIC = $(MYSQL_LIB) -lz
 
 srcdir = $(abspath .)
 ifndef srcext
@@ -125,6 +181,9 @@ endif
 ifndef BUILDS
     BUILDS = $(LIBRARIES) $(MODULES) $(PROGRAMS)
 endif
+ifndef REACTS
+    REACTS = $(REACT_LIB)  $(reactbindir)/$(subst $space,$(space)$(reactbindir)/,$(REACT_APP))
+endif
 
 .SUFFIXES:
 
@@ -132,9 +191,10 @@ endif
 
 .PHONY: all
 ifeq ($(MAKELEVEL),0)
-all:: MAKEFLAGS=-j
+all: MAKEFLAGS=-j
 endif
-all:: out_setup $(BUILDS) $(USER_PROJ)
+all: out_setup $(BUILDS) $(REACTS) $(USER_PROJ)
+	$(call make-list,all,$(BUILD_LIST))
 
 $(foreach tgt,$(BUILDS),$(eval $(tgt)_OBJS := $(patsubst %$(srcext),$(objdir)/$(curdir)/%.o,$(patsubst %.c,$(objdir)/$(curdir)/%.c.o,$($(tgt)_SRCS)))))
 $(foreach tgt,$(BUILDS),$(eval $(tgt)_DEPS := $(patsubst %$(srcext),$(objdir)/$(curdir)/%.d,$(patsubst %.c,$(objdir)/$(curdir)/%.c.d,$($(tgt)_SRCS)))))
@@ -151,7 +211,7 @@ $(foreach tgt,$(LIBRARIES),$(eval $(tgt): $(libdir)/lib$(tgt).a))
 $(foreach tgt,$(MODULES),$(eval $(tgt): $(libdir)/$($(tgt)_NAME).so))
 $(foreach tgt,$(PROGRAMS),$(eval $(tgt): $(bindir)/$(tgt)))
 $(foreach tgt,$(LIBRARIES), \
-    $(eval $(libdir)/lib$(tgt).a: $(abs_devdir)/build/makefile.* $(srcdir)/makefile $($(tgt)_OBJS) $(LIBRARIES_DEPEND); \
+    $(eval $(libdir)/lib$(tgt).a: $(abs_devdir)/build/makefile.* $(srcdir)/makefile $($(tgt)_OBJS); \
         @echo "================ $(MAKE_MODE) - LIB - $(tgt)"; \
         rm -rf $(libdir)/lib$(tgt).a; \
         echo "ar cr $(libdir)/lib$(tgt).a from `echo $($(tgt)_OBJS) | wc -w` objects"; \
@@ -159,28 +219,61 @@ $(foreach tgt,$(LIBRARIES), \
     ) \
 )
 $(foreach tgt,$(MODULES), \
-	$(eval $(libdir)/$($(tgt)_NAME).so: $(abs_devdir)/build/makefile.* $(srcdir)/makefile $($(tgt)_OBJS) $(LIBRARIES_DEPEND) $($(tgt)_MODULE_DEPENDS); \
-		@echo "================ $(MAKE_MODE) - MODULE - $(tgt)"; \
-		rm -rf $$@; \
-		mkdir -p `dirname $$@`; \
-		echo "$(CXX) -o $$@ $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS)"; \
-		$(CXX) -pthread -shared -o $$@ $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS) \
-	) \
+    $(eval $(libdir)/$($(tgt)_NAME).so: $(abs_devdir)/build/makefile.* $(srcdir)/makefile $($(tgt)_OBJS) $($(tgt)_MODULE_DEPENDS); \
+        @echo "================ $(MAKE_MODE) - MODULE - $(tgt)"; \
+        rm -rf $$@; \
+        mkdir -p `dirname $$@`; \
+        echo '$(CXX) -pthread -shared -o $$@ $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS)'; \
+        $(CXX) -pthread -shared -o $$@ $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS) \
+    ) \
 )
 $(foreach tgt,$(PROGRAMS), \
     $(eval $(bindir)/$(tgt): $(abs_devdir)/build/makefile.* $(srcdir)/makefile $($(tgt)_OBJS) $(ALL_PROGRAMS_LIBSDEPEND) $($(tgt)_PROGRAM_DEPENDS) $(PROGRAMS_DEPEND); \
         @echo "================ $(MAKE_MODE) - APP - $(tgt)"; \
-        echo "$(CXX) -o $(bindir)/$(tgt) $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS)"; \
+        echo '$(CXX) -o $(bindir)/$(tgt) $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS)'; \
         $(CXX) -o $(bindir)/$(tgt) $($(tgt)_OBJS) $(LDFLAGS) $($(tgt)_LIBS) -L$(libdir) $(PROGRAMS_LIBS) $($(tgt)_XLIBS) $(PROGRAMS_XLIBS) $(TOP_LDFLAGS) \
     ) \
 )
 
+
+ifneq ($(REACT_LIBS),)
+REACT_APP_DEPEND := $(reactlibdir)/$(subst $space,.lib.stamp$(space)$(reactlibdir)/,$(REACT_LIBS)).lib.stamp
+endif
+
+.PHONY: $(REACT_LIB)
+$(REACT_LIB):
+	@if [[ $$(find . $(REACT_APP_DEPEND) -path ./node_modules -prune -o -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ") -nt $(reactlibdir)/$(REACT_LIB).lib.stamp ]]; then \
+	echo "================ $(MAKE_MODE) - REACT - $(REACT_LIB)"; \
+		mkdir -p $(reactlibdir)/$(REACT_LIB)/node_modules; \
+		ln -s $(reactlibdir)/$(REACT_LIB)/node_modules node_modules; \
+	    yarn install || exit 1; \
+	    yarn build || exit 1; \
+	    touch -r $$(find . -path ./node_modules -prune -o -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ") $(reactlibdir)/$(REACT_LIB).lib.stamp || exit 1; \
+	fi
+
+.PHONY: $(REACT_APP)
+$(REACT_APP):
+	@if [[ $$(find . $(REACT_APP_DEPEND) -path ./node_modules -prune -o -type f -printf '%T@ %p\n' | sort -n | tail -1 | cut -f2- -d" ") -nt $(reactlibdir)/$(REACT_APP).app.stamp ]]; then \
+	echo "================ $(MAKE_MODE) - REACT - $(REACT_APP)"; \
+		test -d node_modules && rm -rf node_modules; \
+		mkdir -p $(reactlibdir)/$(REACT_APP)/node_modules; \
+		ln -s $(reactlibdir)/$(REACT_APP)/node_modules node_modules; \
+	    yarn install || exit 1; \
+	    yarn build || exit 1; \
+		rm -rf $(reactbindir)/$(REACT_APP) || exit 1; \
+	    touch -r build $(reactlibdir)/$(REACT_APP).app.stamp || exit 1; \
+		mv -v build $(reactbindir)/$(REACT_APP) || exit 1; \
+	fi
+
+$(reactbindir)/$(REACT_APP): $(REACT_APP)
+
 .PHONY: purge
 purge:
-	rm -rf $(objdir)/$(curdir)
+	@echo "$(curdir)"
+	@rm -rf $(objdir)/$(curdir)
 
 .PHONY: clean
-clean:: purge
+clean: purge
 ifdef ALL_LIBRARIES
 	@rm -f $(ALL_LIBRARIES)
 endif
@@ -192,81 +285,197 @@ ifdef ALL_MODULES
 	@for d in $(ALL_MODULES); do \
 		d=$$(dirname $$d); \
 		if [[ $$d != $(libdir) && -d $$d && -z $$(ls $$d) ]]; then \
-			echo $$d cleaned; \
 			rmdir $$d; \
 		fi; \
 	done
 endif
+ifneq ($(or $(REACT_LIB),$(REACT_APP)),)
+	@rm -rf lib
+	@rm -rf build
+	@rm -rf node_modules
+	@rm -rf package-lock.json yarn.lock
+	@rm -rf $(reactlibdir)/$(REACT_LIB)
+	@rm -rf $(reactbindir)/$(REACT_APP)
+endif
 	@rm -f $(ALL_OBJS)
 	@rm -f $(ALL_DEPS)
-	@echo $(curdir) cleaned
+	$(call make-list,clean,$(BUILD_LIST))
 
-#rule to compile CPP files
 $(objdir)/$(curdir)/%.o: %$(srcext)
 	@mkdir -p `dirname $@`
 	@$(call make-depend,$<,$@,$(subst .o,.d,$@))
-	$(CXX) -Wall -Wno-format-security $(MAKE_CXX_FLAGS) $(PLATFORM_CXX_FLAGS) $(CXXFLAGS) $(TOP_CXXFLAGS) $($<_CXXFLAGS) -fPIC -c $< -o $@
+	$(CXX) -Wall $(MAKE_CXX_FLAGS) $(PLATFORM_CXX_FLAGS) $(CXXFLAGS) $(TOP_CXXFLAGS) $($<_CXXFLAGS) -fPIC -c $< -o $@
 	@echo
 
-#rule to compile C files
 $(objdir)/$(curdir)/%.c.o: %.c
 	@mkdir -p `dirname $@`
 	@$(call make-depend,$<,$@,$(subst .o,.d,$@))
-	$(CXX) -Wall -Wno-format-security $(MAKE_CXX_FLAGS) $(PLATFORM_CXX_FLAGS) $(CXXFLAGS) $(TOP_CXXFLAGS) $($<_CXXFLAGS) -fPIC -c $< -o $@
+	$(CXX) -Wall $(MAKE_CXX_FLAGS) $(PLATFORM_CXX_FLAGS) $(CXXFLAGS) $(TOP_CXXFLAGS) $($<_CXXFLAGS) -fPIC -c $< -o $@
 	@echo
 
-# usage: $(call make-depend,SourceFile,ObjectFile,DependFile)
 define make-depend
     $(CXX) -MM -MP -MT $2 $(MAKE_CXX_FLAGS) $(PLATFORM_CXX_FLAGS) $(CXXFLAGS) $(TOP_CXXFLAGS) $($<_CXXFLAGS) $1 > $3
 endef
 
-# usage: $(call make-list,target,list)
 define make-list
-    @$(foreach t,$2,$(MAKE_CMD) -C $(t) $(1) &&) \
+    @$(call dist-site-check); \
+    $(foreach t,$2,$(MAKE_CMD) -C $(t) $(1) &&) \
     true;
+endef
+
+define sh-escape
+$(subst ",\",$(subst $$,\$$,$(subst $$,$$$$,$(subst \,\\,$1))))
 endef
 
 ifneq ("$(MAKECMDGOALS)","clean")
     -include $(ALL_DEPS)
 endif
 
-.PHONY: install
-install:: INSTALLING=INSTALLING
-install::
+.PHONY: install site_is_set site_list
+
+site_list::
+	@echo "Searching..."; \
+	find $(devdir) -type f -iname makefile -exec grep -w SITES {} \; | gawk -F '\\s*=\\s*' '{print $$2}' | sort -u
+
+site_is_set::
+ifeq ($(SITEFILE),1)
+	@echo -n "SITE is set by ~/.hive.site to '$(SITE)', continue? [Y/n]?"; xx=; read xx; if [[ $${xx} == '' || $${xx} == 'y' || $${xx} == 'Y' ]]; then continue; else exit 1; fi;
+endif
+ifeq ($(SITE),)
+	@echo -e "Missing SITE variable in file, e.g.: SITE = .fda or SITE = comb.fda, use target \033[1;31msite_list\033[0m to list sites"; exit 1;
+endif
+ifneq ($(SITE),all)
+	@echo "SITE=$(SITE)" > ~/.hive.site;
+endif
+
+install:: INSTALLING=$(SITE)
+install:: site_is_set
 	@$(MAKE_CMD) dist
 
-.PHONY: dist
+.PHONY: package
+package::
+ifdef PACKAGING
+	@$(MAKE_CMD) dist
+else
+	@echo Launching packaging sequence...
+	@$(MAKE_CMD) PACKAGING=true package
+	@export XPWD=`pwd`
+	@cd $(pckgout)/.. && \
+	if [[ -d "$(pckgout)/hive" ]]; then echo -n "$(VER)" > $(pckgout)/hive/hive.ver; fi && \
+	rm -rf $(pckgoutdir).tgz && \
+	tar zcvf $(pckgoutdir).tgz $(pckgoutdir)
+	@rm -rf $(pckgoutdir)
+	@cd $$XPWD
+endif
+ifeq ($(VER),)
+    pckgoutdir=hive-$(MAKE_MODE)-$(SLIB_PLATFORM)-$(SLIB_ARCH)
+else
+    ifeq ($(MAKE_MODE),debug)
+        pckgoutdir=hive-$(VER)-$(MAKE_MODE)-$(SLIB_PLATFORM)-$(SLIB_ARCH)
+    else
+        pckgoutdir=hive-$(VER)
+    endif
+endif
+pckgout=$(MAKE_OUT)/$(pckgoutdir)
+pckgbin=$(pckgout)/$(rname)/bin
+pckglib=$(pckgout)/$(rname)/lib
+pckgadoption=$(pckgout)/adoption/$(rname)
+pckgsrc=$(pckgout)/$(curdir)
+
+.PHONY: dist sync types types_install menuitems menuitems_install actions actions_install apps apps_install hivepack
 dist:: out_setup_dist
+ifneq ($(or $(INSTALLING),$(PACKAGING)),)
+	$(call prop-import-types)
+	$(call prop-import-menuitems)
+	$(call prop-import-actions)
+	$(call prop-import-apps)
+endif
+
+sync:: types menuitems actions apps
+
+hivepack:: out_setup
+
+types:
+	$(call prop-export-types)
+
+types_install: INSTALLING=$(SITE)
+types_install: site_is_set
+	$(call prop-import-types)
+
+menuitems:
+	$(call prop-export-menuitems)
+
+menuitems_install: INSTALLING=$(SITE)
+menuitems_install: site_is_set
+	$(call prop-import-menuitems)
+
+actions:
+	$(call prop-export-actions)
+
+actions_install: INSTALLING=$(SITE)
+actions_install: site_is_set
+	$(call prop-import-actions)
+
+apps:
+	$(call prop-export-apps)
+
+apps_install: INSTALLING=$(SITE)
+apps_install: site_is_set
+	$(call prop-import-apps)
 
 .PHONY: out_setup_dist
 out_setup_dist:
+ifdef PACKAGING
+	@if ! test -d $(pckgout)/build; then \
+	    mkdir -p $(pckgout)/build || exit 1; \
+	    find $(devdir)/build -maxdepth 1 -type f -exec cp -vp {} $(pckgout)/build \; || exit 1; \
+	    echo -e "\n\ndist::" >> $(pckgout)/build/makefile.meta; \
+	    echo "ifndef INSTALLING" >> $(pckgout)/build/makefile.meta; \
+	    echo "	@echo -e \"\\nUse 'make install' only!!\\n\"; exit 2;" >> $(pckgout)/build/makefile.meta; \
+	    echo "endif" >> $(pckgout)/build/makefile.meta; \
+	    if [[ -s vlib/install/deploy.sh ]]; then cp -pv vlib/install/deploy.sh $(pckgout); fi; \
+	    if [[ -s $(bindir)/qapp ]]; then cp -pv $(bindir)/qapp $(pckgout); fi; \
+	    cd $(pckgout) || exit 1; \
+	    make $(MAKE_MODE) -f $(devdir)/makefile || exit 1; \
+	    cd - || exit 1; \
+	fi;
+	@if ! test -d $(pckgadoption); then \
+	    mkdir -p $(pckgadoption)/../build || exit 1; \
+	    find $(adoption)/build -maxdepth 1 -type f -exec cp -vp {} $(pckgadoption)/../build \; || exit 1; \
+	fi;
+	@if ! test -d $(pckgbin); then \
+	    mkdir -p $(pckgbin) || exit 1; \
+	fi;
+	@mkdir -p $(pckgsrc)
+	$(call open-makefile)
+endif
 
 .PHONY: dbg debug
 dbg: debug
 debug:
 	@echo "MAKE_MODE=$@" > makefile.mode
-	@echo "MAKE_CXX_FLAGS=-g -D_DEBUG -ggdb3" >> makefile.mode
+	@echo "MAKE_CXX_FLAGS=-g -D_DEBUG -ggdb3 --std c++11" >> makefile.mode
 	@echo "build mode set to '$@'"
 
 .PHONY: pdbg pdebug
 pdbg: pdebug
 pdebug:
 	@echo "MAKE_MODE=$@" > makefile.mode
-	@echo "MAKE_CXX_FLAGS=-O3 -g -pg -ggdb3 -DNDEBUG"  >> makefile.mode
+	@echo "MAKE_CXX_FLAGS=-O3 -g -pg -ggdb3 -DNDEBUG --std c++11"  >> makefile.mode
 	@echo "build mode set to '$@'"
 
 .PHONY: rel release
 rel: release
 release:
 	@echo "MAKE_MODE=$@" > makefile.mode
-	@echo "MAKE_CXX_FLAGS=-O3 -DNDEBUG" >> makefile.mode
+	@echo "MAKE_CXX_FLAGS=-O3 -DNDEBUG --std c++11" >> makefile.mode
 	@echo "build mode set to '$@'"
 
 .PHONY: prof profile
 prof: profile
 profile:
 	@echo "MAKE_MODE=$@" > makefile.mode
-	@echo "MAKE_CXX_FLAGS=-O3 -DNDEBUG -DSLIB_PERF" >> makefile.mode
+	@echo "MAKE_CXX_FLAGS=-O3 -DNDEBUG -DSLIB_PERF --std c++11" >> makefile.mode
 	@echo "build mode set to '$@'"
 
 .PHONY: out
@@ -297,6 +506,9 @@ out_setup:
 	@mkdir -p $(objdir)
 	@mkdir -p $(libdir)
 	@mkdir -p $(bindir)
+	@mkdir -p $(hpdir)
+	@mkdir -p $(reactlibdir)
+	@mkdir -p $(reactbindir)
 
 .PHONY: env
 env:
@@ -308,5 +520,5 @@ env:
 	@echo 'MAKE_MODE = "$(MAKE_MODE)"'
 	@echo 'MAKE_OUT = "$(MAKE_OUT)"'
 
-# help targets
 -include $(abs_devdir)/build/makefile.help
+-include $(abs_devdir)/build/makefile.git

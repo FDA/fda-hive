@@ -81,7 +81,7 @@ idx sPipe::exeFile00(const char * commandLine00, const char * stdinFile, const c
     return sPS::execute00(commandLine00, setupExeFile00, &param);
 }
 
-char * sPipe::exeSys( sStr * buf, const char * commandLine, const char * stdinBuf, idx lenstdin, idx * retCode /* = 0 */)
+char * sPipe::exeSys( sStr * buf, const char * commandLine, const char * stdinBuf, idx lenstdin, idx * retCode)
 {
     sStr tt, ti;
     if( stdinBuf ) {
@@ -139,8 +139,7 @@ char * sPipe::exeSys( sStr * buf, const char * commandLine, const char * stdinBu
     return buf ? buf->ptr() : 0;
 }
 
-// execute the command through pipe
-char * sPipe::exePipe( sIO * dst, const char * commandLine, const char * inputBuf, idx * retCode /* = 0 */)
+char * sPipe::exePipe( sIO * dst, const char * commandLine, const char * inputBuf, idx * retCode)
 {
     FILE * pipe = popen( commandLine, "r");
     sStr Buf; char * maxLine=Buf.resize(sSizePage);
@@ -155,7 +154,6 @@ char * sPipe::exePipe( sIO * dst, const char * commandLine, const char * inputBu
             dst->add(maxLine,sLen(maxLine));
         }
     }
-    // Close pipe and return
     idx ret;
     if( !retCode ) {
         retCode = &ret;
@@ -184,8 +182,7 @@ void * sPipe_exeFS_thread(void * arg)
     pthread_exit(0);
 }
 
-// static
-idx sPipe::exeFS(sIO * dst, const char * cmdline, const char * inputBuf, callbackFuncType callbackFunc, void * callbackParam, const char * FSpath, const udx sleepSec /* = 1 */)
+idx sPipe::exeFS(sIO * dst, const char * cmdline, const char * inputBuf, callbackFuncType callbackFunc, void * callbackParam, const char * FSpath, const udx sleepSec)
 {
     idx retval = -10;
     if( callbackFunc ) {
@@ -212,7 +209,6 @@ idx sPipe::exeFS(sIO * dst, const char * cmdline, const char * inputBuf, callbac
         } else {
             retval = -30;
         }
-        // '-' size here force progress to be reported to database
         callbackFunc(callbackParam, initial < 0 ? 0 : -sDir::size(FSpath));
     } else {
         exePipe(dst, cmdline, inputBuf, &retval);
@@ -220,107 +216,4 @@ idx sPipe::exeFS(sIO * dst, const char * cmdline, const char * inputBuf, callbac
     return retval;
 }
 
-// execute the command through bidirectional pipe
-/*
-#ifndef WIN32
-
-idx sPipe::exePipeBiDir(sIO * dst, const char *command, const char *inBuf, idx inSize)
-{
-    #define WRITE 0
-    #define READ 1
-
-    idx parent2child[2] ;
-    idx child2parent[2] ;
-    pid_t pid ;
-    idx inFl, outFl ;
-    idx nn = 1, nByteRead = 0 ;
-
-    // create pipes
-    if (pipe (parent2child) != 0 || pipe (child2parent) != 0)
-        return -1000 ; // error
-
-    // fork your process
-    pid = fork () ;
-    if (pid < 0)
-        return(idx) pid ; // error
-
-    // successfull forking
-    else if (pid == 0){ // I am the child, fix the streams and execute
-        close (parent2child[WRITE]) ;
-        dup2 (parent2child[READ], READ);    // make fildes [READ] my effective stdin
-        close (child2parent[READ]) ;
-        dup2 (child2parent[WRITE], WRITE);  // make fildes[WRITE] my effective stdout
-        execl ("/bin/sh", "sh", "-c", command, NULL); // execute the command
-        perror ("execl"); // if there are any errors pridx them out
-        exit (0); //  done
-    }
-
-    // here we are in the parent process
-    close (parent2child[READ]) ;
-    close (child2parent[WRITE]) ;
-    outFl = parent2child[WRITE] ; // child reads where I write
-    inFl = child2parent[READ]   ; // child writes where I read
-
-    // transmit data to the child
-    write (outFl, inBuf, inSize) ;
-    close (outFl) ; // we close here so the child doesn't wait for more input
-
-    // read the results
-
-    *outBuf = 0 ;
-    nn = read (inFl, outBuf, outSize) ;
-    outBuf[nn] = 0 ;
-    nByteRead += nn ;
-
-    // final clean up
-    close (parent2child[WRITE]) ;
-    close (child2parent[READ]) ;
-    close (inFl) ;
-    return nByteRead ;
-}
-#endif
-*/
-/*
-
-
-
-
-#ifdef WIN32
-    #include <windows.h>
-#endif
-
-vFilePid vFile::getProcessId(void)
-{
-    #ifdef WIN32
-        //return (vFilePid)GetModuleHandle(NULL);
-        return (vFilePid) _getpid();
-    #else
-        //return (vFilePid) vConvidx2Ptr(getpid(),void);
-        return (vFilePid) getpid();
-    #endif
-}
-
-char * vFile::getProcessPath(vFilePid pid, char * reslt, idx justdir)
-{
-    reslt[0]=0;
-    #ifdef WIN32
-        GetModuleFileName((HMODULE)pid,reslt, vFile_PATH_MAXLEN);
-        vString::searchAndReplaceSymbols(reslt,reslt,0,"\\", "/",0,1,0,0);
-    #else
-        char buf[64];
-        if(!pid)pid=getpid();
-        sprintf(buf,"/proc/%" DEC "/exe", pid);
-        reslt[ readlink (buf,reslt,vFile_PATH_MAXLEN)]=0;
-    #endif
-
-    if(justdir) {
-        char * p ;
-        if( (p=strrchr(reslt,'/'))!=0 || (p=strrchr(reslt,'\\'))!=0 )
-            *p=0;
-    }
-    return reslt;
-}
-
-
-*/
 

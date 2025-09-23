@@ -38,7 +38,6 @@ namespace slib
     class sWord  {
         public:
             static const char * wordList[];
-//            static idx wordListCount;
 
             static const char * getWord(idx ra);
     };

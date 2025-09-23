@@ -30,7 +30,7 @@
 
 function vjD3JS_StackableGroupBars ( viewer )
 {
-    vjD3View.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjD3View.call(this,viewer);
 
     if (!viewer.width) this.width=1200;
     else this.width = viewer.width;
@@ -65,8 +65,8 @@ function vjD3JS_StackableGroupBars ( viewer )
         var svg=this.d3svg;
         
 
-        var n = this.cols.length, // number of layers
-            m = data.length, // number of samples per layer
+        var n = this.cols.length,
+            m = data.length,
             stack = d3.layout.stack(),
             layers = stack(d3.range(n).map(function(d) { 
                     return bumpLayer(data, cols[d].name ); 
@@ -112,8 +112,8 @@ function vjD3JS_StackableGroupBars ( viewer )
         else
             maxVal = max;
         
-        var graphHeight = maxVal-minVal; // the span of value from max to min
-        var coef = height / graphHeight; // we will use this to determine the height of the bars and the y coordinate
+        var graphHeight = maxVal-minVal;
+        var coef = height / graphHeight;
         var colHeaders = [];
         if (data.length > 0)
         {
@@ -178,11 +178,6 @@ function vjD3JS_StackableGroupBars ( viewer )
             .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
         
-            
-        /*svg.append("g")         // Add the X Axis
-            //.attr("class", "x axis")
-            .attr("transform", "translate(" + 0 + "," + margin.top + ")")
-            .call(xAxis);*/
         
         var layer = svg.selectAll(".layer")
             .data(layers)
@@ -222,7 +217,6 @@ function vjD3JS_StackableGroupBars ( viewer )
             .attr("class", "legend")
             .attr("transform", function(d, i) {
                 return "translate("+width+"," + (n*size+36+i*24) + ")";});
-            //.attr("transform", function(d, i) {return "translate(-179," + (i * 20 + 594) + ")";});
         
         legend.append("svg:circle")
             .style("fill", function (d,i ) {
@@ -284,15 +278,12 @@ function vjD3JS_StackableGroupBars ( viewer )
               .attr("width", x.rangeBand());
         }
 
-        // Inspired by Lee Byron's test data generator.
         function bumpLayer(data, nm) {
 
             var a=[];
              for ( var i=0; i<data.length; ++i) {
                  var val = parseFloat(data[i][nm]);
-                 /*if (isNaN(i) || isNaN(val))
-                         continue;
-                */
+
                  a[i]={x: i, y: val, label:nm }; 
                 if (val < min)
                     min = val;

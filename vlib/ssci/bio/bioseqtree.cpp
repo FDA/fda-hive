@@ -31,21 +31,6 @@
 
 using namespace slib;
 
-//    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-//    // _/
-//    // _/ Methods of the class BioseqTree
-//    // _/
-//    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-//  addSequence:  
-//      It adds a new sequence to the tree, adding two nodes as maximum per sequence.
-//      
-//   Input :
-//          It requires the index, length and repetitions of the sequence
-//      that is candidate to be inserted.
-//   Output: It returns a value of:  
-//              -1 - if the candidate sequence is new in the tree.
-//           or id - the candidate sequence is not new, and 'id' is the index of the 
-//                   other sequence exactly as the candidate.
 idx BioseqTree::addSequence(idx seqnum, idx seqlen, idx seqrpt, idx reversecomplement, idx auxID)
 {
     
@@ -61,97 +46,64 @@ idx BioseqTree::addSequence(idx seqnum, idx seqlen, idx seqrpt, idx reversecompl
     father = iseq.ptr();
     idx qrylen = seqlen;
 
-//    const char * seq1 = qryTree->seq(seqnum);
-//    const char * seq2 = qryTree->seq(father->seqoriginalID);  // pointer to the sequence in qryTree
-    //Rec *origRec1 = vofs->ptr(seqnum);
 
-    //char *seq1 = qryTree->ptr(ofsSeq + seqnum);
     const char *seq1 = seq(ofsSeq + seqnum);
 
-    //Rec *origRec2 = vofs->ptr(father->seqoriginalID);
     const char *seq2;
         
     if (father->seq_end != -1)
         seq2 = seq(ofsSeq + father->seqIndex);
     else
         seq2 = 0;
-        //seq2 = qryTree->ptr(ofsSeq + father->seqIndex);
 
-    // Walk for every position of the sequence and look for similarities in the tree
     for(pos = 0; pos<qrylen; ++pos) {
 
         if (reversecomplement == 0){ bitpos = pos;}
         else { bitpos = (qrylen - 1) - pos; }
 
-        let1 = sBioseqAlignment::_seqBits(seq1, bitpos, flags); // retrieve 2-bit presentation of a particular base (A,C,G,T)  for the current query position
+        let1 = sBioseqAlignment::_seqBits(seq1, bitpos, flags);
 
-//        printlet(let1);
-        // We check if we have reach the last element of the node.
         if (father->seq_end <= pos){ 
-            // We have reached the last element, so we need to check if 
-            // there is another node after this node.
             if (father->offsets[(idx)let1] == -1){
-                // There is no other node, so we need to add a new node.
-                // Case 1. A new son (son) is added to the previous node (father):
-                //                     (1)           (1)            (1)
-                //     (1)       ->     |     OR    | |     ->     | | |
-                //                     (2)        (2)(3)         (2)(3)(4)
                 temp = father - iseq.ptr();
                 son = iseq.add(1);
                 father = iseq.ptr() + temp;
                 createNode(son, qrylen, seqnum, auxID, revcomp);
                 numSeq++;
                 son->rptcount += seqrpt;
-                if (father->seq_end != -1)  // Just to avoid moving root index from -1
+                if (father->seq_end != -1)
                     father->seq_end = pos;
                 father->offsets[(idx)let1] = son - iseq.ptr();
                 lastNode = son - iseq.ptr();
                 return -1;
             }
-            // We have not reached the last element of the tree, so we move 
-            // father to the next position in the tree.
             father = father->offsets[(idx)let1] + iseq.ptr();
             
             seq2 = seq(ofsSeq + father->seqIndex);
-            //seq2 = qryTree->ptr(ofsSeq + father->seqIndex);
-            //seq2 = qryTree->seq(father->seqoriginalID);  // pointer to the sequence in qryTree
             continue;
         }
 
-        //  We read the next element of the sequence in the tree to compare with candidate
         if (father->revcomp == 0){ bitpos = pos; flags2 = 0;}
         else { bitpos = (len(ofsSeq + father->seqIndex) - 1) - pos; flags2 = 0x00000120;}
 
-        let2 = sBioseqAlignment::_seqBits(seq2, bitpos, flags2); // retrieve 2-bit presentation of a particular base (A,T,G,C)  for the current query position
+        let2 = sBioseqAlignment::_seqBits(seq2, bitpos, flags2);
 
-        //printlet(let2);
-        // We check that both elements are different
         if (let1 != let2){   
-            // We found a difference, so we will break the sequence in 2 
-            // Case 2. A new node (son1) and an internal node (son) are added:
-            //             |                |
-            //             |               (3)
-            //            (1)     ->     |   |
-            //                          (1) (2)
             temp = father - iseq.ptr();
             son = iseq.add(1);
             father = iseq.ptr() + temp;
-            // First node is created with all father's properties.
             createNode(son, father->seq_end, father->seqIndex, father->seqOriginalID, father->revcomp);
             son->rptcount = father->rptcount;
-            // Move the offsets to the new node and clear the actual ones
             for (idx icount = 0; icount < 4; ++icount){
                 son->offsets[icount] = father->offsets[icount];
                 father->offsets[icount] = -1;
             }
-            // Update the values for the old node (father)
             father->rptcount = 0;
             father->seq_end = pos;
             father->offsets[(idx)let2] = son - iseq.ptr();
             temp = father - iseq.ptr();
             son1 = iseq.add(1);
             father = iseq.ptr() + temp;
-            // Second Node is created with the candidate sequence.
             createNode(son1, qrylen, seqnum, auxID, revcomp);
             numSeq++;
             son1->rptcount += seqrpt;;
@@ -160,40 +112,22 @@ idx BioseqTree::addSequence(idx seqnum, idx seqlen, idx seqrpt, idx reversecompl
             return -1;
         }
     }
-    //  If we reached this point, it means that the candidate sequence shares a node with 
-    // another sequence in the tree.  But we can have two possibilities:
-    //    1. candidate sequence is a subsequence of original sequence
-    //    2. they both are the same sequence.
     if (father->seq_end != pos){
-        // the new sequence is a subsequence of the original one and we will create a 
-        // new node.
-        // Case 3. A new son (son) is added to the previous node (father):
-        //                                                  (1)
-        //                    (1)            (1)    ->       |
-        //     (1)      ->     |      OR    / |             (4)
-        //                    (2)         (2)(3)           / | 
-        //                                               (2)(3)  
-        // First we need to read the next element of father to move the offset
-        // into the right direction
         seq2 = seq(ofsSeq + father->seqIndex);
-        //seq2 = qryTree->ptr(ofsSeq + father->seqIndex);
-        //seq2 = qryTree->seq(father->seqoriginalID);  // pointer to the sequence in qryTree
 
         if (father->revcomp == 0){ bitpos = pos; flags2 = 0;}
         else { bitpos = (len(ofsSeq + father->seqIndex) - 1) - pos; flags2 = 0x00000120;}
 
-        let2 = sBioseqAlignment::_seqBits(seq2, bitpos, flags2); // retrieve 2-bit presentation of a particular base (A,T,G,C)  for the current query position
+        let2 = sBioseqAlignment::_seqBits(seq2, bitpos, flags2);
         temp = father - iseq.ptr();
         son = iseq.add(1);
         father = iseq.ptr() + temp;
-        // We create the node with all the father's properties
         createNode(son, father->seq_end, father->seqIndex, father->seqOriginalID, father->revcomp);
         son->rptcount = father->rptcount;
         for (idx icount = 0; icount < 4; ++icount){
             son->offsets[icount] = father->offsets[icount];
             father->offsets[icount] = -1;
         }
-        // We modified the father's offset, count and sequence ID
         father->rptcount = 1;
         father->seqIndex = seqnum;
         father->seqOriginalID = auxID;
@@ -205,10 +139,6 @@ idx BioseqTree::addSequence(idx seqnum, idx seqlen, idx seqrpt, idx reversecompl
         return -1;
     }
     if (father->rptcount == 0){
-        //  If count == 0, it means that father's sequence does not finish at this node
-        // so the candidate node is a subsequence of the original one.
-        //  So we don't modify the tree, only increase the counter and add the
-        // candidate sequence ID to the node.
         father->seqIndex = seqnum;
         father->revcomp = revcomp;
         father->seqOriginalID = auxID;
@@ -217,18 +147,11 @@ idx BioseqTree::addSequence(idx seqnum, idx seqlen, idx seqrpt, idx reversecompl
         numSeq++;
         return -1;
     }
-    //  Candidate sequence is a repeated sequence, so we increase the count on this
-    // node and return the value of the original sequence.
     father->rptcount +=seqrpt;
     lastNode = father - iseq.ptr();
     return (father->seqOriginalID);
 }
 
-//  printTree:  
-//      It prints the nodes of the tree, and counts the number of sequences in it
-//    based on the node container 'iseq'.
-//   Input : It does not require any input.
-//   Output: A printout of the nodes, number of nodes and sequences to the screen.
 void BioseqTree::printTree(bool generalInfo)
 {
     idx numNodes = iseq.dim();
@@ -248,17 +171,11 @@ void BioseqTree::printTree(bool generalInfo)
             printNode(leaf, leaf - iseq.ptr());
         }
     }
-    //#ifdef _DEBUG
           ::printf( "\n Number of nodes in the Tree = %lld \n", numNodes);
           ::printf( "\n Number of sequences in the Tree = %lld \n", numUnique);
-    //#endif
     
 }
 
-//  inOrderTree:  
-//      It prints the unique sequences of the tree sorted, using recursion
-//   Input : It requires the index of the node to be printed (usually the root).
-//   Output: A printout of the sorted sequences to the screen.
 void BioseqTree::inOrderTree(idx root)
 {
     NodeTree *current;
@@ -266,11 +183,9 @@ void BioseqTree::inOrderTree(idx root)
    
     current = root + iseq.ptr();
     if (current->rptcount != 0){
-        // If the node has sequences, print it
         printNode (current->seqIndex);
     }
     for (idx i = 0; i < numOffsets; i++){
-        // Look into the offsets
         if (current->offsets[i] != -1){
             inOrderTree (current->offsets[i]);
         }
@@ -278,10 +193,6 @@ void BioseqTree::inOrderTree(idx root)
     return ;
 }
 
-//  inOrderTree:  
-//      It prints the unique sequences of the tree sorted, using a queue
-//   Input : It requires the index of the node to be printed (usually the root).
-//   Output: A printout of the sorted sequences to the screen.
 void BioseqTree::inOrderTree2(idx root, sVec <idx> * inSort)
 {
     NodeTree *current;
@@ -290,24 +201,20 @@ void BioseqTree::inOrderTree2(idx root, sVec <idx> * inSort)
     idx numOffsets = 4;
 
     stack.mex()->flags|=sMex::fSetZero; 
-    stack.cut(0);    // set at the beginning of the buffer
+    stack.cut(0);
 
     curr = root;
     stack.vadd(1, curr);
-    //if (curr != -1){ 
     len = stack.dim();
     while (len != 0){
         curr = stack[--len];
         stack.del(len);
-        // Visit the actual node
         current = curr + iseq.ptr();
         if (current->rptcount != 0){
             inSort->vadd(1, current->seqOriginalID);
-            //printNode (current->seqIndex);
         }
 
         for (idx i = numOffsets-1; 0 <= i; i--){
-            // Look into the offsets
             if (current->offsets[i] != -1){
                 stack.vadd(1, current->offsets[i]);
             }
@@ -317,10 +224,6 @@ void BioseqTree::inOrderTree2(idx root, sVec <idx> * inSort)
     return;
 }
 
-//  inOrderTree3:
-//      It prints the unique sequences of the tree sorted, using a queue
-//   Input : It requires the index of the node to be printed (usually the root).
-//   Output: A printout of the sorted sequences to the screen.
 void BioseqTree::inOrderTree3(idx root, sVec <idx> * inSort, sVec <idx> * diffSort)
 {
     NodeTree *current;
@@ -330,14 +233,13 @@ void BioseqTree::inOrderTree3(idx root, sVec <idx> * inSort, sVec <idx> * diffSo
     idx numOffsets = 4;
 
     stack.mex()->flags|=sMex::fSetZero;
-    stack.cut(0);    // set at the beginning of the buffer
+    stack.cut(0);
 
     queue.mex()->flags|=sMex::fSetZero;
-    queue.cut(0);    // set at the beginning of the buffer
+    queue.cut(0);
 
     curr = root;
     stack.vadd(1, curr);
-    //if (curr != -1){
     len = stack.dim();
     while (len != 0){
         curr = stack[--len];
@@ -348,14 +250,12 @@ void BioseqTree::inOrderTree3(idx root, sVec <idx> * inSort, sVec <idx> * diffSo
             inSort->vadd(1, current->seqOriginalID);
         }
         for (idx i = numOffsets-1; 0 <= i; i--){
-            // Look into the offsets
             if (current->offsets[i] != -1){
                 stack.vadd(1, current->offsets[i]);
                 offset ++;
             }
         }
-        if (offset == 0){  // This node has no offsets
-            //empty square;
+        if (offset == 0){
             diffSort->vadd(1, square);
             offlen = queue.dim();
             if (offlen > 0){
@@ -363,12 +263,10 @@ void BioseqTree::inOrderTree3(idx root, sVec <idx> * inSort, sVec <idx> * diffSo
                 queue.del(offlen);
             }
         }
-        else{ // Node has at least an offset
-            // push (offset - 1) numbers into the queue
+        else{
             for (idx i = 0; i < offset - 1; i++)
                 queue.vadd (1, current->seq_end);
 
-            // Visit the actual node
             if (current->rptcount != 0){
                 diffSort->vadd(1, square);
                 square = current->seq_end;
@@ -379,15 +277,6 @@ void BioseqTree::inOrderTree3(idx root, sVec <idx> * inSort, sVec <idx> * diffSo
     return;
 }
 
-//  getSubNode:
-//      It gets the node that is based on the sequence
-//   Input : It requires:
-//             - the index to the candidate sequence
-//             - the start position of the candidate sequence
-//             - length of the candidate sequence
-//   Output: It returns a value of:
-//              -1 - if there is no other sequence in the tree
-//           or id - the value of the node in which the sequence ends
 idx BioseqTree::getSubNode(const char * sequence, idx seqlen, bool isCompressed, bool exactMatch)
 {
     NodeTree *father;
@@ -396,45 +285,34 @@ idx BioseqTree::getSubNode(const char * sequence, idx seqlen, bool isCompressed,
     idx flags;
     father = iseq.ptr();
 
-//    const char *seq1 = seq(ofsSeq + seqnum);
 
     const char *seq2 = 0;
 
     if (father->seq_end != -1)
         seq2 = seq(ofsSeq + father->seqIndex);
 
-    // Walk for every position of the sequence and look for similarities in the tree
     for(pos = 0; pos<seqlen; ++pos) {
 
         if (isCompressed){
-            let1 = sBioseqAlignment::_seqBits(sequence, pos, 0);
+            let1 = sBioseqAlignment::_seqBits(sequence, pos);
         }
         else {
             let1 = sequence[pos];
         }
-        // We check if we have reach the last element of the node.
         if (father->seq_end <= pos){
-            // We have reached the last element, so we need to check if
-            // there is another node after this node.
             if (father->offsets[(idx)let1] == -1){
-                // There is no other node
                 return -1;
             }
-            // We have not reached the last element of the tree, so we move
-            // father to the next position in the tree.
             father = father->offsets[(idx)let1] + iseq.ptr();
             seq2 = seq(ofsSeq + father->seqIndex);
             continue;
         }
-        //  We read the next element of the sequence in the tree to compare with candidate
         if (father->revcomp == 0){ bitpos = pos; flags = 0;}
         else { bitpos = (len(ofsSeq + father->seqIndex) - 1) - pos; flags = 0x00000120;}
 
         let2 = sBioseqAlignment::_seqBits(seq2, bitpos, flags);
 
-        // We check that both elements are different
         if (let1 != let2){
-            // We found a difference, so there is no similar sequence in the tree
             return -1;
         }
     }
@@ -445,13 +323,6 @@ idx BioseqTree::getSubNode(const char * sequence, idx seqlen, bool isCompressed,
     return father - iseq.ptr();
 }
 
-//  getLongestSeq:
-//      It gets the longest sequence from the node number it receives
-//   Input : It requires:
-//             - the number of the node
-//   Output: It returns a value of:
-//              -1 - if there is no other sequence in the tree
-//           or id - the id of the sequence with the maximum count
 idx BioseqTree::getLongestSeq(idx *node, idx rptcount, idx tabu)
 {
     NodeTree *current, *best;
@@ -459,33 +330,26 @@ idx BioseqTree::getLongestSeq(idx *node, idx rptcount, idx tabu)
     idx curr, len;
     idx numOffsets = 4;
     idx maxCount = 0;
-    //idx maxSeqID;
 
     stack.mex()->flags|=sMex::fSetZero;
-    stack.cut(0);    // set at the beginning of the buffer
+    stack.cut(0);
 
     curr = *node;
     stack.vadd(1, curr);
-    //if (curr != -1){
     len = stack.dim();
     best = 0;
     while (len != 0){
         curr = stack[--len];
         stack.del(len);
-        // Visit the actual node
         current = curr + iseq.ptr();
         if (current->rptcount != 0){
-            //inSort->vadd(1, current->seqOriginalID);
-            //printNode (current->seqIndex);
             if ((current->rptcount > maxCount) && (tabu != current->seqIndex)){
                 maxCount = current->rptcount;
-                //maxSeqID = current->seqOriginalID;
                 best = current;
             }
         }
 
         for (idx i = numOffsets-1; 0 <= i; i--){
-            // Look into the offsets
             if (current->offsets[i] != -1){
                 stack.vadd(1, current->offsets[i]);
             }
@@ -495,7 +359,6 @@ idx BioseqTree::getLongestSeq(idx *node, idx rptcount, idx tabu)
     if (best == 0)
         return -1;
     best->rptcount = rptcount;
-    //return maxSeqID;
     *node = best - iseq.ptr();
     return best->seqOriginalID;
 }
@@ -506,31 +369,24 @@ idx BioseqTree::getNodesSeq (sVec<idx> *seqs, idx node, idx rptcount, idx tabu)
     sVec <idx> stack;
     idx curr, len;
     idx numOffsets = 4;
-    //idx maxSeqID;
 
     stack.mex()->flags|=sMex::fSetZero;
-    stack.cut(0);    // set at the beginning of the buffer
+    stack.cut(0);
 
     curr = node;
     stack.vadd(1, curr);
-    //if (curr != -1){
     len = stack.dim();
     while (len != 0){
         curr = stack[--len];
         stack.del(len);
-        // Visit the actual node
-//        current = curr + iseq.ptr();
         current = iseq.ptr(curr);
         if (current->rptcount != 0){
-            //inSort->vadd(1, current->seqOriginalID);
-            //printNode (current->seqIndex);
             if (tabu != current->seqOriginalID){
                 seqs->vadd(1, curr);
             }
         }
 
         for (idx i = numOffsets-1; 0 <= i; i--){
-            // Look into the offsets
             if (current->offsets[i] != -1){
                 stack.vadd(1, current->offsets[i]);
             }
@@ -552,7 +408,7 @@ idx BioseqTree::fixNodeTree(idx node, idx seqnum, idx seqlen, bool isRev)
     idx temp = 0;
 
     stack.mex()->flags|=sMex::fSetZero;
-    stack.cut(0);    // set at the beginning of the buffer
+    stack.cut(0);
     curr = node;
     stack.vadd(1, curr);
     len = stack.dim();
@@ -560,7 +416,6 @@ idx BioseqTree::fixNodeTree(idx node, idx seqnum, idx seqlen, bool isRev)
     while (len != 0){
         curr = stack[--len];
         stack.del(len);
-        // Visit the actual node
         current = iseq.ptr(curr);
         if (current->rptcount !=0){
             if (current->seqIndex == seqnum){
@@ -572,7 +427,6 @@ idx BioseqTree::fixNodeTree(idx node, idx seqnum, idx seqlen, bool isRev)
                 }
             }
         }
-        // Look into the offsets
         for (idx i = numOffsets-1; 0 <= i; i--){
             if (current->offsets[i] != -1){
                 stack.vadd(1, current->offsets[i]);
@@ -583,36 +437,4 @@ idx BioseqTree::fixNodeTree(idx node, idx seqnum, idx seqlen, bool isRev)
     return -1;
 }
 
-//idx BioseqTree::fixNodeTree(idx node, idx seqnum, bool isRev)
-//{
-//    NodeTree *current, *next;
-//    bool flag = true;
-//    idx curr, nxt;
-//    idx numOffsets = 4;
-//    curr = node;
-//
-//
-//    current = iseq.ptr(curr);
-//    while (true){
-//        flag = true;
-//        for (idx i = 0; i < numOffsets; i++){
-//            if (current->offsets[i] != -1){
-//                nxt = current->offsets[i];
-//                next = iseq.ptr(nxt);
-//                if (next->seqIndex == seqnum && next->revcomp == isRev){
-//                    flag = false;
-//                    curr = nxt;
-//                    current = next;
-//                    break;
-//                }
-//            }
-//        }
-//        if (flag){
-//            return curr;
-//        }
-//    }
-//
-//    return curr;
-//
-//}
 

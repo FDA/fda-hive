@@ -35,11 +35,9 @@
 #define TINY (real)(1.0e-20)
 #define SHFT(a,b,c,d) (a)=(b);(b)=(c);(c)=(d);
 
-//#define FMAX(a,b) (maxarg1=(a),maxarg2=(b),(maxarg1) > (maxarg2) ? (maxarg1) : (maxarg2))
 
 void sMathNR::mnbrak(real *ax, real *bx, real *cx, real *fa, real *fb, real *fc,    real (*func)(real, void * ), void * usr)
 {
-    //real maxarg1,maxarg2;
     real ulim,u,r,q,fu,dum;
 
     *fa=(*func)(*ax,usr);

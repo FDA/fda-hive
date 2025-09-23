@@ -84,14 +84,6 @@ idx sSort::sort_stringNaturalCaseComparator(void * param, void * arr, idx i1, id
     return false;
 }
 
-/**
- *  sDic<Lenstats> lenStat;
- *  seqlen = KEY
- *  Lenstats * auxlenStat = lenStat.set(&seqlen, sizeof(seqlen));
- *  Modify auxlenStat if it's necessary, and sort it based on the (idx)key
- *  sVec <idx> ind; ind.cut(0);ind.add(lenStat.dim());
- * sSort::sortCallback(sSort::sort_idxDicComparator, 0 , lenStat.dim(), &lenStat, ind);
- */
 idx sSort::sort_idxDicComparator(void * param, void * arr, idx i1, idx oper, idx i2 )
 {
     sDic <Lenstats> * lenstat = (sDic <Lenstats> *) arr;
@@ -114,6 +106,27 @@ idx sSort::sort_idxDicComparator(void * param, void * arr, idx i1, idx oper, idx
     return false;
 }
 
+idx sSort::sort_idxDic(void * param, void * arr, idx i1, idx oper, idx i2 )
+{
+    sDic <idx> * idCnt = (sDic <idx> *) arr;
+
+    idx first = *idCnt->ptr(i1);
+    idx second = *idCnt->ptr(i2);
+
+    idx res = first - second;
+
+    if(oper==eSort_EQ && res==0)
+        return true;
+    else if(oper==eSort_GT && res>0)
+        return true;
+    else if(oper==eSort_GE && res>=0)
+        return true;
+    else if(oper==eSort_LT && res<0)
+        return true;
+    else if(oper==eSort_LE && res<=0)
+        return true;
+    return false;
+}
 
 
 void sSort::sortStringsInd(idx n, const char * * arr, idx * ind)

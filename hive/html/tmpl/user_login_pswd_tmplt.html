@@ -9,8 +9,11 @@
         var ll = cookieGet('last_login');
         if( cookieGet('followTo') ) {
             gObject("follow").value = cookieGet('followTo');
+            cookieDelete('followTo');
+        } else {
+            var x = docLocValue('follow', 'home');
+            gObject("follow").value = x;
         }
-        cookieDelete('followTo');
         if( ll && ll.length > 0) {
             gObject("inpLogin").value = ll;
             gObject("inpPswd").focus();
@@ -26,7 +29,11 @@
         return true;
     }
 </script>
-
+<!-- <div style="background-color: #e04b9699;">
+    <div>
+        <p style="line-height: 2.7em; margin-top: 0px; text-align: center;">SciHIVE, RegHIVE, Jupyter, RStudio  will be <b>down</b> this Friday (<b>10/01</b>) from 12pm - 4 pm due to maintenance and upgrades.</p>
+    </div>
+</div> -->
 <table width="100%" class="HIVE_table">
     <tr>
         <td valign='middle' align='right' width="50%">

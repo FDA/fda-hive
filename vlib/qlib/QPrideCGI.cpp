@@ -29,22 +29,18 @@
  */
 #include <slib/std.hpp>
 #include <qlib/QPrideCGI.hpp>
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/  Initialization
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
 bool sQPrideCGI::OnCGIInit(void)
 {
     reqId = pForm->ivalue("req");
+    cookieSecureOverHTTP(cfgInt(0, "user.cookieSecureOverHTTP", 1));
 
     bool res = sUsrCGI::OnCGIInit();
-    // we associate current run in QPride with this user
-    // thus any submission is associated with the current UserID
     sQPrideBase::user = &m_User;
+
+    if( m_backEndUser ) {
+        sQPrideBase::user = m_backEndUser;
+    }
 
     cntParallel = 0;
     requiresGroupSubmission = false;
@@ -72,10 +68,13 @@ bool sQPrideCGI::OnCGIInit(void)
             objs.cut(cnt);
     }
 
-
-
     sStr rootPath;
-    sUsrObj::initStorage(cfgStr(&rootPath, 0, "user.rootStoreManager"), cfgInt(0, "user.storageMinKeepFree", (udx)20 * 1024 * 1024 * 1024));
+    sRC rc = sUsrObj::initStorage(cfgStr(&rootPath, 0, "user.rootStoreManager"), cfgInt(0, "user.storageMinKeepFree", (udx)20 * 1024 * 1024 * 1024), this);
+    if( rc ) {
+        logOut(eQPLogType_Error, "%s", rc.print());
+        res = false;
+    }
+
     return res;
 }
 
@@ -97,7 +96,6 @@ const char * sQPrideCGI::formValue(const char * prop, sStr * buf, const char * d
 
     const char * propVal=0;
     if( objs.dim()>iObj ) {
-        //propVal=objs[iObj].propGet(prop,buf);
         propVal=objs[iObj].propGet00(prop, buf, "\n");
     }
     if(!propVal) {
@@ -127,7 +125,7 @@ char * sQPrideCGI::listObjOrReqFiles( sStr * pathlist, const char * flnm00, cons
 
     if( !objs.dim() || forceReq ) {
         if( reqId > 0 ) {
-            grp2Req(reqId, &reqIds, svc); // by doing this we allow ourselves to get the req data for the first one only
+            grp2Req(reqId, &reqIds, svc);
         } else {
             reqId = -reqId;
         }
@@ -140,7 +138,6 @@ char * sQPrideCGI::listObjOrReqFiles( sStr * pathlist, const char * flnm00, cons
     }
     for(idx is = startList; is < endList; ++is) {
         sStr path;
-        // make a file path depending on how do we loop - over objects or over requests
         if( isObj && !objs[is].getFilePathname(path, "%s", flnm) ) {
             continue;
         } else {
@@ -165,9 +162,8 @@ char * sQPrideCGI::listObjOrReqFiles( sStr * pathlist, const char * flnm00, cons
     return pathlist->ptr();
 }
 
-idx sQPrideCGI::QPSubmit(sVar & forma, bool withObjs, sQPride::Service & S, sStr * strObjList /* = 0 */)
+idx sQPrideCGI::QPSubmit(sVar & forma, bool withObjs, sQPride::Service & S, sStr * strObjList)
 {
-    // THIS SECTION AND sUsrProc static methods REQUIRES review
     sVec<sUsrProc> procObjs;
     sStr objList, log;
     idx err = 0;
@@ -200,20 +196,12 @@ idx sQPrideCGI::QPSubmit(sVar & forma, bool withObjs, sQPride::Service & S, sStr
         error("Failure: submission too large %" DEC " \n", cntParallel);
         return 1;
     }
-    err = sUsrProc::standardizedSubmission(this, &forma, user, procObjs, cntParallel, &reqId, &S, 0, strObjList, &log);
+    err = sUsrProc::standardizedSubmission(this, &forma, user, procObjs, cntParallel, &reqId, &S, 0, strObjList, &log, 0, forma.boolvalue("forceGroup"));
     if( err ) {
         error("%s\n", log.ptr());
         return 1;
     }
-    if (fileSlices){
-        bool success = reqSetData(reqId,"file://file_slices_table", fileSlices); // better name?
-        delete fileSlices;
-        fileSlices = 0;
-        if( !success ){
-            error("Failure: reqSetData failed in customize submission\n");
-            return 1;
-        }
-    }
+
     for(idx ip = 0; ip < procObjs.dim(); ++ip) {
         procObjs[ip].propSync();
     }
@@ -238,12 +226,13 @@ static void addJsonError(sJSONPrinter & printer, const sHiveId & id, const char 
 
 idx sQPrideCGI::Cmd(const char * cmd)
 {
-    // analyse our own commands
     enum enumCommands{
         eQPSubmit,eQPCheck,eQPData,eQPDataNames,eQPFile,eQPResubmit,eQPReqInfo,eQPKillReq,eQPRawSubmit,eQPRawCheck,eQPProcSubmit,eQPProcReSubmit,eQPProcClone,
         eQPReqSetAction,
         eQPReqRegisterAlive,
         eQPPerformRegisterTime,eQPPerformEstimateTime,
+        eQPGRList,
+        eQPRQList,
         eLast
     };
     const char * listCommands=
@@ -251,31 +240,62 @@ idx sQPrideCGI::Cmd(const char * cmd)
         "-qpReqSetAction" _
         "-qpReqRegisterAlive" _
         "-qpPerformReg" _ "-qpPerformETA" _
+        "-qpGRList" _
+        "-qpRQList" _
         __;
     idx cmdnum = -1;
     if( cmd ) {
         sString::compareChoice(cmd, listCommands, &cmdnum, false, 0, true);
     }
-    // retrieve information about this reque
     if( reqId < 0 ) {
         reqId = getReqByUserKey(reqId);
     }
-    // determine which service are we working with
     sHiveId reqObjID(pForm->value("reqObjID"));
     bool need_check_req_auth = true;
     if( reqObjID ) {
         sUsrProc pr(*user, reqObjID);
+        
+        if( objs.dim() <= 0 ){
+            sUsrObj * p = objs.add(1);
+            new (p) sUsrObj(*user, reqObjID);
+            if( !objs[0].Id() ) {
+                objs.cut(0);
+            }
+        }
+
         if( pr.Id() ) {
             reqId = pr.reqID();
-            // if we got the request ID from our own sUsrProc, assume we are authorized to use it
             need_check_req_auth = false;
         }
     }
+
+    if( objs.dim() <= 0 && reqId > 0 ) 
+    {
+        sStr strObjList;
+        sVec<sHiveId> objIds;
+        requestGetPar(reqId, eQPReqPar_Objects, &strObjList, true);
+        if(strObjList.length() < 2) {
+            strObjList.cut0cut();
+            requestGetPar(grpId, eQPReqPar_Objects, &strObjList, false);
+        }
+
+        if( strObjList )
+            sHiveId::parseRangeSet(objIds, strObjList, strObjList.length());
+        
+        if(objIds.dim() > 0) {
+            idx cnt = objs.dim();
+            sUsrObj * p = objs.add(1);
+            new (p) sUsrObj(*user, objIds[0]);
+            if( !objs[cnt].Id() ) {
+                objs.cut(cnt);
+            }
+        }
+    }
+
     sQPride::Request R;
     sSet(&R);
     if( reqId ) {
         requestGet(reqId, &R);
-        // don't allow manipulation of requests that we don't own
         if( need_check_req_auth && !reqAuthorized(R) ) {
             reqId = 0;
             sSet(&R);
@@ -289,17 +309,16 @@ idx sQPrideCGI::Cmd(const char * cmd)
         svc = 0;
     }
     if( svc ) {
-        vars.inp("serviceName", svc); // if service is specified , use it as the defulat
+        vars.inp("serviceName", svc);
         serviceGet(&S, svc, 0);
     } else if( reqId ) {
-        serviceGet(&S, 0, R.svcID); // otherwise retrieve it from the reqID
-        vars.inp("serviceName", (svc = S.name)); // if service is specify , use it as the default
+        serviceGet(&S, 0, R.svcID);
+        vars.inp("serviceName", (svc = S.name));
     } else {
-        svc = vars.value("serviceName"); // otherwise , use the CGI's service itself
-        serviceGet(&S, svc, 0); // otherwise retrieve it from the reqID
+        svc = vars.value("serviceName");
+        serviceGet(&S, svc, 0);
     }
-    // default implementations by QPrideClient
-    idx ret = 0; // sQPrideClient::CmdForm(cmd, pForm); // for debugging only!
+    idx ret = 0;
     if( ret ) {
         outHtml();
         return ret;
@@ -360,19 +379,12 @@ idx sQPrideCGI::Cmd(const char * cmd)
             srcs.resize(src_ids.dim());
             idx cnt_valid_srcs = 0;
 
-            // default mode is json; alternative (mode=txt) is for test scripts
-            // json output is of the following format:
-            // { "123" : { "signal": "clone", "data": { "to": 9000 } }, "456": { "signal": "clone", "data": { "to": 9001 } }
-            // text output is of the following format:
-            // 9000 9001
-            // both meaning obj 123 was cloned to 9000, and obj 456 was cloned to 9001
             sJSONPrinter printer(&dataForm);
             bool is_json = sIsExactly(pForm->value("mode", "json"), "json") && src_ids.dim();
             if( is_json ) {
                 printer.startObject();
             }
 
-            // verify all of them to be 'process' derived
             for(idx i = 0; i < src_ids.dim(); ++i) {
                 sUsrObj * obj = user->objFactory(src_ids[i]);
                 if( obj ) {
@@ -408,12 +420,9 @@ idx sQPrideCGI::Cmd(const char * cmd)
                     if( pobj->propBulk(v) ) {
                         v.addRow().addCol(pobj->Id()).addCol("_type").addCol((const char*) 0).addCol(pobj->getTypeName());
                         buf.cut(0);
-                        // copy original form
                         pForm->serialOut(&buf);
                         forma.empty();
                         forma.serialIn(buf, buf.length());
-                        // add to form as new propSet based objects
-                        // v.addCol(hiveid).addCol(name).addCol(path).addCol(value);
                         sQPride::Service sss;
                         for(idx r = 0; r < v.rows; ++r) {
                             const char * id = v.val(r, 0);
@@ -425,7 +434,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
                             }
                             nm.add0(3);
                             const char * val = v.val(r, 3);
-                            if( strcasecmp("name", name) == 0 ) { // process has field 'name'!
+                            if( strcasecmp("name", name) == 0 ) {
                                 val = nm.printf("Resubmitted %s: %s", id, val);
                             } else if( strcasecmp("svc", name) == 0 ) {
                                 serviceGet(&sss, val, 0);
@@ -490,14 +499,12 @@ idx sQPrideCGI::Cmd(const char * cmd)
                 printer.endObject();
             } else {
                 dataForm.cut0cut();
-                dataForm.printf("%s\n", newObjList.ptr()); // needed for test script in plain text form
-                // to return headers to output
+                dataForm.printf("%s\n", newObjList.ptr());
                 raw = 1;
             }
             outHtml();
             return 1;
         }
-        /* no break */
         case eQPProcReSubmit:
         case eQPRawSubmit:
         case eQPProcSubmit:
@@ -538,7 +545,6 @@ idx sQPrideCGI::Cmd(const char * cmd)
                 outHtml();
                 return 1;
             }
-            // output
             idx isdelay = pForm->ivalue("delay", 0);
             if( isdelay ) {
                 sleepMS(isdelay);
@@ -560,13 +566,12 @@ idx sQPrideCGI::Cmd(const char * cmd)
             }
 
         }
-        /* no break */
 
         case eQPRawCheck:
         case eQPCheck:{
+badHackforDumbCode:
             if( cmdnum == eQPSubmit || cmdnum == eQPCheck ) {
                 idx prg = 0, prg100 = 0, cSt = 0;
-                // determine if this is a single request or a group
                 idx grpCnt = 1;
                 req2GrpSerial(reqId, reqId, &grpCnt, S.svcID);
                 if( grpCnt < 1 ) {
@@ -582,18 +587,10 @@ idx sQPrideCGI::Cmd(const char * cmd)
                     prg100 = R.progress100;
                 }
 
-                //idx timDiff=(cSt==0 ? R.doneTm: time(0))-R.actTm;
                 idx timDiff=(time(0))-R.actTm;
 
-                sStr ReqName;
-                const char * reqName=requestGetPar(reqId, eQPReqPar_Name, &ReqName); if (!reqName)reqName= " ";
+                tmp.printf(0,"%s,%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC,S.title, " " , reqId,cSt>0 ? eQPReqStatus_Running : R.stat,timDiff,prg,prg100/grpCnt, grpCnt, R.act);
 
-                // general info
-                tmp.printf(0,"%s,%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC ",%" DEC,S.title, reqName , reqId,cSt>0 ? eQPReqStatus_Running : R.stat,timDiff,prg,prg100/grpCnt, grpCnt, R.act);
-
-                // get data names
-                //sStr dnames00;dataGetAll(req, 0, &dnames00);
-                //for( const char * p=dnames00.ptr(); p; p=sString::next00(p)) tmp.printf("%s,",p);
                 tmp.add0();
 
                 if(raw) {
@@ -616,8 +613,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
                         executeJS("gInitList+=\"QPride_check(0,'%s');\";",tmp.ptr());
                     }
                 }
-//                outHtml();
-            } else { // case eQPCheck:
+            } else {
                 sStr prgGrp, prgList;
                 sStr * p_prgList = 0;
 
@@ -654,10 +650,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
                     }else {
                         dataForm.printf("unknown");
                     }
-//                    outHtml();
-//                    return 1;
                 }
-//                return 1;
             }
             if( pForm->boolvalue("down") ) {
                 outBin( dataForm.ptr(),dataForm.length(),0,true,"progress-%" DEC ".csv",reqId);
@@ -667,8 +660,60 @@ idx sQPrideCGI::Cmd(const char * cmd)
             }
             return 1;
         }return 1;
-        case eQPDataNames:{if(!raw)raw=1;
-            // get data names
+        case eQPRQList:
+            {
+                idx status = 0;
+                const char * filter=pForm->value("status"); 
+                if( filter ) {
+                    sStr buf;
+                    sString::changeCase(&buf, filter, 0, sString::eCaseLo); 
+                    sString::xscanf(buf.ptr(), "%n=0^any^waiting^processing^running^suspended^done^killed^progError^SysError^error;", &status);
+                }
+                sJSONPrinter printer(&dataForm);
+                idx result = reqProgressReportReqOnly(printer, reqId, getLevelCode(pForm->value("showmsg", "0")), pForm->ivalue("start",0), pForm->ivalue("cnt",50), status, objs.dim() ? &objs[0] : nullptr);
+                
+                if(!result) {
+                    const char * miss=pForm->value("default");
+                    if(miss){
+                        dataForm.printf("%s",miss);
+                    }else {
+                        dataForm.printf("unknown");
+                    }
+                }
+            }
+            if( pForm->boolvalue("down") ) {
+                outBin( dataForm.ptr(),dataForm.length(),0,true,"progress-%" DEC ".JSON",reqId);
+            }
+            else{
+                outHtml();
+            }
+            return 1;
+        case eQPGRList:
+            {
+                sJSONPrinter printer(&dataForm);
+
+                idx result = reqProgressReport2(printer, reqId, pForm->boolvalue("showreqs", false), getLevelCode(pForm->value("showmsg", "0")), &(objs[0]));
+                 
+                if(!result) {
+                    const char * miss=pForm->value("default");
+                    if(miss){
+                        dataForm.printf("%s",miss);
+                    }else {
+                        dataForm.printf("unknown");
+                    }
+                }
+            }
+            if( pForm->boolvalue("down") ) {
+                outBin( dataForm.ptr(),dataForm.length(),0,true,"progress-%" DEC ".JSON",reqId);
+            }
+            else{
+                outHtml();
+            }
+            return 1;
+
+        case eQPDataNames:{
+            if(!raw)
+                raw=1;
             sStr dnames00;dataGetAll(reqId, 0, &dnames00);
             for( const char * p=dnames00.ptr(); p; p=sString::next00(p)) tmp.printf("%s%s",tmp.length() ? "," :"",p);
             tmp.add0();
@@ -690,9 +735,9 @@ idx sQPrideCGI::Cmd(const char * cmd)
                 return 1;
             }
         } return 1;
-        case eQPReqSetAction:{
-            sVec < idx > reqIds;
-            idx isGrp=pForm->ivalue("isGrp");
+        case eQPReqSetAction: {
+            sVec<idx> reqIds;
+            const bool isGrp = pForm->boolvalue("isGrp");
             sStr svc_name;
             if( pForm->value("svcName") ) {
                 svc_name.printf("%s", pForm->value("svcName"));
@@ -700,27 +745,56 @@ idx sQPrideCGI::Cmd(const char * cmd)
             if( !svc_name.length() && pForm->ivalue("svcID") ) {
                 Service l_svc;
                 serviceGet(&l_svc, 0, pForm->ivalue("svcID"));
-                svc_name.printf(l_svc.name);
+                svc_name.printf("%s", l_svc.name);
             }
-            if(isGrp)grp2Req(reqId, &reqIds,svc_name);
-            if(reqIds.dim()<1)reqIds.vadd(1,reqId);
+            if( isGrp ) {
+                grp2Req(reqId, &reqIds, svc_name);
+            }
+            if( reqIds.dim() < 1 ) {
+                reqIds.vadd(1, reqId);
+            }
+            sStr str_act("%s", pForm->value("act"));
+            idx act = eQPReqAction_None;
 
-            idx act=pForm->ivalue("act");
+            if( atoi(str_act.ptr()) ) {
+                act = pForm->ivalue("act");
+            } else {
+                if( strcasecmp(str_act.ptr(), "Kill") == 0 ) {
+                    act = eQPReqAction_Kill;
+                } else if( strcasecmp(str_act.ptr(), "Suspend") == 0 ) {
+                    act = eQPReqAction_Suspend;
+                } else if( strcasecmp(str_act.ptr(), "Resume") == 0 ) {
+                    act = eQPReqAction_Resume;
+                } else if( strcasecmp(str_act.ptr(), "Run") == 0 ) {
+                    act = eQPReqAction_Run;
+                } 
+            }
 
-
-            if(act==eQPReqAction_Suspend)reqSetStatus(&reqIds,eQPReqStatus_Suspended);
-            else if(act==eQPReqAction_Kill)reqSetStatus(&reqIds,eQPReqStatus_Killed);
-            else if(act==eQPReqAction_Resume){reqSetStatus(&reqIds,eQPReqStatus_Waiting);act=2;}
-            else if(act==-eQPReqAction_Run){for(idx ir=0;ir<reqIds.dim();++ir)reqReSubmit(reqIds[ir]);act=-act;}
-
-            reqSetAction(&reqIds,act);
-
-            if(!raw) {
-                linkSelf("-qpCheck","req=%" DEC "&svc=%s",reqId,svc);
+            if( act == eQPReqAction_Suspend ) {
+                reqSetStatus(&reqIds, eQPReqStatus_Suspended);
+            } else if( act == eQPReqAction_Kill ) {
+                reqSetStatus(&reqIds, eQPReqStatus_Killed);
+            } else if( act == eQPReqAction_Resume ) {
+                reqSetStatus(&reqIds, eQPReqStatus_Waiting);
+                act = eQPReqAction_Run;
+            } else if( act == -eQPReqAction_Run || act == eQPReqAction_Run ) {
+                for(idx ir = 0; ir < reqIds.dim(); ++ir) {
+                    reqReSubmit(reqIds[ir]);
+                }
+            }
+            if( act < 0 ) {
+                act = -act;
+            }
+            reqSetAction(&reqIds, act);
+            if( raw ) {
+                cmdnum = eQPCheck;
+                goto badHackforDumbCode;
+            } else {
+                linkSelf("-qpCheck", "req=%" DEC "&svc=%s", reqId, svc);
                 outHtml();
-                return 1;
             }
-        } return 1;
+        }
+        return 1;
 
         case eQPData:{if(!raw)raw=1;
             const char * dname=pForm->value("dname");
@@ -753,7 +827,6 @@ idx sQPrideCGI::Cmd(const char * cmd)
                 raw = 1;
             }
             eQPInfoLevel level = (eQPInfoLevel)pForm->ivalue("level");
-            // determine if this is a single request or a group
             sVec<idx> reqIds;
             idx svcID = pForm->ivalue("svcID",0);
             sQPrideBase::Service svc;
@@ -849,17 +922,23 @@ idx sQPrideCGI::Cmd(const char * cmd)
         }
         return 1;
 
-
-        case eQPFile:{if(!raw)raw=1;
-            sStr path;
-            cfgStr(&path,pForm, "qm.tempDirectory");
-            path.printf("%s",pForm->value("file"));
-            sFil fl(path.ptr(),sMex::fReadonly);
-            if(fl.length()){
-                outBin(fl.ptr(), fl.length(), sFile::size(path.ptr()), "%s",pForm->value("file"));
+        case eQPFile:
+            {
+                if( !raw ) {
+                    raw = 1;
+                }
+                sStr path, canon;
+                cfgStr(&path, pForm, "qm.tempDirectory");
+                path.printf("%s", pForm->value("file"));
+                sString::searchAndReplaceStrings(&canon, path.ptr(), 0, "../" __, "" __, sIdxMax, true);
+                sFil fl(canon, sMex::fReadonly);
+                if( fl.length() ) {
+                    outBin(fl.ptr(), fl.length(), sFile::size(path.ptr()), "%s", pForm->value("file"));
+                } else {
+                    outHtml();
+                }
             }
-            else outHtml();
-        }return 1;
+            return 1;
 
         case eQPPerformRegisterTime:{if(!raw)raw=1;
 
@@ -874,7 +953,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
 
             idx ret = workRegisterTime(svcNameStr.ptr(), workparams.ptr(), amount, regtm);
 
-            if( ret <= 0 ) {}// could not register
+            if( ret <= 0 ) {}
             dataForm.printf("%" DEC,ret);
             outHtml();
 
@@ -891,7 +970,7 @@ idx sQPrideCGI::Cmd(const char * cmd)
 
             idx est = workEstimateTime(svcNameStr.ptr(), workparams.ptr(), amount);
 
-            if( est < 0 ) {}// could not estimate
+            if( est < 0 ) {}
             dataForm.printf("%" DEC,est);
             outHtml();
         } return 1;
@@ -912,6 +991,12 @@ idx sQPrideCGIProc::OnExecute(idx req)
     if( !procCGI_qapp )
         procCGI_qapp = new sQPrideCGI("config=qapp.cfg" __,svcName, sApp::argc, sApp::argv, sApp::envp, stdin, true, true);
 
+    procCGI_qapp->dataForm.cut0cut();
+    procCGI_qapp->htmlBody.cut0cut();
+    procCGI_qapp->htmlDirs00.cut0cut();
+    procCGI_qapp->execJS.cut0cut();
+    procCGI_qapp->redirectURL.cut0cut();
+
     reqGetData(req, "formT.qpride", procCGI_qapp->pForm);
 
     sHtml::inputCGI( (FILE *)stdin, sApp::argc, sApp::argv, procCGI_qapp->pForm,procCGI_qapp->mangleNameChar,true,0);
@@ -928,8 +1013,6 @@ idx sQPrideCGIProc::OnExecute(idx req)
         return 0;
     }
 
-    bool isArchive = procCGI_qapp->pForm->boolvalue("arch");
-
     const char * cgi_dstname = procCGI_qapp->pForm->value("cgi_dstname","cgi_output");
     sStr datasource("file://%s",cgi_dstname);
     sStr cgi_output_path;
@@ -938,36 +1021,14 @@ idx sQPrideCGIProc::OnExecute(idx req)
     reqDataPath(req, datasource.ptr(7), &cgi_output_path);
 
     procCGI_qapp->setFlOut(fopen(cgi_output_path.ptr(), "w"));
-    procCGI_qapp->raw = 2; // no headers and no html
+    procCGI_qapp->raw = 2;
     procCGI_qapp->run();
 
     fclose(procCGI_qapp->flOut);
     procCGI_qapp->setFlOut(0);
 
 
-    /// TODO need to teach submitting to archiver without the stupid dependency on dmArchiver
-    /* if( isArchive ) {
-        if( !sFile::size(cgi_output_path) ) {
-            reqProgress(1, 100, 100);
-            reqSetStatus(req, eQPReqStatus_Done);
-            return 0;
-        }
-        const char * dstName = procCGI_qapp->pForm->value("arch_dstname");
-        const char * fmt = procCGI_qapp->pForm->value("ext");
-        datasource.printf(0, "file://%" DEC "-%s", req, dstName);
-        dmArchiver arch(*this, cgi_output_path, datasource, fmt, dstName);
-        arch.addObjProperty("source", "%s", datasource.ptr());
-        idx arch_reqId = arch.launch(*user);
-        logOut(eQPLogType_Info, "Launching dmArchiver request %" DEC " \n", arch_reqId);
-        if( !arch_reqId ) {
-            reqProgress(1, 100, 100);
-            reqSetStatus(req, eQPReqStatus_Done);
-            return 0;
-        }
-        datasource.printf(0,"arch_%s",cgi_dstname);
-        procCGI_qapp->reqSetData(req, datasource, "%" DEC, arch_reqId);
-    }
-    else*/ {
+{
         procCGI_qapp->reqRepackData(req, cgi_dstname);
     }
 
@@ -981,7 +1042,6 @@ idx sQPrideCGIProc::OnExecute(idx req)
 
 idx sQPrideCGIProc::run()
 {
-    // even if initialized as a CGI we can switch to Backend mode mode here
     sCmdLine cmd;
     if( sApp::argc > 1 ) {
         cmd.init(sApp::argc, sApp::argv);

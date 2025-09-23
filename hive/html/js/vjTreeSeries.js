@@ -27,32 +27,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- * s = new vjSVG_TreeSeries({
- *  name: "dsFoo",
- *  url: "qp_data://foo.tre"
- *    dataFormat: "newick", // tree serialization format - "newick" (the default) or "csv"
- * });
- *
- * // data fields
- * s.tree;
- * s.maxHeight;
- * s.maxTotalDistance;
- * s.numLeaves;
- * s.numNodes;
- * s.skipOnDataLoaded // if true, onDataLoaded() will exit immediately
- * // for each node in s.tree
- * node.height; // steps from root
- * node.totalDistance; // distance from root
- * node.leafCoord; // for leaves: order in a leaf traversal; for inner nodes: mean of leafCoord of children
- * It's assumed that node.leafnode is true iff node.children.length === 0.
- */
 function vjTreeSeries(source)
 {
     vjDataSeries.call(this, source);
     if (!this.dataFormat) this.dataFormat="newick";
-    if (this.showRoot == undefined) this.showRoot = 0; // nodes with depth below this are hidden
-    if (this.rectangularLabelInline == undefined) this.rectangularLabelInline = false; // space for a fake middle child node (e.g. for a label in a phylogram)
+    if (this.showRoot == undefined) this.showRoot = 0;
+    if (this.rectangularLabelInline == undefined) this.rectangularLabelInline = false;
 
     this.window = undefined;
     this.bumpRawData = undefined;
@@ -117,7 +97,6 @@ function vjTreeSeries(source)
                 copyRerooted(dest_child, src.children[i], true);
             }
             if (src.parent && !no_src_parent) {
-                // trivial root elimination
                 if (!src.parent.parent && src.parent.children.length == 2) {
                     var src_sibling = src.parent.children[0] === src ? src.parent.children[1] : src.parent.children[0];
                     var dest_child = new vjTreeNode({name: src_sibling.name, expanded: true, depth: dest.depth + 1, distance: src.distance + src_sibling.distance, leafnode: src_sibling.leafnode});
@@ -226,7 +205,6 @@ function vjTreeSeries(source)
 
 
         
-        // find height, totalDistance; find leafCoordinate for leaves
         function pass1(node) {
             if (!node)
                 return;
@@ -239,7 +217,6 @@ function vjTreeSeries(source)
                 if (node.parent && this.showRoot <= node.parent.depth)
                     node.totalDistance = node.distance + node.parent.totalDistance;
                 else
-                    // rootlike nodes have a distance coordinate of 0
                     node.totalDistance = 0;
 
                 if (node.totalDistance > this.maxTotalDistance)
@@ -255,7 +232,6 @@ function vjTreeSeries(source)
 
             if (node.expanded) {
                 if (!allowNegativeDistance) {
-                    // clamp distances to non-negative value, while attempting to preserve their sum
                     var dsum = 0;
                     for (var i=0; i<node.children.length; i++) {
                         if (!node.children[i].distance)
@@ -286,7 +262,6 @@ function vjTreeSeries(source)
             }
         }
 
-        // find leafCoord for inner nodes
         function pass2(node) {
             if (!node || node.leafnode || !node.expanded || !node.children.length)
                 return;
@@ -324,7 +299,7 @@ function vjTreeSeries(source)
 
     this.refreshWithoutRebuildingTree = function() {
         this.skipOnDataLoaded = true;
-        this.parseRawData(); // recalculate tree statistics if existing nodes were modified
+        this.parseRawData();
         this.call_refresh_callbacks();
         delete this.skipOnDataLoaded;
     };
@@ -339,4 +314,3 @@ function vjTreeSeries(source)
     };
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjTreeSeries.js"

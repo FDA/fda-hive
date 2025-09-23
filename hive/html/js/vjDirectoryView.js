@@ -27,11 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 function vjDirectoryView(viewer) {
     if(this.drag ===undefined)this.drag = true;
@@ -101,17 +96,11 @@ function vjDirectoryView(viewer) {
     } ];
 
 
-    //------------------------------------------------------------------------------------//
-    //-------------------------------Tree Browsing Functions------------------------------//
-    //------------------------------------------------------------------------------------//
 
     this.findByTitle = function (){
 
     };
 
-    //------------------------------------------------------------------------------------//
-    //-----------------------------------Drag Operations----------------------------------//
-    //------------------------------------------------------------------------------------//
     this.excludeNonDroppables=function(){
         for(var i = 0 ; i < this.systemFolderExclude.addIn.length ; ++i) {
             this.toggleNonDropableElement(this.systemFolderExclude.addIn[i],true);
@@ -211,13 +200,8 @@ function vjDirectoryView(viewer) {
             return this.dragStopCallback(dragE[0]);
         return true;
     };
-    //------------------------------------------------------------------------------------//
-    ////////////////////////////////////////////////////////////////////////////////////////
 
 
-    //------------------------------------------------------------------------------------//
-    //-----------------------------------Initialization-----------------------------------//
-    //------------------------------------------------------------------------------------//
 
     this.expandSize = 8;
     this.className = "directory";
@@ -237,7 +221,6 @@ function vjDirectoryView(viewer) {
 
 
 
-    //Overwrite icons handling functions
 
     this.scaleDist = 32;
 
@@ -295,29 +278,17 @@ function vjDirectoryView(viewer) {
     };
 
 
-    //Overwrite CSS handling functions
     this.setClass.tr = function(state) {
         var t = " ";
-//                if (!state) {
-//                    if (this.self.className) {
-//                        t = this.tag + "='" + this.self.className + "'";
-//                    }
-//                } else if (state == 1) {    //highlighted
-//                    //we don't give default class for highlighted trs
-//                } else if (state == 2) {    //selected
-//                  //we don't give default class for selected trs
-//                } else {
-//                    return alert("DEV alert: not tristate flag");
-//                }
             return t;
     };
     this.setClass.td = function(state) {
         var t = " ";
         if (!state) {
             t = " state=0 ";
-        } else if (state == 1) {    //highlighted
+        } else if (state == 1) {
             t = " state='highlighted' ";
-        } else if (state == 2) {    //selected
+        } else if (state == 2) {
             t = " state='selected' ";
         } else {
             return alert("Dev alert: not tristate flag");
@@ -393,7 +364,6 @@ function vjDirectoryView(viewer) {
 
             if (node.child && !(node.child instanceof Array))
                 node.child = node.child.split(",");
-//            var nameSysFolder = sys.name == "0" ? "All" :sys.name;
             this.systemFolder[sys.name] = node;
             if(sys.block.addIn)
                 this.systemFolderExclude.addIn.push(node);
@@ -405,15 +375,31 @@ function vjDirectoryView(viewer) {
                 this.systemFolderExclude.moveObj.push(node);
         }
 
-        this.precompute = "if(!node.isVirtual){node.title=node.name;node.name=node['" + this.idtype + "'];}"+
-            "if(params.cacheDirectionyExpansionStatus[node.id])node.expanded=params.cacheDirectionyExpansionStatus[node.id];";
+        var _this = this;
+        this.precompute = function(params, tbl, ir) {
+            var node = tbl.rows[ir];
+            if (!node.isVirtual) {
+                node.title = node.name;
+                node.name = node[_this.idtype];
+            }
+            if (params.cacheDirectionyExpansionStatus[node.id])
+                node.expanded = params.cacheDirectionyExpansionStatus[node.id];
+        };
 
-        this.postcompute = "node.iconSize=" + this.folderSize
-                + ";if(!node.icon)node.icon='img/folder-hive.gif';"
-                + "params.childSorter(node); if(node.path=='"+this.currentFolder+"'){var tt=node;while(tt.parent){tt=tt.parent;tt.expanded=1;}}";
-
-
-
+        this.postcompute = function(params, node, ir) {
+            node.iconSize = _this.folderSize;
+            if(!node.icon) {
+                node.icon='img/folder-hive.gif';
+            }
+            params.childSorter(node);
+            if (node.path == _this.currentFolder) {
+                var tt = node;
+                while (tt.parent) {
+                    tt = tt.parent;
+                    tt.expanded = 1;
+                }
+            }
+        }
     };
 
     this.childSorter = function(node) {
@@ -432,18 +418,13 @@ function vjDirectoryView(viewer) {
                 return cmpNatural(_a, _b);
         });
     };
-    //------------------------------------------------------------------------------------//
-    ////////////////////////////////////////////////////////////////////////////////////////
 
 
 
 
 
-    //------------------------------------------------------------------------------------//
-    //--------------------------------Hierarchy Alterations-------------------------------//
-    //------------------------------------------------------------------------------------//
     var that = this;
-    this.signals_DS = vjDS.add("","ds_"+this.objCls+"_signals","static://",function(param,text,page_request){that.doneChildren(param, text,page_request);});
+    this.signals_DS = vjDS.add("","ds_"+this.objCls+"_signals","static:
     this.signals_DS.register_callback( { 'obj' : this, 'param' : '', 'func' : this.waitOnLoadCallback} , "fetching");
 
 
@@ -473,8 +454,8 @@ function vjDirectoryView(viewer) {
             sourceFolderPath = srcFolder_obj.path;
         }
 
-        var url_do = "qpbg_http://?cmd=objRemove&raw=1";
-        var url_undo = "http://?cmd=objCopy&raw=1";
+        var url_do = "qpbg_http:
+        var url_undo = "http:
 
         if (sourceFolder == this.systemFolder.all.id || !srcFolder_obj) {
             var res = confirm("You are trying to cut from a " + ((!srcFolder_obj)?"root":"virtual") +" folder. Object will be removed from all actual folders.\n "
@@ -541,11 +522,6 @@ function vjDirectoryView(viewer) {
         this.DoStack = [];
 
         if (isok(url.exec)) {
-//            ajaxDynaRequestPage(url.exec, {
-//                objCls : this.objCls,
-//                callback : 'doneChildren',
-//                params : params
-//            }, vjObjAjaxCallback);
             this.signals_DS.reload(url.exec,true,params);
         } else {
             this.doneChildren({
@@ -562,7 +538,7 @@ function vjDirectoryView(viewer) {
         var next_currentFolder = this.currentFolder;
         this.selectedNodeContentChanged = false;
 
-        var url_do = "http://?cmd=objCut&raw=1";
+        var url_do = "http:
         var url_undo = url_do;
 
         var srcFolder_obj = this.tree.findById(sourceFolder);
@@ -632,11 +608,6 @@ function vjDirectoryView(viewer) {
         this.DoStack = [];
 
         if (isok(url.exec)) {
-//            ajaxDynaRequestPage(url.exec, {
-//                objCls : this.objCls,
-//                callback : 'doneChildren',
-//                params : params
-//            }, vjObjAjaxCallback);
 
             this.signals_DS.reload(url.exec,true,params);
         } else {
@@ -654,8 +625,8 @@ function vjDirectoryView(viewer) {
         movingChildren = verarr(movingChildren);
         this.selectedNodeContentChanged = false;
 
-        var url_do = "http://?cmd=objCopy&raw=1";
-        var url_undo = "http://?cmd=objCut&raw=1";
+        var url_do = "http:
+        var url_undo = "http:
 
         var historyReset = false;
 
@@ -700,7 +671,6 @@ function vjDirectoryView(viewer) {
                 exec : this.currentFolder,
                 rollback : this.currentFolder
             },
-            // folderToEdit:folderToEdit,
             resetHistory : historyReset,
             rollback : false
         };
@@ -708,11 +678,6 @@ function vjDirectoryView(viewer) {
         this.DoStack = [];
 
         if (isok(url.exec)) {
-//            ajaxDynaRequestPage(url.exec, {
-//                objCls : this.objCls,
-//                callback : 'doneChildren',
-//                params : params
-//            }, vjObjAjaxCallback);
             this.signals_DS.reload(url.exec,true,params);
         } else {
             this.doneChildren({
@@ -738,7 +703,6 @@ function vjDirectoryView(viewer) {
 
     this.updateHistory = function (params,content, page_request)
     {
-//        var params=ajaxParams.params;
 
 
         if(!params.resetHistory){
@@ -759,8 +723,6 @@ function vjDirectoryView(viewer) {
         }
     };
 
-    //------------------------------------------------------------------------------------//
-    ////////////////////////////////////////////////////////////////////////////////////////
 
 
     this.inTrash = function (curfolder) {
@@ -771,9 +733,6 @@ function vjDirectoryView(viewer) {
         return false;
     };
 
-    //------------------------------------------------------------------------------------//
-    //----------------------------------Viewer Callbacks----------------------------------//
-    //------------------------------------------------------------------------------------//
     
     
     this.refreshOnArrive = function() {
@@ -859,7 +818,6 @@ function vjDirectoryView(viewer) {
     this.onSelectedFolder = function(ajaxParams, content) {
         var tbl = new vjTable(content, 0, vjTable_hasHeader);
 
-        // if(node[this.idtype]="all")
 
         ajaxParams.node.type_count = {};
         for ( var it = 0; it < tbl.rows.length; ++it) {
@@ -872,7 +830,6 @@ function vjDirectoryView(viewer) {
         }
     };
 
-    //------------(For query language)-------------//
     this.onSelectCaptureCallback_QryLang = function(view, node) {
         if (!node.selected) {
             this.currentFolder = "";
@@ -907,12 +864,7 @@ function vjDirectoryView(viewer) {
             funcLink(this.onSelectFolder, this, ajaxParams.node, content);
         }
     };
-    //------------------------------------------------------------------------------------//
-    ////////////////////////////////////////////////////////////////////////////////////////
 
-    // ----------------------------------------------------------------------------------//
-    // -------------------------------Panel Related operations---------------------------//
-    // ----------------------------------------------------------------------------------//
     this.addFolder = function(viewer, ttt) {
         var folderName = prompt("Name the folder:", "New Folder");
         if (!isok(folderName))
@@ -955,7 +907,6 @@ function vjDirectoryView(viewer) {
 
     };
     this.onCreated_folder = function (ajaxParams,content){
-//        var params=ajaxParams.params;
         if(content.indexOf("err")!=-1){
             var errcode=content.split(".");
             alertI("Cannot create object: "+errcode[1]+".\n");
@@ -967,36 +918,6 @@ function vjDirectoryView(viewer) {
         this.selectedNodeContentChanged=true;
         this.refreshOnArrive();
     };
-//
-//    this.cleanChildLink=function(ajaxParams,content){
-//        var parentIDs=verarr(ajaxParams.params.srcIDs);
-//        var childIDs=verarr(ajaxParams.params.objIDs);
-//        if(content.indexOf("err")!=-1){
-//            alertI("WARNING: Cannot delete object(s).");
-//            return;
-//        }
-//        var urlRemove="?cmd=propDel&raw=1";
-//        var ids="ids=";
-//        var prop="prop=child";
-//        var val="val=";
-//        for(var n=0; n < childIDs.length; ++n){
-//            if(n)val+=",";
-//            val+=childIDs[n];
-//        }
-//
-//        for(var i=0 ; i<parentIDs.length ; ++i){
-//            if(i) ids+=",";
-//            ids+=parentIDs[i];
-//        }
-//        urlRemove+="&"+ids+"&"+prop+"&"+val;
-//        ajaxDynaRequestPage(urlRemove, {objCls: this.objCls, callback:'onCleanedChildLinks'}, vjObjAjaxCallback);
-//    };
-//    this.onCleanedChildLinks=function(ajaxParams,content){
-//        if(content.indexOf("err")!=-1){
-//            alertI("WARNING: Cannot clean folder links).");
-//            return;
-//        }
-//    };
 
     this.undo = function() {
         if (!this.HistoryStack.length) {
@@ -1007,11 +928,6 @@ function vjDirectoryView(viewer) {
         params.rollback = true;
 
         if (isok(params.urls.rollback)){
-//            ajaxDynaRequestPage(params.urls.rollback, {
-//                objCls : this.objCls,
-//                callback : 'doneChildren',
-//                params : params
-//            }, vjObjAjaxCallback);
             this.signals_DS.reload(params.urls.rollback,true,params);
         }
         else
@@ -1032,11 +948,6 @@ function vjDirectoryView(viewer) {
         params.rollback = false;
 
         if (isok(params.urls.exec)){
-//            ajaxDynaRequestPage(params.urls.exec, {
-//                objCls : this.objCls,
-//                callback : 'doneChildren',
-//                params : params
-//            }, vjObjAjaxCallback);
             this.signals_DS.reload(params.urls.exec,true,params);
         }
         else
@@ -1047,8 +958,6 @@ function vjDirectoryView(viewer) {
             }, "");
     };
 
-    //------------------------------------------------------------------------------------//
-    ////////////////////////////////////////////////////////////////////////////////////////
 
 }
 
@@ -1071,7 +980,6 @@ function vjDirectoryControl(viewer) {
                 formObject : viewer.formObject,
                 iconSize : 24,
                 hideViewerToggle : true,
-//                actionCallback: viewer.actionCallback,
                 evalVariables: {dcls:viewerTree.objCls},
                 showTitles : false,
                 rows : [{
@@ -1084,18 +992,14 @@ function vjDirectoryControl(viewer) {
                             title : "Edit",
                             showTitle:true,
                             icon:"folder-process",
-                            align : 'right',
-                            prohibit_new : true
+                            align : 'right'
                         },
                         {
                             name : 'subfolder',
                             path :'/folderActions/subfolder',
                             hidden : false,
                             showTitle:true,
-                            prompt : "Name of the folder",
-//                            refreshDelay : 1000,
-//                            refreshDelayCallback:viewer.refreshDelayCallback,
-                            prohibit_new : true
+                            prompt : "Name of the folder"
                         },
                         {
                             name : 'edit',
@@ -1122,7 +1026,6 @@ function vjDirectoryControl(viewer) {
                             path :'/folderActions/delete',
                             showTitle:true,
                             hidden : false,
-//                            refreshDelay:1000,
                             prohibit_new : true
                         },
                         {
@@ -1155,8 +1058,7 @@ function vjDirectoryControl(viewer) {
                             description : 'Undo',
                             url : "function:vjObjFunc('undo','"
                                     + viewerTree.objCls + "')",
-                            icon : 'back',
-                            prohibit_new : true
+                            icon : 'back'
                         },
                         {
                             name : 'redo',
@@ -1168,8 +1070,7 @@ function vjDirectoryControl(viewer) {
                             showTitles:true,
                             url : "function:vjObjFunc('redo','"
                                     + viewerTree.objCls + "')",
-                            icon : 'img/forward.png',
-                            prohibit_new : true
+                            icon : 'img/forward.png'
                         },
                         {
                             name : 'refresh',
@@ -1179,8 +1080,7 @@ function vjDirectoryControl(viewer) {
                             description : 'refresh the content of the control to retrieve up to date information',
                             url : "javascript:vjDS['" + viewer.data + "'].state=\"\";vjDS['" + viewer.data + "'].load();",
                             icon : 'refresh.png',
-                            icon_srcset : [24, 48],
-                            prohibit_new : true
+                            icon_srcset : [24, 48]
                         } ],
                 isok : true
             });
@@ -1195,4 +1095,3 @@ function vjDirectoryControl(viewer) {
 
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjDirectoryView.js"

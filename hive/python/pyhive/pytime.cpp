@@ -38,13 +38,11 @@ namespace {
         private:
             sDic<pyhive::TZ*> _dic;
         public:
-            // retrieve (allocate if needed) pyhive::TZ
             pyhive::TZ * ensure(idx utc_offset);
             ~TZDic();
     } tz_dic;
 };
 
-// relies on type_dic for allocation (if any)
 static PyObject * TZ_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     idx utc_offset = 0;
@@ -59,13 +57,13 @@ static PyObject * TZ_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static PyObject* TZ_repr(pyhive::TZ * self)
 {
     sStr buf("<pyhive.TZ %c%02" DEC "%02" DEC " at %p>", self->utc_offset < 0 ? '-' : '+', sAbs(self->utc_offset) / 3600, sAbs(self->utc_offset) % 3600, self);
-    return PyString_FromString(buf.ptr());
+    return PyUnicode_FromString(buf.ptr());
 }
 
 static PyObject* TZ_str(pyhive::TZ * self)
 {
     sStr buf("%c%02" DEC "%02" DEC, self->utc_offset < 0 ? '-' : '+', sAbs(self->utc_offset) / 3600, sAbs(self->utc_offset) % 3600);
-    return PyString_FromString(buf.ptr());
+    return PyUnicode_FromString(buf.ptr());
 }
 
 static PyObject * TZ_utcoffset(pyhive::TZ *self, PyObject * args)
@@ -97,45 +95,44 @@ static PyMethodDef TZ_methods[] = {
 };
 
 PyTypeObject TZType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.TZ",               // tp_name
-    sizeof(pyhive::TZ),        // tp_basicsize
-    0,                         // tp_itemsize
-    0,                         // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    (reprfunc)TZ_repr,         // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    (reprfunc)TZ_str,          // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
-    "A barebones `datetime.tzinfo` implementation, used for formatting time & datetime values from HIVE object fields", // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    TZ_methods,                // tp_methods
-    0,                         // tp_members
-    0,                         // tp_getset
-    0,                         // tp_base - set in typeinit()
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    0,                         // tp_init
-    0,                         // tp_alloc
-    TZ_new,                    // tp_new
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.TZ",
+    sizeof(pyhive::TZ),
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)TZ_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)TZ_str,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
+    "A barebones `datetime.tzinfo` implementation, used for formatting time & datetime values from HIVE object fields",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    TZ_methods,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    TZ_new,
 };
 
 pyhive::TZ * TZDic::ensure(idx utc_offset)
@@ -157,7 +154,6 @@ TZDic::~TZDic()
     }
 }
 
-//static
 bool pyhive::TZ::typeinit(PyObject * mod)
 {
     PyDateTime_IMPORT;
@@ -171,7 +167,6 @@ bool pyhive::TZ::typeinit(PyObject * mod)
     return true;
 }
 
-//static
 pyhive::TZ * pyhive::TZ::check(PyObject * o)
 {
     if( o && o->ob_type == &TZType ) {
@@ -247,13 +242,19 @@ static const char * callIsoFormat(sStr & buf, PyObject * val)
     if( !iso_fmt_result ) {
         return 0;
     }
-    if( !PyString_Check(iso_fmt_result) ) {
+    if( !PyUnicode_Check(iso_fmt_result) ) {
         PyErr_SetString(PyExc_TypeError, "isoformat() did not return a string");
         Py_DECREF(iso_fmt_result);
         return 0;
     }
     idx pos = buf.length();
-    buf.addString(PyString_AsString(iso_fmt_result));
+    const char * tmp_str = PyUnicode_AsUTF8AndSize(iso_fmt_result, NULL);
+    if (tmp_str == NULL) {
+        PyErr_SetString(PyExc_TypeError, "isoformat() did not return a string convertible to ASCII");
+        Py_DECREF(iso_fmt_result);
+        return 0;
+    }
+    buf.addString(tmp_str);
     Py_DECREF(iso_fmt_result);
     return buf.ptr(pos);
 }

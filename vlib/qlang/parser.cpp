@@ -35,7 +35,6 @@
 
 using namespace slib;
 
-// needed for Bison
 void yy::sQLangBison::error(const yy::sQLangBison::location_type& loc, const std::string& msg)
 {
     parser_driver.setError(msg.c_str(), loc.begin.line, loc.begin.column);
@@ -69,7 +68,6 @@ bool qlang::Parser::parse(const char *buf, const char *bufend, idx flags)
     yylex_destroy(priv.scanner);
     _ppriv = NULL;
 
-    // Need to check _error.length() because it might be e.g. set by the lexer for invalid trailing characters
     return !res && !_error.length();
 }
 
@@ -87,7 +85,6 @@ void qlang::Parser::setError(const char *s, idx line, idx col)
     if (!_buf)
         return;
 
-    // find beginning of line with error
     const char * c = _buf;
     for (idx i=1; i<line; i++) {
         while (c < _bufend && *c && *c != '\r' && *c != '\n')
@@ -116,8 +113,9 @@ void qlang::Parser::setError(const char *s, idx line, idx col)
 
 void qlang::Parser::printError(sStr &s)
 {
-    if (_error.length())
+    if( _error.length() ) {
         s.printf("%s", _error.ptr());
+    }
 }
 
 const char * qlang::Parser::getErrorStr()

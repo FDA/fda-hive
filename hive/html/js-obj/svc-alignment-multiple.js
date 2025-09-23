@@ -34,7 +34,7 @@ javaScriptEngine.include("js/vjAlignmentView.js");
 vjHO.register('svc-alignment-multiple').Constructor=function ()
 {
 
-    if(this.objCls)return;         //stupid chrome loads from both cached file and the one coming from server.
+    if(this.objCls)return;
     this.typeName="svc-alignment-multiple";
     this.autoClickedReference=1;
     this.objCls="obj-svc-alignment-multiple"+Math.random();
@@ -59,9 +59,8 @@ vjHO.register('svc-alignment-multiple').Constructor=function ()
         }
         alertI(txt,undefined,{icon:icon});
     };
-    this.dsQPBG_digest = vjDS.add('preparing to archive','ds'+this.objCls+'_QPBG_digest','static://',{func :this.onArchiveSubmit,obj : this});
+    this.dsQPBG_digest = vjDS.add('preparing to archive','ds'+this.objCls+'_QPBG_digest','static:
     
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.load(dv,node.id);
@@ -109,19 +108,19 @@ vjHO.register('svc-alignment-multiple').Constructor=function ()
 
     this.urlSet ={
             'alStack' :{
-                active_url: "http://?cmd=alStack&cnt=50&info=1&mySubID=1&multiple=1&rangeEnd=100",
+                active_url: "http:
                 title: "Visualizing alignments in stack"
             },
             'consensus' :{
-                active_url: "http://?cmd=alConsensus&multiple=1&wrap=100",
+                active_url: "http:
                 title: "Generating consensus"
             },
             'overlap' :{
-                active_url: "http://?cmd=alConsensus&multiple=1&wrap=100&overlap=1",
+                active_url: "http:
                 title: "Generation overlap"
             },
             'downloads' : {
-                active_url:"static://data,down,arch,operation,arguments,params\n" +
+                active_url:"static:
                     "Multiple Alignment,download,ico-file,alStack,&cnt=0&mySubID=1&multiple=1&rangeEnd=100,\n" +
                     "Alignments in fasta,download,dna,alFasta,&wrap=100&info=1&mySubID=1&multiple=1&objs=3031174&raw=1&cnt=0,\n"+
                     "Consensus in fasta,download,dna,alConsensus,&multiple=1&wrap=100,\n"+
@@ -129,8 +128,8 @@ vjHO.register('svc-alignment-multiple').Constructor=function ()
                 title: "infrastructure: Creating download menu"
             },
             'help' : {
-                active_url:"http://help/hlp.view.results.alignment.html",
-                inactive_url:"http://help/hlp.view.results.alignment.html",
+                active_url:"http:
+                inactive_url:"http:
                 title: "Infrastructure: Creating help"
             }
     };
@@ -146,7 +145,6 @@ vjHO.register('svc-alignment-multiple').Constructor=function ()
             this.dvname=dv.name;
             this.dvinfo=dv.name;
             dv.addTab("stack","list",[this.viewers['stack_panel'],this.viewers['stack']]);
-//            dv.addTab("histogram","area",[this.viewers['histograms_panel'],this.viewers['histograms']]);
             dv.render();
             dv.load('rerender');
         }
@@ -159,7 +157,6 @@ vjHO.register('svc-alignment-multiple').Constructor=function ()
             this.current_dvORtab.addTab("downloads","table",[this.viewers['downloads']]);
             this.current_dvORtab.addTab("help","help",[this.viewers['help']]);
 
-//            this.current_dvORtab.selected=1;
             this.current_dvORtab.render();
             this.current_dvORtab.load('rerender');
         }
@@ -201,7 +198,6 @@ vjHO.register('svc-alignment-multiple').Constructor=function ()
             var formNode=gAncestorByTag(gObject(this.current_dvORtab.name),"form");
             if(formNode)
                 this.formName[0]=formNode.attributes['name'].value;
-//            formNode=gAncestorByTag(gObject(dvORtab.obj[1].name),"form");
             if(formNode)
                 this.formName[1]=formNode.attributes['name'].value;
 
@@ -275,24 +271,19 @@ vjHO.register('svc-alignment-multiple').Constructor=function ()
                 ext = "fasta";
                 dstName += ".fasta";
                 break;
-            case "ico-file":
-                ext = "txt";
-                dstName += "."+ext;
-                break;
             default :
                 ext= "-";
             }
             
             url = urlExchangeParameter(url, "arch_dstname", dstName);
             url = urlExchangeParameter(url, "ext", ext);
-            this.dsQPBG_digest.reload("qpbg_http://"+url,true);
+            this.dsQPBG_digest.reload("qpbg_http:
         }
     };
 
     this.makeReferenceOperationURL = function (viewer, node, oper, args, params) {
         
         var qtySamAligns = 0;
-        // If we want all sam alignments from all refs, note here
         
         var url = "?cmd=" + oper + "&objs=" + this.loadedID;
         if (this.reqID)
@@ -303,14 +294,14 @@ vjHO.register('svc-alignment-multiple').Constructor=function ()
     };
 
 
-    this.reload = function(loadedID, reqid, autoClickedReference) // viewer,
+    this.reload = function(loadedID, reqid, autoClickedReference)
     {
         if (loadedID)
             this.loadedID = loadedID;
         if (!this.loadedID)
             return;
 
-        var url = "http://?cmd=alCount&objs=" + this.loadedID
+        var url = "http:
                 + "&start=0&cnt=50";
         if (this.profilerList)
             url += "&childProcessedList=" + this.subsetCount;

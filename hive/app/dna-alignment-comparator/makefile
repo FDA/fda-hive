@@ -33,14 +33,23 @@ PROGRAMS = dna-alignment-comparator
 PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
+OBJECT_TYPES = svc-alignment-comparator
+
 dna-alignment-comparator_SRCS = dna-alignment-comparator.cpp
+
+APPS = Alignment-comparison-algorithm:1 Alignment-Comparator:1
+
+MENUITEMS = \
+/Portal/Classifications/Alignment_Comparator \
+/Portal/Post-Alignment/Alignment_comparison_algorithm
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-alignment-comparator,HIVE alignment comparator,/Sequencing/)
 	$(call dist-app,dna-alignment-comparator,dna-alignment-comparator)

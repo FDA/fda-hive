@@ -60,6 +60,7 @@ ssci_SRCS = phys/simul/simul.cpp \
 	math/func/spline.cpp \
 	math/clust/textclust.cpp \
 	math/clust/clust.cpp \
+	math/clust/rlda.cpp \
 	math/algebra/intgrl.cpp \
 	math/algebra/matrixDiagGivens.cpp \
 	math/algebra/matrixDiagJacoby.cpp \
@@ -100,6 +101,7 @@ ssci_SRCS = phys/simul/simul.cpp \
 	bio/viopop.cpp \
 	bio/blast-parser.cpp \
 	bio/blastmatrix.cpp \
+	bio/bioAnnot.cpp \
 	bio/sVioAnnot.cpp \
 	bio/bumper.cpp \
 	bio/filterseq.cpp \
@@ -110,7 +112,8 @@ ssci_SRCS = phys/simul/simul.cpp \
 	bio/randseq.cpp \
 	c2cpp.cpp \
 	bio/ionseq/suffixTree.cpp \
-	bio/ionseq/ionseqid.cpp 
+	bio/ionseq/ionseqid.cpp \
+	bio/bioseqqc.cpp
 
 ifeq ($(devdir),)
     devdir = $(abspath ../..)

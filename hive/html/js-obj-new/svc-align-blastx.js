@@ -33,16 +33,14 @@ if (!javaScriptEngine)
 vjHO.register('svc-align-blastx2').Constructor = function() {
 
     if (this.objCls)
-        return; // stupid chrome loads from both cached file and the one coming
-                // from server.
-    //var _that=this.inheritType('svc-align');
+        return;
     this.typeName = "svc-align-blastx2";
     
     this.objCls = this.typeName + Math.random();
     vjObj.register(this.objCls, this);
    
     this.fullview = function(node, dv) {
-        this.load(dv, node); // node.id
+        this.load(dv, node);
 
         return this;
     };
@@ -53,13 +51,13 @@ vjHO.register('svc-align-blastx2').Constructor = function() {
         var outputType = algoProcess.getValue("output_fmt");
         
         if (outputType=="blast_out") {
-            url = "http://?cmd=propget&ids=" + id + "&files=All_Blast_Output.{zip}&mode=csv";
+            url = "http:
         }else if (outputType=="tsv") {
-            url = "http://?cmd=propget&ids=" + id + "&files=*blast*.{tsv}&mode=csv";
+            url = "http:
         } else {
-            url = "http://?cmd=propget&ids=" + id + "&files=*.{blast_out,tsv}&mode=csv";
+            url = "http:
         }
-        vjDS.add("", "dsAllDownloads", url);
+        vjDS.add("", "dsAllDownloads", url + "&files_size=true", 0, "id,name,path,value,size");
         algoProcess.noResultViewers = true;
     };    
 };

@@ -39,13 +39,11 @@ void printRange (sStr *out, const char *str, idx start, idx end)
 void sNode::serialize(sStr *out, sDic <idx> *transMap, sVec <sEdge> *map, sVec <idx> *words, sStr *wordContainer, sVec <sNode>*nodeArray)
 {
     out->add("(", 1);
-//    idx idlen;
     idx id;
     for (idx i = 1; i <= 26; ++i){
         id = SuffixTree::getHashKey(_id, i);
-//        idx * key = (idx *) (transMap->id(id, &idlen));
         idx *key = transMap->get(&id, sizeof(idx));
-        if (!key){ // the last one
+        if (!key){
             continue;
         }
         sEdge *e = map->ptr(*key);
@@ -95,17 +93,13 @@ idx SuffixTree::testAndSplit(sNode *s, idx k, idx p, char t, idx iword, bool *to
             return s->id();
         }
         else {
-            // Create a new edge
             sEdge *newEdge = edgeArray.add(1);
             leavEdge = edgeArray.ptr(leavPos);
             newEdge->init(s, leavEdge->startIndex(), leavEdge->startIndex() + p - k, leavEdge->wordIndex());
-            // and a new node
             sNode *r = addNewNode(newEdge);
             newEdge->to(r);
-            // register the key in dictionary
             registerKey(hkey);
 
-            // Create another edge
             newEdge = edgeArray.add(1);
             leavEdge = edgeArray.ptr(leavPos);
             newEdge->init(r, leavEdge->startIndex() + p - k + 1, leavEdge->endIndex(), leavEdge->wordIndex());
@@ -136,7 +130,6 @@ idx SuffixTree::update (sNode *s, idx k, idx i, idx iword, idx *toReturn)
     while (!retTestResult){
         sEdge *leavEdge = edgeArray.add(1);
         leavEdge->init(testResult->id(), -1, i, lenstr-1, iword);
-        // Add a node
         sNode *node = addNewNode(leavEdge);
         leavEdge->to(node);
 
@@ -187,8 +180,6 @@ bool SuffixTree::insert(const char *str, idx len)
     sNode *s = getRootNode();
     idx k = 0;
     idx startiWord = 0;
-//    idx tmp = 0;
-//    idx stWord = 0;
     if (iword > 0){
         idx tmp = walkTree(str, 0, 0, &startiWord);
         s = getXNode(tmp);
@@ -225,7 +216,6 @@ void SuffixTree::serialize(sStr *out)
 
 }
 
-//sNode * sNode::walkTree(const char *word, idx wordlen, idx pntr, sDic <idx> *transMap, sVec <idx> *words, idx *toReturn)
 idx SuffixTree::walkTree(const char *word, idx nodeId, idx pntr, idx *toReturn)
 {
     sNode *node = getXNode(nodeId);
@@ -262,38 +252,32 @@ idx SuffixTree::longSubstring(idx nodeId, idx cnt)
     if (!cnt){
         cnt = words.dim();
     }
-    sNode *node = getXNode(nodeId);
+        getXNode(nodeId);
     char initChar = 0;
-    idx currNode = 0;
-    for (idx i = 0; i < sizeof(char); ++i){
-        // For all the characters
+    for (idx i = 0; i < (idx)sizeof(char); ++i){
         char character = initChar + i;
         sEdge *e = findEdge (nodeId, character);
         if (!e){
             continue;
         }
-        const char *tmp = getLetterFromWord(e->wordIndex(), 0);
-        // Move to the end of the edge
-        currNode = e->to();
+            getLetterFromWord(e->wordIndex(), 0);
+            e->to();
 
 
 
     }
+    return 0;
 }
 
 idx SuffixTree::longestString(idx nodeId, idx *iword, idx *start, idx *end)
 {
-    char initChar = 0;
-    idx curNode = nodeId;
     sVec <nodeVal> stack;
     idx maxCnt = 0;
     idx currentCnt = 0;
 
     stack.mex()->flags|=sMex::fSetZero;
-    stack.cut(0);    // set at the beginning of the buffer
+    stack.cut(0);
 
-    //if (curr != -1){
-//    nodeStack(&stack, curNode);
     sNode *node = getXNode(nodeId);
     if (node->isleaf()){
         stack.vadd(1, nodeId);
@@ -302,9 +286,8 @@ idx SuffixTree::longestString(idx nodeId, idx *iword, idx *start, idx *end)
         addNodestoStack(&stack, nodeId, 0);
     }
     idx len = stack.dim();
-    idx edgePos;
-    idx nodelen;
-    idx bestEdge;
+    idx edgePos = 0;
+    idx bestEdge = 0;
     while (len != 0){
         nodeVal *curStack = stack.ptr(--len);
         edgePos = curStack->node;
@@ -330,210 +313,4 @@ idx SuffixTree::longestString(idx nodeId, idx *iword, idx *start, idx *end)
     *end = e->endIndex();
     return 1;
 }
-//    idx hkey = SuffixTree::getHashKey(_id, word[pntr]);
-//    idx *key = transMap->get(&hkey, 1);
-//    if (!key){
-//        *toReturn = pntr;
-//        return _id;
-//    }
-//    sEdge *e = map->ptr(*key);
-//
-//    idx windx = e->wordIndex();
-//    idx iwrd = *words->ptr(windx);
-//    const char *str = wordContainer->ptr(iwrd);
-//
-//    idx j = pntr;
-//    bool flag = false;
-//    for(idx i = e->startIndex(); i <=e->endIndex(); ++i ){
-//        if (str[i] != word[j]){
-//            flag = true;
-//            break;
-//        }
-//        ++j;
-//    }
-//    if (flag){
-//        *toReturn = j;
-//        if (j > pntr) {
-//            return e->to();
-//        }
-//        return _id;
-//    }
-//    idx eto = e->to();
-//    sNode *node = nodeArray->ptr(eto);
-//    return node->walkTree(word, wordlen, pntr+sLen(str), transMap, map, nodeArray, words, wordContainer, toReturn);
-//}
 
-/*
-void SuffixTree::printAllEdges(sStr *out){
-    idx count = 0;
-
-    out->addString("StartNode\tEndNode\t\tSuffixLink\t\tFirstIndex\tLastIndex\tString\n");
-    idx idlen;
-    for (idx i = 0; i < edgeList.dim(); ++i){
-//        const char * key = static_cast<const char *>(edgeList.id(i, &idlen)); // iterate over all keys - you must know the key type!
-        idx *val = edgeList.ptr(i); // iterate over all values
-        if (val && *val >= 0){
-            TreeEdge *e = edgeArray.ptr(*val);
-
-            out->printf("%" DEC "\t\t%" DEC, e->startNode, e->endNode);
-            out->printf("\t\t%" DEC "\t%" DEC "\t\t%" DEC "\t\t", nodeArray[e->endNode], e->startStringPos, e->endStringPos);
-            ++count;
-            idx head = (inputLength > e->endStringPos) ? e->endStringPos : inputLength;
-            out->add(inputString.ptr(e->startStringPos), head+1);
-            out->addString("\n", 1);
-        }
-    }
-    out->printf("Total edges: %" DEC, count);
-}
-
-void SuffixTree::movetoClosestParent(LastPosTree *lastPos){
-
-    if (lastPos->endTree()){
-        // We have reached the end
-    }
-    else {
-        TreeEdge *e = findEdge(lastPos->rootNode, inputString.ptr(lastPos->startIndex)[0]);
-
-        if (e->startNode == -1){
-            lastPos->print(&inputString);
-//            ::printf("rootNode:%" DEC " startIndex:%" DEC " %c", lastPos->rootNode, lastPos->startIndex, inputString[lastPos->startIndex]);
-        }
-
-        idx labelLength = e->endStringPos - e->startStringPos;
-
-        while (labelLength <= (lastPos->endIndex - lastPos->startIndex)){
-            lastPos->startIndex = labelLength + 1;
-            lastPos->rootNode = e->endNode;
-            if (lastPos->startIndex <= lastPos->endIndex){
-                e = findEdge(e->endNode, inputString.ptr(lastPos->startIndex)[0]);
-                if (e->startNode == -1){
-                    lastPos->print(&inputString);
-                }
-            }
-            labelLength = e->endStringPos - e->startStringPos;
-        }
-    }
-}
-
-idx SuffixTree::splitEdge(LastPosTree &s, idx edgepos)
-{
-    // Remove the edge
-    TreeEdge *newEdge = edgeArray.add(1);
-    TreeEdge *e = edgeArray.ptr(edgepos);
-
-    newEdge->init(s.rootNode, edgeArray.dim(), e->startStringPos, e->startStringPos+s.endIndex - s.startIndex);
-    ++numNodes;
-
-    insertEdge(newEdge);
-    nodeArray[newEdge->endNode] = s.rootNode;
-    e->startStringPos += s.endIndex - s.startIndex + 1;
-    e->startNode = newEdge->endNode;
-    insertEdge(e);
-
-    return newEdge->endNode;
-
-}
-
-void SuffixTree::createTree(LastPosTree &tree, idx lastIndex)
-{
-    idx parentNode;
-
-    idx prevParentNode = -1;
-//    idx edgePos;
-    while (true){
-//        TreeEdge e;
-        parentNode = tree.rootNode;
-//        char inputString[lastIndex];
-
-        if (tree.endTree()){
-            TreeEdge *e = findEdge(tree.rootNode, inputString.ptr(lastIndex)[0]);
-
-            if (e && e->startNode != -1){
-                break;
-            }
-        }
-        else {
-            TreeEdge *e = findEdge(tree.rootNode, inputString.ptr(tree.startIndex)[0]);
-
-            idx diff = tree.endIndex - tree.startIndex;
-            if (inputString.ptr(e->startStringPos + diff + 1) == inputString.ptr(lastIndex)){
-                // match
-                break;
-            }
-
-            parentNode = splitEdge(tree, e-edgeArray.ptr());
-        }
-
-        TreeEdge *newEdge = edgeArray.add(1);
-        newEdge->init(parentNode, edgeArray.dim(), lastIndex, inputLength);
-        ++numNodes;
-        insertEdge(newEdge);
-
-        if (prevParentNode > 0){
-            nodeArray[prevParentNode] = parentNode;
-        }
-        prevParentNode = parentNode;
-
-        // Move to next position
-        if (tree.rootNode == 0){
-            ++tree.startIndex;
-        }
-        else {
-            tree.rootNode = nodeArray[tree.rootNode];
-        }
-        movetoClosestParent(&tree);
-    }
-
-    nodeArray[prevParentNode] = parentNode;
-    ++tree.endIndex;
-    movetoClosestParent(&tree);
-}
-
-bool SuffixTree::search(const char *searchString, idx stringlen)
-{
-
-    TreeEdge *e  = findEdge(0, searchString[0]);
-
-    idx iter = 0;
-    idx i = -1;
-
-    if (e->startNode != -1){
-        while (i < stringlen){
-            ::printf("Search:\tEdge:%" DEC " %" DEC " : %c %c I: %" DEC "\n", e->startNode, e->endNode, inputString.ptr(e->startStringPos)[0], inputString.ptr(e->endStringPos)[0], i);
-
-            iter = 0;
-
-            while (e->endStringPos >= e->startStringPos + iter){
-                ::printf("Search:\tmatching %c %c at index: %" DEC "\n", inputString.ptr(e->startStringPos + iter)[0], searchString[i+iter+1], e->startStringPos+iter);
-
-                if (inputString.ptr(e->startStringPos + iter)[0] == searchString[i+iter+1]){
-                    ++iter;
-                    if (i + iter + 1 >= stringlen){
-                        ::printf("Search:\tWe have a match ending at %" DEC "\n", e->startStringPos + iter - 1);
-                        return true;
-                    }
-                }
-                else {
-                    ::printf("Search:\tMatch not found, matched only up to index: %" DEC "\n", i + iter);
-                    return false;
-                }
-            }
-
-            iter = (e->endStringPos - e->startStringPos + 1);
-
-            e = findEdge(e->endNode, searchString[i+iter+1]);
-
-            if (e->startNode == -1){
-                ::printf("Search:\tMatch not found, matched only up to: %" DEC " %c\n", i + iter, searchString[i+iter+1]);
-                return false;
-            }
-
-            i += iter;
-        }
-    }
-
-    ::printf("Search:\tMatched %" DEC " %s", iter, searchString);
-    return true;
-
-}
-*/

@@ -50,7 +50,6 @@ ifeq ($(UNAME),Linux)
     else
         $(error Cannot determine machine by '$(MARCH)')
     endif
-    # gcc specific option: -pthread
     PLATFORM_CXX_FLAGS = -D_FILE_OFFSET_BITS=64 -pthread
     LINK_STATIC = -Wl,-Bstatic
     LINK_DYNAMIC = -Wl,-Bdynamic
@@ -95,9 +94,17 @@ else
     $(error Cannot determine architecture bits by '$(SLIB_ARCH)')
 endif
 
-# THESE VARIABLES MIGHT COME FROM ENVIRONMENT via reading qapp.cfg in hive_bash_rc!!!
-HIVE_DB_HOST ?= localhost
+ifeq ($(SLIB_PLATFORM),Linux)
+    EL = $(shell . /etc/os-release; echo $$VERSION_ID | gawk -F . '{print $1}';)
+    ifeq ($(EL),)
+        ELVER=el7 # RHEL7 is default
+    else
+        ELVER=el$(EL)
+    endif
+endif
+
+HIVE_DB_HOST ?= qpridesrv
 HIVE_DB_PORT ?= 3306
-HIVE_DB ?= hive
-HIVE_DB_USER ?= hive
-HIVE_DB_PWD ?= hive123
+HIVE_DB ?= QPride
+HIVE_DB_USER ?= qpride
+HIVE_DB_PWD ?= q666pride

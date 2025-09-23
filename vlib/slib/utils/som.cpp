@@ -40,18 +40,9 @@ void sSom::som (real * tbl, idx rowCnt, idx colCnt, idx mapSize, sVec<pntclr> * 
     idx iteration = 0;
     idx adjFact = 0;
     idx numberOfInputs = mapSize;
-    real continueTill = curRandom%250;//the  map will continue to be scaled until this value is reached
-    //idx counter = 0;
+    real continueTill = curRandom%250;
 
 
-    /*
-    idx mapSqrd = mapSize*mapSize;
-    clr=(idx*)sNew(mapSqrd+3); //holds all the colors for the coloring
-     //the points that were registered. from which the scaling was calculated. from the actual table
-    idx * map = (idx*)sNew (mapSqrd*(colCnt+3)); //the actual map holding the values which are scaled and the current colors
-    sSet (map,0, mapSqrd*(colCnt+3));
-    sSet (clr,0, mapSqrd+3);
-    */
 
     sIndex < IJO >  allOffsets;
 
@@ -63,7 +54,7 @@ void sSom::som (real * tbl, idx rowCnt, idx colCnt, idx mapSize, sVec<pntclr> * 
         if (curRandom > ceiling)
             curRandom %= ceiling;
 
-        idx rowToTake = curRandom%rowCnt; //randomom row to take
+        idx rowToTake = curRandom%rowCnt;
 
         idx dist;
         pnt index, winner;

@@ -47,14 +47,14 @@ function vjObjType_uhiveseq(viewer)
     this.viewersToAdd=new Array();
     this.tabName=['sequences','histograms','ACGT','PositionalQC'];
     this.colorsACGT=['#006AFF','#95BE4D','#556B2F', '#000080'];
-    this.active_url=["http://?cmd=seqList&out=num|id|len&ids=0",
-                     "http://?cmd=seqQC&split=query&query=0&qc=countsAtPositionTable.csv",
-                     "http://?cmd=seqQC&split=query&query=0&qc=sumLetterTable.csv",
-                     "http://?cmd=seqQC&split=query&query=0&qc=sumPositionTable.csv"];
-    this.inactive_url=["static://preview:Select a sequence file to show details",
-                       "static://",
-                       "static://",
-                       "static://"];
+    this.active_url=["http:
+                     "http:
+                     "http:
+                     "http:
+    this.inactive_url=["static:
+                       "static:
+                       "static:
+                       "static:
 
     if(this.geometry===undefined){this.geometry=d_geometry;}
     if(this.geometry.positionalCount==undefined){this.geometry.positionalCount=d_geometry.positionalCount;}
@@ -126,10 +126,6 @@ function vjObjType_uhiveseq(viewer)
         ++this.length;
 
         this.viewers['content']=viewersContent[1];
-//        new vjHiveseqView( {
-//            data: dsName[0],
-//            formObject: document.forms[this.formName]
-//        });
         ++this.length;
         this.viewers[1]=this.viewers['content'];
         this.viewersToAdd.push(this.viewers[1]);

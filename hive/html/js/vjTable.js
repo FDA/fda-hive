@@ -27,104 +27,64 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
-    This object is represented as an array
-
- vjTable :
-     { rows { cols: Array, columnname1: value1,columnname2: value2  }
-      hdr { name: 'headercolumn' }
-    }
-
-
-*/
 
 
 var vjTable_hasHeader=0x0001;
 var vjTable_collapsePropFormat=0x0002;
 var vjTable_inheritPathPropFormat=0x0004;
-var vjTable_propCSV=vjTable_hasHeader|vjTable_collapsePropFormat;
+var vjTable_fromJSON=0x0008;
+var vjTable_autoJSON=0x0010;
+var vjTable_jsonStringize=0x0020;
+var vjTable_propCSV=vjTable_hasHeader|vjTable_collapsePropFormat|vjTable_autoJSON;
+
 
 
 function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterList, keepempty, cntHeaderRows )
 {
-    // This will parse a delimited string into an array of
-    // arrays. The default delimiter is the comma, but this
-    // can be overridden in the fifth argument.
     this.CSVToArray = function( arr, strData, colfmt, skiprows, cntrows, strDelimiterList, keepempty )
     {
         if (!strData || !strData.length) {
             return [];
         }
-        // Check to see if the delimiter is defined. If not,
-        // then default to comma.
         strDelimiterList = (strDelimiterList || ",");
 
-        // Create a regular expression to parse the CSV values.
         var objPattern = new RegExp(
             (
-                    // Delimiters.
                     "([" + strDelimiterList + "]|\\r?\\n|\\r|^)" +
 
-                    // Quoted fields.
                     "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
 
-                    // Standard fields.
                     "([^\"" + strDelimiterList + "\\r\\n]*))"
             ),
             "gi"
             );
 
 
-        // Create an array to hold our data. Give the array
-        // a default empty first row.
-        //var arr = [[]];
 
-        // Create an array to hold our individual pattern
-        // matching groups.
         var arrMatches = null;
 
         var strPattern = new RegExp("[" + strDelimiterList + "]");
 
-        // Special case: strData starts with empty cell. We
-        // cannot match it using (^|,|\r\n)(...*) because then
-        // we will keep matching the empty string at the start
-        // of content forever, with arrMatches.index always 0,
-        // resulting in an infinite loop.
         if (strData.length && strData.charAt(0).match(strPattern)) {
             arr[arr.length - 1].push("");
         }
 
-        // Keep looping over the regular expression matches
-        // until we can no longer find a match.
         for(var it=0 ; arrMatches = objPattern.exec( strData ) ;  ) {
 
-            // Get the delimiter that was found.
             var strMatchedDelimiter = arrMatches[ 1 ];
 
-            // Check to see if the given delimiter has a length
-            // (is not the start of string) and if it matches
-            // field delimiter. If id does not, then we know
-            // that this delimiter is a row delimiter.
             if ( strMatchedDelimiter.length && !strMatchedDelimiter.match(strPattern) ) {
-                // Since we have reached a new row of data,
-                // add an empty row to our data array.
                 arr.push( [] );
                 ++it;
             }
 
-            // Now that we have our delimiter out of the way,
-            // let's check to see which kind of value we
-            // captured (quoted or unquoted).
             var strMatchedValue;
             if (arrMatches[ 2 ]){
-                // We found a quoted value. When we capture
-                // this value, unescape any double quotes.
                 strMatchedValue = arrMatches[ 2 ].replace(
                     new RegExp( "\"\"", "g" ),
                     "\""
                     );
             } else {
-                // We found a non-quoted value.
                 strMatchedValue = arrMatches[ 3 ];
             }
 
@@ -145,20 +105,16 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
                     }
                 }
             }
-            // Now that we have our value string, let's add
-            // it to the data array.
             arr[ arr.length - 1 ].push( strMatchedValue );
         }
         for ( var ir = 0; ir < arr.length; ++ir) {
             if (!keepempty && arr[ir].length <= 1) {
-                // do we consider empty rows
                 arr.splice(ir, 1);
                 --ir;
                 continue;
             }
         }
         if(skiprows) {
-            // skip some rows ?
             arr.splice(0,skiprows);
         }
         return( arr );
@@ -183,7 +139,6 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
             }else --iNum;
 
             if(!colMap [""+ rows[ir].name ]){
-//                iCol=newhdr.length;
                 newhdr.push({name: rows[ir].name });
                 colMap[""+ rows[ir].name ]=newhdr.length;
             }
@@ -193,7 +148,7 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
             else {
 
                 if( !(newrows[iNum][rows[ir].name] instanceof Array) )
-                    newrows[iNum][rows[ir].name]=new Array(newrows[iNum][rows[ir].name]);   // turn into array
+                    newrows[iNum][rows[ir].name]=new Array(newrows[iNum][rows[ir].name]);
                 newrows[iNum][rows[ir].name].push(rows[ir].value);
             }
             if((parsemode&vjTable_inheritPathPropFormat) && isok(rows[ir].path))
@@ -202,7 +157,6 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
 
         this.rows=newrows;
         this.hdr=newhdr;
-        //this.arr=new Array();
         for ( var ir=0; ir<this.rows.length; ++ir){
             this.rows[ir].cols=new Array();
             for ( var ic=0; ic<this.hdr.length; ++ic){
@@ -212,8 +166,6 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
         }
 
 
-        //alert(jjj(this.rows));
-        //alert(jjj(this.hdr)+"\n\n\n"+jjj(this.arr));
 
         return newrows;
     };
@@ -319,13 +271,11 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
             }
         }
         
-        //alert(jjj(this.hdr));
     };
 
 
 
     this.customizeRows = function(addrows, allownew, objCpy) {
-
         for ( var ic = 0; ic < addrows.length; ++ic) {
             var ifound = parseInt(addrows[ic].row ? addrows[ic].row : ""), ff=0;
 
@@ -339,8 +289,8 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
                 ++howmanyfound;
             } else if (addrows[ic].name) {
                 for (ifound = 0; ifound < this.rows.length; ++ifound) {
-                    if (this.rows[ifound].name //&& typeof(this.rows[ifound].name)=="string"
-                            && this.rows[ifound].name.match(addrows[ic].name) && !addrows[ic].noMatch) //this last flag is for special cases (when 2 names might match, but are not the same)
+                    if (this.rows[ifound].name
+                            && this.rows[ifound].name.match(addrows[ic].name) && !addrows[ic].noMatch)
                     {
                         for (ff in addrows[ic]) {
                             if (ff == "name" || ff == "row" )
@@ -353,8 +303,7 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
                     }
                 }
             }
-
-            if ((howmanyfound == 0 || !addrows[ic].prohibit_new) && allownew  && typeof(addrows[ic].name)=="string"){
+            if ((howmanyfound == 0 || !addrows[ic].prohibit_new) && !addrows[ic].prohibit_new && allownew  && typeof(addrows[ic].name)=="string"){
                 if( !objCpy ) {
                     this.rows.push( addrows[ic] );
                 }
@@ -365,16 +314,6 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
         }
     };
 
-/*
- * this.customizeRows=function( addrows , allownew ) { for( var ir=0; ir<addrows.length;
- * ++ir) {
- *
- * var ifound=parseInt(addrows[ir].row), ff; if(isNaN(ifound)) { if(allownew ) {
- * ifound=this.rows.length; this.rows[ifound]={cols:new Array()}; } else
- * ifound=ir; } if(ifound<0 || ifound>=this.rows.length)continue;
- *
- * for ( ff in addrows[ir] ) { this.rows[ifound][ff]=addrows[ir][ff]; } } }
- */
     this.mangleRows = function (matchObjRegex, objToBorrow, inverted) {
         var newrows = new Array();
 
@@ -398,6 +337,14 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
 
     };
 
+    this.subsetRows = function (indexArray, inverted) {
+        if(!inverted) {
+            this.rows = indexArray.map( i => this.rows[i]);
+        } else {
+            this.rows = this.rows.filter((e,i) => !indexArray.includes(i));
+        }
+    };
+
     this.syncCols = function() {
         var namecount = {};
         for (var ic = 0; ic < this.hdr.length; ++ic) {
@@ -413,8 +360,6 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
             var synced_repeated = {};
             for (var ic = 0; ic < this.hdr.length; ++ic) {
                 var name = this.hdr[ic].name;
-                // ensure syncing only overwrites first column if we have multiple
-                // columns with same name
                 if (namecount[name] > 1 && synced_repeated[name]) {
                     continue;
                 } else {
@@ -453,21 +398,21 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
         var ic,is;
         for( ic=0; ic < secondTable.hdr.length ; ++ic ) {
             var colnameToAppend = secondTable.hdr[ic].name;
-            for( is=0; is<this.hdr.length ; ++is ) { // look for duplicate column name
+            for( is=0; is<this.hdr.length ; ++is ) {
                  if(colnameToAppend==this.hdr[is].name )
                      break;
             }
             
-            if(is<this.hdr.length) { // when found duplication
+            if(is<this.hdr.length) {
                 continue;
             }
             else  { 
                 this.hdr.push(secondTable.hdr[ic]);
             }
             var ir;
-            for(ir=0; ir<secondTable.rows.length; ++ir){ // adding rows
+            for(ir=0; ir<secondTable.rows.length; ++ir){
                 var valueToAdd = secondTable.rows[ir][colnameToAppend];
-                if (ir > this.rows.length-1){ // when table to append has more rows than the current => set the row elements from current table to 0 
+                if (ir > this.rows.length-1){
                     this.rows[ir] = new Object();
                     var keyArr = Object.keys(this.rows[0]);
                     for (var ik=0; ik<keyArr.length; ++ik){
@@ -484,8 +429,6 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
                 this.rows[ir][colnameToAppend]=valueToAdd;
                 this.rows[ir].cols.push(valueToAdd);
             }
-            // in case the table to append has less rows than the current
-            // => add emtpy value 
             for (; ir<this.rows.length; ++ir){
                 this.rows[ir][colnameToAppend]=0;
                 this.rows[ir].cols.push(0);
@@ -496,7 +439,7 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
     this.arrayToCSV = function (){
         var strToReturn = "";
         
-        if (this.hdr.length > 0){ // if there is a separate row header
+        if (this.hdr.length > 0){
             console.log ("getting information from the header was not implemented");
             return "";
         }
@@ -513,51 +456,84 @@ function vjTable( content, colfmt, parsemode, skiprows, cntrows, strDelimiterLis
         }
         return strToReturn;
     };
-            
-    var _arr=this.CSVToArray( new Array ( new Array() ) , content, colfmt, skiprows, cntrows, strDelimiterList, keepempty  );
 
     var startRow=0;
     this.hdr=new Array();
     this.rows=new Array();
-    if(!_arr.length)return;
-
-    if( parsemode&vjTable_hasHeader ) {
-        if (!cntHeaderRows) {
-            cntHeaderRows = 1;
-        }
-
-        for(var ihdrRow=0; ihdrRow < cntHeaderRows; ihdrRow++) {
-            for (var ic=0; ic<_arr[startRow].length; ++ic) {
-                var hdrCell = _arr[startRow][ic];
-                if (ihdrRow == 0) {
-                    this.hdr[ic] = {
-                        name: hdrCell,
-                        rows: [hdrCell]
-                    };
+    
+    if(content && (parsemode&vjTable_autoJSON)) {
+        var ch=content.substring(0,1);
+    }
+    
+    if(content && (parsemode&vjTable_fromJSON)) {
+        var jsonObj = JSON.parse(content);
+        var iRow=0;
+        for (var row in jsonObj ) {
+            if( typeof jsonObj[row] != "object" ) 
+                continue
+            this.rows[iRow]={cols: [], irow: iRow};
+            
+            for (var col in jsonObj[row] ) {
+                var ih;for ( ih=0; ih<this.hdr.length; ++ih) {
+                    if(this.hdr[ih].name==col)break;
+                }
+                if(ih>=this.hdr.length) {
+                    this.hdr.push({name:col,rows: [col]});
                 } else {
-                    this.hdr[ic].name = this.hdr[ic].name.length ? this.hdr[ic].name + " " + hdrCell : hdrCell;
-                    this.hdr[ic].rows.push(hdrCell);
+                }
+                this.rows[iRow].cols.push(col);
+                
+                var val=jsonObj[row][col];
+                if(typeof val == "object" )
+                    val=JSON.stringify(val);
+                this.rows[iRow][col]=val;
+                
+            }
+            
+            ++iRow;
+        } 
+    }
+    else { 
+        var _arr=this.CSVToArray( new Array ( new Array() ) , content, colfmt, skiprows, cntrows, strDelimiterList, keepempty  );
+    
+        if(!_arr.length)return;
+    
+        if( parsemode&vjTable_hasHeader ) {
+            if (!cntHeaderRows) {
+                cntHeaderRows = 1;
+            }
+    
+            for(var ihdrRow=0; ihdrRow < cntHeaderRows; ihdrRow++) {
+                for (var ic=0; ic<_arr[startRow].length; ++ic) {
+                    var hdrCell = _arr[startRow][ic];
+                    if (ihdrRow == 0) {
+                        this.hdr[ic] = {
+                            name: hdrCell,
+                            rows: [hdrCell]
+                        };
+                    } else {
+                        this.hdr[ic].name = this.hdr[ic].name.length ? this.hdr[ic].name + " " + hdrCell : hdrCell;
+                        this.hdr[ic].rows.push(hdrCell);
+                    }
+                }
+                ++startRow;
+            }
+        }
+    
+        for ( var ir=startRow; ir<_arr.length; ++ir)
+            this.rows[ir-startRow]={ cols: _arr[ir], irow: ir-startRow };
+    
+        if(!this.rows.length)return;
+    
+        if( parsemode&vjTable_hasHeader ){
+            for ( var ir=0; ir<this.rows.length; ++ir){
+                for (var ic = this.hdr.length-1; ic >= 0; --ic) {
+                    this.rows[ir][this.hdr[ic].name]=this.rows[ir].cols[ic];
                 }
             }
-            ++startRow;
+            if( (parsemode&vjTable_collapsePropFormat) && this.hdr.length>=4 && this.hdr[0].name=="id" && this.hdr[1].name=="name" && this.hdr[2].name=="path" && this.hdr[3].name=="value" )
+                this.convertPropToHorizontal( this.rows );
         }
-    }
-
-    for ( var ir=startRow; ir<_arr.length; ++ir)
-        this.rows[ir-startRow]={ cols: _arr[ir], irow: ir-startRow };
-
-    if(!this.rows.length)return;
-
-    if( parsemode&vjTable_hasHeader ){
-        for ( var ir=0; ir<this.rows.length; ++ir){
-            // ensure this.rows[ir][name] is set to *first* column with that name
-            for (var ic = this.hdr.length-1; ic >= 0; --ic) {
-                this.rows[ir][this.hdr[ic].name]=this.rows[ir].cols[ic];
-            }
-        }
-        if( (parsemode&vjTable_collapsePropFormat) && this.hdr.length>=4 && this.hdr[0].name=="id" && this.hdr[1].name=="name" && this.hdr[2].name=="path" && this.hdr[3].name=="value" )
-            this.convertPropToHorizontal( this.rows );
     }
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjTable.js"

@@ -35,12 +35,12 @@ CREATE TABLE `QPHosts` (
   `ip4` varchar(15) DEFAULT '',
   `htype` varchar(15) DEFAULT '',
   `category` varchar(128) DEFAULT '',
-  `enabled` tinyint(1) DEFAULT '0',
-  `mdate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `capacity` float NOT NULL DEFAULT '0',
-  `cores` bigint(20) unsigned NOT NULL DEFAULT '0',
-  `memory` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `enabled` tinyint(1) DEFAULT 0,
+  `mdate` timestamp NOT NULL DEFAULT current_timestamp(),
+  `capacity` float NOT NULL DEFAULT 0,
+  `cores` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `memory` bigint(20) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`name`),
   KEY `qphost_name` (`name`),
   KEY `qphost_ip4` (`ip4`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.field.keyval.js
 
 $(function () {
     $.widget("ion.field_keyval", $.ion.field_base, {
@@ -37,17 +36,6 @@ $(function () {
                             .addClass('primitive form-control')
                             .addClass(this.options.spec._type)
                             .text('keyval: not implemented yet!')
-                            //.append(
-                            //    $(document.createElement('input'))
-                            //        .addClass('primitive form-control')
-                            //)
-                            //.append(
-                            //    $(document.createTextNode(":"))
-                            //)
-                            //.append(
-                            //    $(document.createElement('input'))
-                            //        .addClass('primitive form-control')
-                            //);
             
             return field;
         },

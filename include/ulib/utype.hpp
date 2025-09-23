@@ -42,7 +42,6 @@ namespace slib {
 
     typedef sDic<sVarSet> TActions;
 
-    // Keep this in sync with propTypeNames in utype.cpp
     enum eUsrObjPropType
     {
         eUsrObjProp_invalid = -1,
@@ -125,7 +124,6 @@ namespace slib {
 
             idx init(const sUsr& usr, const char * name, const sHiveId & id) const;
 
-            //! For use in sVec and other containers
             void reset(const char* type_name)
             {
                 m_def = sNotIdx;
@@ -135,10 +133,6 @@ namespace slib {
             const char* Title() const;
             const sHiveId & id() const;
 
-            // if view_name == 0 it returns ACTUAL TYPE DATA
-            // default view is returned if view_name == ""
-            // filter \0 separated and \0\0 terminated list of prop names
-            // returns list dim()
             udx props(const sUsr & usr, sVarSet& list, const char* view_name = 0, const char* filter00 = 0) const;
             udx props(sVec<const sUsrObjTypeField*> &list) const;
             const sUsrObjPropsTree* propsTree(const sUsr & usr, const char* view_name = 0, const char * filter00 = 0) const;
@@ -150,12 +144,9 @@ namespace slib {
 
             bool isOk() const;
             bool isAbstract() const;
-            //! check if the type is a descendent of base user type
             bool isUser() const;
-            //! check if the type is a descendent of base system type
             bool isSystem() const;
 
-            /*! \returns number of types in \a out, or 0 on failure */
             static idx getTree(const sUsr& usr, sVarSet& out_tbl, const char* root_name="base");
 
         private:
@@ -178,7 +169,7 @@ namespace slib {
                 m_id = objId;
             }
 
-            virtual udx propGet(const char* prop, sVarSet& res, bool sort=false/* not used */) const;
+            virtual udx propGet(const char* prop, sVarSet& res, bool sort=false) const;
 
             virtual const char * addFilePathname(sStr & buf, bool overwrite, const char* key, ...) const __attribute__((format(printf, 4, 5)))
             {
@@ -207,4 +198,4 @@ namespace slib {
     };
 }
 
-#endif // sLib_usrtype_h
+#endif 

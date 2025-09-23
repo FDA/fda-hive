@@ -36,37 +36,55 @@
 
 using namespace slib;
 
-class SvcBatcher : public sQPrideProc
-{
-    public:
-        SvcBatcher(const char * defline00,const char * srv) : sQPrideProc(defline00,srv), submittedGrpIDs(sMex::fSetZero)
-        {
-            doCreateProcesses=true;
-            selfService=true;
-            svcToSubmit=0;//"dna-hexagon";
-            svcToWaitFor=0;
-        }
-        virtual idx OnExecute(idx);
-        void recordSubmittedProcessIDs(idx num);
-        const char * prop2readableLog(sStr & out_buf, const char * prop_fmt_log);
+namespace slib {
+    class SvcBatcher: public sQPrideProc
+    {
+        public:
+            SvcBatcher(const char * defline00, const char * srv)
+                : sQPrideProc(defline00, srv), submittedGrpIDs(sMex::fSetZero)
+            {
+                doCreateProcesses = true;
+                selfService = true;
+                svcToSubmit = 0;
+                svcToWaitFor = 0;
+                stillRunning=0;
+                alreadyDone=0;
+                killed=0;
+            }
+            virtual idx OnExecute(idx);
+            void recordSubmittedProcessIDs(idx num);
+            const char * prop2readableLog(sStr & out_buf, const char * prop_fmt_log);
 
-        idx stillRunning,alreadyDone, killed;
-        bool doCreateProcesses, selfService;
-        const char * svcToSubmit;
-        const char * svcToWaitFor;
-        sVec < idx > submittedGrpIDs;
-        sVec < idx > waitedReqs;
-        sVec < sHiveId > submittedProcessIDs;
+            idx stillRunning, alreadyDone, killed;
+            bool doCreateProcesses, selfService;
+            const char * svcToSubmit;
+            const char * svcToWaitFor;
+            sVec<idx> submittedGrpIDs;
+            sVec<idx> waitedReqs;
+            sVec<sHiveId> submittedProcessIDs;
 
-        void clearClass () {
-            submittedGrpIDs.empty();
-            waitedReqs.empty();
-            submittedProcessIDs.empty();
-            doCreateProcesses=true;
-            selfService=true;
-            svcToSubmit=0;
-            svcToWaitFor=0;
-        }
+            void clearClass()
+            {
+                submittedGrpIDs.empty();
+                waitedReqs.empty();
+                submittedProcessIDs.empty();
+                doCreateProcesses = true;
+                selfService = true;
+                svcToSubmit = 0;
+                svcToWaitFor = 0;
+            }
+
+        private:
+            class BatchingIterator;
+            enum EProgressStage {
+                eCreatedForm = 0,
+                eCreatedProcess,
+                eCreatedSubmission,
+                eStartedRequest,
+                eDoneBatching
+            };
+            virtual idx batchReqProgress(BatchingIterator * batch_iter, EProgressStage stage);
+    };
 };
 
 

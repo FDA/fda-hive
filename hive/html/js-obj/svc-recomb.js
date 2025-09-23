@@ -35,9 +35,8 @@ javaScriptEngine.include("js/vjRecombView.js");
 vjHO.register('svc-recomb').Constructor=function ()
 {
 
-    if(this.objCls)return;         //stupid chrome loads from both cached file and the one coming from server.
+    if(this.objCls)return;
 
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.load(dv,node.id);
@@ -71,7 +70,7 @@ vjHO.register('svc-recomb').Constructor=function ()
     this.typeName="svc-recomb";
     this.graphResolution = 200;
     this.graphResolutionZoom = 200;
-    if(document.all) { // IE Cannot show more than some little number of HTML5 s
+    if(document.all) {
         this.graphResolution/=2;
         this.graphResolutionZoom/=2;
     }
@@ -89,40 +88,40 @@ vjHO.register('svc-recomb').Constructor=function ()
     vjObj.register(this.objCls,this);
     this.urlSet ={
             'hitlist': {
-                active_url: "http://?cmd=alCount&objLink=parent_proc_ids&start=0&cnt=50&info=1",
+                active_url: "http:
                 objs:'objs',
                 title: "Retrieving list of hits"
             },
             'polyplot' : {
                 loadInactive:true,
-                active_url:"qpbg_tblqryx4://RecombPolyplotSimilarity.csv//"+this.recomb_cmd,
+                active_url:"qpbg_tblqryx4:
                 title: "Building profile diagram"
             },
             'coverage' : {
                 loadInactive:true,
-                active_url:"qpbg_tblqryx4://RecombPolyplotCoverage.csv//"+this.recomb_cmd,
-                title: "infrastructure: Creating profilerX"    //it won't be displayed because is infrustructure
+                active_url:"qpbg_tblqryx4:
+                title: "infrastructure: Creating profilerX"
             },
             'cross_cov1' : {
                 loadInactive:true,
-                active_url:"http://?cmd=recombCross",
-                inactive_url:"static://Select two reference sequences",
-                title: "infrastructure: Creating cross coverage"    //it won't be displayed because is infrustructure
+                active_url:"http:
+                inactive_url:"static:
+                title: "infrastructure: Creating cross coverage"
             },
             'profiler' : {
                 loadInactive:true,
-                active_url:"qpbg_tblqryx4://RecombSNPProfile.csv//"+this.profile_cmd,
+                active_url:"qpbg_tblqryx4:
                 title: "Retrieving open reading frames",
             },
             'downloads' : {
                 loadInactive:true,
-                active_url:"static://",
-                inactive_url:"static://",
+                active_url:"static:
+                inactive_url:"static:
                 title: "infrastructure: creating list of downloadables"
             },
             'help' : {
-                active_url:"http://help/hlp.svc-recomb.results.html",
-                inactive_url:"http://help/hlp.svc-recomb.results.html",
+                active_url:"http:
+                inactive_url:"http:
                 title: "infrastructure: building help page"
             }
 
@@ -196,10 +195,9 @@ vjHO.register('svc-recomb').Constructor=function ()
                 checkCallback : "function:vjObjFunc('dna_recomb_checkedReference','" + this.objCls + "')" ,
                 isok:true}));
             this.viewers['hitlist'].callbackRendered = "function:vjObjFunc('onLoadedHitList','" + this.objCls + "')";
-//            this.viewers['hitlist'].rowspan=2;
 
             this.addviewer('polyplot,polyplot_scaled', new vjRecombPolyplotControl({
-                data: 'polyplot',//{'profile':'profile', 'profileX': 'profileX'},
+                data: 'polyplot',
                 width:'80%',
                 height:240,
                 formName:this.formName,
@@ -222,14 +220,12 @@ vjHO.register('svc-recomb').Constructor=function ()
 
             this.addviewer('polyplot,polyplot_scaled', new vjRecombPolyplotControl ({
                 data: 'polyplot',
-//                selectCallback: "function:vjObjFunc('','" + this.objCls + "')",
                 logGraph:true,
                 formName:this.formName[0],
                 isok:true}));
 
             this.addviewer('coverage,coverage_scaled', new vjRecombCoverageControl ({
                 data: 'coverage',
-//                selectCallback: "function:vjObjFunc('','" + this.objCls + "')",
                 logGraph:true,
                 formName:this.formName[0],
                 isok:true}));
@@ -241,7 +237,6 @@ vjHO.register('svc-recomb').Constructor=function ()
 
             this.addviewer('profile_coverage,profile_snp,profile_indels', new vjRecombSNPProfileControl ({
                 data: 'profiler',
-//                selectCallback: "function:vjObjFunc('','" + this.objCls + "')",
                 formName:this.formName[0],
                 isok:true}));
 
@@ -297,7 +292,7 @@ vjHO.register('svc-recomb').Constructor=function ()
             var t = "download,icon,blob\n";
             t += "Recombination Similarity Polyplot,download,RecombPolyplotSimilarity\n" +
                 "Recombination Coverage Polyplot,download,RecombPolyplotCoverage\n\n";
-            this.getDS('downloads').reload("static://" + t, false);
+            this.getDS('downloads').reload("static:
 
 
             this.getDS('polyplot').reload(urlExchangeParameter(urlExchangeParameter(urlExchangeParameter(this.urlSet['polyplot'].active_url, "minmaxCols","1-"+this.referenceID.length), "cols","0,"+subSet), "objs",this.loadedID),false);

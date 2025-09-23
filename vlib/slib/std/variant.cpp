@@ -40,7 +40,6 @@
 
 using namespace slib;
 
-// keep in sync with eType in variant.hpp
 static const char *sVariantNames[] = {
     "null",
     "integer",
@@ -54,6 +53,7 @@ static const char *sVariantNames[] = {
     "date",
     "time",
     "other data",
+    "bool",
     NULL
 };
 
@@ -75,7 +75,6 @@ struct DefaultWhitespaces
 };
 static DefaultWhitespaces default_whitespaces;
 
-// static
 const sVariant::Whitespace * sVariant::getDefaultWhitespace(sVariant::ePrintMode mode)
 {
     return mode == sVariant::eCSV ? &default_whitespaces.csv : &default_whitespaces.json;
@@ -113,25 +112,21 @@ struct ShortStrings
         if (!s || len < 2 || !s[0] || !s[1])
             return;
 
-//        fprintf(stderr, "Interned '%s'\n", s);
         interns.setString(s, len);
     }
 
     idx getIndex(const char *s, idx len) const
     {
         if (!s || !len || !s[0]) {
-//            fprintf(stderr, "Found interned '' == 0\n");
             return 0;
         }
 
         if (len == 1 || !s[1]) {
-//            fprintf(stderr, "Found interned '%s' == %" DEC "\n", s, (idx)(s[0]));
             return s[0];
         }
 
         idx result = interns.find(s, len) - 1;
         if (result >= 0) {
-//            fprintf(stderr, "Found interned '%s' == %" DEC "\n", s, result + 256);
             return result + 256;
         }
 
@@ -163,7 +158,7 @@ void sVariant::empty()
             delete _val.data;
         _val.data = NULL;
         break;
-    default: // fall through
+    default:
         break;
     }
     _type = value_NULL;
@@ -185,7 +180,7 @@ sVariant::sVariant(const sVariant &rhs): _type(rhs._type), _val(rhs._val), _str(
     case value_DATA:
         _val.data = rhs._val.data->clone();
         break;
-    default: // fall through
+    default:
         break;
     }
 }
@@ -198,7 +193,6 @@ const char* sVariant::getTypeName() const
     return sVariantNames[_type];
 }
 
-//static
 const char* sVariant::getTypeName(idx type)
 {
     if (unlikely(type < 0 || type > (idx)(sizeof(sVariantNames)/sizeof(const char *))))
@@ -207,7 +201,6 @@ const char* sVariant::getTypeName(idx type)
     return sVariantNames[type];
 }
 
-//static
 sVariant::eType sVariant::parseTypeName(const char * type_name)
 {
     for (int i = 0; i < sDim(sVariantNames) - 1; i++) {
@@ -225,6 +218,7 @@ sVariant& sVariant::operator=(const sVariant &rhs)
 
     switch (rhs._type) {
     case value_NULL:
+    case value_BOOL:
     case value_INT:
     case value_UINT:
     case value_REAL:
@@ -239,7 +233,6 @@ sVariant& sVariant::operator=(const sVariant &rhs)
         setString(RHS_AS_STRING_CONST);
         break;
     case value_LIST:
-        // increment list refcount only if we are not already holding this list!
         if (likely(_type != rhs._type || _val.list != rhs._val.list)) {
             empty();
             _val.list = rhs._val.list;
@@ -247,7 +240,6 @@ sVariant& sVariant::operator=(const sVariant &rhs)
         }
         break;
     case value_DIC:
-        // increment list refcount only if we are not already holding this list!
         if (likely(_type != rhs._type || _val.dic != rhs._val.dic)) {
             empty();
             _val.dic = rhs._val.dic;
@@ -267,6 +259,57 @@ sVariant& sVariant::operator=(const sVariant &rhs)
     }
     _type = rhs._type;
     return *this;
+}
+
+sVariant & sVariant::clone(const sVariant & rhs)
+{
+    if( unlikely(this == &rhs) ) {
+        return *this;
+    }
+    switch(rhs._type) {
+        case value_NULL:
+        case value_BOOL:
+        case value_INT:
+        case value_UINT:
+        case value_REAL:
+        case value_HIVE_ID:
+        case value_DATE_TIME:
+        case value_DATE:
+        case value_TIME:
+            empty();
+            _val = rhs._val;
+            break;
+        case value_STRING:
+            setString(RHS_AS_STRING_CONST);
+            break;
+        case value_LIST:
+            setList();
+            _val.list->clone(*rhs._val.list);
+            break;
+        case value_DIC:
+            setDic();
+            _val.dic->clone(*rhs._val.dic);
+            break;
+        case value_DATA:
+            if( _type == value_DATA ) {
+                _val.data = rhs._val.data->cloneInto(_val.data);
+            } else {
+                empty();
+                _val.data = rhs._val.data->clone();
+            }
+            assert(_val.data);
+            break;
+    }
+    _type = rhs._type;
+    return *this;
+}
+
+
+void sVariant::setBool(bool b)
+{
+    empty();
+    _type = value_BOOL;
+    _val.i = b ? 1 : 0;
 }
 
 void sVariant::setInt(idx i)
@@ -351,7 +394,7 @@ void sVariant::setHiveId(const sHiveId & id)
     *_val.id() = id;
 }
 
-void sVariant::setHiveId(const char * domain_id, udx obj_id, udx ion_id/*=0*/)
+void sVariant::setHiveId(const char * domain_id, udx obj_id, udx ion_id)
 {
     empty();
     _type = value_HIVE_ID;
@@ -360,7 +403,6 @@ void sVariant::setHiveId(const char * domain_id, udx obj_id, udx ion_id/*=0*/)
 
 void sVariant::setHiveId(const sVariant & rhs)
 {
-    // do this the safe way
     sHiveId tmp;
     rhs.asHiveId(&tmp);
     setHiveId(tmp);
@@ -705,7 +747,6 @@ static idx stringToInt(const char *s, bool *perr=0)
 
   RET:
     if (unlikely(err)) {
-        // See if this is a real which can be rounded
         val = idxround(stringToReal(s, &err));
     }
 
@@ -737,7 +778,6 @@ static udx stringToUInt(const char *s, bool *perr=0)
 
   RET:
     if (unlikely(err)) {
-        // See if this is a real which can be rounded
         val = idxround(stringToReal(s, &err));
     }
 
@@ -762,7 +802,7 @@ void sVariant::parseUInt(const char *s)
 
 void sVariant::parseBool(const char *s)
 {
-    setInt(sString::parseBool(s));
+    setBool(sString::parseBool(s));
 }
 
 void sVariant::parseHiveId(const char *s)
@@ -781,7 +821,9 @@ void sVariant::parseDateTime(const char *s)
 {
     struct tm tm;
     idx utc_offset = -sIdxMax;
-    setDateTime(sString::parseDateTime(&tm, s, 0, &utc_offset));
+    idx parsedEnd = 0;
+    idx t_datetime = sString::parseDateTime(&tm, s, &parsedEnd, &utc_offset);
+    setDateTime(parsedEnd == sLen(s) ? t_datetime : -sIdxMax);
     _val.date.utc_offset = utc_offset;
 }
 
@@ -797,9 +839,10 @@ void sVariant::parseTime(const char *s)
 {
     empty();
     _type = value_TIME;
-    _val.date.timestamp = sString::parseTime(s, 0, &_val.date.utc_offset);
-    if (_val.date.timestamp == -sIdxMax) {
-        setTime(stringToInt(s), -sIdxMax);
+    idx parsedEnd = 0;
+    _val.date.timestamp = sString::parseTime(s, &parsedEnd, &_val.date.utc_offset);
+    if (_val.date.timestamp == -sIdxMax || parsedEnd != sLen(s)) {
+        setTime(stringToInt(s), 0);
     }
 }
 
@@ -846,6 +889,9 @@ void sVariant::parseScalarType(const char * s, sVariant::eType type)
             }
         }
         break;
+    case value_BOOL:
+        parseBool(s);
+        break;
     case value_INT:
         parseInt(s);
         break;
@@ -875,7 +921,6 @@ void sVariant::parseScalarType(const char * s, sVariant::eType type)
 }
 
 #define GUESS_TYPE_BUF_LEN 128
-//static
 sVariant::eType sVariant::guessScalarType(const char * buf, idx len, sVariant::eType prevGuess)
 {
     if( prevGuess == value_STRING || len >= GUESS_TYPE_BUF_LEN )
@@ -895,20 +940,28 @@ sVariant::eType sVariant::guessScalarType(const char * s, sVariant::eType prevGu
     if( prevGuess == sVariant::value_STRING || !s || !s[0] )
         return prevGuess;
 
-    bool isInt = false, isReal = false, isDate = false, isTime = false, isDateTime = false;
+    bool isBool = false, isInt = false, isReal = false, isDate = false, isTime = false, isDateTime = false;
 
     char * endptr = 0;
-    strtoidx(s, &endptr, 10);
+    idx ival = strtoidx(s, &endptr, 10);
     if( *endptr ) {
-        strtod(s, &endptr);
-        if( !*endptr )
-            isReal = true;
+        if( sIsExactly(s, "false") || sIsExactly(s, "off") || sIsExactly(s, "true") || sIsExactly(s, "on") ) {
+            isBool = true;
+        } else {
+            strtod(s, &endptr);
+            if( !*endptr ) {
+                isReal = true;
+            }
+        }
     } else {
         isInt = true;
         isReal = true;
+        if( ival == 0 || ival == 1 ) {
+            isBool = true;
+        }
     }
 
-    if( !isInt && !isReal ) {
+    if( !isBool && !isInt && !isReal ) {
         sVariant date_time;
         date_time.parseDateTime(s);
         if( date_time.asBool() ) {
@@ -928,6 +981,22 @@ sVariant::eType sVariant::guessScalarType(const char * s, sVariant::eType prevGu
 
     switch (prevGuess) {
         case sVariant::value_NULL:
+            if( isInt ) {
+                return sVariant::value_INT;
+            } else if( isReal ) {
+                return sVariant::value_REAL;
+            } else if( isBool ) {
+                return sVariant::value_BOOL;
+            } else if( isDate ) {
+                return sVariant::value_DATE;
+            } else if( isDateTime ) {
+                return sVariant::value_DATE_TIME;
+            } else if( isTime ) {
+                return sVariant::value_TIME;
+            } else {
+                checkForHiveId = true;
+                break;
+            }
         case sVariant::value_INT:
         case sVariant::value_UINT:
             if( isInt ) {
@@ -950,6 +1019,12 @@ sVariant::eType sVariant::guessScalarType(const char * s, sVariant::eType prevGu
             } else {
                 checkForHiveId = true;
                 break;
+            }
+        case sVariant::value_BOOL:
+            if( isBool ) {
+                return sVariant::value_BOOL;
+            } else {
+                return sVariant::value_STRING;
             }
         case sVariant::value_DATE:
             if( isInt || isDate ) {
@@ -974,7 +1049,7 @@ sVariant::eType sVariant::guessScalarType(const char * s, sVariant::eType prevGu
         case sVariant::value_HIVE_ID:
             checkForHiveId = true;
             break;
-        default: // fall through
+        default:
             break;
     }
 
@@ -986,7 +1061,6 @@ sVariant::eType sVariant::guessScalarType(const char * s, sVariant::eType prevGu
         if( end > start ) {
             for(; end < GUESS_TYPE_BUF_LEN && s[end] && isspace(s[end]); end++);
             if( end >= GUESS_TYPE_BUF_LEN || !s[end] ) {
-                // something that looks like a hive id followed by optional whitespace
                 return value_HIVE_ID;
             }
         }
@@ -1000,10 +1074,10 @@ bool sVariant::asBool() const
     switch(_type) {
     case value_NULL:
         return false;
+    case value_BOOL:
     case value_INT:
         return _val.i;
     case value_REAL:
-        // finite is true if nonzero; infinite is true; NaN is false
         if (likely(isfinite(_val.r)))
             return _val.r != 0;
         if (isinf(_val.r))
@@ -1030,15 +1104,47 @@ bool sVariant::asBool() const
     return false;
 }
 
+bool sVariant::isNullish() const
+{
+    switch(_type) {
+    case value_NULL:
+        return true;
+    case value_BOOL:
+    case value_INT:
+        return _val.i == 0;
+    case value_REAL:
+        return _val.r == 0.0;
+    case value_STRING:
+        return _str.length() == 0;
+    case value_LIST:
+        return _val.list->dim() == 0;
+    case value_DIC:
+        return _val.dic->dim() == 0;
+    case value_HIVE_ID:
+        return *_val.id() == sHiveId::zero;
+    case value_UINT:
+        return _val.u == 0;
+    case value_DATE_TIME:
+    case value_DATE:
+        return _val.date.timestamp == -sIdxMax;
+    case value_TIME:
+        return _val.date.timestamp == 0;
+    case value_DATA:
+        return _val.data->isNullish();
+    }
+    return false;
+}
+
 idx sVariant::asInt() const
 {
     switch(_type) {
     case value_NULL:
         return 0;
+    case value_BOOL:
+        return _val.i ? 1 : 0;
     case value_INT:
         return _val.i;
     case value_REAL:
-        // finite is rounded; infinite is +-sIdxMax; NaN is zero.
         if (likely(isfinite(_val.r)))
             return idxrint(_val.r);
         if (isinf(_val.r)) {
@@ -1086,6 +1192,8 @@ real sVariant::asReal() const
     switch(_type) {
     case value_NULL:
         return 0;
+    case value_BOOL:
+        return _val.i ? 1 : 0;
     case value_INT:
         return _val.i;
     case value_UINT:
@@ -1107,11 +1215,13 @@ real sVariant::asReal() const
         return _val.date.timestamp;
     case value_DATA:
         return _val.data->asReal();
+    default:
+        break;
     }
     return NAN;
 }
 
-const sHiveId * sVariant::asHiveId(sHiveId * out/*=0*/) const
+const sHiveId * sVariant::asHiveId(sHiveId * out) const
 {
     if (!out)
         return _type == value_HIVE_ID ? _val.id() : 0;
@@ -1203,6 +1313,9 @@ void sVariant::getNumericValue(sVariant& numeric) const
     case value_NULL:
         numeric.setInt(0);
         break;
+    case value_BOOL:
+        numeric.setInt(_val.i ? 1 : 0);
+        break;
     case value_INT:
         numeric.setInt(_val.i);
         break;
@@ -1211,7 +1324,6 @@ void sVariant::getNumericValue(sVariant& numeric) const
         break;
     case value_STRING:
         {
-            // Does this look like an integer?
             bool err;
             idx ival = stringToInt(AS_STRING_CONST, &err);
             if (err)
@@ -1296,7 +1408,6 @@ const char * sVariant::print(sStr &s, ePrintMode mode, const Whitespace * whites
 
     switch(_type) {
     case value_NULL:
-        /* in CSV mode, NULL is simply omitted */
         switch (mode) {
         case eDefault:
         case eUnquoted:
@@ -1307,20 +1418,28 @@ const char * sVariant::print(sStr &s, ePrintMode mode, const Whitespace * whites
             return s.addString("null", 4);
         }
         break;
+    case value_BOOL:
+        switch (mode) {
+        case eCSV:
+            return s.printf(_val.i ? "1" : "0");
+        case eDefault:
+        case eUnquoted:
+        case eJSON:
+            return s.printf(_val.i ? "true" : "false");
+        }
+        break;
     case value_INT:
         return s.printf("%" DEC, _val.i);
     case value_UINT:
         return s.printf("%" UDEC, _val.u);
     case value_REAL:
         if( mode == eJSON ) {
-            // JSON does not allow NaN or Infinity literals. Most JSON libraries map NaN to null literal.
             switch( fpclassify(_val.r) ) {
                 case FP_NAN:
                     return s.addString("null", 4);
                 case FP_INFINITE:
                     return _val.r > 0 ? s.addString("\"Infinity\"") : s.addString("\"-Infinity\"");
                 default:
-                    // fall through
                     break;
             }
         }
@@ -1466,22 +1585,9 @@ const char * sVariant::print(sStr &s, ePrintMode mode, const Whitespace * whites
             _val.id()->print(s);
             break;
         default:
-            bool need_quote;
-            if( mode == eUnquoted ) {
-                need_quote = false;
-            } else if( mode == eCSV ) {
-                need_quote = _val.id()->ionId(); // to distinguish from floating-point number
-            } else {
-                need_quote = _val.id()->domainId() || _val.id()->ionId();
-            }
-
-            if( need_quote ) {
-                s.addString("\"", 1);
-            }
+            s.addString("\"", 1);
             _val.id()->print(s);
-            if( need_quote ) {
-                s.addString("\"", 1);
-            }
+            s.addString("\"", 1);
         }
         return s.ptr(start_pos);
     case value_DATE_TIME:
@@ -1571,6 +1677,8 @@ const char* sVariant::asString()
         return sStr::zero;
     case value_STRING:
         return AS_STRING_CONST;
+    case value_BOOL:
+        return _val.i ? "true" : "false";
     case value_INT:
         if (_val.i >= 0 && _val.i < 10)
             return shortStrings.getChar('0' + _val.i);
@@ -1579,7 +1687,7 @@ const char* sVariant::asString()
         if (_val.u < 10)
             return shortStrings.getChar('0' + _val.u);
         break;
-    default: // fall through
+    default:
         break;
     }
     _str.cut(0);
@@ -1596,7 +1704,7 @@ idx sVariant::dim() const
         return _val.list->dim();
     case value_DIC:
         return _val.dic->dim();
-    default: // fall through
+    default:
         break;
     }
     return 0;
@@ -1667,7 +1775,7 @@ bool sVariant::getElt(idx i, sVariant &out) const
             return true;
         }
         break;
-    default: // fall through
+    default:
         break;
     }
     return false;
@@ -1799,7 +1907,13 @@ do { \
     case value_NULL: \
         _type = value_INT; \
         _val.i = 0; \
-        /* no break, fall through to value_INT */ \
+        _val.i op var;  \
+        return true; \
+    case value_BOOL: \
+        _type = value_INT; \
+        _val.i = _val.i ? 1 : 0; \
+        _val.i op var; \
+        return true; \
     case value_INT: \
         _val.i op var; \
         return true; \
@@ -1822,7 +1936,7 @@ do { \
             setInt(_val.date.timestamp); \
         } \
         return true; \
-    default: /* fall through */ \
+    default:\
         break; \
     } \
 } while(0)
@@ -1847,11 +1961,15 @@ bool sVariant::operator*=(idx i)
 
 bool sVariant::operator/=(idx i)
 {
-    switch (_type) {
-    case value_NULL:
+    if( _type == value_NULL ) {
         _type = value_INT;
         _val.i = 0;
-        // no break, fall through to value_INT
+    } else if( _type == value_BOOL ) {
+        _type = value_INT;
+        _val.i = _val.i ? 1 : 0;
+    }
+
+    switch (_type) {
     case value_INT:
         if (i)
             _val.i /= i;
@@ -1897,7 +2015,7 @@ bool sVariant::operator/=(idx i)
             _val.r = HUGE_VAL;
         }
         return true;
-    default: // fall through
+    default:
         break;
     }
     return false;
@@ -1905,11 +2023,16 @@ bool sVariant::operator/=(idx i)
 
 bool sVariant::operator%=(idx i)
 {
-    switch (_type) {
-    case value_NULL:
+    if( _type == value_NULL ) {
         _type = value_INT;
         _val.i = 0;
-        // no break, fall through to value_INT
+    } else if( _type == value_BOOL ) {
+        _type = value_INT;
+        _val.i = _val.i ? 1 : 0;
+    }
+
+    switch (_type) {
+    case value_NULL:
     case value_INT:
         if (i)
             _val.i %= i;
@@ -1952,7 +2075,7 @@ bool sVariant::operator%=(idx i)
             _val.r = NAN;
         }
         return true;
-    default: // fall through
+    default:
         break;
     }
     return false;
@@ -1964,7 +2087,13 @@ do { \
     case value_NULL: \
         _type = value_INT; \
         _val.i = 0; \
-        /* no break, fall through to value_INT */ \
+        _val.r op var; \
+        return true; \
+    case value_BOOL: \
+        _type = value_INT; \
+        _val.i = _val.i ? 1 : 0; \
+        _val.r op var; \
+        return true; \
     case value_INT: \
         _type = value_REAL; \
         _val.r = _val.i; \
@@ -1989,7 +2118,7 @@ do { \
             _val.r op var; \
         } \
         return true; \
-    default: /* fall through */ \
+    default:\
         break; \
     } \
 } while(0)
@@ -2020,11 +2149,15 @@ bool sVariant::operator/=(real r)
 
 bool sVariant::operator%=(real r)
 {
-    switch (_type) {
-    case value_NULL:
+    if( _type == value_NULL ) {
         _type = value_INT;
         _val.i = 0;
-        // no break, fall through to value_INT
+    } else if( _type == value_BOOL ) {
+        _type = value_INT;
+        _val.i = _val.i ? 1 : 0;
+    }
+
+    switch (_type) {
     case value_INT:
         _type = value_REAL;
         _val.r = remainder(_val.i, r);
@@ -2046,7 +2179,7 @@ bool sVariant::operator%=(real r)
             _val.r = remainder(_val.date.timestamp, r);
         }
         return true;
-    default: // fall through
+    default:
         break;
     }
     return false;
@@ -2054,15 +2187,20 @@ bool sVariant::operator%=(real r)
 
 #define SVARIANT_MATH_OP_SVARIANT(op, rhs, op_r_u) \
 do { \
-    switch(_type) { \
-    case value_NULL: \
+    if( _type == value_NULL ) { \
         _type = value_INT; \
         _val.i = 0; \
-        /* fall through to value_INT */ \
+    } else if( _type == value_BOOL ) { \
+        _type = value_INT; \
+        _val.i = _val.i ? 1 : 0; \
+    } \
+    switch(_type) { \
     case value_INT: \
         switch (rhs._type) { \
         case value_NULL: \
             return *this op (idx)0; \
+        case value_BOOL: \
+            return *this op rhs._val.i ? (idx)1 : (idx)0; \
         case value_INT: \
             return *this op rhs._val.i; \
         case value_UINT: \
@@ -2084,7 +2222,7 @@ do { \
             } else { \
                 return *this op rhs._val.date.timestamp; \
             } \
-        default: /* fall through */ \
+        default:\
             break; \
         } \
         break; \
@@ -2092,6 +2230,8 @@ do { \
         switch (rhs._type) { \
         case value_NULL: \
             return *this op (idx)0; \
+        case value_BOOL: \
+            return *this op rhs._val.i ? (idx)1 : (idx)0; \
         case value_INT: \
             return *this op rhs._val.i; \
         case value_UINT: \
@@ -2113,7 +2253,7 @@ do { \
             } else { \
                 return *this op rhs._val.date.timestamp; \
             } \
-        default: /* fall through */ \
+        default:\
             break; \
         } \
         break; \
@@ -2121,6 +2261,8 @@ do { \
         switch (rhs._type) { \
         case value_NULL: \
             return *this op (idx)0; \
+        case value_BOOL: \
+            return *this op rhs._val.i ? (idx)1 : (idx)0; \
         case value_INT: \
             return *this op rhs._val.i; \
         case value_UINT: \
@@ -2137,7 +2279,7 @@ do { \
             } else { \
                 return *this op rhs._val.date.timestamp; \
             } \
-        default: /* fall through */ \
+        default:\
             break; \
         } \
         break; \
@@ -2147,6 +2289,8 @@ do { \
         switch (rhs._type) { \
         case value_NULL: \
             return *this op (idx)0; \
+        case value_BOOL: \
+            return *this op rhs._val.i ? (idx)1 : (idx)0; \
         case value_INT: \
             return *this op rhs._val.i; \
         case value_UINT: \
@@ -2168,11 +2312,11 @@ do { \
         case value_TIME: \
             _type = value_DATE_TIME; \
             return *this op rhs._val.date.timestamp; \
-        default: /* fall through */ \
+        default:\
             break; \
         } \
         break; \
-    default: /* fall through */ \
+    default:\
         break; \
     } \
 } while(0)
@@ -2209,8 +2353,21 @@ bool sVariant::operator%=(const sVariant &rhs)
 
 bool sVariant::operator==(const sVariant &rhs) const
 {
-    if (isNull() || rhs.isNull())
-        return !asBool() && !rhs.asBool();
+    if( isNull() ) {
+        return rhs.isScalar() && rhs.isNullish();
+    }
+
+    if( rhs.isNull() ) {
+        return isScalar() && isNullish();
+    }
+
+    if( isIntLike() && rhs.isIntLike() ) {
+        return asInt() == rhs.asInt();
+    }
+
+    if( isUIntLike() && rhs.isUIntLike() ) {
+        return asUInt() == rhs.asUInt();
+    }
 
     if (isNumeric() && rhs.isNumeric())
         return asReal() == rhs.asReal();
@@ -2250,8 +2407,9 @@ bool sVariant::operator==(const sVariant &rhs) const
         return true;
     }
 
-    if (isHiveId() && rhs.isHiveId())
+    if( isHiveId() && rhs.isHiveId() ) {
         return *_val.id() == *rhs._val.id();
+    }
 
     if ((isDateTime() || isDate()) && (rhs.isDateTime() || rhs.isDate()))
         return _val.date.timestamp == rhs._val.date.timestamp;
@@ -2267,13 +2425,17 @@ bool sVariant::operator==(const sVariant &rhs) const
 
 #define SVARIANT_COMPARABLE_CMP(op, rhs) \
 do { \
+    if (isIntLike() && rhs.isIntLike()) \
+        return asInt() op rhs.asInt(); \
+\
+    if (isUIntLike() && rhs.isUIntLike()) \
+        return asUInt() op rhs.asUInt(); \
+\
     if (isNumeric() && rhs.isNumeric()) \
         return asReal() op rhs.asReal(); \
 \
-    if (isNull()) \
-        return 0 op rhs.asBool(); \
-    if (rhs.isNull()) \
-        return asBool() op 0; \
+    if (isNull() || rhs.isNull()) \
+        return (int)!isNullish() op (int)!rhs.isNullish(); \
 \
     if (isString() && rhs.isString()) \
         return strcmp(AS_STRING_CONST, RHS_AS_STRING_CONST) op 0; \
@@ -2317,21 +2479,28 @@ bool sVariant::operator>(const sVariant &rhs) const
     sStr lstr, rstr;
     print(lstr);
     rhs.print(rstr);
-    /* Yes, this really is ">= 0", not "> 0". Because we want to ensure that
-     * exactly one of { "lval < rval", "lval == rval", "lval > rval" } is true. */
     return strcmp(lstr.ptr(), rstr.ptr()) >= 0;
 }
 
 idx sVariant::cmp(const sVariant &rhs) const
 {
-    if (isNumeric() && rhs.isNumeric()) {
-        idx diff = asReal() - rhs.asReal();
-        // round away from zero
+    if (isIntLike() && rhs.isIntLike()) {
+        return asInt() - rhs.asInt();
+    } else if (isUIntLike() && rhs.isUIntLike()) {
+        udx ulhs = asUInt();
+        udx urhs = rhs.asUInt();
+        if( ulhs < urhs ) {
+            return -1;
+        } else if( ulhs > urhs ) {
+            return 1;
+        } else {
+            return 0;
+        }
+    } else if (isNumeric() && rhs.isNumeric()) {
+        real diff = asReal() - rhs.asReal();
         return diff > 0 ? ceil(diff) : floor(diff);
-    } else if (isNull()) {
-        return !rhs.asBool();
-    } else if (rhs.isNull()) {
-        return asBool();
+    } else if (isNull() || rhs.isNull()) {
+        return (idx)!isNullish() - (idx)!rhs.isNullish();
     } else if (isString() && rhs.isString()) {
         return strcmp(AS_STRING_CONST, RHS_AS_STRING_CONST);
     } else if (isHiveId() && rhs.isHiveId()) {

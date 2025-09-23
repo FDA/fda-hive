@@ -33,101 +33,25 @@
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Biological relevant data parsing classes
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 idx sVaxSeq::ionProviderCallback(idx record, idx iRecord, idx fieldType, const char * fieldTypeName, const void ** recordBody, idx * recordSize)
 {
 
-/*
-    if( fieldType==0 ) { // every time we move to a new record
-        if(!ensureRecordBuf())
-            return sIon::eProviderDestroy;
-        ++record;
-    }
-    if(fieldType==0 ) { // sequenceIDs
-        if(seqIDCol==-1) {
-            *recordBody=(const void*)"-";
-            *recordSize=1;
-        }
-        else *recordBody=value(seqIDCol,recordSize);
-
-    } else if(fieldType==1 ) { // every time we move to a new record
-        *recordBody=&pos.s64;
-        *recordSize=sizeof(pos.s64);
-        return record;
-    } else if(fieldType==4 ) { // every time we move to a new record
-        *recordBody=sConvInt2Ptr(sNotIdx,void);
-        // *recordSize=sizeof(idx);
-        return record;
-    }else {
-
-        if(internalColumnMap==0 ) {
-            for( idx col; (col=iteratorCol(internalFieldIterator))<hdrTable.dim() ; internalFieldIterator=col+1){
-                if( col!=startCol && col!=endCol && col!=seqIDCol)
-                    break;
-            }
-        }
-
-        internalFieldIterator=nextInternal(internalFieldIterator,fieldType==2,recordBody,recordSize);
-
-        if(fieldType==2) {
-            if(nameSubstitutionDictionary && *recordSize >0) {
-                idx pNumIndex=-1;
-                const char * * foundReplacement = nameSubstitutionDictionary->get(*recordBody,*recordSize,&pNumIndex);
-                if (pNumIndex!=-1){
-                    *recordBody=*foundReplacement;
-                    *recordSize=sLen(*recordBody);
-                }
-            }
-        }
-
-        if(internalFieldIterator==sNotIdx) {
-            internalFieldIterator=0;
-            if(! (*recordBody))
-                return record;
-        }
-
-        if( ((char*)(*recordBody))[0]=='0' && *recordSize==1 && fieldType==3 && skip0 ) {
-            *recordBody=0;
-            *recordSize=0;
-            return record;
-        }
-
-    }
-
-    if(fieldType!=1 && needsCleanup) {
-        spaceAndQuoteCleanup(recordBody, recordSize );
-    }
-
-    return record;
-
-*/
     return 0;
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  ion Loader for basic VAX style Annotation
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 
 idx sVaxAnnot::ionProviderCallback(idx record, idx iRecord, idx fieldType, const char * fieldTypeName, const void ** recordBody, idx * recordSize)
 {
     if (_isVCF && cleanHeaderForVCF){
-        // skip lines start with ##
-        // use line starts with # as header
         while (true) {
             if (recNext[0]=='\n') recNext++;
             if (recNext[0]=='#') {
-                while(recNext<srcEnd && *recNext!='\n' ) // position to the next line
+                while(recNext<srcEnd && *recNext!='\n' )
                     ++recNext;
             }
             else break;
@@ -136,31 +60,31 @@ idx sVaxAnnot::ionProviderCallback(idx record, idx iRecord, idx fieldType, const
         cleanHeaderForVCF = false;
     }
 
-    if(fieldType==0 && internalFieldIterator ==0) { // every time we move to a new record
+    if(fieldType==0 && internalFieldIterator ==0) {
         if(!ensureRecordBuf())
             return sIon::eProviderDestroy;
+
         if(startCol==-1 && endCol==-1) {
             pos.s32.start=0;
-            pos.s32.end=0xFFFFFFFF; // 0
+            pos.s32.end=0xFFFFFFFF;
         } else {
             pos.s32.start=iValue(startCol);
             pos.s32.end=iValue(endCol);
         }
         ++record;
     }
-    if(fieldType==0 ) { // sequenceIDs
+    if(fieldType==0 ) {
         if(seqIDCol==-1) {
             *recordBody=(const void*)"-";
             *recordSize=1;
         }
         else *recordBody=value(seqIDCol,recordSize);
-    } else if(fieldType==1 ) { // every time we move to a new record
+    } else if(fieldType==1 ) {
         *recordBody=&pos.s64;
         *recordSize=sizeof(pos.s64);
         return record;
-    } else if(fieldType==4 ) { // every time we move to a new record
+    } else if(fieldType==4 ) {
         *recordBody=sConvInt2Ptr(sNotIdx,void);
-        // *recordSize=sizeof(idx);
         return record;
     }else {
 
@@ -211,11 +135,6 @@ idx sVaxAnnot::ionProviderCallback(idx record, idx iRecord, idx fieldType, const
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Annotation sorter and virtual tree on ranges builder
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 idx sVaxAnnot::rangeSorter(sIon * ion, void * param, sIon::RecordResult * targets1, sIon::RecordResult * targets2)
@@ -230,11 +149,6 @@ idx sVaxAnnot::rangeSorter(sIon * ion, void * param, sIon::RecordResult * target
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  ion Loader for GenBank file
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, const char * fieldTypeName, const void ** recordBody, idx * recordSize)
 {
@@ -243,26 +157,21 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
     if(recNext>=srcEnd)
         return sIon::eProviderDestroy;
 
-    idx lenWord, it, v_sz=0;
+    idx lenWord = 0, it, v_sz=0;
     const char * featureWord="FEATURES";
     const char * listOfFeatures[]={ "     source","     gene","     CDS","     mat_peptide","     misc_feature"};
     const char * listOfTypes[]={ "                     /organism=","                     /organelle=","                     /gene=","                     /codon_start=","                     /note=","                     /product=","                     /protein_id=","                     /db_xref=","                     /locus_tag=","                     /transl_table="};
     const char * listOfTypesFromHeader[] ={"VERSION     ","ACCESSION   "};
-    //const char * locusSplitter = "//";
 
-    // recNext is the moving pointer through the end of the file
     bool needToLookForFeature = false;
     if( ofsetsOfFieldTypes[fieldType]==sNotIdx ){
         for ( ;recNext<srcEnd; ++recNext) {
 
-            // from Vahan: Lam the word CDS may occur also in a comment section
-            //while(recNext<srcEnd && strchr(sString_symbolsBlank,*recNext) ) // position to the next non space chacter
-            //    ++recNext;
             if (pleaseAddFeature || continuousRanges || pleaseAddStrand){
-                ofsetsOfFieldTypes[fieldType]=1; // fake position in order to satisfy the condition after break
+                ofsetsOfFieldTypes[fieldType]=1;
                 break;
             }
-            if (isThisField("//",0)){ // This symbol is the separator between two LOCUS
+            if (isThisField("//",0)){
                 skipToNextLocus = true;
             }
             if (skipToNextLocus){
@@ -271,9 +180,9 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
                 break;
             }
 
-            if( isThisField("\nLOCUS",1) || isThisField("LOCUS",0) ) { // matching the recNext with the word LOCUS
+            if( isThisField("\nLOCUS",1) || isThisField("LOCUS",0) ) {
                 ofsetsOfFieldTypes[0]=recNext-srcStart+lenWord+v_sz;
-                ofsetsOfFieldTypes[1]=sNotIdx; // locus invalidates field off all previous findinigs
+                ofsetsOfFieldTypes[1]=sNotIdx;
                 ofsetsOfFieldTypes[2]=sNotIdx;
                 ofsetsOfFieldTypes[3]=sNotIdx;
                 fromHeader=false;
@@ -281,24 +190,21 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
             if(ofsetsOfFieldTypes[fieldType]!=sNotIdx )
                 break;
 
-            // look if this is one of the known types: db_xref, locus_tag, protein_id ...
             if(!needToLookForFeature){
                 for ( it=0; it<sDim(listOfTypes) ; ++it ) {
                     if( isThisField(listOfTypes[it],21) ) {
                        ofsetsOfFieldTypes[2]=recNext-srcStart+21;
-                       ofsetsOfFieldTypes[3]=ofsetsOfFieldTypes[2]+lenWord; // for types next word is the id
+                       ofsetsOfFieldTypes[3]=ofsetsOfFieldTypes[2]+lenWord;
                        break;
                     }
                 }
             }
-            // the types from header:
-            // => the ranges (positions) takes the whole length of the sequence: 0 to -1
             for ( it=0; it<sDim(listOfTypesFromHeader) ; ++it ) {
                 idx lenType=sLen(listOfTypesFromHeader[it]);
                 if( strncmp(recNext,listOfTypesFromHeader[it],lenType)==0){
                     ofsetsOfFieldTypes[2]=recNext-srcStart+lenType;
-                    ofsetsOfFieldTypes[3]=ofsetsOfFieldTypes[2]; // for types next word is the id
-                    ofsetsOfFieldTypes[1]=ofsetsOfFieldTypes[0] + 7; // LOCUS.......
+                    ofsetsOfFieldTypes[3]=ofsetsOfFieldTypes[2];
+                    ofsetsOfFieldTypes[1]=ofsetsOfFieldTypes[0] + 7;
                     fromHeader=true;
                     headerMatchNumber=it;
                     break;
@@ -307,13 +213,12 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
             if(ofsetsOfFieldTypes[fieldType]!=sNotIdx )
                 break;
 
-            // look if this is one of the FEATURES ids: source, gene, misc_feature, mat_peptide ...
             bool foundFt = false;
             for ( it=0; it<sDim(listOfFeatures) ; ++it ) {
                 if( isThisField(listOfFeatures[it],5) ) {
                    ofsetsOfFieldTypes[3]=recNext-srcStart+5;
                    ofsetsOfFieldTypes[2]=featureWord - srcStart;
-                   ofsetsOfFieldTypes[1]=ofsetsOfFieldTypes[3]+lenWord; // for non-slashed ones next word is the position
+                   ofsetsOfFieldTypes[1]=ofsetsOfFieldTypes[3]+lenWord;
                    fromFeature = true;
                    foundFt = true;
                    break;
@@ -321,7 +226,7 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
             }
 
             if ( !foundFt &&strncmp("     ",recNext,5)==0 && recNext[6]!=' ' ){
-                ofsetsOfFieldTypes[1]=sNotIdx; // locus invalidates field off all previous findinigs
+                ofsetsOfFieldTypes[1]=sNotIdx;
                 ofsetsOfFieldTypes[2]=sNotIdx;
                 ofsetsOfFieldTypes[3]=sNotIdx;
                 fromFeature = false;
@@ -329,10 +234,10 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
             }
 
             if(ofsetsOfFieldTypes[fieldType]!=sNotIdx ){
-                break; // when found, escape the loop in order to add recordBody, recordSize
+                break;
             }
 
-            while(recNext<srcEnd && *recNext!='\n' ) // position to the next line
+            while(recNext<srcEnd && *recNext!='\n' )
                 ++recNext;
 
         }
@@ -342,7 +247,7 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
                 return sIon::eProviderDestroy;
 
 
-            while(recNext<srcEnd && *recNext!='\n' ) {// position to the next line
+            while(recNext<srcEnd && *recNext!='\n' ) {
                 ++recNext;
             }
             ++record;
@@ -351,36 +256,45 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
 
 
     const char * body=ofsetsOfFieldTypes[fieldType]+srcStart;
-    while(body<srcEnd && strchr(sString_symbolsBlank,*body) ){ // skipping blank space
+    while(body<srcEnd && strchr(sString_symbolsBlank,*body) ){
         ++body;
     }
 
 
 
-    // clean your body pointer into actual data
-    if(fieldType==0 ) { // sequenceIDs
+    if(fieldType==0 ) {
         *recordSize=0;
-        while(body+(*recordSize)<srcEnd && strchr(sString_symbolsBlank,body[*recordSize])==0 ){ // read until blank space
+        while(body+(*recordSize)<srcEnd && strchr(sString_symbolsBlank,body[*recordSize])==0 ){
             ++(*recordSize);
         }
         *recordBody=body;
         const char * sequenceLength = body + (*recordSize);
         idx a = 0;
-        while(sequenceLength<srcEnd && strchr(sString_symbolsBlank,*sequenceLength) ){ // skipping blank space
+        while(sequenceLength<srcEnd && strchr(sString_symbolsBlank,*sequenceLength) ){
             ++sequenceLength;
         }
-        while(sequenceLength<srcEnd && strchr(sString_symbolsBlank,sequenceLength[a])==0 ){ // read until blank space
+        while(sequenceLength<srcEnd && strchr(sString_symbolsBlank,sequenceLength[a])==0 ){
             ++(a);
         }
         defaultLength = atoi(sequenceLength);
+        while (body && body<srcEnd && strncmp(body,listOfTypesFromHeader[0], sLen(listOfTypesFromHeader[0]))!=0 ) {
+            ++body;
+        }
+        body=body+sLen(listOfTypesFromHeader[0]);
+        while(body<srcEnd && strchr(sString_symbolsBlank,*body) ){
+            ++body;
+        }
+        *recordSize=0;
+        while(body+(*recordSize)<srcEnd && strchr(sString_symbolsBlank,body[*recordSize])==0 ){
+            ++(*recordSize);
+        }
+        *recordBody=body;
         return record;
     }
     else if(fieldType==1 ) {
-        // provide the position
         if (fromHeader){
             pos.s32.start=1;
-            //pos.s32.end=0xFFFFFFFF; //0
-            pos.s32.end=defaultLength; //0
+            pos.s32.end=defaultLength;
             *recordBody=&pos.s32;
             *recordSize=sizeof(pos.s32);
             return record;
@@ -423,7 +337,7 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
                 if(*body=='>' || *body=='<')++body;
                 pos.s32.start=strtoidx(body,&nxt,10);
                 if (strncmp(nxt,"..",2)==0){
-                    body=nxt+2; // start..end
+                    body=nxt+2;
                     if(*body=='>' || *body=='<' )++body;
                     pos.s32.end=strtoidx(body,&nxt,10);
                 }
@@ -433,7 +347,7 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
                 isSet = true;
             }
         }
-        if (myRangeVec.dim() > 1 && (recordNum != previousRecordNum)){ // try to keep the list of ranges
+        if (myRangeVec.dim() > 1 && (recordNum != previousRecordNum)){
             rangeListForJoinAndComplement.cut(0);
             for (idx i=0; i<myRangeVec.dim(); ++i){
                 if (i) rangeListForJoinAndComplement.printf(";");
@@ -443,15 +357,14 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
         }
         if (!isSet) {
             pos.s32.start=0;
-            pos.s32.end=0xFFFFFFFF; //0
+            pos.s32.end=0xFFFFFFFF;
             *recordBody=&pos.s32;
             *recordSize=sizeof(pos.s32);
         }
         return record;
     } else if(fieldType==2 ) {
-        // type
 
-        if (fromFeature){ // dont put the record and relation yet, because the range is still from the previous one
+        if (fromFeature){
             *recordBody=0;
         } else if (pleaseAddFeature){
             *recordBody=featureWord;
@@ -461,42 +374,39 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
         } else if (pleaseAddStrand){
             *recordBody=strandWord;
             *recordSize=sLen(strandWord);
-        } else if(fromHeader){ // for now, we try to extract the gi for the whole locus which is in the header
-            if (headerMatchNumber==1){
-                *recordBody="accession";
-                *recordSize=9;
+        } else if(fromHeader){
+            idx lenT=0;
+            while(lenT<sLen(listOfTypesFromHeader[headerMatchNumber]) && strchr(sString_symbolsBlank,listOfTypesFromHeader[headerMatchNumber][lenT])==0 ){
+                ++(lenT);
             }
-            else {
-                *recordBody="gi";
-                *recordSize=2;
-            }
+            *recordBody=listOfTypesFromHeader[headerMatchNumber];
+            *recordSize=lenT;
             previousRecordNum=recordNum;
-            //recordNum++;
-        } else if (continuousRanges) { // add the Special TYPE name for connectedRanges
+        } else if (continuousRanges) {
             *recordBody="listOfConnectedRanges";
             *recordSize=21;
-        } else if (skipToNextLocus){ // when the end of one LOCUS is reached, dont put anything
+        } else if (skipToNextLocus){
             *recordBody=0;
         } else {
             *recordBody=body+1;
             *recordSize=lenWord-2;
         }
-        ofsetsOfFieldTypes[2]=sNotIdx; // ids invalidate themselves not be be reused next time
+        ofsetsOfFieldTypes[2]=sNotIdx;
         return record;
     } else if(fieldType==3 ) {
         *recordSize=0;
-        if (fromFeature){ // try to get the Feature Id, and put into a buffer which is going to be used in the next loop
-            while(body+(*recordSize)<srcEnd && strchr(sString_symbolsBlank,body[*recordSize])==0 ){ // read until blank space
+        if (fromFeature){
+            while(body+(*recordSize)<srcEnd && strchr(sString_symbolsBlank,body[*recordSize])==0 ){
                 ++(*recordSize);
             }
             *recordBody=0;
             curFeatureToAdd.cut(0);
-            curFeatureToAdd.addString(body,*recordSize); // keep current Feature to the buffer
+            curFeatureToAdd.addString(body,*recordSize);
             pleaseAddFeature=true;
             fromFeature=false;
             pleaseAddStrand=true;
             ofsetsOfFieldTypes[2]=sNotIdx;
-        } else if (pleaseAddFeature){ // actually put the Feature Id
+        } else if (pleaseAddFeature){
             *recordBody = curFeatureToAdd.ptr(0);
             *recordSize = curFeatureToAdd.length();
             pleaseAddFeature=0;
@@ -504,21 +414,17 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
             *recordBody = forward ? "+" : "-";
             *recordSize = 1;
             pleaseAddStrand=0;
-        } else if (continuousRanges){ // actually put the Feature Id
+        } else if (continuousRanges){
             *recordBody = rangeListForJoinAndComplement.ptr(0);
             *recordSize = rangeListForJoinAndComplement.length();
             previousRecordNum=recordNum;
             continuousRanges=0;
-        } else if (fromHeader){ // for now, just put the Gi number
-            char * foundGi=sString::searchSubstring(body,0,"GI:",1,"\n" _ "\r\n" __,true); // sString::searchSubstring( const char * src, idx lenSrc, const char * find00,idx occurence, const char * stopFind00,bool isCaseInSensitive) // ,idx lenSrc
-            if (foundGi && foundGi[0] != '\n' && foundGi[0] !='\r'){
-                body=body+(foundGi-body)+3;
-            }
+        } else if (fromHeader){
             scanUntilNextLine(reserveBuf,body,recordSize,srcEnd);
             *recordBody = reserveBuf.ptr(0);
             *recordSize = reserveBuf.length();
         } else if (skipToNextLocus){
-            *recordBody=0; // because the end of one LOCUS is reached, dont put anything
+            *recordBody=0;
         }
         else {
             scanUntilNextLine(reserveBuf,body,recordSize,srcEnd);
@@ -532,7 +438,7 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
         return record;
     } else if(fieldType==4 ) {
         if (skipToNextLocus){
-            *recordBody=0; // because the end of one LOCUS is reached, dont put anything
+            *recordBody=0;
             skipToNextLocus=false;
             ofsetsOfFieldTypes[0]=sNotIdx;
         }
@@ -553,29 +459,24 @@ idx sVaxAnnotGB::ionProviderCallback(idx record, idx iRecord, idx fieldType, con
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Miscellaneous utility functions
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 void sVaxAnnotGB::scanUntilNextLine (sStr & dest, const char * body, idx * recordSize, const char * srcEnd){
 
     dest.cut(0);
     while (body+(*recordSize)<srcEnd){
-        while(body+(*recordSize)<srcEnd && strchr(sString_symbolsEndline,body[*recordSize])==0 ){ // read until end of Line
+        while(body+(*recordSize)<srcEnd && strchr(sString_symbolsEndline,body[*recordSize])==0 ){
             ++(*recordSize);
         }
         idx i =1;
-        while((body+(*recordSize) + i)<srcEnd && strchr(sString_symbolsBlank,body[*recordSize+i]) ){ // skip blank space
+        while((body+(*recordSize) + i)<srcEnd && strchr(sString_symbolsBlank,body[*recordSize+i]) ){
             ++i;
         }
         dest.addString(body,*recordSize);
-        if (i<10) {  // it is not the continuous of the previous line
+        if (i<10) {
             return;
         }
 
-        if (strchr("/",body[*recordSize+i]) ) { // it is not the continuous of the previous line
+        if (strchr("/",body[*recordSize+i]) ) {
             return;
         }
         body=sShift(body,*recordSize + i);
@@ -583,7 +484,6 @@ void sVaxAnnotGB::scanUntilNextLine (sStr & dest, const char * body, idx * recor
     }
     return;
 }
-// range treatment for Genbank
 
 idx sVaxAnnotGB::strchrFreq (const char * input, const char * srch, idx & frq){
     frq =0;
@@ -627,41 +527,33 @@ char * sVaxAnnotGB::extractContent (const char * input, sStr & dst, const char *
     return (char *)start;
 }
 
-// 467
-// 340..565
-// <345..500
-// 1..>888
-// 102.110
-// 123^124
-// J00194.1:100..202
 void sVaxAnnotGB::extractLocation(const char * location, startEnd & locationExtracted, bool forward){
     idx freq = 0;
-    bool oneExactBase = false, oneBaseBetween = false, isRange = false;//, isExternal = false;
+    bool oneExactBase = false, oneBaseBetween = false, isRange = false;
     locationExtracted.forward = forward;
     const char * sep;
     strchrFreq(location,"^", freq);
 
-    if (freq==1) { // 123^124
+    if (freq==1) {
         oneExactBase = true;
         sep = "^";
         locationExtracted.oneSiteBetween = true;
         locationExtracted.exactEnd = locationExtracted.exactStart = false;
     }
     idx ss = strchrFreq(location,":", freq);
-    if (freq==1) { // J00194.1:100..202
-        //isExternal = true;
+    if (freq==1) {
         sString::copyUntil(&locationExtracted.buf,location,ss,":");
         location = location + ss +1;
         sep = "..";
     }
     strchrFreq(location,".", freq);
-    if (freq==1) { // 102.110
+    if (freq==1) {
         oneBaseBetween = true;
         sep = ".";
         locationExtracted.oneBaseBetween = true;
         locationExtracted.exactEnd = locationExtracted.exactStart = false;
     }
-    if (freq ==2) { // 340..565 or <345..500 or 1..>888
+    if (freq ==2) {
         isRange = true;
         sep = "..";
     }
@@ -679,11 +571,11 @@ void sVaxAnnotGB::extractLocation(const char * location, startEnd & locationExtr
         if (cnt==2) {
             char * startRaw = sString::next00(buf,0);
             char * endRaw = sString::next00(buf,1);
-            if (strncmp("<",startRaw,1)==0) {
+            if ((strncmp("<",startRaw,1)==0) || (strncmp(">",startRaw,1)==0)) {
                 startRaw = startRaw+1;
                 locationExtracted.exactStart = false;
             }
-            if (strncmp(">",endRaw,1)==0) {
+            if ((strncmp(">",endRaw,1)==0) || (strncmp("<",endRaw,1)==0)) {
                 endRaw = endRaw +1;
                 locationExtracted.exactEnd = false;
             }
@@ -695,13 +587,9 @@ void sVaxAnnotGB::extractLocation(const char * location, startEnd & locationExtr
     }
 }
 
-// join(12..78,134..202)
-// join(complement(4918..5163),complement(2691..4571))
-// join(1..100,J00194.1:100..202)
 
-void sVaxAnnotGB::parseJoinOrOrder(const char * textRaw, sVec < startEnd > & startEndOut, const char * toCompare /* join( */){ // toCompare either: "join(" or "order("
+void sVaxAnnotGB::parseJoinOrOrder(const char * textRaw, sVec < startEnd > & startEndOut, const char * toCompare){
     sStr joinTagRemoved;
-    //extractContent(textRaw,joinTagRemoved , "join(", ")");
     extractContent(textRaw,joinTagRemoved , toCompare, ")");
 
     sStr textRawSplit;
@@ -720,8 +608,6 @@ void sVaxAnnotGB::parseJoinOrOrder(const char * textRaw, sVec < startEnd > & sta
         }
     }
 }
-// complement(34..126)
-// complement(join(2691..4571,4918..5163))
 
 
 void sVaxAnnotGB::parseComplement(const char * textRaw, sVec < startEnd > & startEndOut){
@@ -744,9 +630,9 @@ void sVaxAnnotGB::parseComplement(const char * textRaw, sVec < startEnd > & star
         for (const char * cmp = textRawSplit; cmp; cmp = sString::next00(cmp)){
             startEnd * myStartEnd = startEndOut.add();
             extractLocation(cmp,*myStartEnd,true);
+            myStartEnd->forward = false;
         }
 
     }
 
 }
-

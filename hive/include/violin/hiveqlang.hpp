@@ -36,34 +36,88 @@
 namespace slib {
     class sTaxIon;
     namespace qlang {
-        class sHiveContext : public sUsrContext {
-            protected:
+        class sHiveContext: public sUsrContext
+        {
+
+                typedef sUsrContext TParent;
+
+            private:
                 sTaxIon * _tax_ion;
 
                 virtual void registerDefaultBuiltins();
 
             public:
                 sHiveContext();
-                sHiveContext(const sUsr & usr, idx flags=0);
+                sHiveContext(sUsr & usr, idx flags = 0);
                 virtual ~sHiveContext();
-                virtual void init(const sUsr & usr, idx flags=0);
+                virtual void init(sUsr & usr, idx flags = 0);
                 virtual void reset();
 
                 bool ensureTaxIon();
-                sTaxIon * getTaxIon() { return _tax_ion; }
+                sTaxIon* getTaxIon()
+                {
+                    return _tax_ion;
+                }
         };
 
-        class sHiveEngine : public sUsrEngine {
+        class sHiveEngine: public sUsrEngine
+        {
+                typedef sUsrEngine TParent;
+
             public:
-                sHiveEngine() {}
-                sHiveEngine(const sUsr &usr, idx ctx_flags=0);
-                virtual void init(const sUsr &usr, idx ctx_flags=0);
-                virtual ~sHiveEngine() {}
-                virtual sHiveContext& getContext() { return *static_cast<sHiveContext*>(_ctx); }
+                sHiveEngine();
+                sHiveEngine(sUsr & usr, idx ctx_flags = 0);
+                virtual ~sHiveEngine();
+                virtual void init(sUsr & usr, idx ctx_flags = 0);
+                virtual sHiveContext& getContext()
+                {
+                    return *static_cast<sHiveContext*>(_ctx);
+                }
         };
-    };
+
+        class sHiveInternalContext: public sUsrInternalContext
+        {
+
+                typedef sUsrInternalContext TParent;
+
+            private:
+                sTaxIon * _tax_ion;
+
+                virtual void registerDefaultBuiltins();
+
+            public:
+                sHiveInternalContext();
+                sHiveInternalContext(sQPrideBase* qp, sUsr & usr, idx flags = 0);
+                virtual ~sHiveInternalContext();
+                virtual void init(sQPrideBase * qp, sUsr & usr, idx flags = 0);
+                virtual void reset();
+
+                bool ensureTaxIon();
+                sTaxIon* getTaxIon()
+                {
+                    return _tax_ion;
+                }
+        };
+
+        class sHiveInternalEngine: public sUsrInternalEngine
+        {
+                typedef sUsrInternalEngine TParent;
+
+            public:
+                sHiveInternalEngine();
+                sHiveInternalEngine(sQPrideBase * qp, sUsr & usr, idx ctx_flags = 0);
+                virtual ~sHiveInternalEngine();
+                virtual void init(sQPrideBase * qp, sUsr & usr, idx ctx_flags = 0);
+                virtual sHiveInternalContext& getContext()
+                {
+                    return *static_cast<sHiveInternalContext*>(_ctx);
+                }
+        };
+};
 
     typedef qlang::sHiveContext sHiveQueryContext;
     typedef qlang::sHiveEngine sHiveQueryEngine;
+    typedef qlang::sHiveInternalContext sHiveInternalQueryContext;
+    typedef qlang::sHiveInternalEngine sHiveInternalQueryEngine;
 };
 #endif

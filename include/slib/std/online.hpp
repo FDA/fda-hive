@@ -50,7 +50,6 @@
 
 namespace slib {
 
-    // this class initalizes the library at first use and deinitializes at the end 
     class sConSockLib
     {
     public:
@@ -111,8 +110,6 @@ namespace slib {
 
             static const idx HTTPport=80;
             static void * getHTTP(sMex * http, const char * urlText,const char * data=0,idx datalen=0, idx timeout=30, idx allowreloc=0);
-            // Difference between recipients and to is that they may include cc and bcc!!
-            // recipients, to, cc can be CSV
             static idx sendMail(sStr * responseOut, const char * server, idx portN, const char * from, const char * recipients, const char * to, const char * cc, const char * subject, const char * content, idx timeout=30);
             template <class Tobj> static void * getHTTPObj(Tobj * pVal, const char * urlText,const char * data=0,idx datalen=0, idx timeout=30)
             {

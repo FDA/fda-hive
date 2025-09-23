@@ -33,7 +33,7 @@ DROP TABLE IF EXISTS `QPData`;
 CREATE TABLE `QPData` (
   `reqID` bigint(20) NOT NULL,
   `dataName` varchar(256) NOT NULL,
-  `dataBlob` longblob,
-  `modTm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `dataBlob` longblob DEFAULT NULL,
+  `modTm` timestamp NOT NULL DEFAULT current_timestamp(),
   UNIQUE KEY `qpdata_reqdata` (`reqID`,`dataName`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

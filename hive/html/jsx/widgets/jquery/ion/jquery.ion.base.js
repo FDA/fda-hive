@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.ion.base.js
 
 $(function () {
     
@@ -37,9 +36,7 @@ $(function () {
             isReady: false,
 
             options: {
-                //url: '/usr/alexp/i.cgi?cmd=brgetjson&sub=$root&raw=1'
                 url: '/usr/alexp/jsx/widgets/jquery/ion/data/system.json'
-                //url: '/data/system.json'
             },
 
             onReady: [],
@@ -102,7 +99,6 @@ $(function () {
             },
             
             lookup: function(id, callback) {
-                //var lookup_url = this.options.url + '&brSearch=_id~' + id + '%26%26~';
                 var lookup_url = this.options.url + '?timestamp=' + (new Date().getTime());
 
                 $.getJSON(lookup_url, function(json) {

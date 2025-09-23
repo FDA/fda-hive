@@ -72,6 +72,25 @@ if [[ "${DBPORT}" = "" ]]; then
   fi
 fi
 
+# adjust DBHOST to be localhost if provided server name is local/sock
+if [[ "${DBHOST}" != "localhost" && "${DBHOST}" != "127.0.0.1" ]]; then
+   PING=`which ping 2>/dev/null`
+   IPAD=`which ip 2>/dev/null`
+   if [[ "x${IPAD}" == "x" ]]; then
+       IPAD=/sbin/ip
+   fi
+   if [[ "x${PING}" != "x" ]]; then
+       if [[ "x${IPAD}" != "x" ]]; then
+           IP4=`ping -c 1 ${DBHOST} | head -2 | tail -1 | gawk '{print substr($5,2,length($5)-3)}'`
+           if [[ "x${IP4}" != "x" ]]; then
+               ${IPAD} ad | grep "${IP4}" 1>/dev/null 2>&1
+               if [[ $? -eq 0 ]]; then
+                   DBHOST=localhost
+               fi
+fi
+fi
+fi
+fi
 echo "Creating database '${DB}' on host ${DBHOST}:${DBPORT} for user '${DBUSER}':'${MYSQL_PWD}'"
 
 rm -rf /tmp/tmp_${DB}_stmt.sql
@@ -82,13 +101,15 @@ echo "CREATE PROCEDURE sp_tmp_${DB}_create()" >> /tmp/tmp_${DB}_stmt.sql
 echo "    MODIFIES SQL DATA" >> /tmp/tmp_${DB}_stmt.sql
 echo "    COMMENT 'tmp stored proc, please drop it!! \$Id \$'" >> /tmp/tmp_${DB}_stmt.sql
 echo "BEGIN" >> /tmp/tmp_${DB}_stmt.sql
-echo "    IF CURRENT_USER() NOT LIKE 'root@%' THEN" >> /tmp/tmp_${DB}_stmt.sql
-echo "        SELECT 'Must be root to run this script' as ErrorMessage;" >> /tmp/tmp_${DB}_stmt.sql
+echo "    SELECT Grant_priv FROM mysql.user WHERE concat(mysql.user.user,'@',mysql.user.host) = CURRENT_USER()" >> /tmp/tmp_${DB}_stmt.sql
+echo "    INTO @grant;" >> /tmp/tmp_${DB}_stmt.sql
+echo "    IF CURRENT_USER() NOT LIKE 'root@%' OR @grant <> 'Y' THEN" >> /tmp/tmp_${DB}_stmt.sql
+echo "        SELECT 'Must be root <WITH GRANT OPTION> to run this script' as ErrorMessage;" >> /tmp/tmp_${DB}_stmt.sql
 echo "    ELSEIF EXISTS (SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${DB}') THEN" >> /tmp/tmp_${DB}_stmt.sql
 echo "       SET @mt='Database ''${DB}'' already exists';" >> /tmp/tmp_${DB}_stmt.sql
 echo "       SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @mt;" >> /tmp/tmp_${DB}_stmt.sql
 echo "    ELSE" >> /tmp/tmp_${DB}_stmt.sql
-echo "        CREATE DATABASE IF NOT EXISTS ${DB} DEFAULT CHARACTER SET latin1;" >> /tmp/tmp_${DB}_stmt.sql
+echo "        CREATE DATABASE IF NOT EXISTS ${DB} DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;" >> /tmp/tmp_${DB}_stmt.sql
 echo "        SELECT COUNT(*) FROM user WHERE User = '${DBUSER}' and Host = '%'" >> /tmp/tmp_${DB}_stmt.sql
 echo "        INTO @qu;" >> /tmp/tmp_${DB}_stmt.sql
 echo "        IF @qu = 0 THEN" >> /tmp/tmp_${DB}_stmt.sql
@@ -108,6 +129,7 @@ echo "END //" >> /tmp/tmp_${DB}_stmt.sql
 echo "DELIMITER ;" >> /tmp/tmp_${DB}_stmt.sql
 echo "CALL sp_tmp_${DB}_create();" >> /tmp/tmp_${DB}_stmt.sql
 echo "DROP PROCEDURE IF EXISTS sp_tmp_${DB}_create;" >> /tmp/tmp_${DB}_stmt.sql
+echo "source db_param.sql;" >> /tmp/tmp_${DB}_stmt.sql
 echo -n "For MySQL root "; mysql -h ${DBHOST} -P${DBPORT} -u root -p --comments < /tmp/tmp_${DB}_stmt.sql
 if [[ $? != 0 ]]; then
     echo "Database creation failed"

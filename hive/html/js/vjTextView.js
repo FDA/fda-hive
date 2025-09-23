@@ -32,7 +32,7 @@ function vjTextView ( viewer )
 {
     this.argWidth = viewer.width;
     this.argHeight = viewer.height;
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
     if (viewer.font)
         this.font = viewer.font;
     else
@@ -43,11 +43,6 @@ function vjTextView ( viewer )
     }
     else this.readOnly = true;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ HTML viewer constructors
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.composerFunction=function( viewer , content)
     {
@@ -65,6 +60,18 @@ function vjTextView ( viewer )
 
     this.composeText=function(content)
     {
+        if (this.isJSON == true) {
+            var contentObj = null;
+            try {
+                contentObj = JSON.parse(content);
+            } catch (e) {
+                contentObj = null;
+                console.log("Unable to parse content as javascript object; defaulting to normal text view");
+            }
+            if (contentObj != null) {
+                content = JSON.stringify(contentObj, null, 2);
+            }
+        }
         var t="";
         t+="<textarea cols=80 rows=20 "+ ((this.readOnly) ? "readonly=readonly" : "" )+" class='"+this.font+"' style='" + (this.argWidth ? ("width:" + this.argWidth + ";") : "") +"" + (this.argHeight ? (";height:" + this.argHeight + ";") : "") + "'>";
         t+=content;
@@ -73,4 +80,4 @@ function vjTextView ( viewer )
     };
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjTextView.js"
+

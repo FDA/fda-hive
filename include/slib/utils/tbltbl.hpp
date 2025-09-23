@@ -34,11 +34,9 @@
 #include <slib/core/vec.hpp>
 #include <slib/utils/tbl.hpp>
 
-/*! \file Tables made of other tables */
 
 namespace slib
 {
-    //! A table made by stacking a sequence of tables one after another, and using only the first one's header
     class sCatTabular: public sTabular
     {
     protected:
@@ -56,7 +54,7 @@ namespace slib
         };
 
         sVec<SubTable> _subs;
-        sVec<idx> _row2sub; // map from sCatTabular row to index into _subs
+        sVec<idx> _row2sub;
         idx _dim_top_header;
         idx _dim_left_header;
 
@@ -67,7 +65,6 @@ namespace slib
         }
         virtual ~sCatTabular() {}
 
-        // sTabular interface
         virtual idx rows() const;
         virtual idx cols() const;
         virtual sVariant::eType coltype(idx icol) const;
@@ -91,19 +88,18 @@ namespace slib
         const sTabular * getSubTableAtRow(idx irow) const;
     };
 
-    //! A table made by reordering another table's rows or columns
     class sReorderedTabular: public sTabular
     {
     public:
         struct TypedSource {
-            idx src; //!< source row or column
+            idx src;
             sVariant::eType type;
         };
     protected:
         sTabular * _src;
         bool _src_owned;
-        sVec<TypedSource> _rowmap; // map from output absrow to source row/col
-        sVec<TypedSource> _colmap; // map from output abscol to source col/row
+        sVec<TypedSource> _rowmap;
+        sVec<TypedSource> _colmap;
         bool _rows_remapped, _cols_remapped;
         idx _dim_top_header;
         idx _dim_left_header;
@@ -122,7 +118,6 @@ namespace slib
                 delete _src;
         }
 
-        // sTabular interface
         virtual idx rows() const { return (_rows_remapped ? _rowmap.dim() : _src->rows() + _src->dimTopHeader()) - _dim_top_header; }
         virtual idx cols() const { return (_cols_remapped ? _colmap.dim() : _src->cols() + _src->dimLeftHeader()) - _dim_left_header; }
         virtual sVariant::eType coltype(idx icol) const
@@ -248,7 +243,6 @@ namespace slib
             }
         }
 
-        //! \warning Call this after modifying size of top header, moving header row, or reordering columns
         void updateColIds();
 
         bool isTransposed() const { return _transposed; }
@@ -302,9 +296,6 @@ namespace slib
         const sVec<TypedSource> & getColsMap() const { return _colmap; }
     };
 
-    //! A table made by editing (overriding) a small number of cells in another table
-    /*! \warning For the moment, there is no provision for garbage-collecting old values of a cell which is edited multiple times; the expectation is that the total number of edits will be small relative to the size of the source table.
-     */
     class sEditedTabular : public sTabular
     {
     protected:
@@ -314,8 +305,8 @@ namespace slib
         idx _dim_left_header;
         idx _rows;
         idx _cols;
-        sDic<idx> _values; // buffer of uniquified new values
-        sDic<idx> _rowcol2ival; // map from (row, column) to index in _values (or -1 to undo the edit)
+        sDic<idx> _values;
+        sDic<idx> _rowcol2ival;
 
         idx getIval(idx irow, idx icol) const
         {
@@ -335,7 +326,6 @@ namespace slib
                 delete _src;
         }
 
-        // sTabular interface
         virtual idx rows() const { return _rows; }
         virtual idx cols() const { return _cols; }
         virtual sVariant::eType coltype(idx icol) const { return _src->coltype(icol); }
@@ -361,11 +351,6 @@ namespace slib
         virtual const char * getTableMetadata(const char * name, idx irow=0, idx icol=0) const { return _src->getTableMetadata(name, irow, icol); }
         virtual bool setTableMetadata(const char * name, const char * value, idx irow=0, idx icol=0) { return _src->setTableMetadata(name, value, irow, icol); }
 
-        //! Write a value into a specific cell
-        /*! \param irow row index of cell to edit
-            \param icol column index of cell to edit
-            \param decoded_value value to write; must be decoded, original data (*not* CSV-encoded!)
-            \param decoded_value_len length of decoded_value, or 0 if decoded_value is 0-terminated string */
         void editCell(idx irow, idx icol, const char * decoded_value, idx decoded_value_len = 0);
     };
 };

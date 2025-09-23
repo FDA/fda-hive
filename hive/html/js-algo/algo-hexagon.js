@@ -30,7 +30,6 @@
 
 function valgoHexagonAligner(loadedID, formname, dvname) {
 
-    //this.selectedAlgorithm=null;
 
     valgoCore.call(this, "aligner", loadedID, formname, dvname);
 
@@ -41,21 +40,21 @@ function valgoHexagonAligner(loadedID, formname, dvname) {
 
     this.generate = function (preloadedQryIDs) {
 
-        this.vjDS.add("infrastructure: Query help document", "dsHelpQuerySequences", "http://help/hlp.view.sequence.reads.html");
-        this.vjDS.add("infrastructure: Subjects help document", "dsHelpReferenceGenomes", "http://help/hlp.obj.referenceGenome.html");
-        this.vjDS.add("infrastructure: Algorithms help document", "dsHelpAlgorithms", "http://help/hlp.algo.alignmentAlgorithm.html");
+        this.vjDS.add("infrastructure: Query help document", "dsHelpQuerySequences", "http:
+        this.vjDS.add("infrastructure: Subjects help document", "dsHelpReferenceGenomes", "http:
+        this.vjDS.add("infrastructure: Algorithms help document", "dsHelpAlgorithms", "http:
 
 
         var dv = this.dvname + "Query" + "BriefViewer";
         this.vjDV.add(dv, 400, 100).frame = 'notab';
-        this.vjDS.add("Prepating Query Sequences Subset","ds" + this.dvname + "Query" + "Selected", "static:// ");
+        this.vjDS.add("Prepating Query Sequences Subset","ds" + this.dvname + "Query" + "Selected", "static:
         vjPAGE.initShortSelectedSequenceListTab(dv, "ds" + this.dvname + "Query" + "Selected", "selected reads", "Reads", "dna");
         this.vjDV[dv].render();
         this.vjDV[dv].load();
 
         dv = this.dvname + "Query" + "Viewer";
         this.vjDV.add(dv, 450, 450);
-        var queryview=vjPAGE.initSequenceListViewerTab(dv, "sequence reads", "dna", null, this.formName, false, "!genomic&prop_name=category", "list", "function:vjObjFunc('onCheckedSequenceItem','" + this.objCls + "')", undefined ,undefined ,undefined ,undefined ,[{name:'add',prohibit_new:true,hidden:true}]);
+        var queryview=vjPAGE.initSequenceListViewerTab(dv, "sequence reads", "dna", null, this.formName, false, "!genomic&prop_name=category", "list", "function:vjObjFunc('onCheckedSequenceItem','" + this.objCls + "')", undefined ,undefined ,undefined ,undefined ,[{name:'add',hidden:true}]);
         if (preloadedQryIDs) queryview.callbackRendered = "function:vjObjFunc('onRenderSequenceItem','" + this.objCls + "')";
         this.vjDV[dv].add("help", "help", "tab", [new vjHelpView({ data: 'dsHelpQuerySequences' })]);
         this.vjDV[dv].render();
@@ -64,31 +63,28 @@ function valgoHexagonAligner(loadedID, formname, dvname) {
 
         dv = this.dvname + "Subject" + "BriefViewer";
         this.vjDV.add(dv, 400, 100).frame = 'notab';
-        this.vjDS.add("Preparing Reference Sequence Subsets", "ds" + this.dvname + "Subject" + "Selected", "static:// ");
+        this.vjDS.add("Preparing Reference Sequence Subsets", "ds" + this.dvname + "Subject" + "Selected", "static:
         vjPAGE.initShortSelectedSequenceListTab(dv, "ds" + this.dvname + "Subject" + "Selected", "selected reads", "Selected references", "dna");
         this.vjDV[dv].render();
         this.vjDV[dv].load();
-        //this.vjDV.locate(this.dvname + "SubjectBriefViewer.selected reads.0").debugMode=true;
 
 
         dv = this.dvname + "Subject" + "Viewer";
         this.vjDV.add(dv, 450, 450);
-        vjPAGE.initSequenceListViewerTab(dv, "reference genomes", "dna", null, this.formName, false, "genomic&prop_name=category", "list", "function:vjObjFunc('onCheckedSequenceItem','" + this.objCls + "')", undefined ,undefined ,undefined ,undefined ,[{name:'add',prohibit_new:true,hidden:true}]);
+        vjPAGE.initSequenceListViewerTab(dv, "reference genomes", "dna", null, this.formName, false, "genomic&prop_name=category", "list", "function:vjObjFunc('onCheckedSequenceItem','" + this.objCls + "')", undefined ,undefined ,undefined ,undefined ,[{name:'add',hidden:true}]);
         this.vjDV[dv].add("help", "help", "tab", [new vjHelpView({ data: 'dsHelpReferenceGenomes' })]);
         this.vjDV[dv].render();
         this.vjDV[dv].load();
 
         dv = this.dvname + "Algorithm" + "Viewer";
         this.vjDV.add(dv, 550, 250);
-        this.vjDS.add("Porting Algnment Algorithms", this.dsAlignmentAlgorithmChoice, "http://objects/svc-align-choice.csv");
+        this.vjDS.add("Porting Algnment Algorithms", this.dsAlignmentAlgorithmChoice, "http:
         var viewerAlgorithmSelection = new vjTableView({
             data: 'dsAlignmentAlgorithmChoice',
             formObject: document.forms[this.formName],
             iconSize: 32,
             cols: [{ name: 'id', hidden: true }, { name: 'icon', hidden: true }, { name: 'description', wrap: true}],
-            //selectCallback:"javascript:vjObjEvent('onSelectedAlignmentAlgorithm','"+this.clsObj+"',this,node)",
             selectCallback: "function:vjObjFunc('onSelectedAlignmentAlgorithm','" + this.objCls + "')",
-//            inclusionObjRegex : this.alignerInclusion,
             isok: true
         });
 
@@ -100,15 +96,12 @@ function valgoHexagonAligner(loadedID, formname, dvname) {
         var o = gObject(this.dvname + "Algorithm" + "BriefViewer");
         if (o) o.innerHTML = "<img id='" + this.dvname + "Algorithm-image' src='img-algo/svc-align-hexagon.gif' height=64 border=0 />";
 
-        //this.makeSubmitButton( "        ALIGN!        " );
     };
 
     this.update = function (proc) {
         this.algoProc = proc;
-//        var inputQuery;
         if (this.selfUpdate) {
             this.algoProc.setValue("alignSelector", this.selectedAlgorithm);
-            //this.algoProc.setValue("slice", this.selectedAlgorithm == "svc-align-hexagon" ? 200000 : 990000);
             var chunkSize = 200000;
             if (this.selectedAlgorithm == "svc-align-hexagon")    { chunkSize = 1000000;}
             else if (this.selectedAlgorithm == "svc-align-blast") { chunkSize = 4000;   }
@@ -122,19 +115,15 @@ function valgoHexagonAligner(loadedID, formname, dvname) {
             this.algoProc.setValue("query", this.selectedQuery);
         }
         this.selectedAlgorithm = this.algoProc.getValue("alignSelector");
-        //alert(this.selectedAlgorithm +  '==' + this.algoProc.getValue("alignSelector"));
         this.selectedSubject = this.algoProc.getValue("subject");
         this.selectedQuery = this.algoProc.getValue("query");
 
 
-        this.vjDS["ds" + this.dvname + "Subject" + "Selected"].reload((isok(this.selectedSubject) ? "http://?cmd=propget&mode=csv&ids=" + this.selectedSubject :"static:// "), true);
-        this.vjDS["ds" + this.dvname + "Query" + "Selected"].reload((isok(this.selectedQuery) ? "http://?cmd=propget&mode=csv&ids=" + this.selectedQuery : "static:// "), true);
+        this.vjDS["ds" + this.dvname + "Subject" + "Selected"].reload((isok(this.selectedSubject) ? "http:
+        this.vjDS["ds" + this.dvname + "Query" + "Selected"].reload((isok(this.selectedQuery) ? "http:
         gObject(this.dvname + "Algorithm-image").src = "img-algo/" + this.selectedAlgorithm + ".gif";
 
         this.selfUpdate = false;
-//        if (!this.selectedQuery) {
-//            var listIds = docLocValue("query");
-//        }
 
         if (isok(this.selectedAlgorithm) && isok(this.selectedSubject) && isok(this.selectedQuery))
             return 1;
@@ -144,10 +133,10 @@ function valgoHexagonAligner(loadedID, formname, dvname) {
     this.onCheckedSequenceItem = function (viewer, node) {
         var lstIDs = viewer.accumulate((viewer.name == 'list') ? "node.checked" : "node.leafnode && node.checked", "node.id").join(";");
         if (viewer.tab.name == 'reference genomes') {
-            this.selectedSubject = lstIDs; //this.algoProc.setValue("subject",lstIDs);//this.selectedSubject=lstIDs;
+            this.selectedSubject = lstIDs;
         }
         else {
-            this.selectedQuery = lstIDs; //this.selectedQuery=lstIDs;
+            this.selectedQuery = lstIDs;
             var lstNames = viewer.accumulate((viewer.name == 'list') ? "node.checked" : "node.leafnode && node.checked", "node.name").join(" ");
             lstNames = lstNames.substring(0, 64);
             this.algoProc.setValue("name", lstNames);
@@ -167,9 +156,8 @@ function valgoHexagonAligner(loadedID, formname, dvname) {
     this.onSelectedAlignmentAlgorithm = function (viewer, node) {
         this.selectedAlgorithm = node.id;
         this.selfUpdate = true;
-        this.algoProc.setSvcProc(node.id, null, (this.selectedAlgorithm.indexOf("svc-align-hexagon") != -1 ? "dna-hexagon" : "dna-alignx"));
+        this.algoProc.setSvcProc(node.id, null, (this.selectedAlgorithm.indexOf("svc-align-hexagon") != -1 ? "dna-hexagon" : "dna-alignx-blast"));
 
-        //gObject("DIV-"+this.dvname+"Algorithm-image").src=node.icon;
         this.vjVIS.closeall();
 
     };
@@ -191,7 +179,7 @@ function valgoHexagonAligner(loadedID, formname, dvname) {
 
 
 var valgoGenomeColors = new Array();
-for (var it = 0; it < gClrTable2.length; ++it) valgoGenomeColors[it] = pastelColor(gClrTable2[(it + 1) % (gClrTable2.length)]); // make colors for those
+for (var it = 0; it < gClrTable2.length; ++it) valgoGenomeColors[it] = pastelColor(gClrTable2[(it + 1) % (gClrTable2.length)]);
 
 
 function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
@@ -208,9 +196,9 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
 
     this.generate = function (selectedTab, autoclick) {
 
-        this.vjDS.add("infrastructure: Coagulation of Reference Hits","ds" + this.dvname, "static:// ");
-        this.vjDS.add("infrastructure: Coagulation of Reference Hits","ds" + this.dvname + "Histogram", "http://?cmd=objFile&filename=histogram.csv&ids="+loadedID);
-        this.vjDS.add("infrastructure: Hit list help document", "dsHelpHitList", "http://help/hlp.view.results.alignment.html");
+        this.vjDS.add("infrastructure: Coagulation of Reference Hits","ds" + this.dvname, "static:
+        this.vjDS.add("infrastructure: Coagulation of Reference Hits","ds" + this.dvname + "Histogram", "http:
+        this.vjDS.add("infrastructure: Hit list help document", "dsHelpHitList", "http:
         this.autoclick = autoclick;
 
         var dv = this.dvname + "Viewer";
@@ -223,7 +211,6 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
         var viewerHitList = new vjTableView({
             data: "ds" + this.dvname + "",
             formObject: document.forms[this.formName],
-            //checkable:true,
             maxTxtLen: 32,
             name: 'reference_list',
             defaultEmptyText: 'no reference sequences to show',
@@ -233,7 +220,6 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
             checkColors: valgoGenomeColors,
             colIDColors: valgoGenomeColors,
             checkable: this.checkable,
-            //            callbackRendered: "function:vjObjFunc('onLoadedHitList','" + this.objCls + "')",
             cols: [
                   { name: 'Hits', type: 'largesci' },
                   { name: 'Hits Unique', type: 'largenumber', hidden: true },
@@ -258,7 +244,6 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
             },
             series: [{ label: true, name: 'Reference', title: 'Reference Genes' }, { name: 'Hits', title: 'Hits'}],
             type: 'pie',
-            //rows:[{id:'+',hidden:true}],
             precompute: "if(node.id=='+' && node.Reference=='total')node.hidden=true;",
             selectCallback: "function:vjObjFunc('onSelectedHitListItem','" + this.objCls + "')",
             isok: true
@@ -268,7 +253,6 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
         this.vjDV[dv].add("piechart", "pie", "tab", [viewerHitPie]);
         this.vjDV[dv].add("list", "table", "tab", [panelHitList, viewerHitList]);
 
-        //this.vjDV[dv].add("download", "download", "download", [viewerHitList]);
 
 
         this.viewer = this.vjDV.locate(dv + ".1._active");
@@ -282,7 +266,7 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
             this.vjDV.add(dv, 800, 350);
 
 
-            this.vjDS.add("Composing per Nucleotide Alignment View","ds" + this.dvname + "alView", "static://preview:loading", null, "Element #,#,Direction,Start,Alignment,End,Sequence,Repeats,Position,PosHigh,Motif Start,Motif End");
+            this.vjDS.add("Composing per Nucleotide Alignment View","ds" + this.dvname + "alView", "static:
             var alNav = [{ name: 'rgSub', path: '/Options/Search On/rgSub', title: 'reference', type: 'checkbox', isSubmitable: true, value: true, align: 'right', order: '4', description: 'Show only reads that touch the position' },
                             { name: 'rgInt', path: '/Options/Search On/rgInt', title: 'comparison', type: 'checkbox', isSubmitable: true, value: true, align: 'right', order: '5', description: 'Show only reads that touch the position' },
                             { name: 'rgQry', title: 'read',path: '/Options/Search On/rgQry', type: 'checkbox', isSubmitable: true, value: true, align: 'right', order: '6', description: 'Show only reads that touch the position'}];
@@ -303,7 +287,6 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
                        { name: "Element #", hidden: true },
                        { name: "Direction", hidden: true },
                        { name: "#", hidden: true },
-                      // { name: "Sequence", maxTxtLen : 32 , hidden: true },
                        { name: "Alignment", type: 'alignment', isNmatchCol: false },
                        { name: new RegExp(/Motif.*/), hidden: true}
                        ,{ name: new RegExp(/PosHigh/), hidden: true}],
@@ -312,13 +295,11 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
                 maxTxtLen: 4096,
                 isok: true
             });
-            //this.vjDV[dv].add("alignments","dna","tab", [ panelAlignmentViewer, new vjHTMLView ( { data:"ds"+this.dvname+"alView", composer: 'preview'} ) ] );
             this.vjDV[dv].add("alignments", "dna", "tab", [panelAlignmentViewer, alignViewer]);
 
-            //this.viewer = this.vjDV.locate(dv + ".0.0");
 
-            this.vjDS.add("Visualizing Alignments Stacking", "ds" + this.dvname + "alStack", "static://preview:loading");//, null, "#,Name,+/-,Start,Sequence,End,High");
-            this.vjDS.add("Accumulating Mutation Bias Diagram", "ds" + this.dvname + "alMutBias", "static://preview:loading", null, "Position,Count-A,Count-C,Count-G,Count-T");//, null, "#,Name,+/-,Start,Sequence,End,High");
+            this.vjDS.add("Visualizing Alignments Stacking", "ds" + this.dvname + "alStack", "static:
+            this.vjDS.add("Accumulating Mutation Bias Diagram", "ds" + this.dvname + "alMutBias", "static:
 
             var panelStackViewer = vjPAGE.initAlignNavigatorPanel(this.dvname + "alStack", this.formName);
             panelStackViewer.data.push("ds" + this.dvname + "alMutBias");
@@ -338,12 +319,10 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
 
                 options: { width: 800, height: 120, vAxis: { title: 'Mutation Bias' },
                     hAxis: {title:'Distribution of read position mapping current reference position'}, lineWidth: 1, legend: 'top', chartArea: { top: 20, left: 70, width: '100%', height: "60%" },
-                    //colors: ['blue', 'green']
                     colors: vjPAGE.colorsACGT,
                     focusTarget: 'category',
                     isStacked:true
                     },
-                //selectCallback: "function:vjObjFunc('onZoomProfileOperation','" + this.objCls + "')",
                 type: 'column',
                 isok: true
             });
@@ -353,7 +332,7 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
                 iconSize: 0,
                 bgColors: ['#efefff', '#ffffff'],
                 defaultEmptyText: defaultText,
-                precompute: "node.bgcolor=(node.cols[2].indexOf('-')==-1 ?'#f2f2f2' : '#f2f2f2');if(node.cols[9])node.PosHigh=parseInt(node.cols[9]);if(node.cols[10]){node.matchSubstring={start: parseInt(node.cols[10]), end:parseInt(node.cols[11])};}",//node.cols[10]=parseInt(node.cols[10])+parseInt(node.cols[4]);}",
+                precompute: "node.bgcolor=(node.cols[2].indexOf('-')==-1 ?'#f2f2f2' : '#f2f2f2');if(node.cols[9])node.PosHigh=parseInt(node.cols[9]);if(node.cols[10]){node.matchSubstring={start: parseInt(node.cols[10]), end:parseInt(node.cols[11])};}",
                 matchColor: '#FF9900',
                 dataTypeAppliesToHeaders:true,
                 cols: [{ name: new RegExp(/.*/), type: 'alignment', hidden: true, isNmatchCol: true }
@@ -370,7 +349,7 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
             this.vjDV[dv].add("stack", "dna", "tab", [panelStackViewer, mutBiasViewer, stackViewer]).viewtoggles = 1;
 
 
-            this.vjDS.add("Importing Sequence Hit Table", "ds" + this.dvname + "alMatch", "static:// ");
+            this.vjDS.add("Importing Sequence Hit Table", "ds" + this.dvname + "alMatch", "static:
             var panelMatchViewer = vjPAGE.initBasicObjListPanel(this.dvname + "alMatch", this.formName);
             var matchViewer = new vjTableView({
                 data: "ds" + this.dvname + "alMatch",
@@ -384,7 +363,7 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
             this.vjDV[dv].add("hit table", "table", "tab", [panelMatchViewer, matchViewer]);
 
 
-            this.vjDS.add("infrastructure: Constructing download links for Aligner", "ds" + this.dvname + "Statistics", "static:// ");
+            this.vjDS.add("infrastructure: Constructing download links for Aligner", "ds" + this.dvname + "Statistics", "static:
             var statisticViewer = new vjTableView({
                 data: "ds" + this.dvname + "Statistics",
                 iconSize: 16,
@@ -400,12 +379,9 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
             this.vjDV[dv].add("downloads", "table", "tab", [statisticViewer]);
 
 
-///NCBI this.vjDS.add("infrastructure: Retrieving link from NCBI", "ds" + this.dvname + "NCBIAnnot", "static://<iframe width=1024 height=350 FRAMEBORDER=0 MARGINWIDTH=0 MARGINHEIGHT=0 SCROLLING=auto id='ncbi-search' src=''> </iframe>");
-///NCBI this.vjDV[dv].add("ncbi", "help", "tab", [new vjHTMLView({ data: "ds" + this.dvname + "NCBIAnnot" })]).forceLoadAll = true; ;
 
 
             this.vjDV[dv].add("help", "help", "tab", [new vjHelpView({ data: 'dsHelpHitList' })]);
-            //vjPAGE.initTaxonomyBrowserTree(dv, "taxonomy", this.formName);
 
 
             this.vjDV[dv].render();
@@ -420,14 +396,14 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
             this.viewer.mimicClickCell(this.autoClickedReference,0);
     };
 
-    this.reload = function (loadedID, reqid, autoClickedReference) // viewer,
+    this.reload = function (loadedID, reqid, autoClickedReference)
     {
         if (loadedID)
             this.loadedID = loadedID;
         if (!this.loadedID)
             return;
 
-        var url = "http://?cmd=alCount&objs=" + this.loadedID+"&start=0&cnt=50&info=1";
+        var url = "http:
         if(this.profilerList)url+="&childProcessedList="+this.profilerList;
         if (reqid) {
             this.reqID = reqid;
@@ -439,33 +415,15 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
         }
         this.vjDS["ds" + this.dvname].reload(url, true);
 
-        //this.vjDS["ds" + this.dvname+"histogram"].reload(url, true);
 
     };
 
     this.update = function (proc) {
         this.algoProc = proc;
         var checkedIDS = this.viewer.accumulate("node.checked", "node.id");
-        //if(this.selfUpdate)return ;
 
-        //var ids=this.algoProc.getValue("subSet");
-        //var loadID=this.algoProc.getValue("parent_proc_ids");
-        //if(this.loadedID=loadID;
-        //alert(ids+" dd "+this.selfUpdate)
-        //alerJ('d',);
 
-        //var params={selCnt:0, computedProfiles:this.algoProc.viewer.attached("file")};
-        //if(loadID && loadID!=this.loadedID){
-        //    this.reload(loadID)
-        //}
-        //else
-        //if(ids && !this.selfUpdate){
-        //alerJ('t',this.viewer)
-        //this.viewer.enumerate("if(params.computedProfiles['SNPprofile-'+node.id+'.csv']){node.checked=1;params.selCnt++;}else node.checked=0; alerJ('d-'node.id,node) ",params);
-        //this.viewer.enumerate("alert(params.computedProfiles['SNPprofile-'+node.id+'.csv'])",params);
 
-        //this.viewer.refresh();
-        //}
         return isok(checkedIDS) ? 1 : 0;
     };
 
@@ -473,22 +431,12 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
     this.onSelectedHitListItem = function (viewer, node)
     {
         if (this.dvinfo) {
-/// NCBI
-            /*
-            if (parseInt(node.id) > 0) {
-                var term = node.Reference; if (!isok(term)) return;
-                var pos = term.lastIndexOf("."); if (pos != -1) term = term.substring(0, pos);
-                gObject("ncbi-search").src = "http://www.ncbi.nlm.nih.gov/nuccore?term=" + term;
-            }
-            */
-            //            var alHigh = docLocValue("alHigh", '50', this.vjDS["ds" + this.dvname + "alStack"].url);
             var viewer = this.vjDV.locate(this.dvinfo + "Viewer.downloads.0");
             var t = "download,icon,operation,arguments\n";
             if (parseInt(node.id) == 0) {
                 viewer.prefixHTML = "There were <b>" + viewer.formDataValue("" + node.Hits, 'largenumber', node) + "</b> sequences that did not match any of the reference genomes.";
                 t += "Unaligned Reads,download,alFasta";
             } else {
-                //alert(this.selectedAlgorithm);
 
                 viewer.prefixHTML = "<b>" + viewer.formDataValue("" + node.Hits, 'largenumber', node) + "</b> sequences were aligned to <b>" + node.Reference + "</b>";
                 t += "Hit list,download,hitlist,\nAligned Reads,download,alFasta,\n" +
@@ -496,14 +444,11 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
                     "Stack,download,alStack,\nStack of non perfect alignments,download,alStack,&alNonPerfOnly=1\n" +
                     "Stack of alignments with mutation on specified position ,download,alStack,&alVarOnly=1\n" +
                     "Mutation bias,download,alMutBias,\n";
-                    // get
 
                     var filelist=this.algoProc.viewer.attached("file");
-                    //alerJ('length='+filelist,filelist);
                     var tAux="";
                     for( ff in filelist ){
                         if(ff.indexOf(".csv")==-1&&ff.indexOf(".txt")==-1&&ff.indexOf(".sam")==-1&&ff.indexOf(".fpkm_tracking")==-1)continue;
-                        // checks if this file needs to be added....
                         tAux+=ff+",download,objFile,&ids="+this.loadedID+"&filename="+ff+"\n";
                     }
                     if(tAux.length)
@@ -513,17 +458,13 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
             this.referenceID = node.id;
 
 
-            this.vjDS["ds" + this.dvname + "Statistics"].reload("static://" + t, true);
-            this.vjDS["ds" + this.dvname + "alView"].reload("http://" + this.makeReferenceOperationURL(viewer, node, 'alView') + "&cnt=20", false);// &alHigh=50
-            this.vjDS["ds" + this.dvname + "alMatch"].reload("http://" + this.makeReferenceOperationURL(viewer, node, 'alMatch') + "&cnt=20", false);
-            this.vjDS["ds" + this.dvname + "alStack"].reload("http://" + this.makeReferenceOperationURL(viewer, node, 'alStack') + "&cnt=20", false); // &alHigh=50
-            this.vjDS["ds" + this.dvname + "alMutBias"].reload("http://" + this.makeReferenceOperationURL(viewer, node, 'alMutBias') + "&cnt=20", false); // &alHigh=50
+            this.vjDS["ds" + this.dvname + "Statistics"].reload("static:
+            this.vjDS["ds" + this.dvname + "alView"].reload("http:
+            this.vjDS["ds" + this.dvname + "alMatch"].reload("http:
+            this.vjDS["ds" + this.dvname + "alStack"].reload("http:
+            this.vjDS["ds" + this.dvname + "alMutBias"].reload("http:
             this.vjDV.locate(this.dvinfo + "Viewer._active.").load();
-            //this.vjDS["ds" + this.dvname + "alStackSubject"].reload("http://" + this.makeReferenceOperationURL(viewer, node, 'alStackSubj') + "&cnt=1&rangeStart=0&rangeEnd=100&High=50", true);
 
-            //alert(node.Reference + " - " + node.Reference.split(" ").join("|"))
-            //            viewer = this.vjDV.locate(this.dvinfo + "Viewer.taxonomy.0");
-            //            viewer.onUpdate(viewer.container, null, node.Reference.split(" ").join("|"));
         }
 
         this.selfUpdate = 1;
@@ -534,25 +475,19 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
 
     this.onCheckReferenceGenomes = function (viewer, node)
     {
-//        alerJ('a',this.algoProc)
         this.algoProc.setValue("subSet", viewer.accumulate("node.checked", "node.id").join(";"));
 
 
-        //if(this.modeActive) {
         var lstNamesArr = viewer.accumulate("node.checked", "node.Reference");
-        lstNames = ""; //lstNamesArr[0];
+        lstNames = "";
         var toprint = 3;
         for (var il = 0; il < lstNamesArr.length && il < toprint; ++il)
             lstNames += lstNamesArr[il].replace(">", "") + " ";
         if (lstNamesArr.length > toprint) lstNames += " and " + (lstNamesArr.length - toprint) + " more ...";
         lstNames = lstNames.substring(0, 64);
-        //alert(lstNames);
         this.algoProc.setValue("name", lstNames);
-        //}
 
         this.selfUpdate = 1;
-//        if (this.callbackModified)
- //           funcLink(this.callbackModified, viewer, this);
         if (this.callbackChecked)
             funcLink(this.callbackChecked, viewer, this);
         this.selfUpdate = 0;
@@ -565,13 +500,6 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
             var url = urlExchangeParameter(this.viewer.getData(0).url.substring(7), "cnt", '0');
             return url;
         }
-//        else if (oper == 'alStack' || oper == 'alView' || oper == 'alMatch' || oper == 'alMutBias') {
-//            var url = vjDS[this.viewer.getData(0).name + oper].url;
-//            url = urlExchangeParameter(url, "cnt", '0');
-//            if (args)
-//                url += args;
-//            return url;
-//        }
         var url = "?cmd=" + oper + "&objs=" + this.loadedID + "&req=" + this.reqID;
         if (node.id == 0) {
             url += "&found=0";
@@ -591,7 +519,6 @@ function valgoHexagonHitList(loadedID, formname, dvname, dvinfo)
         if (oper == 'alStack' || oper == 'alView' || oper == 'alMatch' || oper == 'alMutBias' ) {
                 url = vjDS[this.viewer.getData(0).name + oper].url;
                 url = urlExchangeParameter(url, "cnt", '0');
-//                url = urlExchangeParameter(url, "found", '1');
             if (args)
                 url += args;
             url = url.substring(7);
@@ -630,9 +557,8 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
 {
     valgoCore.call(this, "populator", loadedID, formName, dvname);
 
-    //this.selectedHitListCallback=null;
     this.dvinfo = dvinfo;
-    this.datasets = new Array("popHierarchy", "popCoverage");//, "popConsesus"); // "profNoise", "profNoiseIntegral",
+    this.datasets = new Array("popHierarchy", "popCoverage");
 
     if(this.sortedSubjIndex!==undefined){
 
@@ -641,19 +567,15 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
     this.generate = function () {
         this.isok = true;
 
-        this.vjDS.add("Summarizing Next-Gen Clone Discovery Component: " + this.datasets[0].substring(3), "ds" + this.dvname + this.datasets[0], "static://",null,"Name,Start,End,Merge,Hierarchy");
-        this.vjDS.add("Summarizing Next-Gen Clone Discovery Component: " + this.datasets[1].substring(3), "ds" + this.dvname + this.datasets[1], "static://",null,"Name,Start,End,Merge,Father,Coverage,max,average");
-//        this.vjDS.add("Summarizing Next-Gen Clone Discovery Component: " + this.datasets[2].substring(3), "ds" + this.dvname + this.datasets[2], "static://");
+        this.vjDS.add("Summarizing Next-Gen Clone Discovery Component: " + this.datasets[0].substring(3), "ds" + this.dvname + this.datasets[0], "static:
+        this.vjDS.add("Summarizing Next-Gen Clone Discovery Component: " + this.datasets[1].substring(3), "ds" + this.dvname + this.datasets[1], "static:
 
-        this.vjDS.add("infrastructure: Population analysis tool help document", "dsHelpPopulator", "http://help/hlp.algo.snpProfile.algorithmParameters.html");
-        //this.vjDS.add("Accumulating SNPs", "ds" + this.dvname + "SNPcalls", "static://");
-        this.vjDS.add("Building downloading table","ds"+this.dvname+"popDownloads","static://");
+        this.vjDS.add("infrastructure: Population analysis tool help document", "dsHelpPopulator", "http:
+        this.vjDS.add("Building downloading table","ds"+this.dvname+"popDownloads","static:
         var serie1=new vjDataSeries({
-//          data: vjDS.dsScatterData,
          title:"clone series",
          name:"ds"+this.dvname+"popClones",
-//         parser:'sankeyParser',
-         url:"static://",
+         url:"static:
          center:0.5,
          symbolSize:"0.17",
          isNXminBased: true,
@@ -664,13 +586,11 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
          isok:true});
 
         var serie2=new vjDataSeries({
-//          data: vjDS.dsScatterData,
          title:"Normalized clone series",
          name:"ds"+this.dvname+"popClonesNorm",
-//         parser:'sankeyParser',
          isNXminBased: true,
          byX : true,
-         url:"static://",
+         url:"static:
          center:0.5,
          symbolSize:"0.17",
          columnDefinition:{branchID:'Clone ID',start:'showStart',end:'showEnd',weight:'Max Coverage',mergeID:'Merged ID',bifurcateID:'Bifurcated ID',coverage:'Coverage'},
@@ -824,7 +744,6 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
             data : [ "dsVoid", "ds" + this.dvname + this.datasets[0],"ds"+this.dvname+"popClones","ds"+this.dvname+"popClonesNorm" ],
             formObject : document.forms[formName],
             iconSize : 24,
-//            hideViewerToggle : true,
             rows : rowlist,
             isok : true
         });
@@ -859,18 +778,12 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
             hideEmpty: false,
             icons: { leaf: 'img/dna.gif' },
             showChildrenCount: true,
-//            checkPropagate:true,
             formObject:document.forms[this.formName],
             checkBranchCallback:"function:vjObjFunc('onCloneCheckOperation','"+this.objCls+"');",
             checkLeafCallback:"function:vjObjFunc('onCloneCheckOperation','"+this.objCls+"')",
-//            linkLeafCallback: selectCallback ? selectCallback : vjHC.recordViewNode  ,
             autoexpand:'all',
             maxTxtLen:this.maxTxtLen,
-//            vjHCAssociatedRecordViewer:recordviewer+".details.0",
             precompute: "row.path=(row.Hierarchy ? row.Hierarchy : '/') +row['Name'];",
-//            postcompute:"if(node.name"
-            //postcompute:"if(node.name=='inpos.fa')node.uncheckable=true;alert(node.name + ' - ' + node.uncheckable);",
-//            objectsDependOnMe:[ dvname+'.'+tabname+'.'+cntViewersIn ],
             isok:true });
 
         var plot1=new vjSVG_Plot();
@@ -883,7 +796,6 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
         plot2.colors=valgoGenomeColors.slice(1);
 
         var viewerClones=new vjSVGView ( {
-//             data:['dsScatterData' ] ,
             chartArea:{width:'70%',height:"80%"},
             plots:[ plot1 ],
             Axis:{
@@ -891,10 +803,8 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
                 y:{title:"SNP",showArrow:false,showTicks:true,showGrid:true,showTitle:false}
             },
 
-            // add any number of additional parameters to make your viewer versatile and customizeable
             isok:true});
         var viewerClonesNorm=new vjSVGView ( {
-//          data:['dsScatterData' ] ,
          chartArea:{width:'70%',height:"80%"},
          plots:[ plot2 ],
          Axis:{
@@ -902,7 +812,6 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
              y:{title:"SNP",showArrow:false,showTicks:true,showGrid:true,showTitle:false}
          },
 
-         // add any number of additional parameters to make your viewer versatile and customizeable
          isok:true});
         var viewerDownloads = new vjTableView({
             data: "ds" + this.dvname + "popDownloads",
@@ -915,18 +824,9 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
             maxTxtLen: 32,
             isok: true
         });
-//        var viewerClones = new vjSVGView({
-//            data: "ds" + this.dvname + "popHierarchy",
-//            formObject: document.forms[this.formName],
-//            maxTxtLen: 48,
-//            defaultEmptyText: 'no information to show',
-//            newSectionWord: "-",
-//            bgColors: ['#f2f2f2', '#ffffff'],
-//            isok: true
-//        });
 
         var dv = this.dvname + "Viewer";
-        this.vjDV.add(dv, 450, 650).selected=0;//.frame='notab';
+        this.vjDV.add(dv, 450, 650).selected=0;
 
 
         this.vjDV[dv].add("Summary", "table", "tab", [viewerPanel,viewerSummary]);
@@ -1005,9 +905,9 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
 
     this.onResetCloneDS = function (viewer, pp, tt) {
 
-        this.vjDS["ds" + this.dvname + "popClones"].reload("http://?cmd=popClones" + "&objs="+this.loadedID+"&resolution=200", true);
-        this.vjDS["ds" + this.dvname + "popHierarchy"].reload("http://?cmd=popHierarchy" + "&objs="+this.loadedID+"", true);
-        this.vjDS["ds" + this.dvname + "popClonesNorm"].reload("http://?cmd=popClones" + "&objs="+this.loadedID+"&normCloneCov=1&resolution=200", true);
+        this.vjDS["ds" + this.dvname + "popClones"].reload("http:
+        this.vjDS["ds" + this.dvname + "popHierarchy"].reload("http:
+        this.vjDS["ds" + this.dvname + "popClonesNorm"].reload("http:
     };
 
     this.makeProfileOperationURL = function (viewer, node, oper) {
@@ -1021,26 +921,24 @@ function valgoHexagonPopulator(loadedID, formName, dvname, dvinfo)
     this.reload = function (loadedID, parent_loaded_ID) {
         if (!this.isok) return;
         if (loadedID) this.loadedID = loadedID;
-//        if (subID == 0 || subID == '+') return;
 
         this.dna_aligner_ID = parent_loaded_ID;
 
         var url;
         for (var i = 0; i < this.datasets.length; ++i) {
-            url = "http://?cmd=" + (this.datasets[i]) + "&objs=" + this.loadedID ;
+            url = "http:
 
-//            alert("Reloading commands");
             this.vjDS["ds" + this.dvname + this.datasets[i]].reload(url, true);
         }
         var t = "download,icon,operation,blob\n";
         t += "Summary,download,popSummary,\n" +
             "Coverage,download,popCoverage,\n" +
             "Consensus,download,popConsesus,";
-        this.vjDS["ds" + this.dvname + "popDownloads"].reload("static://" + t, false);
+        this.vjDS["ds" + this.dvname + "popDownloads"].reload("static:
 
-        this.vjDS["ds" + this.dvname + "popClones"].reload("http://?cmd=popClones" + "&objs="+this.loadedID+"&resolution=200", true);
+        this.vjDS["ds" + this.dvname + "popClones"].reload("http:
 
-        this.vjDS["ds" + this.dvname + "popClonesNorm"].reload("http://?cmd=popClones" + "&objs="+this.loadedID+"&normCloneCov=1&resolution=200", true);
+        this.vjDS["ds" + this.dvname + "popClonesNorm"].reload("http:
 
         this.vjDV.dvPopulInfoViewer.tabs[1].viewers[0].load(true);
 

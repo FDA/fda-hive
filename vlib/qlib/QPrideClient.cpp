@@ -32,6 +32,7 @@
 #include <slib/std/file.hpp>
 #include <slib/std/http.hpp>
 #include <slib/utils/json/printer.hpp>
+#include <slib/utils/sort.hpp>
 #include <qlib/QPrideClient.hpp>
 #include <ulib/uproc.hpp>
 #include <ulib/uquery.hpp>
@@ -40,7 +41,6 @@
 
 static idx __on_help(sQPrideClient * QP, const char * cmd, const char *, const char *, sVar * pForm);
 
-static idx verbose = 0;
 static idx dataint = 0;
 static enum {
     eUpsertNone,
@@ -48,23 +48,23 @@ static enum {
     eUpsertQry
 } want_upsert = eUpsertNone;
 static bool want_flatten = false;
+static sUsr::EPermExport export_permissions = sUsr::ePermExportGroups;
 static sStr update_list_qry;
-static std::auto_ptr<sUsr> g_user;
+static sStr prop_exclude00;
+static std::unique_ptr<sUsr> g_user;
 static sStr respondCommand;
 static sStr lastObjList;
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Variables
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-static idx __on_vars(sQPrideClient * QP, const char * cmd, const char *, const char *, sVar * pForm)
+static idx __on_vars(sQPrideClient * QP, const char * cmd, const char * arg, const char *, sVar * pForm)
 {
     if( sIs(cmd, "-req") ) {
         QP->reqId = pForm->ivalue("req");
     }
     if( sIs(cmd, "-grp") ) {
         QP->grpId = pForm->ivalue("grp");
+    }
+    if( sIsExactly(cmd, "-job") ) {
+        QP->jobId = pForm->ivalue("job");
     }
     if( sIs(cmd, "-user") ) {
         const char * login = pForm->value("login");
@@ -76,13 +76,17 @@ static idx __on_vars(sQPrideClient * QP, const char * cmd, const char *, const c
                 g_user.reset(new sUsr("qpride", true));
             } else {
                 g_user.reset(new sUsr);
-                g_user->login(login, pswd, 0, "command-line");
+                g_user->login(login, pswd, "command-line");
             }
         }
         if( g_user.get() && g_user->Id() ) {
             QP->user = g_user.get();
             sStr rootPath;
-            sUsrObj::initStorage(QP->cfgStr(&rootPath, 0, "user.rootStoreManager"), QP->cfgInt(0, "user.storageMinKeepFree", (udx)20 * 1024 * 1024 * 1024));
+            sRC rc = sUsrObj::initStorage(QP->cfgStr(&rootPath, 0, "user.rootStoreManager"), QP->cfgInt(0, "user.storageMinKeepFree", (udx)20 * 1024 * 1024 * 1024));
+            if( rc ) {
+                QP->printf("%s\n", rc.print());
+                return 1;
+            }
         } else {
             QP->printf("Login failed for user %s\n", login);
             return 1;
@@ -94,8 +98,9 @@ static idx __on_vars(sQPrideClient * QP, const char * cmd, const char *, const c
     if( sIs(cmd, "-host") ) {
         QP->printf("%s\n%s\n", QP->vars.value("thisHostName"), QP->vars.value("os"));
     }
-    if( sIs(cmd, "-verbose") ) {
-        verbose = pForm->ivalue("level", 0);
+    if( sIs(cmd, "-logLevel") ) {
+        const idx log_level = pForm->ivalue("level", 0);
+        QP->setupLog(true, log_level);
     }
     if( sIs(cmd, "-version") ) {
         QP->printf("r$Id$\n");
@@ -123,23 +128,28 @@ static idx __on_vars(sQPrideClient * QP, const char * cmd, const char *, const c
     if( sIsExactly(cmd, "-flatten") ) {
         want_flatten = true;
     }
+    if( sIsExactly(cmd, "-permUser") ) {
+        export_permissions = sUsr::ePermExportAll;
+    }
     if( sIsExactly(cmd, "-updateList") ) {
         update_list_qry.cutAddString(0, pForm->value("hiveids"));
         update_list_qry.add0(2);
     }
+    if( sIsExactly(cmd, "-excludeProp") ) {
+        prop_exclude00.shrink00();
+        if( prop_exclude00.length() ) {
+            prop_exclude00.add0(1);
+        }
+        prop_exclude00.addString(arg);
+        prop_exclude00.add0(2);
+    }
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  General
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 static idx __on_general(sQPrideClient * QP, const char * cmd, const char * arg, const char * equCmd,sVar * pForm)
 {
     if(sIs(cmd,"-shell")){
-        //system(arg);
         sStr t;sPipe::exeSys(&t,arg);t.add0();
         QP->printf("%s",t.ptr());
      }else if(sIs(cmd,"-shall")){
@@ -164,7 +174,6 @@ static idx __on_general(sQPrideClient * QP, const char * cmd, const char * arg, 
         sPipe::exeSys(&t, pForm->value("exec"));
         t.add0();
         QP->printf("%s", t.ptr());
-        //system(pForm->value("exec"));
     } else if( sIs(cmd, "-file") ) {
         sFil ff(pForm->value("flnm"));
         if( ff.length() ) {
@@ -172,16 +181,24 @@ static idx __on_general(sQPrideClient * QP, const char * cmd, const char * arg, 
         }
     } else if( sIsExactly(cmd, "-init") || sIsExactly(cmd, "-init2") ) {
         if( sIsExactly(cmd, "-init2") ) {
-            // init2 assumes superuser
             pForm->inp("login", "qapp");
             __on_vars(QP, "-user", 0, 0, pForm);
+        }
+        sStr rootPath;
+        sRC rc = sUsrObj::initStorage(QP->cfgStr(&rootPath, 0, "user.rootStoreManager"), QP->cfgInt(0, "user.storageMinKeepFree", (udx)20 * 1024 * 1024 * 1024));
+        if( rc ) {
+            QP->printf("%s\n", rc.print());
+            return 1;
         }
         const char * dir = pForm->value("dir", "/QPride/bin/");
         const char * os = QP->vars.value("os");
         QP->resourceSync(dir, "qm", os);
-        QP->printf("#Add one the following lines to your crontab\n* * * * * %sqpstart.sh.os%s \n", dir, os);
-        QP->printf("#For the daemon running on a master node add \"maintain 1\" for DB maintenance operations\n* * * * * %sqpstart.sh.os%s \"maintain 1\"\n", dir, os);
-        QP->printf("#For the daemon running on a farm submit node add \"broadcast 1 psman launcher.sh\"\n* * * * * %sqpstart.sh.os%s \"broadcast 1 psman launcher.sh\"\n", dir, os);
+        QP->printf("#Add one the following line to crontab on ALL nodes:\n");
+        QP->printf("* * * * * %sqpstart.sh.os%s \n", dir, os);
+        QP->printf("#For the daemon running on a farm submit node add \"broadcast 1 psman launcher.sh\"\n");
+        QP->printf("* * * * * %sqpstart.sh.os%s \"broadcast 1 psman launcher.sh\"\n", dir, os);
+        QP->printf("#On maintenance node add to crontab:\n");
+        QP->printf("*/15 * * * * %sqm_maintain.sh.os%s\n", dir, os);
     } else if( sIs(cmd, "-endian") ) {
         sVec<idx> fl(pForm->value("file"));
         idx *f = fl.ptr();
@@ -191,11 +208,6 @@ static idx __on_general(sQPrideClient * QP, const char * cmd, const char * arg, 
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  HTML
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 static idx __on_html(sQPrideClient * QP, const char * cmd, const char * , const char * ,sVar * pForm)
 {
@@ -212,7 +224,7 @@ static idx __on_html(sQPrideClient * QP, const char * cmd, const char * , const 
             const char * variable=(const char *)rForm.id(i);
             const char * value=rForm.value(variable,"(null)",&valsize) ;
             if( var && strcmp(var,variable)!=0 )continue;
-            if(valsize>maxsize+3){ //+3 for the dots startblabla...end
+            if(valsize>maxsize+3){
                 tailsize = valsize - maxsize;
                 valsize = maxsize - 3;
                 if(tailsize>10)tailsize=10;
@@ -257,11 +269,6 @@ static idx __on_html(sQPrideClient * QP, const char * cmd, const char * , const 
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Config
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 static idx __on_message(sQPrideClient * QP, const char * cmd, const char * , const char ,sVar * pForm)
 {
@@ -278,15 +285,9 @@ static idx __on_message(sQPrideClient * QP, const char * cmd, const char * , con
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Config
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 static idx __on_config(sQPrideClient * QP, const char * cmd, const char * , const char * ,sVar * pForm)
 {
-    //const char * par=arg;
 
     if(sIs(cmd,"-configGet")){
         sStr str;
@@ -304,7 +305,6 @@ static idx __on_config(sQPrideClient * QP, const char * cmd, const char * , cons
             const char * nxt=sString::next00(p);
             if(!nxt)break;
             csvBuf.cut(0);
-            // config values may contain embedded commas - escape if needed
             QP->printf("%s,%s\n", sString::escapeForCSV(csvBuf, p), nxt);
             p=nxt;
         }
@@ -315,7 +315,7 @@ static idx __on_config(sQPrideClient * QP, const char * cmd, const char * , cons
 
 static idx objQuery(sQPrideClient * QP, const char * args, sDic<bool> & ids, sStr * out_qry = 0) {
     idx rc = 0;
-    sUsrInternalQueryEngine qengine(*g_user.get());
+    sUsrInternalQueryEngine qengine(QP, *g_user.get());
     for(const char * id = args; id; id = sString::next00(id)) {
         if( sIs("query://", id) ) {
             sStr lerr;
@@ -418,14 +418,17 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
                     for(const char * flnm00 = args; flnm00; flnm00 = sString::next00(flnm00) ) {
                         if( flnm00[0] ) {
                             upropset.setSrcFile(flnm00);
-                            if( !upropset.run(&modified_objs, sUsrPropSet::fInvalidUserGroupNonFatal) ) {
+                            if( !upropset.run(&modified_objs, sUsrPropSet::fInvalidUserGroupNonFatal | sUsrPropSet::fOverwriteExistingSameType) ) {
                                 QP->printf("error: %s\n", upropset.getErr());
                                 rc = 14;
+                            }
+                            const char * warn = upropset.getWarn00();
+                            if( warn && warn[0] ) {
+                                QP->printf("warning: %s\n", warn);
                             }
                         }
                     }
                     if( rc == 0 ) {
-                        // delete any objects from update_list which were not updated by json
                         for(idx iupd = 0; iupd < update_list.dim(); iupd++) {
                             sHiveId id = *static_cast<const sHiveId *>(update_list.id(iupd));
                             bool is_modified_id = false;
@@ -444,15 +447,31 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
                                     delete obj;
                                 }
                             }
+#if _DEBUG
+                            QP->printf("info: object %s - %s\n", id.print(), is_modified_id ? "updated" : "deleted");
+#endif
                         }
+#if _DEBUG
+                        for(idx imod = 0; imod < modified_objs.dim(); ++imod) {
+                            bool found = false;
+                            for(idx iupd = 0; iupd < update_list.dim(); ++iupd) {
+                                sHiveId id = *static_cast<const sHiveId *>(update_list.id(iupd));
+                                if( modified_objs.ptr(imod)->id = id ) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if( !found ) {
+                                QP->printf("info: object %s - created\n", modified_objs.ptr(imod)->id.print());
+                            }
+                        }
+#endif
                     }
                     if( rc == 0 && !g_user->updateComplete() ) {
                         rc = 13;
                     }
                     if( rc != 0 ) {
                         if( g_user->hadDeadlocked() && is_our_transaction ) {
-                            // DB deadlock detected, and our own g_user->updateStart() call had
-                            // started the current DB transaction. Wait a bit and retry.
                             g_user->updateAbandon();
                             QP->logOut(QP->eQPLogType_Warning, "DB deadlock detected, retrying attempt %" DEC "/%" DEC "\n", itry + 1, sSql::max_deadlock_retries);
                             sTime::randomSleep(sSql::max_deadlock_wait_usec);
@@ -489,8 +508,6 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
                 }
                 if( rc != 0 ) {
                     if( g_user->hadDeadlocked() && is_our_transaction ) {
-                        // DB deadlock detected, and our own g_user->updateStart() call had
-                        // started the current DB transaction. Wait a bit and retry.
                         g_user->updateAbandon();
                         QP->logOut(QP->eQPLogType_Warning, "DB deadlock detected, retrying attempt %" DEC "/%" DEC "\n", itry + 1, sSql::max_deadlock_retries);
                         sTime::randomSleep(sSql::max_deadlock_wait_usec);
@@ -503,7 +520,7 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
             break;
         }
     } else if( sIs("-query", cmd) ) {
-        sUsrInternalQueryEngine qengine(*g_user.get());
+        sUsrInternalQueryEngine qengine(QP, *g_user.get());
         sStr lerr;
         qengine.parse(pForm->value("query"), 0, &lerr);
         if( lerr ) {
@@ -527,13 +544,13 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
             sStr paths;
             for(idx j = 0; j < ids.dim(); ++j) {
                 const sHiveId * hid = (const sHiveId *)ids.id(j);
-                std::auto_ptr<sUsrObj> obj(g_user->objFactory(*hid));
+                std::unique_ptr<sUsrObj> obj(g_user->objFactory(*hid));
                 if( !obj.get() ) {
                     rc = 34;
                     QP->logOut(QP->eQPLogType_Error, "object not found %s\n", hid->print());
                 } else {
                     paths.cut(0);
-                    obj->propGet00("_dir", &paths);
+                    obj->propGet00("_dir", &paths, 0, true);
                     for(const char * p = paths; p; p = sString::next00(p)) {
                         if( extend ) {
                             QP->printf("%s ", obj->Id().print());
@@ -574,7 +591,7 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
             if( rc == 0 ) {
                 sStr buf;
                 sJSONPrinter printer(&buf);
-                sHiveId err1 = g_user->propExport(vids, printer, true, want_flatten, want_upsert != eUpsertNone, upsert_qry);
+                sHiveId err1 = g_user->propExport(vids, printer, export_permissions, 0, want_flatten, want_upsert != eUpsertNone, upsert_qry, 0, prop_exclude00.length() ? prop_exclude00.ptr() : 0);
                 if( err1.objId() ) {
                     QP->logOut(QP->eQPLogType_Error, "object not found %s\n", err1.print());
                 } else {
@@ -582,27 +599,9 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
                 }
             }
         }
-    } else if( sIs("-export", cmd) || sIs("-exportUrl", cmd) || sIs("-exportHivepack", cmd) ) {
+    } else if( sIsExactly("-export", cmd) || sIsExactly("-exportUrl", cmd) ) {
         const bool asUrl = sIs("-exportUrl", cmd);
-        const bool asHivepack = sIs("-exportHivepack", cmd);
-        sStr hivepackName;
         sFilePath wDir;
-        if( asHivepack ) {
-            hivepackName.printf("%s.hivepack", args);
-            args = sString::next00(args);
-            sStr workdir;
-            wDir.makeName(hivepackName, "%%dir");
-            if( wDir.ptr() && sLen(wDir.ptr()) ) {
-                workdir.printf("%s/", wDir.ptr());
-            } else {
-                workdir.printf("");
-            }
-            wDir.cut(0);
-            wDir.makeName(hivepackName, "%s._tmp_%%flnm", workdir.ptr());
-            if( !sDir::exists(wDir.ptr()) ) {
-                sDir::makeDir(wDir.ptr());
-            }
-        }
         sDic<bool> ids;
         rc = objQuery(QP, args, ids);
         if( !ids.dim() ) {
@@ -616,56 +615,16 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
                 vids[j] = *((sHiveId *) ids.id(j));
             }
             sVarSet v;
-            sHiveId err1 = g_user->propExport(vids, v, true);
-            sHiveId err2;
-            if( asHivepack ) {
-                err2 = g_user->objFilesExport(vids, v, wDir);
-                sVec<idx> new_order(sMex::fSetZero);
-                bool isOrdered = true;
-                for(idx r = 0; r < v.rows; ++r) {
-                    sHiveId pvl(v.val(r, 3, 0));
-                    sHiveId prop_oid(v.val(r, 0, 0));
-                    std::auto_ptr<sUsrObj> obj(g_user->objFactory(prop_oid));
-                    if( !obj.get() ) {
-                        continue;
-                    }
-                    const char * prop_name = v.val(r, 1, 0);
-                    const sUsrTypeField * tp = obj->propGetTypeField(prop_name);
-                    if( tp && (tp->isVirtual() && tp->name()[0] != '_') ) {
-                        isOrdered = false;
-                        continue;
-                    }
-                    new_order.vadd(1, r);
-                    if( ids.find(&pvl, sizeof(sHiveId)) ) {
-                        if( tp && tp->type() == sUsrTypeField::eObj ) {
-                            sStr linkvalue("${src-%s}", pvl.print());
-                            v.updateVal(r, 3, linkvalue.ptr());
-                        }
-                    }
-                }
-                if( !isOrdered ) {
-                    v.reorderRows(new_order.ptr(), 0, new_order.dim(), true);
-                }
-            }
-            if( err1.objId() || err2.objId() ) {
+            sHiveId err1 = g_user->propExport(vids, v, export_permissions);
+            if( err1.objId() ) {
                 rc = 41;
                 if( err1.objId() ) {
                     QP->logOut(QP->eQPLogType_Error, "object not found %s\n", err1.print());
-                }
-                if( err2.objId() ) {
-                    QP->logOut(QP->eQPLogType_Error, "object not found %s\n", err2.print());
                 }
             } else {
                 sStr out, out2;
                 sFil ofil;
                 bool toFile = false;
-                if( asHivepack && wDir.ptr() ) {
-                    sFilePath dst;
-                    dst.makeName(wDir, "%%path/%s.prop", hivepackName.ptr());
-                    sFile::remove(dst.ptr());
-                    ofil.init(dst.ptr());
-                    toFile = true;
-                }
                 if( asUrl ) {
                     v.printPropUrl(out);
                     sString::searchAndReplaceStrings(&out2, out, out.length(), "&prop." __, "&prop.src-" __, 0, false);
@@ -676,22 +635,36 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
                 }
                 if( toFile ) {
                     ofil.printf("%s", out2.ptr());
-                } else {    // stdout
+                } else {
                     QP->printf("%s", out2.ptr());
                 }
-                if( asHivepack ) {
-                    ofil.destroy();
-                    sStr outName, inputPath("%s", wDir.ptr());
-                    sFilePath dstPack;
-                    dstPack.makeName(hivepackName, "%%flnm");
-                    hivepackName.printf(0, "../%s", dstPack.ptr());
-                    sIO tio;
-                    sStr tmp("cd \"%s\" && zip -prv \"%s\" .", inputPath.ptr(), hivepackName.ptr());
-#warning "Missing exec return code validation"
-                    /* idx resFS = */ sPipe::exeFS(&tio, tmp.ptr(0), 0, QP->reqId ? sQPrideClient::reqProgressFSStatic : 0, (void*) QP, hivepackName.ptr());
-                    sDir::removeDir(wDir.ptr());
-                    QP->printf("%s", tio.ptr());
-                }
+            }
+        }
+    } else if( sIsExactly("-exportHivepack", cmd) ) {
+        sStr hivepackName("%s.hivepack", args);
+        args = sString::next00(args);
+        sFilePath wDir(hivepackName, "%%dir/");
+        if( !sDir::exists(wDir) && !sDir::makeDir(wDir) ) {
+            QP->logOut(QP->eQPLogType_Error, "failed to create directory %s\n", wDir.ptr());
+            rc = 5;
+        }
+        sDic<bool> ids;
+        rc = objQuery(QP, args, ids);
+        if( !ids.dim() ) {
+            QP->logOut(QP->eQPLogType_Error, "no objects found - query or ID list missing or invalid\n");
+            rc = 6;
+        }
+        if( rc == 0 ) {
+            sVec<sHiveId> vids;
+            vids.resize(ids.dim());
+            for(idx j = 0; j < ids.dim(); ++j) {
+                vids[j] = *((sHiveId *) ids.id(j));
+            }
+            sVarSet v;
+            sRC RC = g_user->objHivepack(vids, hivepackName, QP->reqId ? sQPrideClient::reqProgressFSStatic : 0, (void*) QP);
+            if( RC ) {
+                rc = 41;
+                QP->logOut(QP->eQPLogType_Error, "%s\n", RC.print());
             }
         }
     } else if( sIs("-delobj", cmd) ) {
@@ -701,7 +674,7 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
             sStr newid;
             for(idx j = 0; j < ids.dim(); ++j) {
                 const sHiveId * hid = (const sHiveId *)ids.id(j);
-                std::auto_ptr<sUsrObj> obj(g_user->objFactory(*hid));
+                std::unique_ptr<sUsrObj> obj(g_user->objFactory(*hid));
                 if( obj.get() && obj->purge() ) {
                     newid.cut0cut();
                     hid->print(newid);
@@ -713,12 +686,9 @@ static idx __on_udb(sQPrideClient * QP, const char * cmd, const char * args, con
     return rc;
 }
 
-static sUsrObjPropsNode::FindStatus print_call_type_type_prop_set_cb(const sUsrObjPropsNode &node, void *param)
+static void print_call_type_XXX_prop_set_cb(const sUsrObjPropsNode &node, sQPrideClient * QP, const char * typevar)
 {
-    sQPrideClient * QP = static_cast<sQPrideClient*>(param);
-    // don't print empty values; print "0" value only for field_order and field_default_value
-    if( node.value() && node.namecmp("created") && node.namecmp("modified") && !(sIs(node.value(), "0") && node.namecmp("field_default_value") && node.namecmp("field_order")) ) {
-        // CONCAT('(', @type_domain, ',', @type_type_id, ', name, group, value, encoding, blob_value)')
+    if( node.value() &&  node.namecmp("created") && node.namecmp("modified") && !(sIs(node.value(), "0") && node.namecmp("field_default_value") && node.namecmp("field_order")) ) {
         sStr buf(",");
         QP->sql()->protectValue(buf, node.name());
         buf.addString(",");
@@ -732,10 +702,16 @@ static sUsrObjPropsNode::FindStatus print_call_type_type_prop_set_cb(const sUsrO
         buf.addString(",NULL,NULL)");
         sStr buf2;
         QP->sql()->protectValue(buf2, buf);
-        QP->printf("CALL sp_obj_prop_set_v3(@system_group_id, @system_membership, @type_domain, @type_type_id, @system_permission, CONCAT('(', @type_domain, ',', @type_type_id, %s), NULL);\n", buf2.ptr());
+        QP->printf("CALL sp_obj_prop_set_v3(@system_group_id, @system_membership, @type_domain, %s, @system_permission, CONCAT('(', @type_domain, ',', %s, %s), NULL);\n", typevar, typevar, buf2.ptr());
     } else if( node.parentNode() && node.parentNode()->namecmp("fields") == 0 ) {
         QP->printf("\n");
     }
+}
+
+static sUsrObjPropsNode::FindStatus print_call_type_type_prop_set_cb(const sUsrObjPropsNode &node, void *param)
+{
+    sQPrideClient * QP = static_cast<sQPrideClient*>(param);
+    print_call_type_XXX_prop_set_cb(node, QP, "@type_type_id");
     return sUsrObjPropsNode::eFindContinue;
 }
 
@@ -747,40 +723,11 @@ static idx __on_db_init_data_type_sql(sQPrideClient * QP, const char * cmd, cons
         return 1;
     }
     QP->printf(
-"/*\n" \
-" *  ::718604!\n" \
-" * \n" \
-" * Copyright(C) November 20, 2014 U.S. Food and Drug Administration\n" \
-" * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al\n" \
-" * Affiliation: Food and Drug Administration (1), George Washington University (2)\n" \
-" * \n" \
-" * All rights Reserved.\n" \
-" * \n" \
-" * The MIT License (MIT)\n" \
-" * \n" \
-" * Permission is hereby granted, free of charge, to any person obtaining\n" \
-" * a copy of this software and associated documentation files (the \"Software\"),\n" \
-" * to deal in the Software without restriction, including without limitation\n" \
-" * the rights to use, copy, modify, merge, publish, distribute, sublicense,\n" \
-" * and/or sell copies of the Software, and to permit persons to whom the\n" \
-" * Software is furnished to do so, subject to the following conditions:\n" \
-" * \n" \
-" * The above copyright notice and this permission notice shall be included\n" \
-" * in all copies or substantial portions of the Software.\n" \
-" * \n" \
-" * THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS\n" \
-" * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n" \
-" * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n" \
-" * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n" \
-" * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\n" \
-" * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER\n" \
-" * DEALINGS IN THE SOFTWARE.\n" \
-" */\n" \
 "\n" \
-"-- Generated by: qapp -user qapp -db_init_data_type.sql\n\n" \
+"-- Generated by: qapp -user qapp -%s\n\n" \
 "START TRANSACTION;\n" \
 "\n" \
-"source db_init_data_include.sql;\n\n");
+"source db_init_data_include.sql;\n\n", &__func__[5]);
     QP->printf("SET @type_domain = %" UDEC ";\n", utype->id().domainId());
     QP->printf("SET @type_type_id = %" UDEC ";\n", utype->id().objId());
     QP->printf("\n" \
@@ -792,16 +739,236 @@ static idx __on_db_init_data_type_sql(sQPrideClient * QP, const char * cmd, cons
 
     tree->find(0, print_call_type_type_prop_set_cb, QP);
 
+    QP->printf("\n\n");
+    QP->printf("CALL sp_obj_perm_set_v2(@system_group_id, @system_membership, @system_group_id, @type_domain, @type_type_id, 0, 0, @system_permission, @system_flags, TRUE);\n");
+    QP->printf("CALL sp_obj_perm_set_v2(@system_group_id, @system_membership, @everyone_group_id, @type_domain, @type_type_id, 0, 0, @everyone_permission, @everyone_flags, TRUE);\n");
+
     QP->printf("\n\nCOMMIT;\n");
     delete uobj;
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Service
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+static sUsrObjPropsNode::FindStatus print_call_type_domain_prop_set_cb(const sUsrObjPropsNode &node, void *param)
+{
+    sQPrideClient * QP = static_cast<sQPrideClient*>(param);
+    print_call_type_XXX_prop_set_cb(node, QP, "@type_domain_id");
+    return sUsrObjPropsNode::eFindContinue;
+}
+
+static idx __on_db_init_data_domain_sql(sQPrideClient * QP, const char * cmd, const char * args, const char *, sVar * pForm) {
+    const sUsrType2 * Type = sUsrType2::ensure(*g_user, "type");
+    const sUsrType2 * utype = sUsrType2::ensure(*g_user, "domain-id-descr");
+    sUsrObj * uobj = utype ? g_user->objFactory(utype->id()) : 0;
+    const sUsrObjPropsTree * tree = uobj ? uobj->propsTree() : 0;
+    if( !tree ) {
+        return 1;
+    }
+    QP->printf(
+"\n" \
+"-- Generated by: qapp -user qapp -%s\n\n" \
+"START TRANSACTION;\n" \
+"\n" \
+"source db_init_data_include.sql;\n\n", &__func__[5]);
+    QP->printf("SET @type_domain = %" UDEC ";\n", utype->id().domainId());
+    QP->printf("SET @type_type_id = %" UDEC ";\n", Type->id().objId());
+    QP->printf("SET @type_domian_id = %" UDEC ";\n", utype->id().objId());
+    QP->printf("\n" \
+"DELETE FROM UPPerm WHERE objID = @type_domian_id AND domainID = @type_domain;\n" \
+"DELETE FROM UPObjField WHERE objID = @type_domian_id AND domainID = @type_domain;\n" \
+"DELETE FROM UPObj WHERE objID = @type_domian_id AND domainID = @type_domain;\n"\
+"\n"\
+"CALL sp_obj_create_v2(@system_group_id, @system_membership, @type_domain, @type_type_id, @type_domain, @type_domian_id, @system_permission, @system_flags);\n\n");
+
+    tree->find(0, print_call_type_domain_prop_set_cb, QP);
+
+    QP->printf("\n\n");
+    QP->printf("CALL sp_obj_perm_set_v2(@system_group_id, @system_membership, @system_group_id, @type_domain, @type_domian_id, 0, 0, @system_permission, @system_flags, TRUE);\n");
+    QP->printf("CALL sp_obj_perm_set_v2(@system_group_id, @system_membership, @everyone_group_id, @type_domain, @type_domian_id, 0, 0, @everyone_permission, @everyone_flags, TRUE);\n");
+
+    QP->printf("\n\nCOMMIT;\n");
+    delete uobj;
+    return 0;
+}
+
+static idx cmp_types_by_id(void * param, void * arr, idx i1, idx i2)
+{
+    const sUsrType2 ** types = static_cast<const sUsrType2**>(arr);
+    if (types[i1]->id() < types[i2]->id()) {
+        return -1;
+    } else if( types[i1]->id() > types[i2]->id()) {
+        return 1;
+    }
+    return 0;
+}
+
+static idx cmp_typefields_by_name(void * param, void * arr, idx i1, idx i2)
+{
+    const sUsrTypeField ** fields = static_cast<const sUsrTypeField**>(arr);
+    sStr * buf = static_cast<sStr*>(param);
+
+    buf->cut(0);
+    sString::changeCase(buf, fields[i1]->name(), 0, sString::eCaseHi);
+    buf->add0();
+
+    idx pos2 = buf->length();
+    sString::changeCase(buf, fields[i2]->name(), 0, sString::eCaseHi);
+    buf->add0();
+
+
+    return strcmp(buf->ptr(0), buf->ptr(pos2));
+}
+
+static char * sqlProtectValueOrNull(const sUsr & user, sStr & to, const char * from, idx len = 0)
+{
+    idx pos = to.length();
+    if( !len ) {
+        len = sLen(from);
+    }
+
+    if( len ) {
+        return user.dbProtectValue(to, from, len);
+    }
+    to.addString("NULL");
+    return to.ptr(pos);
+}
+
+static idx __on_uptype_data_sql(sQPrideClient * QP, const char * cmd, const char * args, const char *, sVar * pForm) {
+    QP->printf(
+"\n" \
+"TRUNCATE `UPType`;\n" \
+"\n");
+
+    sVec<const sUsrType2 *> types;
+    sUsrType2::find(*g_user, &types, ".*");
+
+    sSort::sortSimpleCallback(cmp_types_by_id, 0, types.dim(), types.ptr());
+    sHiveId prev_id;
+    sStr parents_buf, sql_buf;
+    for(idx itype = 0; itype < types.dim(); itype++) {
+        const sUsrType2 * utype = types[itype];
+        if( utype->id().domainId() != sUsrType2::type_type_domain_id ) {
+            continue;
+        }
+        if( prev_id ) {
+            for(udx deleted_id = prev_id.objId() + 1; deleted_id < utype->id().objId(); deleted_id++) {
+                QP->printf("INSERT INTO `UPType` VALUES (%" UDEC ",NULL,0,0,'--DELETED%" UDEC "','DELETED TYPE %" UDEC "');\n", deleted_id, deleted_id, deleted_id);
+            }
+        }
+        QP->printf("INSERT INTO `UPType` VALUES (%" UDEC ",", utype->id().objId());
+
+        parents_buf.cut0cut();
+        sql_buf.cut0cut();
+        for(idx ipar = 0; ipar < utype->dimParents(); ipar++) {
+            if (ipar) {
+                parents_buf.addString(",");
+            }
+            parents_buf.addString(utype->getParent(ipar)->name());
+        }
+        QP->printf(sqlProtectValueOrNull(*g_user, sql_buf, parents_buf));
+
+        QP->printf(",%d,%d,", utype->isVirtual(), utype->isPrefetch());
+        QP->printf("%s,", g_user->dbProtectValue(sql_buf, utype->name()));
+        QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, utype->title()));
+        QP->printf("%s", sqlProtectValueOrNull(*g_user, sql_buf, utype->description()));
+        QP->printf(");\n");
+
+        prev_id = utype->id();
+    }
+
+    return 0;
+}
+
+static idx __on_uptypefield_data_sql(sQPrideClient * QP, const char * cmd, const char * args, const char *, sVar * pForm) {
+    QP->printf(
+"\n" \
+"TRUNCATE `UPTypeField`;\n" \
+"\n");
+
+    sVec<const sUsrType2 *> types;
+    sVec<const sUsrTypeField *> fields;
+    sUsrType2::find(*g_user, &types, ".*");
+
+    sSort::sortSimpleCallback(cmp_types_by_id, 0, types.dim(), types.ptr());
+
+    sStr buf, sql_buf;
+    for(idx itype = 0; itype < types.dim(); itype++) {
+        const sUsrType2 * utype = types[itype];
+        if( utype->id().domainId() != sUsrType2::type_type_domain_id ) {
+            continue;
+        }
+
+        fields.empty();
+        buf.cut0cut();
+        utype->getFields(*g_user, fields);
+        sSort::sortSimpleCallback(cmp_typefields_by_name, &buf, fields.dim(), fields.ptr());
+
+        for(idx ifield = 0; ifield < fields.dim(); ifield++) {
+            const sUsrTypeField * field = fields[ifield];
+            if( field->name()[0] == '_' || field->definerType() != utype ) {
+                continue;
+            }
+
+            buf.cut0cut();
+            sql_buf.cut0cut();
+            QP->printf("INSERT INTO `UPTypeField` VALUES (%" UDEC ",", utype->id().objId());
+            QP->printf("%s,", g_user->dbProtectValue(sql_buf, field->name()));
+            QP->printf("%s,", g_user->dbProtectValue(sql_buf, field->title()));
+            if( field->includedFromType() ) {
+                buf.addString("type2");
+                buf.addString(field->typeName());
+                QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, buf.ptr()));
+            } else {
+                QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, field->typeName()));
+            }
+            const sUsrTypeField * non_array_row_parent = field->parent();
+            if( non_array_row_parent && non_array_row_parent->isArrayRow() ) {
+                non_array_row_parent = non_array_row_parent->parent();
+            }
+            QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, non_array_row_parent ? non_array_row_parent->name() : 0));
+            switch(field->role()) {
+                case sUsrTypeField::eRole_input:
+                    QP->printf("in,");
+                    break;
+                case sUsrTypeField::eRole_output:
+                    QP->printf("out,");
+                    break;
+                default:
+                    QP->printf(",");
+                    break;
+            }
+
+            QP->printf("%d,", field->isKey());
+            QP->printf("%d,", field->readonly());
+            QP->printf("%d,", field->isOptional());
+            QP->printf("%d,", field->isMulti());
+            QP->printf("%d,", field->isHidden());
+            QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, field->brief()));
+            QP->printf("%d,", field->isSummary());
+            QP->printf("%d,", field->isVirtual());
+            QP->printf("%d,", field->isBatch());
+            QP->printf("%s,", field->orderString() && field->orderString()[0] ? field->orderString() : "NULL");
+            QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, field->defaultValue()));
+            if( field->defaultEncoding() ) {
+                QP->printf("%" DEC ",", field->defaultEncoding());
+            } else {
+                QP->printf("NULL,");
+            }
+            QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, field->linkUrl()));
+            QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, field->constraint()));
+            if( field->includedFromType() ) {
+                QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, field->includedFromType()->name()));
+            } else {
+                QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, field->constraintData()));
+            }
+            QP->printf("%s,", sqlProtectValueOrNull(*g_user, sql_buf, field->constraintDescription()));
+            QP->printf("%s", sqlProtectValueOrNull(*g_user, sql_buf, field->description()));
+            QP->printf(");\n");
+        }
+    }
+
+    return 0;
+}
+
 
 static idx __on_service_helper(sQPrideClient * QP, idx stage)
 {
@@ -978,6 +1145,7 @@ static idx __on_service(sQPrideClient * QP, const char * cmd, const char *, cons
 #define ifPrtD(_par) if(!strcmp(a,"all") || !strcmp(a,#_par) ){QP->printf("%s%" DEC,comma,svc->_par);comma=QP->comma;}
 #define ifPrtS(_par) if(!strcmp(a,"all") || !strcmp(a,#_par) ){QP->printf("%s%s",comma,*svc->_par ? svc->_par  : "-");comma=QP->comma;}
 #define ifPrtX(_par) if(!strcmp(a,"all") || !strcmp(a,#_par) ){QP->printf("%s%" HEX,comma,svc->_par);comma=QP->comma;}
+#define ifPrtR(_par) if(!strcmp(a,"all") || !strcmp(a,#_par) ){QP->printf("%s%f",comma,svc->_par);comma=QP->comma;}
 
         for(idx i = 0; i < svcCnt; ++i) {
             sStr t;
@@ -1010,9 +1178,13 @@ static idx __on_service(sQPrideClient * QP, const char * cmd, const char *, cons
                 ifPrtS(categories);
                 ifPrtX(maxmemSoft);
                 ifPrtX(maxmemHard);
+                ifPrtD(activeJobReserve);
+                ifPrtR(capacity);
+                ifPrtD(cdate);
+                ifPrtD(permID);
             }
             if( i < svcCnt - 1 )
-                QP->printf(QP->endl);
+                QP->printf("%s", QP->endl);
             ++svc;
         }
 #undef ifPrtD
@@ -1022,24 +1194,29 @@ static idx __on_service(sQPrideClient * QP, const char * cmd, const char *, cons
     return rc;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  submission
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static idx __on_submit(sQPrideClient * QP, const char * cmd, const char *, const char *, sVar * pForm)
 {
     if( sIs(cmd, "-reqSubmit") ) {
-        QP->reqId = QP->reqSubmit(pForm->value("service"));
+        QP->reqId = QP->reqSubmit(pForm->value("service"), 0, 0, g_user.get() ? g_user->Id() : 0);
+        if( QP->reqId ) {
+            const idx grpId = pForm->ivalue("group", 0);
+            if( grpId ) {
+                QP->grpAssignReqID(QP->reqId, grpId);
+                const idx userId = QP->reqGetUser(grpId);
+                if( userId ) {
+                    QP->reqSetUser(QP->reqId, userId);
+                }
+            }
+        }
+
     } else if( sIs(cmd, "-grpSubmit") ) {
-//        idx count = ;
-        QP->grpId = QP->reqId = QP->grpSubmit(pForm->value("service"), 0, 0, pForm->ivalue("count", 0));
+        QP->grpId = QP->reqId = QP->grpSubmit(pForm->value("service"), 0, 0, pForm->ivalue("count", 0), g_user.get() ? g_user->Id() : 0);
     } else if( sIs(cmd, "-reqReSubmit") ) {
         sVec<idx> reqlist;
         sString::scanRangeSet(pForm->value("req"), 0, &reqlist, 0, 0, 0);
-        for(idx i = 0; i < reqlist.dim(); ++i)
+        for(idx i = 0; i < reqlist.dim(); ++i) {
             QP->reqId = QP->reqReSubmit(reqlist[i]);
-        //QP->req=QP->reqReSubmit(pForm->ivalue("req"));
+        }
     } else if( sIs(cmd, "-reqCache") ) {
         QP->reqId = QP->reqCache();
     }
@@ -1047,11 +1224,6 @@ static idx __on_submit(sQPrideClient * QP, const char * cmd, const char *, const
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Data
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const char * equCmd, sVar * pForm)
 {
     if(sIs(cmd,"-reqSetData")){
@@ -1060,10 +1232,12 @@ static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const 
         idx dsize=pForm->ivalue("dsize");
         if(!strncmp(data,"file://",7)) {
             sFil ff(data+7,sMex::fReadonly);
-            if(ff.length())
+            if(ff.length()) {
                 QP->reqSetData(QP->reqId, dataName, dsize ? dsize : ff.length(), (const void *)ff.ptr());
-        }else
+            }
+        } else {
             QP->reqSetData(QP->reqId, dataName, dsize ? dsize : sLen(data)+1, (const void *)data );
+        }
     } else if(sIs(cmd,"-reqGetData")){
         const char * dataName=pForm->value("dataName");
         const char * dstFile=pForm->value("flnm");
@@ -1072,11 +1246,15 @@ static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const 
         if(!dstFile || !strcmp(dstFile,"stdout")) {
             sMex data;
             QP->reqGetData(QP->reqId, dataName, &data);
-            if(data.pos())fwrite(data.ptr(),dsize ? dsize : data.pos(),1,stdout);
+            if(data.pos()) {
+                fwrite(data.ptr(),dsize ? dsize : data.pos(),1,stdout);
+            }
         } else {
             sFil ff(dstFile);
             QP->reqGetData(QP->reqId, dataName, ff.mex());
-            if(dsize)ff.cut(dsize);
+            if(dsize) {
+                ff.cut(dsize);
+            }
         }
     } else if(sIs(cmd,"-grpGetData")){
         const char * dataName=pForm->value("dataName");
@@ -1088,7 +1266,6 @@ static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const 
         sVec < idx > reqs;QP->grp2Req(QP->grpId, &reqs) ;
 
 
-        //if(!strcmp(dstFile,"stdout")) {
         FILE * fp= (!dstFile || strcmp(dstFile,"stdout")==0) ? stdout : fopen (dstFile,"w");
         sMex data;
         for( idx i=0; i<reqs.dim() && i<cntlimit; ++i){
@@ -1102,7 +1279,7 @@ static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const 
             }
             else
                 fwrite(data.ptr(),dsize ? dsize : data.pos(),1,stdout);
-            if(verbose)fprintf(stderr,"%" DEC "/%" DEC "\r",i,reqs.dim());
+            QP->logOut(QP->eQPLogType_Info, "%" DEC "/%" DEC "\r",i,reqs.dim());
         }
         if(fp!=stdout)
             fclose(stdout);
@@ -1123,14 +1300,13 @@ static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const 
         sStr tmpDir, path, tmp;
         if(!dstPath || strcmp(dstPath,"/tmp/")==0 ){
             QP->cfgStr(&tmpDir,pForm, "qm.tempDirectory");
-            //sDir::chDir(tmpDir.ptr());
             dstPath="";
         }
         char * sl=sFilePath::nextToSlash(dstPath);
         sStr dirname; dirname.printf("QPData-%" DEC,QP->reqId);
         if(sl && *(sl)==0) dstPath=path.printf("%s%s%s",tmpDir.ptr(),dstPath,dirname.ptr());
 
-        if(doZip==2) { // lazy mode
+        if(doZip==2) {
             sFil test(tmp.printf("%s.tar.gz",dstPath));
             if(test.length()>0){
                 QP->printf("%s exists\n",tmp.ptr());
@@ -1157,23 +1333,20 @@ static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const 
         for( const char * nm=infos00.ptr(); nm; nm=sString::next00(nm)){
 
 
-            if (filter) { //check if the file's extension matches filter
-                //const char *dot = strrchr(nm, '.');
-                //if ((!dot)||(strcmp(dot+1,filter)!=0)) continue;
+            if (filter) {
                 if ( !strstr(nm,filter) ) continue;
             }
 
-            // compose the name of the file
             tmp.cut(0);
             if(dstPath && *dstPath) tmp.printf("%s%s",dstPath, doZip ? "/" : "");
             tmp.printf("%s",nm);
             if(ext && *ext)tmp.printf(".%s",ext);
 
-            if(doZip==1) // clean the existing file
+            if(doZip==1)
                 sFile::remove(tmp.ptr());
 
             sFil ff(tmp.ptr());
-            if(ff.length()) {  // lazy mode
+            if(ff.length()) {
                 QP->printf("%s exists\n",tmp.ptr());
                 continue;
             }
@@ -1187,26 +1360,16 @@ static idx __on_data(sQPrideClient * QP, const char * cmd, const char * , const 
         if(doZip ){
             sStr outLog;
             tmp.printf(0,"cd %s; tar cvf %s.tar -C %s %s; gzip %s.tar; rm -r %s ",dstPath, dstPath ,tmpDir.ptr(),dirname.ptr(), dstPath, dstPath);
-            //tmp.printf(0,"tar cvf %s.tar %s; gzip %s.tar; ",dstPath ,dstPath, dstPath);
             sFile::remove(path.printf(0,"%s.tar.gz", dstPath));
             sPipe::exeSys(&outLog, tmp.ptr(0));
             if(outLog.length())QP->printf("%s\n",outLog.ptr());
             if(tmp.length())QP->printf("%s\n",tmp.ptr());
 
-            //sFil fzip(path.ptr());
-            //if(fzip.length()){
-            //    QP->reqSetData(QP->req,sFilePath::nextToSlash(path.ptr(0)),fzip.mex());
-            //}
         }
     }
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Resource
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static idx __on_resource(sQPrideClient * QP, const char * cmd, const char * , const char * , sVar * pForm)
 {
     const char * service = pForm->value("service");
@@ -1219,7 +1382,7 @@ static idx __on_resource(sQPrideClient * QP, const char * cmd, const char * , co
         }else {
             ff.init( flnm,sMex::fReadonly );
         }
-        QP->resourceSet(service,pForm->value("resourceName"), rsize ? rsize : ff.length(), (const void *)ff.ptr());
+        return !QP->resourceSet(service,pForm->value("resourceName"), rsize ? rsize : ff.length(), (const void *)ff.ptr());
 
     } else if(sIs(cmd,"-resourceGet")){
         const char * dstFile=pForm->value("flnm");
@@ -1252,8 +1415,6 @@ static idx __on_resource(sQPrideClient * QP, const char * cmd, const char * , co
                 QP->reqGetData(QP->reqId, nm, ff.mex());
                 QP->resourceGet(service, nm, ff.mex(), 0);
                 QP->printf("%s\n", nm);
-                // TODO : implement timesetting
-                // utime(tmp.ptr(),&ub);
             }
         }
     } else if(sIs(cmd,"-resourceDel")){
@@ -1275,13 +1436,9 @@ static idx __on_resource(sQPrideClient * QP, const char * cmd, const char * , co
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Requests
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static const char * _QPReqActionList="unknown" _ "none" _ "run" _ "kill" _ "suspend" _ "resume" __;
 static const char * _QPReqStatusList="unknown" _ "waiting" _ "processing" _ "running" _ "suspended" _ "done" _ "killed" _ "progerror" _ "syserror" __;
+static const char * _QPInfoLevelList="trace" _ "debug" _ "info" _ "warning" _ "error" _ "fatal" __;
 
 static idx __on_request(sQPrideClient * QP, const char * cmd, const char * arg, const char * ,sVar * pForm)
 {
@@ -1324,12 +1481,36 @@ static idx __on_request(sQPrideClient * QP, const char * cmd, const char * arg, 
 
     } else if( sIs(cmd, "-reqGetInfo") ) {
         sVec<sQPrideBase::QPLogMessage> infos;
-        QP->reqGetInfo(QP->reqId, QP->eQPInfoLevel_Min, infos);
+        sStr buf;
+        if( QP->grpId ) {
+            QP->grpGetInfo(QP->grpId, QP->eQPInfoLevel_Min, infos);
+        } else {
+            QP->reqGetInfo(QP->reqId, QP->eQPInfoLevel_Min, infos);
+        }
         for(idx i = 0; i < infos.dim(); ++i) {
-            QP->printf("%" DEC " %" DEC " %s\n", infos[i].level, infos[i].cdate, infos[i].message());
+            buf.cut0cut();
+            QP->printf("%s\t%s\t%s\n", QP->getLevelName(infos[i].level), sString::printDateTime(buf, infos[i].cdate, sString::fISO8601), infos[i].message());
+        }
+    } else if( sIsExactly(cmd, "-reqGetLog") ) {
+        sVec<sQPrideBase::QPLogMessage> logs;
+        sStr buf;
+        QP->getLog(QP->grpId ? QP->grpId : QP->reqId, QP->grpId, QP->jobId, 0, logs);
+        for(idx i = 0; i < logs.dim(); i++) {
+            buf.cut0cut();
+            QP->printf("req %" DEC "\tjob %" DEC "\t%s.%s\t%s\t%s\n", logs[i].req, logs[i].job, logs[i].level >= sQPrideBase::eQPInfoLevel_Min ? "info" : "log", QP->getLevelName(logs[i].level), sString::printDateTime(buf, logs[i].cdate, sString::fISO8601), logs[i].message());
         }
     } else if(sIs(cmd,"-reqSetInfo")){
-        QP->reqSetInfo(QP->reqId, QP->eQPInfoLevel_Info, pForm->value("text") );
+        num = sNotIdx;
+        if ( pForm->value("severity") ) {
+            pos = sString::compareChoice(pForm->value("severity"), _QPInfoLevelList,&num,true, 0, true);
+            if ( pos != sNotIdx ) {
+                num = (num + 1) * 100;
+            }
+        }
+        if ( num == sNotIdx ) {
+            num = QP->eQPInfoLevel_Info;
+        }
+        QP->reqSetInfo(QP->reqId, num, pForm->value("text") );
     } else if(sIs(cmd,"-reqSetAction")){
         pos=sString::compareChoice(arg, _QPReqActionList,&num,true, 0, true);
         if(pos==sNotIdx)sscanf(pForm->value("action"),"%" DEC,&num);
@@ -1362,36 +1543,29 @@ static idx __on_request(sQPrideClient * QP, const char * cmd, const char * arg, 
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Config
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static idx __on_grp(sQPrideClient * QP, const char * cmd, const char * arg, const char * ,sVar * pForm)
 {
-
     if(sIs(cmd,"-grpAssignReqID")){
-        QP->grpId = pForm->ivalue("grp");
+        if( !QP->grpId ) {
+            QP->grpId = pForm->ivalue("grp");
+        }
         QP->grpAssignReqID(QP->reqId, QP->grpId) ;
-    } else if(sIs(cmd,"-getReq2Grp")){
+    } else if(sIs(cmd,"-getReq2Grp")) {
         sVec<idx> grpIds;
         QP->req2Grp(QP->reqId, &grpIds);
-        for( idx i=0; i<grpIds.dim(); ++i)
+        for( idx i=0; i<grpIds.dim(); ++i) {
             QP->printf("%" DEC "\n",grpIds[i]);
-    } else if(sIs(cmd,"-getGrp2Req")){
+        }
+    } else if(sIs(cmd,"-getGrp2Req")) {
         sVec<idx> reqIds;
         QP->grp2Req(QP->grpId, &reqIds);
-        for( idx i=0; i<reqIds.dim(); ++i)
+        for( idx i=0; i<reqIds.dim(); ++i) {
             QP->printf("%" DEC "\n",reqIds[i]);
+        }
     }
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Accounts
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 static idx __on_acct(sQPrideClient * QP, const char * cmd, const char * arg, const char * , sVar * pForm)
 {
@@ -1439,13 +1613,6 @@ static idx __on_acct(sQPrideClient * QP, const char * cmd, const char * arg, con
 }
 
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/  Initialization
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
 void sQPrideClient::printf(const char * formatDescription , ...)
 {
@@ -1458,7 +1625,7 @@ idx sQPrideClient::CmdForm(const char * cmd , sVar * pForm)
     if( !cmd ) {
         return 0;
     }
-    if( !reqId ) { // req may have been set before
+    if( !reqId ) {
         reqId = pForm->ivalue("req");
     }
     if( reqId < 0 ) {
@@ -1468,7 +1635,7 @@ idx sQPrideClient::CmdForm(const char * cmd , sVar * pForm)
     if( pForm->is("grp") ) {
         grpId = pForm->ivalue("grp");
     }
-    for(idx i = 0; cmdExes[i].param != sNotPtr; ++i) {  // see if this is a sQPrideClient command
+    for(idx i = 0; cmdExes[i].param != sNotPtr; ++i) {
         if( cmdExes[i].cmd == 0 || cmdExes[i].cmdFun == 0 )
             continue;
         if( strcmp(cmdExes[i].cmd, cmd) == 0 ) {
@@ -1489,16 +1656,19 @@ sCmdLine::exeCommand sQPrideClient::cmdExes[]={
     {0,0,0,      "\t","\n\nSettings variables\n"},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-req"," req // set request id to work with "},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-grp"," grp // set group id to work with "},
+    {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-job"," job // set job id to work with "},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argAllSpacedList,     "-user"," login password // set user to work with "},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-os"," platform // set the platform "},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argNone,              "-host"," // get the host name and platform  "},
-    {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-verbose"," level // define the level of debug outputs "},
+    {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-logLevel"," level // verbose output level"},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argNone,              "-version"," // show the version of the program "},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argNone,              "-dataint"," // if set all data is translated to ints "},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-respond"," command // define the password for shall command "},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-upsert"," upsert_how // for -exportJson command, set _id to $upsert() (if upsert_how == 'auto'),\n\t\t $upsert_qry() (if upsert_how == 'qry'), or leave as is (if upsert_how == '0' or 'false') "},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argNone,              "-flatten"," // flatten decorative nodes in -exportJson command "},
+    {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argNone,              "-permUser"," // print user permissions in -exportJson / -export command "},
     {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-updateList"," hiveids // for -propJson command, from specified ids (or query:// results),\n\t\t delete those which were not updated by json "},
+    {0,(sCmdLine::exeFunType)&__on_vars,sCmdLine::argOneByOne,          "-excludeProp"," prop_excl // for -exportJson command, exclude specified property "},
 
 
     {0,0,0,      "\t","\n\nGeneral commands\n"},
@@ -1537,7 +1707,7 @@ sCmdLine::exeCommand sQPrideClient::cmdExes[]={
     {0,(sCmdLine::exeFunType)&__on_service,sCmdLine::argAllZeroList,    "-serviceDelete"," name // Delete service "},
 
     {0,0,0,      "\t","\n\nSubmission commands\n"},
-    {0,(sCmdLine::exeFunType)&__on_submit,sCmdLine::argAllZeroList,        "-reqSubmit"," service // submit a request of particular service "},
+    {0,(sCmdLine::exeFunType)&__on_submit,sCmdLine::argAllZeroList,        "-reqSubmit"," service group // submit a request of particular service (to group)"},
     {0,(sCmdLine::exeFunType)&__on_submit,sCmdLine::argAllZeroList,        "-grpSubmit"," service count // submit a group request of particular service "},
     {0,(sCmdLine::exeFunType)&__on_submit,sCmdLine::argAllZeroList,        "-reqReSubmit"," req // resubmit existing request "},
     {0,(sCmdLine::exeFunType)&__on_submit,sCmdLine::argAllZeroList,        "-reqCache"," // create a cache request "},
@@ -1573,13 +1743,17 @@ sCmdLine::exeCommand sQPrideClient::cmdExes[]={
     {0,(sCmdLine::exeFunType)&__on_udb,sCmdLine::argAllZeroList,   "-exportUrl"," hiveids // prop output object(s) or query:// (requires user) "},
     {0,(sCmdLine::exeFunType)&__on_udb,sCmdLine::argAllZeroList,   "-exportHivepack"," directory hiveids // prop output object(s) or query:// (requires user) -e.g. 'query://((obj)<id>).allusedby({recurse:true,with_topic:true})' "},
     {0,(sCmdLine::exeFunType)&__on_udb,sCmdLine::argAllSpacedList,   "-delobj"," hiveids // delete object(s) or query:// (requires user) "},
-    {0,(sCmdLine::exeFunType)&__on_db_init_data_type_sql,sCmdLine::argNone, "-db_init_data_type.sql"," // generate db_init_data_type.sql (requires user) "},
+    {0,(sCmdLine::exeFunType)&__on_db_init_data_type_sql,sCmdLine::argNone, "-db_init_data_type_sql"," // generate db_init_data_type.sql (requires user) "},
+    {0,(sCmdLine::exeFunType)&__on_db_init_data_domain_sql,sCmdLine::argNone, "-db_init_data_domain_sql"," // generate db_init_data_domain.sql (requires user) "},
+    {0,(sCmdLine::exeFunType)&__on_uptype_data_sql,sCmdLine::argNone, "-UPType_data.sql"," // generate old-style UPType_data.sql (requires user) "},
+    {0,(sCmdLine::exeFunType)&__on_uptypefield_data_sql,sCmdLine::argNone, "-UPTypeField_data.sql"," // generate old-style UPTypeField_data.sql (requires user) "},
 
 
     {0,0,0,      "\t","\n\nRequest commands\n"},
     {0,(sCmdLine::exeFunType)&__on_request,sCmdLine::argAllZeroList,   "-requestGet"," variable // retrieve the value of the request parameter, can be variable=all "},
-    {0,(sCmdLine::exeFunType)&__on_request,sCmdLine::argNone,          "-reqGetInfo"," // retrieve the list of messages associated with a request "},
-    {0,(sCmdLine::exeFunType)&__on_request,sCmdLine::argAllSpacedList, "-reqSetInfo"," text // add a new message to the request log "},
+    {0,(sCmdLine::exeFunType)&__on_request,sCmdLine::argNone,          "-reqGetInfo"," // retrieve the list of messages associated with a request or group (specified by -req or -grp) "},
+    {0,(sCmdLine::exeFunType)&__on_request,sCmdLine::argNone,          "-reqGetLog"," // retrieve list of both info messages and debugging log (for request/group/job specified by -req or -grp or -job) "},
+    {0,(sCmdLine::exeFunType)&__on_request,sCmdLine::argAllSpacedList, "-reqSetInfo"," text severity // add a new message to the request log "},
     {0,(sCmdLine::exeFunType)&__on_request,sCmdLine::argAllZeroList,   "-reqSetAction"," action // set action for this request "},
     {0,(sCmdLine::exeFunType)&__on_request,sCmdLine::argAllZeroList,   "-grpSetAction"," action // set action for this request "},
     {0,(sCmdLine::exeFunType)&__on_request,sCmdLine::argNone,          "-reqGetAction"," // get action of the request "},
@@ -1606,11 +1780,6 @@ sCmdLine::exeCommand sQPrideClient::cmdExes[]={
 };
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Help
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static idx __on_help(sQPrideClient * QP, const char * cmd, const char * , const char * ,sVar * pForm)
 {
     if(sIs(cmd,"-help")){

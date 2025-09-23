@@ -44,28 +44,7 @@ idx sVioDB::spaceForConstructInfo=16;
 const char * sVioDB::vioDBFileMarker= "vioDB1.0-";
 
 sVioDB::~sVioDB()
-{/*
-    if(arr.dim()==0)
-        return ;
-
-    idx typeCnt = *arr.ptr(pointerForCntType);
-    idx MaxRel = *arr.ptr(pointerForMaxRel);
-
-    for(idx i = 0; (i < typeCnt) && (i < recordContainerArray.dim()); i++){//the first one in the arr is the type cnt
-        TypeList * typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
-
-        const char * tname = (const char *)&typelist_type->tnameOfs;
-
-        recordContainerArray[i].destroy();
-
-        if (i < recordBodyContainerArray.dim()){
-            recordBodyContainerArray[i].destroy();
-        }
-        for(idx k=0; k < MaxRel && k<recordRelationContainerArray.dim(); k++){
-            recordRelationContainerArray[i*MaxRel+k].destroy();
-        }
-    }
- */
+{
 }
 
 
@@ -82,12 +61,10 @@ void sVioDB::AddType(sVioDB::ctype type,idx relCnt,idx * relationlist,const char
     typelist_type->index=indexOneBased;
     sStr filenamebuf;
     filenamebuf.printf(0,"%s_recordContainer_%s",filename.ptr(), tname);
-    //recordContainer->setflag(sMex::fSetZero|sMex::fBlockDoubling);
     recordContainer->init(filenamebuf.ptr(0),sMex::fSetZero|sMex::fBlockDoubling);
     recordContainer->cut(0);
 
     filenamebuf.printf(0,"%s_recordBodyContainer_%s",filename.ptr(), tname);
-    //recordBodyContainer->setflag(sMex::fSetZero|sMex::fBlockDoubling);
     recordBodyContainer->init(filenamebuf.ptr(0),sMex::fSetZero|sMex::fBlockDoubling);
     recordBodyContainer->cut(0);
 
@@ -98,13 +75,11 @@ void sVioDB::AddType(sVioDB::ctype type,idx relCnt,idx * relationlist,const char
         typelist_type->rels[i].typeIndex=0;
         filenamebuf.printf(0,"%s_recordRelationContainer_%s_%" DEC "",filename.ptr(), tname,i);
         sVec <idx> * recordRelationContainer=recordRelationContainerArray.add(1);
-        //recordRelationContainer->setflag(sMex::fSetZero|sMex::fBlockDoubling);
         recordRelationContainer->init(filenamebuf.ptr(0),sMex::fSetZero|sMex::fBlockDoubling);
         recordRelationContainer->cut(0);
     }
 
     idx tnameSize=strlen(tname)+1;
-    //typelist_type->tnameSizeOrHash=tnameSize;
     if(hashtype)    typelist_type->tnameSizeOrHash=hashtype;
     else typelist_type->tnameSizeOrHash=tnameSize;
     if(tnameSize <= (idx)sizeof(idx)) {
@@ -130,9 +105,7 @@ idx sVioDB::AddRecord(idx typeIndexOneBased, const void * record, const idx reco
                 if( recordsize <= (idx) (sizeof(idx) - zeroAdd) ) {
                     ptr = &(recordtype_type->ofs);
                 } else {
-                    // idx size aligned
                     const idx lenInIntegersAlloc = ((recordsize + zeroAdd - 1) / sizeof(idx)) + 1;
-                    // Here we need to remember its own ofs because some of them do not in the body file
                     recordtype_type->ofs = typelist_type->bodyCnt + 1;
                     typelist_type->bodyCnt += lenInIntegersAlloc;
                     sVec<idx> * recordBodyContainer = recordBodyContainerArray.ptr(myIndex);
@@ -147,9 +120,7 @@ idx sVioDB::AddRecord(idx typeIndexOneBased, const void * record, const idx reco
                 if( recordsize <= (idx) sizeof(idx) ) {
                     ptr = &(recordtype_type->ofs);
                 } else {
-                    // idx size aligned
                     const idx lenInIntegersAlloc = ((recordsize - 1) / sizeof(idx)) + 1;
-                    // Here we need to remember its own ofs because some of them do not in the body file
                     recordtype_type->ofs = typelist_type->bodyCnt + 1;
                     typelist_type->bodyCnt += lenInIntegersAlloc;
                     sVec<idx> * recordBodyContainer = recordBodyContainerArray.ptr(myIndex);
@@ -194,8 +165,6 @@ bool sVioDB::AllocRelation()
                 if(recordContainerArray.ptr(i)->dim()==0)continue;
 
                 RecordType * recordtype_from=(RecordType *)recordContainerArray.ptr(i)->ptr(k*sizeofRECORDTYPE(typelist_type->relCnt));
-                //when we see cnt=0, we do not allocate any space. or when we see cnt=1, we do not allocate
-                //any space because we know we will fill it in the record's relationship's offset directly;
                 if(!recordtype_from->rels[j].cnt || recordtype_from->rels[j].cnt==1) continue;
                 recordtype_from->rels[j].ofs=totalcount+1;
                 totalcount+=recordtype_from->rels[j].cnt;
@@ -208,7 +177,7 @@ bool sVioDB::AllocRelation()
     return true;
 }
 
-bool sVioDB::AddRelation(idx typeIndexOneBased_from, idx typeIndexOneBased_to, idx reocrdIndexOneBased_from, idx recordIndexOneBased_to) // ,idx relationIndexOneBased_to)
+bool sVioDB::AddRelation(idx typeIndexOneBased_from, idx typeIndexOneBased_to, idx reocrdIndexOneBased_from, idx recordIndexOneBased_to)
 {
     TypeList * typelist_from = sVioDB::GetTypePointer(typeIndexOneBased_from);
 
@@ -233,12 +202,10 @@ bool sVioDB::AddRelation(idx typeIndexOneBased_from, idx typeIndexOneBased_to, i
 
 bool sVioDB::deleteAllJobs(bool ifJustUnmap)
 {
-/*
-#warning "Jing, since the file is to be deleted - no reason to spend time concatenating it , these files usually are huge";*/
     idx typeCnt = *arr.ptr(pointerForCntType);
     idx MaxRel = *arr.ptr(pointerForMaxRel);
     sStr filenamebuf;
-    for(idx i = 0; (i < typeCnt) && (i < recordContainerArray.dim()); i++){//the first one in the arr is the type cnt
+    for(idx i = 0; (i < typeCnt) && (i < recordContainerArray.dim()); i++){
         TypeList * typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
 
         const char * tname = (const char *)&typelist_type->tnameOfs;
@@ -297,12 +264,8 @@ bool sVioDB::deleteAllJobs(bool ifJustUnmap)
 
 bool sVioDB::readonlyAllRecord(void)
 {
-/*
-#warning "Jing, since the file is to be deleted - no reason to spend time concatenating it , these files usually are huge";*/
     idx typeCnt = *arr.ptr(pointerForCntType);
-    ////idx MaxRel = *arr.ptr(pointerForMaxRel);
-    for(idx i = 0; (i < typeCnt) && (i < recordContainerArray.dim()); i++){//the first one in the arr is the type cnt
-        //TypeList * typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
+    for(idx i = 0; (i < typeCnt) && (i < recordContainerArray.dim()); i++){
 
         recordContainerArray[i].remap(sMex::fReadonly);
 
@@ -310,60 +273,13 @@ bool sVioDB::readonlyAllRecord(void)
             recordBodyContainerArray[i].remap(sMex::fReadonly);
         }
 
-        /* do not reaonly map this
-        for(idx k=0; k < MaxRel && k<recordRelationContainerArray.dim(); k++){
-            recordRelationContainerArray[i*MaxRel+k].remap(sMex::fReadonly);
-        }
-        */
 
     }
-    //hashTable.remap(sMex::fReadonly);
     hashTable.hashTableVec.remap(sMex::fReadonly);
     arr.remap(sMex::fReadonly);
 
     return true;
 }
-/*
-bool sVioDB::deleteAllJobs()
-{
-
-    idx typeCnt = *arr.ptr(pointerForCntType);
-    idx MaxRel = *arr.ptr(pointerForMaxRel);
-    sStr filenamebuf;
-    for(idx i = 0; (i < typeCnt) && (i < recordContainerArray.dim()); i++){//the first one in the arr is the type cnt
-        TypeList * typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
-
-        const char * tname = (const char *)&typelist_type->tnameOfs;
-
-        recordContainerArray[i].cut(0);
-        recordContainerArray[i].destroy();
-
-        filenamebuf.printf(0,"%s_recordContainer_%s",filename.ptr(),tname);
-        sFile::remove(filenamebuf.ptr(0));
-
-        if (i < recordBodyContainerArray.dim()){
-            recordBodyContainerArray[i].cut(0);
-            recordBodyContainerArray[i].destroy();
-            filenamebuf.printf(0,"%s_recordBodyContainer_%s",filename.ptr(),tname);
-            sFile::remove(filenamebuf.ptr(0));
-        }
-        for(idx k=0; k < MaxRel && k<recordRelationContainerArray.dim(); k++){
-             recordRelationContainerArray[i*MaxRel+k].cut(0);
-             recordRelationContainerArray[i*MaxRel+k].destroy();
-            filenamebuf.printf(0,"%s_recordRelationContainer_%s_%" DEC "",filename.ptr(), tname,k);
-            sFile::remove(filenamebuf.ptr(0));
-        }
-
-    }
-    filenamebuf.printf(0,"%s_hash",filename.ptr());
-    sFile::remove(filenamebuf.ptr(0));
-    arr.cut(0);
-    arr.destroy();
-    filenamebuf.printf(0,"%s",filename.ptr());
-    sFile::remove(filenamebuf.ptr(0));
-    return true;
-}
-*/
 bool sVioDB::renameAllFiles(const char *newfilename)
 {
     idx typeCnt = *arr.ptr(pointerForCntType);
@@ -371,7 +287,7 @@ bool sVioDB::renameAllFiles(const char *newfilename)
     sStr filenamebuf;
     sStr newfilenamebuf;
 
-    for(idx i = 0; i < typeCnt; i++){//the first one in the arr is the type cnt
+    for(idx i = 0; i < typeCnt; i++){
         TypeList * typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
 
         const char * tname = (const char *)&typelist_type->tnameOfs;
@@ -405,18 +321,15 @@ bool sVioDB::Finalize(bool ifGlueTheFile)
     idx typeCnt = *arr.ptr(pointerForCntType);
     idx MaxRel = *arr.ptr(pointerForMaxRel);
     if(ifGlueTheFile){
-        //ifGlueTheFile=0;
-        arr[0]=1;//flag for if finalize
+        arr[0]=1;
         idx totalsize=arr.dim();
 
-        for(idx i = 0; i < typeCnt; i++){//the first one in the arr is the type cnt
+        for(idx i = 0; i < typeCnt; i++){
             TypeList * typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
             if(!typelist_type->cnt) continue;
             typelist_type->ofs=totalsize;
-            //arr.cut(totalsize);
 
             arr.glue(recordContainerArray.ptr(i));
-            //every time we glue it, we need to find the pointer again
             typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
              totalsize+=(typelist_type->cnt)*sizeofRECORDTYPE(typelist_type->relCnt);
              recordContainerArray[i].cut(0);
@@ -427,7 +340,6 @@ bool sVioDB::Finalize(bool ifGlueTheFile)
                 TypeList * typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
                 if(!typelist_type->rels[k].cnt) continue;
                 typelist_type->rels[k].ofs=totalsize;
-                //arr.cut(totalsize);
                 arr.glue(recordRelationContainerArray.ptr(i*MaxRel+k));
                 typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
                  totalsize+=typelist_type->rels[k].cnt;
@@ -437,19 +349,16 @@ bool sVioDB::Finalize(bool ifGlueTheFile)
         }
         arr[pointerForMapOfs]=totalsize;
         arr[pointerForMapSize]=hashTable.hashMemSize()/sizeof(idx);
-        //idx * ptr=0;
         if(arr[pointerForMapSize]) {
             idx * ptr=arr.add(arr[pointerForMapSize]);
             if(ptr)memcpy((void*)ptr,(void*)hashTable.hashMem(),arr[pointerForMapSize]*sizeof(idx));
             totalsize+=arr[pointerForMapSize];
         }
-        //every time we glue it, we need to find the pointer again
 
 
-        for(idx i = 0; i < typeCnt; i++){//the first one in the arr is the type cnt
+        for(idx i = 0; i < typeCnt; i++){
             TypeList * typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
             if(!typelist_type->bodyCnt) continue;
-            //arr.cut(totalsize);
             arr.glue(recordBodyContainerArray.ptr(i));
             typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
             typelist_type->bodyofs=totalsize;
@@ -459,7 +368,7 @@ bool sVioDB::Finalize(bool ifGlueTheFile)
         }
     }
 
-    for(idx i = 0; i < typeCnt; i++){//the first one in the arr is the type cnt
+    for(idx i = 0; i < typeCnt; i++){
         TypeList * typelist_type=(TypeList *)arr.ptr(spaceForConstructInfo+i*sizeofTYPELIST(MaxRel));
         if(!typelist_type->tnameOfs) continue;
         const char * tname = (const char *)&typelist_type->tnameOfs;
@@ -489,22 +398,17 @@ idx sVioDB::GetRecordIndexByBody(const void * body, idx typeIndexOneBased, idx b
     }
     if(typelist_type->tnameSizeOrHash<hNone){
 
-        if(!hashTable.ok()){// {!hashTable.hashPtr)
+        if(!hashTable.ok()){
             sStr filenamebuf; filenamebuf.printf("%s_hash",filename.ptr());
             hashTable.init(filenamebuf,fileOpenMode);
         }
-        //maintain the previous code
-        //if Not specified, will be 0, still use hash
-        //if specified, but hReg, use hash
         hashTable.keyParam=(void*)this;
         idx retval=hashTable.find(typeIndexOneBased, body, bodysize);
         return retval>0 ? retval-1 : 0;
     }
-    //specified and say none
     else if(typelist_type->tnameSizeOrHash==hNone)  return 0;
     else if(typelist_type->tnameSizeOrHash==hInt){
         idx midIndex=0;
-        //integer stored in ascending order;
         for(idx lowerBound=1,uperBound = typelist_type->cnt;lowerBound<=uperBound;){
             midIndex=(lowerBound+uperBound)/2;
             idx bodyMid = *(idx *)Getbody(typeIndexOneBased,midIndex,0);
@@ -530,7 +434,7 @@ bool sVioDB::SetRecordIndexByBody(const void * body,idx typeIndexOneBased, idx *
         else bodysize=sLen(body)+1;
     }
 
-    if(!hashTable.ok()){// {!hashTable.hashPtr)
+    if(!hashTable.ok()){
         sStr filenamebuf; filenamebuf.printf("%s_hash",filename.ptr());
         hashTable.init(filenamebuf,fileOpenMode);
     }
@@ -578,7 +482,7 @@ void * sVioDB::Getbody(idx typeindex, idx recordIndex, idx * bodysize)
     sVec <idx> * recordBodyContainer=recordBodyContainerArray.ptr(typeindex-1);
 
     if(typelist_type && recordtype_type){
-        if(bodysize ) *bodysize = recordtype_type->size; // && !*bodysize
+        if(bodysize ) *bodysize = recordtype_type->size;
         if(recordtype_type->size <= 8) body = (void *)&recordtype_type->ofs;
         else {
             if(arr[0]) body = (void *)arr.ptr(typelist_type->bodyofs+recordtype_type->ofs-1);
@@ -641,7 +545,6 @@ sVioDB::TypeList * sVioDB::GetTypePointer(idx typeindex)
 {
     TypeList * typelist_type=0;
     if(typeindex <= arr[pointerForCntType]) typelist_type = (TypeList *)arr.ptr(spaceForConstructInfo+(typeindex-1)*sizeofTYPELIST(arr[pointerForMaxRel]));
-    //else printf("error");
     else return 0;
     return typelist_type;
 }
@@ -675,11 +578,6 @@ idx sVioDB::concatTypes(sVioDB * src )
 
     sVioDB * dst=this;
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Borrow the Data format headers
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
 
     idx typeCount=src->GetTypeCnt();
     for ( idx it=0; it<typeCount; ++it) {
@@ -713,20 +611,19 @@ idx sVioDB::concatRecordsAndRelationshipCounts(sVioDB * src , idx * countsForFil
 
             idx bodysize=0;
             void * bodyptr=src->Getbody(typelist_type->index, ir+1, &bodysize);
-            // see if this has been hashed ?
             mySrcRecID=src->GetRecordIndexByBody(bodyptr, typelist_type->index ,bodysize);
             myDstRecID=0;
 
             if(mySrcRecID) {
                 if( dst->SetRecordIndexByBody((const void *)bodyptr, typelist_type->index, &myDstRecID, bodysize) ){
                     dst->AddRecord(typelist_type->index,(const void *)bodyptr, bodysize);
-                    if(countsForFileTypes)++countsForFileTypes[it]; // increment if adding new records
+                    if(countsForFileTypes)++countsForFileTypes[it];
                 }
             }
             else {
                 myDstRecID=dst->AddRecord(typelist_type->index,(const void *)bodyptr, bodysize);;
                 mySrcRecID=ir+1;
-                if(countsForFileTypes)++countsForFileTypes[it]; // increment if adding new records
+                if(countsForFileTypes)++countsForFileTypes[it];
             }
 
             for ( idx il=0; il<typelist_type->relCnt; ++il ){
@@ -778,10 +675,10 @@ idx sVioDB::concatRelationships(sVioDB * src , idx * recordOffsetsForFileTypes )
                         bodyptr=src->Getbody(typelist_type->rels[il].typeIndex, relPtr[ik], &bodysize);
                         myNewToRecID=dst->GetRecordIndexByBody(bodyptr, typelist_type->rels[il].typeIndex, bodysize);
                         if(!myNewToRecID)
-                            myNewToRecID=relPtr[ik]+recordOffsetsForFileTypes [typelist_type->rels[il].typeIndex-1];//recordOffsetsForFileTypes [it];
+                            myNewToRecID=relPtr[ik]+recordOffsetsForFileTypes [typelist_type->rels[il].typeIndex-1];
                     }
 
-                    dst->AddRelation(typelist_type->index, il+1, myNewFromRecID, myNewToRecID ); // ir+1
+                    dst->AddRelation(typelist_type->index, il+1, myNewFromRecID, myNewToRecID );
                 }
 
             }
@@ -808,13 +705,11 @@ idx sVioDB::concatFiles( const char * dstfile, const char * filenames, const cha
         }
         sFile::remove(dstfile);
         this->fileOpenMode=sMex::fSetZero|sMex::fBlockDoubling;
-        //this->arr.mex()->flags&=(~sMex::fReadonly);
         this->init(dstfile,fileMarker,srcList.ptr(0)->arr[pointerForCntType],srcList.ptr(0)->arr[pointerForMaxRel],sMex::fSetZero|sMex::fBlockDoubling);
         idx typeCount=concatTypes(srcList.ptr(0));
 
         *(this->userSpace8())=*(srcList.ptr(0)->userSpace8());
 
-        // allocate space to remember counts for each file for each type of object
         sVec < idx > recordCounts(sMex::fSetZero|sMex::fBlockDoubling),  recordOffsets(sMex::fSetZero|sMex::fBlockDoubling);
         recordCounts.add(srcList.dim()*typeCount);
         recordOffsets.add(typeCount);
@@ -835,9 +730,6 @@ idx sVioDB::concatFiles( const char * dstfile, const char * filenames, const cha
 
         if(removeOriginals){
             for( const char * flnm=filenames00; flnm; flnm=sString::next00(flnm) ){
-//                sStr cmdLine;
-//                cmdLine.printf("rm %s*",flnm);
-//                system(cmdLine);
                 sFile::remove(flnm);
             }
             for( idx i=0; i< srcList.dim(); ++i) {
@@ -862,14 +754,12 @@ void sVioDB::viodDBSorter( idx typeIndexOneBased, idx relationIndexOneBased, sVi
 
     idx cntRecord = GetRecordCnt(typeIndexOneBased);
     for(idx cr=0; cr < cntRecord; cr++){
-    // determine relationionPtr and Count
         idx relationCnt=0;
         idx relationTypeIndex=0;
         idx * relPtr = GetRelationPtr(typeIndexOneBased, cr+1, relationIndexOneBased, &relationCnt, &relationTypeIndex);
         if(relationCnt<2)continue;
 
         vioDBRelationSorter(relPtr,myCallback,myParam,typeIndexOneBased,relationTypeIndex,cr+1,relationCnt);
-        //sSort::sortSimpleCallback<idx>(ComparatorWrapper, &MyparaStr, relationCnt, relPtr);
     }
 }
 
@@ -898,20 +788,15 @@ void sVioDB::viodDBSorter( idx typeIndexOneBased, idx * indexes, sVioDBSorterFun
     MyparaStr.externalParam=myParam;
 
     idx cntRecord = MyparaStr.viodb->GetRecordCnt(typeIndexOneBased);
-    //indexes->add(cntRecord);
     sVec<idx> rPtr;
     rPtr.add(cntRecord);
     idx * relPtr=rPtr.ptr(0);
     for(idx cr=0; cr < cntRecord; cr++)
         relPtr[cr]=cr+1;
 
-    //for(idx cr=0; cr < cntRecord; cr++){
-        // determine relationionPtr and Count
-        /*idx * relPtr = indexes;*/
         MyparaStr.typeTo=typeIndexOneBased;
         MyparaStr.recordFrom=0;
         sSort::sortSimpleCallback<idx>(ComparatorWrapper,&MyparaStr, cntRecord, relPtr, indexes);
-    //}
 }
 
 void * sVioDB::genericTableFileInitForVioDB(const char * fileBody, idx fileLength, const char * separtor, const char * filename)
@@ -945,8 +830,6 @@ idx sVioDB::genericTableParserForVioDB(void * usrObj, sVec<sVar> &buf, idx usrIn
         if(name) n.add(name,namesize);
         n.add0();
 
-        //if(!namesize || !size || sString::compareChoice( n.ptr(0), columnListDic,0,false, 0,true)==-1)continue;
-      //  n.cut(0);
         if(row+1==1 && !strncmp("parentC",name,namesize)) continue;
 
         if(!strncmp("rankC",n.ptr(),namesize) || !strncmp("nameC",n.ptr(),namesize)){
@@ -961,84 +844,12 @@ idx sVioDB::genericTableParserForVioDB(void * usrObj, sVec<sVar> &buf, idx usrIn
 
 
 }
-/*
-idx sVioDB::genericTableParserForVioDBHeaderless(void * usrObj, sVar * buf, idx usrIndex, const char * columnList00 )
-{
-    sTbl * tbl=(sTbl*)usrObj;
-    idx row=usrIndex;
 
-    if(row >= tbl->rows())
-        return sNotIdx;
-
-    for ( const char * pcol=columnList00; p ; p=sString::next00(p)) {
-        idx icol; sscanf(p+3,"%" DEC,&icol);
-
-        sStr c;
-        idx size=0,namesize=0;
-        const void * cl=tbl->cell(row,icol,&size);
-
-        buf->inp(pcol,cl,size);
-    }
-    return row+1;
-
-}
-
-idx sVioDB::genericTableParserForVioDBHeaderlessWithRangeUnderstanding(void * usrObj, sVar * buf, idx usrIndex, const char * columnList00 )
-{
-    sTbl * tbl=(sTbl*)usrObj;
-    idx row=usrIndex;
-
-    if(row >= tbl->rows())
-        return sNotIdx;
-
-    for ( const char * pcol=columnList00; p ; p=sString::next00(p)) {
-        if(strncmp(pcol,"range",5)==0){
-            idx col1,col2;
-            sscanf(pcol+5,"%" DEC ",%" DEC,&col1,&col2);
-            const void * cl1=tbl->cell(row,col1,&size);
-            idx range[2];
-            r[0]=sscanf(cl1,"%" DEC,&cl1);
-            const void * cl2=tbl->cell(row,col2,&size);
-            r[1]=sscanf(cl2,"%" DEC,&cl2);
-            buf->inp(pcol,r,2*sizeof(idx));
-        }
-        else if(strncmp(pcol,"col",3)==0){
-            idx icol; sscanf(p+3,"%" DEC,&icol);
-            idx size=0;
-            const void * cl=tbl->cell(row,icol,&size);
-            buf->inp(n.ptr(),cl,size);
-        }
-    }
-    return row+1;
-
-}
-*/
-
-/*
-idx sVioDB::fileBasedParserForVioDB(void * usrObj, sVar * buf, idx usrIndex)
-{
-    sFil * fil=(sFil*)usrObj;
-    idx offset=usrIndex;
-
-    if(offset>=fil->length())return sNotIdx;
-
-    // your logic of retrieving next object with its fields
-    // and move offset appropriately
-
-    return offset;
-
-}
-*/
 
 void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sVioDBType,  const char* inputfilename, bool combinedFile, sVec <genericParserForVioDB> * ParserFunctionList, sVec <genericFileInitForVioDB> * fileInitList, sVec <genericFileDestoryForVioDB> * fileDestroyList, const char * srcFileNameListCommaSep, const char * sep, void * param)
 {
 
-    //void * usrPointer=initFileCallback(controlFileName)
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Read the control input files
-    // _/
 
     sFil controlFile(controlFileName,sMex::fReadonly);
     if(!controlFile.length()){
@@ -1051,28 +862,21 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
     idx cntRows= controlTable.rows();
     sDic <COLUMN> colNameMap;
     sDic <TYPE> typeNameMap;
-   // sStr columnList00;
     sDic< sVec<sStr> > columnListDic;
     idx typeMaxRel =1;
     COLUMN *cPtr=0;
     TYPE *tPtr=0;
-    // Parsing control file and reading type and relation information
 
     const char * listCtype="eNone" _ "eInt" _ "eDouble" _ "eString" _ "eBool" _ "eOther" __;
 
 
     for(idx i=1;i<cntRows;i++){
 
-        //if(!i) {continue;}
-        //get column name
         sStr buf1;
         controlTable.get(&buf1,i,1);
         cPtr =  colNameMap.set(buf1.ptr());
-       // columnList00.add(buf1.ptr(),sLen(buf1.ptr())+1);
         sVec<sStr> * columnListDicPtr = columnListDic.set(buf1.ptr(),sLen(buf1.ptr()));
 
-        //get relation Cnt for this type
-        //do the colum index at the next loop
         idx relCnt=1;
         sStr buf2;
         controlTable.get(&buf2,i,4);
@@ -1086,14 +890,12 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
         tPtr = typeNameMap.set(buf3.ptr());
         tPtr->relCnt += relCnt;
         if(tPtr->relCnt > typeMaxRel) typeMaxRel = tPtr->relCnt;
-        //type Index zero Based
         cPtr->typeIndex = typeNameMap.find(buf3.ptr())-1;
 
         sStr buf4;
         idx ctype=-1;
         controlTable.get(&buf4,i,3);
         sString::compareChoice(buf4, listCtype,&ctype,false, 0,true);
-       // sscanf(buf4.ptr(),"%" DEC,&ctype);
         if(ctype==-1)   ctype=1;
         tPtr->ctype=ctype;
         cPtr->ctype=ctype;
@@ -1107,11 +909,9 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
         const char * ptr=buf.ptr();
         idx j=0;
         for(; ptr ; ptr = sString::next00(ptr),j++){
-            //index zero based
             if(colNameMap.find(ptr)>0) colNameMap[buf1.ptr()].colIndLIST[j]=colNameMap.find(ptr)-1;
             else {
                 colNameMap.set(ptr);
-                //column index one based
                 colNameMap[buf1.ptr()].colIndLIST[j]=colNameMap.dim()-1;
             }
         }
@@ -1138,18 +938,15 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
             for(; ptr ; ptr = sString::next00(ptr),j++){
                 if(columnListDicPtr){
                     sStr * sStrPtr = columnListDicPtr->add(1);
-                    sStrPtr->printf(0,ptr);
+                    sStrPtr->printf(0, "%s", ptr);
                 }
             }
         }
     }
 
 
-   //by this point, the colNameMap's information full
-   //but the typeNameMap' typeIndList still need to be filled
     idx colCnt = colNameMap.dim();
     for(idx i=0;i<colCnt;i++){
-        //for each colum, set their typeIndLIST
         COLUMN * colPtr = (COLUMN *)colNameMap.ptr(i);
         TYPE * typePtr = (TYPE *)typeNameMap.ptr(colPtr->typeIndex);
         idx relCnt = colPtr->colIndLIST.dim();
@@ -1158,7 +955,6 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
             if(relColIndex!=-1){
                 COLUMN * relColPtr = (COLUMN *)colNameMap.ptr(relColIndex);
                 idx * temPtr = typePtr->typeIndLIST.add(1);
-                //For vioDB, it use one based index, so here we add one
                 *temPtr = relColPtr->typeIndex+1;
                 colPtr->relIndLIST[j]= typePtr->typeIndLIST.dim();
             }
@@ -1172,13 +968,9 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
 
     idx typeCnt=  typeNameMap.dim();
 
-  // ====================================================
-  // here we start the actual construction of vioDB object..
-  // ====================================================
 
     sVioDB db(inputfilename,sVioDBType,typeCnt,typeMaxRel);
 
-    // adding types to viodb
     for(idx i=0;i<typeCnt;i++){
         TYPE * typePtr = (TYPE *)typeNameMap.ptr(i);
         idx ctype = typePtr->ctype;
@@ -1189,29 +981,18 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
     }
 
 
-     // tokenize input filenames to start the parsing process one by one
      sStr nameListbuf;
      sString::searchAndReplaceSymbols(&nameListbuf,srcFileNameListCommaSep,0,",",0, 0,true , true, false , true);
      const char * srcName=nameListbuf.ptr();
      sVec<sVar> lineArray;
 
-     // ====================================
-     // preparing the container and relation
-     // ====================================
 
-     idx runNumber = 1;  // parsed times: parse the source files at first time
+     idx runNumber = 1;
 
      for(idx initFileIndex=0,destroyFileIndex=0,parseFileIndex=0;srcName!=NULL;){
-        //const sVioDB::genericParserForVioDB * ParserFunctionPtr = ParserFunctionList->ptr(0);
-        //const sVioDB::genericFileInitForVioDB * FileInitPtr = fileInitList;
-        //const sVioDB::genericFileDestoryForVioDB * FileDestoryPtr = fileDestroyList;
         sFil srcFile(srcName,sMex::fReadonly);
         const char * src=srcFile.ptr();
 
-        //if(!src){
-        //    ::printf("The source file %s is unreadable\n",srcName);
-        //    return;
-        //}
 
         void * usrObj = (*fileInitList->ptr(initFileIndex))(src, srcFile.length(),sep, srcName, param);
         if(initFileIndex < fileInitList->dim()-1) initFileIndex++;
@@ -1221,14 +1002,10 @@ void sVioDB::parsefileToVioDBFormat(const char* controlFileName, const char * sV
 PERF_START("FIRST GO");
         for (  ; offset!=sNotIdx ;index++)
         {
-            //if(index>10000)
-            //    break;
             PERF_START("ParserFunction");
 
             lineArray.cut(0);
             offset=(*ParserFunctionList->ptr(parseFileIndex))(usrObj,lineArray,offset,columnListDic, runNumber, param);
-            //idx cntCol = colNameMap.dim();
-            //For each one in the line,we dop
             PERF_END();
             PERF_START("lineArray");
 
@@ -1287,28 +1064,15 @@ PERF_START("FIRST GO");
 PERF_END();
 PERF_PRINT();
     db.AllocRelation();
-    //db.readonlyAllRecord();
 
-     // ===============================
-     // add the body to the container
-     // ===============================
     sString::searchAndReplaceSymbols(&nameListbuf,srcFileNameListCommaSep,0,",",0, 0,true , true, false , true);
     srcName=nameListbuf.ptr();
-    runNumber = 2;   // parsed times: parse the source files at second time
+    runNumber = 2;
 
     for(idx initFileIndex=0,destroyFileIndex=0,parseFileIndex=0;srcName!=NULL;){
-/*
-        const sVioDB::genericParserForVioDB * ParserFunctionPtr = ParserFunctionList;
-        const sVioDB::genericFileInitForVioDB * FileInitPtr = fileInitList;
-        const sVioDB::genericFileDestoryForVioDB * FileDestoryPtr = fileDestroyList;
-        */
         sFil srcFile(srcName,sMex::fReadonly);
         const char * src=srcFile.ptr();
 
-      //  if(!src){
-      //      ::printf("The Sorce file %s is unreadable\n",srcName);
-      //      return;
-      //  }
 
         void * usrObj = (*fileInitList->ptr(initFileIndex))(src, srcFile.length(),sep,srcName, param);
         if(initFileIndex < fileInitList->dim()-1) initFileIndex++;
@@ -1321,7 +1085,6 @@ PERF_PRINT();
             for(idx vi = 0;vi<lineArray.dim();vi++, ++iRec){
                 sVar &line = lineArray[vi];
                 idx cntVar = line.dim();
-                //For each line
                 for(int j=0;j<cntVar;j++){
                     idx size =0 ;
                     const char * vName = (char *)line.id(j);
@@ -1342,11 +1105,8 @@ PERF_PRINT();
                             myRecordID=db.GetRecordIndexByBody(body, cPtr->typeIndex+1,size);
                         }
                         else {
-                            //asume it will always have the header
                             myRecordID = iRec+1 > db.GetRecordCnt(cPtr->typeIndex+1)?db.GetRecordCnt(cPtr->typeIndex+1):iRec+1;
                         }
-                       // if(!myRecordID)
-                         //   continue;
                         for(int k=0;k<cPtr->relCnt;k++){
                             idx myRecordID1 =0;
                             idx size1=0;
@@ -1354,7 +1114,6 @@ PERF_PRINT();
                             if(colIndex==-1) break;
 
                             const char *c1Name = (const char *)colNameMap.id(colIndex);
-                          //  COLUMN * c1Ptr = colNameMap.get(c1Name);
                             COLUMN * c1Ptr = colNameMap.ptr(colIndex);
 
                             const void * body1 = line.value(c1Name,0,&size1);
@@ -1374,8 +1133,6 @@ PERF_PRINT();
                                     myRecordID1=db.GetRecordIndexByBody(body1, c1Ptr->typeIndex+1,size1);
                                 }
                                 else myRecordID1 = (iRec+1) > db.GetRecordCnt(c1Ptr->typeIndex+1) ? db.GetRecordCnt(c1Ptr->typeIndex+1):(iRec+1);
-                                //if(!myRecordID || !myRecordID1) continue;
-                               // if(!myRecordID1) continue;
                                 db.AddRelation(cPtr->typeIndex+1, cPtr->relIndLIST[k], myRecordID , myRecordID1 );
                             }
                         }

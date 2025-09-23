@@ -46,7 +46,8 @@ var all_reports = [
 
 $.loadLayoutManager();
 
-$(document).ready(function() {
+gInitList += "reportsInit();";
+function reportsInit () {
     vjDS.add("Report parameters", "dsReportParams", "static://");
     vjDS.add("Report table", "dsReportTable", "static://")
     var config = {
@@ -111,7 +112,7 @@ $(document).ready(function() {
                                                     ids = "&ids="+node.id;
                                                 }
                                                 if (!cmd) return;
-                                                linkURL("?cmd="+cmd+ids, "process"+node.id);
+                                                linkURL(makeCmdSafe(cmd)+ids, "process"+node.id);
                                             },
                                             precompute: function(view, tbl, ir) {
                                                 var row = tbl.rows[ir];
@@ -193,7 +194,7 @@ $(document).ready(function() {
                 )
         );
     }, 5000);
-});
+};
 </script>
 
 <form name="formReports">

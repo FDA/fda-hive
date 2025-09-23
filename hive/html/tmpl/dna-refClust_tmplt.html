@@ -226,14 +226,14 @@ vim: set et ts=4 sts=4:
         
         }
     };
-
-    $(document).ready(function() 
-    {
+    
+    gInitList += "refClustInit();";
+    function refClustInit () {
         globalAlgo = $('#mainAlgoArea').algoview({
             algoObj: algoProcess,
             svcType: "svc-dna-insilico",
             algoTitle: "Dna Reference Cluster"
         });
-     });
+     };
     
 </script>

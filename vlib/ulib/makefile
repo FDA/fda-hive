@@ -32,7 +32,33 @@ LIBRARIES += ulib
 
 CXXFLAGS=$(HIVE_DB_CXXFLAGS)
 
-ulib_SRCS = usr.cpp utype2.cpp uobj.cpp uperm.cpp \
+OBJECT_TYPES = type domain-id-descr \
+               base base_user_type base_system_type \
+               group user file u-file sysfile \
+               webpage u-usage user-settings user-info \
+               view action menuitem js_component \
+               email notification process \
+               directory folder sysfolder \
+               special dropbox sysconfig project \
+               tool_pkg \
+               tool \
+			   user_app_argument user_app_output user_app_base user_app \
+			   container_image container_image_docker container_image_singularity
+
+ACTIONS = create search detail edit export_json open \
+          copy cut paste delete admin share rename subfolder download \
+          cast2systemImage cast2multimedia procClone
+
+MENUITEMS = /main /home /contact /help /login /register /logout /news /profile /profile/info /profile/settings /profile/usage \
+			/about/main \
+			/about/events \
+			/about/tutorials \
+			/about/publications \
+			/about/people \
+			/about
+
+
+ulib_SRCS = usr.cpp utype2.cpp utype2_cache.cpp uobj.cpp uperm.cpp \
     ufile.cpp ucgi.cpp uemail.cpp uproc.cpp ufolder.cpp \
     uusage.cpp uprop.cpp uquery.cpp uhousekeeper.cpp upropset.cpp
 
@@ -40,3 +66,23 @@ ifeq ($(devdir),)
     devdir = $(abspath ../..)
 endif
 include $(devdir)/build/makefile.meta
+
+.PHONY: dist domains_dist sysfolders_dist
+dist:: domains_dist sysfolders_dist
+
+domains_dist::
+	$(call prop-import-json,domains.json,query://alloftype("^domain-id-descr$$",{"domain-id-descr_ascii":["type"]}))
+
+sysfolders_dist::
+	$(call prop-import-json,sysfolders.json)
+
+.PHONY: sync domains
+sync:: domains
+
+domains::
+	$(call prop-export-json-noids,domains.json,query://alloftype("^domain-id-descr$$",{"domain-id-descr_ascii":["type"]}))
+
+
+.PHONY: change_log
+change_log::
+	$(call prop-import-object,change_log.json)

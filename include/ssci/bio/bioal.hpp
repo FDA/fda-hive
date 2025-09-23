@@ -34,16 +34,15 @@
 #include <slib/core.hpp>
 #include <slib/std.hpp>
 #include <slib/utils.hpp>
-
+#include <ssci/bio/tax-ion.hpp>
 #include <ssci/bio/bioseqalign.hpp>
 #include <regex.h>
 
 class sBioal
 {
-
     public:
-        sBioseq * Sub; //!< The reference sequence in a sBioseq wrapper.
-        sBioseq * Qry; //!< The query sequence in a sBioseq wrapper.
+        sBioseq * Sub;
+        sBioseq * Qry;
 
         sBioal ()
         {
@@ -57,7 +56,7 @@ class sBioal
         }
 
         typedef enum EBioModeBits_enum {
-            eBioModeShortBoth=0x00, // as if bits...
+            eBioModeShortBoth=0x00,
             eBioModeLongBoth=0x01,
             eBioModeLongSub=0x02,
             eBioModeLongQry=0x03
@@ -87,14 +86,19 @@ class sBioal
         {
             return 0;
         }
+        virtual const char * getSAMContent(idx iAlIndex, idx * size)
+        {
+            return 0;
+        }
         virtual idx listSubAlIndex(idx idSub, idx * relCount)
         {
             return 0;
-        } // , sVec <idx> * indexList
+        }
         struct Stat
         {
                 idx found;
                 idx foundRpt;
+                Stat() { sSet(this); }
         };
         virtual idx dimStat()
         {
@@ -122,35 +126,43 @@ class sBioal
 
 
     public:
-        // For reporting progress
         typedef idx (*callbackTypeProgress)(void * param, idx countDone, idx curPercent, idx maxPercent);
 
-        //! The parameters for the alignment iterator.
+        typedef idx (*HitListExtensionCallback)(void * param, sIO * io, sBioseq * sub, sDic <sStr > * dic,const char * seqidFrom00, idx countResultMax, idx startResult, idx contSequencesMax, idx outPutHeader,sStr * hdr );
+
         struct ParamsAlignmentIterator{
-            sStr * str; //!< An sStr parameter
+            sStr * str;
             idx navigatorFlags;
             regex_t * regp;
             idx rangestart, rangeend,High,winSize,pageRevDir,subRealS,padding,indels,currentChunk,winTailLimit, maxAlLen;
-            idx alCol; //!< which column holds the alignment (for regexping purposes)
-//            sVec<idx> * SNPentr;
+            idx alCol;
             const char * id;
-            FILE * outF; //!< An output file stream.
-            //void (* Bin)(const void * buf, idx len, const char * filename, ...);
+            FILE * outF;
             idx wrap;
             idx alignmentStickDirectional;
             idx rightTailPrint,leftTailPrint;
 
-            void * userPointer; //!< Open pointer.
-            idx userIndex; //!< Open int value.
-            callbackTypeProgress reqProgressFunction;
-            void * reqProgressParam;
+            void * userPointer;
+            idx userIndex;
 
             ParamsAlignmentIterator(sStr * lstr=0){
-                sSet(this,0); // fill with zeros
+                sSet(this,0);
                 str=lstr;
                 regp=0;
                 High=-1;
                 alignmentStickDirectional=0;
+            }
+        };
+        struct ParamsAlignmentSummary {
+            bool reportZeroHits, reportTotals, reportFailed;
+            idx start, cnt;
+            sVec<idx> * processedSubs, * coverage;
+            HitListExtensionCallback callBackExtension;
+            sTaxIon *taxion;
+            regex_t * regp;
+            void * param;
+            ParamsAlignmentSummary(){
+                sSet(this, 0);
             }
         };
 
@@ -158,23 +170,22 @@ class sBioal
         callbackType progress_CallbackFunction;
         void * progress_CallbackParam;
 
-        // Dinos-TODO : need naming of these flags in vioalt.cpp
         enum fViewAlignmentFlags {
-            alPrintSubject              =0x1,            //print Subject                                            AATGATCTT
-            alPrintUpperInterm          =0x2,            //show intermediate row (alignment notation)               |||| ||||
-            alPrintQuery                =0x4,            //print queries                                            ....G....
-            alPrintLowerInterm          =0x08,           //reserved for similarity notations in amino acids (.:*)
-            alPrintDotsFormat           =0x10,           //print dots/letters (for match/mismatch)
-            alPrintVariationOnly        =0x20,           //print only reads with variation in the selected position
-            alPrintTouchingOnly         =0x40,           //print only reads that touch the selected positionand not just in the window
-            alPrintNonFlippedPosforRev  =0x80,           //print the position of a reverse alignment without flipping it
-            alPrintMirroredPos          =0x100,          //print the position after mirroring in the center of the alignment
-            alPrintRegExpSub            =0x200,          //print alignments matching regexp in their Subject
-            alPrintRegExpQry            =0x400,          //print alignments matching regexp in their Query
-            alPrintBasedOnRange         =0x800,          //print alignments based on range
-            alPrintMode                 =0x1000,         //print in stack to file //include subject
-            alPrintRegExpInt            =0x2000,         //print alignments matching regexp in their Intermediate -> || | |
-            alPrintMutBiasOnly          =0x4000,         //create vector of entropy only //will be printed in CGI
+            alPrintSubject              =0x1,
+            alPrintUpperInterm          =0x2,
+            alPrintQuery                =0x4,
+            alPrintLowerInterm          =0x08,
+            alPrintDotsFormat           =0x10,
+            alPrintVariationOnly        =0x20,
+            alPrintTouchingOnly         =0x40,
+            alPrintNonFlippedPosforRev  =0x80,
+            alPrintMirroredPos          =0x100,
+            alPrintRegExpSub            =0x200,
+            alPrintRegExpQry            =0x400,
+            alPrintBasedOnRange         =0x800,
+            alPrintMode                 =0x1000,
+            alPrintRegExpInt            =0x2000,
+            alPrintMutBiasOnly          =0x4000,
             alPrintNonPerfectOnly       =0x8000,
             alPrintPositionalRegExp     =0x10000,
             alPrintPosInDelRegExp       =0x20000,
@@ -185,7 +196,7 @@ class sBioal
             alPrintIgnoreCaseMissmatches=0x400000,
             alPrintMultiple             =0x800000,
             alPrintCollapseRpt          =0x1000000,
-            alConsensusOverlap          =0x2000000,      //Generate overlap, NOT consensus. Gaps will be substituted with the next most prominent letter.
+            alConsensusOverlap          =0x2000000,
             alConsensusIgnoreGaps       =0x4000000,
             alPrintAsFasta              =0x8000000,
             alPrintNs                   =0x10000000,
@@ -201,6 +212,23 @@ class sBioal
             alPrintTailDisplayAlignment =0x4000000000
         };
 
+
+        enum eSAMFlags
+        {
+           eSF_ReadPaired = 0x1,
+           eSF_ReadMappedProperPair = 0x2,
+           eSF_ReadUnmapped = 0x4,
+           eSF_MateUnmapped = 0x8,
+           eSF_ReadReverseStrand = 0x10,
+           eSF_MateReverseStrand = 0x20,
+           eSF_FirstInPair = 0x40,
+           eSF_SecondInPair = 0x80,
+           eSF_NotPrimaryAlignment = 0x100,
+           eSF_ReadFailsQualityChecks = 0x200,
+           eSF_ReadPCROpticalDuplicate = 0x400,
+           eSF_SupplementaryAlignment = 0x800
+        };
+
         struct LenHistogram
         {
                 idx cntRead, cntSeq, cntFailed, cntAl, cntLeft, cntRight,maxLeft,maxRight, lenAnisotropy;
@@ -211,44 +239,46 @@ class sBioal
         };
 
         typedef idx (*typeCallbackIteratorFunction)(sBioal * bioal, ParamsAlignmentIterator * param, sBioseqAlignment::Al * hdr, idx * m, idx iNum, idx iAlInd);
-        idx iterateAlignments(idx * iVis, idx start, idx cnt, idx iSub, typeCallbackIteratorFunction callbackFunc, ParamsAlignmentIterator * callbackParam=0, typeCallbackIteratorFunction secondaryCallbackFunc = 0, ParamsAlignmentIterator * secondaryCallbackParam = 0, idx * sortArr = 0);
+        idx iterateAlignments(idx * iVis, idx start, idx cnt, idx iSub, typeCallbackIteratorFunction callbackFunc, ParamsAlignmentIterator * callbackParam=0, typeCallbackIteratorFunction secondaryCallbackFunc = 0, ParamsAlignmentIterator * secondaryCallbackParam = 0, sVec<idx> * sortArr = 0);
+
+        static idx rngComparator (void * param, idx * position, sBioal * arr, idx iAl) {
+            if ( sOverlap( *position, *position, arr->getAl(iAl)->getSubjectStart(arr->getMatch(iAl)), arr->getAl(iAl)->getSubjectEnd(arr->getMatch(iAl))) )
+                return 0;
+            return *position - arr->getAl(iAl)->getSubjectStart(arr->getMatch(iAl));
+        }
         idx getConsensus(sStr &out,idx wrap = 0, idx mode = 0);
 
-        //char * printAlignmentSummaryBySubject(sVec < idx >  & statistics, sStr * str, bool reportZeroHits=false);
-        typedef idx (*HitListExtensionCallback)(void * param, sIO * io, sBioseq * sub, sDic <sStr > * dic,const char * seqidFrom00, idx countResultMax, idx startResult, idx contSequencesMax, idx outPutHeader,sStr * hdr );
 
-        idx printAlignmentSummaryBySubject(sVec < Stat > & statistics, sStr * str,ParamsAlignmentIterator * params,bool reportZeroHits, bool reportTotals, bool reportFailed,idx start=0,idx cnt=0,sVec<idx> * childPath=0, sVec<idx> * coverage = 0, sBioal::HitListExtensionCallback callBackExtension=0,  void * param=0);
+        idx countMatches(sBioseqAlignment::Al * hdr, idx * m, const char * sub, const char * qry, idx qrylen);
+
+        idx printAlignmentSummaryBySubject(sVec < Stat > & statistics, sStr * str,ParamsAlignmentSummary * params);
         idx countAlignmentSummaryBySubject( sVec < Stat >  & statistics);
+        sBioal::Stat getTotalAlignmentStats();
+        sBioal::Stat getSubjectAlignmentStats(idx iSub);
         static idx printAlignmentHistogram(sStr * out , sDic < sBioal::LenHistogram > * lenHistogram );
         static idx printAlignmentCoverage(sStr * out , sDic < idx > * subCoverage);
 
         static idx countAlignmentLetters(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * hdr, idx * m, idx iNum, idx iAlInd);
         static idx getSaturation(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * hdr, idx * m, idx iNum, idx iAlInd);
-        static idx printFastaSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * hdr, idx * m, idx iNum, idx iAlInd);
         static idx printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAlInd);
         static idx printSubSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAlInd);
         static idx printMatchSingle(sBioal * bioal, ParamsAlignmentIterator * param, sBioseqAlignment::Al * hdr, idx * m, idx iSub, idx iAlInd);
         static idx printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param, sBioseqAlignment::Al * hdr, idx * m, idx iSub, idx iAlInd);
-        //static idx stackAlignmentSingle(sVioalt * vioalt, ParamsAlignmentIterator * param, sBioseqAlignment::Al * hdr, idx * m , idx iNum);
         static bool regexAlignmentSingle(sStr &compStr, sStr &out, idx start, idx end, ParamsAlignmentIterator * callbackParam);
 
-        // Print function for BED file output
         static idx printBEDSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAlInd);
 
         static idx BioseqAlignmentComparator(void * parameters, void * hdrA, void * hdrB, void * arr,idx i1,idx i2);
 
-        idx bSearchAlignments(idx iAlPoint,idx iAlmin, idx iAlmax, idx  sortIndFirst, idx isEnd=0);
+        idx bSearchAlignments(idx iAlPoint,idx iAlmin, idx iAlmax, sSort::sSearchHitType hitType = sSort::eSearch_First);
         idx iterUnAligned(idx * iVis,idx start, idx cnt,ParamsAlignmentIterator * params);
 
         idx remap( sBioal * mutual, sVec<idx> &remappedHits, idx * alSortList = 0);
+        idx stableRemap( sBioal * mutual, sVec<idx> &remappedHits, idx start = 0, idx cnt = 0, idx * alSortList = 0, sBioseqAlignment * seqAl = 0);
 
         typedef idx (* sBioalSorterFunction)(void * param, void * ob1, void * obj2 , void * objSrc,idx i1,idx i2);
 
-        //! The parameters for the alginment sorter.
         struct ParamsAlignmentSorter{
-            /*  0000 0000: sort by start position       0000 0100: sort by subId            0001 0000: sort first by start/end position/length alignment then query/sub Id
-            *   0000 0001: sort by end position         0000 1000: sort by queryId
-            */
             idx flags;
             sBioal * bioal;
             void * extCompParams;
@@ -260,12 +290,9 @@ class sBioal
                 extCompParams=0;extComparator=0;
             }
 
-            /*sDic < sVec < idx > > *rIdMap;*/
         };
 
         enum fSortAlignmentFlags {
-            //  0000 0000: sort by start position       0000 0100: sort by subId            0001 0000: sort first by start/end position/length aligment then query/sub Id
-            //  0000 0001: sort by end position         0000 1000: sort by queryId
             alSortByPosEnd          =0x001,
             alSortByPosStart        =0x002,
             alSortBySubID           =0x004,
@@ -274,25 +301,25 @@ class sBioal
             alSortBySubIdONPos      =0x040
         };
 
+        sBioseqAlignment::Al & operator []( idx index){return *getAl(index);}
 
 };
 
 class sBioalSet : public sBioal
 {
-        // each record defines a multiple or a single sequences in the container
         struct RefAl {
-            idx bioNum; // the serial number of sBioal in the biosR this alignment originates from
-            idx alNum; // the first alignment being pushed
-            idx alCnt; // how many is being pushed
+            idx bioNum;
+            idx alNum;
+            idx alCnt;
         };
 
-        sVec < sBioal * > biosR; // managed sBioal objects;
-        sVec < RefAl > refs; // list of references from this bioseq
+        sVec < sBioal * > biosR;
+        sVec < RefAl > refs;
 
         sVec < idx > alInd;
-        idx totDim; // total dimension
+        idx totDim;
         idx totSubjects;
-        bool needsReindex; // flag signifying the need to reindex the sBioseqSet
+        bool needsReindex;
 
         sVec < Stat > allStat;
         sVec < idx > dimSubCnt;
@@ -306,8 +333,8 @@ class sBioalSet : public sBioal
         }
 
         void attach(sBioal * bioal, idx alNum = 0, idx alCnt = sIdxMax);
-        void reindex(void); // re-indexing function
-        sBioal * ref(idx * inum, idx iSub = sNotIdx); // returns the sBioal * object and its offset
+        void reindex(void);
+        sBioal * ref(idx * inum, idx iSub = sNotIdx);
 
    public:
         virtual idx dimAl(void){return totDim;}
@@ -317,20 +344,18 @@ class sBioalSet : public sBioal
         virtual idx * getMatch (idx iAlIndex) {
             return ref(&iAlIndex)->getMatch(iAlIndex);
         }
-
+        virtual const char * getSAMContent(idx iAlIndex, idx * size){
+            return ref(&iAlIndex)->getSAMContent(iAlIndex, size);
+        }
         virtual idx getRpt (idx iAlIndex) {
             idx rpt = ref(&iAlIndex)->getRpt(iAlIndex);
             if( rpt ) return rpt;
             if( Qry ) return Qry->rpt(getAl(iAlIndex)->idQry());
             return 0;
         }
-        virtual idx dimSub()
-        {
-            return dimSubCnt.dim() / 2;
-        }
         virtual idx dimStat()
         {
-            return 1; //allStat.dim();
+            return 1;
         }
         virtual Stat * getStat(idx iStat = 0, idx iSub = 0, idx * size = 0)
         {
@@ -341,7 +366,7 @@ class sBioalSet : public sBioal
                 *size = allStat.dim();
             return pI;
         }
-        virtual idx listSubAlIndex(idx idSub, idx * relCount ) // , sVec < idx > * alIndexes
+        virtual idx listSubAlIndex(idx idSub, idx * relCount )
         {
             if( idSub >= dimSubCnt.dim() / 2 ) {
                 if( relCount )
@@ -351,16 +376,7 @@ class sBioalSet : public sBioal
             if( relCount ) {
                 *relCount = dimSubCnt[(idSub) * 2];
             }
-            // if no array is provided for data - just put the pointer to the first
-            //if( !alIndexes || *relCount==0)
                 return dimSubCnt[(idSub)*2+1];
-/*
-            idx first=dimSubCnt[idSub*2+1];
-            idx * cpy=alIndexes->add(*relCount);
-            for(idx ip=0; ip<*relCount; ++ip )
-                cpy[ip]=first+ip;
-            return cpy;
-            */
         }
         virtual void setMode(sBioseq::EBioMode qrymode, sBioseq::EBioMode submode)
         {
@@ -386,7 +402,6 @@ class sBioalSet : public sBioal
             }
             return sBioseq::eBioModeShort;
         }
-        //If at least one bioal is does not include paired end then hiveal is NOT an eligible
         virtual bool isPairedEnd()
         {
             if( Sub ) {
@@ -412,10 +427,125 @@ class sBioAlBlast
             eBlastBlatOut = 2
         } eBlastOutmode;
 
-        static idx SSSParseAlignment(sIO * log, char * fileContent, idx filesize, sVec<idx> * alignOut, idx scoreFilter, idx minMatchLength, idx maxMissQueryPercent, sDic<idx> * rgm, sDic<idx> * sub = 0, sDic<idx> * qry = 0, idx blastOutMode = eBlastStandardOut, sDic<
+        static idx SSSParseAlignment(sIO * log, char * fileContent, idx filesize, sVec<idx> * alignOut, idx scoreFilter, idx minMatchLength, bool isMinMatchPercentage,  idx maxMissQueryPercent, sDic<idx> * rgm, sDic<idx> * sub = 0, sDic<idx> * qry = 0, idx blastOutMode = eBlastStandardOut, sDic<
             idx> *unalignedQry = 0);
         static const char * readVal(char * src, const char * find, const char * fmt, void * pVal);
-        static const char * getNextLine(sStr * Buf, const char * currentPtr, idx sizeLeftover);
+        static const char * getNextLine(sStr * Buf, const char * const startPtr, const idx sizeLeftover);
+};
+
+typedef struct
+{
+        idx row;
+        bool aligned;
+        bool paired;
+        bool firstRead;
+        bool mateAligned;
+
+        idx samFlag() {
+            idx flag = 0;
+            if ( !aligned ) {
+                flag |= sBioal::eSF_ReadUnmapped;
+            }
+            if ( paired ) {
+                flag |= sBioal::eSF_ReadPaired;
+                if ( firstRead ) {
+                     flag |= sBioal::eSF_FirstInPair;
+                } else {
+                     flag |= sBioal::eSF_SecondInPair;
+                }
+                if ( aligned && mateAligned ) {
+                    flag |= sBioal::eSF_ReadMappedProperPair;
+                }
+                if ( !mateAligned ) {
+                    flag |= sBioal::eSF_MateUnmapped;
+                }
+            }
+            return flag;
+        }
+} AlRead;
+
+class AlBitMap
+{
+    protected:
+        sVec<char> bitMap;
+        sBioseq::EBioMode mode;
+    public:
+        AlBitMap() : bitMap(), mode(sBioseq::eBioModeShort)
+        {
+        }
+        void build(sBioal & al, idx qryDim)
+        {
+            mode = al.getQryMode();
+            bitMap.cut(0);
+            bitMap.addM(qryDim/8+1);
+            bitMap.set(0);
+            idx qy=0;
+            for(idx iAl=0; iAl < al.dimAl(); ++iAl){
+                qy = al.getAl(iAl)->idQry();
+                bitMap[qy/8] |= ((idx(1))<<((qy%8)));
+            }
+        }
+        bool isAligned(idx qryId, sBioseq & qry) {
+            if ( getMode() == sBioseq::eBioModeShort ) {
+                qryId = qry.long2short(qryId);
+            }
+            return bitMap[qryId/8] & (((idx)1)<<(qryId%8));
+        }
+        sBioseq::EBioMode getMode() { return mode; }
+};
+
+class ReadIter
+{
+    public:
+        ReadIter(sBioseq & qry, AlBitMap & alBitMap) : _qry(qry), _alBitMap(alBitMap), _pos(0) {}
+        virtual ~ReadIter() {}
+        idx pos() { return _pos; }
+        idx next() { return ++_pos; }
+        virtual idx dim() = 0;
+        virtual void get(sVec<AlRead> & out) = 0;
+    protected:
+            sBioseq & _qry;
+            AlBitMap & _alBitMap;
+            idx _pos;
+};
+
+class UnpairedReadIter : public ReadIter
+{
+    public:
+        UnpairedReadIter(sBioseq & qry, AlBitMap & alBitMap) : ReadIter(qry, alBitMap) {}
+        virtual ~UnpairedReadIter() {}
+        virtual idx dim() { return _qry.dim(); }
+        virtual void get(sVec<AlRead> & out)
+        {
+            out.cut(0);
+            out.add();
+            out[0].paired = false;
+            out[0].row = pos();
+            out[0].aligned = _alBitMap.isAligned(pos(), _qry);
+        }
+};
+
+class PairedReadIter : public ReadIter
+{
+    public:
+        PairedReadIter(sBioseq & qry, AlBitMap & alBitMap) : ReadIter(qry, alBitMap) {}
+        virtual ~PairedReadIter() {}
+        virtual idx dim() { return _qry.dim() / 2; }
+        virtual void get(sVec<AlRead> & out)
+        {
+            out.cut(0);
+            out.add(2);
+
+            out[0].row = pos();
+            out[1].row = out[0].row + ( _qry.dim() / 2 );
+            for (idx i = 0; i < out.dim(); i++) {
+                out[i].paired = true;
+                out[i].firstRead = ( i == 0 );
+                out[i].aligned = _alBitMap.isAligned(out[i].row, _qry);
+            }
+            out[0].mateAligned = out[1].aligned;
+            out[1].mateAligned = out[0].aligned;
+        }
 };
 
 #endif

@@ -59,19 +59,56 @@ static PyObject* Id_repr(pyhive::Id * self)
     sStr buf("<pyhive.Id ");
     self->hive_id.print(buf);
     buf.printf(" at %p>", self);
-    return PyString_FromString(buf.ptr());
+    return PyUnicode_FromString(buf.ptr());
 }
 
 static PyObject* Id_str(pyhive::Id * self)
 {
     sStr buf;
-    return PyString_FromString(self->hive_id.print(buf));
+    return PyUnicode_FromString(self->hive_id.print(buf));
 }
 
 static int Id_compare(pyhive::Id * o1, pyhive::Id * o2)
 {
     idx res = o1->hive_id.cmp(o2->hive_id);
     return res < 0 ? -1 : res > 0 ? 1 : 0;
+}
+
+static PyObject* Id_richcompare(PyObject * self, PyObject * other, int op)
+{
+    if (Py_TYPE(self) == Py_TYPE(other)) {
+        int result = Id_compare((slib::pyhive::Id*)self, (slib::pyhive::Id*)other);
+        switch (op) {
+            case Py_LT :
+                if (result < 0) {
+                    Py_RETURN_TRUE;
+                }
+            case Py_LE :
+                if (result <= 0) {
+                    Py_RETURN_TRUE;
+                }
+            case Py_EQ :
+                if (result == 0) {
+                    Py_RETURN_TRUE;
+                }
+            case Py_NE :
+                if (result != 0) {
+                    Py_RETURN_TRUE;
+                }
+            case Py_GT :
+                if (result > 0) {
+                    Py_RETURN_TRUE;
+                }
+            case Py_GE :
+                if (result >= 0) {
+                    Py_RETURN_TRUE;
+                }
+        }
+        Py_RETURN_FALSE;
+    } else {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
 }
 
 static PyObject * Id_get_obj_id(pyhive::Id * self, void * closure)
@@ -88,7 +125,7 @@ static PyObject * Id_get_domain(pyhive::Id * self, void * closure)
 {
     char buf[sizeof(udx) + 1];
     sHiveId::decodeDomainId(buf, self->hive_id.domainId());
-    return PyString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 static PyGetSetDef Id_getsetters[] = {
@@ -99,27 +136,26 @@ static PyGetSetDef Id_getsetters[] = {
 };
 
 PyTypeObject IdType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.Id",               // tp_name
-    sizeof(pyhive::Id),        // tp_basicsize
-    0,                         // tp_itemsize
-    0,                         // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    (cmpfunc)Id_compare,       // tp_compare
-    (reprfunc)Id_repr,         // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    (reprfunc)Id_str,          // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.Id",
+    sizeof(pyhive::Id),
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)Id_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)Id_str,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     "HIVE identifier\n\n" \
     "Unique identifier for :doc:`HIVE objects <pyuobj>`, :doc:`types <pyutype>`, etc. Consists of 3 parts: domain.obj_id.ion_id\n\nCan be constructed from an integer\n"\
     "(will be treated as the object ID, with ion ID and domain empty) or a string::\n\n"\
@@ -128,27 +164,26 @@ PyTypeObject IdType = {
     "    >>> pyhive.Id('12345')\n"\
     "    <pyhive.Id 12345 at 0x7f1c4f2358f0>\n"\
     "    >>> pyhive.Id('type.99')\n"\
-    "    <pyhive.Id type.99 at 0x7f1c4f235918>", // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    0,                         // tp_methods
-    0,                         // tp_members
-    Id_getsetters,             // tp_getset
-    0,                         // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    (initproc)Id_init,         // tp_init
-    0,                         // tp_alloc
-    Id_new,                    // tp_new
+    "    <pyhive.Id type.99 at 0x7f1c4f235918>",
+    0,
+    0,
+    (richcmpfunc)Id_richcompare,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Id_getsetters,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (initproc)Id_init,
+    0,
+    Id_new,
 };
 
-//static
 bool pyhive::Id::typeinit(PyObject * mod)
 {
     if( PyType_Ready(&IdType) < 0 ) {
@@ -159,7 +194,6 @@ bool pyhive::Id::typeinit(PyObject * mod)
     return true;
 }
 
-//static
 pyhive::Id * pyhive::Id::check(PyObject * o)
 {
     if( o && o->ob_type == &IdType ) {
@@ -169,7 +203,6 @@ pyhive::Id * pyhive::Id::check(PyObject * o)
     }
 }
 
-//static
 pyhive::Id * pyhive::Id::create()
 {
     pyhive::Id * self = (pyhive::Id*)Id_new(&IdType, 0, 0);
@@ -185,12 +218,10 @@ bool pyhive::Id::init(PyObject * arg)
     } else if( PyLong_Check(arg) ) {
         hive_id.set((udx)0, PyLong_AsUnsignedLongLong(arg), 0);
         return true;
-    } else if( PyInt_Check(arg) ) {
-        hive_id.set((udx)0, PyInt_AsUnsignedLongMask(arg), 0);
-        return true;
-    } else if( PyString_Check(arg) ) {
-        const char * s = PyString_AsString(arg);
-        if( hive_id.parse(s) == sLen(s) ) {
+    } else if( PyUnicode_Check(arg) ) {
+        Py_ssize_t s_len = 0;
+        const char * s = PyUnicode_AsUTF8AndSize(arg, &s_len);
+        if( hive_id.parse(s) == s_len ) {
             return true;
         } else {
             PyErr_SetString(PyExc_ValueError, "Invalid HIVE identifier string");
@@ -229,10 +260,9 @@ bool pyhive::Id::init(const sHiveId & id)
 PyObject * pyhive::Id::parseList(PyObject * arg)
 {
     PyObject * lst = 0;
-    if( PyString_Check(arg) ) {
-        char * s = 0;
+    if( PyUnicode_Check(arg) ) {
         Py_ssize_t s_len = 0;
-        PyString_AsStringAndSize(arg, &s, &s_len);
+        const char * s = PyUnicode_AsUTF8AndSize(arg, &s_len);
 
         sVec<sHiveId> ids;
         idx len_parsed = 0;

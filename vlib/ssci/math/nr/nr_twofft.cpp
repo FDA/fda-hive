@@ -31,7 +31,6 @@
 
 void sMathNR::twofft(real data1[], real data2[], real fft1[], real fft2[], udx n)
 {
-    //void four1(real data[], idx nn, int isign);
     udx nn3,nn2,jj,j;
     real rep,rem,aip,aim;
 

@@ -49,4 +49,4 @@ class DnaQC: public sQPSvc
         void setFile(const char * file, ...) __attribute__((format(printf, 2, 3)));
 };
 
-#endif // DnaQC_hpp
+#endif 

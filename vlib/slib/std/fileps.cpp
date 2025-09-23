@@ -49,13 +49,11 @@ idx sPS::getProcListReserv( sVec <sPS::Stat> * pi , const char * proc, const cha
     idx size;
     sDir dir;
 
-    // get the list of processes in /proc
     if( !dir.list( sFlag(sDir::bitSubdirs) , "/proc", "*", 0) ) return 0;
 
     for ( char * p=dir.ptr() ; p ; p=sString::next00(p) ) {
         pp.pid=0;pp.cmd[0]=0;
 
-        // make a path to read command line
         if(sscanf(p+6,"%" DEC,&pp.pid)==0 || pp.pid==0 )continue;
         path.printf(0,"/proc/%" DEC "/cmdline",pp.pid);
         FILE * fp=fopen(path.ptr() ,"r");if(!fp)continue;
@@ -63,7 +61,6 @@ idx sPS::getProcListReserv( sVec <sPS::Stat> * pi , const char * proc, const cha
         fclose(fp);
         if(!size)continue;pp.cmd[size]=0;
 
-        // now locate the arguments
         for(int jj=0; jj<size;++jj) if(pp.cmd[jj]==0)pp.cmd[jj]=' ';
         char * args=strpbrk(pp.cmd," \t\r\n");if(args){*args=0;++args;}
         char * prcnam=strrchr(pp.cmd,'/');if(!prcnam)prcnam=pp.cmd; else ++prcnam;
@@ -84,7 +81,6 @@ idx sPS::killProcess( idx pid, idx signal )
     sStr cmd;
     cmd.printf("kill %" DEC " %" DEC, signal, pid);
     return system(cmd.ptr());
-    // return kill(pid,signal);
 }
 
 
@@ -106,18 +102,11 @@ idx sPS::getMem(idx pid)
 #include <windows.h>
 #include <tlhelp32.h>
 
-//////////////////////////////////////////////////////////////////////
-// Type definitions for pointers to call tool help functions
 typedef BOOL (WINAPI* MODULEWALK)(HANDLE hSnapshot, LPMODULEENTRY32 lpme);
 typedef BOOL (WINAPI* THREADWALK)(HANDLE hSnapshot, LPTHREADENTRY32 lpte);
 typedef BOOL (WINAPI* PROCESSWALK)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe);
 typedef HANDLE (WINAPI* CREATESNAPSHOT)(DWORD dwFlags, DWORD th32ProcessID);
 
-// File scope globals. These pointers are declared because of the need
-// to dynamically link to the functions. They are exported only by
-// the Windows kernel. Explicitly linking to them will make this
-// application unloadable in Windows NT and will produce an ugly
-// system dialog box
 
 
 static CREATESNAPSHOT pCreateToolhelp32Snapshot = NULL;
@@ -128,15 +117,12 @@ static PROCESSWALK pProcess32Next = NULL;
 static THREADWALK pThread32First = NULL;
 static THREADWALK pThread32Next = NULL;
 
-// Function that initializes tool help functions
 
 BOOL InitToolhelp32(void)
 {
     BOOL bRet = FALSE;
     HINSTANCE hKernel = NULL;
 
-    // Obtain the module handle of the kernel to retrieve addresses
-    // of the tool helper functions
 
     hKernel = GetModuleHandle("KERNEL32.DLL");
 
@@ -151,19 +137,16 @@ BOOL InitToolhelp32(void)
     pThread32First = (THREADWALK)GetProcAddress(hKernel,"Thread32First");
     pThread32Next = (THREADWALK)GetProcAddress(hKernel,"Thread32Next");
 
-    // All addresses must be non-NULL to be successful.
-    // If one of these addresses is NULL, one of the needed
-    // list cannot be walked.
     bRet = pModule32First && pModule32Next && pProcess32First &&
            pProcess32Next && pThread32First && pThread32Next &&
            pCreateToolhelp32Snapshot;
     }
     else
-        bRet = FALSE; // could not even get the handle of kernel
+        bRet = FALSE;
     return bRet;
 }
 
-idx sPS::getProcList( sVec <sPS::Stat> * pi , const char * proc, const char * arguments,  idx   ) // execMode
+idx sPS::getProcList( sVec <sPS::Stat> * pi , const char * proc, const char * arguments,  idx   )
 {
     static bool _InitToolsCalled=false;
     if(!_InitToolsCalled) {
@@ -177,7 +160,6 @@ idx sPS::getProcList( sVec <sPS::Stat> * pi , const char * proc, const char * ar
     if(!hSnapshot)
         return 0;
 
-    // Initialize size in structure
     pe.dwSize = sizeof(pe);
 
     for(int i = pProcess32First(hSnapshot, &pe); i; i=pProcess32Next(hSnapshot, &pe))
@@ -185,7 +167,6 @@ idx sPS::getProcList( sVec <sPS::Stat> * pi , const char * proc, const char * ar
         pp.pid=pe.th32ProcessID;
         strcpy(pp.cmd,pe.szExeFile);
 
-        // now locate the arguments
         char * prcnam=strrchr(pp.cmd,'/');
         if(!prcnam)prcnam=strrchr(pp.cmd,'\\');
         if(!prcnam)prcnam=pp.cmd;
@@ -199,61 +180,16 @@ idx sPS::getProcList( sVec <sPS::Stat> * pi , const char * proc, const char * ar
         pp.args=args ? (idx)(args-pp.cmd) : sNotIdx ;
         pi->vadd(1,pp);
 
-        /*
-        HANDLE hModuleSnap = NULL;
-        MODULEENTRY32 me;
-
-        // Take a snapshot of all modules in the specified process
-        hModuleSnap = pCreateToolhelp32Snapshot(TH32CS_SNAPMODULE,pe.th32ProcessID);
-
-        if(hModuleSnap == (HANDLE) -1)
-            continue;//return pi->dim();
-
-        // Fill the size of the structure before using it
-        me.dwSize = sizeof(MODULEENTRY32);
-
-        // Walk the module list of the process, and find the module of
-        // interest. Then copy the information to the buffer pointed
-        // to by lpMe32 so that it can be returned to the caller
-
-        if(pModule32First(hModuleSnap, &me))
-        {
-            do
-            {
-                // if(me.th32ModuleID == pe.th32ModuleID)
-                {
-                    pp.pid=me.th32ProcessID;
-                    strcpy(pp.cmd,me.szExePath);
-
-                    // now locate the arguments
-                    char * prcnam=strrchr(pp.cmd,'/');
-                    if(!prcnam)prcnam=strrchr(pp.cmd,'\\');
-                    if(!prcnam)prcnam=pp.cmd;
-                    else ++prcnam;
-                    char * args=strpbrk(prcnam," \t\r\n");if(args){*args=0;++args;}
-                    if(arguments){
-                        if(!args)continue;
-                        if(!strstr(args,arguments))continue;
-                    }
-                    if(strcmp(prcnam, proc))continue;
-                    pp.args=args ? (idx)(args-pp.cmd) : sNotIdx ;
-                    pi->vadd(1,pp);
-
-                    break;
-                }
-            }
-            while(pModule32Next(hModuleSnap, &me));
-        }*/
     }
 
-    CloseHandle(hSnapshot); // Done with this snapshot. Free it
+    CloseHandle(hSnapshot);
     return pi->dim();
 
 }
 
-idx sPS::killProcess( idx pid , idx , idx  ) // signal
+idx sPS::killProcess( idx pid , idx , idx  )
 {
-    HANDLE hHandle = ::OpenProcess(PROCESS_ALL_ACCESS,0,(DWORD)pid); //procEntry.th32ProcessID
+    HANDLE hHandle = ::OpenProcess(PROCESS_ALL_ACCESS,0,(DWORD)pid);
     DWORD dwExitCode;::GetExitCodeProcess(hHandle,&dwExitCode);
     ::TerminateProcess(hHandle,dwExitCode);
     return (idx) dwExitCode;
@@ -266,7 +202,6 @@ idx sPS::getMem(idx processID, idx )
     HANDLE hProcess;
     PROCESS_MEMORY_COUNTERS pmc;
 
-    // Print information about the memory usage of the process.
     hProcess = OpenProcess(  PROCESS_QUERY_INFORMATION |
                                     PROCESS_VM_READ,
                                     FALSE, (DWORD)processID );
@@ -286,7 +221,7 @@ idx sPS::getMem(idx processID, idx )
 
 #endif
 
-idx sPS::setMode(eExecMode mode, const char * ps_sript /* = 0 */)
+idx sPS::setMode(eExecMode mode, const char * ps_sript)
 {
     idx retval = false;
     switch(mode) {
@@ -346,7 +281,6 @@ idx sPS::getProcList(sVec<sPS::Stat> * pi, const char * proc, bool currentUserOn
             continue;
         }
         strcpy(pp.cmd, cmd);
-        // now locate the arguments
         char * args = strpbrk(pp.cmd, " \t\r\n");
         if( args ) {
             *args = 0;
@@ -407,7 +341,6 @@ public:
 
     void nextSubdir()
     {
-        // opendir/readdir instead of sDir for efficiency and because everything about reading /proc is by definition Linux-specific
         if( _subdir ) {
             closedir(_subdir);
             _subdir = 0;
@@ -431,8 +364,6 @@ public:
 
     idx pid() const { return _pid; }
 
-    // Linux does not support lseek() or mmap() in /proc, so opening a file
-    // using sMex will not work; need to manually copy into a memory buffer
     bool openFile(const char *s)
     {
         _buf.cut0cut();
@@ -461,7 +392,7 @@ inline static const char * nextStatusLine(const char * s)
     return s ? s + 1 : 0;
 }
 
-idx sPS::getProcList(StatList & pi, idx flags/*=0*/, const char * proc/*=0*/, const char * argument/*=0*/) const
+idx sPS::getProcList(StatList & pi, idx flags, const char * proc, const char * argument) const
 {
     const idx current_uid = getuid();
     for( ProcSubdirIter iter("/proc"); iter.validSubdir(); iter.nextSubdir() ) {
@@ -475,7 +406,6 @@ idx sPS::getProcList(StatList & pi, idx flags/*=0*/, const char * proc/*=0*/, co
         for( const char * s = iter.ptr(); s && *s && (need_state || need_uid); s = nextStatusLine(s) ) {
             if( need_uid && !strncmp("Uid:", s, 4) ) {
                 if( current_uid != atoidx(s + 5) ) {
-                    // not our process
                     break;
                 } else {
                     need_uid = false;
@@ -484,7 +414,6 @@ idx sPS::getProcList(StatList & pi, idx flags/*=0*/, const char * proc/*=0*/, co
             } else if( need_state && !strncmp("State:", s, 6) ) {
                 for( s += 6; isspace(*s); s++ );
                 if( *s == 'Z' ) {
-                    // zombie process
                     break;
                 } else {
                     need_state = false;
@@ -494,7 +423,6 @@ idx sPS::getProcList(StatList & pi, idx flags/*=0*/, const char * proc/*=0*/, co
         }
 
         if( need_uid || need_state ) {
-            //didn't finish scanning /proc/$pid/status because of an error condition
             continue;
         }
 
@@ -547,8 +475,8 @@ idx sPS::getProcList(StatList & pi, idx flags/*=0*/, const char * proc/*=0*/, co
                 continue;
             }
             const char * s = iter.ptr();
-            for( ; !isspace(*s); s++ ); // skip vmSize column
-            st->mem = atoidx(s); // vmRSS
+            for( ; !isspace(*s); s++ );
+            st->mem = atoidx(s);
         }
     }
 
@@ -557,13 +485,11 @@ idx sPS::getProcList(StatList & pi, idx flags/*=0*/, const char * proc/*=0*/, co
 
 idx sPS::killProcess(idx pid, idx signal) const
 {
-    sStr cmd;
     if( m_mode == eExec_Extern ) {
-        cmd.printf("\"%s\" kill %" DEC, m_extern_path.ptr(), pid);
-    } else {
-        cmd.printf("kill %" DEC " %" DEC, signal, pid);
+        sStr cmd("\"%s\" kill %" DEC, m_extern_path.ptr(), pid);
+        return system(cmd.ptr());
     }
-    return system(cmd.ptr());
+    return kill(pid, signal);
 }
 
 
@@ -604,10 +530,8 @@ idx sPS::exec(const char * cmdline) const
 idx sPS::exec00(const char * cmdline00, sPS::callbackSetUp setupChild, void * param) const
 {
 #ifdef SLIB_WIN
-    // TODO
     return -1;
 #else
-    // ignore sigint/sigquit while waiting for child, following system(3) sematics
     struct sigaction cur_act, orig_act_intr, orig_act_quit;
     cur_act.sa_handler = SIG_IGN;
     cur_act.sa_flags = 0;
@@ -615,7 +539,6 @@ idx sPS::exec00(const char * cmdline00, sPS::callbackSetUp setupChild, void * pa
     sigaction(SIGINT, &cur_act, &orig_act_intr);
     sigaction(SIGQUIT, &cur_act, &orig_act_quit);
 
-    // ... but don't ignore SIGCHLD :)
     sigset_t cur_sig_mask, orig_sig_mask;
     sigemptyset(&cur_sig_mask);
     sigaddset(&cur_sig_mask, SIGCHLD);
@@ -623,23 +546,18 @@ idx sPS::exec00(const char * cmdline00, sPS::callbackSetUp setupChild, void * pa
 
     pid_t pid = fork();
     if( pid < 0 ) {
-        // error!
         return (idx)pid;
     } else if( pid == 0 ) {
-        // inside forked child
 
-        // restore signals
         sigaction(SIGINT, &orig_act_intr, 0);
         sigaction(SIGQUIT, &orig_act_quit, 0);
         sigprocmask(SIG_SETMASK, &orig_sig_mask, 0);
 
-        // inside forked child
         if( setupChild ) {
             setupChild(param);
         }
 
         if( !cmdline00 || !*cmdline00 ) {
-            // same semantics as glibc system() call - null cmdline means check for availability of a shell
             cmdline00 = "/bin/sh" _ "-c" _ "exit 0" __;
         }
 
@@ -676,13 +594,11 @@ idx sPS::exec00(const char * cmdline00, sPS::callbackSetUp setupChild, void * pa
         exit(0);
     }
 
-    // inside parent
     int ret;
     if( waitpid(pid, &ret, 0) != pid ) {
         ret = -1;
     }
 
-    // restore signals
     sigaction(SIGINT, &orig_act_intr, 0);
     sigaction(SIGQUIT, &orig_act_quit, 0);
     sigprocmask(SIG_SETMASK, &orig_sig_mask, 0);
@@ -691,28 +607,24 @@ idx sPS::exec00(const char * cmdline00, sPS::callbackSetUp setupChild, void * pa
 #endif
 }
 
-// static
 idx sPS::execute(const char * cmdline)
 {
     sPS ps(eExec_Local);
     return ps.exec(cmdline);
 }
 
-// static
 idx sPS::execute00(const char * cmdline00, sPS::callbackSetUp setupChild, void * param)
 {
     sPS ps(eExec_Local);
     return ps.exec00(cmdline00, setupChild, param);
 }
 
-// static
 idx sPS::executeBG(const char * cmdline)
 {
     sPS ps(eExec_BG);
     return ps.exec(cmdline);
 }
 
-// static
 idx sPS::executeBG00(const char * cmdline00, sPS::callbackSetUp setupChild, void * param)
 {
     sPS ps(eExec_BG);

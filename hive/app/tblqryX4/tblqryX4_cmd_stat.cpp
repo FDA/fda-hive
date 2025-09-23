@@ -30,7 +30,6 @@
 
 #include <slib/utils.hpp>
 #include <ssci/math.hpp>
-//#include <ssci/math/stat/stat.hpp>
 #include "tblqryX4_cmd.hpp"
 
 using namespace slib;
@@ -39,38 +38,6 @@ using namespace slib::tblqryx4;
 #define PRFX "stat-"
 #define OUTFILE "stat.csv"
 
-/*
-
-sIndex < sIndexStruc >  a;
-
-class MYIJO {
-        idx defint;
-        idx ofsetMyData;
-};
-sVec< real > v;
-
- // how to put your data into sIndex
-MYIJO ijo;
-ijo.offsetMyData=v.dim();
-a.add(ij,(sIndexStruc *)&ijo);
-
-v.add(k+3);
-
-
-// how to find your data by ij
-ref=a.find(ij);
-if( !ref  )
-    err // didn't find ij
-else
-    ofs=a[ref-1].offsetMyData;
-
-
-// scan through elements you have put into one by one
-for( idx i=0; i<a.dim(); ++i) {
-    ij=a[i].defint;
-    ofs=a[i].offsetMyData
-}
-*/
 
 namespace slib {
     namespace tblqryx4 {
@@ -80,6 +47,7 @@ namespace slib {
                 sVec <idx> colSet1, colSet2;
                 sVec <idx> rowSet;
                 sVec <idx> uid;
+                idx foldChange;
 
             public:
                 StatTestCommand(ExecContext & ctx) : Command(ctx)
@@ -119,11 +87,12 @@ bool StatTestCommand::init(const char * op_name, sVariant * arg)
         const char * p=rowSetVal->asString();if(*p=='[')++p;
         sString::scanRangeSet(p,0,&(uid),0ll,0ll,0ll);
     }
+    if (arg->getDicElt("foldChange") != 0)
+        foldChange = (sTree::DistanceMethods) arg->getDicElt("foldChange")->asInt();
 
     return true;
 }
 
-//student t-test here
 bool StatTestCommand::compute(sTabular * tbl)
 {
     sMatrix Mat;
@@ -143,6 +112,43 @@ bool StatTestCommand::compute(sTabular * tbl)
     }
 
     Mat.parseTabular(tbl, &rowSet, &allCols, &colIDs, &rowIDs, 0, 0, true);
+
+    if (foldChange != 0){
+        for (idx r = 0; r < rowSet.dim(); r++){
+            idx row = rowSet[r];
+
+            real average1 = 0, average2 = 0;
+            for (idx i = 0; i < colSet1.dim() && average1 == 0; i++){
+                for (idx c = 0; c < colSet1.dim()-i; c++){
+                    average1 += tbl->rval(row, colSet1[c]);
+                }
+                average1 /= (colSet1.dim()-i);
+            }
+            if (average1 == 0) average1 = 0.01;
+
+            for (idx i = 0; i < colSet2.dim() && average2 == 0; i++){
+                for (idx c = 0; c < colSet2.dim()-i; c++){
+                    average2 += tbl->rval(row, colSet2[c]);
+                }
+                average2 /= (colSet2.dim()-i);
+            }
+            if (average2 == 0) average2 = 0.01;
+
+            real min = average1;
+            if (average2 < average1) min = average2;
+
+            for (idx c = 0; c < colSet1.dim(); c++){
+                idx col = colSet1[c];
+                real tblVal = tbl->rval(row, col);
+                Mat.val(r, col) = (tblVal/min);
+            }
+            for (idx c = 0; c < colSet2.dim(); c++){
+                idx col = colSet2[c];
+                real tblVal = tbl->rval(row, col);
+                Mat.val(r, col) = (tblVal/min);
+            }
+        }
+    }
 
     sStr pathT;
     _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTFILE,0,0);
@@ -181,9 +187,9 @@ bool StatTestCommand::compute(sTabular * tbl)
                 out.printf(" ");
             tbl->printCell(outStr, rowSet[i],uid[iu]);
         }
-        out.printf("%s,%lf,%lf\n", outStr.ptr(), probvals[i], tstatvals[i]);
+        out.printf("\"%s\",%lf,%lf\n", outStr.ptr(), probvals[i], tstatvals[i]);
 
-        if (atof(outStr.ptr()))
+        if (outStr.ptr() && atof(outStr.ptr()))
             out2.printf("%f,%lf\n", atof(outStr.ptr()), -(log10(probvals[i])/log10(2)));
         else
             out2.printf("%" DEC ",%lf\n", i, -(log10(probvals[i])/log10(2)));

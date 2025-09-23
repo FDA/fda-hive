@@ -20,7 +20,7 @@ vim: set et ts=4 sts=4:
     // Set the Annotation Mapper title bar
     setLocationTitle("HIVE: Annotation Mapper");
 
-    // Determine which parameters will be visible (name field from the database, table: UPTypeFiled under annotation mapper object [id = 115])
+    // Determine which parameters will be visible (name field from the database, table: under annotation mapper type [id = 115])
     // Also can include inherited fields
     var valgoProcess_visibleParameters = ["name", "reference", "profilerParams", "crossMapMode", "annotListList" ];
     // Set the default mode to algo-annotMapper
@@ -184,14 +184,13 @@ vim: set et ts=4 sts=4:
         return true;
     }
     
-    $(document).ready(function() 
-            {
-                globalAlgo = $('#mainAlgoArea').algoview({
-                    algoObj: algoProcess,
-                    svcType: valgoProcess_svc,
-                    algoTitle: annotationTitle/* ,
-                    paramsPos:{posId: 'layout_inputs', top:'0', bottom:'60%', left:'20%', right:'75%'} */
-                });
-             }
-    );
+    gInitList += "annotMapperInit();";
+    function annotMapperInit () {
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: valgoProcess_svc,
+            algoTitle: annotationTitle/* ,
+            paramsPos:{posId: 'layout_inputs', top:'0', bottom:'60%', left:'20%', right:'75%'} */
+        });
+     };
 </script>

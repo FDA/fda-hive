@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.field.uint.js
 
 $(function () {
     $.widget("ion.field_uint", $.ion.field_int, {

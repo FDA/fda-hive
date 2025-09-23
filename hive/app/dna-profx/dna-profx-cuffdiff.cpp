@@ -55,23 +55,21 @@ idx DnaProfXcuffdiff::PrepareData ( sUsr& user, const char * parentIDs, const ch
             return 0;
         }
 
-        //put .gtf filename from each parent aligner process into a list file (for cuffmerge)
         sStr spath;
         profile.getFilePathname00(spath, "transcripts.gtf" __);
         if (spath && sFile::size(spath.ptr())>0) {
-            ListGFTfile.printf("%s\n",spath.ptr()); //one .gtf filename per line is required by cuffmerge
+            ListGFTfile.printf("%s\n",spath.ptr());
         }
         else {
             errMsg.printf("Could not get .gtf file from parent aligner process %s", parids[ip].print());
             return 0;
         }
 
-        //put .bam filenames from each parent aligner process into a list file (for cuffdiff)
         spath.cut(0);
         profile.getFilePathname00(spath, "accepted_hits.bam" __);
         if (spath && sFile::size(spath.ptr())>0) {
             if (ListBAMfile.length()>0)
-                ListBAMfile.printf(", "); //comma and space between filenames is required by cuffdiff
+                ListBAMfile.printf(", ");
             ListBAMfile.printf("%s",spath.ptr());
         }
         else {
@@ -79,7 +77,6 @@ idx DnaProfXcuffdiff::PrepareData ( sUsr& user, const char * parentIDs, const ch
             return 0;
         }
 
-        //copy reference .gtf file used in alignments
         if (!sFile::size(referenceGTFfileLocal.ptr())) {
             sHiveId referenceGTFfileId(profile.propGet("GTFfile"));
             sStr referenceGTFfile;
@@ -92,7 +89,6 @@ idx DnaProfXcuffdiff::PrepareData ( sUsr& user, const char * parentIDs, const ch
             }
         }
 
-        // load the subject (only once)
         if (!sFile::exists(subjectFastaFile.ptr())) {
             const char * subject=profile.propGet00("subject", 0, ";");
             sHiveseq Sub(&user, subject);Sub.reindex();
@@ -100,7 +96,6 @@ idx DnaProfXcuffdiff::PrepareData ( sUsr& user, const char * parentIDs, const ch
                 errMsg.printf("Could not load reference from parent aligner process");
                 return 0;
             }
-            // dump subject into fasta file with original reference names
             sFil subjectFastaFil(subjectFastaFile.ptr());
             Sub.printFastX(&subjectFastaFil, false, 0, Sub.dim(), 0, true, true);
 
@@ -110,9 +105,8 @@ idx DnaProfXcuffdiff::PrepareData ( sUsr& user, const char * parentIDs, const ch
             }
         }
     }
-    }//sFils closed
+    }
 
-    //final checks
     if (!sFile::exists(subjectFastaFile.ptr())) {
         errMsg.printf("Could not get subject .fasta file from parent aligner process");
         return 0;
@@ -125,9 +119,8 @@ idx DnaProfXcuffdiff::PrepareData ( sUsr& user, const char * parentIDs, const ch
 }
 
 
-idx DnaProfXcuffdiff::Profile (sIO * log, sStr * outFile, const char * workDir, sUsr& user, const char * parentIDs, const char * additionalCommandLineParameters/*=0*/)
+idx DnaProfXcuffdiff::Profile (sIO * log, sStr * outFile, const char * workDir, sUsr& user, const char * parentIDs, const char * additionalCommandLineParameters)
 {
-    //form .bam files string
     sStr bamFilesListName("%s/datain/bamFileList.txt", workDir);
     sFil bamFiles(bamFilesListName.ptr(), sMex::fReadonly);
 

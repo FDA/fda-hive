@@ -191,8 +191,6 @@ static const char s_EncodePath[256][4] = {
     "%F8", "%F9", "%FA", "%FB", "%FC", "%FD", "%FE", "%FF"
 };
 
-// RFC-2396:
-// scheme        = alpha *( alpha | digit | "+" | "-" | "." )
 static const char s_EncodeURIScheme[256][4] = {
     "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
     "%08", "%09", "%0A", "%0B", "%0C", "%0D", "%0E", "%0F",
@@ -228,11 +226,6 @@ static const char s_EncodeURIScheme[256][4] = {
     "%F8", "%F9", "%FA", "%FB", "%FC", "%FD", "%FE", "%FF"
 };
 
-// RFC-2396:
-// userinfo      = *( unreserved | escaped |
-//                   ";" | ":" | "&" | "=" | "+" | "$" | "," )
-// unreserved    = alphanum | mark
-// mark          = "-" | "_" | "." | "!" | "~" | "*" | "'" | "(" | ")"
 static const char s_EncodeURIUserinfo[256][4] = {
     "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
     "%08", "%09", "%0A", "%0B", "%0C", "%0D", "%0E", "%0F",
@@ -268,12 +261,6 @@ static const char s_EncodeURIUserinfo[256][4] = {
     "%F8", "%F9", "%FA", "%FB", "%FC", "%FD", "%FE", "%FF"
 };
 
-// RFC-2396:
-// host          = hostname | IPv4address
-// hostname      = *( domainlabel "." ) toplabel [ "." ]
-// domainlabel   = alphanum | alphanum *( alphanum | "-" ) alphanum
-// toplabel      = alpha | alpha *( alphanum | "-" ) alphanum
-// IPv4address   = 1*digit "." 1*digit "." 1*digit "." 1*digit
 static const char s_EncodeURIHost[256][4] = {
     "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
     "%08", "%09", "%0A", "%0B", "%0C", "%0D", "%0E", "%0F",
@@ -309,14 +296,6 @@ static const char s_EncodeURIHost[256][4] = {
     "%F8", "%F9", "%FA", "%FB", "%FC", "%FD", "%FE", "%FF"
 };
 
-// RFC-2396:
-// path_segments = segment *( "/" segment )
-// segment       = *pchar *( ";" param )
-// param         = *pchar
-// pchar         = unreserved | escaped |
-//                 ":" | "@" | "&" | "=" | "+" | "$" | ","
-// unreserved    = alphanum | mark
-// mark          = "-" | "_" | "." | "!" | "~" | "*" | "'" | "(" | ")"
 static const char s_EncodeURIPath[256][4] = {
     "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
     "%08", "%09", "%0A", "%0B", "%0C", "%0D", "%0E", "%0F",
@@ -492,12 +471,6 @@ static const char s_EncodeURIQueryValueEscapeQuotes[256][4] = {
     "%F8", "%F9", "%FA", "%FB", "%FC", "%FD", "%FE", "%FF"
 };
 
-// RFC-2396:
-// fragment      = *uric
-// uric          = reserved | unreserved | escaped
-// reserved      = ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
-// unreserved    = alphanum | mark
-// mark          = "-" | "_" | "." | "!" | "~" | "*" | "'" | "(" | ")"
 static const char s_EncodeURIFragment[256][4] = {
     "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
     "%08", "%09", "%0A", "%0B", "%0C", "%0D", "%0E", "%0F",
@@ -533,12 +506,6 @@ static const char s_EncodeURIFragment[256][4] = {
     "%F8", "%F9", "%FA", "%FB", "%FC", "%FD", "%FE", "%FF"
 };
 
-// RFC-5987, RFC-2231, RFC-2045
-// extended-initial-value := [charset] "'" [language] "'" extended-other-values
-// extended-other-values := *(ext-octet / attribute-char)
-// ext-octet := "%" 2(DIGIT / "A" / "B" / "C" / "D" / "E" / "F")
-// attribute-char := <any (US-ASCII) CHAR except SPACE, CTLs, "*", "'", "%", or tspecials>
-// tspecials :=  "(" / ")" / "<" / ">" / "@" / "," / ";" / ":" / "\" / <"> "/" / "[" / "]" / "?" / "="
 static const char s_EncodeExtValue[256][4] = {
     "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
     "%08", "%09", "%0A", "%0B", "%0C", "%0D", "%0E", "%0F",
@@ -681,7 +648,6 @@ bool NeedsURLEncoding(const char* str, EUrlEncode flag)
         case eUrlEncode_None:
             return false;
         default:
-            // To keep off compiler warning
             encode_table = 0;
             break;
     }
@@ -712,9 +678,6 @@ void s_URLDecode(const string& src, string& dst, EUrlDecode flag)
     for(idx psrc = 0; psrc < len; pdst++) {
         switch(src[psrc]) {
             case '%': {
-                // Accordingly RFC 1738 the '%' character is unsafe
-                // and should be always encoded, but sometimes it is
-                // not really encoded...
                 if(psrc + 2 > len) {
                     dst[pdst] = src[psrc++];
                 } else {
@@ -751,12 +714,6 @@ const char* URLDecode(const char* str, sStr& dst, EUrlDecode flag)
     return dst.add(d.c_str());
 }
 
-/////////////////////////////////////////////////////////////////////////////
-///
-/// CUrlArgs_Parser::
-///
-/// Base class for arguments parsers.
-///
 class CUrlArgs_Parser
 {
     public:
@@ -768,37 +725,21 @@ class CUrlArgs_Parser
         {
         }
 
-        /// Parse query string, call AddArgument() to store each value.
         bool SetQueryString(const char* query, EUrlEncode encode);
-        /// Parse query string, call AddArgument() to store each value.
         bool SetQueryString(const char* query, const IUrlEncoder* encoder = 0);
 
-        /// Treat semicolon as query string argument separator
         void SetSemicolonIsNotArgDelimiter(bool enable = true)
         {
             m_SemicolonIsNotArgDelimiter = enable;
         }
 
     protected:
-        /// Query type flag
         enum EArgType
         {
-            eArg_Value, ///< Query contains name=value pairs
+            eArg_Value,
             eArg_Index
-        ///< Query contains a list of names: name1+name2+name3
         };
 
-        /// Process next query argument. Must be overriden to process and store
-        /// the arguments.
-        /// @param position
-        ///   1-based index of the argument in the query.
-        /// @param name
-        ///   Name of the argument.
-        /// @param value
-        ///   Contains argument value if query type is eArg_Value or
-        ///   empty string for eArg_Index.
-        /// @param arg_type
-        ///   Query type flag.
         virtual void AddArgument(unsigned int position, const string& name, const string& value, EArgType arg_type = eArg_Index) = 0;
     private:
         bool x_SetIndexString(const string& query, const IUrlEncoder& encoder);
@@ -817,14 +758,11 @@ bool CUrlArgs_Parser::x_SetIndexString(const string& query, const IUrlEncoder& e
     size_t len = query.size();
     assert(len);
 
-    // No '=' and spaces must be present in the parsed string
     assert(query.find_first_of("= \t\r\n") == NPOS);
 
-    // Parse into indexes
     unsigned int position = 1;
     for(udx beg = 0; beg < len;) {
         udx end = query.find('+', beg);
-        // Skip leading '+' (empty value).
         if(end == beg) {
             beg++;
             continue;
@@ -845,7 +783,6 @@ bool CUrlArgs_Parser::SetQueryString(const char* query, const IUrlEncoder* encod
     if(!encoder) {
         encoder = CUrl::GetDefaultEncoder();
     }
-    // Parse and decode query string
     if(!query) {
         return true;
     }
@@ -856,25 +793,19 @@ bool CUrlArgs_Parser::SetQueryString(const char* query, const IUrlEncoder* encod
     }
     {
         {
-            // No spaces are allowed in the parsed string
             udx err_pos = qstr.find_first_of(" \t\r\n");
             if(err_pos != NPOS) {
                 return false;
-                //throw runtime_error("Space character in URL arguments: \"" + qstr + "\"", err_pos + 1);
             }
         }
     }
 
-    // If no '=' present in the parsed string then try to parse it as ISINDEX
-    // RFC3875
     if(qstr.find("=") == NPOS) {
         return x_SetIndexString(qstr, *encoder);
     }
 
-    // Parse into entries
     unsigned int position = 1;
     for(udx beg = 0; beg < len;) {
-        // ignore ampersand and "&amp;"
         if(qstr[beg] == '&') {
             ++beg;
             if(beg < len && strncasecmp(&qstr[beg], "amp;", 4) == 0) {
@@ -882,13 +813,11 @@ bool CUrlArgs_Parser::SetQueryString(const char* query, const IUrlEncoder* encod
             }
             continue;
         }
-        // Alternative separator - ';'
         else if(!m_SemicolonIsNotArgDelimiter && qstr[beg] == ';') {
             ++beg;
             continue;
         }
 
-        // parse and URL-decode name
         string mid_seps = "=&";
         string end_seps = "&";
         if(!m_SemicolonIsNotArgDelimiter) {
@@ -897,7 +826,6 @@ bool CUrlArgs_Parser::SetQueryString(const char* query, const IUrlEncoder* encod
         }
 
         udx mid = qstr.find_first_of(mid_seps, beg);
-        // '=' is the first char (empty name)? Skip to the next separator.
         if(mid == beg) {
             beg = qstr.find_first_of(end_seps, beg);
             if(beg == NPOS)
@@ -911,9 +839,8 @@ bool CUrlArgs_Parser::SetQueryString(const char* query, const IUrlEncoder* encod
         sStr out;
         string name(encoder->DecodeArgName(qstr.substr(beg, mid - beg).c_str(), out));
 
-        // parse and URL-decode value(if any)
         string value;
-        if(qstr[mid] == '=') { // has a value
+        if(qstr[mid] == '=') {
             mid++;
             udx end = qstr.find_first_of(end_seps, mid);
             if(end == NPOS) {
@@ -922,41 +849,26 @@ bool CUrlArgs_Parser::SetQueryString(const char* query, const IUrlEncoder* encod
             value = encoder->DecodeArgValue(qstr.substr(mid, end - mid).c_str(), out);
 
             beg = end;
-        } else { // has no value
+        } else {
             beg = mid;
         }
 
-        // store the name-value pair
         AddArgument(position++, name, value, eArg_Value);
     }
     return true;
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-///
-/// CUrlArgs::
-///
-/// URL arguments list.
-///
 class CUrlArgs: public CUrlArgs_Parser
 {
     public:
-        /// Create an empty arguments set.
         CUrlArgs(void);
-        /// Parse the query string, store the arguments.
         CUrlArgs(const char* query, EUrlEncode decode);
-        /// Parse the query string, store the arguments.
         CUrlArgs(const char* query, const IUrlEncoder* encoder = 0);
 
-        /// Construct and return complete query string. Use selected amp
-        /// and name/value encodings.
         string GetQueryString(EAmpEncoding amp_enc, EUrlEncode encode) const;
-        /// Construct and return complete query string. Use selected amp
-        /// and name/value encodings.
         string GetQueryString(EAmpEncoding amp_enc, const IUrlEncoder* encoder = 0) const;
 
-        /// Name-value pair.
         struct SUrlArg
         {
                 SUrlArg(const string& aname, const string& avalue)
@@ -971,62 +883,45 @@ class CUrlArgs: public CUrlArgs_Parser
         typedef TArgs::iterator iterator;
         typedef TArgs::const_iterator const_iterator;
 
-        /// Check if an argument with the given name exists.
         bool IsSetValue(const string& name) const
         {
             return FindFirst(name) != m_Args.end();
         }
 
-        /// Get value for the given name. finds first of the arguments with the
-        /// given name. If the name does not exist, is_found is set to false.
-        /// If is_found is null, CUrlArgsException is thrown.
         const string* GetValue(const string& name) const;
 
-        /// Set new value for the first argument with the given name or
-        /// add a new argument.
         void SetValue(const string& name, const string& value);
 
-        /// Get the const list of arguments.
         const TArgs& GetArgs(void) const
         {
             return m_Args;
         }
 
-        /// Get the list of arguments.
         TArgs& GetArgs(void)
         {
             return m_Args;
         }
 
-        /// Find the first argument with the given name. If not found, return
-        /// GetArgs().end().
         iterator FindFirst(const string& name)
         {
             return x_Find(name, m_Args.begin());
         }
 
-        /// Take argument name from the iterator, find next argument with the same
-        /// name, return GetArgs().end() if not found.
         iterator FindNext(const iterator& iter)
         {
             return x_Find(iter->name, iter);
         }
 
-        /// Find the first argument with the given name. If not found, return
-        /// GetArgs().end().
         const_iterator FindFirst(const string& name) const
         {
             return x_Find(name, m_Args.begin());
         }
 
-        /// Take argument name from the iterator, find next argument with the same
-        /// name, return GetArgs().end() if not found.
         const_iterator FindNext(const const_iterator& iter) const
         {
             return x_Find(iter->name, iter);
         }
 
-        /// Select case sensitivity of arguments' names.
         void SetCase(bool is_name_case_sensitivite = true)
         {
             m_name_case_sensitivite = is_name_case_sensitivite;
@@ -1061,7 +956,7 @@ CUrlArgs::CUrlArgs(const char* query, const IUrlEncoder* encoder)
     SetQueryString(query, encoder);
 }
 
-void CUrlArgs::AddArgument(unsigned int /* position */, const string& name, const string& value, EArgType arg_type)
+void CUrlArgs::AddArgument(unsigned int, const string& name, const string& value, EArgType arg_type)
 {
     if(arg_type == eArg_Index) {
         m_IsIndex = true;
@@ -1082,7 +977,6 @@ string CUrlArgs::GetQueryString(EAmpEncoding amp_enc, const IUrlEncoder* encoder
     if(!encoder) {
         encoder = CUrl::GetDefaultEncoder();
     }
-    // Encode and construct query string
     string query;
     const char* amp = (amp_enc == eAmp_Char) ? "&" : "&amp;";
     for(TArgs::const_iterator arg = m_Args.begin(), arg_end = m_Args.end(); arg != arg_end; ++arg) {
@@ -1143,10 +1037,6 @@ CUrlArgs::const_iterator CUrlArgs::x_Find(const string& name, const const_iterat
     return m_Args.end();
 }
 
-//////////////////////////////////////////////////////////////////////////////
-//
-// CUrl
-//
 
 CUrl::CUrl(void)
         : m_IsGeneric(false)
@@ -1236,37 +1126,31 @@ bool CUrl::SetUrl(const char* orig_url, const IUrlEncoder* encoder)
             break;
         }
         switch(url[pos]) {
-            case '[': // IPv6 address
+            case '[':
             {
                 udx closing = url.find(']', pos);
                 if(closing == NPOS) {
                     return false;
-                    //NCBI_THROW2(CUrlParserException, eFormat, "Unmatched '[' in the URL: \"" + url + "\"", pos);
                 }
                 beg = pos;
                 pos = url.find_first_of(":/?", closing);
                 break;
             }
-            case ':': // scheme: || user:password || host:port
+            case ':':
             {
                 if(url.substr(pos, 3) == "://") {
-                    // scheme://
                     x_SetScheme(url.substr(beg, pos - beg).c_str(), *encoder);
                     beg = pos + 3;
                     m_IsGeneric = true;
                     if( strcmp(m_Scheme.ptr(), "file") == 0 ) {
-                        // Special case - no further parsing, use the whole
-                        // string as path.
                         x_SetPath(url.substr(beg).c_str(), *encoder);
                         return true;
                     }
                     pos = url.find_first_of(":@/?[", beg);
                     break;
                 }
-                // user:password@ || host:port...
                 udx next = url.find_first_of("@/?[", pos + 1);
                 if(m_IsGeneric && next != NPOS && url[next] == '@') {
-                    // user:password@
                     x_SetUser(url.substr(beg, pos - beg).c_str(), *encoder);
                     beg = pos + 1;
                     x_SetPassword(url.substr(beg, next - beg).c_str(), *encoder);
@@ -1274,7 +1158,6 @@ bool CUrl::SetUrl(const char* orig_url, const IUrlEncoder* encoder)
                     pos = url.find_first_of(":/?[", beg);
                     break;
                 }
-                // host:port || host:port/path || host:port?args
                 string host = url.substr(beg, pos - beg);
                 beg = pos + 1;
                 if(next == NPOS) {
@@ -1294,14 +1177,14 @@ bool CUrl::SetUrl(const char* orig_url, const IUrlEncoder* encoder)
                 }
                 break;
             }
-            case '@': // username@host
+            case '@':
             {
                 x_SetUser(url.substr(beg, pos - beg).c_str(), *encoder);
                 beg = pos + 1;
                 pos = url.find_first_of(":/?[", beg);
                 break;
             }
-            case '/': // host/path
+            case '/':
             {
                 if(!skip_host) {
                     x_SetHost(url.substr(beg, pos - beg).c_str(), *encoder);
@@ -1400,7 +1283,6 @@ const CUrlArgs* CUrl::GetArgs(void) const
 {
     if(!m_ArgsList.get()) {
         return 0;
-        //NCBI_THROW(CUrlException, eNoArgs, "The URL has no arguments");
     }
     return m_ArgsList.get();
 }
@@ -1413,10 +1295,6 @@ CUrlArgs* CUrl::GetArgs(void)
     return m_ArgsList.get();
 }
 
-//////////////////////////////////////////////////////////////////////////////
-//
-// Url encode/decode
-//
 
 IUrlEncoder* CUrl::GetDefaultEncoder(void)
 {

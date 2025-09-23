@@ -33,7 +33,7 @@ javaScriptEngine.include("js/vjAlignmentView.js");
 
 vjHO.register('svc-alignment-multiple2').Constructor=function ()
 {
-    if(this.objCls)return;         //stupid chrome loads from both cached file and the one coming from server.
+    if(this.objCls)return;
     
     this.typeName="svc-alignment-multiple2";
     this.objCls="obj-svc-alignment-multiple"+Math.random();
@@ -57,20 +57,20 @@ vjHO.register('svc-alignment-multiple2').Constructor=function ()
         }
         alertI(txt,undefined,{icon:icon});
     };
-    this.dsQPBG_digest = vjDS.add('preparing to archive','ds'+this.objCls+'_QPBG_digest','static://',{func :this.onArchiveSubmit,obj : this});
+    this.dsQPBG_digest = vjDS.add('preparing to archive','ds'+this.objCls+'_QPBG_digest','static:
     
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
-        vjDS.add ("Visualizing alignments in stack", "alStack", "http://?cmd=alStack&cnt=50&info=1&mySubID=1&multiple=1&rangeEnd=100&objs=" + node.id);
-        vjDS.add ("Generating consensus", "consensus", "http://?cmd=alConsensus&multiple=1&wrap=100&objs=" + node.id);
-        vjDS.add ("Generation overlap", "overlap", "http://?cmd=alConsensus&multiple=1&wrap=100&overlap=1&objs=" + node.id);
-        vjDS.add ("infrastructure: Creating download menu", "downloads", "static://data,down,arch,operation,arguments,params\n" +
+        this.loadedID = node.id;
+        vjDS.add ("Visualizing alignments in stack", "alStack", "http:
+        vjDS.add ("Generating consensus", "consensus", "http:
+        vjDS.add ("Generation overlap", "overlap", "http:
+        vjDS.add ("infrastructure: Creating download menu", "downloads", "static:
                 "Multiple Alignment,download,ico-file,alStack,&cnt=0&mySubID=1&multiple=1&rangeEnd=100,\n" +
                 "Alignments in fasta,download,dna,alFasta,&wrap=100&info=1&mySubID=1&multiple=1&objs=3031174&raw=1&cnt=0,\n"+
                 "Consensus in fasta,download,dna,alConsensus,&multiple=1&wrap=100,\n"+
                 "Overlap in fasta,download,dna,alConsensus,&multiple=1&wrap=100&overlap=1,");
-        vjDS.add ("Infrastructure: Creating help", "help", "http://help/hlp.view.results.alignment.html");
+        vjDS.add ("Infrastructure: Creating help", "help", "http:
         
         
         var filesStructureToAdd = [{
@@ -189,17 +189,13 @@ vjHO.register('svc-alignment-multiple2').Constructor=function ()
                 ext = "fasta";
                 dstName += ".fasta";
                 break;
-            case "ico-file":
-                ext = "txt";
-                dstName += "."+ext;
-                break;
             default :
                 ext= "-";
             }
             
             url = urlExchangeParameter(url, "arch_dstname", dstName);
             url = urlExchangeParameter(url, "ext", ext);
-            this.dsQPBG_digest.reload("qpbg_http://"+url,true);
+            this.dsQPBG_digest.reload("qpbg_http:
         }
     };
 

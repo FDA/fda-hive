@@ -41,4 +41,4 @@
 #include <klib/extern.h>
 #endif
 
-#endif /* _h_libsra_extern_ */
+#endif 

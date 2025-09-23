@@ -59,7 +59,6 @@ idx sMathNR::jacobi(real *arr, idx n, real * d, real * evecs, real jactol, idx m
                 }
                 
                 if(sm<=jactol){
-                //if (sm == 0.0) {
                         sMathNRUtil::free_vector(z,1,n);
                         sMathNRUtil::free_vector(b,1,n);
                         return rot;
@@ -114,7 +113,6 @@ idx sMathNR::jacobi(real *arr, idx n, real * d, real * evecs, real jactol, idx m
                         z[ip]=0.0;
                 }
         }
-        //nrerror("Too many iterations in routine jacobi");
         return rot;
 }
 #undef ROTATE

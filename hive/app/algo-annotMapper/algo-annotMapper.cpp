@@ -43,7 +43,6 @@ class algoAnnotMapperProc: public sQPrideProc
             sFil * fil;
             sUsrObj * pann;
             bool isProfiler;
-            //sVioAnnot * myAnnotPtr;
             idx myAnnotIndex;
             sDic < sVioAnnot > * myVioAnnotList;
             AnnotationOpenInformationCacheItem(){
@@ -89,40 +88,26 @@ idx algoAnnotMapperProc::OnExecute(idx req)
     idx crossMapMode=formIValue("crossMapMode",inAllSets);
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ prepare a pool of reference sequences to use for range mappings
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    const char * refList=formValue("reference"); //
+    const char * refList=formValue("reference");
 
-    // Find the specific reference IDs user is interested in
     sStr refSeqs;
     formValue("referenceSubID",&refSeqs);
     sString::searchAndReplaceSymbols(refSeqs,0,"\n;",0,0,true,true,true,true);
 
-    // Create the reference Object
     sHiveseq ref(user, refList);
 
-    // Create the dictionary of seqID
     sDic < idx > idList;
     idx num;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ prepare the output file
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sStr resultPath;
     reqAddFile(resultPath, "crossingRanges.csv");
     sFil rangeFile(resultPath);
-    //rangeFile.printf("Reference,start,end\n");
     rangeFile.printf("Reference,start,end,length\n");
 
 
     const char * mySeqID;
-    for ( idx iSub=0 ; iSub<ref.dim() ; ++iSub ) {  /* Start loop for the iSub*/
+    for ( idx iSub=0 ; iSub<ref.dim() ; ++iSub ) {
         mySeqID=ref.id(iSub);
         if(mySeqID[0]=='>')++mySeqID;
         if( refSeqs.length() && strcmp(refSeqs.ptr(),"all") != 0 ) {
@@ -134,7 +119,6 @@ idx algoAnnotMapperProc::OnExecute(idx req)
         *idList.set(mySeqID)=num;
     }
 
-    // if pool is empty ... fake it: we will generate real ojne from the pool of real annotation pools
     idx noRefsYet=0;
     if(!idList.dim()) {
         *idList.set("no-reference-specified-just-a-dummy")=-2;
@@ -144,162 +128,98 @@ idx algoAnnotMapperProc::OnExecute(idx req)
 
 
 
-    // ____/____/____/____/____/____/____/____/____/____/____/____/____/____/____/
-    // ____/
-    // ____/ retrieve the list of annotation sources
-    // ____/
-    // ____/____/____/____/____/____/____/____/____/____/____/____/____/____/____/
 
     const sUsrObjPropsTree * objPropsTree=objs[0].propsTree();
-    const sUsrObjPropsNode * annotListList= objPropsTree->find("annotListList") ; // starting from root
+    const sUsrObjPropsNode * annotListList= objPropsTree->find("annotListList") ;
     sDic < sVioAnnot > VioAnnotList;
     sStr buf;
 
     sDic <bool> refDic;
     sDic < AnnotationOpenInformationCacheItem >  annotationCache;
 
-    idx runNumber = 0;
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ loop over all reference sequences
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     for ( idx iSub=0 ; iSub<idList.dim() ; ++iSub ) {
         const char * seqID=(const char * )idList.id(iSub);
 
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ looping over annotation blocks: each annotation block is compared to another annotation block
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
-        sVec <idx> BMref; // instead of using BMs(vector of vector), we use one bit mask reference vector and an other bit mask vector to Map to the reference vector
+        sVec <idx> BMref;
         sVec <idx> BMOrthogonal;
-        BMref.flagOn(sMex::fSetZero); // ensure that allocated bit arrays are filled with zero
-        BMOrthogonal.flagOn(sMex::fSetZero); // ensure that allocated bit arrays are filled with zero
+        BMref.flagOn(sMex::fSetZero);
+        BMOrthogonal.flagOn(sMex::fSetZero);
 
         idx annotListBlockNum=0;
 
         for(const sUsrObjPropsNode * annotListListRow = annotListList->firstChild(); annotListListRow; annotListListRow = annotListListRow->nextSibling(), ++annotListBlockNum) {
 
 
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-            // _/
-            // _/ each annotation block has multiple annotation files
-            // _/ so we loop over annotation files
-            // _/
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
             const sUsrObjPropsNode * annotList = annotListListRow->find("annotList");
-            if (!annotList) { // this generally should not happen - annotation block should have at least one annotation file
-                // There is an annotation block without any annotation in it.
-                // Set error for now
-                // Could just skip the block; i.e. continue
+            if (!annotList) {
                 reqSetInfo(req, eQPInfoLevel_Error, "Annotation block is set with no annotation files entered.\n");
                 reqSetStatus(req, eQPReqStatus_ProgError);
                 break;
             }
 
-            //
-            // If it is the first time through, we'll store everything in BMref.  This is our 'reference' bitmap of annotations that we'll modify
-            // with each annotation list.  For storing annotation bitmaps temporarily (the second list on) we'll use BMOrthogonal.
-            //
             BMOrthogonal.set(0);
-            sVec< idx > * BM=(annotListBlockNum==0) ? &BMref : &BMOrthogonal; // &BMToMap;
+            sVec< idx > * BM=(annotListBlockNum==0) ? &BMref : &BMOrthogonal;
 
-            idx cntNumberOfBitsOn=0; // to maintain if an annotation block has generated even a single bit for this reference
+            idx cntNumberOfBitsOn=0;
 
             for(const sUsrObjPropsNode * annotListRow = annotList->firstChild(); annotListRow; annotListRow = annotListRow->nextSibling()) {
 
                 AnnotationOpenInformationCacheItem * annotEl;
-                // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-                // _/
-                // _/ each annotation block has multiple annotation files
-                // _/ so we loop over annotation files and open them sequentially
-                // _/
-                // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
                 const sUsrObjPropsNode * annotNode= annotListRow->find("annot");
-                if(!annotNode) // again this should not happen ... if from interface
+                if(!annotNode)
                     break;
                 const char * annotId=annotNode->value();
 
-                //
-                // Query from the cache of annotations that have already been generated to see if the annotation file has already been opened
-                // This prevents a single annotation file from being opened repeatedly
-                //
                 annotEl=annotationCache.get(annotId);
 
-                // If there is no annotation file in the cache, we need to find it and open it for the first time
                 if( ! annotEl) {
-                    annotEl=annotationCache.set(annotId); // Set the annotation cache so we are able to tell that the annotation has already been opened
+                    annotEl=annotationCache.set(annotId);
 
-                    sHiveId annot(annotId); // retrieve a particular annotation file now
+                    sHiveId annot(annotId);
 
-                    //
-                    // Save the user object into the annotEl for future use
-                    //
                     annotEl->pann=new sUsrObj(*user, annot);
-                    sUsrObj & ann=*(annotEl->pann); // why do we use ann instead of annotEl->pann
+                    sUsrObj & ann=*(annotEl->pann);
                     if(!ann.Id()) {
                         printf("ERROR at 213\n");
-                        continue;  // wrong object should never happen, generally -> Should this be an error or just continue?  Maybe a warning?
+                        continue;
                     }
 
-                    //
-                    // Returns either "svc-profiler" or "u-annot" to check to see if it is a profile or a vioAnnot object
-                    //
-                    const char * type=ann.getTypeName();// at this point we must monitor is the source of annotation a profiler object or real annotation object
-                    annotEl->isProfiler=sIs("svc-profiler",type); // If it is a profiler, save the flag
+                    const char * type=ann.getTypeName();
+                    annotEl->isProfiler=sIs("svc-profiler",type);
 
 
-                    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-                    // _/
-                    // _/ actually initialize sequence feature annotation object - either as a profiler
-                    // _/  or as a sequence feature annotation object
-                    // _/
-                    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
                     if(annotEl->isProfiler){
                         sStr path;
                         annotEl->pann->getFilePathname(path, "SNPprofile.csv");
                         annotEl->fil=new sFil(path,sMex::fReadonly);
-                    }else { // open an annotation file if it has not been open before
-                        //annotEl->myAnnotPtr=VioAnnotList.get(annotId);
+                    }else {
                         if(!annotEl->myAnnotPtr()) {
                             if( annotId ) {
 
-                               //::printf("%" DEC " %s %s \n ",runNumber, seqID, annotId);
-                               //annotEl->myAnnotPtr= VioAnnotList.set(annotId);
                                 annotEl->setMyAnnotPtr(VioAnnotList, annotId);
                                 sStr path;
                                 ann.getFilePathname00(path, ".vioannot" __);
                                 annotEl->myAnnotPtr()->init(path, sMex::fReadonly);
                             }
                         }
-                        if(!annotEl->myAnnotPtr()) // check if annotation object is corrupted
+                        if(!annotEl->myAnnotPtr())
                             continue;
                     }
 
 
-                    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-                    // _/
-                    // _/ in case if there was not actual reference pool
-                    // _/ specified here we initialize from our list of annotations or profilers
-                    // _/
-                    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-                    if(annotListBlockNum==0 && noRefsYet) { // only the first block can initialize a reference and only if no reference pool existed from reference sequence set
-                        //idList.empty();
+                    if(annotListBlockNum==0 && noRefsYet) {
 
                         if(annotEl->isProfiler){
 
-                            // go get the alignments used for this profiler
                             sVec<sHiveId> alignmentIds;
                             ann.propGetHiveIds("parent_proc_ids", alignmentIds);
 
                             idx prvCountRef=refDic.dim();
                             for ( idx ia=0; ia<alignmentIds.dim(); ia++ ){
                                 sUsrObj alObj(*user, alignmentIds[ia]);
-                                // for every alignment use reference sequences
                                 sVec<sHiveId> references;
                                 alObj.propGetHiveIds("subject", references);
                                 for ( idx ir=0; ir<references.dim(); ir++ ) {
@@ -307,18 +227,18 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                                 }
                             }
 
-                            if(prvCountRef!=refDic.dim()) { // if this next profiler didn't bring new reference sequence files into the game: do not add those sequence IDs into our pool
-                                sStr ids; // get a uniqified list of all reference sequences
+                            if(prvCountRef!=refDic.dim()) {
+                                sStr ids;
 
                                 for ( idx iid=0; iid< refDic.dim(); ++iid ) {
                                     ids.printf(",%s", static_cast<const sHiveId*>(refDic.id(iid))->print());
                                 }
                                 if(idList[(idx)0]==-2) {
                                     idList.empty();
-                                    iSub=0; // so we can restart the whole sequecne ID list again
+                                    iSub=0;
                                 }
 
-                                sHiveseq hs(user,ids.ptr(1)); // open a hiveseq to retrieve all id lines of those sequences
+                                sHiveseq hs(user,ids.ptr(1));
                                 for ( idx ihs=0 ; ihs<hs.dim() ; ++ihs ) {
                                     seqID=hs.id(ihs);
                                     if(seqID[0]=='>')++seqID;
@@ -329,24 +249,19 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                             }
                         }
                         else {
-                            // Count the number of IDs in the annotation
-                            // Set the pointer to the annotation
                             idx cntId =0;
                             idx * idPtr = annotEl->myAnnotPtr()->getIdByIdType("seqID",&cntId);
 
                             idx prv=-1;
-                            // reset idList if it is currently at 'dummy reference'
-                            if(idList[(idx)0]==-2) { // -2 set initially if no reference selected
+                            if(idList[(idx)0]==-2) {
                                 idList.empty();
-                                iSub=0; // so we can restart the whole sequecne ID list again
+                                iSub=0;
                             }
 
                             for( idx is=0; is< cntId; ++is) {
                                 if(prv==idPtr[is]){
-                                    //::printf("%" DEC " %s %s \n ",runNumber, buf.ptr(0), annotId);
                                     continue;
                                 }
-                                // Read the seqID into buf
                                 buf.cut(0);
                                 annotEl->myAnnotPtr()->getIdByIdIndex(buf,idPtr[is]);
 
@@ -359,8 +274,6 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                         seqID=(const char * )idList.id(iSub);
                     }
                 }
-                //runNumber +=1;
-                //::printf("%" DEC " %s %s \n ",runNumber, seqID, annotId);
                 idx cntRanges= 0;
                 idx * indexRangePtr=0;
                 if(annotEl->isProfiler){
@@ -401,8 +314,6 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                             ) {
                             idx ipos = Line.position;
 
-                            // for all nonsimple mapping mode the first block has the complete lengths - because it may store more bits at the end
-                            // annotListBlockNum==0 &&
                             if(crossMapMode>inAllSets)
                                 BM->resize(ipos/64 + 1);
 
@@ -415,21 +326,19 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                             }
                             tot=Line.coverage();
 
-                            // Frequency Threshold filter
                             if (freqThreshold){
                                 if(!tot || var*100<tot*freqThreshold){
                                     continue;
                                 }
                             }
 
-                            // Coverage Threshold Filter
                             if (coverageThreshold){
                                 if (Line.coverage() < coverageThreshold){
                                     continue;
                                 }
                             }
 
-                            if(crossMapMode==inAllSets ) // otherwise this is is already extended
+                            if(crossMapMode==inAllSets )
                                 BM->resize(ipos/64 + 1);
                             idx * bm = BM->ptr(0);
                             bm[ipos/64] |= ((idx)1)<<(ipos%64) ;
@@ -441,14 +350,8 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                 }else {
                     indexRangePtr = annotEl->myAnnotPtr()->getNumberOfRangesByIdTypeAndId("seqID",seqID, cntRanges);
 
-                    //
-                    // Loop through ranges.  Ignore if the reference is not set the first time
-                    //
                     for ( idx irange=0; irange< cntRanges ; ++irange ) {
 
-                        //__/__/__/__/__/__/__/__/__/__/__/__/__/__/
-                        // now for every annotation source go through the filters
-                        //__/__/__/__/__/__/__/__/__/
 
                         idx isMatch=-1;
 
@@ -461,7 +364,7 @@ idx algoAnnotMapperProc::OnExecute(idx req)
 
                             const char * filterColumn = filterColumnNode ? filterColumnNode->value() : 0;
                             const char * filterValue = filterValueNode ? filterValueNode->value() : 0;
-                            idx filterLogic = filterLogicNode ? filterLogicNode->ivalue() : 0;  // 0: OR  | 1: AND
+                            idx filterLogic = filterLogicNode ? filterLogicNode->ivalue() : 0;
 
                             if (!sLen(filterColumn))
                                 break;
@@ -473,57 +376,42 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                             if(isMatch==-1)
                                 isMatch=0;
 
-                            //__/__/__/__/__/__/__/__/__/__/__/
-                            //
                             idx cntIDsForRange=annotEl->myAnnotPtr()->getNberOfIdsByRangeIndex(indexRangePtr[irange]);
 
                             idx isMatchLocal= 0;
-                            for( idx iid=0; iid<cntIDsForRange; ++iid)  {  /* loop for id list */
+                            for( idx iid=0; iid<cntIDsForRange; ++iid)  {
                                 const char * idPtr,*idTypePtr;
                                 annotEl->myAnnotPtr()->getIdTypeByRangeIndexAndIdIndex(indexRangePtr[irange], iid, &idPtr, 0, &idTypePtr, 0);
 
-                                // Need to do pattern matching for idPtr & filterValue based on filterValue as the smaller case (i.e. not symetric)
-                                // Pattern match
 
                                 bool matchedPattern = false;
                                 if (sString::searchSubstring(idPtr, sizeof(idPtr), filterValue,1,"", 0)) matchedPattern = true;
 
-                                if ( strcasecmp(filterColumn,idTypePtr)==0 && matchedPattern ) { //&& strcasecmp(filterValue,idPtr)==0
+                                if ( strcasecmp(filterColumn,idTypePtr)==0 && matchedPattern ) {
                                     isMatchLocal=1;
                                     break;
                                 }
 
                             }
 
-                            if(filterLogic==0) // that is an OR
+                            if(filterLogic==0)
                                 isMatch |= isMatchLocal;
-                            if(filterLogic==1) // that is an AND
+                            if(filterLogic==1)
                                 isMatch &= isMatchLocal;
-                            //}
                         }
                         if (isMatch ) {
                             idx cntRangeJoints=0;
-                            sVioAnnot::startEnd * rangePtr = annotEl->myAnnotPtr()->getRangeJointsByRangeIndex(indexRangePtr[irange],&cntRangeJoints);  // LAM
+                            sVioAnnot::startEnd * rangePtr = annotEl->myAnnotPtr()->getRangeJointsByRangeIndex(indexRangePtr[irange],&cntRangeJoints);
                             cntRangeJoints/=sizeof(sVioAnnot::startEnd);
 
                             for( idx irj=0; irj<cntRangeJoints; ++irj) {
                                 idx end = rangePtr[irj].end;
-                                if ((end/64 + 1) > BM->dim()){ // check if the end not less than the array length
+                                if ((end/64 + 1) > BM->dim()){
                                     BM->resize( end/64 +1 );
                                 }
                                 idx * bm=BM->ptr(0);
 
                                 for( idx ipos=rangePtr[irj].start; ipos <= rangePtr[irj].end; ++ipos)  {
-#if 0
-                                    if (BM->dim() > 1) {
-                                        bool hit0 = false;
-                                        if (ipos/64 <= BM->dim()) {
-                                            hit0 = BM[ipos/64] & (((idx)1) << (ipos%64));
-                                        }
-                                        if (hit0)
-                                            fprintf(stderr, "    hit BM%" DEC " pos %" DEC "\n", BM->dim(), ipos);
-                                    }
-#endif
                                     bm[ipos/64] |= ((idx)1)<<(ipos%64) ;
                                     ++cntNumberOfBitsOn;
 
@@ -531,29 +419,27 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                             }
                         }
 
-                    } // if not profiler
+                    }
 
 
 
-                } // End loop for ranges of a particular annotation file
-            } // End loop for annotation files in one comparison block
+                }
+            }
 
             noRefsYet=0;
 
             if(annotListBlockNum==0)
                 continue;
 
-            idx cntBM = sMax(BMref.dim(), BM->dim()); // They should be identical at this point
+            idx cntBM = sMax(BMref.dim(), BM->dim());
 
             BMref.resize(cntBM);
             BMOrthogonal.resize(cntBM);
 
-            // make an AND operatin of BMToMap and BMRef
             idx * bm0=BMref.ptr();
             idx * bm=BM->ptr();
 
 
-            //BMs[0].resize(cntBM);
             idx cntSatisfactory=0;
             if(crossMapMode==inFirstNotInSetsAfter) {
                 for ( idx ipos=0; ipos<cntBM; ++ ipos) {
@@ -568,39 +454,25 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                 for ( idx ipos=0; ipos<cntBM; ++ ipos) {
                     bm0[ipos]= bm0[ipos] ^ bm[ipos];
                 }
-            } else { // Make this the default
+            } else {
                 for ( idx ipos=0; ipos<cntBM; ++ ipos) {
                     bm0[ipos]&=bm[ipos];
                    if(bm0[ipos]) ++cntSatisfactory;
                 }
             }
-            //BMref.cut(cntBM);
-            //::printf(" cntSatisfactory %" DEC "\n",cntSatisfactory);
 
-        } // End loop for annotation blocks
+        }
 
 
-        // Start reading the bit mask reference vector in order to print out the range for the specific seqID
-        // Find the larger of the two arrays
         idx cntBM=sMax(BMref.dim(), BMOrthogonal.dim());
-        // Resize both so they are the same.  The large will not change, the smaller will resize with zeros (fSetZero flags are on)
         BMref.resize(cntBM);
         BMOrthogonal.resize(cntBM);
 
-        // determine the number of actual positions to loop through
         cntBM *= 64;
         idx * bm=BMref.ptr(0);
         idx start=0,end=0;
         idx mode=0,prvmode=0;
 
-      /*  for ( idx ipos=0; ipos<cntBM; ++ ipos) {
-            if(  bm[ipos/64] & ((idx)1)<<(ipos%64) ){
-               rangeFile.printf("\"%s\",%" DEC ",%" DEC "\n",seqID,ipos,ipos);
-            }
-            prvmode=mode;
-            if(cntMaxOut!=sNotIdx && outputed>=cntMaxOut)
-                break;
-        }*/
 
 
         for ( idx ipos=0; ipos<cntBM; ++ ipos) {
@@ -638,10 +510,9 @@ idx algoAnnotMapperProc::OnExecute(idx req)
                 }
         }
 
-    }  // End loop for the iSub
+    }
 
     if ( !reqProgress(0, 100, 100) ) {
-        // Ready to set progress to 100, but system is returning that the process was terminated.
         logOut(eQPLogType_Debug, "Interrupted by user");
     }
     reqSetStatus(req, eQPReqStatus_Done);
@@ -658,7 +529,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     algoAnnotMapperProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "algo-annotMapper", argv[0]));
     return (int) backend.run(argc, argv);

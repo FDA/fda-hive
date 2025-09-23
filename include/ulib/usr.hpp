@@ -33,6 +33,7 @@
 
 #include <slib/core/rc.hpp>
 #include <slib/utils/json/printer.hpp>
+#include <slib/std/file.hpp>
 #include <ssql/mysql.hpp>
 #include <memory>
 
@@ -80,7 +81,7 @@ namespace slib {
             sUsrObjRes()
                 : _total(0), _start(0), _table_cnt(0)
             {
-                _buf.mex()->add(0, sizeof(idx)); // occupy 0 offset
+                _buf.mex()->add(0, sizeof(idx));
             }
 
             udx total(void) const
@@ -126,12 +127,11 @@ namespace slib {
                 return it;
             }
 
-            // iterators
             typedef struct TPropTbl_struct
             {
-                idx path, value, next /* 0 - tail, <0 - deleted */;
+                idx path, value, next;
             } TPropTbl;
-            typedef sDic<idx> TObjProp; // names -> index to values linked list in _buf.mex()
+            typedef sDic<idx> TObjProp;
             bool has(const IdIter & it) const
             {
                 if( it.pos >= 0 && it.pos < _table.dim() ) {
@@ -239,7 +239,7 @@ namespace slib {
                 if( tbl && tbl->next ) {
                     do {
                         tbl = (const TPropTbl *)_buf.mex()->ptr(abs(tbl->next));
-                    } while(tbl->path < 0); // skip deleted
+                    } while(tbl->path < 0);
                     return tbl;
                 }
                 return 0;
@@ -255,7 +255,7 @@ namespace slib {
             }
             void csv(const sUsrObjRes::IdIter & it, sStr & buf) const;
             void prop(const sUsrObjRes::IdIter & it, sStr & buf) const;
-            void json(const sUsr & user, const sUsrObjRes::IdIter & it, sJSONPrinter & printer, bool into_object, bool flatten = false, bool upsert = false, const char * upsert_qry = 0) const;
+            void json(const sUsr & user, const sUsrObjRes::IdIter & it, sJSONPrinter & printer, bool into_object, bool flatten = false, bool upsert = false, const char * upsert_qry = 0, const char * prop_filter00 = 0, const char * prop_exclude00 = 0) const;
 
         private:
 
@@ -293,14 +293,13 @@ namespace slib {
             friend class sUsrObj;
             udx _total, _start, _table_cnt;
             IdIter _first, _last;
-            sDic< Optional<TObjProp> > _table; // hid -> names
-            sDic<idx> _buf; // value and path hash, underlying mex used for linked list in multi-value
+            sDic< Optional<TObjProp> > _table;
+            sDic<idx> _buf;
     };
 
     class sUsr
     {
         public:
-            // initialization
 
             sUsr(idx usrid = 0);
             ~sUsr()
@@ -318,40 +317,46 @@ namespace slib {
                 eUserAccountExpired,
                 eUserPswdExpired,
                 eUserNotSet,
-                eUserInternalError
+                eUserInternalError,
+                eUserLoginAttemptsWarn1Left,
+                eUserLoginAttemptsNowLocked,
+                eUserLoginAttemptsTooMany,
+                eUserLoginAttemptsTooManyTryLater,
+                eUserTokenExpired
             } ELoginResult;
 
-            ELoginResult login(const char * email, const char * pswd, const udx token, const char * ipaddr, idx * plogCount = 0);
+            ELoginResult login(const char * email, const char * pswd, const char * ipaddr, idx * plogCount = 0);
+            ELoginResult loginByEmail(const char * email, const char * ipaddr, idx * plogCount = 0, const char * log_data = 0);
+            ELoginResult loginByToken(const char * email, const char * token, const char * ipaddr, idx * plogCount = 0, const char * log_data = 0);
             ELoginResult loginAsGuest(void);
             void logout(const char * ipaddr);
             void session(udx sid, udx uid, idx key, const char* ipaddr);
             void batch(const char * ipaddr);
-            ELoginResult token(const char * email, sStr & token);
 
-            //! Check that new password and confirmation match and satisfy quality criteria. Errors are printer to this->err
             bool passwordCheckQuality(const char * mod, const char * mod1);
-            //! Change password for user specified by email and reset token. New password will be checked for quality etc. Errors are printer to this->err
             bool passwordReset(const char* email, udx pswd_reset_id, const char * mod, const char * mod1);
             idx update(const bool isnew, const char * email, const char * password, const char * newpass1, const char * newpass2, idx statusNeed,
                     const char * firstName, const char * lastName, sVec<idx>& groups, idx softExpiration, idx hardExpiration, const char* baseURL);
 
             bool sendEmailValidation(const char* baseURL, const char* email, const char* firstName = 0, const char* lastName = 0);
+            bool sendEmailOnFinish(const idx status, sUsrObj& user_obj);
             bool sendAccountActivation(const char* baseURL, const char* email);
-            udx addPasswordResetID(const char* email);
+            udx addPasswordResetID(const char* email = 0);
             bool sendForgotten(const char* baseURL, const char* email);
             bool verifyEmail(const char* baseURL, const char* email);
             bool accountActivate(const char* baseURL, const char* email);
             bool groupActivate(idx groupId);
             bool groupCreate(const char* name, const char* abbr, const char* parent);
-            bool contact(const char * from_email, const char * subject, const char * body);
+            bool contact(const char * from_email, const char * subject, const char * body, const char * autoreply);
 
-            idx listUsr(sVec<sStr> * userList, idx isgrp = 0, bool allUsr = false, bool active = false, const char * search = 0, bool primaryGrpOnly = false) const;
+            idx listUsr(sVec<sStr> * userList, idx isgrp = 0, bool allUsr = false, bool active = false, const char * search = 0, bool primaryGrpOnly = false, bool billable = false, bool with_system = false) const;
             idx listGrp(sVec<sStr> * userList, idx isgrp = 0, idx usrOnly = 0, const char * search = 0, bool with_system = false, bool with_service = false) const;
+            idx printUserInfo(sJSONPrinter & out, bool into_object, const sVec<udx> * user_ids = 0, bool without_current = false, const char * path_prefix = 0, bool with_inactive = false, bool with_system = false);
+            idx listUserGroups(sVarSet & tbl, udx user_id, bool active) const;
             idx listInactive(sVec<sStr> * userList, idx isgrp = 0);
-            //! dump all user and group information for Ion - do not use this in web API!
             idx exportUsrGrp4Ion(sJSONPrinter & out);
+            udx getGroupId(const char * grp_name, bool reset_cache = false) const;
 
-            // in order of increased tracking
             typedef enum {
                 eUserAuditOff,
                 eUserAuditAdmin,
@@ -378,7 +383,7 @@ namespace slib {
             }
             udx groupId(void) const
             {
-                return m_PrimaryGroup;
+                return m_currProj.projectId ? m_currProj.groupId : m_PrimaryGroup;
             }
             const char* Name(sStr* buf = 0) const;
             const char* firstName(void) const
@@ -412,75 +417,32 @@ namespace slib {
             const char* encodeSID(sStr & sid, sStr & buf);
             const char* groupList(bool inactive = false) const;
 
-            //! Create a new object of specified type in the DB and object storage
-            /*! \param[out] out_id ID of created object
-                \param type_name type of object to create
-                \param in_domainID if non-0, create object with specified domain & objID (in_objID must be non-0 too)
-                \param in_obID if non-0, create object with specified domain & objID (in_domainID must be non-0 too)
-                \returns sRC::zero on success, or appropriate error code on failure */
+            bool hasGroup(const char * path_prefix, bool direct_member_only = false, bool with_inactive = false) const;
+
             sRC objCreate(sHiveId & out_id, const char* type_name, const udx in_domainID = 0, const udx in_objID = 0) const;
-            // if type of object is given it is verified
             bool objGet(const sHiveId & id) const;
-            //! verify that the object with given ID and type exists and has specific permissions
-            /*! safe alternative to objGet() e.g. for cases where object is writeable but not readable */
             bool objGet(const sHiveId & id, const sHiveId * ptypeHiveId, udx permission) const;
-            // TODO tmp
             sUsrObj* objFactory(const sHiveId & id) const;
-            //! safe factory for use in propset in case of write-only permissions
             sUsrObj* objFactory(const sHiveId & id, const sHiveId * ptypeId, udx permission) const;
-            //! allow or unallow expired objects to be visible (only in superuser mode)
             bool allowExpiredObjects(bool allowed);
 
-            //! Fills the result set with object ids of given type accessible to user
-            /*! \param type_names CSV of type name regular expressions, or "*" for objects of all types; see sUsrType2::find() for syntax details
-                \param[out] res result set into which to save the records
-                \param[out] total_qty optional; will contain total number of object found
-                \param prop optional CSV of field names to filter by (can prefixed with ! to negate)
-                \param value optional CSV of field values to filter by (can be prefixed with ! to negate)
-                \param from optional starting record (from 0), for big results for paging
-                \param qty optional max quantity of records, for big results or paging
-                \returns res.dim() */
-            udx objs2(const char* type_names, sUsrObjRes & res, udx* total_qty = 0, const char* prop = 0, const char* value = 0, const char * prop_name_csv = 0, bool permissions = false, const udx from = 0, const udx qty = 0) const;
-            //! Fills the out vector with object ids accessible to user
-            /*! \param ids optional list of ids to check for accessibility
-                \param cnt_ids length of \a ids list
-                \param out[out] vector into which to save the accessible object ids
-                \returns out.dim() */
+            udx objs2(const char* type_names, sUsrObjRes & res, udx* total_qty = 0, const char* prop = 0, const char* value = 0, const char * prop_name_csv = 0,
+                      bool permissions = false, const udx from = 0, const udx qty = 0, bool allowSysInternal = false, bool withTrash = false) const;
             udx objs(const sHiveId* ids, const udx cnt_ids, sVec<sHiveId>& out) const;
             udx objs(sVec<sHiveId> &ids, sVec<sHiveId>& out) const
             {
                 return objs(&ids[0], ids.dim(), out);
             }
-            // tmp solution for folder explorer
             udx all(sDic<udx> & list, const char* types = 0) const;
-            udx removeTrash(sUsrObjRes & res, bool return_total_count = false) const;
 
-            void propBulk(sVec<sHiveId> &ids, sVarSet & list, const char* view_name, const char* filter00) const;
+            void propBulk(sVec<sHiveId> &ids, sVarSet & list, const char* view_name, const char* filter00, bool allowSysInternal = false) const;
 
-            /*!
-             *  bulk object update
-             *  property name with '+' at the end means append more values to this property (multi-value)
-             *  ${new_obj_id} in values is substituted with ids of the newly created objects
-             */
             bool propSet(const sVar & form, sStr & log, sVec<sHiveId>* new_ids = 0, sVec<sHiveId>* updated_ids = 0, sDic<sHiveId> * new_ids_map = 0) const;
 
-            /*!
-             * Parse bulk object submission into sVarSet
-             * no objects is created
-             * substitution are not resolved in this function
-             * append is discarded
-             */
             bool propSet(const sVar & form, sStr & log, sVarSet & result, bool not_for_db = false) const;
-            /*! Parse bulk object submission into sVarSet; no objects are created */
             bool propSet(const char * srcbuf, idx len, sStr & log, sVarSet & result, bool not_for_db = false) const;
 
-            /*!
-             * bulk object update from buffer, see above for more parameters
-             */
             bool propSet(const char * srcbuf, idx len, sStr& log, sVec<sHiveId>* new_ids=0, sVec<sHiveId>* updated_ids=0, sDic<sHiveId> * new_ids_map = 0);
-            /*!
-             * bulk object update from file, see above for more parameters
-             */
             bool propSet(const char * propFileName, sStr& log, sVec<sHiveId>* new_ids = 0, sVec<sHiveId>* updated_ids = 0, sDic<sHiveId> * new_ids_map = 0);
 
             template<typename Tobjtype> bool propSet(sVar& form, sStr& log, sVec<Tobjtype> & objList, sStr * strObjIdList)
@@ -500,15 +462,22 @@ namespace slib {
                 return true;
             }
 
-            sHiveId propExport(sVec<sHiveId>& ids, sVarSet & v, bool permissions) const;
-            sHiveId propExport(sVec<sHiveId>& ids, sJSONPrinter & printer, bool permissions, bool flatten = false, bool upsert = false, const char * upsert_qry = 0) const;
-            sHiveId objFilesExport(sVec<sHiveId>& ids, sVarSet & v, const char * dst) const;
+            enum EPermExport {
+                ePermExportNone = 0,
+                ePermExportGroups = 1,
+                ePermExportAll = 2
+            };
+            sHiveId propExport(sVec<sHiveId>& ids, sVarSet & v, EPermExport permissions) const;
+            sHiveId propExport(sVec<sHiveId>& ids, sJSONPrinter & printer, EPermExport permissions, const char * rootDir, const bool flatten = false, const bool upsert = false, const char * upsert_qry = 0, const char * prop_filter00 = 0, const char * prop_exclude00 = 0) const;
+            bool objFilesExport(sVec<sHiveId>& ids, sVarSet & v, const char * dst, const char * mask = 0) const;
+            sRC objHivepack(sVec<sHiveId>& ids, const char * dstName, sPipe::callbackFuncType callback, void * callbackParam) const;
 
             bool setPermission(udx groupId, const sHiveId & objHiveId, udx permission, udx flags, sHiveId * viewId = 0, const char * forObjID = 0) const;
             bool copyPermission(const sHiveId & objHiveIdFrom, const sHiveId & objHiveIdTo) const;
             bool allow4admins(const sHiveId & objHiveId) const;
             bool allowRead4users(const sHiveId & objHiveId) const;
             void permPrettyScanf(const char * group, const char * view, const char* sperm, const char* sflags, const sUsrType2 * type, udx * groupId, sHiveId * viewId, udx * perm, udx * flags) const;
+            bool objSetHidden(const sHiveId & id, const bool hidden);
 
             bool encodeField(sStr * out_encoded_value, sMex * out_encoded_blob, idx encoding, const void * orig_value, idx len) const;
             bool decodeField(sMex * out, idx encoding, const void * encoded_value, idx value_len, const void * encoded_blob, idx blob_len) const;
@@ -517,9 +486,10 @@ namespace slib {
 
             bool isAllowed(const sHiveId & objHiveId, udx permission) const;
             bool isAllowedAndHasType(const sHiveId & objHiveId, const sHiveId * ptypeHiveId, udx permission) const;
-            //! internal use only; retrieve object's type if it has a specific permission (e.g. for retrieving views in case of admin-only objects)
             const sUsrType2 * objGetType(const sHiveId & objHiveId, udx permission) const;
             void objPermAll(sVec<sHiveId>& ids, sVarSet &tbl, bool expand_grp = false) const;
+            udx objPermEffective(const sHiveId & objHiveId) const;
+            const sHiveId * getDomainIdDescr(udx domain_id) const;
 
         public:
 
@@ -553,9 +523,8 @@ namespace slib {
             }
 
         public:
-            sStr err; // TODO drop it
-            bool init(udx userId = 0);
-            // TODO define how a service can take over
+            sStr err;
+            bool init(udx userId = 0,  udx projectId = 0);
             sUsr(const char* service_name, bool su_mode = false);
 
         protected:
@@ -564,6 +533,7 @@ namespace slib {
             friend class sUsrObj;
             friend class sUsrType;
             friend class sUsrType2;
+            friend class sUsrLoadingType;
             friend class sUsrObjType;
             friend class sUsrCGI;
             friend class sUsrFolder;
@@ -574,7 +544,6 @@ namespace slib {
             friend class sQPrideSrv;
             friend class sUsrUsage;
             friend class sUsrUsage2;
-            friend class sQPrideDB2;
             friend class qlang::sUsrContext;
             friend class sUsrHousekeeper;
             friend class sUsrPropSet;
@@ -594,17 +563,18 @@ namespace slib {
 
             void initFolders(bool keepHierarchy);
 
-            bool m_SuperUserMode;
+            mutable bool m_SuperUserMode;
 
-            udx objsLowLevel(const char * type_names, const char * obj_filter_sql, const char * prop_filter_sql, const char * prop_name_csv, bool permissions, const udx start, const udx count, sUsrObjRes * res = 0, udx * total_qty = 0) const;
+            udx objsLowLevel(const char * type_names, const char * obj_filter_sql, const char * prop_filter_sql, const char * prop_name_csv,
+                             bool permissions, const udx start, const udx count, sUsrObjRes * res = 0, udx * total_qty = 0, bool allowSysInternal = false, bool withTrash = false) const;
+
+        public:
+            char * dbProtectValue(sStr& to, const char* from, udx length = 0) const { return db().protectValue(to, from, length); }
 
         private:
 
-            // internal utility do not use will change
             bool copy2res(sUsrObjRes & res) const;
-
-            // TODO move these 2 to system settings
-            idx prohibitSelfRegistration, checkComplexity;
+            ELoginResult init2(const udx userid, const char * ipaddr, idx * plogCount);
 
             static sQPrideBase * sm_qpride;
             static sSql sm_cfg_db;
@@ -622,11 +592,11 @@ namespace slib {
             udx m_SID;
             idx m_SIDrnd;
 
-            mutable bool m_AllowExpiredObjects; // flag allowing expired objects to be loaded (only in superuser mode)
+            mutable bool m_AllowExpiredObjects;
 
             struct sObjPerm
             {
-                    sHiveId type; // TODO idx to point to same cache type obj
+                    sHiveId type;
                     udx allow, deny;
                     enum EExpiration {
                         eUnexpired,
@@ -634,15 +604,52 @@ namespace slib {
                         eMaybeExpired
                     } expiration;
             };
-            typedef std::auto_ptr< sDic<sObjPerm> > TPermCache;
+            typedef std::unique_ptr< sDic<sObjPerm> > TPermCache;
             mutable TPermCache m_ObjPermission;
 
             void cacheRemove(const sHiveId & objHiveId) const;
-            //! Internal API: force-change password for a given user ID; new password will be checked for quality etc. Errors are printer to this->err
             bool passwordReset(udx userId, const char * mod, const char * mod1);
+
+        public:
+            typedef enum {
+                eProjectViewer,
+                eProjectDataHandler,
+                eProjectContributer,
+                eProjectAdmin
+            } EProjectRole;
+            typedef struct {
+                udx projectId;
+                udx groupId;
+                udx userId;
+                EProjectRole role;
+            } Project;
+            typedef struct {
+                udx userId;
+                EProjectRole role;
+            } ProjectMember;
+            sRC createProject(sHiveId & outId, const char * name, const char * description, const char * typeName);
+            sRC availableProjects(sVec<Project> & outProjects) const;
+            sRC projectMembers(sVec<ProjectMember> &outProjects) const;
+            sRC addToProject(udx userId, sUsr::EProjectRole role) const;
+            sRC removeFromProject(udx userId);
+
+            bool moveCheck(const sVec<sHiveId> & inIds, sVec<sHiveId> & outIds, sStr & err) const;
+            bool moveToProject(sVec<sHiveId> & ids, sStr & err);
+            bool moveToHome(sVec<sHiveId> & ids, sStr & err);
+
+            udx getProject() const {
+                return m_currProj.projectId;
+            }
+            sRC initProjectFolders() const;
+            sRC setProject(udx projectId) const;
+        private:
+            mutable Project m_currProj;
+            mutable sStr m_projMembership;
+            sRC allProjectRoles(sVec<Project> & out, udx projectId) const;
+            sRC clearAndSetPermissions(const sHiveId & obj, sDic<udx> & groupPermissions) const;
     };
 
 }
 ;
 
-#endif // sLib_usr_h
+#endif 

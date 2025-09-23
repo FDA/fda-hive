@@ -55,13 +55,6 @@ void DnaScreening::setObjId(const sHiveId & objId)
     setVar("query", "%s", objId.print());
 }
 
-/*
- *  Algorithm to use in Dna Screening:
- *  0 - dna-hexagon
- *  1 - Blast
- *  2 - Bowtie
- *  3 - BWA
- */
 void DnaScreening::setAlgorithm(const eBranch branch)
 {
     setVar("algorithm", "%i", branch);

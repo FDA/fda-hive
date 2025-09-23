@@ -46,7 +46,6 @@ namespace sviolin {
             bool getLatest(sHiveId & out_latestId)
             {
                 init();
-                //Although objlist will not change for one obj, still do it everytime this function was called
                 out_latestId.reset();
                 udx maxV = 0;
                 for(sUsrObjRes::IdIter it = objIdList.first(); objIdList.has(it); objIdList.next(it)) {
@@ -70,7 +69,6 @@ namespace sviolin {
             idx getFileName(sStr & buf)
             {
                 init();
-                //Although objlist will not change for one obj, still do it everytime this function was called
                 buf.cut(0);
                 sHiveId latestId;
                 getLatest(latestId);
@@ -81,7 +79,7 @@ namespace sviolin {
                     return 0;
                 }
                 idx cnt = 0;
-                std::auto_ptr<sUsrObj> obj(m_usr.objFactory(latestId));
+                std::unique_ptr<sUsrObj> obj(m_usr.objFactory(latestId));
                 if( !obj.get() ) {
 #ifdef _DEBUG
                     fprintf(stderr, "%s:%u: Cannot get object with ID %s\n", __FILE__, __LINE__, latestId.print());
@@ -115,4 +113,4 @@ namespace sviolin {
             sUsrObjRes objIdList;
     };
 }
-#endif // sTaxTreeMap_hpp
+#endif 

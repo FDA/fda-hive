@@ -37,14 +37,10 @@
 #include <slib/utils.hpp>
 #include <ssci/bio.hpp>
 #include <ssci/bio/biogencode.hpp>
+#include "../../vlib/ulib/uperm.hpp"
+#define numAllCdTbl 19
+#define numUniqCdTbl 7
 
-#define numAllCdTbl 19      //number of all codon tables
-#define numUniqCdTbl 7      //number of unique tables
-
- /*! DNA-QC
-  *  It reads a Query Input in a vioseq2 format with short reads or genomes
-  *  and performs quality control statistics of A,C,G,T's and their Phred Scores
-  */
 idx DnaQCProc::TbGroup[]= {
     0,1,2,2,2,3,2,2,0,0,2,4,5,2,6,0,2,2,0
 };
@@ -74,7 +70,6 @@ void DnaQCProc::initStopCodon(){
 
         stopCODONS = GenCodeData.AACodons[20][listOfUniqCdTbl[TbId]];
 
-//        numStop[TbId] = sString::cnt00(stopCODONS);
 
         stopBase[TbId].resize(sString::cnt00(stopCODONS)*3);
         char *codon = sString::nonconst(stopCODONS);
@@ -99,7 +94,7 @@ void DnaQCProc::getCodonQC(sVec<idx> &countHas, const char* str, idx seqLen, idx
     }
 
     idx thisReadData[numUniqCdTbl][6];
-    for(idx i = 0; i < numUniqCdTbl; i++){   //reset to -1
+    for(idx i = 0; i < numUniqCdTbl; i++){
         for(idx j = 0; j < 6; j++){
             thisReadData[i][j] = -1;
         }
@@ -108,12 +103,12 @@ void DnaQCProc::getCodonQC(sVec<idx> &countHas, const char* str, idx seqLen, idx
 
     idx charpos1 = 0, basepos1 = 0;
     for (idx j = 0; j < 3 && j < seqLen - 2; j++) {
-        idx findcount = 0;      //count the find in the two frames
+        idx findcount = 0;
         idx charpos2 = charpos1, basepos2 = basepos1++;
 
         while( charpos2 * 4 + basepos2 < seqLen - 2 ) {
 
-            for(idx i = 0; i < 3; i++) {        //get three bases
+            for(idx i = 0; i < 3; i++) {
                 cod[i] = getBase(charpos2, basepos2, str);
                 basepos2++;
                 if( basepos2 == 4 ) {
@@ -122,7 +117,7 @@ void DnaQCProc::getCodonQC(sVec<idx> &countHas, const char* str, idx seqLen, idx
                 }
             }
 
-            for (idx i = 0; i < numUniqCdTbl; i++){         //record
+            for (idx i = 0; i < numUniqCdTbl; i++){
                 if(thisReadData[i][j]==-1 && stopCodon(cod[0], cod[1] ,cod[2], i)) {
                     thisReadData[i][j] = charpos2*4 + basepos2 - 2;
                     findcount++;
@@ -132,7 +127,7 @@ void DnaQCProc::getCodonQC(sVec<idx> &countHas, const char* str, idx seqLen, idx
                     findcount++;
                 }
             }
-            if (findcount == numUniqCdTbl * 2) {        //two frames finished
+            if (findcount == numUniqCdTbl * 2) {
                 break;
             }
 
@@ -160,16 +155,11 @@ void DnaQCProc::getCodonQC(sVec<idx> &countHas, const char* str, idx seqLen, idx
 }
 
 
-/*!
- * executing function of dna-qc
- * Currently, It does not take into consideration any other nucleotide besides: A,C,G and T's
- *
- */
 bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
 {
     sStr path;
-    std::auto_ptr < sUsrObj > obj(user->objFactory(objId));
-    if( !obj.get() || !obj->Id() ) {
+    std::unique_ptr < sUsrObj > obj(user->objFactory(objId));
+    if( !obj.get() || !obj->Id() || !user->objGet(obj->Id(), 0, ePermCanWrite) ) {
         errmsg.printf("Object %s not found or access denied", obj->IdStr());
     } else {
         obj->getFilePathname00(path, ".hiveseq" _ ".vioseqlist" _ ".vioseq2" __);
@@ -185,10 +175,14 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
 
     bool isQual = false;
     idx MAXSEQLEN = 0;
-    const idx MAX = 32 * 1024; // max length of sequence QC'ed
-    sVec<QCstats> quaStat(sMex::fSetZero);
+    const idx MAX = 32 * 1024;
+    sVec<DnaQCstats> quaStat(sMex::fSetZero);
+    DnaQCstats aboveMAXSEQLEN;
+    bool accMaxSeqLen = false;
     sDic<Lenstats> lenStat;
     lenStat.mex()->flags |= sMex::fSetZero;
+    sDic<Lenstats> countNStat;
+    countNStat.mex()->flags |= sMex::fSetZero;
 
     quaStat.cut(MAXSEQLEN);
     initLengthStats();
@@ -200,12 +194,10 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
 
     if( !errmsg ) {
         logOut(eQPLogType_Info, "query %s requested for execution\n", obj->IdStr());
-
         for(idx ipos = 0; ipos < Qry.dim(); ++ipos) {
             idx realseqlen = Qry.len(ipos);
             idx seqlen = realseqlen;
 
-            // Add seqlen to dictionary
             if( !progressReport(req, ipos, ipos * 70 / Qry.dim()) ) {
                 errmsg.printf("Killed");
                 break;
@@ -223,7 +215,7 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
             idx seqrpt = Qry.rpt(ipos);
             const char *seqqua = Qry.qua(ipos);
 
-            bool isQbit = Qry.getQuaBit(ipos);  // false means 8 bit qualities, true means 1 bit qualities
+            bool isQbit = Qry.getQuaBit(ipos);
             if( seqqua != 0 && *seqqua) {
                 isQual = true;
             }
@@ -232,16 +224,14 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
                 errmsg.printf("Empty sequence at read: %" DEC, ipos);
                 break;
             }
-            // Calculate statistics for objId.
             addlengthStat(realseqlen, seqrpt);
 
             sStr s;
-            sBioseq::uncompressATGC(&s, seq, 0, seqlen);
+            Qry.printSequence(&s, ipos, 0, seqlen);
             idx sumqua = 0;
 
             Lenstats * auxlenStat = lenStat.set(&seqlen, sizeof(seqlen));
             auxlenStat->num += seqrpt;
-            // Go into each read and accumulate the values
             for(idx i = 0; i < seqlen; i++) {
                 char let = sBioseq::mapATGC[(int) s[i]];
                 idx qua = -1;
@@ -271,6 +261,32 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
             if (passFilter == 3){
                 complexCnt += seqrpt;
             }
+
+            idx numNs = Qry.countNs(ipos);
+            idx percNs = (numNs * 100)/ seqlen;
+            if (percNs == 0 && numNs != 0){
+                percNs = 1;
+            }
+            Lenstats * auxNStat = countNStat.set(&percNs, sizeof(percNs));
+            auxNStat->num += seqrpt;
+
+
+            if (realseqlen != seqlen){
+                accMaxSeqLen = true;
+                s.cut(0);
+                Qry.printSequence(&s, ipos, seqlen, realseqlen - seqlen);
+                for(idx i = 0; i < realseqlen - seqlen; i++) {
+                    char let = sBioseq::mapATGC[(int) s[i]];
+                    idx qua = -1;
+                    if (isQual){
+                        qua = (seqqua && !isQbit) ? seqqua[i] : -1;
+                        if (qua < 0){
+                            qua = -1;
+                        }
+                    }
+                    Stats_sample(&aboveMAXSEQLEN, let, qua, seqrpt);
+                }
+            }
         }
     }
     sVec<idx> ind;
@@ -279,7 +295,7 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
     sSort::sortCallback(sSort::sort_idxDicComparator, 0, lenStat.dim(), &lenStat, ind.ptr(0));
 
     if( !errmsg ) {
-        path.cut(0);
+        path.cut0cut();
         obj->addFilePathname(path, true, ".qc2.countsAtPositionTable.csv");
         sFil fp(path);
         if( fp.ok() ) {
@@ -304,16 +320,16 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
         }
     }
     if( !errmsg ) {
-        path.cut(0);
+        path.cut0cut();
         obj->addFilePathname(path, true, ".qc2.sumLetterTable.csv");
         sFil fp(path);
         if( fp.ok() ) {
             fp.cut(0);
             fp.printf("letter,count,quality\n");
-            idx sumCount[4] = { 0, 0, 0, 0 };
-            real sumQuality[4] = { 0, 0, 0, 0 };
+            idx sumCount[5] = { 0, 0, 0, 0, 0 };
+            real sumQuality[5] = { 0, 0, 0, 0, 0 };
             for(idx l = 0; l < MAXSEQLEN; ++l) {
-                for(idx i = 0; i < 4; ++i) {
+                for(idx i = 0; i < 5; ++i) {
                     sumCount[i] += quaStat.ptr(l)->cACGT[i];
                     sumQuality[i] += quaStat.ptr(l)->cqACGT[i];
                 }
@@ -322,7 +338,13 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
                     break;
                 }
             }
-            for(idx let = 0; let < 4; ++let) {
+            if (accMaxSeqLen){
+                for(idx i = 0; i < 5; ++i) {
+                    sumCount[i] += aboveMAXSEQLEN.cACGT[i];
+                    sumQuality[i] += aboveMAXSEQLEN.cqACGT[i];
+                }
+            }
+            for(idx let = 0; let < 5; ++let) {
                 fp.printf("%c,%" DEC ",%.3lf\n", sBioseq::mapRevATGC[let], sumCount[let], sumCount[let] ? sumQuality[let] / (real) sumCount[let] : 0);
             }
         } else {
@@ -330,15 +352,14 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
         }
     }
     if( !errmsg ) {
-        path.cut(0);
+        path.cut0cut();
         obj->addFilePathname(path, true, ".qc2.sumPositionTable.csv");
         sFil fp(path);
         if( fp.ok() ) {
             fp.cut(0);
-        //  fp3.printf("pos,minA,maxA,meanA,stddevA,countA,minC,maxC,meanC,stddevC,countC,minG,maxG,meanG,stddevG,countG,minT,maxT,meanT,stddevT,countT\n");
             fp.printf("pos,mindA,qualityA,maxdA,countA,mindC,qualityC,maxdC,countC,mindG,qualityG,maxdG,countG,mindT,qualityT,maxdT,countT\n");
             for(idx ipos = 0; ipos < MAXSEQLEN; ++ipos) {
-                QCstats *qcstat = quaStat.ptr(ipos);
+                DnaQCstats *qcstat = quaStat.ptr(ipos);
                 fp.printf("%" DEC, ipos);
                 for(idx l = 0; l < 4; ++l) {
                     real mean = Stats_mean(qcstat, l);
@@ -373,7 +394,7 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
     }
 
     if( !errmsg ) {
-        path.cut(0);
+        path.cut0cut();
         obj->addFilePathname(path, true, ".qc2.codonQCTable.csv");
         sFil fp(path);
         if( fp.ok() ) {
@@ -395,7 +416,7 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
         }
     }
     if( !errmsg ) {
-            path.cut(0);
+            path.cut0cut();
             obj->addFilePathname(path, true, ".qc2.ComplexityTable.csv");
             sFil fp(path);
             if( fp.ok() ) {
@@ -409,6 +430,31 @@ bool DnaQCProc::dnaqcProc(idx req, sHiveId &objId, sStr &errmsg)
             }
         }
 
+    ind.cut(0);
+    ind.add(countNStat.dim());
+    sSort::sortCallback(sSort::sort_idxDicComparator, 0, countNStat.dim(), &countNStat, ind.ptr(0));
+
+    if( !errmsg ) {
+        path.cut0cut();
+        obj->addFilePathname(path, true, ".qc2.countNsPercentageTable.csv");
+        sFil fp(path);
+        if( fp.ok() ) {
+            fp.cut(0);
+            fp.printf("percentage,count\n");
+            for (idx l = 0; l < countNStat.dim(); ++l){
+                idx aux = *(idx *)countNStat.id(ind[l]);
+                Lenstats *auxlen = countNStat.ptr(ind[l]);
+                fp.printf("%" DEC ",%" DEC "\n", aux, auxlen->num);
+                if( !progressReport(req, l, l * 10 / countNStat.dim()) ) {
+                    errmsg.printf("Killed by the user");
+                    break;
+                }
+            }
+        } else {
+            errmsg.printf("Can't write '%s'", path.ptr());
+        }
+    }
+
     return errmsg.length();
 }
 
@@ -416,10 +462,8 @@ idx DnaQCProc::OnExecute(idx req)
 {
     sStr errmsg, qryBlb, lockBuf;
 
-    // Get the objId from the Form
     const char * qry = formValue("query");
     if( !qry ) {
-        // Get the objId from the Blob
         reqGetData(grpId, "query", &qryBlb);
         qry = qryBlb.ptr();
     }
@@ -433,12 +477,10 @@ idx DnaQCProc::OnExecute(idx req)
         idx reqLockedby;
         reqLock(lockStringkey, &reqLockedby);
         if (req==reqLockedby){
-            valid = dnaqcProc(req, objId, errmsg); // Execute the actual dna-qc service
+            valid = dnaqcProc(req, objId, errmsg);
             reqUnlock(lockStringkey);
         }
         else {
-            // There is another process taking care of the job
-            // Do nothing for now
             valid = 0;
         }
     }
@@ -462,7 +504,7 @@ int main(int argc, const char * argv[])
 {
     sBioseq::initModule(sBioseq::eACGT);
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
     DnaQCProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-qc", argv[0]));
     return (int) backend.run(argc, argv);
 }

@@ -57,7 +57,6 @@ inline static idx makePM(idx hour)
     }
 }
 
-//static
 idx sString::parseTime(const char * s, idx * pLenParsed, idx * pExplicitUtcOffset)
 {
     const char * s_initial = s;
@@ -83,7 +82,6 @@ idx sString::parseTime(const char * s, idx * pLenParsed, idx * pExplicitUtcOffse
         second = strtoidx(s, &end, 10);
         if( second < 0 || second > 61 )
             return -sIdxMax;
-        // skip second fractions
         s = end;
         if( *s == '.' ) {
             for( s++; isdigit(*s) || isspace(*s); s++ );
@@ -92,7 +90,6 @@ idx sString::parseTime(const char * s, idx * pLenParsed, idx * pExplicitUtcOffse
         for( s = end + 1; isspace(*s); s++ );
     }
 
-    // am/pm
     idx ampm = -1;
     static const char * ampm00 = "am" _ "a.m." _ "pm" _ "p.m." __;
     idx ampm_len = sString::compareChoice(s, ampm00, &ampm, true, 0, false);
@@ -108,7 +105,6 @@ idx sString::parseTime(const char * s, idx * pLenParsed, idx * pExplicitUtcOffse
         for( s += ampm_len; isspace(*s); s++ );
     }
 
-    // timezone
     for( ; isspace(*s); s++ );
     idx utc_offset = -sIdxMax;
     if( *s == 'z' || *s == 'Z' ) {
@@ -116,29 +112,25 @@ idx sString::parseTime(const char * s, idx * pLenParsed, idx * pExplicitUtcOffse
         s++;
     } else if( *s == '+' || *s == '-' ) {
         bool negate = *s == '-';
-        s++; // deal with sign manually
+        s++;
         idx utc_hr_offset = strtoidx(s, &end, 10);
         idx utc_min_offset = 0;
         if( end - s == 2 ) {
             if( *end == ':' ) {
-                // +/-HH:MM
                 s = end + 1;
                 utc_min_offset = strtoidx(s, &end, 10);
                 if( end - s != 2 )
                     return -sIdxMax;
             } else {
-                // +/-HH
                 utc_min_offset = 0;
             }
         } else if( end - s == 4 ) {
-            // +/-HHMM
             utc_min_offset = utc_hr_offset % 100;
             utc_hr_offset /= 100;
         } else {
             return -sIdxMax;
         }
 
-        // sanity check
         if( utc_hr_offset < 0 || utc_min_offset < 0 )
             return -sIdxMax;
 
@@ -177,7 +169,6 @@ idx sString::parseTime(struct tm * result, const char * s, idx * pLenParsed, idx
     idx ret = -sIdxMax;
 
     if( utc_offset != -sIdxMax ) {
-        // for mktime() we need result in local time, not UTC
         time_t timestamp = -1;
 #if defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || defined(timegm)
         timestamp = timegm(result);
@@ -287,11 +278,10 @@ static inline bool isEnd(char c)
     return !c || isspace(c);
 }
 
-//static
 idx sString::parseDateTime(struct tm * result, const char * s, idx * pLenParsed, idx * pExplicitUtcOffset)
 {
     sSet(result, 0);
-    result->tm_isdst = -1; // so mktime adjusts it sanely
+    result->tm_isdst = -1;
 
     if( pLenParsed )
         *pLenParsed = 0;
@@ -310,7 +300,6 @@ idx sString::parseDateTime(struct tm * result, const char * s, idx * pLenParsed,
 
     switch (end - s) {
     case 4:
-        // starts with year - YYYY or YYYY-MM or RFC 3339 or similar
         result->tm_year = first_num - 1900;
         if( isDateSep(*end) ) {
             s = end + 1;
@@ -340,7 +329,6 @@ idx sString::parseDateTime(struct tm * result, const char * s, idx * pLenParsed,
                 }
             }
         }
-        // if we didn't see a day, use the first of that month
         if (!result->tm_mday) {
             result->tm_mday = 1;
         }
@@ -354,13 +342,11 @@ idx sString::parseDateTime(struct tm * result, const char * s, idx * pLenParsed,
     case 2:
     case 1:
         if( first_num == 0 && isEnd(*end) ) {
-            // literal "0"
             const time_t t = first_num;
             if( !localtime_r(&t, result) ) {
                 return -sIdxMax;
             }
         } else if( isDateSep(*end) ) {
-            // US-style MM/DD/YYYY or MM/YYYY
             if( first_num < 1 || first_num > 12 )
                 return -sIdxMax;
             result->tm_mon = first_num - 1;
@@ -385,7 +371,6 @@ idx sString::parseDateTime(struct tm * result, const char * s, idx * pLenParsed,
                     }
                 }
             }
-            // if we didn't see a day, use the first of that month
             if (!result->tm_mday) {
                 result->tm_mday = 1;
             }
@@ -396,15 +381,12 @@ idx sString::parseDateTime(struct tm * result, const char * s, idx * pLenParsed,
                 }
             }
         } else {
-            // probably RFC2822 without week day
             return parseDateTimeRFC2822(result, s_initial, pLenParsed, pExplicitUtcOffset);
         }
         break;
     case 0:
-        // doesn't start with day - RFC2822 with week day included
         return parseDateTimeRFC2822(result, s_initial, pLenParsed, pExplicitUtcOffset);
     default:
-        // Unix timestamp or unknown
         if( isEnd(*end) ) {
             const time_t t = first_num;
             ret = localtime_r(&t, result) ? first_num : -sIdxMax;
@@ -425,7 +407,6 @@ idx sString::parseDateTime(struct tm * result, const char * s, idx * pLenParsed,
     return ret;
 }
 
-//static
 const char * sString::printDateTime(sStr & out, const struct tm * tm, idx flags)
 {
     idx start = out.length();
@@ -462,7 +443,6 @@ const char * sString::printDateTime(sStr & out, const struct tm * tm, idx flags)
     return out.ptr(start);
 }
 
-//static
 const char * sString::printDateTime(sStr & out, idx unix_time, idx flags)
 {
     time_t t = unix_time;

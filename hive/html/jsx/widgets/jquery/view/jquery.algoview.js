@@ -1,5 +1,3 @@
-
-
 /*
  *  ::718604!
  * 
@@ -30,24 +28,42 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+javaScriptEngine.include("js/vjProgress2View.js");
+$.loadCSS('css/dialog.css');
+$.loadScript('jsx/widgets/jquery/components/project_list_dialog.js');
+loadJS('jsx/widgets/vanilla/button.template.js')
+loadJS('jsx/widgets/vanilla/htmlpreview.template.js')
+loadJS('jsx/widgets/vanilla/textpreview.template.js')
+loadJS('jsx/widgets/vanilla/pdbpreview.template.js')
 
 var optionsForPage={};
 var currentCompletionState = "preSubmit";
 var formName="algoForm";
-var valgoToolbarWaitingList="type,align,order,name,title,icon,path,url,description\n"+
-                            ",left,1,files,Modify and Resubmit,img/recRevert.gif,/resubmit,"+
-                            urlExchangeParameter(document.location,"id","-"+docLocValue("id"))+
-                            ",Modify parameters and resubmit this computation using the same template\n";
-var valgoToolbarDoneList="";
+
+var valgoToolbarWaitingList = [
+    {
+        type: '',
+        align: 'left',
+        order: '1',
+        name: 'modresubmit',
+        title: 'Modify and Resubmit',
+        icon: 'img/recRevert.gif',
+        path: '/resubmit',
+        url: urlExchangeParameter(document.location,"id","-"+docLocValue("id")),
+        description: 'Modify parameters and resubmit this computation using the same template'
+    }
+]
+
+var valgoToolbarDoneList=[];
 var toolBar="processToolbar";
 var parametersDiv = "";
 var algoWidgetObj;
-var originalStat = -1;
-
+var originalStat;
+var vjRefFileExp=new vjPageLayout();
 
 function algoViewHTMLSetUp(arg1, movedown)
 {
-    var txt="<form name='algoForm'>" +
+    var txt="<form name='algoForm' style='height:100%;'>" +
                 "<div class='content'>" +
                     "<div class='main-content' id='mainAlgoArea'></div>" +
                 "</div>" +
@@ -57,16 +73,16 @@ function algoViewHTMLSetUp(arg1, movedown)
 }
 
 
-//all of the functions that deal with the algorithm (including all of its callbacks, etc)
 function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
 {
     this.recViewerName = 'DV_Parameter_view';
     this.cmdModeLst = {  batch_svc: ["bool:single","batch"]};
     this.ID=docLocValue("id");
-    algoProcessID = docLocValue("id"); //I think that this.ID should be used in all of those URL's
+    algoProcessID = docLocValue("id");
     this.cmdMode=docLocValue("cmdMode");
-    this.help = []; //if any extra helps need to be passed in
+    this.help = [];
     var that = this;
+    this.cloneMode = this.ID && (this.ID[0] == "-" || this.ID < 0) ? true : false 
 
     this.valgoCore = function(cls, loadedID )
     {
@@ -82,7 +98,7 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
 
 
         this.objCls="algo-"+cls+"-"+Math.random();
-        vjObj.register(this.objCls,this); // needed to find this object in events by object container
+        vjObj.register(this.objCls,this);
     };
 
     this.isMode = function(mode)
@@ -95,7 +111,6 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
         return (!this.cmdMode || (this.cmdMode.indexOf("-"+mode)==-1 && this.cmdMode.indexOf(mode)!=0)) ? false : true;
     };
 
-    // this function should not be called before algoProcess record viewer was initialized
     this.isBatch = function (){
         if (this.isMode("batch")) {
             return true;
@@ -136,8 +151,6 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
     {
         var menuUl = $("#algoMenu");
         var whatNext = $(".whatNext");
-        var tbl = new vjTableView();
-        tbl.initTblArr(content);
 
         var tab="whatNext";
 
@@ -160,21 +173,24 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
                     ));
         }
         $("#"+tab).empty();
+        let tblArr;
+        try{
+            tblArr = typeof content === 'string' ? JSON.parse(content) : null
+        } catch {
+            tblArr = null
+        }
 
-        var tblArr = tbl.tblArr;
-        for (var i = 1; tblArr.rows && i < tblArr.rows.length; i++)
+        for (var i = 0; tblArr && i < tblArr.length; i++)
         {
-            var url = tblArr.rows[i].cols[7];
-            if(url == "") continue;
+            let url = tblArr[i].url;
+            if(!url || url === "") continue;
             $("#"+tab).append(
                     $(document.createElement("li"))
                     .append($(document.createElement("a"))
-                            .attr({"cur-index":i})
                             .click(function(){
-                                var ind = $(this).attr("cur-index");
-                                funcLink(tblArr.rows[ind].cols[7]);
+                                funcLink(url);
                             })
-                            .text(tblArr.rows[i].cols[4])
+                            .text(tblArr[i].title)
                     )
                     .append($(document.createElement("i"))
                             .addClass("fa fa-angle-right")
@@ -183,9 +199,9 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
         }
     };
 
-    vjDS.add("infrastructure: Constructing Toolbar", "ds"+toolBar, "static://");
+    vjDS.add("infrastructure: Constructing Toolbar", "ds"+toolBar, "static:
     vjDS["ds"+toolBar].register_callback(this.toolbarCallback);
-    vjDS["ds"+toolBar].reload("static://"+valgoToolbarWaitingList, true);
+    vjDS["ds"+toolBar].reload("static:
 
     this.valgoCore("process", loadedID );
 
@@ -209,6 +225,53 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
 
     this.onRecordLoaded=function(viewer,text)
     {
+        var name = viewer.getElement("name") ? viewer.getElement("name").value : "";
+        let slideoutMenuDescription = $("#menuDiv").children("div").children(".slideout-menu-description");
+        if (slideoutMenuDescription.length < 1){
+            $("#menuDiv").children("div").append(
+                $(document.createElement("div"))
+                .addClass("slideout-menu-description")
+            );
+            slideoutMenuDescription =  $(".slideout-menu-description")
+            if(Boolean(name)){
+                slideoutMenuDescription.append(
+                    $(document.createElement("p"))
+                        .text(name)
+                );
+            }
+        }
+        if (projectHandler.getProjectID()) {
+            slideoutMenuDescription.append(
+                $(document.createElement("div"))
+                .addClass("slideout-menu-projectInfo")
+            );
+            let slideoutMenuProjectInfo = $(".slideout-menu-projectInfo")
+            slideoutMenuProjectInfo.append(
+                $(document.createElement("p"))
+                    .text(`Project ID: ${projectHandler.getProjectID()}`)
+            );
+
+            function fn () {
+                if( !projectHandler.getProjectNickname() && !projectHandler.getProjectName() ){ return; }
+                if( !projectHandler.getProjectName() ){
+                    slideoutMenuProjectInfo.append(
+                        $(document.createElement("p"))
+                            .text(`Project Nickname: ${projectHandler.getProjectNickname()}`)
+                    );
+                    return;
+                }
+                slideoutMenuProjectInfo
+                .empty()
+                .append(
+                    $(document.createElement("p"))
+                        .text(`Project Name: ${projectHandler.getProjectName()} (  ${projectHandler.getProjectNickname()} | ID-${projectHandler.getProjectID()} )`)
+                );
+            }
+
+            if (!projectHandler.getProjectNickname() && !projectHandler.getProjectName()) { getProjectInfo(fn.bind(this)) }
+            else { fn() }
+        }
+        
         if(this.initialPresets && currentCompletionState == "preSubmit"){
             viewer.changeValueList(this.initialPresets);
         }
@@ -219,7 +282,7 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
                 if (batch_param_constraint_text.length) {
                     batch_param_constraint_text += "|";
                 }
-                batch_param_constraint_text += node.name + "///" + node.title;
+                batch_param_constraint_text += node.name + "
             }
         });
 
@@ -231,6 +294,18 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
         }
 
         var batch_svc_elt = viewer.getElement("batch_svc");
+
+        if(this.cloneMode){
+            this.changeCmdPropSet(viewer,batch_svc_elt)
+        }
+        
+        var url = document.location.href;
+        if(url.indexOf("?cmd=")!=-1){
+            url = url.substring(url.indexOf("?cmd=") + 5);
+        } else {
+            url = url.substring(url.indexOf("?"));
+        }
+        url = urlExchangeParameter(url, "id", "-");
         var cmd = docLocValue("cmd");
         var cmdMode = docLocValue("cmdMode");
         var batchMode = docLocValue("batchMode");
@@ -239,7 +314,7 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
             cmd += "&batchMode=true";
             viewer.changeElementValue("batch_svc", this.qpSvc);
         }
-        viewer.changeElementValue("submitter", cmd);
+        viewer.changeElementValue("submitter", url);
         this.updateBatchFldTree(viewer);
 
         if(this.inputLoaded)
@@ -247,6 +322,12 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
         if(this.callbackLoaded)
             this.callbackLoaded (viewer,this);
     };
+
+    this.changeCmdPropSet = function(viewer, elem) {
+        var qpSvc = parseBool(elem.value) && elem.value != "single" ? "svc-batcher" : this.qpSvc;
+        viewer.cmdPropSet = "?cmd=-qpProcSubmit&svc=" + qpSvc + (algoProcess.forceGroup ? "&forceGroup=1" : "");
+        this.updateBatchFldTree(viewer);
+    }
     
     this.readFromDocLoc=function(namearr)
     {
@@ -260,26 +341,22 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
         }
     };
 
-    this.onRecordChanged=function(viewer, elem)
-    {
+    this.onRecordChanged = function(viewer, elem, domElem, node) {
         if (elem.fld.name == "batch_svc") {
-            var qpSvc = parseBool(elem.value) && elem.value != "single" ? "svc-batcher" : this.qpSvc;
-            viewer.cmdPropSet = "?cmd=-qpProcSubmit&svc=" + qpSvc;
-            this.updateBatchFldTree(viewer);
+            this.changeCmdPropSet(viewer,elem)
         }
-        if(this.inputChanged)
-            this.inputChanged (viewer,elem);
+        if( this.inputChanged ) {
+            this.inputChanged(viewer, elem, node);
+        }
     };
 
     this.updateBatchFldTree=function(viewer)
     {
         if (this._in_updateFldPresets) {
-            // avoid potentially recursive callbacks
             return;
         }
         this._in_updateFldPresets = true;
 
-        // in batch mode, batch_param and batch_value fields must be non-optional
         var is_batch = this.isBatch();
         var need_redraw = false;
         ["batch_param", "batch_value"].forEach(function(fldname) {
@@ -310,7 +387,6 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
         if (is_batch) {
             viewer.getValidateSeparatorCb = function(fld_name) {
                 if(fld_name && verarr(algoProcess.getValue("batch_param", "array")).indexOf(fld_name) >= 0) {
-                    // batchable fields are (sometimes) allowed to be ';'-separated lists
                     return ';';
                 } else {
                     return null;
@@ -349,13 +425,15 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
     };
     var callbackFullview = false;
 
-    this.callbackDoneComputing = function (viewer, reqid, stat)
-    {
-        if(that.doneComputing){
+    this.callbackDoneComputing = function (viewer, reqid, stat) {
+        if(originalStat == "none" || originalStat == stat) return;
+
+        if(that.doneComputing && (stat != "Killed" || stat != "ProgError" || stat != "SysError") && !that.isBatch()){
             callbackFullview = that.doneComputing(viewer,reqid,stat);
         }
 
-        if (stat >= 6 && (originalStat > -1 && originalStat < 5)) 
+        if (stat == "Done" && (originalStat == "Any" || originalStat == "Waiting" || 
+            originalStat == "Processing" || originalStat == "Running" || originalStat == "Suspended")) 
         {
             if (that.isMode("batch") || (vjDV[that.recViewerName].getElement("batch_svc") && vjDV[that.recViewerName].getElement("batch_svc").value == that.qpSvc))
                 return;
@@ -410,32 +488,62 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
                 );
                 
             whatNext.children("ul").toggle();
-            algoWidgetObj.openTab("info");
         }
-        else if (stat >= 1 && stat < 5)
+        else if (stat == "Any" || stat == "Waiting" || 
+        stat == "Processing" || stat == "Running" || stat == "Suspended")
         {
             currentCompletionState = "whileRunning";
             algoWidgetObj.iterateAlgoJSON (algoWidgetObj.optionsForPage.subTabs, "algoMenu");
             if (that.callbackProgressComputing)
                 that.callbackProgressComputing (viewer,reqid,stat);
         }
-        else if (!that.isBatch())
+        else if((stat == "Killed" || stat == "ProgError" || stat == "SysError")){
+            vjDS["dsProgress"].reload(vjDS["dsProgress"].url, true);
+            
+            $("body").append(
+                    $(document.createElement("div"))
+                        .attr("id", "dialog")
+                        .attr("title", "Error Dialog")
+                        .append (
+                                $(document.createElement("p")).text("There was an error in the computation. Please check the Progress tabs")
+                        )
+                    );
+                
+                $("#dialog").dialog({
+                    modal: true,
+                    width: 500,
+                    buttons: {
+                        OK: function() {
+                           $(this).dialog("close");
+                        }
+                    },
+                    open: function() {
+                        $(this).closest(".ui-dialog")
+                            .find(".ui-dialog-titlebar-close")
+                            .addClass("ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close")
+                            .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+                        $(this).closest(".ui-dialog")
+                            .find(".ui-dialog-titlebar")
+                            .addClass("error-header");
+                    }
+                });
+            originalStat = "none";
+            return;
+        }
+        else if (!that.isBatch() && (stat == "Done" || stat == "Killed" || stat == "ProgError" || stat == "SysError"))
             onContinueToResults();
         
-        if (originalStat < 0)
+        if (!originalStat)
             originalStat = stat;
     };
     
-    function onContinueToResults ()
-    {
-
+    function onContinueToResults (){
         $(".whileRunning").children("ul").toggle();
         currentCompletionState = "computed";
         $("."+currentCompletionState).children("ul").toggle();
         $(".computed").removeAttr("style");
-
-        //here we will add a toolbar to a tab with options
-        vjDS["ds"+toolBar].reload("static://"+valgoToolbarWaitingList+valgoToolbarDoneList, true);
+        
+        vjDS["ds"+toolBar].reload("static:
 
         if ($.getAlgoViewManager().options.closeHelp){
             setTimeout(function() {
@@ -443,8 +551,74 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
             }, 5000);
         }
 
-        if (callbackFullview)
+        if (callbackFullview) {
             return;
+        } else if(algoProcess.callbackFullview){
+            algoProcess.callbackFullview();
+            return;
+        }
+
+        function archiveCallback(viewer, node, row) {
+            var extension = node.value.substr(node.value.lastIndexOf('.') + 1);
+            var url = 'qpbg_http:
+                     + '&filename=' + encodeURIComponent(node.value) + '&cgi_dstname=' + encodeURIComponent(node.value)
+                     + '&ext=' + encodeURIComponent(extension) + '&projectID=' + projectHandler.getProjectID();
+            
+            if( node.all_files ) {
+                alert('Function will be supported in a future release.\nYou can download [All files] and then upload the downloaded zip file on Home page.');
+            } else if(extension === 'sam' || extension === 'bam' || extension === 'blast_out'){
+                vjRefArchive(url,node.value);
+                alert ('Your selected item is being ingested. You can monitor the progress from within data loading tab');
+            }else {
+                var url = 'qpbg_http:
+                     + '&filename=' + encodeURIComponent(node.value) + '&cgi_dstname=' + encodeURIComponent(node.value) + '&arch_dstname=' + encodeURIComponent(node.value)
+                     + '&ext=' + encodeURIComponent(node.value.substr(node.value.lastIndexOf('.') + 1)) + '&projectID=' + projectHandler.getProjectID();
+                vjDS.dsVoid.reload(url, true);
+                alert ('Your selected item is being ingested. You can monitor the progress from within data loading tab');
+            }
+        };
+
+        function downloadCallback(viewer, node) {
+            var url;
+            if( node.all_files ) {
+                url = "qpbg_http:
+                    + node.id + "-results&function=objFiles2&files2mask=*&objs=" + node.id + '&projectID=' + projectHandler.getProjectID();
+            } else {
+                if( algoProcess.allDownUrlModification ) {
+                    url = algoProcess.allDownUrlModification(viewer, node);
+                } else {
+                    url = 'http:
+                }
+            }
+            vjDS.add('', 'dsDownSrc', 'static:
+            vjDS['dsDownSrc'].reload(url, true, {loadmode: 'download', saveas : '-o' + node.id + '-all.zip', title: '"preparing [All Files] for download, please wait"'});
+        };
+
+        vjDS.add("Retrieving HTML file" , "dsHTML" , "");
+        vjDS.dsHTML.known_safe_url = true
+        vjDS.dsHTML.register_callback(function( _ , data ) {
+            let regex = /\.([^\.]+)$/;
+            let found = vjDS.dsHTML.filename.match(regex);
+            if( found &&  found.length > 1 ) {
+                let preview = null;
+                if( found[1] == "html" ) {
+                    preview = new HTMLpreview({ data: data, filename: vjDS.dsHTML.filename });
+                } else if( found[1] == "txt" || found[1] == "log" ) {
+                    preview = new TextPreview({ data: data, filename: vjDS.dsHTML.filename });
+                } else if( found[1] == "pdb" ) {
+                    preview = new PDBpreview({ data: vjDS.dsHTML.dataurl, filename: vjDS.dsHTML.filename });
+                }
+                if( preview ) {
+                    preview.init();
+                }
+            }
+        })
+
+        function htmlPreviewCallback( viewer , node , _ , _ , col , event ) {
+            if(col.name === 'preview' && ( !node.preview || !node.preview === "" ) ) return
+            vjDS.dsHTML.filename = node.value
+            vjDS.dsHTML.reload(`http:
+        }
 
         node = {
             _type : algoProcess.svcProcType,
@@ -453,10 +627,14 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
         algoWidgetObj.iterateAlgoJSON (algoWidgetObj.optionsForPage.subTabs, "algoMenu")
         vjHO.fullview(node._type, node, $.getAlgoViewManager().options.jsonForPage.subTabs.results);
         
-        if (algoWidgetObj.noAllDownloadsTab)return;
+        if (algoWidgetObj.noAllDownloadsTab) {
+            return;
+        }
 
-        if (!vjDS.dsAllDownloads)
-            vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files="+vjDS.escapeQueryLanguage("*.{csv,json,png,tab,tsv,txt,fasta,fastq,fa}")+"&mode=csv&prop=none&ids="+algoProcessID, 0, "id,name,path,value");
+        if (!vjDS.dsAllDownloads) {
+            vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http:
+        }
+       
         algoWidgetObj.addTabs([{
             tabId: 'downloadAllFiles',
             tabName: "Available Files to Download",
@@ -474,27 +652,27 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
                         if (node.url) {
                             document.location = node.url;
                         } else {
-                            document.location = "?cmd=objFile&ids="+node.id+"&filename="+node.value;
+                            document.location = "?cmd=objFile&ids=" + node.id + "&filename=" + encodeURIComponent(node.value) + '&projectID=' + projectHandler.getProjectID();
                         }
                     },
                     iconSize:24,
                     cols:[
                         { name: new RegExp(/.*/), hidden:true },
-                        { name: "name", hidden:true },
-                        { name: "pretty_name", title: "name", hidden: false },
-                        { name: "description", hidden: false },
+                        { name: "name", hidden:true, order:0},
+                        { name: "pretty_name", title: "name", hidden: false , order:3},
+                        { name: "description", hidden: true },
                         { name: "icon", hidden: true },
-                        { name: "archive", hidden: false, url: "javascript: var extension = node.value.substr(node.value.lastIndexOf('.')+1); \
-                                var ing_url = 'qpbg_http://?cmd=objFile&ids='+node.id+'&filename='+node.value+'&arch=1&backend=1&ext='+extension+'&arch_dstname=o'+docLocValue('id')+'-'+node.value; \
-                                vjDS.dsVoid.reload(ing_url,true); \
-                                alert ('Your selected item is being ingested. You can monitor the progress from within data loading tab');"
-                        },
-                        { name: "down", hidden: false, url: algoProcess.allDownUrlModification ? algoProcess.allDownUrlModification() : "javascript: var ing_url = 'http://?cmd=objFile&ids='+node.id+'&filename='+node.value;\
-                            vjDS.add('', 'dsDownSrc', 'static://');\
-                            vjDS['dsDownSrc'].reload(ing_url,true,'download');    "
-                        }
+                        { name: "size", hidden: false, type: "bytes" , order:5},
+                        { name: "preview", order:2.5, hidden: true, url: htmlPreviewCallback },
+                        { name: "archive", order:2, hidden: false, url: archiveCallback },
+                        { name: "down", order:1, width: 150 , hidden: false, url: downloadCallback },
                     ],
-                    appendCols : [{header: {name: "down", title: "download"}, cell: "<img src='img/download.gif' height=24 width=24/>" }, {header: {name: "archive"}, cell: "<img src='img/upload.gif' height=24 width=24/>"}, {header: {name: "pretty_name", title: "name"}}, {header: {name: "description"}}],
+                    appendCols : [{header: {name: "down", title: "download"}, cell: "<img src='img/download.gif' height='24' width='24' />", width: '150',},
+                                  {header: {name: "archive"}, cell: "<img src='img/upload.gif' height='24' width='24' />"},
+                                  {header: {name: "pretty_name", title: "name"}}, 
+                                  {header: {name: "description"}},
+                                  {header: {name: "preview", title:"preview"}, cell: ""}
+                                ],
                     bgColors:['#f2f2f2','#ffffff'],
                     getPrettyName: algoProcess.prettyFileName ? algoProcess.prettyFileName : function(filename) { return filename; },
                     getDescription: algoProcess.allDownloadsGetDescription ? algoProcess.allDownloadsGetDescription : function (filename){
@@ -506,7 +684,11 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
                             node.hidden = true;
                             return;
                         }
-                        if (!node.prety_name) {
+                        if (node.value.indexOf("_.") == 0 ) {
+                            node.hidden = true;
+                            return;
+                        }
+                        if (!node.pretty_name) {
                             node.pretty_name = viewer.getPrettyName(node.value);
                         }
                         node.cols[node.cols.length-2] = node.pretty_name;
@@ -514,16 +696,67 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
                             node.description = viewer.getDescription(node.value);
                         }
                         node.cols[node.cols.length-1] = node.description;
+
                     },
                     preEditTable: function(viewer) {
                         viewer.tblArr.sortTbl(0, 0, function(a, b) {
                             return cmpCaseNatural("" + a.name + a.value, "" + b.name + b.value);
                         });
+                        if( viewer.tblArr.rows.length > 1 ) {
+                            var tot_size = 0;
+                            let tot_html = 0;
+                            let q = 0;
+                            for(var i = 0; i < viewer.tblArr.rows.length; ++i) {
+                                let row =  viewer.tblArr.rows[i]
+                                if ( !row.hidden ) {
+                                    var sz = row.size;
+                                    if( !isNaN(sz) ) {
+                                        tot_size += Number(sz);
+                                        q += 1;
+                                    }
+                                    let regex = /\.(html|txt|log|pdb)$/;
+                                    let found = row.value.match(regex);
+                                    if( found ) {
+                                        tot_html++ 
+                                        let button = { 
+                                            name: `preview`, 
+                                            classes:'hv-btn-link hv-btn-link-tbl', 
+                                        }
+                                        row.preview = createFakeButton(button)
+                                    }
+                                }
+                            }
+                            if(tot_size > 0 && q > 1 ) {
+                                var v = Object.assign({}, viewer.tblArr.rows[1]);
+                                v.cols =[...viewer.tblArr.rows[1].cols];
+                                v.pretty_name = '[All files]';
+                                v.value = v.pretty_name;
+                                v.hidden = false
+                                v.preview = null;
+                                v.cols[3] = v.pretty_name;
+                                v.cols[5] = v.pretty_name;
+                                v.size = tot_size;
+                                v.cols[4] = undefined;
+                                v.all_files = true;
+                                viewer.tblArr.rows.splice(0, 0, v);
+                            }
+                            if(tot_html > 0) {
+                                viewer.cols.forEach(function(col, i ){
+                                    if( col.name === 'preview') { 
+                                        col['hidden'] = false;
+                                    }
+                                })
+                            }
+                        }
                     }
                 }
             }
         }], "results");
 
+        if(that.tabs_to_move && that.tabs_to_move.hasOwnProperty('downloadAllFiles')){
+            algoWidgetObj.moveTab("downloadAllFiles", that.tabs_to_move.downloadAllFiles);
+        }
+        
         if (that.noResultViewers)
         {
             algoWidgetObj.openTab("downloadAllFiles");
@@ -531,12 +764,27 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
     }
 
 
-    this.onSubmitRequest=function(a,b,c  )
+    this.onSubmitRequest=function()
     {
         if (algoProcess.submitCallback)
-            algoProcess.submitCallback;
+            algoProcess.submitCallback();
         
-        return !this.submit();
+        tThis = this
+        
+        const onSubmit = function (subid) {
+            if(subid > -1) {
+               vjDV[tThis.recViewerName].changeElementValue("submission_project",subid); 
+            }else {
+              vjDV[tThis.recViewerName].changeElementValue("submission_project",'');
+            }
+            tThis.submit()
+        }
+                
+        let submission_project_dialog = new ProjectListDialog({
+            submit: onSubmit, 
+            cur_submission_project: vjDV[tThis.recViewerName].getElementValue('submission_project')
+        })
+
     };
 
     this.validateSubmit = function(allElements)
@@ -545,8 +793,6 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
         {
             var elem = allElements[i];
 
-            //since all of the algorithm's parent is the process type, and almost all of the fields in
-            //that type are only defined after submition, we are skipping the check of the ".system." children
             if (elem.children && elem.children.length > 0 && elem.name.indexOf(".system.") < 0)
             {
                 var returned = this.validateSubmit(elem.children);
@@ -555,7 +801,7 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
                     return false;
             }
 
-            if (elem.fld.is_optional_fg == 0 && elem.value == "" && elem.name.indexOf(".system.") < 0)
+            if (((elem.fld.is_optional_fg == 0 && !elem.fld.is_readonly_fg && !elem.fld.is_hidden_fg) && (!elem.children || elem.children.length < 1)) && (elem.value == "" && parseFloat(elem.value) != 0) && elem.name.indexOf(".system.") < 0)
                 return false;
         }
 
@@ -569,12 +815,81 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
         if (!this.viewer && this.recViewerName)
             this.viewer = vjDV[this.recViewerName];
 
-        this.viewer.saveValues(null, "auto", "function:vjObjFunc('onRedirectProcSubmitted','"+this.objCls+"')");
+        this.viewer.saveValues(null, "later", "function:vjObjFunc('onRedirectProcSubmitted','"+this.objCls+"')");
 
-        if (!this.validateSubmit(vjDV[parametersDiv].nodeTree.root.children))
+        if (!this.validateSubmit(vjDV[parametersDiv].nodeTree.root.children)){
+                if ($("#dialog").length > 0){
+                    $("#dialog").empty();
+                }
+                else{
+                    $("body").append(
+                            $(document.createElement("div"))
+                                .attr("id", "dialog")
+                                .attr("title", "Error Dialog")
+                        );
+                }
+                $("#dialog").append (
+                                    $(document.createElement("p")).text("You have not entered values for all of the required fields")
+                            );
+                
+            $("#dialog").dialog({
+                modal: true,
+                width: 500,
+                buttons: {
+                    OK: function() {
+                       $(this).dialog("close");
+                    }
+                },
+                open: function() {
+                    $(this).closest(".ui-dialog")
+                        .find(".ui-dialog-titlebar-close")
+                        .addClass("ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close")
+                        .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+                    $(this).closest(".ui-dialog")
+                        .find(".ui-dialog-titlebar")
+                        .addClass("error-header");
+                }
+            });
+                
             return false;
-        else
+        }
+        else{
             $('.toSubmitBtn').attr("disabled", "disabled");
+            this.viewer.submitAfterSave(null, "later", "function:vjObjFunc('onRedirectProcSubmitted','"+this.objCls+"')");
+            
+            if ($("#dialog").length > 0){
+                    $("#dialog").empty();
+            }
+            else{
+                $("body").append(
+                        $(document.createElement("div"))
+                            .attr("id", "dialog")
+                            .attr("title", "All Set")
+                    );
+            }
+        
+            $("#dialog").append (
+                $(document.createElement("p")).text("Your computation has been submitted, please wait for the page to refresh")
+            );
+                
+            $("#dialog").dialog({
+                modal: true,
+                width: 500,
+                buttons: {
+                    OK: function() {
+                       $(this).dialog("close");
+                    }
+                },
+                open: function() {
+                    $(this).closest(".ui-dialog")
+                        .find(".ui-dialog-titlebar-close")
+                        .addClass("ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close")
+                        .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+                    $(this).closest(".ui-dialog")
+                        .find(".ui-dialog-titlebar");
+                }
+            });
+        }
     };
 
     this.onRedirectProcSubmitted=function (param, text )
@@ -598,8 +913,7 @@ function valgoProcess(loadedID,  qpSvc, svcProcType, svcRecViewer)
             funcLink(this.callbackSubmited,this,this.viewer);
         }
         else {
-            document.location="?cmd="+docLocValue("cmd")+"&id="+this.loadedID+"&cmdMode="+docLocValue("cmdMode");
-
+            document.location=urlExchangeParameter(document.location.href, "id", this.loadedID);
         }
     };
 
@@ -617,7 +931,6 @@ function AlgoWidgetHelp (optionsForPage)
         return $("#menuDiv").html();
     }
 
-    //below are all of the functions that deal with the widget and how the different tabs are opened or closed
     this.findInJson = function (options, field, value)
     {
         if (options.length < 1)
@@ -626,7 +939,6 @@ function AlgoWidgetHelp (optionsForPage)
         for ( tab in options ) {
               var curNode = options[tab];
 
-              //for (subView in curNode.pageTabChildren) {
               for (var ii = 0; ii< curNode.pageTabChildren.length; ii++) {
                   var curView = curNode.pageTabChildren[ii];
 
@@ -653,7 +965,6 @@ function AlgoWidgetHelp (optionsForPage)
         for ( tab in options ) {
               var curNode = options[tab];
 
-              //for (subView in curNode.pageTabChildren) {
               for (var ii = 0; ii< curNode.pageTabChildren.length; ii++) {
                   var curView = curNode.pageTabChildren[ii];
 
@@ -678,6 +989,8 @@ function AlgoWidgetHelp (optionsForPage)
 
     this.openTab = function (curTab, preObj, fromIterateJSON)
     {
+        var oThis = this;
+        
         if (typeof curTab == "string")
             curTab = this.findInJson(this.optionsForPage.subTabs, "tabId", curTab);
 
@@ -692,6 +1005,7 @@ function AlgoWidgetHelp (optionsForPage)
                 var fnd=this.findInJson(optionsForPage.subTabs, "tabId", curTab.tabDependents[i]);
                 if(!fnd || fnd.constructedAlready) continue;
                 this.openTab(fnd, preObj);
+                fnd.preconstructed = true;
             }
         }
 
@@ -728,27 +1042,15 @@ function AlgoWidgetHelp (optionsForPage)
                     toPut.push(preObj[item]);
                 }
                 $.extend(viewerOptions, {instance: toPut});
-    
-                //$.extend(viewerOptions, {instance: preObj[curTab.viewerConstructor.preObjPos]});
             }
             else if (curTab.viewerConstructor && curTab.viewerConstructor.instance)
                 $.extend(viewerOptions, {instance: curTab.viewerConstructor.instance});
             else if (curTab.viewerConstructor.viewName)
                 viewerOptions = curTab.viewerConstructor.dataViewerOptions
         }
-/*        
-        var viewOptionsToUse = viewerOptions;
-        if (curTab.multiView){ //in future may want to use this for extra options
-            if (viewerOptions.views){
-                viewOptionsToUse.views = new Array (viewerOptions.views.length)
-                for (var j = 0; j < viewerOptions.views.length; j++){
-                    viewOptionsToUse.views[j] = {allowClose: viewerOptions.allowClose, view: viewerOptions.views[j]};
-                }
-            }
-        }*/
         
         var manager = $.getAlgoViewManager();
-        if (/*!manager.show(curTab.position.posId) && */!manager.show(curTab.tabId))
+        if (!manager.show(curTab.tabId))
         {
             manager.append({
                 layout: {
@@ -760,15 +1062,13 @@ function AlgoWidgetHelp (optionsForPage)
                         right: curTab.position.right,
                         bottom: curTab.position.bottom,
                         toggler: curTab.toggler,
-                        //allowClose: curTab.allowClose ? curTab.allowClose : true,
                         allowMaximize: true,
                         tabs:{
                             items: [{
-                                overflow: /*curTab.overflow ? curTab.overflow :*/ 'auto',
+                                overflow: 'auto',
                                 allowHide: true,
                                 active: curTab.inactive ? false : true,
                                 name: curTab.tabId,
-                                //allowClose: curTab.allowClose ? curTab.allowClose : false,
                                 title: curTab.tabName,
                                 view: {
                                     name: curTab.viewerConstructor.viewName ? curTab.viewerConstructor.viewName : (curTab.multiView ? 'dataviews' : 'dataview'),
@@ -784,21 +1084,15 @@ function AlgoWidgetHelp (optionsForPage)
         curTab.constructedAlready=true;
         curTab.visible=true;
 
-        /*if ($("[tab-id='"+curTab.tabId+"']").length)
-            $("[tab-id='"+curTab.tabId+"']").attr("style", activeStyleClick);*/
-
         if (curTab.showSubmitButton && currentCompletionState == "preSubmit" && !curTab.submitCreated)
         {
-            var buttons = verarr(curTab.showSubmitButton);
-            
-            for (var i = 0; i < buttons.length; i++)
-                $("#"+curTab.tabId+"-tab").append (buttons[i]);
+                var buttons = (curTab.showSubmitButton);
+                
+                $("#"+curTab.tabId+"-tab").append (curTab.showSubmitButton[curTab.tabId]);
             
             curTab.submitCreated=true;
         }
 
-        //$(this).trigger('tab-open', { index: p.index, name: $('a', p.tab).attr('data-name'), area: $(p.tab).closest('div.layout-area').attr('data-id') });
-        //if (!curTab.inactive)
         if (!fromIterateJSON)
             $(document).trigger("tab-active", {index: "", name: curTab.tabId, area: ""});
     };
@@ -837,12 +1131,10 @@ function AlgoWidgetHelp (optionsForPage)
 
         that.openTab(lookedUp);
         if (lookedUp.callback) lookedUp.callback(lookedUp);
-        //$(someVar).attr("style", activeStyleClick);
         return false;
     };
 
 
-    //must come in with subTabs being in the options
     this.iterateAlgoJSON = function (options, appendTo)
     {
         if (options.length < 1)
@@ -871,7 +1163,6 @@ function AlgoWidgetHelp (optionsForPage)
                                 })
                                 .append($(document.createElement("a"))
                                         .text(curNode.pageTabName)
-                                        //.click(function(){ that.clickFunc($(this)); })
                                 )
                                 .append($(document.createElement("i"))
                                         .addClass("fa fa-angle-right")
@@ -905,8 +1196,13 @@ function AlgoWidgetHelp (optionsForPage)
               }
 
               $("#"+tab).empty();
+              
+              if (curNode.visibleDuring && (curNode.visibleDuring.indexOf(currentCompletionState) < 0 ) &&
+                      currentCompletionState != "computed"){
+                  $("#"+tab).parent().addClass("slideout-menu-inactive");
+                  continue;
+              }
 
-              //for (subView in curNode.pageTabChildren) {
               for (var ii = 0; ii< curNode.pageTabChildren.length; ii++) {
                   var curView = curNode.pageTabChildren[ii];
                   var toTriggerTabOpen = false;
@@ -917,34 +1213,38 @@ function AlgoWidgetHelp (optionsForPage)
                       this.closeTab (curView);
                   toTriggerTabOpen = curView.inactive ? !curView.inactive : true;
 
-                  if (curView.visible)
+                  if (curView.visible && !curView.preconstructed || (!curView.constructedAlready))
                   {
-                      $("#"+tab).append(
-                          $(document.createElement("li"))
-                            .append($(document.createElement("a"))
-                                    //.addClass("activeSelection")
-                                    .attr({"tab-id": curView.tabId/*, "style": activeStyleClick*/})
-                                    .click(function(){ return that.clickFunc($(this)); })
-                                    .text(curView.tabName)
-                            )
-                            .append($(document.createElement("i"))
-                                    .addClass("fa fa-angle-right")
-                            )
-                      );
-                  }
-                  else if (!curView.constructedAlready)
-                  {
-                      $("#"+tab).append(
-                          $(document.createElement("li"))
+                      if(curView.tabDependents) {
+                          for (var i = 0; i < curView.tabDependents.length; ++i ){
+                            var fnd = this.findInJson(optionsForPage.subTabs, "tabId", curView.tabDependents[i]);
+                            $("#"+tab).append(
+                                    $(document.createElement("li"))
+                                      .append($(document.createElement("a"))
+                                              .attr({"tab-id": fnd.tabId})
+                                              .click(function(){ return that.clickFunc($(this)); })
+                                              .text(fnd.tabName)
+                                      )
+                                      .append($(document.createElement("i"))
+                                              .addClass("fa fa-angle-right")
+                                      )
+                                );
+                        }
+                      }
+                      
+                      if($("[tab-id='" + curView.tabId +"']").length == 0){
+                          $("#"+tab).append(
+                              $(document.createElement("li"))
                                 .append($(document.createElement("a"))
-                                        .click(function(){ return that.clickFunc($(this)); })
                                         .attr({"tab-id": curView.tabId})
+                                        .click(function(){ return that.clickFunc($(this)); })
                                         .text(curView.tabName)
                                 )
                                 .append($(document.createElement("i"))
                                         .addClass("fa fa-angle-right")
                                 )
-                      );
+                          );
+                      }
                   }
 
                   if (toTriggerTabOpen)
@@ -958,10 +1258,6 @@ function AlgoWidgetHelp (optionsForPage)
         return toReturn;
     };
 
-    //this will return the structure that was added if the addition happened successfully,
-    //otherwise, false will be returned
-    //once the structure is received, the tab can be opened if needed
-    //will be added to pageTabChildren
     this.addTabs = function (whatToAdd, whereToAdd)
     {
         var options = $.getAlgoViewManager().options;
@@ -969,7 +1265,7 @@ function AlgoWidgetHelp (optionsForPage)
         var that = this;
         var actualObjLoc = options.jsonForPage;
         
-        if (whereToAdd instanceof Array){ // the path will be passed in
+        if (whereToAdd instanceof Array){
             actualObjLoc = options.jsonForPage.subTabs;
             for (var i = 0; i < whereToAdd.length-2; i++){
                 if (!actualObjLoc[whereToAdd[i]]){
@@ -978,7 +1274,7 @@ function AlgoWidgetHelp (optionsForPage)
                 }
                 if (!actualObjLoc[whereToAdd[i]].pageTabChildren){
                     var key = whereToAdd[i];
-                    actualObjLoc[key].subTabs = {};
+                    if (!actualObjLoc[key].subTabs) actualObjLoc[key].subTabs = {};
                     actualObjLoc =  actualObjLoc[key].subTabs;
                     break;
                 }
@@ -986,18 +1282,19 @@ function AlgoWidgetHelp (optionsForPage)
                 actualObjLoc = actualObjLoc[whereToAdd[i]].pageTabChildren;
             }
             
-            actualObjLoc[whereToAdd[whereToAdd.length-2]] = {};
+            if (!actualObjLoc[whereToAdd[whereToAdd.length-2]]) actualObjLoc[whereToAdd[whereToAdd.length-2]] = {};
             actualObjLoc = actualObjLoc[whereToAdd[whereToAdd.length-2]];
             actualObjLoc.pageTabName = whereToAdd[whereToAdd.length-1];
-            actualObjLoc.pageTabChildren = [];
+            if (!actualObjLoc.pageTabChildren) actualObjLoc.pageTabChildren = [];
         }
-        else if (!options.jsonForPage.subTabs[whereToAdd])
+        else if (!options.jsonForPage.subTabs[whereToAdd]){
             return false;
-        else
+        }
+        else{
             actualObjLoc = options.jsonForPage.subTabs[whereToAdd];
+        }
 
         $(verarr(whatToAdd)).each(function (index, nObj){
-            //here we will check that the whatToAdd stucture is appropriate
             if ((!nObj.tabId && !nObj.tabName && !nObj.position &&
                     !nObj.viewerConstructor) || that.existsTab(nObj.tabId))
                 return false;
@@ -1020,8 +1317,6 @@ function AlgoWidgetHelp (optionsForPage)
             return false;
     };
 
-    //whereToRemove must contain what cattegory to remove from (this means parameters, progress, results, any others?)
-    //whatToRemove had the tabId list
     this.removeTabs = function (whatToRemove, whereToRemove)
     {
         if (!this.optionsForPage.subTabs[whereToRemove])
@@ -1041,9 +1336,26 @@ function AlgoWidgetHelp (optionsForPage)
 
         return true;
     };
+    
+    this.createJustSideElem = function(descrJson){
+        
+        $("#"+descrJson.appendTo).append(
+                $(document.createElement("li"))
+                  .append($(document.createElement("a"))
+                          .attr({
+                              "tab-id": descrJson.name,
+                              "href": descrJson.url,
+                              "target": "_blank",
+                              "rel": "noopener noreferrer"
+                              })
+                          .text(descrJson.title)
+                  )
+                  .append($(document.createElement("i"))
+                          .addClass("fa fa-angle-right")
+                  )
+            );
+    }
 
-    //this will check if a tab exists. even if the tab is not visible
-    //will return the object that has the tab information in it (From jsonForPage)
     this.existsTab = function (lookForTabId, where)
     {
         if (!where)
@@ -1053,7 +1365,6 @@ function AlgoWidgetHelp (optionsForPage)
         {
             var curNode = where[tab];
 
-            //for (subView in curNode.pageTabChildren) {
             for (var ii = 0; ii< curNode.pageTabChildren.length; ii++) {
                 var curView = curNode.pageTabChildren[ii];
                 if (curView.tabId == lookForTabId)
@@ -1073,9 +1384,18 @@ function AlgoWidgetHelp (optionsForPage)
 
     this.createPopup = function(config, afterInit)
     {
+        let hasForm = document.forms[modalFormName];
+        if(!this.buildModal && hasForm !== undefined){
+            let modalForm = document.getElementById(modalFormName);
+            $(modalForm).append(this.buildModalWindow());
+            this.buildModal = true;
+        }
+        
         if (!this.buildModal)
         {
-            $('body').append(this.buildModalWindow());
+            var modalForm = document.createElement("form").setAttribute("id", modalFormName);
+            $(modalForm).append(this.buildModalWindow());
+            $("body").append(modalForm);
             this.buildModal = true;
         }
 
@@ -1087,7 +1407,7 @@ function AlgoWidgetHelp (optionsForPage)
                  _onAfterInit: afterInit
              });
          });
-
+         
          $('#testModalWindow').modal('show');
     }
 
@@ -1146,8 +1466,6 @@ function AlgoWidgetHelp (optionsForPage)
         return wnd;
     }
 
-    //this will move the tab and the are where it is located to a new location.
-    //will happen over the span of time passed in
     this.moveTab = function (tabName, tabPlace, tabTime)
     {
          var curTab = this.findInJson(this.optionsForPage.subTabs, "tabId", tabName);
@@ -1160,12 +1478,17 @@ function AlgoWidgetHelp (optionsForPage)
          var manager = $.getAlgoViewManager();
          manager.moveArea(curTab.position.posId, tabPlace, tabTime);
     }
+    
+    this.setAlgoTitle = function(nTitle){
+        $("#titleName").empty();
+        $("#titleName").append($(document.createElement("h2")).text(nTitle));
+    }
 
     var manager = $.getAlgoViewManager();
 
     $("body").append(
             "<div class='slideout-menu' id='menuDiv'>" +
-                "<h2>" + this.optionsForPage.algorithmTitle + "</h2><ul id='algoMenu'>" +
+                "<div id='titleName'><h2>" + this.optionsForPage.algorithmTitle + "</h2></div><ul id='algoMenu'>" +
                 "</ul>" +
             "</div>");
 
@@ -1176,38 +1499,11 @@ function AlgoWidgetHelp (optionsForPage)
 };
 
 
-/*
- * if want to pass in extra viewers into parameters or progress do so in the following format:
- * algoObj.tabsToAdd = [
- *         {
- *             whereToAdd: "parameters",
- *             whatToAdd: {
-                    tabId: 'general',
-                    tabName: "General",
-                    //showSubmitButton: "<input id='submitterInput' type=button class='toSubmitBtn' onClick='vjObjEvent(\"onSubmitRequest\",\""+algoProcess.objCls+"\")' name='BUTTON-submitter' size=20 value='"+algoProcess.submitButtonName+"' />",
-                    showSubmitButton: "<button id='submitterInput' type=button style='visibility:hidden;' class='myButton' onClick='vjObjEvent(\"onSubmitRequest\",\""+algoProcess.objCls+"\")' name='BUTTON-submitter' size=20>"+(algoProcess.submitButtonName ? algoProcess.submitButtonName : "SUBMIT")+"</button>",
-                    position: paramsPos ? paramsPos : {posId: 'layout_inputs', top:'0', bottom:'100%', left:'20%', right:'75%'},
-                    viewerConstructor: {
-                        dataViewer: 'vjHTMLView',
-                        dataViewerOptions: {
-                            data: "dsInputParams"
-                        }
-                    },
-                    preload: true,
-                    inactive: false,
-                    autoOpen: ["preSubmit", "whileRunning"]
-                }
-        },{
-            whereToAdd: "progress",
-            whatToAdd: {other stuff here}
-           }
- * ]
- */
 function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
 {
+    gUserLoginAccess();
+    
     var batchParams = ["batch", "batch_ignore_errors"];
-    // if process has been submitted, force batch_children_proc_ids to be visible with other batch params
-    // otherwise, let record viewer do the default (which is to hide batch_children_proc_ids)
     if (currentCompletionState == "whileRunning" || currentCompletionState == "computed") {
         batchParams.push("batch_children_proc_ids");
     }
@@ -1220,16 +1516,11 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
         moveParams = moveParams.concat(algoProcess.moveParams);
     }
     
-   // var typeToUse = algoProcess.svcProcType ? algoProcess.svcProcType :  algoProcess.svcRecViewer;
     var dsArray=[
-        {name: "dsAlgoSpec", url: "http://?cmd=propspec&type="+(algoProcess.svcRecViewer ? algoProcess.svcRecViewer : algoProcess.svcProcType)},
-        {name: "dsAlgoVals", url: "http://?cmd=propget&mode=csv&ids=$id&files=*"},
-        {name: "dsProgress", url: "http://?cmd=-qpRawCheck&showreqs=0&reqObjID=$id"},
-        {name: "dsProgress_download", url: "http://?cmd=-qpRawCheck&showreqs=0&reqObjID=$id" },
-        {name: "dsProgress_info", url: "http://?cmd=-qpReqInfo&reqObjID=$id"},
-        {name: "dsProgress_inputs", url: "http://?cmd=objQry&qry=allusedby($id).csv(['_type','_brief','created','svc','submitter'],{info:true,cnt:20})"},
-        {name: "dsProgress_outputs", url: "http://?cmd=objQry&qry=allthatuse($id).filter({._type!~/folder/}).csv(['_type','_brief','created','svc','submitter'],{info:true,cnt:20})"},
-        {name: "dsHelp", url: "http://help/hlp." + (algoProcess.svcRecViewer ? algoProcess.svcRecViewer :algoProcess.svcProcType) + ".html"}
+        {name: "dsAlgoSpec", url: "http:
+        {name: "dsAlgoVals", url: "http:
+        {name: "dsProgress", url: "http:
+        {name: "dsHelp", url: "http:
     ];
 
 
@@ -1243,7 +1534,7 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
             if (moveParams[i].params[ir] == "batch-svc")
                 batchInGeneral = true;
         }
-        dsArray.push( {name: moveParams[i].ds, url: "static://"+t});
+        dsArray.push( {name: moveParams[i].ds, url: "static:
     }
     if (!batchInGeneral){
         for (var i = 0; i < dsArray.length; i++)
@@ -1251,8 +1542,30 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
                 dsArray[i].url += "<span id='RV-batch_svc'></span>";
     }
 
-    var batchFldPreset={batch_svc:{constraint:'choice+', constraint_data:'single///Single Computation Mode|'+algoObj.qpSvc+'///Batch Mode'}};
-    var submitButtons = algoProcess.submitButtons ? algoProcess.submitButtons :  ("<button id='submitterInput' style='visibility:hidden;' type=button class='myButton submitterInputButton' onClick='vjObjEvent(\"onSubmitRequest\",\""+algoProcess.objCls+"\")' name='BUTTON-submitter' size=20>"+(algoProcess.submitButtonName ? algoProcess.submitButtonName : "SUBMIT")+"</button>");
+    var batchFldPreset={batch_svc:{constraint:'choice+', constraint_data:'single
+    var submitButtons = algoProcess.submitButtons ? algoProcess.submitButtons : {};
+    if (!algoProcess.submitButtons){
+            var arr = ["general", "system", "batch", 'advanced'];
+            
+            for (var ii = 0; ii < arr.length; ii++){
+                var tmp = $(document.createElement("button"))
+                    .attr({
+                        style: "visibility:hidden;",
+                        type: "button",
+                        name: "BUTTON-submitter",
+                        size: 20
+                    })
+                    .data("tab", arr[ii])
+                    .addClass("myButton submitterInputButton")
+                    .text(algoProcess.submitButtonName ? algoProcess.submitButtonName : "SUBMIT")
+                    .on("click", function(){
+                            if (!algoProcess.onSubmitRequest())
+                                event.stopImmediatePropagation();
+                    });
+                submitButtons[arr[ii]] = tmp;
+            }                            
+    }
+    
     var propHiveId = (algoProcess.svcRecViewer ?algoProcess.svcRecViewer: algoProcess.svcProcType);
     var submitCmd = "-qpProcSubmit";
     if (algoProcess.overwriteID && algoProcess.loadedID) {
@@ -1271,7 +1584,6 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
                 {
                     tabId: 'advanced',
                     tabName: "Advanced",
-                    //showSubmitButton: "<input id='submitterInput' type=button class='toSubmitBtn' onClick='vjObjEvent(\"onSubmitRequest\",\""+algoProcess.objCls+"\")' name='BUTTON-submitter' size=20 value='"+ (algoProcess.submitButtonName ? algoProcess.submitButtonName : "SUBMIT") +"' />",
                     showSubmitButton: submitButtons,
                     tabDependents: ["general","system", "batch"],
                     inactive: true,
@@ -1281,22 +1593,22 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
                         dataViewerOptions: {
                             divName: 'DV_Parameter_view',
                             kind:"valgoProcess",
-                            data: algoProcess.loadedID ? [ "dsAlgoSpec", "dsAlgoVals" ] : ["dsAlgoSpec"],
+                            data: algoProcess.loadedID ? [ "dsAlgoSpec", "dsAlgoVals", "dsCurrentUserSpecLoaded" ] : ["dsAlgoSpec", "dsVoid", "dsCurrentUserSpecLoaded" ],
                             hiveId: propHiveId,
                             objType:  algoProcess.svcRecViewer ? algoProcess.svcRecViewer : algoProcess.svcProcType  ,
-                            cmdPropSet:"?cmd="+submitCmd+"&svc="+algoProcess.qpSvc,
+                            cmdPropSet:makeCmdSafe(submitCmd)+"&svc="+algoProcess.qpSvc + (algoProcess.forceGroup ? "&forceGroup=1" : ""),
                             readonlyMode: algoProcess.modeActive ? false : true,
                             callbackRendered : "function:vjObjFunc('onRecordLoaded','"+algoProcess.objCls+"')",
                             onChangeCallback : "function:vjObjFunc('onRecordChanged','"+algoProcess.objCls+"')",
                             onAddElementCallback : "function:vjObjFunc('onRecordAddedElement','"+algoProcess.objCls+"')",
                             accumulateWithNonModified:true,
+                            cloneMode:  algoProcess.ID && (algoProcess.ID[0] == "-" || algoProcess.ID < 0) ? true : false,
                             showReadonlyInNonReadonlyMode: algoProcess.showReadonlyInNonReadonlyMode,
                             constructionPropagateDown:10,
                             autoexpand: algoProcess.autoexpand ?  algoProcess.autoexpand : 1,
                             showRoot:false,
                             autoDescription:0,
                             autoStatus:3,
-                            autoDescription:0,
                             fldPresets: algoProcess.fldPresets ? cpyObj(batchFldPreset,algoProcess.fldPresets) : batchFldPreset,
                             RVtag: "RV",
                             formObject:document.forms[formName],
@@ -1305,24 +1617,10 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
                     },
                     autoOpen: ["preSubmit", "whileRunning"],
                     preload: true
-                    /*subTabs : {
-                        basicStuff: {
-                            pageTabName: "Basic Stuff",
-                            pageTabChildren: [
-                                {
-                                    tabId: 'otherStuff',
-                                    tabName: "Some Other Stuff",
-                                    visible: true, //this is also modified by the algoview. just lets know if the tab is visible or not
-                                    position: {posId: 'blah', top:'50%', bottom:'100%', left:'0', right:'75%'}
-                                }
-                            ]
-                        }
-                    },*/
                 },
                 {
                     tabId: 'general',
                     tabName: "General",
-                    //showSubmitButton: "<input id='submitterInput' type=button class='toSubmitBtn' onClick='vjObjEvent(\"onSubmitRequest\",\""+algoProcess.objCls+"\")' name='BUTTON-submitter' size=20 value='"+algoProcess.submitButtonName+"' />",
                     showSubmitButton: submitButtons,
                     position: paramsPos ? paramsPos : {posId: 'layout_inputs', top:'0', bottom:'100%', left:'20%', right:'75%'},
                     viewerConstructor: {
@@ -1338,11 +1636,9 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
                 {
                     tabId: 'system',
                     tabName: "System",
-                    //showSubmitButton: "<input id='submitterInput' type=button class='toSubmitBtn' onClick='vjObjEvent(\"onSubmitRequest\",\""+algoProcess.objCls+"\")' name='BUTTON-submitter' size=20 value='"+algoProcess.submitButtonName+"' />",
                     showSubmitButton: submitButtons,
                     inactive: true,
                     position: paramsPos ? paramsPos : {posId: 'layout_inputs', top:'0', bottom:'100%', left:'20%', right:'75%'},
-                    //some div name here or the data source
                     viewerConstructor: {
                         dataViewer: 'vjHTMLView',
                         dataViewerOptions: {
@@ -1355,11 +1651,9 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
                 {
                     tabId: 'batch',
                     tabName: "Batch",
-                    //showSubmitButton: "<input id='submitterInput' type=button class='toSubmitBtn' onClick='vjObjEvent(\"onSubmitRequest\",\""+algoProcess.objCls+"\")' name='BUTTON-submitter' size=20 value='"+algoProcess.submitButtonName+"' />",
                     showSubmitButton: submitButtons,
                     inactive: true,
                     position: paramsPos ? paramsPos : {posId: 'layout_inputs', top:'0', bottom:'100%', left:'20%', right:'75%'},
-                    //some div name here or the data source
                     viewerConstructor: {
                         dataViewer: 'vjHTMLView',
                         dataViewerOptions: {
@@ -1378,67 +1672,19 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
                     {
                         tabId: 'main',
                         tabName: "Main Progress",
-                        tabDependents: ["inputObj", "objUsing", "info", "downloads"],
                         position: {posId: 'progress_info', top:'50%', bottom:'100%', left:'20%', right:'75%'},
-                        preConstructor: {
-                            dataViewer: 'vjProgressControl',
+
+                        viewerConstructor: {
+                            dataViewer: 'vjProgress2Control',
                             dataViewerOptions: {
-                                data : {
-                                    progress: "dsProgress",
-                                    progress_download:  "dsProgress_download",
-                                    inputs:  "dsProgress_inputs",
-                                    outputs:  "dsProgress_outputs",
-                                    progress_info: "dsProgress_info"
-                                },
+                                data: "dsProgress",
                                 width: "100%",
                                 newViewer: true,
                                 dontRefreshAll: true,
                                 formName: formName,
+                                id: algoObj.ID,
                                 doneCallback: algoProcess.callbackDoneComputing
                             }
-                        },
-                        viewerConstructor: {
-                            preObjPos: 0,
-                        },
-                        autoOpen: ["whileRunning"]
-                    },
-                    {
-                        tabId: 'inputObj',
-                        tabName: "Input Objects",
-                        position: {posId: 'progress_info', top:'50%%', bottom:'100%', left:'20%', right:'75%'},
-                        viewerConstructor: {
-                            preObjPos: 1,
-                            inactive:true
-                        },
-                        autoOpen: ["whileRunning"]
-                    },
-                    {
-                        tabId: 'objUsing',
-                        tabName: "Objects Using This as Input",
-                        position: {posId: 'progress_info', top:'50%%', bottom:'100%', left:'20%', right:'75%'},
-                        viewerConstructor: {
-                            preObjPos: 2,
-                            inactive:true
-                        },
-                        autoOpen: ["whileRunning"]
-                    },
-                    {
-                        tabId: 'info',
-                        tabName: "Notifications",
-                        position: {posId: 'progress_info', top:'50%%', bottom:'100%', left:'20%', right:'75%'},
-                        viewerConstructor: {
-                            preObjPos: 3,
-                            inactive:true
-                        },
-                        autoOpen: ["whileRunning"]
-                    },
-                    {
-                        tabId: 'downloads',
-                        tabName: "Download",
-                        position: {posId: 'progress_info', top:'50%%', bottom:'100%', left:'20%', right:'75%'},
-                        viewerConstructor: {
-                            preObjPos: 4,
-                            inactive:true
                         },
                         autoOpen: ["whileRunning"]
                     }
@@ -1459,6 +1705,12 @@ function setUpJsonForAlgo (algoTitle, algoObj, paramsPos)
             var whereToAdd = algoObj.tabsToAdd[i].whereToAdd;
             var whatToAdd = algoObj.tabsToAdd[i].whatToAdd;
 
+            if (!setUpForPage.subTabs[whereToAdd]){
+                setUpForPage.subTabs[whereToAdd] = {};
+                setUpForPage.subTabs[whereToAdd].visibleDuring = algoObj.tabsToAdd[i].visibleDuring
+                setUpForPage.subTabs[whereToAdd].pageTabName = algoObj.tabsToAdd[i].pageTabName;
+                setUpForPage.subTabs[whereToAdd].pageTabChildren = [];
+            }
             setUpForPage.subTabs[whereToAdd].pageTabChildren.push (whatToAdd);
         }
     }
@@ -1471,9 +1723,6 @@ $(function ()
     $.widget("layout.algoview", $.layout.layoutmanager, {
 
 
-        //type flex is not working?
-        //yes it is. for flex layout do not specify anything for the type
-        //need to figure out a way to access this options thing
         options: {
             algoObj: {},
             jsonForPage:{},
@@ -1484,9 +1733,9 @@ $(function ()
             closeHelp: true
         },
 
-        //this is called from layoutmanager's _create function called 1st
         _onBeforeInit: function() {
-
+            modalFormName = "algoModalForm";
+            
             var node = {
                 _type : this.options.svcType,
                 id : docLocValue("id")
@@ -1500,7 +1749,6 @@ $(function ()
                 var curDS = jsonOptions.dataSourceArray[i];
                 var url=curDS.url;
 
-                //if any url replacing needs to happen, do it here
                 if( algoProcess.docLocsToBorrow ) {
                     for( var ir=0; ir<algoProcess.docLocsToBorrow.length; ++ir ) {
                         url=urlExchangeParameter(url, algoProcess.docLocsToBorrow[ir], docLocValue(algoProcess.docLocsToBorrow[ir] , "-"), true);
@@ -1557,34 +1805,8 @@ $(function ()
                     ]
                 }
             };
-
-            //this._minimizeToolbar();
         },
-
-        _minimizeToolbar: function() {
-            var minimizeFunction = function() {
-                    $("#entireTopBar").animate({top: '-85px'});
-                     $(".mainAlgocontent").animate({ top: '40px' }, { done: function() { $(window).trigger('resize'); } });
-                     $("#dvMenu").animate({"left":"5%", "width":"95%"});
-
-                     $("#outterMenu").append(
-                             $(document.createElement("a")).append(
-                                     $(document.createElement("img"))
-                                         .css({"height": "25px", "left": "10px", "top": "2px", "width": "3%", "position": "fixed"})
-                                         .attr({"src": "img/HIVELogoDec0213_Transparent.png"})
-                             )
-                     );
-
-                    $(document).unbind('mousemove');
-            };
-
-            var timer = setTimeout(minimizeFunction, 2000);
-            $(document).on('mousemove', function(e) {
-                clearInterval(timer);
-                timer = setTimeout(minimizeFunction, 2000);
-            });
-        },
-
+        
         _onAfterInit : function() {            
             algoWidgetObj = new AlgoWidgetHelp(jsonOptions);
 
@@ -1678,7 +1900,6 @@ jQuery.getAlgoViewManager = function() {
 
 $(document).on("tab-active", function (event, areaInfo)
 {
-    //if a tab is selected from the area, then we just deselect the ones that could be selected in that area
     if (areaInfo.tabs)
     {
         for (var i = 0; i < areaInfo.tabs.length; i++)
@@ -1709,7 +1930,6 @@ $(document).on("tab-active", function (event, areaInfo)
 
 $(document).on("tab-inactive", function (event, areaInfo)
 {
-    //when tab gets closed, need to remove selection from the side menu
     $("[tab-id='"+areaInfo+"']").removeClass("activeSelection");
     
     var tabObj = algoWidgetObj.findInJson(jsonOptions.subTabs, "tabId", areaInfo);    
@@ -1723,7 +1943,6 @@ $(document).on("tab-inactive", function (event, areaInfo)
 
 $(document).on("area-hide", function (event, areaInfo)
 {
-    //when tab gets closed, need to remove selection from the side menu
     $("[tab-id='"+areaInfo+"']").removeClass("activeSelection");  
     
     var tabObj = algoWidgetObj.findInJson(jsonOptions.subTabs, "tabId", areaInfo);    

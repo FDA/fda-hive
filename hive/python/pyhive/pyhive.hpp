@@ -38,6 +38,7 @@
 #include <qlib/QPrideProc.hpp>
 #include <ulib/ulib.hpp>
 #include <ulib/utype2.hpp>
+#include <violin/hiveproc.hpp>
 
 namespace sviolin {
     class sHiveseq;
@@ -54,16 +55,17 @@ namespace slib {
         bool py2form(sVar & form_out, PyObject * pydict);
 
         struct Proc;
-        class sQPyProc: public sQPrideProc {
+        class sQPyProc: public sHiveProc {
             private:
                 static sQPyProc * _singleton;
                 pyhive::Proc * _pyproc;
                 PyObject * _run_mod;
                 sStr _srv_name;
+                sStr _run_mod_name;
 
             public:
-                typedef sQPrideProc Tparent;
-                sQPyProc(pyhive::Proc * pyproc, const char * defline00, const char * srv) : sQPrideProc(defline00, srv)
+                typedef sHiveProc Tparent;
+                sQPyProc(pyhive::Proc * pyproc, const char * defline00, const char * srv) : sHiveProc(defline00, srv)
                 {
                     _pyproc = pyproc;
                     _srv_name.addString(srv);
@@ -71,10 +73,12 @@ namespace slib {
                 }
 
                 virtual idx OnGrab(idx forceReq=0);
+                virtual sRC OnSplit(idx req, idx &cnt);
                 virtual idx OnExecute(idx req);
 
-                void setRunMod(PyObject * run_mod) { _run_mod = run_mod; }
+                void setRunMod(PyObject * run_mod);
                 const char * getSrvName() const { return _srv_name; }
+                const char * getModName() const { return _run_mod_name; }
 
                 static sQPyProc * getSingleton() { return _singleton; }
                 static void setSingleton(sQPyProc * p) { _singleton = p; }
@@ -89,7 +93,7 @@ namespace slib {
 
             static bool typeinit(PyObject * mod);
             static Mex * check(PyObject * o);
-            static Mex * create(); //!< allocate and incref new pyhive::Mex
+            static Mex * create();
 
             bool init(const char * flnm = 0, idx flags = sMex::fBlockDoubling);
         };
@@ -100,15 +104,14 @@ namespace slib {
 
             static bool typeinit(PyObject * mod);
             static Id * check(PyObject * o);
-            static Id * create(); //!< allocate and incref new pyhive::Id
+            static Id * create();
 
             bool init(PyObject * arg);
             bool init(const sHiveId & id);
 
-            static PyObject * parseList(PyObject * arg); //!< parse argument as a PyList of pyhive::Id
+            static PyObject * parseList(PyObject * arg);
         };
 
-        // super-naive timezone info class, since python doesn't provide any :/
         struct TZ {
             PyObject_HEAD;
             idx utc_offset;
@@ -119,7 +122,6 @@ namespace slib {
         PyObject * parseDate(const char * s);
         PyObject * parseTime(const char * s);
         PyObject * parseDateTime(const char * s);
-        // print in ISO 8601 format
         const char * printDate(sStr & buf, PyObject * val);
         const char * printTime(sStr & buf, PyObject * val);
         const char * printDateTime(sStr & buf, PyObject * val);
@@ -128,10 +130,12 @@ namespace slib {
             PyObject_HEAD;
             const sUsrType2 * utype;
             PyObject * cached_field_names;
+            PyObject * cached_parents;
+            PyObject * cached_children;
 
             static bool typeinit(PyObject * mod);
             static Type * check(PyObject * o);
-            static Type * find(const sHiveId & id); //!< find and incref pyhive::Type (allocate if needed)
+            static Type * ensure(const sHiveId & id);
         };
 
         struct Obj {
@@ -140,10 +144,11 @@ namespace slib {
 
             static bool typeinit(PyObject * mod);
             static Obj * check(PyObject * o);
-            static Obj * create(); //!< allocate and incref new pyhive::Obj
+            static Obj * create();
 
             bool init(PyObject * arg);
-            bool init(Id * arg) { return init((PyObject*)arg); }
+            bool init(Id * arg) { return init(arg->hive_id); }
+            bool init(const sHiveId & id);
         };
 
         struct SvcObj {
@@ -158,22 +163,18 @@ namespace slib {
             PyObject * categories;
 
             static SvcObj * check(PyObject * o);
-            static SvcObj * create(); //!< allocate and incref new pyhive::SvcObj
+            static SvcObj * create();
         };
 
         struct Proc {
             PyObject_HEAD;
             sQPyProc * proc;
 
-            // proc->form access
             PyObject * cached_form;
             PyObject * cached_form_proxy;
-            // proc->svc access
             pyhive::SvcObj * cached_svc;
-            // copy of proc->objs[0]
             PyObject * cached_obj;
 
-            //! get initialized singleton pyhive.proc object (without changing its reference count) or 0
             static Proc * singleton();
         };
 
@@ -181,6 +182,7 @@ namespace slib {
             PyObject_HEAD;
             PyObject * hive_ids;
             sviolin::sHiveseq * phive_seq;
+            sStr log_buf;
 
             static bool typeinit(PyObject * mod);
             static Seq * check(PyObject * o);
@@ -211,6 +213,7 @@ namespace slib {
             sStr query;
             sIonWander * wander;
             PyObject * ions;
+            sDic <sMex::Pos> * bigD;
             pyhive::Mex * result;
 
             static bool typeinit(PyObject * mod);
@@ -229,6 +232,8 @@ namespace slib {
         };
 
         PyObject * getModule();
+
+        extern PyObject * RuntimeError;
     };
 };
 

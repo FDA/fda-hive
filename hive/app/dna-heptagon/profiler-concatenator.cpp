@@ -213,33 +213,32 @@ idx cleanOldFiles(const char * dir) {
 idx fixProfileObjects(sQPrideClient * QP, const char * cmd, const char * , const char * ,sVar * pForm) {
     idx iCnvrt = 0;
     if( sIs("-qdb", cmd) ) {
-        std::auto_ptr<sUsr> s_user(new sUsr("qpride", true));
+        std::unique_ptr<sUsr> s_user(new sUsr("qpride", true));
         sStr rootPath;
-        sUsrObj::initStorage(QP->cfgStr(&rootPath, 0, "user.rootStoreManager"), QP->cfgInt(0, "user.storageMinKeepFree", (udx)20 * 1024 * 1024 * 1024));
-
-        idx cnt = pForm->ivalue("cnt");
-        if(!cnt)cnt = sIdxMax;
-        sUsrObjRes objIds;
-        s_user->objs2(profiler_qdb_type, objIds, 0);
-        sStr dir;
-        for(sUsrObjRes::IdIter it = objIds.first(); objIds.has(it); objIds.next(it)) {
-            std::auto_ptr<sUsrObj> obj(s_user->objFactory(*objIds.id(it)));
-            dir.cut(0);obj->propGet("_dir",&dir);
-            idx reqId = obj->propGetI("reqID");
-            sVec<idx> status;
-            QP->grpGetStatus(reqId,&status);
-            bool completed = true;
-            for(idx ir = 0 ; ir < status.dim() ; ++ir) {
-                if( status[ir] < sQPrideBase::eQPReqStatus_Done){
-                    completed = false;
-                    break;
+        sRC rc = sUsrObj::initStorage(QP->cfgStr(&rootPath, 0, "user.rootStoreManager"), QP->cfgInt(0, "user.storageMinKeepFree", (udx)20 * 1024 * 1024 * 1024));
+        if( !rc ) {
+            idx cnt = pForm->ivalue("cnt");
+            if(!cnt)cnt = sIdxMax;
+            sUsrObjRes objIds;
+            s_user->objs2(profiler_qdb_type, objIds, 0);
+            sStr dir;
+            for(sUsrObjRes::IdIter it = objIds.first(); objIds.has(it); objIds.next(it)) {
+                std::unique_ptr<sUsrObj> obj(s_user->objFactory(*objIds.id(it)));
+                dir.cut(0);obj->propGet("_dir",&dir, true);
+                idx reqId = obj->propGetI("reqID");
+                sVec<idx> status;
+                QP->grpGetStatus(reqId,&status);
+                for(idx ir = 0 ; ir < status.dim() ; ++ir) {
+                    if( status[ir] < sQPrideBase::eQPReqStatus_Done){
+                        break;
+                    }
                 }
-            }
-            if(concatenatedResults(dir.ptr())){
-                if( obj->cast(heptagon_qdb_type) ) {
-                    cleanOldFiles(dir.ptr());
-                    ++iCnvrt;
-                    QP->printf("Converted %s\n", objIds.id(it)->print() );
+                if(concatenatedResults(dir.ptr())){
+                    if( obj->cast(heptagon_qdb_type) ) {
+                        cleanOldFiles(dir.ptr());
+                        ++iCnvrt;
+                        QP->printf("Converted %s\n", objIds.id(it)->print() );
+                    }
                 }
             }
         }

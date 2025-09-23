@@ -56,4 +56,4 @@
 
 using namespace slib;
 
-#endif // sLib_core_hpp
+#endif 

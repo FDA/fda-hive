@@ -1,5 +1,12 @@
 <script src="js-algo/algo.js" > </script>
 <script src="ui/dna-hiveseq-ui.js" > </script>
+    <script type="text/javascript" src="js/vjHiveseqView.js"> </script> 
+
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" >
+    <a href = "#" id="jumpNewPage">
+        Click to go to new HiveSeq webpage
+    </a>
+</div>
 
 <script>
 
@@ -20,7 +27,7 @@ if(isMode("adaptersfilter") )
 
 } else if(isMode("complexityfilter") ) {
 
-    process_visibleParameters = [  "name", "LowComplexityFilter" ];
+    process_visibleParameters = [  "name", "LowComplexityFilter", "filterNsArray" ];
 
     process_initialPresets.AlgorithmsName=0;
     process_initialPresets.name="hs_low_complexity-";
@@ -120,12 +127,33 @@ if( !isMode("denovo") ){
     process_visibleParameters.push("InputAttributes");
     process_visibleParameters.push("FileAttributes");
 } 
+
+gInitList += "hiveseqInit();";
+function hiveseqInit () {
+    $("#jumpNewPage").on("click", function (eventData){
+         var url = window.location.href;
+        setCookie("jumpNewPageHexagon", "true", 7);
+        
+        if (url.indexOf("&") >= 0)
+            linkURL("?cmd=dna-hiveseq-new" + url.substring(url.indexOf("&")));
+        else
+            linkURL("?cmd=dna-hiveseq-new");
+        
+        eventData.preventDefault();
+    });
+    
+    if (getCookie("jumpNewPageHexagon") != "false" && $(".top").children().attr("class") != "institution")
+        setCookie("jumpNewPageHexagon", "true", 7);
+    if (getCookie("jumpNewPageHexagon") == "true"){
+         //$("#jumpNewPage").click();
+    }
+};
 </script>
 
 
 
 
-<table width="100%" border="0"><tr><td width="48%"></td><td width="2%" align=center>
+<table width="100%" border="0" class="HIVE_section"><tr><td width="48%"></td><td width="2%" align=center>
     
     <div class="HIVE_section" >
         

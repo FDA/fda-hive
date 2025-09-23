@@ -27,30 +27,23 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Graph viewer
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
     
 vDV.generateGraphView=function(view, txt )
 {
 
     if(!txt || txt.length==0)return ;
     var rowstart=0;
-    //alert(view.coldef+"\n"+view.txtHdr+"\n"+txt)
     if(txt.indexOf("error:")==0) {
         gObject(view.container).innerHTML="";
         return;
     }
-    //alert(view.container+"="+view.callback);
-    if (view.callback){// && view.callback.length>0 ) {
+    if (view.callback){
         if(view.callback=="alert") {alert(txt);}
         else {if( view.callback(view, txt)==0) return ;}
     }    
     var rows=txt.split("\n");
         
-    var hdrs; // get the headers
+    var hdrs;
     if(view.txtHdr && view.txtHdr.length) hdrs=view.txtHdr.split(",");
     else hdrs=rows[rowstart++].split(",");
         
@@ -59,7 +52,6 @@ vDV.generateGraphView=function(view, txt )
     var coldef=view.coldef.split(",");
     var scaleTo=parseFloat(view.scaleTo);
         
-    // determine which columns are to be shown
     var data = new google.visualization.DataTable();
 
     for ( var col=0; col< coldef.length; ++col ) {
@@ -79,14 +71,14 @@ vDV.generateGraphView=function(view, txt )
             
         for ( fnd =0 ; fnd < hdrs.length && hdrs[fnd]!=nm; ++fnd );
         if(fnd==hdrs.length)continue;
-        fndCols[fndCols.length]=col; // this column is to be outputed
-        fndCols[fndCols.length]=fnd; // this column is to be outputed
+        fndCols[fndCols.length]=col;
+        fndCols[fndCols.length]=fnd;
             
         data.addColumn(coldeftype=="i" ? "number" : "string", NM);
     }
     if(!fndCols.length) {
         var o = gObject(view.container);
-        if(o)o.innerHTML=txt; // "<img src='img/graph.gif' border=0 width=64 ><p/>";
+        if(o)o.innerHTML=txt;
         return ;
     }
         
@@ -143,7 +135,6 @@ vDV.generateGraphView=function(view, txt )
     }else if(view.type== "candlestick") {
         obj  = new google.visualization.CandlestickChart(o);
     } 
-    //obj.draw(data, view.options);
     obj.draw(data, view.options);
           
     if(view.select_handler) { 
@@ -156,11 +147,6 @@ vDV.generateGraphView=function(view, txt )
     return obj;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Registration
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 vDV.registerViewer( "graphview", vDV.generateGraphView) ;
 
 

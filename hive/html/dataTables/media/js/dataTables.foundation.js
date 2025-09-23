@@ -27,27 +27,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*! DataTables Foundation integration
- * ©2011-2015 SpryMedia Ltd - datatables.net/license
- */
 
-/**
- * DataTables integration for Foundation. This requires Foundation 5 and
- * DataTables 1.10 or newer.
- *
- * This file sets the defaults and adds options to DataTables to style its
- * controls using Foundation. See http://datatables.net/manual/styling/foundation
- * for further information.
- */
 (function( factory ){
     if ( typeof define === 'function' && define.amd ) {
-        // AMD
         define( ['jquery', 'datatables.net'], function ( $ ) {
             return factory( $, window, document );
         } );
     }
     else if ( typeof exports === 'object' ) {
-        // CommonJS
         module.exports = function (root, $) {
             if ( ! root ) {
                 root = window;
@@ -61,14 +48,12 @@
         };
     }
     else {
-        // Browser
         factory( jQuery, window, document );
     }
 }(function( $, window, document, undefined ) {
 'use strict';
 var DataTable = $.fn.dataTable;
 
-// Detect Foundation 5 / 6 as they have different element and class requirements
 var meta = $('<meta class="foundation-mq"/>').appendTo('head');
 DataTable.ext.foundationVersion = meta.css('font-family').match(/small|medium|large/) ? 6 : 5;
 meta.remove();
@@ -80,7 +65,6 @@ $.extend( DataTable.ext.classes, {
 } );
 
 
-/* Set the defaults for DataTables initialisation */
 $.extend( true, DataTable.defaults, {
     dom:
         "<'row'<'small-6 columns'l><'small-6 columns'f>r>"+
@@ -90,7 +74,6 @@ $.extend( true, DataTable.defaults, {
 } );
 
 
-/* Page button renderer */
 DataTable.ext.renderer.pageButton.foundation = function ( settings, host, idx, buttons, page, pages ) {
     var api = new DataTable.Api( settings );
     var classes = settings.oClasses;

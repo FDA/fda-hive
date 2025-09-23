@@ -38,8 +38,6 @@ public:
     QPrideHunt(const char * defline00,const char * srv):sQPrideProc(defline00,srv) {}
     virtual idx OnExecute(idx req);
     virtual bool OnCommand(const char * command, const char * value);
-    //virtual bool OnInit(void); 
-    //virtual void OnQuit(void); 
 };
 
 
@@ -49,12 +47,11 @@ idx QPrideHunt::OnExecute(idx req)
     idx grp=req2Grp(req);
     
     sStr data;
-    reqGetData(grp,"stdin",&data); // download the input blob
+    reqGetData(grp,"stdin",&data);
 
     sStr data1;
-    reqGetData(grp,"arg1",&data1); // download the input blob
+    reqGetData(grp,"arg1",&data1);
 
-        //...  do something with blobs here
     if(data.length()){
         printf("-------------RETRIEVED---------------\n%s\n---------------------------------\n%s\n--------------------------\n",data.ptr(),data1.ptr());
     }
@@ -62,7 +59,7 @@ idx QPrideHunt::OnExecute(idx req)
     reqSetData(req, "stdout", "this is output blob for %" DEC " request", req );
     reqSetData(req, "test.out", "testout blob for  %" DEC " request", req );
 
-    reqSetStatus(req, eQPReqStatus_Done);// change the status
+    reqSetStatus(req, eQPReqStatus_Done);
 
     logOut(eQPLogType_Info,"Done processing %" DEC " request for execution\n",req);
     

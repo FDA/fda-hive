@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #/*
 # *  ::718604!
 # * 
@@ -36,73 +36,32 @@ dna_alignx_error() {
     exit 99;
 }
 
-aligner="dna-alignx-$1.sh.os${os}"
-
-if [[ ! -d "$QPRIDE_BIN" ]]; then
-    dna_alignx_error "QPRIDE_BIN is not valid path"
-fi
-
-if [[  -f "$QPRIDE_BIN/$aligner" ]]; then
-    source "$QPRIDE_BIN/$aligner"
-elif [[ -f "$aligner" ]]; then
-    source "./$aligner"
-else
-    dna_alignx_error "Script $aligner not found in '`pwd` : $QPRIDE_BIN'"
-fi
-
-#tools=`dna_alignx_tools`
-#echo "Setting up tools: $tools..."
-#for tool in $tools; do
-#    # inject os designation before 1st '/'
-#    x=${tool/\//os${os}/}
-#    if [[ "$x" == "$tool" ]]; then
-#        # no / ? just append than
-#        x="$tool.os${os}"
-#    fi
-#    if [[ -d "$QPRIDE_BIN/$x" ]]; then
-#        PATH=$QPRIDE_BIN/$x:$PATH
-#    else
-#        dna_alignx_error "Directory for tool '$tool' not found in '$QPRIDE_BIN'"
-#    fi
-#done
-
-__cmd="$2"
-varname="orphans"
-
-shift 2
-
-while [[ $# -gt 0 ]]; do
-    str="$1"
-    begins="${str:0:2}"
-    if [[ "$begins" == "--" ]]; then
-        varname=${str:2}
-        val=""
-    else 
-        eval val=\$$varname
-        if [[ "$val" ]]; then
-            val="$val "
-        fi
-        val="$val$str"
-        export $varname="$val"
+dna_alignx_exec() {
+    echo "$*"
+    eval $@
+    local st=$?
+    local cmd="$@"
+    if [[ ${st} != 0 ]]; then
+        echo "Error exit status ${st}: ${cmd}"
+        exit ${st}
     fi
-    shift 1
-done
+    echo "${cmd:0:30}... finished ok ${st}"
+}
 
-# Strip '"' from start and end of cmdLine
-cmdLine=${cmdLine#\"}
-cmdLine=${cmdLine##\"}
-
-case $__cmd in
-build)
-    dna_alingx_build "$@"
-    ;;
-align)
-    dna_alingx_align "$@"
-    ;;
-finalize)
-    dna_alingx_finalize "$@"
-    ;;
-*)
-    dna_alignx_error "unknown command $__cmd"
-    ;;
-esac
+dna_alignx_main() {
+    __cmd="$1"; shift 1
+    case $__cmd in
+        index)
+            dna_alignx_index
+            ;;
+        align)
+            dna_alignx_align
+            ;;
+        finalize)
+            dna_alignx_finalize
+            ;;
+        *)
+            dna_alignx_error "unknown command $__cmd"
+            ;;
+    esac
+}

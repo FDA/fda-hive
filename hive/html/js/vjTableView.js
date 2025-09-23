@@ -27,58 +27,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- sampleTableView={
-
- checkable
- newSectionWord: appearance of these words in the first column makes them to be rendered as th ... sections
-
- className: 'DV_table',
- startAutoNumber: '',
- skipRows: 0,
- prefixHTML: 'text', // prefix text for table
- appendHTML: 'text', // psotfix tex for the table
- allowVariableReplacement: false, in the values
- appendCols : [{header: name, cell: text }]
- clickLink: javascript: or url
- exclusionObjRegex: {file-name: null, id: /![0-9]/g}
- iconSize: 24
- defaultIcon : 'rec'
- this: "dsMenuAct",
- defaultEmptyText: "" ,   //      'no element to show'
- maxTxtLen: 32,        // max number of text will be shown in a cell, the rest is interpreted by ...
- isStickyHeader:true    //puts the header into seperate div (and table) so scrolling doesn't affect header.
- isReOrderable : false  //columns can be reordered
-
- cols:[   // serial number of the column to be customized
-      { name: name of the column to be customized,
-        link: url or javascript,
-        align: right | left,
-        type: largenumber, percent,
-        wrap: true|false,
-        hidden: true|false
-      }],
-
- rows:[ { //serial number of the row to customized
-       checked,
-       styleColor,
-       styleNoCheckmark,
-       url: url or javascript
-       }]
-  selectCallback: function,         //   "function:vjObjFunc('onSelectedItem','" + this.objCls + "')"
-  checkCallback: function,          //   "function:vjObjFunc('onCheckedItem','" + this.objCls + "')"
-  callbackRendered: function,       //    "function:vjObjFunc('onLoadedItem','" + this.objCls + "')"
-  precompute: "if(node.id==0 || node.id=='+')node.styleNoCheckmark=true;",
- };
-
-
-
- */
 
 function vjTableView(viewer) {
 
-    vjDataViewViewer.call(this, viewer); // inherit default behaviours of the
-                                            // DataViewer
+    vjDataViewViewer.call(this, viewer);
 
     if(this.isStickyHeader===undefined)
         this.isStickyHeader=true;
@@ -103,7 +55,9 @@ function vjTableView(viewer) {
     if(this.checkIndeterminateHeaderTitle === undefined)
         this.checkIndeterminateHeaderTitle = "Partially selected; click to select all";
     if(this.overflowAuto === undefined)
-        this.overflowAuto = true; // do we use overflow:auto in table's outer div? True by default, but must be set to false if e.g. inside overflow-auto container managed by jquery
+        this.overflowAuto = true;
+    
+    if (this.nonSticky === undefined) this.nonSticky = true;
 
     if(this.drag)this.drag=new dragDrop();
     if(this.dropableAttrs===undefined)this.dropableAttrs=['dragDropable'];
@@ -116,11 +70,6 @@ function vjTableView(viewer) {
     this.selectedNodes=new Array();
     this.selectedCnt=0;
     if(!this.dblClickDelay) this.dblClickDelay=250;
-    // if (!this.rowSpan) this.rowSpan = 1;
-    // if(!this.exclusionObjRegex)this.exclusionObjRegex=new Array();
-    // if(!this.txtlen)this.txtlen=32;
-    // if(!this.actionColumn)this.actionColumn="_action";
-    // if(!this.popupMenuName) this.popupMenuName="dvMenuPopup";
 
     this.exclusionObjRegex = verarr(this.exclusionObjRegex);
     if (this.exclusionObjRegex.length == 0) {
@@ -135,7 +84,6 @@ function vjTableView(viewer) {
         this.geometry = {
             width : '100%'
         };
-    // alert(this.exclusionObjRegex.length)
 
     this.setNodeExpandState = function (node) {
         if(this.expandarray && this.expandarray[node.treenode.path]!==undefined){
@@ -145,11 +93,6 @@ function vjTableView(viewer) {
             node.treenode.expanded=(( node.treenode.depth <= this.autoexpand ) || this.autoexpand == 'all');
         }
     };
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Table viewer constructors
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.resizeBody = function(argsArr) {
         var html_el = argsArr[0];
@@ -173,23 +116,16 @@ function vjTableView(viewer) {
         }
     };
 
-    /* this.initTblArr must initialize this.tblArr to a vjTable */
     if (!this.initTblArr) {
         this.initTblArr = this.defaultInitTblArr;
     }
 
     this.composerFunction = function(viewer, content) {
-
-        // if(this.debug)
-        // alert(this.data+"\n"+content);
-        // use only data[0] for session id checks - matters for table viewers using additional non-tabular data sources (e.g. sharing_tmplt)
         var t_sessionID = this.getDataSessionID(0);
         if (!(this.data && t_sessionID && t_sessionID == this.contentID && this.tblArr)) {
             this.initTblArr(content, this.parsemode);
-            // this.myTable = new vjTable(vjDS["xxxxx"], 0, true);
             this.contentID = t_sessionID;
 
-            // if(this.debug)this.enumerate("alerJ('777 '+node._type,node)");
             if (!this.tblArr) {
                 alert("DEVELOPER ALERT: vjTableView: custom initTblArr() callback failed to create tblArr")
                 return;
@@ -204,10 +140,11 @@ function vjTableView(viewer) {
                     this.div.className = 'sectVis';
             }
 
+            if (this.inclusionByIndex)
+                this.tblArr.subsetRows(this.inclusionByIndex);
             if (this.inclusionObjRegex)
                 this.tblArr.mangleRows(this.inclusionObjRegex, "delete", true);
 
-            // append additional columns
             var appendCols = verarr(this.appendCols);
             for (var ic = 0; ic < appendCols.length; ++ic) {
                 if (!this.appendCols[ic].header || !this.appendCols[ic].header.name)
@@ -224,7 +161,6 @@ function vjTableView(viewer) {
                         vv = eval(vv.substring(5));
                         if (!vv)
                             continue;
-                        // alert(vv);
                     }
                     this.row(ir)[this.appendCols[ic].header.name] = vv;
                     this.row(ir).cols[this.tblArr.hdr.length - 1] = vv;
@@ -245,27 +181,30 @@ function vjTableView(viewer) {
                     order : 1,
                     tbl : this.tblArr
                 };
-                this.tree.enumerate("node.order=params.order;++params.order;node.reqID=''+node.order;", params);
-                this.enumerate("if(node.treenode){node.order=node.treenode.order;params.setNodeExpandState.call(params,node);}if(node.tree_duplicate){node.order=node.tree_duplicate.order;}", this);
-
+                this.tree.enumerate(function(params, node) {
+                    node.order = params.order;
+                    params.order++;
+                    node.reqID = '' + node.order;
+                }, params);
+                this.enumerate(function(params, tbl, ir) {
+                    var node = tbl.rows[ir];
+                    if (node.treenode) {
+                        node.order = node.treenode.order;
+                        params.setNodeExpandState.call(params, node);
+                    }
+                    if (node.tree_duplicate) {
+                        node.order = node.tree_duplicate.order;
+                    }
+                }, this);
                 this.tblArr.sortTbl(0,false,this.sortTreeColumnFunc);
                 if (this.treePrecompute)
                     this.tree.enumerate(this.treePrecompute, this);
             }
 
-            // apply styles to rows
-            /*
-             * for( var ir=0 ; ir< this.dim() ; ++ir) { var
-             * row=this.tblArr.rows[ir]; if(this.bgColors &&
-             * this.bgColors.length)
-             * row.styleColor=this.bgColors[ir%this.bgColors.length]; }
-             */
-            // perform column specific configuration
             if (this.cols)
                 this.tblArr.customizeColumns(this.cols);
 
             this.sortIndex = new Array();
-            // turning unstable sort to stable by always assigning order
             var maxOrder = 0;
             for (var is = 0; is < this.tblArr.hdr.length; ++is) {
                 if (this.tblArr.hdr[is].order) {
@@ -308,19 +247,24 @@ function vjTableView(viewer) {
 
     this.refresh = function() {
         if (!this.tblArr || !this.tblArr.rows) return;
+        if (!this.div && !this.container) return;
 
         var tbl_Div=gObject(this.container+"_table_div");
         if(tbl_Div){
             this.last_scroll = { left : tbl_Div.scrollLeft, top : tbl_Div.scrollTop };
         }
-
+        
         if(!this.div){
             var containerDiv = gObject(this.container);
             containerDiv.innerHTML = "<div id=" + this.container + "_table_div> </div>";
             this.div = gObject(this.container+"_table_div");
         }
-            
-        this.div.innerHTML = this.generateTableViewText(this.tblArr);
+        if(!this.tblArr.rows.length && this.subInnerHTML){
+            this.div.innerHTML = this.subInnerHTML;
+        }else{
+            this.div.innerHTML = this.generateTableViewText(this.tblArr);
+        }
+        
         this.updateCheckmarks();
         if(this.isStickyHeader){
             this._reHeadered = false;
@@ -380,7 +324,7 @@ function vjTableView(viewer) {
         if(!Int(ttHeight))return;
         var tblHeight= __getCurrentComputedStyle(tbl, 'height');
         var isVertBar=parseInt(ttHeight)>=parseInt(tblHeight)?false:true;
-        if(!isVertBar)return; //no need to create sticky headers
+        if(!isVertBar)return;
         var ttWidth= __getCurrentComputedStyle(divCont, 'width');
         var tblWidth= __getCurrentComputedStyle(tbl, 'width');
         var isHorizBar=parseInt(ttWidth)>=parseInt(tblWidth)?false:true;
@@ -402,9 +346,7 @@ function vjTableView(viewer) {
                 var t_td_width= __getCurrentComputedStyle(tds[i], 'width');
                 if(this.icon_ColumnIndex==i && parseFloat(t_td_width)<this.iconSize)t_td_width=this.iconSize +"px";
                 ths[i].style.width =parseFloat(t_td_width)-border+"px";
-                tds[i].style.width = parseFloat(t_td_width)+"px";//__getCurrentComputedStyle(tds[i], 'width');
-
-
+                tds[i].style.width = parseFloat(t_td_width)+"px";
             }
         }
         var barWidth=__gScrollBarWidth();
@@ -413,7 +355,8 @@ function vjTableView(viewer) {
         tbl_Div.style.width=tbl_Div_Width;
         var a=parseInt(ttHeight)-parseInt(thHeight)- (isHorizBar?barWidth:0)+"px";
         tbl_Div.style.maxHeight = a;
-        tbl_Hdr_Div.style.width=parseInt(tbl_Div_Width)-(isVertBar?barWidth:0) + "px";
+        tbl_Hdr_Div.style.width="100%";
+
 
         tbl.removeChild(thead);
         tbl.style['table-layout']='fixed';
@@ -423,7 +366,8 @@ function vjTableView(viewer) {
         this._reHeadered = true;
       };
 
-      this.resizeColumnBody = function (elIndex,size) {
+
+    this.resizeColumnBody = function (elIndex,size) {
           if(!this._reHeadered)return;
           var tbl=gObject(this.container+"_table");if(!tbl)return;
           var tbody = tbl.getElementsByTagName('tbody')[0];
@@ -433,11 +377,7 @@ function vjTableView(viewer) {
           tds[elIndex].style.width = size+"px";
       };
 
-      this.generateTableViewText = function(tbl) {
-
-        // if(tbl.rows.length==0)return;
-        // /var arr=tbl.arr;
-
+    this.generateTableViewText = function(tbl) {
         var prfx = this.container + "_check_";
 
         var tt = "";
@@ -447,7 +387,7 @@ function vjTableView(viewer) {
 
         var cls = "class='" + this.className + "'";
         var clsCell = "class='" + this.className + "_cell'";
-        if(!this.isNheader && this.isStickyHeader){//} && !__isIE) {
+        if(!this.isNheader && this.isStickyHeader){
 
             tt += "<div id='"+this.container+"_table_header_div' style='overflow-x:hidden;' ";
             tt+=" >"
@@ -470,7 +410,7 @@ function vjTableView(viewer) {
             if(__isIE)tt+=";min-height:0%";
             tt+="' onscroll='var ht=gObject(\""+this.container+"_table_header_div\");ht.scrollLeft=this.scrollLeft;'>";
         }
-        tt += "<table id='"+this.container+"_table'"//+(this.isStickyHead?"_header' style='position:absolute'":"'")+" "
+        tt += "<table id='"+this.container+"_table'"
                 + cls
                 + " "
                 + (this.geometry && this.geometry.width ? "width='"
@@ -478,8 +418,6 @@ function vjTableView(viewer) {
                 + " "
                 + (this.geometry && this.geometry.height ? "height='"
                         + this.geometry.height + "'" : "") + " >";
-        // -----------------------------
-        // Headers
         if (!this.isNheader) {
         tt+="<thead>";
 
@@ -542,13 +480,10 @@ function vjTableView(viewer) {
                 var withSortIcon=false;
                 if(!this.isNSortEnabled && !col.isNSortEnabled){
                     var imgsrc="img/arrow_sort_"+(col.isNdesc?"up":"down")+ (!isok(col.sorted)?'':'_highlighted') +".gif";
-                    //tt+="<table><tr><td>";
                     tt+="<img height='12' id='"+this.container + "_header_" + ic+"_sorter' src='"+imgsrc+"'";
                     tt += " onClick='vjObjEvent(\"onHeaderSort\", \""
                         + this.objCls + "\","+ic+");' ";
                     tt+=" class='"+(!isok(col.sorted)?"sectHid":"sectVis")+"' >";
-                    //tt+="</td><td>";
-                    //withSortIcon=true;
                 }
 
                 tt += colval;
@@ -572,24 +507,11 @@ function vjTableView(viewer) {
         tt += "</tr>";
         tt+="</thead>";
           }
-        /*
-         * tt+="</table>";
-         *
-         * tt+="<div style='height:200px; overflow:auto;'>"; tt+="<table "+cls +" ";
-         * tt+=(this.geometry && this.geometry.width ?
-         * "width='"+this.geometry.width+"'" : "" )+" "; tt+=(this.geometry &&
-         * this.geometry.height ? "height='"+(this.geometry.height)+"'" : "" );
-         * //tt+=" style='overflow:auto;'" tt+=" >";
-         */
 
-        // -----------------------------
-        // Body
-         tt+="<tbody>";// style='overflow:scroll;'>";
+         tt+="<tbody>";
         this.checkedCnt = 0;
-        //delete this.tree;
-        var allRowsCount=this.dim();//this.tree ? this.tree.rows.length : tbl.rows.length;
+        var allRowsCount=this.dim();
 
-        //var allRowsCount=tbl.rows.length;
         for ( var ir = this.skipRows,ivis=-1; ir < allRowsCount ; ++ir) {
 
             var row=this.row(ir,true);
@@ -597,8 +519,7 @@ function vjTableView(viewer) {
                 continue;
             }
 
-            // var row = tbl.rows[ir];
-            if(row.tree_duplicate)continue; // because it is the duplicate, dont need to create a new node
+            if(row.tree_duplicate)continue;
             if(row.treenode ) {
                 if( row.treenode.parent && !(row.treenode.parent.expanded) ) {
                     row.treenode.expanded=0;
@@ -614,11 +535,9 @@ function vjTableView(viewer) {
             ++ivis;
             
             var cellColorer;
-            // if( matchObj( row, this.exclusionObjRegex ) ) continue;
             var cc_drawn=0;
             var tag = "td";
             var isNewSection = false;
-            // alerJ("row[0]="+row[0]+"/",row)
             if (isok(this.newSectionWord)
                     && row.cols[this.newSectionColumn].indexOf(this.newSectionWord) == 0) {
 
@@ -683,20 +602,17 @@ function vjTableView(viewer) {
 
                 if (!isNewSection) {
                     tt += " onClick='vjObjEvent(\"onDomClickCell\", \"" + this.objCls
-                        + "\"," + ir + ",-1);' style='cursor:pointer;' ";
+                        + "\"," + ir + ",-1,event );' style='cursor:pointer;word-wrap:break-word;' ";
                 }
 
                 tt += " >";
                 if (icon && !isNewSection)
-                    tt += this.formDataValue(icon, "icon", row, null); // tt+="<img
-                                                                        // src='img/"+icon+".gif'
-                                                                        // width="+this.iconSize+"
-                                                                        // />";
+                    tt += this.formDataValue(icon, "icon", row, null); 
+                
                 tt += "</" + tag + ">";
                 this.icon_ColumnIndex = cc_drawn;
             }
 
-            // autonumbering
             if (this.startAutoNumber != '') {
                 tt += "<" + tag;
                 tt += " id='" + this.container + "_" + ir + "_autonumber' ";
@@ -708,7 +624,6 @@ function vjTableView(viewer) {
                 maxCols = tbl.hdr.length;
             if(maxCols>tbl.hdr.length)
                 maxCols = tbl.hdr.length;
-            // alerJ('c);
             for ( var iCC = 0; iCC < maxCols; ++iCC) {
 
                 ic = isok(this.sortIndex) ? this.sortIndex[iCC].idx : iCC;
@@ -725,22 +640,20 @@ function vjTableView(viewer) {
                 if (tbl.hdr[ic].hidden)
                     continue;
 
-                //if(this.debug)
-                //    alerJ(ic,row);
-
                 var realText = ic < row.cols.length ? row.cols[ic] : null;
-                //if(tbl.hdr[ic].name=="path")
-                //    alerJ("col="+tbl.hdr[ic].name+"\\ "+realText,row);
-
 
                 if (!realText)
                     realText = "";
                 if (realText instanceof Array)
                     realText = realText.join(",");
-                var tooltip = this.getToolTip(row, ic, this.formDataValue(realText, col.type, row, col, {ellipsize: false, textonly: true, datetime:{absoluteOnly:true,forceDate:true,forceTime:true}}));
-                var dataValueText = this.formDataValue(realText, col.type, row, col);
-                //if(this.debug && col.type=='timespan')
-                //    alerJ('hhh '+dataValueText,row);
+                var tooltip = realText;
+                var tooltipHtml = /<[a-z][\s\S]*>/.test(tooltip);
+                if(tooltipHtml){
+                    let regex = /<[a-z][\s\S]*>/;
+                    tooltip = tooltip.replace(regex, '');
+                    tooltipHtml = false
+                }
+                var dataValueText = this.formDataValue(realText, col.type, row, col, col.options);
                 if (this.cellColorCallback){
                     row.bgcolor = funcLink(this.cellColorCallback,viewer,dataValueText, col, row.cols[ic]);
                 }
@@ -753,55 +666,31 @@ function vjTableView(viewer) {
                 }
                 tt += (row.bgcolor ? "bgcolor='" + row.bgcolor+"'" : (cellColorer ? "bgcolor=" + cellColorer[(this.rowSpan?(Int(ivis/this.rowSpan)):ivis) % cellColorer.length] : ""))
                         + " " + (col.align ? "align=" + col.align : "") + " ";
-                // tt+="<"+tag+" "+ ( "" ) +" "+( col.align ? "align="+col.align
-                // : "") +" ";
                 tt += " id='" + this.container + "_" + ir + "_" + ic + "' ";
                 tt += row.selected ? (" class='" + this.className + "_selected"
                         + row.selected + "'") : clsCell;
 
-                // if( isok(row.url) || isok(col.url) ||
-                // isok(this.selectCallback) )
                 tt += " ondblclick='vjObjEvent(\"onDomDBLClickCell\", \"" + this.objCls
                 + "\"," + ir + "," + ic
                 + ");' ";
                 tt += " onClick='vjObjEvent(\"onDomClickCell\", \"" + this.objCls
                         + "\"," + ir + "," + ic
-                        + ");' style='cursor:pointer;' ";
+                        + ", event);' style='cursor:pointer;' ";
                 tt += " onMouseOver='vjObjEvent(\"onMouseOver\", \""
                         + this.objCls + "\"," + ir + "," + ic + ");' ";
                 tt += " onMouseOut='vjObjEvent(\"onMouseOut\", \""
                         + this.objCls + "\"," + ir + "," + ic + ",event);' ";
 
-//                if(this.drag) {
-//                    if(!compatibility.draganddrop) {
-//                        tt+=" draggable=\"true\"";
-//                        //tt+= " onmousedown = 'vjObjEvent(\"onSetListeners\",\""+this.objCls+"\","+ir+","+ic+",event);'";
-//                    }
-//                    else {
-//                        tt+" style='position:fixed'; position=fixed";
-//                        tt+= " onmousedown = 'vjObjEvent(\"onmousedown\",\""+this.objCls+"\","+ir+","+ic+",event);'";
-//                        tt+= " onmouseup = 'vjObjEvent(\"onmouseup\",\""+this.objCls+"\","+ir+","+ic+",event);'";
-//                    }
-//                }
-                // alert(tt);
-
-
-
-                if(tooltip && tooltip.length && !this.forceEmptyTooltip)
-                    tt += " title='" + tooltip+"' ";
-                // if(row.description)tt+=": "+row.description;
+                if(tooltip && tooltip.length && !tooltipHtml && !this.forceEmptyTooltip){
+                    var txt = $('<div/>').text(tooltip).html();
+                    tt += " title='" + txt+"' ";
+                }
                 tt += " >";
 
                 if (!col.wrap)
                     tt += "<span style='white-space:nowrap;' >";
-
-                // var maxlen=(col.maxTxtLen ? col.maxTxtLen : this.maxTxtLen);
-                // if(maxlen && dataValueText.length>maxlen &&
-                // dataValueText.indexOf(">")==-1 &&dataValueText.indexOf("<")==-1 ){
-                // //alert(dataValueText+ "----"+dataValueText.substr(0,maxlen)+"...");
-                // dataValueText=dataValueText.substr(0,maxlen)+"...";
-                // }
-                tt += dataValueText;
+                if(this.field_constraint == 'type' && row.hasOwnProperty('id') && row['id'] == dataValueText) { tt += `ID=<b>${dataValueText}</b>&nbsp;|&nbsp;`; }
+                else { tt += dataValueText; }
 
                 if (!col.wrap)
                     tt += "</span>";
@@ -822,56 +711,6 @@ function vjTableView(viewer) {
         return tt;
     };
 
-    /*
-     * this.adjustTableHeaderSize=function () { var nms=new Array ( "checkbox",
-     * "autonumber", "icon" ); //var nms=new Array ( "autonumber"); var
-     * maxCols=this.row(0).cols.length;
-     * if(this.tblArr.hdr.length>maxCols) maxCols=this.tblArr.hdr.length;
-     *
-     * for( var it=0; it<1; ++it) {
-     *
-     * var Pos=new Array(); var totWidth=0; for ( var ic=0; ic<
-     * nms.length+maxCols ; ++ic) { var col=(ic)<nms.length ? nms[ ic ] :
-     * (ic-nms.length); var
-     * s=gObject(this.container+"_"+this.skipRows+"_"+col);if(!s)continue; var
-     * d=gObject(this.container+"_header_"+col);if(!d)continue; if(it%2){var
-     * t=s;s=d;d=t;} var src=gObjPos(s); totWidth+=src.cx-2; Pos.push( { cx:
-     * src.cx, x: src.x, s:s, d: d } ); }
-     *
-     * var allW=Pos[Pos.length-1].cx+Pos[Pos.length-1].x; for ( var ic=0; ic<Pos.length;
-     * ++ic) { var maxW=parseInt(Pos[ic].cx*allW/totWidth);
-     * Pos[ic].d.style.width=(maxW)+"px"; //var
-     * maxW=parseInt(Pos[ic].cx*100/totWidth);
-     * //Pos[ic].d.style.width=(maxW)+"%"; } }
-     *  }
-     */
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Table viewer actions
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    /*
-     * this.doShowActions =function( whichone ,webelement ) { var from=
-     * (whichone=="checked") ? 0 : whichone; var to= (whichone=="checked") ?
-     * this.dim() : whichone;
-     *
-     *
-     * var actLst=new Object(), allCnt=0, act; for ( var ir=from; ir<to; ++ir) {
-     * ++allCnt; if(whichone=="checked" && !this.row(ir).checked )
-     * continue;
-     *
-     * var actL=verarr(this.tblArr.rows[ir][this.actionColumn]); for ( var ia=0;
-     * ia< actL.length; ++ia){ if(!actLst[actL[ia]])actLst[actL[ia]]=1; else
-     * ++actLst[actL[ia]]; } }
-     *
-     * var t="",ic=0; for ( act in actLst) { //if(actLst[act]!=allCnt)continue;
-     * t+="/"+act+","+act+","+actLst[act]+"\n" } if(!t.length) return ;
-     *
-     * t="path,url,act\n"+t;
-     *
-     * //vjMenuPopup(this,t,gObjPos(webelement)); return t;
-     *  }
-     */
 
     this.getToolTip = function (node, ic,defaultVal) {
         var col = this.tblArr.hdr[ic];
@@ -892,21 +731,12 @@ function vjTableView(viewer) {
 
     this.row = function ( ir , givetreenode ) {
         return this.tblArr.rows[ir];
-        /*
-        var row;
-        if( this.tree && this.tree.rows) {
-            var row=this.tree.rows[ir];
-            if( row && row.tablenode && givetreenode )
-                return row.tablenode;
-            return row;
-        }
-        else return this.tblArr.rows[ir];
-        */
-        //return this.tblArr.rows[ir];
     };
 
     this.dim = function() {
-        //return ( this.tree && this.tree.rows) ? this.tree.rows.length : this.tblArr.rows.length;
+        if (!this.tblArr || !this.tblArr.rows) {
+            return 0;
+        }
         return this.tblArr.rows.length;
     };
 
@@ -917,6 +747,9 @@ function vjTableView(viewer) {
     };
 
     this.accumulate = function(checker, collector, params, checked) {
+        if (!this.tblArr) {
+            return;
+        }
         return this.tblArr.accumulate(checker, collector, params, checked);
     };
 
@@ -924,14 +757,13 @@ function vjTableView(viewer) {
     this.doSelect = function(ir, renderAll) {
         if (ir < 0)
             return false;
-//        var previousCnt = this.selectedCnt;
         this.selectedCnt = 0;
         this.selectedNodes = [];
         var spanMax = this.rowSpan ? this.rowSpan : 1;
 
         var oldShift = ir;
         var onSelected = false;
-        if (!this.multiSelect)  // || !gKeyShift
+        if (!this.multiSelect)
             this.oldShift = undefined;
         if(this.multiSelect ){
             if (this.oldShift != undefined && gKeyShift){
@@ -994,11 +826,6 @@ function vjTableView(viewer) {
         return this.selectedCnt;
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Table viewer Event Handlers
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.formCheckSwitchTriState = function(checknam, state, indet_checked_state, indet_title) {
         var o = gObject(checknam);
@@ -1037,7 +864,6 @@ function vjTableView(viewer) {
                 ++cntchk;
             }
         }
-        // alert(cntchk + "=="+this.dim()+"///" + cursel )
 
         if (gObject(prfx + "all")) {
             var all_state = ischecked;
@@ -1066,8 +892,6 @@ function vjTableView(viewer) {
 
         var ischecked = checkbox_elem.checked;
         if (ischecked && cursel == -1) {
-            // if clicking on header checkbox, and before click it was (or should have been) indeterminate,
-            // and all checkable rows are already checked, interpret this action as "uncheck all".
             var cnt_checkable_unchecked = 0;
             var cnt_checked = 0;
             for (var is = 0; is < this.dim(); ++is) {
@@ -1115,7 +939,6 @@ function vjTableView(viewer) {
         }
 
         this.updateDependents();
-        // else this.doShowActions( "checked" , thisobject ) ;
     };
 
     this.mimicCheckmarkSelected = function(ir, checked)
@@ -1123,7 +946,6 @@ function vjTableView(viewer) {
         if (!this.tblArr || ir>=this.dim())
             return;
         var row = this.row(ir);
-        //alerJ("row in vjTableView",row)
         if (!this.checkable || row.styleHasCheckmark === -1 || row.styleNoCheckmark)
             return;
 
@@ -1132,7 +954,7 @@ function vjTableView(viewer) {
         return this.onCheckmarkSelected(this.container, gObject(prfx + ir), ir);
     };
 
-    this.onDomClickCell = function(container, ir, ic) {
+    this.onDomClickCell = function(container, ir, ic,event) {
         var node = this.row(ir);
         that=this;
         if( node.dClickTimer ) {
@@ -1143,7 +965,7 @@ function vjTableView(viewer) {
             clearTimeout( node.sClickTimer );
             delete node.sClickTimer;
         }
-        node.sClickTimer = setTimeout(function() { that.onClickCell.call(that,container,ir,ic); }, this.dblClickDelay); 
+        node.sClickTimer = setTimeout(function() { that.onClickCell.call(that,container,ir,ic,event); }, this.dblClickDelay); 
     };
 
     this.onDomDBLClickCell = function(container, ir, ic) {
@@ -1164,25 +986,24 @@ function vjTableView(viewer) {
         }
     };
     
-    this.onClickCell = function(container, ir, ic)
+    this.onClickCell = function(container, ir, ic,event)
     {
-
         if(gDragEvent){
             gDragEvent=false;
             return ;
         }
         var node = this.row(ir);
+        if(!node){
+            console.log("row doesn't exist");
+            return;
+        }
         node.lastSClick=new Date();
-//        var isSelected=true;
         if (this.rowSpan)
             ir = ir - ((ir - this.skipRows) % this.rowSpan);
         if (!this.userCannotSelect)
-            /*isSelected=*/this.doSelect(ir, true);
-
-//        if(!isSelected)return;
-
+            this.doSelect(ir, true);
         if(this.selectInsteadOfCheck){
-            this.enumerate("if(node.selected)node.checked=1;else node.checked=0;");
+            this.enumerate(function(params,tbl, ir){var node=tbl.rows[ir];if(node.selected)node.checked=1;else node.checked=0;});
             this.updateDependents();
         }
 
@@ -1196,7 +1017,7 @@ function vjTableView(viewer) {
         if (!func && this.selectCallback)
             func = this.selectCallback;
 
-        funcLink(func, this, node, ir, ic, ic>=0  ? this.tblArr.hdr[ic] : ic );
+        funcLink(func, this, node, ir, ic, ic>=0  ? this.tblArr.hdr[ic] : ic , event);
     };
     
     this.ondbClickCell = function(container, ir, ic) {
@@ -1305,7 +1126,7 @@ function vjTableView(viewer) {
             oDnDList=funcLink(this.selectDnDObjects);
         }
 
-        this.drag.dropableAttrs = this.dropableAttrs;//new Array('dragDropable');
+        this.drag.dropableAttrs = this.dropableAttrs;
         this.drag.dropOnAttrs = this.dropOnAttrs;
         this.drag.setClonedObject={func:this.setClonedObject,obj:this};
 
@@ -1348,11 +1169,10 @@ function vjTableView(viewer) {
             oDnDList=funcLink(this.selectReOrderDnDObjects);
         }
 
-        this.order_drag.dropableAttrs = this.order_dropableAttrs;//new Array('dragDropable');
+        this.order_drag.dropableAttrs = this.order_dropableAttrs;
         this.order_drag.dropOnAttrs = this.order_dropOnAttrs;
         this.order_drag.setClonedObject={func:this.setClonedObject,obj:this};
 
-//        if(this.order_dropableAttrs) drableAttrs=verarr(this.order_dropableAttrs);
         for ( var io = 0; io < oDnDList.length; ++io) {
             o = oDnDList[io];
             if (!o)
@@ -1387,7 +1207,7 @@ function vjTableView(viewer) {
         gX=_dragOffsetX+event.clientX-_startX;
         gY=_dragOffsetY+event.clientY-_startY ;
         deb.innerHTML="gX:"+parseInt(event.clientX)+"   --  gY:"+parseInt(event.clientY) +
-        "  -- style:" +_draggable.style.position +  " --//-- element.left="+_draggable.style.left + "element.top="+_draggable.style.top ;
+        "  -- style:" +_draggable.style.position +  " --
 
         deb.innerHTML+="\t\t\tTarget:"+_draggable.id;
 
@@ -1425,11 +1245,9 @@ function vjTableView(viewer) {
             return;
         }
 
-        //if (o)
         o.className = this.className + "_highlighted";
 
         if(this.mouseOverCallback){
-            //this.mouseOverCallback(this,o,ir,ic);
             this.lastMouseOverCellText=o.innerHTML;
             funcLink(this.mouseOverCallback, this, this.row(ir), ir, ic, ic>=0  ? this.tblArr.hdr[ic] : ic );
         }
@@ -1468,8 +1286,6 @@ function vjTableView(viewer) {
                         + node.selected : this.className + "_cell";
             }
         }
-        // alerJ((node.selected ? this.className+"_selected" :
-        // this.className+"_cell" )+ ir+"/"+ic,node);
     };
 
 
@@ -1491,14 +1307,11 @@ function vjTableView(viewer) {
                 thcol.sorted=false;
 
         }
-//        hdcol.sorted=true;
-
         this.tblArr.sortTbl(tric, hdcol.isNdesc);
         this.refresh();
     };
 
     this.onClickMenuNode = function(container, node, menuobject) {
-        alert("requested to " + node.name);
     };
 
     this.enableTableSorter = function (){
@@ -1509,50 +1322,19 @@ function vjTableView(viewer) {
         var dataurl=dataS.url;
         var datacnt=docLocValue("cnt",0,dataurl);
         var datastart=docLocValue("start","0",dataurl);
-        if(datacnt!="1000000" || datacnt==0){                //if there is no pager or 'all' (all=1000000) has been selected then enable sort
-            if(dataS.dataSize!==undefined){                    //if there pager and dataSize provided from the menu
-                if(dataS.dataSize>this.dim() )    //if datasize > than the displayed number of rows don't enable sorter
+        if(datacnt!="1000000" || datacnt==0){
+            if(dataS.dataSize!==undefined){
+                if(dataS.dataSize>this.dim() )
                     return 0;
             }
-            else if( parseInt(datastart)!=0){                //if datasize not provided but start position in url is provided and
-                return 0;                                        //non-zero then don't enable sorter
+            else if( parseInt(datastart)!=0){
+                return 0;
             }
-            else if(this.dim()==parseInt(datacnt))    //Finally if start is not provided and number of the rows displayed
-                return 0;                                            //are less than the counter then enable sorter.
+            else if(this.dim()==parseInt(datacnt))
+                return 0;
         }
         return 1;
     };
 
 }
-
-/*
-
-function vjTableMobileView(viewer) {
-
-    vjTableView.call(this, viewer); // inherit default behaviours of the
-    this.generateTableViewText=function(tbl)
-    {
-
-        // row.cols ass an array
-        // tbl.hdr - array of headers
-        // tbl.hdr[i] - particular header cell
-        // row.cols[i] - particular cell value
-
-        for ( var ih = 0 ; ih< tbl.hdr.length; ++ih ) {
-            var hdr=tbl.hdr[ih];
-
-        }
-
-        for ( var ir = 0 ; ir< this.dim(); ++ir ) {
-            var row=this.row(i);
-
-            for ( var ic = 0 ; ic< row.cols.length; ++ic ) {
-                var cell=row.cols[ic];
-
-            }
-        }
-    }
-}
-*/
-
-//# sourceURL = getBaseUrl() + "/js/vjTableView.js"
+ 

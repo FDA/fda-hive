@@ -40,7 +40,6 @@ namespace slib{
             spectraPeaks(){
                 sSet(&peaks);
                 sSet(&collect);
-                //sSet(peakGroup);
             }
             ~spectraPeaks(){
                 cleanTmpFiles();
@@ -63,7 +62,6 @@ namespace slib{
                     real shiftIsoPeaks;
                     idx maxPeaks;
                     idx dogenerate;
-                    //real satellite[7];
                     sVec < satellite_peaks > satellite;
                     sVec < minMax_satellite_peaks > minMax_satellite;
 
@@ -101,7 +99,6 @@ namespace slib{
 
                 knownPeak(idx lmol = 0, idx lgrp = 0, idx limatch = 0, real lcoef = 0, real litgrl = 0, real lrmass = 0, real lmaxalt = 0, real lfirstIntensity = 0)
                 {
-                    //sSet(this);
                     sSet(sats);
                     sSet(fint);
                     iMol = lmol;

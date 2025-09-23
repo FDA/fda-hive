@@ -32,7 +32,6 @@
 using namespace slib;
 
 
-// glues a list of strings given as arguments returns the destination address 
 char * sString::glue(idx cnt,  const char * firstPtr, ... )
 {
     idx len=0,i;
@@ -65,7 +64,6 @@ char * sString::glue(idx cnt,  const char * firstPtr, ... )
 
 
 
-// double the zero termination : asumes the string has enough buffer
 idx sString::set00(char * src)
 {
     idx len=sLen(src);
@@ -75,8 +73,6 @@ idx sString::set00(char * src)
     return len;
 }
 
-// returns string number cnt in the double-zero terminated string list 
-// where strings are separated by \0 symbol.
 char * sString::next00( const char * cont00,idx cnt)
 {
     if(!cont00)return 0;
@@ -98,7 +94,6 @@ char * sString::next00( const char * cont00,idx cnt)
     return nonconst(cont00);
 }
 
-// counts strings in double zero terminated string list 
 idx sString::cnt00( const char * cont00)
 {
     idx cnt;
@@ -128,7 +123,7 @@ char * sString::glue00( sStr * dst, const char * cont00, const char * fmt, const
     idx pos=dst->length();
     for( const char * p=cont00; p; p=sString::next00(p) ) {
         if( p!=cont00 ) 
-            dst->printf(separ);
+            dst->printf("%s", separ);
         dst->printf(fmt, p);
     }
     return dst->ptr(pos);
@@ -143,8 +138,6 @@ void sString::strstr_quickSearchPreProcess(const char * find, idx m)
 {
     idx i;
 
-    /* Preprocessing */
-    //for (i = 0; i < sizeof(sString::_strstr_QuickSearchPreprocBuf)/sizeof(sString::_strstr_QuickSearchPreprocBuf[0]); ++i)
     for (i = 0; i < sDim(sString::_strstr_QuickSearchPreprocBuf); ++i)
         sString::_strstr_QuickSearchPreprocBuf[i] = m + 1;
     for (i = 0; i < m; ++i)
@@ -155,12 +148,11 @@ const char * sString::strstr_quickSearch(const char *text, idx n, const char * f
 {
     idx j;
 
-    // Searching
     j = 0;
     while (j <= n - m) {
         if (memcmp(find, text + j, m) == 0)
             return text+j;
-        j += sString::_strstr_QuickSearchPreprocBuf[(int)text[j + m]]; //shift 
+        j += sString::_strstr_QuickSearchPreprocBuf[(int)text[j + m]];
     }
     return 0;
 }
@@ -177,4 +169,56 @@ char * sString::inverse(char *text, idx n )
     return text;
 }
 
+void sString::trimLeft(char * str, const char * trimChars, bool trimMismatched)
+{
+    if(!str || *str == 0) { 
+        return; 
+    }
+    const char *fltr = (trimChars && *trimChars) ? trimChars : sString_symbolsBlank;
+    while (*str && (strchr(fltr, *str) || trimMismatched)) {
+        ++str;
+    }
+    if (*str == 0) {
+        *str = '\0';
+    }
+}
 
+void sString::trimRight(char * str, const char * trimChars, bool trimMismatched)
+{
+    if(!str || *str == 0) { 
+        return; 
+    }
+    const char *fltr = (trimChars && *trimChars) ? trimChars : sString_symbolsBlank;
+    char *end = str + strlen(str) - 1;
+    while (end > str && (strchr(fltr,*end) || trimMismatched)) {
+        --end;
+    }
+    if (end == str && (strchr(fltr,*end) || trimMismatched)) {
+        *str = '\0';
+    } else {
+        end[1] = '\0';
+    }
+}
+
+void sString::trim(char * str, const char * trimChars, bool trimMismatched)
+{
+    trimLeft(str, trimChars, trimMismatched);
+    trimRight(str, trimChars, trimMismatched);
+}
+
+bool sString::convertStrToUdx(const char *str, udx *i)
+{
+    char *end;
+    errno = 0;
+    udx x = strtoudx(str, &end, 10);
+
+    if (end == str || *end != '\0' || errno == ERANGE)
+    {
+        errno = 0;
+        return false;
+    }
+
+    *i = x;
+
+    return true;
+}

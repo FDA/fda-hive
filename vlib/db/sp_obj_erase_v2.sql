@@ -10,7 +10,8 @@ CREATE PROCEDURE `sp_obj_erase_v2`(
     IN p_obj_id BIGINT UNSIGNED,
     IN p_permissions BIGINT UNSIGNED,
     IN p_perm_read_browse BIGINT UNSIGNED,
-    IN p_perm_flag_deny BIGINT UNSIGNED
+    IN p_perm_flag_deny BIGINT UNSIGNED,
+    IN p_days_delay BIGINT UNSIGNED
 )
     MODIFIES SQL DATA
 BEGIN
@@ -43,10 +44,17 @@ BEGIN
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
     CALL sp_permission_check_v2(p_group_id, p_member_sql, p_obj_domainID, p_obj_id, p_permissions, @allowed);
 
     IF @allowed != 0 THEN
-        UPDATE UPObj SET softExpiration = CURRENT_TIMESTAMP WHERE domainID = IFNULL(p_obj_domainID, 0) AND objID = p_obj_id;
+        if p_days_delay >= 0 THEN
+            UPDATE UPObj SET softExpiration = NOW() + INTERVAL p_days_delay DAY
+                WHERE domainID = IFNULL(p_obj_domainID, 0) AND objID = p_obj_id;
+        ELSE
+            UPDATE UPObj SET softExpiration = NULL
+                WHERE domainID = IFNULL(p_obj_domainID, 0) AND objID = p_obj_id;
+        END IF;
         SELECT ROW_COUNT();
     ELSE
         DELETE FROM UPPerm WHERE domainID = IFNULL(p_obj_domainID, 0) AND objID = p_obj_id AND groupID = p_group_id;

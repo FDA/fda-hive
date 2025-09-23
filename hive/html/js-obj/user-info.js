@@ -27,15 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- * Copyright (c) 2005 Dr. Vahan Simonyan and Dr. Raja Mazumder.
- * This software is protected by U.S. Copyright Law and International
- * Treaties. Unauthorized use, duplication, reverse engineering, any
- * form of redistribution, use in part or as a whole, other than by
- * prior, express, written and signed agreement is subject to penalties.
- * If you have received this file in error, please notify copyright
- * holder and destroy this and any other copies. All rights reserved.
- */
 
 if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
 javaScriptEngine.include("js/vjHelpView.js");
@@ -79,8 +70,7 @@ vjHO.register('user-info').Constructor=function ()
     this.viewers.length=0;
     this.urlSet ={
             'dsHelp':{
-                //active_url:"http://help/hlp.page.newhome.html",
-                active_url:"http://?cmd=propget&mode=csv&ids=0&userPerspective="+this.params.node.user+"&raw=1",
+                active_url:"http:
                 objs:"ids",
                 header:"id,name,path,value",
                 title:"retrieve obj information"
@@ -96,13 +86,9 @@ vjHO.register('user-info').Constructor=function ()
 
     this.load = function(dvORtab, id, geometry,formName)
     {
-        //if(this.node.whichTab!=undefined) {
             return this.realload ( {dvORtab: dvORtab, id: id , formName : formName } , this.node.whichTab) ;
 
 
-//        var qry="return%20("+node.id+"%20as%20obj).algorithm;";
-//        linkCmd("objQry&raw=1&qry="+qry,{callback:'realload', objCls: this.objCls,  dvORtab: dvORtab, id: id , formName : formName },vjObjAjaxCallback );
-//        return ;
     };
 
 
@@ -111,13 +97,12 @@ vjHO.register('user-info').Constructor=function ()
 
 
 
-    this.realload = function(parameters, content )//(dvORtab, id, geometry,formName)
+    this.realload = function(parameters, content )
     {
 
         dvORtab=parameters.dvORtab;
         id=parameters.id;
         formName=parameters.formName;
-        //this.node.whichTab=parseInt(content);
 
 
         this.loadedID=id;
@@ -162,11 +147,10 @@ vjHO.register('user-info').Constructor=function ()
         }
 
         this.constructed=true;
-        if(this.dvs[0].tabs){ //alert("start of construct");
+        if(this.dvs[0].tabs){
 
             this.dvs[0].addTab("User-Info","user",[this.viewers['viewHelp']]);
 
-            //alerJ("a",this.dvs[0].tabs)
         }
         else{
             this.dvs[0].remove();

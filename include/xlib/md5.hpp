@@ -31,51 +31,47 @@
 #ifndef xLib_md5_h
 #define xLib_md5_h
 
-#include <slib/core/def.hpp>
+#include <openssl/md5.h>
 
-namespace slib {
+namespace slib
+{
+    class sStr;
     class sMD5
     {
-            static const idx MD5size = (16);
-
         public:
-            sMD5(const char * filename)
+            sMD5()
+                : m_state(0)
             {
-                sSet(bin);
-                sum[0] = 0;
-                parse_file(filename, 0);
+            }
+            sMD5(const char * filename)
+                : m_state(0)
+            {
+                parse_file(filename);
             }
             sMD5(FILE * fp)
+                : m_state(0)
             {
-                sSet(bin);
-                sum[0] = 0;
-                parse_stream(fp, 0);
+                parse_stream(fp);
             }
             sMD5(const char * buffer, idx len)
+                : m_state(0)
             {
-                sSet(bin);
-                sum[0] = 0;
-                parse_buffer(buffer, len, 0);
+                parse_buffer(buffer, len);
             }
+            ~sMD5();
 
-            char bin[MD5size];
-            char sum[MD5size * 4];
+            bool parse_buffer(const char * buffer, idx len);
 
-            void * parse_buffer(const char *buffer, idx len, void * resblock = 0);
-            int parse_stream(FILE *stream, void *resblock = 0);
-            int parse_file(const char * filename, void * resblock = 0);
+            const char * sum(sStr * buffer = NULL);
 
         private:
-            void * md5_finish_ctx(void *ctx, void *resbuf);
-            void * md5_read_ctx(const void *ctx, void *resbuf);
+            bool parse_stream(FILE * stream);
+            bool parse_file(const char * filename);
 
-            static void md5_init_ctx(void *ctx);
-            static void md5_process_block(const void *buffer, idx len, void *ctx);
-            static void md5_process_bytes(const void *buffer, idx len, void *ctx);
+            MD5_CTX m_ctx;
+            udx m_state;
+            unsigned char m_hash[MD5_DIGEST_LENGTH];
     };
+};
 
-}
-;
-
-#endif // xLib_md5_h
-
+#endif

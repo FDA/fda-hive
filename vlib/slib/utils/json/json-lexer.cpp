@@ -32,8 +32,6 @@
 
 #include <assert.h>
 #include <ctype.h>
-// In glibc <= 2.18, __STDC_LIMIT_MACROS must be defined before including stdint.h
-// if you want to use INTn_MAX/INTn_MIN macros
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS 1
 #endif
@@ -65,7 +63,6 @@ uint64_t readUCS2Hex(const char * src)
 
 static idx decodeUTF16Hex(sStr & dst, const char * src, idx pos, idx len)
 {
-    // expect \uXXXX
     if( len - pos < 6 ) {
         return 0;
     }
@@ -76,22 +73,18 @@ static idx decodeUTF16Hex(sStr & dst, const char * src, idx pos, idx len)
 
     uint64_t code = readUCS2Hex(src + pos + 2);
     if( code == UINT64_MAX ) {
-        // error condition
         return 0;
     }
 
     idx ret = 6;
 
     if( code >= 0xd800 && code <= 0xdbff && len - pos >= 12 && src[pos + 6] == '\\' && src[pos + 7] == 'u' ) {
-        // surrogate pair
         uint64_t code2 = readUCS2Hex(src + pos + 8);
         if( code2 == UINT64_MAX ) {
-            // error condition
             return 0;
         }
 
         if( code2 >= 0xdc00 && code2 <= 0xdfff ) {
-            // second surrogate pair found
             code -= 0xd800;
             code <<= 10;
             code += code2 - 0xdc00 + 0x10000;
@@ -124,7 +117,6 @@ static idx decodeUTF16Hex(sStr & dst, const char * src, idx pos, idx len)
 
 sJSONParser::EToken sJSONParser::Lexer::lex(sJSONParser::TokenValue & val)
 {
-    // skip any whitespace
     while( _pos < _len ) {
         char c = _inp[_pos];
         if( c == ' ' || c == '\t' ) {
@@ -177,23 +169,22 @@ sJSONParser::EToken sJSONParser::Lexer::lex(sJSONParser::TokenValue & val)
         case '}':
             incrPosCol();
             return eTokenCloseObject;
-        // no default
     }
 
-    if( _len - _pos >= 4 /* strlen("null") */ && strncmp(_inp + _pos, "null", 4) == 0 ) {
+    if( _len - _pos >= 4&& strncmp(_inp + _pos, "null", 4) == 0 ) {
         val.raw_len = 4;
         incrPosCol(val.raw_len);
         return eTokenNull;
     }
 
-    if( _len - _pos >= 4 /* strlen("true") */ && strncmp(_inp + _pos, "true", 4) == 0 ) {
+    if( _len - _pos >= 4&& strncmp(_inp + _pos, "true", 4) == 0 ) {
         val.raw_len = 4;
         incrPosCol(val.raw_len);
         val.num.i = 1;
         return eTokenBool;
     }
 
-    if( _len - _pos >= 5 /* strlen("false") */ && strncmp(_inp + _pos, "false", 5) == 0 ) {
+    if( _len - _pos >= 5&& strncmp(_inp + _pos, "false", 5) == 0 ) {
         val.raw_len = 5;
         incrPosCol(val.raw_len);
         val.num.i = 0;
@@ -201,7 +192,6 @@ sJSONParser::EToken sJSONParser::Lexer::lex(sJSONParser::TokenValue & val)
     }
 
     if( isdigit(c) || c == '-' ) {
-        // integer or real
         bool is_real = false;
         bool is_negate = false;
         if( c == '-' ) {
@@ -218,7 +208,7 @@ sJSONParser::EToken sJSONParser::Lexer::lex(sJSONParser::TokenValue & val)
         for( incrPosCol(); _pos < _len && isdigit(_inp[_pos]); incrPosCol()) {
             idx next = val.num.i * 10 + (_inp[_pos] - '0');
             if( next < val.num.i ) {
-                is_real = true; // integer overflow
+                is_real = true;
             }
             val.num.i = next;
         }
@@ -273,8 +263,7 @@ sJSONParser::EToken sJSONParser::Lexer::lex(sJSONParser::TokenValue & val)
     }
 
     if( c == '"' ) {
-        // string
-        incrPosCol(); // skip opening quote
+        incrPosCol();
         val.str_start = _pos;
         while( _pos < _len && _inp[_pos] != '"' ) {
             if( _inp[_pos] == '\\' ) {
@@ -287,8 +276,8 @@ sJSONParser::EToken sJSONParser::Lexer::lex(sJSONParser::TokenValue & val)
                 if( !val.str_in_decode_buf ) {
                     val.str_in_decode_buf = true;
                     val.str_start = val.decode_buf.length();
-                    idx copy_pos = val.start_pos + 1; // exclude initial "
-                    idx copy_len = _pos - copy_pos - 1; // exclude \ that we just scanned
+                    idx copy_pos = val.start_pos + 1;
+                    idx copy_len = _pos - copy_pos - 1;
                     if( copy_len ) {
                         val.decode_buf.add(_inp + copy_pos, copy_len);
                     }
@@ -363,11 +352,10 @@ sJSONParser::EToken sJSONParser::Lexer::lex(sJSONParser::TokenValue & val)
                 val.str_len = val.decode_buf.length() - val.str_start;
                 val.decode_buf.add0cut();
             } else {
-                val.str_len = _pos - val.str_start - 1; // exclude terminal "
+                val.str_len = _pos - val.str_start - 1;
             }
             return eTokenString;
         } else {
-            // buffer ended, terminal " not found
             _parser->setError(_line, _col, _inp + _pos, "JSON syntax error: unterminated string value");
             return eTokenError;
         }

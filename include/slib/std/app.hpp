@@ -49,7 +49,6 @@ namespace slib {
             static const char ** argv;
             static const char ** envp;
 
-            // could be file offset, line number, record number, etc.
             static udx err_location;
 
             sApp(int largc = 0, const char ** largv = 0, const char ** lenvp = 0);
@@ -80,6 +79,6 @@ namespace slib {
             static idx cfgsave(const char * section00, bool truncate);
     };
 
-}  // end namespace slib
+}
 
-#endif // Vstd_app_hpp
+#endif 

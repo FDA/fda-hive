@@ -47,21 +47,16 @@ namespace slib {
                 : sUsrObj(*lusr, lobjid)
             {
             }
-            //! safe constructor for use in propset in case of write-only permissions
             sUsrFile(const sUsr& usr, const sHiveId & objId, const sHiveId * ptypeId, udx permission)
                 : sUsrObj(usr, objId, ptypeId, permission)
             {
             }
 
-            // control use of internally reserved object's file name
-            // see parent class for functions description
             virtual const char * addFilePathname(sStr & buf, bool overwrite, const char* key, ...) const __attribute__((format(printf, 4, 5)));
             virtual bool delFilePathname(const char* key, ...) const __attribute__((format(printf, 2, 3)));
 
-            // retrieve primary object's file
             const char* getFile(sStr& buf) const;
 
-            // TEMP !! for old obj conversion only!!!
         protected:
             virtual const char * getFilePathnameX(sStr & buf, const sStr & key, bool check_existence) const;
 
@@ -69,16 +64,10 @@ namespace slib {
             friend class dmArchiverProc;
             friend class dmCompressorProc;
 
-            /*
-             * set primary object's file
-             * will copy the file from file_path to storage location and set necessary attributes
-             * optional name, extension and size will be derived from source file
-             */
-            bool setFile(const char * file_path, const char* name = 0, const char * ext = 0, udx file_sz = 0);
+            bool setFile_donotuse(const char * file_path, const char * name = 0, const char * ext = 0, udx file_sz = 0);
 
-            //! fix old path property for obj files
             void fixOldPath(void) const;
     };
 }
 
-#endif // sLib_usrfile_h
+#endif 

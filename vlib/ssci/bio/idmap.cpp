@@ -50,8 +50,6 @@ bool sIdMap::getNeighbourByLevel(const char * startId, const char * idTypeFrom,s
 }
 
 void sIdMap::getNeighbour(const QC * root,sVioDB *db,idx level, sStr &list, sDic<idx> &table, idx maxCnt, idx start, idx *cnt,idx maxExpand){
-    //later on handle on vioDB
-    //for the typeIndex will always be 1,relation Index also 1
     sStr whatToHash;
     whatToHash.printf(0,"%s%s",root->type.ptr(0),root->id.ptr(0));
     if(level>0 && *cnt < maxCnt+start ){
@@ -66,7 +64,7 @@ void sIdMap::getNeighbour(const QC * root,sVioDB *db,idx level, sStr &list, sDic
                     idx cntRel=0;
                     idx * relPtr = db->GetRelationPtr(ID_TYPE,bodyIndex, 1, &cntRel, 0);
                     if(*relPtr>0){
-                        for(idx i=0;i<cntRel && i < maxExpand;i++,*(relPtr++)){
+                        for(idx i=0;i<cntRel && i < maxExpand;i++,(relPtr++)){
                              if(*cnt >= maxCnt+start)  return;
                              idx idChildSize = 0;
                              const char * idChild = (const char*)db->Getbody(ID_TYPE,*relPtr,&idChildSize);
@@ -78,7 +76,6 @@ void sIdMap::getNeighbour(const QC * root,sVioDB *db,idx level, sStr &list, sDic
                              }
                              (*cnt)++;
 
-                             //list.add0(2);
                              QC child;
                              child.id.printf(0,"%s",realBody.ptr(0));
                              findIdType(*relPtr,child.type,*db);
@@ -143,7 +140,6 @@ idx sIdMap::findIdByInput(const char * idInput, const char * idTo, sStr &buf, co
 }
 
 
-//idInput=1234, idTo= ncbi_taxid, idtypeFrom = GI
 idx sIdMap::findId(const char * idInput, const char * idTo, sStr &buf, const char * idtypeFrom, idx cnt, idx start,sStr * giNumber){
     idx cntResult = 0;
     sStr lowIdTo;
@@ -229,15 +225,10 @@ idx sIdMap::findId(const char * idInput, const char * idTo, sStr &buf, const cha
     return cntResult;
 }
 
-//idFrom GINUMBER  idtypeFrom gi      idTo=ncbi_TXID
 idx sIdMap::getIdMap(const char * idFrom, const char * idtypeFrom, const char * idTo,sStr &buf, idx MaxLevelAllowed, idx maxCnt, idx start,idx maxExpand){
     sDic <idx > table;
     sDic <idx> typeTable;
     sVec<QC> myQueue;
-//    struct QC{
-//                   sStr type;
-//                   sStr id;
-//           };
     idx cntLevel=0;
     idx peakPos = 0;
     idx cntQueueItem = 0;
@@ -272,7 +263,6 @@ idx sIdMap::getIdMap(const char * idFrom, const char * idtypeFrom, const char * 
                         return cntResult;
                 }
                 else if(!typeTable.find(type)){
-                    //Expand the children
 
                     if(!cntLevel)typeTable.set(type);
                     for(idx i=0;ifWithinExcludeList==-1&&i<dbList.dim();i++){
@@ -285,7 +275,7 @@ idx sIdMap::getIdMap(const char * idFrom, const char * idtypeFrom, const char * 
                             idx cntRel=0;
                             idx * relPtr = db.GetRelationPtr(ID_TYPE,recordIndex, 1, &cntRel, 0);
                             if(*relPtr>0){
-                                for(idx i=0;i<cntRel && i < maxExpand;i++,*(relPtr++)){
+                                for(idx i=0;i<cntRel && i < maxExpand;i++,(relPtr++)){
                                     idx bodySize = 0;
                                     sStr typeStr;
                                     findIdType(*relPtr, typeStr, db);
@@ -324,24 +314,6 @@ idx sIdMap::getIdMap(const char * idFrom, const char * idtypeFrom, const char * 
     }
     return cntResult;
 }
-/*
-idx sIdMap::getQCFromAllVioDB(const char * id, sVec<QC> & qcList, idx idSize){
-    idx cntFind = 0;
-    idSize = idSize ?  idSize : sLen(id);
-    if(id){
-        for(idx i=0;i<dbList.dim();i++){
-            idx bodyIndex = dbList[i].GetRecordIndexByBody(id,ID_TYPE,idSize);
-            if(bodyIndex){
-                QC * ptr = qcList.add(1);
-                ptr->recordIndex = bodyIndex;
-                ptr->db = &dbList[i];
-                cntFind++;
-            }
-        }
-    }
-    return cntFind;
-}
-*/
 
 
 
@@ -387,11 +359,8 @@ bool sIdMap::findIdTypeAuto(const char * id, sVec<QC> & idIndexWithDB,const char
                 setBodyWithType(ti+1, idWithType);
                 idx bodyIndex = db->GetRecordIndexByBody(idWithType.ptr(0),ID_TYPE,idWithType.length());
                 if(bodyIndex){
-                    //Here two way to get the type body
-                    //get it by both ways to see if they are the same thing
                    sStr typeBuf;
                    getTypeBodyByIndex(typeBuf,ti+1,*db);
-                   //Another way
                    idx cntRel=0;
                    idx * relPtr = db->GetRelationPtr(ID_TYPE,bodyIndex, 2 , &cntRel, 0);
                    if(cntRel==1 && (*relPtr)>0){
@@ -455,12 +424,8 @@ idx sIdMap::getBodyWithType(idx typeRecordIndex, sStr & body){
 void sIdMap::Parsefile(const char* inputFilename, const char* outfilename, bool combinedFile, const char * keyTypeOrigin)
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Prepare input files
-    // _/
 
-    sVioDB db(outfilename,idMapVioDBFileFlag,2,2);//constructor: 3 types, 4 is the maximum raltionship
+    sVioDB db(outfilename,idMapVioDBFileFlag,2,2);
     sFil inputFile(inputFilename,sMex::fReadonly);
     const char * src=inputFile.ptr();
 
@@ -483,11 +448,6 @@ void sIdMap::Parsefile(const char* inputFilename, const char* outfilename, bool 
             keyType.printf("%c",tolower(*(keyTypeOrigin+i)));
         }
     }
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Here we intialized the list of types we have
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/
 
     idx relationlistID[2]={1,2};
     idx relationlistType[1]={1};
@@ -497,12 +457,10 @@ void sIdMap::Parsefile(const char* inputFilename, const char* outfilename, bool 
     db.AddType(sVioDB::eString,1,relationlistType,"type",2);
 
 
-    // Run the first time
-    // we only count the records and adding the records to record blobs
     for ( idx i=0 ; i<length && *src; ++i)
     {
         src=getonelinefromBuffer(buf,src);
-        ParseOnelineNCBI(buf,key,otherType,other); // this function reads 3 string
+        ParseOnelineNCBI(buf,key,otherType,other);
         if(otherType.ptr(0)){
             idx len = otherType.length();
             for(idx i=0;i<len;i++){
@@ -538,8 +496,6 @@ void sIdMap::Parsefile(const char* inputFilename, const char* outfilename, bool 
         db.AddRecordRelationshipCounter(ID_TYPE, myRecordID, 1);
     }
 
-    //_*_*_We use this function to allocate space for the a relationship
-    //_*_*_AllocRelation()
     db.AllocRelation();
 
     src=inputFile.ptr();
@@ -565,7 +521,6 @@ void sIdMap::Parsefile(const char* inputFilename, const char* outfilename, bool 
 
         db.AddRelation(ID_TYPE, 1, keyIndex, otherIndex );
         db.AddRelation(ID_TYPE, 1, otherIndex ,keyIndex );
-        //When set the typeRelationship, be carefull
         idx relCnt=0;
         idx * ptr1 = db.GetRelationPtr(ID_TYPE,keyIndex,2,&relCnt,0);
         if(!(*ptr1))
@@ -598,7 +553,6 @@ void sIdMap::ParseOnelineNCBI(const char * buf, sStr & key, sStr &otherType, sSt
     if(ptr1)    key.printf(0,"%s",ptr1);
     ptr1=sString::next00(ptr1);
     otherType.printf(0,"ncbi_taxid");
-   // ptr1=sString::next00(ptr1);
     if(ptr1)    other.printf(0,"%s",ptr1);
 }
 

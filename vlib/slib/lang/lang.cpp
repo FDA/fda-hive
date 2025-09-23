@@ -34,65 +34,57 @@
 
 using namespace slib;
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Script Pretreatment / Tokenization
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 char * sLang::scriptClean(sStr * dst, const char * source, idx len)
 {
-    if(!len && source)len=sLen(source); if(!len)return 0;
+    if( !len && source ) len = sLen(source);
+    if( !len ) return 0;
     idx pos=dst->pos();
 
-    //char  * dst=(char*)vMem::New(len+4), *d=dst, ch;
     char last;
     const char * s=source, *e=source+len, *p;
     #define ADD(_v_k_)    dst->add(&(last=*(_v_k_)),1)
 
-    if(!dst->length())ADD(" ");// *d++=' '
-    else last=0;//*(dst->last()-1);
-    for( ; s<e ; ++s) { // 
+    if(!dst->length())ADD(" ");
+    else last=0;
+    for( ; s<e ; ++s) {
         char ch=*s;
-        if(ch=='/') { // is it a comment 
-            if(*(s+1)=='*') // block comment 
+        if(ch=='/') {
+            if(*(s+1)=='*')
                 for( s+=2 ; s<e && !(*s=='*' && *(s+1)=='/') ; ++s); 
-            if(*(s+1)=='/') // one-line comment
+            if(*(s+1)=='/')
                 for(s+=2 ; s<e && *s!='\n';++s);
         }
-        else if(ch=='\'' || ch=='\"' || ch=='`') { // quotes are copied without a change
-            ADD(s);++s;//*d++=*s++;
+        else if(ch=='\'' || ch=='\"' || ch=='`') {
+            ADD(s);++s;
             while( s<e && *s!=ch ){
-                ADD(s);++s;//*d++=*s++; // scan to the next same quotation sign 
+                ADD(s);++s;
             }
-            ADD(s);//*d++=*s;
+            ADD(s);
             continue;
         }
         else if(ch==' ' || ch=='\t'){
-            //if( *(d-1)!=' ' && *(d-1)!='\n') // no multiple spaces 
-            if( last!=' ' && last!='\n') // no multiple spaces 
-                ADD(" ");//*d++=' ';
+            if( last!=' ' && last!='\n')
+                ADD(" ");
             continue;
         }
         else if(ch=='\r' || ch=='\n'){
-            if( last!='\n') // no multiple newlines
-                ADD("\n");//*d++='\n';
+            if( last!='\n')
+                ADD("\n");
             continue;
         }
         else if(ch=='\\') {
-            for( p=s+1; p<e && (*p==' ' || *p=='\t' || *p=='\r' ); ++p); // scan the spaces 
-            if(*p=='\n'){ // end of line immidiately after spaces ? 
+            for( p=s+1; p<e && (*p==' ' || *p=='\t' || *p=='\r' ); ++p);
+            if(*p=='\n'){
                 s=p;continue;
             }
         }
-        //*d++=*s;
         ADD(s);
 
     }
 
     ADD(_);
-    //*d=0;
 
     return dst->ptr(pos);
 }
@@ -104,73 +96,73 @@ const char * sLang::scriptTokenize(sDic < Statement > * stats, const char * src 
     #define N(_v_ptr) (((idx)((_v_ptr)-src))+ofsPos)
     #define NOSET 0
 
-    if(!len && src)len=sLen(src); if(!len)return 0;
+    if( !len && src ) len = sLen(src);
+    if( !len ) return 0;
     
     Statement * lx=0;
     idx ic;const char * ptr;
     for (ptr=src; *ptr && ptr<src+len; ++ptr ) {
 
-        // add a new statement item 
         if(!lx && !strchr(sString_symbolsBlank,*ptr) ) {
             lx = stats->add(1);
             sSet(lx,0);
         }
         if(!lx)continue;
        
-        if(lx->stat.Start==NOSET && !strchr(sString_symbolsBlank,*ptr) ){ // new statement ? set the beginning 
-            lx->stat.Start=N(ptr); // beginning of the statement  
-            lx->nam.Start=N(ptr); // beginning of the name
+        if(lx->stat.Start==NOSET && !strchr(sString_symbolsBlank,*ptr) ){
+            lx->stat.Start=N(ptr);
+            lx->nam.Start=N(ptr);
         }
         
         if(strchr(sString_symbolsBlank,*ptr) && lx->nam.Start!=NOSET && lx->nam.End==NOSET)
-            lx->nam.End=N(ptr); // end of name on the first space always 
+            lx->nam.End=N(ptr);
 
-        if(*ptr=='\n' && src[lx->stat.Start]=='#' ) { // end of macro statement  // *P(lx->stat.Start)
+        if(*ptr=='\n' && src[lx->stat.Start]=='#' ) {
             lx->stat.End=N(ptr); 
-            if(lx->body.Start!=NOSET)lx->body.End=N(ptr); // end of body
-            if(lx->nam.End==NOSET)lx->nam.End=N(ptr); // end of name 
-            lx=0; // end of this statement 
+            if(lx->body.Start!=NOSET)lx->body.End=N(ptr);
+            if(lx->nam.End==NOSET)lx->nam.End=N(ptr);
+            lx=0;
         }
 
-        else if( *ptr == '=' && *(ptr+1)!='=' && lx->equ.Start==NOSET ) { // assignments 
+        else if( *ptr == '=' && *(ptr+1)!='=' && lx->equ.Start==NOSET ) {
             lx->equ.Start=N(ptr+1);
             if(lx->nam.End==NOSET)lx->nam.End=N(ptr);
-            for ( ++ptr ; *ptr && ptr<src+len ; ++ptr ) { // scan to the corresponding end of the parenthesis     
+            for ( ++ptr ; *ptr && ptr<src+len ; ++ptr ) {
                 if( *ptr==';' ) break;
             }
             lx->equ.End=N(ptr);
-            lx->stat.End=N(ptr); // end of statement 
-            lx=0; // end of this statement 
+            lx->stat.End=N(ptr);
+            lx=0;
         }
         
-        else if ( *ptr == '(' && lx->prth.Start==NOSET ){ // parenthesis  
-            lx->prth.Start=N(ptr+1); // beginning of parenthesis
+        else if ( *ptr == '(' && lx->prth.Start==NOSET ){
+            lx->prth.Start=N(ptr+1);
             if(lx->nam.End==NOSET)lx->nam.End=N(ptr);
-            for ( ic=1, ++ptr; *ptr && ptr<src+len ; ++ptr ) { // scan to the corresponding end of the parenthesis 
+            for ( ic=1, ++ptr; *ptr && ptr<src+len ; ++ptr ) {
                 if( *ptr=='(' ) ++ic;
                 else if( *ptr==')' ) --ic;
                 if(!ic)break;
             }
-            lx->prth.End=N(ptr); //end of parenthesis 
+            lx->prth.End=N(ptr);
         }
 
-        else if ( *ptr == '{' ){ // body in curly brakets 
-            lx->body.Start=N(ptr+1); // beginning of body 
+        else if ( *ptr == '{' ){
+            lx->body.Start=N(ptr+1);
             if(lx->nam.End==NOSET)lx->nam.End=N(ptr);
-            for ( ic=1, ++ptr; *ptr && ptr<src+len; ++ptr ) { // scan to the corresponding end of the curly brakets 
+            for ( ic=1, ++ptr; *ptr && ptr<src+len; ++ptr ) {
                 if( *ptr=='{' ) ++ic;
                 else if( *ptr=='}' ) --ic;
                 if(!ic)break;
             }
-            lx->body.End=N(ptr); // end of body 
-            lx->stat.End=N(ptr); // end of statement 
-            lx=0; // end of this statement 
+            lx->body.End=N(ptr);
+            lx->stat.End=N(ptr);
+            lx=0;
         }
         
         else if( *ptr==';') {
-            lx->stat.End=N(ptr); // end of statement 
+            lx->stat.End=N(ptr);
             if(lx->nam.End==NOSET)lx->nam.End=N(ptr);
-            lx=0; // end of this statement 
+            lx=0;
         }
         if(!(*ptr) || ptr>=src+len)
             break;
@@ -178,8 +170,8 @@ const char * sLang::scriptTokenize(sDic < Statement > * stats, const char * src 
     
     if(lx){
         lx->stat.End=N(ptr);
-        if(lx->body.End==NOSET && lx->body.Start!=NOSET)lx->body.End=N(ptr); // end of body
-        if(lx->nam.End==NOSET && lx->nam.Start!=NOSET)lx->nam.End=N(ptr); // end of body
+        if(lx->body.End==NOSET && lx->body.Start!=NOSET)lx->body.End=N(ptr);
+        if(lx->nam.End==NOSET && lx->nam.Start!=NOSET)lx->nam.End=N(ptr);
     }
 
     return src;
@@ -190,17 +182,16 @@ idx sLang::parse(const char * source, idx len , bool issubscript)
 {
     const char * ptr;
     
-    if(issubscript)  // check if this source is already in the script ... 
+    if(issubscript)
         ptr=source;
     else { 
-        ptr=scriptClean(&script, source,len); // get the treated input 
+        ptr=scriptClean(&script, source,len);
         len=script.length();
     }
 
     idx pos=dicStat.dim();
     scriptTokenize(&dicStat,ptr,len,(idx)(ptr-script.ptr()) );
 
-    // scan over all the statements
     for( idx il=pos; il<dicStat.dim(); ++il) {
         executeStatement(il);
         if( curScope->retCond || curScope->contCond || exitCond)
@@ -224,12 +215,11 @@ void sLang::debugPrintf( const char * fmt, ... )
 
 char * sLang::getStat(sStr * dst, const sLang::Location * loc, idx clean)
 {
-    //#define P(_v_ofs) (lg->script.ptr(_v_ofs))
 
     idx l=(loc->End-loc->Start);
     char * out=l ? dst->add(script.ptr(loc->Start),l) : dst->last();
     dst->add(_,1);
-    if(out && clean)sString::cleanEnds(out,0,sString_symbolsBlank,true); // clean spaces at the end
+    if(out && clean)sString::cleanEnds(out,0,sString_symbolsBlank,true);
     return out;
 }
 const char * sLang::Scope::setVar( const char * var, const char * fmt, ... )
@@ -242,11 +232,6 @@ const char * sLang::Scope::setVar( const char * var, const char * fmt, ... )
     return scp->data.ptr(ofs);
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Fundamental code execution functions 
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 bool sLang::executeStatement(idx il )
@@ -260,23 +245,23 @@ bool sLang::executeStatement(idx il )
         debugPrintf("\n");
     #endif
 
-    if( (eval = dicLang.get(nam))!=0 ){  // look if this is a language construction 
+    if( (eval = dicLang.get(nam))!=0 ){
 
-        if( lx->body.Start==lx->body.End && *script.ptr(lx->stat.Start)!='#' ){ // has no body and is not a macro 
+        if( lx->body.Start==lx->body.End && *script.ptr(lx->stat.Start)!='#' ){
 
             if( strcmp(nam,"else")==0 ) 
-                lx->body.Start=lx->nam.End; // it is after the parenthesis
+                lx->body.Start=lx->nam.End;
             else 
-                lx->body.Start=sMax(lx->prth.End+1,lx->nam.End); // it is after the parenthesis
+                lx->body.Start=sMax(lx->prth.End+1,lx->nam.End);
             
-            lx->body.End=lx->stat.End; // and to the statement end
+            lx->body.End=lx->stat.End;
         }
-        (*eval)(this,il); // call the language construction handling function
+        (*eval)(this,il);
     }
-    else if( nam[0] && lx->body.Start!=NOSET && *script.ptr(lx->body.Start-1)=='{' ) // real function body declaration 
+    else if( nam[0] && lx->body.Start!=NOSET && *script.ptr(lx->body.Start-1)=='{' )
         exec_declarefun(this,il);
 
-    else if(lx->equ.Start!=lx->equ.End ){ // has an equal assigment
+    else if(lx->equ.Start!=lx->equ.End ){
         exec_assignment(this,il);
         return true;
     }
@@ -295,7 +280,7 @@ idx sLang::exec_declarefun(sLang * lg, idx il)
     Statement * lex=lg->dicStat.ptr(il);
     char * fun=lg->getStat(&tmp,&lex->nam,1);
 
-    idx * numL=lg->dicFun.set(fun); // get the existing or create a new entry 
+    idx * numL=lg->dicFun.set(fun);
     if(numL)*numL=il; 
 
     #ifdef DEBUGOUT
@@ -319,15 +304,13 @@ idx sLang::exec_assignment(sLang * lg, idx il)
     sStr nam,rslt;
     Statement * lex=lg->dicStat.ptr(il);
     
-    // compute the right part 
     lg->expressionCompute(&rslt , lg->script.ptr(lex->equ.Start), lex->stat.End-lex->equ.Start);
-    lex=lg->dicStat.ptr(il); // lexicCompute has a potential of reallocating the statments dictionary , so we have to reget the pointer
+    lex=lg->dicStat.ptr(il);
 
-    // set the variable 
     char * var=lg->getStat(&nam,&(lex->nam),1);
     Scope * scp;
 
-    if( !lg->curScope->isVar(var) && lg->globalScope.isVar(var) ) // not local but already in global 
+    if( !lg->curScope->isVar(var) && lg->globalScope.isVar(var) )
         scp=&lg->globalScope;
     else scp=lg->curScope;
 
@@ -345,20 +328,19 @@ idx sLang::exec_generic(sLang * lg, idx il)
 {
     Statement * lex=lg->dicStat.ptr(il);
 
-    // parse the whole statement 
     if ( lex->body.Start==lex->body.End) {
         lg->reslt.cut(0);
         lg->expressionCompute( &lg->reslt, lg->script.ptr(lex->stat.Start), lex->stat.End-lex->stat.Start ) ;
     }
     else {
         #ifdef DEBUGOUT
-            lg->debugPrintf("{"); // DEBUG PRINTOUT
+            lg->debugPrintf("{");
         #endif
         ++(lg->funLevel);
         lg->parse( lg->script.ptr(lex->body.Start), lex->body.End-lex->body.Start, true) ;
         --(lg->funLevel);
         #ifdef DEBUGOUT
-            lg->debugPrintf("}\n"); // DEBUG PRINTOUT
+            lg->debugPrintf("}\n");
         #endif
     }
 
@@ -369,11 +351,6 @@ idx sLang::exec_generic(sLang * lg, idx il)
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Expression evaluation 
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 idx sLang::expressionCallback(sLang * lg, sStr * ,  sCalc * xic, idx cur, idx cnt, idx )
 {
@@ -383,57 +360,44 @@ idx sLang::expressionCallback(sLang * lg, sStr * ,  sCalc * xic, idx cur, idx cn
     idx * pn;
     Scope * scp;
     
-    // check if this is a user defined or a library function name 
     if( (pn=lg->dicFun.get(ct))!=0 ) {
         
-        // prepare the function and the scope 
-        Statement * lx=lg->dicStat.ptr(*pn); // get the corresponding function statement 
-        Scope * scopeFun = new Scope(lg->curScope, ct ) ; // create a scope 
+        Statement * lx=lg->dicStat.ptr(*pn);
+        Scope * scopeFun = new Scope(lg->curScope, ct ) ;
         
-        ExecFunction * eval= (lx->body.End==lx->body.Start) ?  lg->dicLib.get(ct) : 0; // see if this is standard library function (bodyless definition)
-        //var=nam.add(0,lx->prth.End-lx->prth.Start+1+6) ; // this buffer should be enough to hold all the arguments names (__var and __cnt too ) 
+        ExecFunction * eval= (lx->body.End==lx->body.Start) ?  lg->dicLib.get(ct) : 0;
 
         #ifdef DEBUGOUT
             lg->debugPrintf("%s %s ( ", eval ? "callib"  : "calling" , ct );
         #endif
 
-        idx funlev=lg->funLevel;lg->funLevel=0; // remember this so we can restore at the end 
+        idx funlev=lg->funLevel;lg->funLevel=0;
         cnt=0;
 
-        // evaluate arguments and set as localScope variables 
         idx argstart=0,argend=0,varg=0,iArg=0;
-        if( cur<xic->dim()-1 && *(xic->cont(cur+1))=='(' ) { // the next one is parenthesis ? evaluate it 
+        if( cur<xic->dim()-1 && *(xic->cont(cur+1))=='(' ) {
 
-            // scan arguments in the function call and in function declaration
             if((xic->lexem(cur+1)->status)&sCalc::Lexem::fSubComplete) {argstart=cur+1; argend=argstart+1;}
-            else {for ( argend=argstart=cur+2; strcmp(")", xic->cont(argend))  ; ++argend );} // scan lexic statement to the next parenthesis 
+            else {for ( argend=argstart=cur+2; strcmp(")", xic->cont(argend))  ; ++argend );}
 
-            char * srchpar=lg->script.ptr(lx->prth.Start); // this pointer runs inside the function call declaration parenthesis and picks one by one the arguments
-            for ( iArg=argstart; iArg<argend  ; ++iArg){ // scan lexic statement to the next parenthesis 
-                //char * curarg=xic->cont(iArg);
-                if( !(xic->lexem(iArg)->status&sCalc::Lexem::fQuoted) && !strcmp(",", xic->cont(iArg)) ) // skip commas
+            char * srchpar=lg->script.ptr(lx->prth.Start);
+            for ( iArg=argstart; iArg<argend  ; ++iArg){
+                if( !(xic->lexem(iArg)->status&sCalc::Lexem::fQuoted) && !strcmp(",", xic->cont(iArg)) )
                     continue;
 
-                // get the formal name of the argument in the function declaration 
                 var=0;
-                if( lx->prth.Start!=lx->prth.End){ // this function does have a argument list declaration 
+                if( lx->prth.Start!=lx->prth.End){
                     nam.cut(0);
                     char * nxt=sString::extractSubstring(&nam, srchpar,0, 0,"," _ ")" __,false, true );
                     var=nam.ptr();
                     sString::cleanEnds(var,0,sString_symbolsBlank,true);
-                    if(strcmp(var,"..."))srchpar=nxt; // not a variable number of arguments
-                    else { sprintf(var,"__%" DEC,cnt);if(!varg)varg=cnt;} // remember the ordinal of the first variable argument 
-                    ++cnt; // increment the number of arguments
+                    if(strcmp(var,"..."))srchpar=nxt;
+                    else { sprintf(var,"__%" DEC,cnt);if(!varg)varg=cnt;}
+                    ++cnt;
                 }
-                // if(*var)continue; // and only those arguments which have formal parameter
                 
-                // prepare the arguments value 
-                //for( idx t=1,cmparg=argend; xic->lexem(cmparg)->status&sCalc::Lexem::fQuoted || (strcmp(",", curarg )  && strcmp(")", curarg)) ; curarg=xic->cont(cmparg) ) { // skip commas
-                //    if( t && (t=xic->prep(cmparg))!=0)cmparg=t;
-                //    else ++cmparg;// TODO: if prep returns a zero : somthing uncomputeable: message about the error 
-                //}
                 char * val=xic->data(iArg);
-                scopeFun->setVar( var ? var : "__", "%s", val ? val: "__UNDEFINED" ) ;  // remember as local variable 
+                scopeFun->setVar( var ? var : "__", "%s", val ? val: "__UNDEFINED" ) ;
 
                 #ifdef DEBUGOUT 
                     if(iArg!=argstart) lg->debugPrintf(", ");
@@ -443,10 +407,9 @@ idx sLang::expressionCallback(sLang * lg, sStr * ,  sCalc * xic, idx cur, idx cn
         }
         
         
-        // set the total number of arguments and the ordinal of first hidden variable as hidden variable called __cnt __var
-        scopeFun->setVar( "__cnt", "%" DEC, cnt) ;  // remember the total number of arguments 
-        if(varg)scopeFun->setVar( "__var", "%" DEC, varg) ;  // remember the ordinal of first variable argument
-        scopeFun->setVar( "__fun", "%s", ct) ;  // remember the total number of arguments 
+        scopeFun->setVar( "__cnt", "%" DEC, cnt) ;
+        if(varg)scopeFun->setVar( "__var", "%" DEC, varg) ;
+        scopeFun->setVar( "__fun", "%s", ct) ;
             
         #ifdef DEBUGOUT 
             lg->debugPrintf(")" );
@@ -456,18 +419,15 @@ idx sLang::expressionCallback(sLang * lg, sStr * ,  sCalc * xic, idx cur, idx cn
 
         lg->funLevel=funlev;
 
-        // change the scope and execute the functions body        
         ++(lg->funLevel);
         lg->curScope->down = scopeFun;
         lg->curScope=lg->curScope->down;
-        if(eval)(*eval)(lg,*pn);// built-in library support
+        if(eval)(*eval)(lg,*pn);
         else lg->parse( lg->script.ptr(lx->body.Start), lx->body.End-lx->body.Start, 1 ) ;
         --(lg->funLevel);
-        lg->curScope=lg->curScope->up; // restore the scope 
+        lg->curScope=lg->curScope->up;
 
-        // replace function by its value 
-        //if(cur!=iArg)for(idx i=iArg; i>cur; --i) xic->del(i);
-        if( (xic->lexem(cur+1)->status)&sCalc::Lexem::fSubComplete )--argend; // complete substatements do not have closing parenthesis 
+        if( (xic->lexem(cur+1)->status)&sCalc::Lexem::fSubComplete )--argend;
         xic->del(cur+1,argend-cur);
         xic->data(cur,0,"%s",lg->curScope->down->getVar("__ret"));
 
@@ -480,7 +440,6 @@ idx sLang::expressionCallback(sLang * lg, sStr * ,  sCalc * xic, idx cur, idx cn
         #endif
     }
 
-    // check if this is a variable name , but not for those which were function names already
     else if( ((scp=lg->curScope)->isVar(ct))!=0 || ((scp=(&lg->globalScope))->isVar(ct))!=0  ) {
         xic->data(cur,0,"%s",scp->getVar(ct));
     }
@@ -490,7 +449,7 @@ idx sLang::expressionCallback(sLang * lg, sStr * ,  sCalc * xic, idx cur, idx cn
     }
 
 
-    lit=xic->lexem(cur); // reget li because evaluations on the way hve chanced the pointer
+    lit=xic->lexem(cur);
     lit->type|=sCalc::Lexem::fString|sCalc::Lexem::fNumber;
     lit->status|=sCalc::Lexem::fReady;
 
@@ -499,7 +458,8 @@ idx sLang::expressionCallback(sLang * lg, sStr * ,  sCalc * xic, idx cur, idx cn
 
 idx sLang::expressionCompute(sStr * out, const char * phrase, idx len )
 {
-    if(!len && phrase) len=sLen(phrase) ; if(!len)return 1;
+    if( !len && phrase ) len = sLen(phrase);
+    if( !len ) return 1;
 
     sCalc calc((sCalc::CallbackFuncType)expressionCallback,this);
     calc.analyse(sCalc::fCallbackAll, out, phrase, len);
@@ -509,11 +469,6 @@ idx sLang::expressionCompute(sStr * out, const char * phrase, idx len )
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Language Synthaxis implementations
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 idx sLang::exec_debug(sLang * lg, idx il)
@@ -554,7 +509,6 @@ idx sLang::exec_codebreak(sLang * lg, idx il)
     else if(!strcmp(nam,"continue"))lg->curScope->contCond=1;
     else if(!strcmp(nam,"exit")) {if(ptr && *ptr)lg->msg->printf("%s",ptr); lg->exitCond=1;}
     else if(!strcmp(nam,"pause")){if(ptr && *ptr)lg->msg->printf("%s",ptr);}
-    //else if(!strcmp(nam,"pause")){if(ptr && *ptr)lg->msg->printf("%s",ptr);getch();}
 
     #ifdef DEBUGOUT
         lg->debugPrintf("%s %s;\n", nam, lg->curScope->getVar("__ret") );
@@ -574,7 +528,6 @@ idx sLang::exec_if(sLang * lg, idx il)
         tmp.cut(0);
     #endif
 
-    // check the condition
     if( lex->prth.Start!=lex->prth.End && (lg->expressionCompute(&tmp, lg->script.ptr(lex->prth.Start), lex->prth.End-lex->prth.Start) || atoi(tmp.ptr())==0 ) ){
         #ifdef DEBUGOUT 
             lg->debugPrintf(";    // false: %s\n", tmp.ptr());
@@ -612,8 +565,8 @@ idx sLang::exec_else(sLang * lg, idx il)
     
     
     #ifdef RECOMPUTE_IF_FOR_ELSE
-        Statement * lexPrev= il ? lg->dicStat.ptr(il-1) : 0 ; // we need to check the previous statement 
-        if( strcmp(lg->getStat(&tmp,&lexPrev->nam,1),"if") ) // check if the previous statement was an if 
+        Statement * lexPrev= il ? lg->dicStat.ptr(il-1) : 0 ;
+        if( strcmp(lg->getStat(&tmp,&lexPrev->nam,1),"if") )
             return -1;
 
         #ifdef DEBUGOUT 
@@ -622,7 +575,6 @@ idx sLang::exec_else(sLang * lg, idx il)
             tmp.cut(0);
         #endif
 
-        // check the condition on the prevous 'if' and execute current body
         if( lexPrev->prth.Start==lexPrev->prth.End || (lexPrev->prth.Start!=lexPrev->prth.End &&  !lg->lexicCompute(&tmp , lg->script.ptr(lexPrev->prth.Start), lexPrev->prth.End-lexPrev->prth.Start) && atoi(tmp.ptr()))  ){
             #ifdef DEBUGOUT 
                 lg->debugPrintf(";    // false: %s\n", tmp.ptr());
@@ -640,8 +592,7 @@ idx sLang::exec_else(sLang * lg, idx il)
             #endif
             return -1;
         }
-    #endif //RECOMPUTE_IF_FOR_ELSE
-
+    #endif 
     #ifdef DEBUGOUT 
         lg->debugPrintf("// true\n");
         lg->debugPrintf("{");
@@ -670,15 +621,15 @@ idx sLang::exec_loop(sLang * lg, idx il)
     #endif
 
     char * inipos=0, * nexpos=0;
-    if(lex->prth.Start)inipos=sString::searchSubstring(lg->script.ptr(lex->prth.Start),0,";" __,1,")" __,0); // look for the first ';' semicolon 
-    if(inipos)nexpos=sString::searchSubstring(inipos+1,0,";" __,1,")" __,0); // look for the second ';' semicolon 
+    if(lex->prth.Start)inipos=sString::searchSubstring(lg->script.ptr(lex->prth.Start),0,";" __,1,")" __,0);
+    if(inipos)nexpos=sString::searchSubstring(inipos+1,0,";" __,1,")" __,0);
     
     if(inipos) {
-        lg->parse( lg->script.ptr(lex->prth.Start),(idx )(inipos-lg->script.ptr(lex->prth.Start)),1); // execute the initial condition
+        lg->parse( lg->script.ptr(lex->prth.Start),(idx )(inipos-lg->script.ptr(lex->prth.Start)),1);
         inipos++;
     }
     else { 
-        inipos = lg->script.ptr(lex->prth.Start); // parenthesis starts at the beginning 
+        inipos = lg->script.ptr(lex->prth.Start);
         #ifdef DEBUGOUT 
             lg->debugPrintf("\n");
         #endif
@@ -694,14 +645,13 @@ idx sLang::exec_loop(sLang * lg, idx il)
     while( lex->prth.Start==lex->prth.End || (!lg->expressionCompute(&tmp, inipos, (idx)(nexpos-inipos) ) && atoi(tmp.ptr()) ))
     {
         lex=lg->dicStat.ptr(il);
-        // parse the body 
         lg->parse( lg->script.ptr(lex->body.Start), lex->body.End-lex->body.Start, true ) ;
         lg->curScope->contCond=0;
         if(lg->curScope->breakCond || lg->curScope->retCond || lg->exitCond)
             break;
         
-        if(nexpos!=lg->script.ptr(lex->prth.End)) { // there is a loop iterator statement 
-            lg->parse( nexpos+1, (idx)(lg->script.ptr(lex->prth.End)-nexpos)-1, 1 ) ; // parse the iterator statement 
+        if(nexpos!=lg->script.ptr(lex->prth.End)) {
+            lg->parse( nexpos+1, (idx)(lg->script.ptr(lex->prth.End)-nexpos)-1, 1 ) ;
         }
         tmp.cut(0);
     }
@@ -722,16 +672,15 @@ idx sLang::exec_shell(sLang * lg, idx il)
     sStr shellscript,tmp;
     Statement * lex=lg->dicStat.ptr(il);
     
-    if( *lg->script.ptr(lex->body.Start-1)!='{' ){  // not a real body - a one liner 
+    if( *lg->script.ptr(lex->body.Start-1)!='{' ){
         lg->expressionCompute(&shellscript, lg->script.ptr(lex->body.Start), lex->body.End-lex->body.Start);
         lex=lg->dicStat.ptr(il);
         sString::cleanEnds(shellscript.ptr(),shellscript.length(),sString_symbolsBlank,1);
-    }else { // whole body should be executed , treat it as it is 
+    }else {
         shellscript.add(lg->script.ptr(lex->body.Start), lex->body.End-lex->body.Start);
         shellscript.add("\n\0",2);
     }
 
-    // determine the execution style : shell versus exec 
     char * nam=lg->getStat(&tmp,&lex->nam,1);
     idx type = (strcmp(nam,"shell")) ? 1 : 0 ;
     tmp.cut(0);
@@ -743,7 +692,6 @@ idx sLang::exec_shell(sLang * lg, idx il)
         lg->debugPrintf("}\n\n----- shell-start -----\n", shellscript.ptr() );
     #endif
     
-    // execution
     sIO tt;
     if(type){sPipe::exePipe( &tt, shellscript.ptr(), 0);tt.add(_,1);}
     
@@ -767,12 +715,6 @@ idx sLang::exec_include(sLang * lg, idx il)
     tmp.add0(1);
     sString::cleanEnds(flnm,0,"\"><",1);
     
-    /*
-    char olddir[vFile_PATH_MAXLEN],newdir[vFile_PATH_MAXLEN];
-        sFile::getCurDir(olddir,sizeof(olddir)-1); // getcwd
-    sFile::makeName(newdir, flnm, "%%" DEC "ir" );
-        sFile::simplifyPath(newdir, newdir);
-    */
     sFilePath olddir; olddir.curDir();
     sFilePath newdir(flnm,"%%dir");newdir.simplifyPath();
             
@@ -781,12 +723,11 @@ idx sLang::exec_include(sLang * lg, idx il)
         lg->debugPrintf("include \"%s\" ", tmp.ptr());
     #endif
     
-    // open the include file 
     sFil fil(flnm,sFil::fReadonly);
     
     if(!fil.ptr()) {
         #ifdef DEBUGOUT 
-            lg->debugPrintf( "; // can't open\n " ); // cant open the makefile 
+            lg->debugPrintf( "; // can't open\n " );
         #endif
         return -1;
     }
@@ -795,12 +736,11 @@ idx sLang::exec_include(sLang * lg, idx il)
         lg->debugPrintf("\n---- include %s start -----\n", flnm);
     #endif
     
-    // parse the include file 
-        if(newdir.length())sDir::chDir ( newdir.ptr() ); // remember the current directory
+        if(newdir.length())sDir::chDir ( newdir.ptr() );
     ++(lg->funLevel);
     lg->parse( fil.ptr(), fil.length() ) ;
     --(lg->funLevel);
-    if(newdir.length())sDir::chDir( olddir.ptr() ); // restore the directory
+    if(newdir.length())sDir::chDir( olddir.ptr() );
 
     
 
@@ -815,9 +755,8 @@ idx sLang::exec_define(sLang * lg, idx il)
 {
     Statement * lex=lg->dicStat.ptr(il);
     
-    // redefine the startucture of defline 
-    for ( lex->nam.Start=lex->nam.End ; strchr(sString_symbolsSpace,*lg->script.ptr(lex->nam.Start)) ; ++(lex->nam.Start) ) ; // find the first non space after #define 
-    for ( lex->nam.End=lex->nam.Start; !strchr(sString_symbolsBlank,*lg->script.ptr(lex->nam.End)) ; ++(lex->nam.End) ) ;// find the next space as the end of the name 
+    for ( lex->nam.Start=lex->nam.End ; strchr(sString_symbolsSpace,*lg->script.ptr(lex->nam.Start)) ; ++(lex->nam.Start) ) ;
+    for ( lex->nam.End=lex->nam.Start; !strchr(sString_symbolsBlank,*lg->script.ptr(lex->nam.End)) ; ++(lex->nam.End) ) ;
     lex->body.Start=lex->nam.End;
     lex->body.End=lex->stat.End;
 
@@ -827,15 +766,9 @@ idx sLang::exec_define(sLang * lg, idx il)
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Core functions definition
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 #define V(_v_nam)           (lg->curScope->getVar(_v_nam))
 
-//"eval( txt ){}" 
 idx sLang::exec_eval(sLang * lg, idx )
 {
     const char * txt=V("txt");
@@ -846,7 +779,6 @@ idx sLang::exec_eval(sLang * lg, idx )
     return 0;
 }
 
-//"parse( txt ){}" 
 idx sLang::exec_parse(sLang * lg, idx )
 {
     const char * txt=V("txt");
@@ -856,14 +788,12 @@ idx sLang::exec_parse(sLang * lg, idx )
     return 0;
 }
 
-// "isvar ( nam ) {}"
 idx sLang::exec_isvar(sLang * lg, idx )
 {
     lg->curScope->setVar("__ret","%d", lg->curScope->isVar(V("nam")));
     return 0;
 }
 
-// "isfun ( nam ) {}"
 idx sLang::exec_isfun(sLang * lg, idx )
 {
     lg->curScope->setVar("__ret","%d", (lg->dicFun.get(V("nam"))  ? 1 : 0 ));
@@ -873,11 +803,6 @@ idx sLang::exec_isfun(sLang * lg, idx )
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Declaration of the Core functionality
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 void sLang::buildCore( void )
@@ -918,32 +843,12 @@ void sLang::buildCore( void )
 
 
 
-// debug  on|off - turns the debug mode on generally 
-// debul on|off - turns the debug mode on locally
-
-// return expression - returns from the scope with the expression value in __ret
-// break - breaks loops 
-// continue - jumps to the beginning of a loop
-// exit expression - prints expression result and quits
-// pause expression - prints the expression result and waits for a keyboard input
-
-// if (expression ) { body } - body is executed by calling parse if the expression value is not 0
-// else {}
-
-// exec command_line - executes shell with piped execution method after computing a command_line as an expression  
-// shell command_line  - executes shell using system call
-// exec { commands  }- executes shell with piped execution method as is ... no expression computation for commands 
-// shell { commands } - executes shell using system call
-// the exec returns the stdout of computed program as __ret
 
 
-// #include <filename> or "filename" - execute commands from the other file 
-// #define macro ... - defined macros just as a one liner function 
 
 
-// eval (expression)  - computes an expression 
-// parse (expression) - executes an expression
-// isvar (varname ) - determines if the variable is defined in current scope 
-// isfun (funcname) - determines if a function is defined in current scope 
+
+
+
 
 

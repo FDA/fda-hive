@@ -1,9 +1,9 @@
 <id>hlp.svc-dna-insilico.html</id>
-<title>HIVE DNA-insilico</title>
+<title>Insilico sequence generator</title>
 <definition>Generate synthetic data for testing</definition>
 <description>
 
-The <span class='toolname'>HIVE DNA-insilico</span> tool generates synthetic reads and recombinants to be used in testing and validation pipelines for various NGS platforms 
+The <span class='toolname'>Insilico sequence generator</span> tool generates synthetic reads and recombinants to be used in testing and validation pipelines for various NGS platforms 
 and appliances. The user can input genomes of reference organisms, along with specifications for noise, quality, and other attributes, and will return properly formatted <em>in silico</em> 
 data in accordance with the user's requests. <br/>
 <br/>
@@ -69,6 +69,13 @@ point mutations by altering the corresponding values in the table below.</li>
 <ul style="padding-left:4%">
 <li><span class='pn'>Use preloaded genome file</span> - Designate the HIVE object for the genome or genomes from which to generate the reads and recombinants.</li>
 <li><span class='pn'>Use preloaded mutation table (CSV)</span> - Designate the HIVE object for the mutation table (uploaded as a .csv) from which to add mutations.</li>
+<li><span class='pn'>Use preloaded Targeting Sequence table (CSV)</span> - Select an object (uploaded as a .csv) with 6 separate columns with ("RecombinantID", "SeqID", "Start", "End", "Direction", and "Label"). There is no limit on how many rows you can make with each extraction of the genome that you are hoping for. For each row:</li> 
+<ul>
+<li><span class='pn'>Recombinant ID</span> - means which new recombinant sequence these extractions will apply for. So keeping them both labeled 1 means that a 100-1000 and 1500-2000 will be extracted for recombinant 1.  Only numbers can be inputted in this column.</li>
+<li><span class='pn'>SeqID </span> - is the sequence ID in which you want to extract from.</li> 
+<li><span class='pn'>Direction </span> - is the strandness of the extracted read so, if you put a 0, it means that is forward and original way of the read, a 1 is reverse, a 2 is complement, and 3 is reverse complement.</li>
+<li><span class='pn'>Label </span> - is what you want to label the output and is an optional column. </li>
+</ul>
 <li><span class='pn'>Reference Sequence</span></li>
     <ul>
     <li><span class='pn'>Reference construction</span> - For genomes containing multiple reference sequences, first select the <em>Genome File</em> and then the desired constituent <em>Sequence</em> 

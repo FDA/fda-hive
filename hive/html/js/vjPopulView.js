@@ -28,14 +28,50 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*********************
- *
- *      VIEWS
- *
- **********************/
 
 javaScriptEngine.include("d3js/annotation_box.js");
+if (!Object.prototype.watch) {
+    Object.defineProperty(Object.prototype, "watch", {
+          enumerable: false
+        , configurable: true
+        , writable: false
+        , value: function (prop, handler) {
+            var
+              oldval = this[prop]
+            , newval = oldval
+            , getter = function () {
+                return newval;
+            }
+            , setter = function (val) {
+                oldval = newval;
+                return newval = handler.call(this, prop, oldval, val);
+            }
+            ;
+            
+            if (delete this[prop]) {
+                Object.defineProperty(this, prop, {
+                      get: getter
+                    , set: setter
+                    , enumerable: true
+                    , configurable: true
+                });
+            }
+        }
+    });
+}
 
+if (!Object.prototype.unwatch) {
+    Object.defineProperty(Object.prototype, "unwatch", {
+          enumerable: false
+        , configurable: true
+        , writable: false
+        , value: function (prop) {
+            var val = this[prop];
+            delete this[prop];
+            this[prop] = val;
+        }
+    });
+}
 function vjPopulPanelSummaryView(viewer)
 {
 
@@ -114,7 +150,7 @@ function vjPopulPanelSummaryView(viewer)
         type : 'checkbox',
         isSubmitable : true,
         title : 'Collapse',
-        value : true,
+        value : false,
         description : 'Collapse filtered clones to their parents',
         order : 7
     },{
@@ -489,17 +525,27 @@ function vjPopulPanelExportView(viewer){
     }, {
         name:'contig_print',
         type : 'select',
-        options : [['seq', 'Print consensus','consensus'], ['prev', 'Print prevalence in csv','prevalence'], ['al', 'Print alignments in fasta','alignments'], ['cov', 'Print depth of Coverage','coverage'], ['comp','Print contig composition','composition'],['breaks','Print breakpoints','breakpoints'],['sum','Get summary','summary']],
+        options : [['seq', 'Print consensus','consensus'], ['prev', 'Print prevalence in csv','prevalence'], ['al', 'Print alignments in fasta','alignments'], ['cov', 'Print depth of Coverage','coverage'], ['comp','Print contig composition','composition'],['breaks','Print breakpoints','breakpoints'],['sum','Get summary','summary'], ['diversity', 'Print quasispecies measures in csv','measures',true]],
         title: 'Print' ,
         isSubmitable : true,
         align : 'right',
         order : 1,
         isNAlignRight:true
     } ];
+    rowlist[13].watch('options', function (id, oldval, newval) {
+        alert("sdf");
+          console.log('o.' + id + ' changed from ' + oldval + ' to ' + newval);
+          return newval;
+        });
     this.rows = verarr(this.rows).concat(rowlist);
 
     vjPanelView.call(this, viewer);
-    
+    this.callbackRendered = function(viewer,text) {
+        var cmd_node = this.tree.findByName("cmd");
+        if( cmd_node && cmd_node.path) {
+            this.onChangeElementValue(this.container,cmd_node.path)
+        }
+    }
     this.onChangeElementValueParent = this.onChangeElementValue;
     
     this.onChangeElementValue = function(container, nodepath, elname) {
@@ -512,6 +558,16 @@ function vjPopulPanelExportView(viewer){
                     for(a in sel.options ) {
                         if(sel.options[a].value=="sum") {
                             sel.options[a].disabled = (el.value != "popContig");
+                            if( sel.options[a].selected ) {
+                                var snode = this.tree.findByPath("/contig_print");
+                                sel.value = "seq";
+                                if( snode ) {
+                                    snode.value = sel.value;
+                                }
+                            }
+                        }
+                        if(sel.options[a].value=="diversity") {
+                            sel.options[a].disabled = !((el.value == "popPredictedGlobal") || (el.value == "popExtended") || (el.value == "popPermutations") );
                             if( sel.options[a].selected ) {
                                 var snode = this.tree.findByPath("/contig_print");
                                 sel.value = "seq";
@@ -597,8 +653,7 @@ function vjAnnotationView(viewer) {
                 showTipFull: true
             };
     
-    // If width already exists then use it
-    if (!viewer.width) viewer.width = 700;//viewer.width;
+    if (!viewer.width) viewer.width = 700;
     else viewer.width = 700;
     if (viewer.height) viewer.height = viewer.height;
     else viewer.height = 200;
@@ -697,15 +752,7 @@ function vjPopulDownloads(viewer){
         align:'center',
         order:4,
         hidden : false
-    }/*, {
-        name : 'digest',
-        type : 'icon',
-        title: 'Digest',
-        iconSize:16,
-        align:'center',
-        order:5,
-        hidden : false
-    }*/ ];
+    }];
     this.maxTxtLen= 32;
     vjTableView.call(this, viewer);
 }
@@ -714,13 +761,7 @@ function vjPopulSummaryDownloads(viewer){
     vjPopulDownloads.call(this,viewer);
     vjTableView.call(this, viewer);
 }
-//
 
-/*********************
- *
- *      CONTROLS
- *
- **********************/
 function vjPopulExportControl (viewer)
 {
     for ( i in viewer ) {
@@ -754,7 +795,6 @@ function vjPopulExportControl (viewer)
     this.exportView = new vjPopulExportView({
         data: verarr(this.data)[0],
         width:this.width,
-//        selectCallback : viewer.selectCallback,
         formObject: this.formObject
     });
 
@@ -929,4 +969,3 @@ function vjPopulCloneAbsControl(viewer)
     return [this.panelViewer,this.cloneAbsView, this.annotationViewer];
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjPopulView.js"

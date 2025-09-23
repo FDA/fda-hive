@@ -30,10 +30,12 @@
 
 PROGRAMS += dna.cgi
 
-PROGRAMS_XLIBS = $(MYSQL_LIB) $(LIBZIP_LIB)
-PROGRAMS_LIBS = -lviolib -lqpsvc -ldmlib $(VLIB_LIB)
+PROGRAMS_XLIBS = $(MYSQL_LIB_STATIC)
+PROGRAMS_LIBS = -lviolib -lqpsvc $(VLIB_LIB)
 
 dna.cgi_SRCS = dna-cgi.cpp
+
+OBJECT_TYPES = hexagon-extract
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
@@ -43,7 +45,7 @@ include $(devdir)/build/makefile.meta
 .PHONY: dist
 dist::
 	$(call copy-bin,dna.cgi)
-	$(call dist-service-register,dnaCGI,Backend version of dna.cgi, /System/,\
+	$(call dist-service-register,dnaCGI,NGS data service, /System/,\
 		cmdLine='dnaCGI.os\$$(os) -daemon 1' \
 		activeJobReserve=1 \
 	)

@@ -31,7 +31,7 @@
 #include <slib/core.hpp>
 #include <slib/std/app.hpp>
 #include <ulib/uproc.hpp>
-#include <dmlib/dmlib.hpp>
+#include <xlib/dmlib.hpp>
 #include <qpsvc/archiver.hpp>
 
 #define NCBI_TIMEOUT 30
@@ -76,7 +76,7 @@ class dmDownloaderProc: public sQPrideProc
 #if _DEBUG
                     fprintf(stderr, "%s: stopped download %" DEC "\n", __func__, dp->reqId);
 #endif
-                    return 0; // interrupted
+                    return 0;
                 }
             }
             return 1;
@@ -112,8 +112,8 @@ idx dmDownloaderProc::OnExecute(idx req)
         return 0;
     }
 
-    sVarSet uris; // 3 columns: uri, [wget options], [filename]
-    const sUsrObjPropsTree * tree = objs[0].propsTree(); // can fail only if we run out of memory
+    sVarSet uris;
+    const sUsrObjPropsTree * tree = objs[0].propsTree();
     const sUsrObjPropsNode * vars_node_array = tree ? tree->find("uri_data") : 0;
     for(const sUsrObjPropsNode * row = vars_node_array ? vars_node_array->firstChild() : 0; row && row->field()->isArrayRow(); row = row->nextSibling()) {
         const char * u = row->findValue("uri_data_uri");
@@ -122,7 +122,6 @@ idx dmDownloaderProc::OnExecute(idx req)
         }
     }
     if( uris.rows == 0 ) {
-        // grab in old way
         sStr uriList;
         formValue("uri", &uriList);
         sString::searchAndReplaceSymbols(uriList, 0, "\n", 0, 0, true, true, false, false);
@@ -139,7 +138,6 @@ idx dmDownloaderProc::OnExecute(idx req)
     for(idx r = 0; r < uris.rows; ++r) {
         logOut(eQPLogType_Info, "uri %" DEC " '%s','%s','%s'\n", r, uris.val(r, 0), uris.val(r, 1), uris.val(r, 2));
     }
-    // determine the geometry of the list and our chunk
     udx chunkSize = formUValue("download_concurrency");
     if( !chunkSize ) {
         chunkSize = 1;
@@ -159,7 +157,7 @@ idx dmDownloaderProc::OnExecute(idx req)
     for(; i < myEnd; ++i) {
         char * ptr = uris.val(i, 0);
         sStr substitutedURI(sMex::fExactSize), whichDropBox(sMex::fExactSize);
-        // substitutions of protocol
+        sFilePath dropboxSubdir;
         if( strncmp(ptr, "dropbox", 7) == 0 ) {
             if( !dropboxList.dim() ) {
                 logOut(eQPLogType_Error, "dropbox not found '%s'\n", ptr);
@@ -177,7 +175,14 @@ idx dmDownloaderProc::OnExecute(idx req)
                     if( !strstr(dropbox_path, "://") ) {
                         substitutedURI.printf("file://");
                     }
-                    substitutedURI.printf("%s%s", dropbox_path, ptr + sLen("dropbox://") + sLen(whichDropBox) + 1);
+                    const char * x = ptr + sLen("dropbox://") + sLen(whichDropBox) + 1;
+                    dropboxSubdir.makeName(x, "%%dir");
+                    dropboxSubdir.shrink00();
+                    if( dropboxSubdir ) {
+                        dropboxSubdir.printf("/");
+                        dropboxSubdir.shrink00();
+                    }
+                    substitutedURI.printf("%s%s", dropbox_path, x);
                 }
             }
             if( !substitutedURI ) {
@@ -193,9 +198,11 @@ idx dmDownloaderProc::OnExecute(idx req)
         objectId[0] = '\0';
         objectId += 3;
         ptr = objectId;
-        // compose a complete url from parts
         sStr url("%s://%s", protocol, objectId);
         sStr destFile("%s_%04" UDEC "/", outDir.ptr(), i + 1);
+        if( dropboxSubdir ) {
+            destFile.printf("%s", dropboxSubdir.ptr());
+        }
         if( !sDir::makeDir(destFile) ) {
             logOut(eQPLogType_Error, "mkdir failed '%s'\n", destFile.ptr());
             reqSetInfo(req, eQPInfoLevel_Error, "Internal error %u", __LINE__);
@@ -209,15 +216,22 @@ idx dmDownloaderProc::OnExecute(idx req)
         sStr safe_nm;
         sDir::cleanUpName(destfilename, safe_nm, false);
         if( safe_nm ) {
+            safe_nm.shrink00();
             destFile.printf("%s", safe_nm.ptr());
         }
         logOut(eQPLogType_Info, "Downloading '%s' into '%s'\n", url.ptr(), destFile.ptr());
         idx length = 0;
-        // files are only supported within dropbox! security!
         if( whichDropBox && strcasecmp(protocol, "file") == 0 ) {
-            if( !sFile::exists(objectId) ) {
-                reqSetInfo(req, eQPInfoLevel_Error, "File '%s' not found in dropbox '%s'", objectId, whichDropBox.ptr());
+            if( !sFile::exists(objectId) && !sDir::exists(objectId) ) {
+                reqSetInfo(req, eQPInfoLevel_Error, "'%s' not found in dropbox '%s'", objectId, whichDropBox.ptr());
             } else {
+                idx p = 0;
+                while(destFile[p = strlen(destFile) - 1] == '/' ) {
+                    destFile[p] = '\0';
+                }
+                while(objectId[p = strlen(objectId) - 1] == '/' ) {
+                    objectId[p] = '\0';
+                }
                 sFile::remove(destFile);
                 if( !sFile::symlink(objectId, destFile) ) {
                     reqSetInfo(req, eQPInfoLevel_Error, "Cannot establish connection with file '%s' in dropbox %s", url.ptr(), whichDropBox.ptr());
@@ -230,7 +244,11 @@ idx dmDownloaderProc::OnExecute(idx req)
             }
         } else if( strcasecmp(protocol, "http") == 0 || strcasecmp(protocol, "https") == 0 || strcasecmp(protocol, "ftp") == 0 ) {
             m_currFileSize = 0;
-            sRC rc = remContent.getFile(destFile, &m_currFileSize, uris.val(i, 1), "%s", url.ptr());
+            sRC rc = remContent.getFile(destFile, &m_currFileSize, uris.val(i, 1), true, "%s", url.ptr());
+            if( rc && rc.val.parts.bad_entity == sRC::eCertificate && rc.val.parts.state == sRC::eInvalid ) {
+                reqSetInfo(rc, eQPInfoLevel_Warning, "Cannot validate certificate for url '%s', proceeding to download in insecure mode", url.ptr());
+                rc = remContent.getFile(destFile, &m_currFileSize, uris.val(i, 1), false, "%s", url.ptr());
+            }
             if( rc ) {
                 reqSetInfo(req, eQPInfoLevel_Error, "'%s': %s", url.ptr(), rc.print());
             } else {
@@ -241,25 +259,22 @@ idx dmDownloaderProc::OnExecute(idx req)
             }
             m_currFileSize = 0;
         } else if( !whichDropBox && strncmp(protocol, "ncbi_", 5) == 0 ) {
-            // this call will print all its errors by itself
             length = NCBIDownloader(destFile, url);
             destfilename = destFile;
         } else {
             reqSetInfo(req, eQPInfoLevel_Error, "Schema '%s://' is not supported", protocol);
             continue;
         }
-        // launch a service which would futher process the file into an object
         if( length ) {
+            destFile.cut0cut(destFile.pos() - dropboxSubdir.pos() - safe_nm.pos());
             logOut(eQPLogType_Info, "Downloaded '%s://%s' into '%s' %" DEC " bytes\n", protocol, objectId, destFile.ptr(), sFile::size(destFile));
-            dmArchiver arch(*this, destFile, url, 0, destfilename);
-            arch.addObjProperty("hierarchy", "%s", formValue("hierarchy", 0, ""));
+            dmArchiver arch(*this, destFile, url, 0, dropboxSubdir ? 0 : destfilename);
             arch.addObjProperty("category", "%s", formValue("category", 0, ""));
-            arch.addObjProperty("source", "%s://%s", protocol, objectId);
+            arch.addObjProperty("source", "%s", uris.val(i, 0));
             arch.setSubject(formValue("upload_subject"));
-            arch.setDepth(*this, objs[0].propGetI("chkauto_Downloader"));
-            arch.setIndexFlag(*this, objs[0].propGetBool("idx_Downloader"));
-            arch.setQCFlag(*this, objs[0].propGetBool("qc_Downloader"));
-            arch.setScreenFlag(*this, objs[0].propGetBool("screen_Downloader"));
+            arch.setDepth(objs[0].propGetI("chkauto_Downloader"));
+            arch.setQCFlag(objs[0].propGetBool("qc_Downloader"));
+            arch.setScreenFlag(objs[0].propGetBool("screen_Downloader"));
             idx req = arch.launch(*user, grpId);
             logOut(eQPLogType_Info, "Launching dmArchiver request %" DEC "\n", req);
             m_totalBytes += length;
@@ -279,17 +294,12 @@ idx dmDownloaderProc::OnExecute(idx req)
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ NCBI download functions
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
 {
     sStr u;
     sString::searchAndReplaceStrings(&u, uri, 0, "://" __, 0, 1, false);
-    const char * db = u.ptr(5); //skip ncbi_ prefix, it was tested in caller for it, see above
+    const char * db = u.ptr(5);
     const char * id = sString::next00(db);
 
     dmRemoteFile remContent(progressCB, this);
@@ -312,16 +322,17 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
         }
     }
 
-    // TODO one more step here to esearch in bioproject and use resulting ids in request to elink this way you can specify search not just id
-    // though your elink result will be limited to the first 1000 with links
     if( sIs("PRJNA", id) ) {
         id += 5;
     }
     sStr strError, query_key, webenv;
-    // elink from bioProject id to the other database using NCBI history
     sStr tempFileName("%s.step1.xml", destPrefix.ptr());
     sFile::remove(tempFileName);
-    sRC rc = remContent.getFile(tempFileName, 0, 0, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?cmd=neighbor_history&dbfrom=bioproject&db=%s&linkname=bioproject_%s&id=%s", database.ptr(), database.ptr(), id);
+    sRC rc = remContent.getFile(tempFileName, 0, 0, true, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?cmd=neighbor_history&dbfrom=bioproject&db=%s&linkname=bioproject_%s&id=%s", database.ptr(), database.ptr(), id);
+    if( rc && rc.val.parts.bad_entity == sRC::eCertificate && rc.val.parts.state == sRC::eInvalid ) {
+        reqSetInfo(rc, eQPInfoLevel_Warning, "Cannot validate certificate for url '%s', proceeding to download in insecure mode", uri);
+        rc = remContent.getFile(tempFileName, 0, 0, false, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi?cmd=neighbor_history&dbfrom=bioproject&db=%s&linkname=bioproject_%s&id=%s", database.ptr(), database.ptr(), id);
+    }
     sFil httpContent(tempFileName);
     idx len = httpContent.length();
     if( rc ) {
@@ -354,12 +365,15 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
 #ifndef _DEBUG
     sFile::remove(tempFileName);
 #endif
-    // search database using query_key to obtain results count
     idx count = 0;
     if( webenv && query_key ) {
         tempFileName.printf(0, "%s.step2.xml", destPrefix.ptr());
         sFile::remove(tempFileName);
-        sRC rc = remContent.getFile(tempFileName, 0, 0, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=%s&WebEnv=%s&query_key=%s&usehistory=y", database.ptr(), webenv.ptr(), query_key.ptr());
+        sRC rc = remContent.getFile(tempFileName, 0, 0, true, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=%s&WebEnv=%s&query_key=%s&usehistory=y", database.ptr(), webenv.ptr(), query_key.ptr());
+        if( rc && rc.val.parts.bad_entity == sRC::eCertificate && rc.val.parts.state == sRC::eInvalid ) {
+            reqSetInfo(rc, eQPInfoLevel_Warning, "Cannot validate certificate for url '%s', proceeding to download in insecure mode", uri);
+            rc = remContent.getFile(tempFileName, 0, 0, false, "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=%s&WebEnv=%s&query_key=%s&usehistory=y", database.ptr(), webenv.ptr(), query_key.ptr());
+        }
         httpContent.init(tempFileName.ptr());
         len = httpContent.length();
         if( rc ) {
@@ -399,7 +413,11 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
                 sStr url("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=%s&WebEnv=%s&query_key=%s&retmode=text&rettype=%s&retstart=%" DEC "&retmax=%" DEC "",
                         database.ptr(), webenv.ptr(), query_key.ptr(), rettype.ptr(), i, max);
                 logOut(eQPLogType_Info, "Downloading: try %" DEC ", from %03" DEC " to %03" DEC ", url '%s'\n", attempt, i, i + max - 1, url.ptr());
-                sRC rc = remContent.getFile(chunkfile, 0, 0, "%s", url.ptr());
+                sRC rc = remContent.getFile(chunkfile, 0, 0, true, "%s", url.ptr());
+                if( rc && rc.val.parts.bad_entity == sRC::eCertificate && rc.val.parts.state == sRC::eInvalid ) {
+                    reqSetInfo(rc, eQPInfoLevel_Warning, "Cannot validate certificate for url '%s', proceeding to download in insecure mode", url.ptr());
+                    rc = remContent.getFile(chunkfile, 0, 0, false, "%s", url.ptr());
+                }
                 if( !rc ) {
                     idx gis = countSequenceRecords(chunkfile);
                     if( gis ) {
@@ -412,7 +430,6 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
                 } else {
                     logOut(eQPLogType_Error, "efetch error %s: %s\n", url.ptr(), rc.print());
                 }
-                // make intervals not to abuse NCBI
                 sleepSeconds(3);
             } else {
                 countgi += countSequenceRecords(chunkfile);
@@ -449,7 +466,6 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
         }
     }
     if( sFile::exists(finalConcat) ) {
-        // count for this db is never same?
         if( strcmp(db, "nuccds") == 0 || count == countgi ) {
             sStr dst("%s%s", destPrefix.ptr(), suffix.ptr());
             if( !sFile::rename(finalConcat, dst) ) {
@@ -465,16 +481,11 @@ idx dmDownloaderProc::NCBIDownloader(sStr & destPrefix, const char * uri)
     return sFile::size(destPrefix);
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Main
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 int main(int argc, const char * argv[])
 {
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
     dmDownloaderProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dmDownloader", argv[0]));
     return (int) backend.run(argc, argv);
 }

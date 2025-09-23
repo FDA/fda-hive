@@ -214,8 +214,8 @@ yylloc->step();
 "date"      { SQLANG_YY_OK_REGEX; return token::DATE; }
 "time"      { SQLANG_YY_OK_REGEX; return token::TIME; }
 
-"true"      { SQLANG_YY_NO_REGEX; yylval_param->intVal = 1; return token::INT_LITERAL; }
-"false"     { SQLANG_YY_NO_REGEX; yylval_param->intVal = 0; return token::INT_LITERAL; }
+"true"      { SQLANG_YY_NO_REGEX; yylval_param->intVal = 1; return token::BOOL_LITERAL; }
+"false"     { SQLANG_YY_NO_REGEX; yylval_param->intVal = 0; return token::BOOL_LITERAL; }
 "null"      { SQLANG_YY_NO_REGEX; return token::NULL_LITERAL; }
 
 {NAME} {

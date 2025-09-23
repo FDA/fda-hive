@@ -39,24 +39,14 @@
 
 namespace slib
 {
-//    class QCGIProc: public sQPrideProc
-//    {
-//        public:
-//            QCGIProc(const char * defline00, const char * srv)
-//                : sQPrideProc(defline00, srv)
-//            {
-//            }
-//            virtual idx OnExecute(idx);
-//    };
 
     class sQPrideCGI: public sQPrideClient , public sUsrCGI
     {
         public:
             sQPrideCGI(const char * defline00 = 0, const char * service = "qm", idx argc = 0, const char * * argv = 0, const char * * envp = 0, FILE * readfrom = stdin, bool isCookie = false, bool immediate = true)
-                : sQPrideClient(defline00, service), sUsrCGI(argc, argv, envp, readfrom, isCookie, immediate), cntParallel(0), requiresGroupSubmission(false)
+                : sQPrideClient(defline00, service), sUsrCGI(argc, argv, envp, readfrom, isCookie, immediate), cntParallel(0), requiresGroupSubmission(false), proc_obj(0), m_backEndUser(0)
 
             {
-                proc_obj=0;
             }
             virtual ~sQPrideCGI()
             {
@@ -116,16 +106,15 @@ namespace slib
             idx cntParallel;
             bool requiresGroupSubmission;
             sVec < sUsrObj > objs;
-            void * proc_obj;
-            //sVar * pForm;
+            sQPride * proc_obj;
 
-//            virtual idx run(const char * rcmd = 0);
+            sUsr * m_backEndUser;
+
         private:
             idx QPSubmit(sVar & forma, bool withObjs, sQPride::Service & S, sStr * strObjList = 0);
     };
 
 
-    // this is a class for Backendable CGI's
     class sQPrideCGIProc : public sQPrideCGI
     {
 
@@ -175,9 +164,8 @@ namespace slib
 
 
     };
-} // namespace slib
+}
 
-#endif // _QPrideCgi_qLib_hpp
-
+#endif 
 
 

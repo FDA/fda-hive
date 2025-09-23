@@ -30,8 +30,8 @@
 #pragma once
 #ifndef sLib_iter_h
 #define sLib_iter_h
-
 #include <iterator>
+
 
 #include <slib/core/def.hpp>
 #include <slib/core/vec.hpp>
@@ -39,37 +39,26 @@
 namespace slib
 {
 
-    /*! \brief Base class for a read-only iterator
-     * \tparam Titer iterator derived class providing *_impl() function for each part of the sIter interface
-     * \tparam Tdata type iterated over; assumed to be a built-in type or a small struct that is cheap to allocate
-     */
     template <class Tdata, class Titer>
     class sIter : public std::iterator<std::forward_iterator_tag, Tdata, idx>
     {
     public:
-        //! For iterators over lazy data sets, requests that the data be available
         void requestData()
         {
             static_cast<Titer*>(this)->requestData_impl();
         }
-        //! For iterators over lazy data sets, allows the data to be released
         void releaseData()
         {
             static_cast<Titer*>(this)->releaseData_impl();
         }
-        //! For iterators over lazy data sets, checks that the data is ready to be iterated over
         bool readyData() const
         {
             return static_cast<const Titer*>(this)->readyData_impl();
         }
-        //! For iterators over lazy data sets, assuming that the data is ready, verify that the iterator is pointing to somewhere valid in it
         bool validData() const
         {
             return static_cast<const Titer*>(this)->validData_impl();
         }
-        /* !\returns true if the iterator is pointing to something valid
-         * \note Not \a const because for iterators over lazy data sets, checking validity
-         *       could involve initializing the data set itself via requestData() */
         bool valid()
         {
             if (!readyData())
@@ -77,17 +66,14 @@ namespace slib
 
             return validData();
         }
-        //! number of times the iterator was incremented
         idx pos() const
         {
             return static_cast<const Titer*>(this)->pos_impl();
         }
-        //! iterator's underlying segment in a segmented data set; on ++ should either increase or stay constant
         idx segment() const
         {
             return static_cast<const Titer*>(this)->segment_impl();
         }
-        //! iterator's underlying position in a sparse data segment; within a single segment, segmentPos() must increase on ++
         idx segmentPos() const
         {
             return static_cast<const Titer*>(this)->segmentPos_impl();
@@ -118,13 +104,10 @@ namespace slib
         }
     };
 
-    /*! \brief Mixin for a read-only iterator over a fixed number of values
-     * \tparam Tdata type iterated over; assumed to be a built-in type or a small struct that is cheap to allocate */
     template <class Tdata, class Titer>
     class sFixedLengthIter
     {
     public:
-        //!\returns Number of elements from the initial position and up
         idx dim() const
         {
             return static_cast<const Titer*>(this)->dim_impl();
@@ -147,16 +130,14 @@ namespace slib
         }
         operator sIter<Tdata, Titer> & ()
         {
-            return static_cast<sIter<Tdata, Titer> &>(*this);
+            return reinterpret_cast<sIter<Tdata, Titer> &>(*this);
         }
         operator const sIter<Tdata, Titer> & () const
         {
-            return static_cast<const sIter<Tdata, Titer> &>(*this);
+            return reinterpret_cast<const sIter<Tdata, Titer> &>(*this);
         }
     };
 
-    /*! \brief Mixin for a read-write iterator
-     * \tparam Tdata type iterated over; assumed to be a built-in type or a small struct that is cheap to allocate */
     template <class Tdata, class Titer>
     class sMutableIter
     {
@@ -171,16 +152,14 @@ namespace slib
         }
         operator sIter<Tdata, Titer> & ()
         {
-            return static_cast<sIter<Tdata, Titer> &>(*this);
+            return reinterpret_cast<sIter<Tdata, Titer> &>(*this);
         }
         operator const sIter<Tdata, Titer> & () const
         {
-            return static_cast<const sIter<Tdata, Titer> &>(*this);
+            return reinterpret_cast<const sIter<Tdata, Titer> &>(*this);
         }
     };
 
-    /*! \brief Mixin for a read-write iterator over a fixed number of values
-     * \tparam T Type iterated over; assumed to be a built-in type or a small struct that is cheap to allocate */
     template <class Tdata, class Titer>
     class sMutableFixedLengthIter
     {
@@ -195,16 +174,14 @@ namespace slib
         }
         operator sIter<Tdata, Titer> & ()
         {
-            return static_cast<sIter<Tdata, Titer> &>(*this);
+            return reinterpret_cast<sIter<Tdata, Titer> &>(*this);
         }
         operator const sIter<Tdata, Titer> & () const
         {
-            return static_cast<const sIter<Tdata, Titer> &>(*this);
+            return reinterpret_cast<const sIter<Tdata, Titer> &>(*this);
         }
     };
 
-    /*! \brief Read-only iterator for a flat buffer of T
-     * \tparam T Type iterated over; assumed to be a built-in type or a small struct that is cheap to allocate */
     template <class T>
     class sBufferIter : public sIter<T, sBufferIter<T> >, public sFixedLengthIter<T, sBufferIter<T> >
     {
@@ -240,9 +217,6 @@ namespace slib
         inline idx dim_impl() const { return _dim; }
     };
 
-    /*! \brief Read-write iterator for a flat buffer of T
-     * \tparam T Type iterated over; assumed to be a built-in type or a small struct that is cheap to allocate
-     */
     template <class T>
     class sMutableBufferIter : public sBufferIter<T>, sMutableFixedLengthIter<T, sMutableBufferIter<T> >
     {

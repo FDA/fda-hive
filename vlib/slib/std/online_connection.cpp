@@ -30,10 +30,6 @@
 
 #include <slib/std/string.hpp>
 
-// Nice Socket tutorial
-// http://www.linuxhowtos.org/C_C++/socket.htm
-// Nice multicase/broadcast socket code
-// http://www.tack.ch/multicast/broadcast.shtml
 
 #include <slib/std/online.hpp>
 
@@ -41,13 +37,6 @@ using namespace slib;
 
 sConSockLib _sockLib;
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/                                          _/
-_/  PORT LEVEL FUNCTIONS                    _/
-_/                                          _/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
 idx sConServer::listen( idx nHostPort,idx timeOut)
 {
@@ -57,17 +46,13 @@ idx sConServer::listen( idx nHostPort,idx timeOut)
     struct sockaddr_in Address; 
     idx AddressSize=sizeof(Address);
     
-    // make a socket
     if((hSocket=(idx)socket(AF_INET,SOCK_STREAM,IPPROTO_TCP))== SOCKET_ERROR)return err();
 
-    //set socket options
     idx yes=1;
     if (setsockopt(hSocket,SOL_SOCKET,SO_REUSEADDR,(char * )&yes,sizeof(idx)) == SOCKET_ERROR)return err();
-    // set options
     timeval t;t.tv_sec=(long)timeOut; t.tv_usec=0;
     if(setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&t, sizeof(t))==SOCKET_ERROR) return err();
     
-    // fill address struct and bind the socket to this port and get its name back
     Address.sin_addr.s_addr=INADDR_ANY;
     Address.sin_port=htons((u_short)nHostPort);
     Address.sin_family=AF_INET;
@@ -79,7 +64,6 @@ idx sConServer::listen( idx nHostPort,idx timeOut)
         getsockname( hSocket, (struct sockaddr *) &Address,(socklen_t *)&AddressSize);
     #endif
 
-    // socket is ready to start listening on the port 
     if(::listen(hSocket,SOMAXCONN) == SOCKET_ERROR)return err();
 
 
@@ -103,7 +87,6 @@ idx sConServer::accept( sConIP * transactionCon)
 idx sConIP::send(const char * writeBuf,idx writeLen)
 {
     if(hSocket<1)return err();
-    // write to the socket 
     if(writeBuf && !writeLen) writeLen=(idx )strlen(writeBuf);
     writeLen=::send(hSocket,writeBuf,(int)writeLen , 0 );
     
@@ -124,7 +107,6 @@ idx sConIP::recieve(sMex * rd, idx maxLen, const char * filterHeader00, idx loop
     char * filterDone=0;
     idx pos, pos0, il, ln,it=0;
 
-    // set the non blocking mode here 
     u_long iMode = 1;
     ioControl(hSocket, FIONBIO, &iMode);
     for(pos=0, pos0=rd->pos(), il=0, ln=sNotIdx; ln!=0; ){
@@ -132,16 +114,14 @@ idx sConIP::recieve(sMex * rd, idx maxLen, const char * filterHeader00, idx loop
         ln=sSizePage;
         if(maxLen && pos+ln>maxLen ) ln=maxLen-pos;
         if( (ln=recv(hSocket,tmpBuf,(int)ln ,0 ))==0) return err();
-        if(ln==SOCKET_ERROR ){// tomeout or some other issue 
-            //idx ll=GetLastError();
-            if( it<tmOut ){sleepSeconds(1);++it;continue;} // we still can time count 
+        if(ln==SOCKET_ERROR ){
+            if( it<tmOut ){sleepSeconds(1);++it;continue;}
             else return sNotIdx; 
         }
         
-        it=0; // set timeout counter to zero 
+        it=0;
         rd->add(tmpBuf,ln);
 
-        // see if there are any headers to be filtered 
         if(filterHeader00 && !filterDone) {
             if( (filterDone=sString::searchSubstring((const char *)rd->ptr(pos0),rd->pos()-pos0,filterHeader00,1,0,0))!=0 ){
                 filterDone+=sString::compareChoice(filterDone,filterHeader00,0,0,0);
@@ -170,9 +150,6 @@ idx sConIP::initUDP(idx port)
     memset(&serveraddr, 0,sizeof(serveraddr));
     serveraddr.sin_family = AF_INET;
     
-    //struct hostent *hp;
-    //hp = gethostbyname("192.168.0.255");
-    //memcpy((char *)&serveraddr.sin_addr,(char *)hp->h_addr, hp->h_length );
 
     serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
     serveraddr.sin_port = htons((u_short)port);
@@ -199,8 +176,8 @@ idx sConIP::initUDP(idx port)
 
 idx sConIP::sendUDP(const char * serveraddr, idx port, const char * buffer, idx bufSize, bool isSingular)
 {
-    int sock, n, yes=1; // length,
-    struct sockaddr_in server;//, from;
+    int sock, n, yes=1;
+    struct sockaddr_in server;
     struct hostent *hp;
      memset(&server, 0,sizeof(server));
     server.sin_port = htons((u_short)port);
@@ -213,32 +190,24 @@ idx sConIP::sendUDP(const char * serveraddr, idx port, const char * buffer, idx 
  
         server.sin_addr.s_addr = htons((u_short)-1);
         server.sin_family = PF_INET;
-        //server.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-        //server.sin_port = htons(0);         
     } else {
-        sock= (int)socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);if (sock < 0) return 0;// error("socket");
+        sock= (int)socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);if (sock < 0) return 0;
 
-        //int isErr=setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&yes, sizeof(int));///if(isErr==SOCKET_ERROR)return 0; 
     
         if(!isSingular)
             isErr=setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&yes, sizeof(int) );
      
-        //#ifdef SLIB_WIN    
-        //192.168.0.255
-            hp = gethostbyname(serveraddr);if (hp==0) return 0;// error("Unknown host");
+            hp = gethostbyname(serveraddr);if (hp==0) return 0;
             memcpy((char *)&server.sin_addr,(char *)hp->h_addr, hp->h_length );
-        //#else 
-        //    inet_aton(serveraddr, &server.sin_addr);
-        //#endif
         
         server.sin_family = AF_INET;
 
     }
 
     if(!bufSize)bufSize=sLen(buffer);
-    n=sendto(sock,buffer, (int)bufSize,0,(sockaddr*)&server,sizeof(struct sockaddr_in));if (n < 0) return 0 ; // error("Sendto");
+    n=sendto(sock,buffer, (int)bufSize,0,(sockaddr*)&server,sizeof(struct sockaddr_in));if (n < 0) return 0 ;
     closesocket(sock);
-    return n;
+    return isErr ? 0 : n ;
 }
 
 

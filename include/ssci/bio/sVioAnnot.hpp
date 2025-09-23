@@ -61,7 +61,6 @@ namespace slib
         private:
         struct GBdesc{
             sStr locus,start,end;
-            //bool complement;
             sStr curLocus, curData, curTag, curPath, curValue ;
         };
 
@@ -79,10 +78,9 @@ namespace slib
         public:
             struct AnnotStruct {
                     sStr rangeID;
-                    sVec<idx> rangeStart, rangeEnd;//,max;
+                    sVec<idx> rangeStart, rangeEnd;
                     idx subRangeHit,annotFileIndex;
-                    sVec<idx> rangeGaps; //accumulated gaps up to i th range
-//                    AnnotStruct(){sSet(this,0);}
+                    sVec<idx> rangeGaps;
             };
 
             sVioDB DB;
@@ -101,7 +99,6 @@ namespace slib
             struct startEnd {
                     idx start,end;
                     idx group;
-                    //Max will be used for search purposes. Like in the interval trees.
                     idx max;
                     startEnd(){sSet(this,0);}
 
@@ -110,7 +107,6 @@ namespace slib
             struct startEndNode{
                startEnd * ranges;
                idx index,subRangesCnt;
-//                       startEndNode(){sSet(this,0);}
             };
 
             struct ParamsRangeSorter{
@@ -133,12 +129,10 @@ namespace slib
             struct vtreeNode{
                     startEnd * range;
                     idx ind,level;
-//                    vtreeNode(){sSet(this,0);}
             };
 
             static const idx deBrSeq=0x022fdd63cc95386d;
 
-            //Lookup table for the de Bruijn sequence 0x022fdd63cc95386d
             static idx deBrLUT [64];
 
             static idx getLSBindex1(idx & a);
@@ -188,11 +182,6 @@ namespace slib
 
            const char * getDataNameByRangeIndex(idx rangeIndex);
 
-           // _____/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-           //
-           //         New Structure: id (1), range(2), idType(3), group(4)
-           //
-           //_____/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
            idx getIdIndex(const char * idToUse, const char * idTypeToUse);
@@ -203,7 +192,6 @@ namespace slib
            idx * getNumberOfRangesByIdType(const char * idTypeToUse, idx &cntRanges);
 
            startEnd * getRangeJointsByRangeIndex(idx rangeIndex, idx * cntRangeJoints);
-           //void getIdTypeByRangeIndexAndIdIndex(idx rangeIndex,idx idIndex, sDic < sVec <sStr> > & myIdAndIdType);
            void getIdTypeByRangeIndexAndIdIndex(idx rangeIndex, idx idIndex, const char ** idPtr, idx * pIdSize, const char ** idTypePtr, idx * pIdTypeSize);
 
            idx * getIdByIdType(const char * idTypeToUse, idx * cntId);
@@ -216,7 +204,6 @@ namespace slib
            idx printInformationBasedOnIdTypeList(const char * sourceFileName,const char * refSeqID, sVec < sStr > & idTypeFilterList, sStr & outPut, idx & nbOfLinePrinted, idx pos_start, idx pos_end,idx page_start, idx page_end, idx cnt);
 
 
-           // ------------- /***********/ --------------------------
 
           idx ParseGBfile(const char* inputGBfilename, const char * vioFileName,bool combineFile=true);
           void addRecordRelationShipCounterForSeqID(sVioDB * myDB, sStr & myLine, sStr & gi);
@@ -234,16 +221,6 @@ namespace slib
           static idx runBumperEngine(const char * contentInCSVFormat,idx sourceLength,sStr & tableOut, idx _referenceStart, idx _referenceEnd, idx _width, idx _resolution, idx _annotationDensity, idx _maxLayers);
 
 
-          /*!
-          ePrintIDpos                   : position(s) or range(s) of query
-          ePrintSeqID                   : e.g. chromosome
-          ePrintAnnotRange              : print annotation range (start-end)
-          ePrintAnnotID                 : print annotID
-          ePrintAnnotRangeInOneColumn   : e.g. 1234-152 or 12
-          ePrintSingleHitRow            : will merge all ranges (hits) of a searched ragned (e.g if we searched for position 11 and we got 3 ranges back,
-                                          with each one corresponding to more than one annotation then we get one row for all these fields
-          ePrintSingleAnnotRangeRow     : will merge all ids and id types of a single range
-          */
           enum ePrintSearchParams {
               ePrintIDpos=                      0x00000001,
               ePrintSeqID=                      0x00000002,
@@ -300,14 +277,13 @@ namespace slib
 
     public:
         struct NodeRangeTree{
-            Tobj start,end,max,RangeI;    //start,end, Tind:range index, Rind,
+            Tobj start,end,max,RangeI;
             idx left,right,parent;
             NodeRangeTree(){sSet(this,0);}
         };
-    public: // constructor/destructor
+    public:
 
         typedef sRangeTree<Tobj,Kobj> sRangetree;
-//        sRangeTree( idx lflags=sMex::fBlockDoubling, const char * flnm=0 )  : _vec( lflags) {if(flnm) _vec.init(flnm);}
         sRangeTreeList(const char * flnm=0, bool doMap = false )  {
             _LastReferenceI=-1;
             pointerToOffsets=7;
@@ -345,7 +321,6 @@ namespace slib
         idx insert(sVec<sVioAnnot::AnnotStruct> & rangeVec,idx ReferenceI){
             if(ReferenceI>=_offsets.dim()){
                 _offsets.vadd(ReferenceI-_offsets.dim()+1,0);
-//                _offsets.resize(ReferenceI+1);
             }
             idx * curroffs=_offsets.ptr(ReferenceI);
             sRangetree rTree(sRangetree::eAVLmode);

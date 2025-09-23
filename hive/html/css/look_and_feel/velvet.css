@@ -39,20 +39,15 @@ a {
     border-radius:0px 0px 0 0
 }
 
-.nav-tabs>li.active>a,.nav-tabs>li.active>a:hover,.nav-tabs>li.active>a:focus{
-    background-color:#90caf9;
-    color: #000;
-}
-
 .nav-tabs>li>a {
-    color: #353535;
+    color: #333333;
 }
 
 .panel{
     border:none;
     border-radius:0px;
-    -webkit-box-shadow:  0px 3px 10px #c8c8c8;
-    box-shadow: 0px 3px 10px #c8c8c8;
+    -webkit-box-shadow:  0px 2px 4px #ddd;
+    box-shadow: 0px 2px 4px #ddd;
 }
 
 .panel-heading{
@@ -65,14 +60,18 @@ a {
 
 .layout-infobox {
     margin: 5px;
-    border: 1px solid white !important;
+/*    border: 1px solid white !important;*/
     border-radius: 0px !important;
 }
 
+/*
 .layout-infobox-tabs ul li a {
-  padding: 0.2em 0.5em 0.2em 0.5em;
-  font-family: Century Gothic;
+  padding: 0.2em 1em 0.2em 1em;
 }
+.layout-infobox-tabs ul li:first-child a {
+  padding-left: 1.5em;
+}
+*/
 
 .toolbar input[type=text] {
     height: 34px;

@@ -28,29 +28,49 @@
 # * DEALINGS IN THE SOFTWARE.
 # */
 
-PROGRAMS = dna-hexagon dna-hexagon-collector dna-hexagon-batcher
+PROGRAMS = dna-hexagon dna-hexagon-collector
 
-PROGRAMS_LIBS = -lviolib -ldmlib $(VLIB_LIB)
-PROGRAMS_XLIBS = $(MYSQL_LIB) $(LIBZIP_LIB)
+PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
+PROGRAMS_XLIBS = $(MYSQL_LIB)
+
+OBJECT_TYPES = svc-align-hexagon
+
+ACTIONS = hexagon_nuc_read hexagon_genome
 
 dna-hexagon_SRCS = dna-hexagon.cpp
 dna-hexagon-collector_SRCS = dna-hexagon-collector.cpp
-dna-hexagon-batcher_SRCS = dna-hexagon-batcher.cpp
+
+APPS = Standard:1 Virus-specific:1 Bacteria-specific:1 Human-whole-genome-specific:1 Exome-specific:1 Transcriptome-specific:1 Distant-relative:1 \
+HIVE-Hexagon_(Standard):2.1 \
+HIVE-Hexagon_(Virus-specific):2.1 \
+HIVE-Hexagon_(Bacteria-specific):2.1 \
+HIVE-Hexagon_(Human-whole-genome-specific):2.1 \
+HIVE-Hexagon_(Exome-specific):2.1 \
+HIVE-Hexagon_(Transcriptome-specific):2.1 \
+HIVE-Hexagon_(Distant-relative):2.1
+
+MENUITEMS = \
+/Portal/Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon \
+/Portal/Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon/Bacteria_specific \
+/Portal/Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon/Different_Levels_of_Homology_discovery/Distant_relative \
+/Portal/Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon/Exome_specific \
+/Portal/Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon/Human_whole_genome_specific \
+/Portal/Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon/Standard \
+/Portal/Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon/Transcriptome_specific \
+/Portal/Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon/Virus_specific \
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
-dist::
+PHONY: dist
+dist:: algo_install
 	$(call dist-service-register,dna-hexagon,HIVE-hexagon Alignment,/Sequencing/)
 	$(call dist-service-register,dna-hexagon-collector,HIVE Alignment Collector,/Sequencing/)
-	$(call dist-service-register,dna-hexagon-batcher,HIVE Alignment Batch-Mode,/Sequencing/)
 	$(call dist-app,dna-hexagon,dna-hexagon)
 	$(call dist-app,dna-hexagon-collector,dna-hexagon-collector)
-	
-	
-	
-#	$(call dist-service-register,dna-hexagon~test,Test HIVE-hexagon Alignment,/Test/Sequencing/)
-	
+
+.PHONY: algo_install
+algo_install::
+	$(call prop-import-object,algo-hexagon-2.0.json)

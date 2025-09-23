@@ -31,8 +31,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <zip.h>
-#include <slib/utils/ziplib/ZipArchive.h>
+#include <xlib/zip.hpp>
+#include <xlib/ziplib/ZipArchive.h>
 
 using namespace std;
 
@@ -136,8 +136,7 @@ namespace ZipLib {
                 if ( mkdir(path
 #ifndef _WIN32
                     , S_IRUSR | S_IWUSR
-#endif // !_WIN32
-                    ) == -1 )
+#endif                     ) == -1 )
                     return false;
             }
             *p++ = '/';
@@ -147,8 +146,7 @@ namespace ZipLib {
             if ( mkdir(dir
 #ifndef _WIN32
                 , S_IRUSR | S_IWUSR
-#endif // !_WIN32
-                ) == -1 )
+#endif                 ) == -1 )
                 return false;
         }
 

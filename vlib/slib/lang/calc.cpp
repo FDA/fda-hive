@@ -27,11 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// TODO 
-// use VariableCaching 
-// enable mod %
-// enable ** for mantissa
-//#define DEBUGOUT
 
 #include <ctype.h>
 #include <math.h>
@@ -43,13 +38,7 @@
 using namespace slib;
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ data and definitions
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 enum { 
-  // basics
     ePrecParenthesis=0,
     ePrecValues,
     ePrecMultiplicative,
@@ -65,72 +54,59 @@ enum {
 };
 
 const idx sCalc::_defPrecendence[]={
-  // basics
-    ePrecAssignment,ePrecAssignment, //":=" _ "?=" _
+    ePrecAssignment,ePrecAssignment,
 
-    // comparison operations
-    ePrecComparison,ePrecComparison,// "==" _      "=" _
-    ePrecComparison, //"!=" _
-    ePrecComparison,ePrecComparison,// ">=" _      ">" _      
-    ePrecComparison,ePrecComparison, // "<=" _      "<" _
+    ePrecComparison,ePrecComparison,
+    ePrecComparison,
+    ePrecComparison,ePrecComparison,
+    ePrecComparison,ePrecComparison,
 
-    // logic operations
-    ePrecLogic, // "&&" _  // " and " _
-    ePrecLogic, // "||" _ // " or " _    
-    ePrecLogic,  // "!" _  // " not " _   
+    ePrecLogic,
+    ePrecLogic,
+    ePrecLogic,
 
-    // bit operations 
-    ePrecBitwise, ePrecBitwise, // "<<" _      ">>" _
-    ePrecBitwise, // "~" _
-    ePrecBitwise, // "&" _
-    ePrecBitwise, // "|" _
-    ePrecBitwise, // "^" _
+    ePrecBitwise, ePrecBitwise,
+    ePrecBitwise,
+    ePrecBitwise,
+    ePrecBitwise,
+    ePrecBitwise,
     
-    // math operations 
-    ePrecAdditive, // "+" _
-    ePrecAdditive, // "-" _
-    ePrecMultiplicative, // "*" _
-    ePrecMultiplicative, // "/" _
-    ePrecMultiplicative, // "%" _
+    ePrecAdditive,
+    ePrecAdditive,
+    ePrecMultiplicative,
+    ePrecMultiplicative,
+    ePrecMultiplicative,
     
     
-    // execution level operations
-    ePrecParenthesis,ePrecParenthesis, // "(" _       ")" _
-    //ePrecParenthesis,ePrecParenthesis, // "[" _       "]" _
-    ePrecParenthesis,ePrecParenthesis, // "{" _       "}" _
+    ePrecParenthesis,ePrecParenthesis,
+    ePrecParenthesis,ePrecParenthesis,
 
 
-    // syntaxical level 
-    ePrecQuotations,ePrecQuotations, // "\"" _          "'" _
-    ePrecFunctional,ePrecFunctional, // "," _           ";" _
+    ePrecQuotations,ePrecQuotations,
+    ePrecFunctional,ePrecFunctional,
         
 
-    ePrecNone, // " " __;
+    ePrecNone,
 };
 
 const char * sCalc::_defaultTokenizingSymbols=
-    // basics
     ":=" _ "?=" _
 
-    // comparison operations
     "==" _      "=" _
     "!=" _
     ">=" _      ">" _      
     "<=" _      "<" _
 
-    // logic operations
-    "&&" _ // " and " _   
-    "||" _ // " or " _    
-    "!" _  // " not " _   
+    "&&" _
+    "||" _
+    "!" _
 
-    // bit operations 
     "<<" _      ">>" _
     "~" _
     "&" _
     "|" _
     "^" _
     
-    // math operations 
     "+" _
     "-" _
     "*" _
@@ -138,13 +114,10 @@ const char * sCalc::_defaultTokenizingSymbols=
     "%" _
     
     
-    // execution level operations
     "(" _       ")" _
-    //"[" _       "]" _
     "{" _       "}" _
 
 
-    // syntaxical level 
     "\"" _          "'" _
     "," _           ";" _
         
@@ -156,15 +129,9 @@ const char * sCalc::_defaultNonTokenizingSymbols=0;
 
 sVar sCalc::varGlobal;
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ basic functions
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 idx sCalc::_tokenize(const char * phrase, idx phraselen)
 {
-    // first we digest the input to our own buffer 
     _expression.cut(0);
     sString::searchAndReplaceSymbols(&_expression, phrase,phraselen, sString_symbolsBlank, " ",0,true,true,true);
     char * ptr0=_expression.ptr(), * dig, *next, *ptrsrch , * ptr;
@@ -173,29 +140,26 @@ idx sCalc::_tokenize(const char * phrase, idx phraselen)
     idx i,nym;
     bool quot, sub;
     Lexem * it;
-    // now scan the string 
     for(ptr=ptrsrch=ptr0 , i=0;  ptr && *ptr ;  ++i)
     {
-        // for every position  ptr try finding the end of the lexem by tokenizing substrings 
-        // see if this position is one of our tokenizing symbol sets
         nym=sNotIdx;
         idx pos=sString::compareChoice( ptrsrch, _lgs, &nym,(flags&fCaseSensitive) ? true : false ,0);
         dig=0;quot=false;sub=false;
 
-        if(pos!=sNotIdx){ // if this position is a tokenizing string 
-            next=ptr+pos; // put the "next" pointer to the position after tokenizer ends 
-            if(*ptr==' ')ptr++; // a single space is taken as a special tokenizer to break the lexems
+        if(pos!=sNotIdx){
+            next=ptr+pos;
+            if(*ptr==' ')ptr++;
         }
-        else { // not a tokenizing position 
-            if(*ptr==' ')ptr++; // a single space is taken as a special tokenizer to break the lexems
-            next=ptrsrch;  // put the "next" pointer here 
-            while( next ) { // now try finding the next token 
+        else {
+            if(*ptr==' ')ptr++;
+            next=ptrsrch;
+            while( next ) {
                 next=sString::searchSubstring(next,0,_lgs,1,0,flags&fCaseSensitive ? true : false );
-                if(next) { // if there is a next token 
-                    if(next>ptrsrch && *(next-1)=='\\') { // slashed symbol is not tokenizing 
-                        strcpy(next-1,next); // skip the slash 
-                    }else if( _lgsnon && sString::compareChoice(next,_lgsnon,&nym,(flags&fCaseSensitive) ? true : false ,0)!=sNotIdx){ // do not break on non tokenizing symbols
-                        next+=(idx )strlen((sString::next00(_lgsnon,nym))); // skip the non tokenizing symbols 
+                if(next) {
+                    if(next>ptrsrch && *(next-1)=='\\') {
+                        strcpy(next-1,next);
+                    }else if( _lgsnon && sString::compareChoice(next,_lgsnon,&nym,(flags&fCaseSensitive) ? true : false ,0)!=sNotIdx){
+                        next+=(idx )strlen((sString::next00(_lgsnon,nym)));
                     }else break;
                 }
                 else break;
@@ -204,14 +168,12 @@ idx sCalc::_tokenize(const char * phrase, idx phraselen)
 
         }
                 
-        // filter +- signes in exponentioal numbers, put the dig into the start of the number 
         if( next>ptr0 && (*next=='-' || *next=='+') && (*(next-1)=='E' || *(next-1)=='e') ) {
             for(dig=next-2 ; dig>=ptr && isdigit((unsigned)(*dig)) ; --dig );
-            if(dig!=next-2) // this minus is a part of the number
+            if(dig!=next-2)
                 {ptrsrch=next+1;continue;}
         }
 
-        // run through quotations
         if( *ptr=='\"' || *ptr=='\'') {
             for(dig=ptr+1 ; *dig && *dig!=*ptr; ++dig );
             ++ptr; next=dig;quot=true;
@@ -221,10 +183,10 @@ idx sCalc::_tokenize(const char * phrase, idx phraselen)
             ++ptr; next=dig;sub=true;
         }
 
-        if(next!=ptr || quot ){ // add this lexem into our script buffer 
+        if(next!=ptr || quot ){
             
-            idx len=(idx)(next -ptr);//(idx)((*next==' ' ?  next-1 : next ) -ptr);
-            idx contofs=_mex.add(ptr, len+2); // terminate with double zeros
+            idx len=(idx)(next -ptr);
+            idx contofs=_mex.add(ptr, len+2);
             char * dst=(char *)_mex.ptr(contofs);
             if( !quot && dst[len-1]==' ')dst[len-1]=0;
             dst[len]=0;dst[len+1]=0;
@@ -254,7 +216,6 @@ idx sCalc::_tokenize(const char * phrase, idx phraselen)
 
 idx sCalc::prep(idx cur)
 {
-    //if( cur==sNotIdx )return 1;
     idx res=0;
     if(_lxit.ptr(cur)->status&Lexem::fReady) 
         return cur+1 ;
@@ -273,14 +234,6 @@ idx sCalc::prep(idx cur)
         res=textCallback(cur, fCallText );
 
 
-    /*
-    if(!res && _whattodo&fCallMath ){
-        for( idx iprec=0; iprec<eMathLast; ++iprec){
-            if( (res=mathCallback(cur, fCallMath, iprec) )!=0  )
-                break;
-        }
-    }
-    */
 
     if(!res && _whattodo&fCallLogic)
         res=logicCallback(cur,fCallLogic);
@@ -307,10 +260,10 @@ char * sCalc::_analyse(void)
             debugPrint();
         #endif
 
-        ido=sNotIdx;// chose the element with most precendence from those which are not done yet 
+        ido=sNotIdx;
         for ( idx k=0; k<_lxit.dim(); ++k){if( _lxit.ptr(k)->status&Lexem::fReady ) continue;
             if( ido==sNotIdx || _lxit.ptr(k)->precendence < _lxit.ptr(ido)->precendence) ido=k;
-        }if(ido==sNotIdx)break; // all done 
+        }if(ido==sNotIdx)break;
         
         #ifdef DEBUGOUT
             char * ct=cont(ido);
@@ -318,12 +271,10 @@ char * sCalc::_analyse(void)
 
         idx nx=prep(ido);
         if(!nx) {
-            // error - something cannot be executed 
             data(ido,0,"ERR(%s)",cont(ido));
             break;
         }
         if(nx==sNotIdx)i=0;
-        //else if(nx)i=nx;
         else ++i;
     }
     return data(0);
@@ -340,7 +291,6 @@ idx sCalc::errnum(void)
 }
 
 
-// if pdata  specified - changes the content/data otherwise retrieves it  
 char * sCalc::_data(idx isda, idx num, idx siz , const char * pdata, va_list ap )
 {   
     if(!_lxit.dim())return 0;
@@ -370,11 +320,6 @@ char * sCalc::_data(idx isda, idx num, idx siz , const char * pdata, va_list ap 
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ standard callbacks 
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 #define mNeed1(_v_num, _v_typ)  if( !prep(_v_num) || ((_lxit[_v_num].type) && !(_lxit[_v_num].type&(_v_typ))) )return 0;
 #define mNeed2(_v_num1,_v_typ1,_v_num2,_v_typ2) if( !prep(_v_num1) || !prep(_v_num2) || ((_lxit[_v_num1].type) && !(_lxit[_v_num1].type&(_v_typ1))) || ((_lxit[_v_num2].type) && !(_lxit[_v_num2].type&(_v_typ2))))return 0;
@@ -386,17 +331,16 @@ idx sCalc::subCalc( idx cur, idx end, const char * finish00 )
     if(end==sNotIdx)end=_lxit.dim();
     for(i=cur; i<end; ++i ) {
         char * nct=cont(i);
-        if(finish00 && sString::compareChoice(nct,finish00,0,false,0,true)!=sNotIdx)break; // if end has been reached 
+        if(finish00 && sString::compareChoice(nct,finish00,0,false,0,true)!=sNotIdx)break;
         sub.printf((_lxit(i)->status&Lexem::fQuoted) ? "'%s' " : "%s ",nct);
     }
-    if(finish00)--end; // so we do not "compute" the condition of stopping  ) , etc
+    if(finish00)--end;
     if(!sub.length())return 0;
     
     sCalc subcalc(_func, _funcparam,_lgs,_lgsnon,_lgprec);
     subcalc.subLevel=subLevel+1;
     subcalc.setVariableSpace(variablesGlobal,varPrfxGlobal,variablesTemporary,varPrfxTemporary);
     subcalc.analyse(_whattodo,_par,sub.ptr(),0);
-    //if(subcalc.errnum())return 0;
 
     char * ptr, * ctr; idx k;
     for(k=0; k < subcalc.dim() ; ++k ){
@@ -405,13 +349,11 @@ idx sCalc::subCalc( idx cur, idx end, const char * finish00 )
         cont(cur+k, 0, "%s", ctr ? ctr : "");
         data(cur+k, 0, "%s", ptr ? ptr : "" );
         _lxit[cur+k].status|=subcalc._lxit[k].status;
-        //    res.printf("%s ", ptr);
     }
     
     --end; del(cur+k,(end-cur)-k+1);
 
 
-//    debugPrint("comming out of subCalc");
     return k;
 }
 
@@ -421,23 +363,20 @@ idx sCalc::genericCallback(idx cur, idx )
     idx lev;
     idx i;
 
-    ///if( (!strcmp(ct,"(")) || !strcmp(ct,"{") || !strcmp(ct,"[") ){
     if( (!strcmp(ct,"(")) || !strcmp(ct,"{") ){
         sStr sub,res;
 
         char braceOut[2];braceOut[1]=0;
         if(ct[0]=='(' )braceOut[0]=')';
-        ///else if(ct[0]=='[' )braceOut[0]=']';
         else braceOut[0]='}';
         if((idx )cur+1>=_lxit.dim()) return 0;
         for(lev=1, i=cur+1; i<(idx)_lxit.dim(); ++i ) {
             char * nct=cont(i);
-            if( !strcmp(nct,braceOut))lev--;//break;
+            if( !strcmp(nct,braceOut))lev--;
             if( !strcmp(nct,ct))lev++;
             if( !lev )break;
-            //sub.printf((_lxit(i)->status&Lexem::fQuoted) ? "'%s' " : "%s ",nct);
         }
-        if(lev==0){ // the number of parenthesis is ok? 
+        if(lev==0){
             idx cnt=subCalc(cur+1, i, 0);
             if(cnt==1){
                 _lxit[cur].type=_lxit[cur+1].type;
@@ -448,7 +387,7 @@ idx sCalc::genericCallback(idx cur, idx )
             } 
             else _lxit[cur+cnt+1].status|=Lexem::fReady;
         }
-        else { // not equal number of opening and closing statements
+        else {
             cont(cur,0,"#()",sub.length() ? sub.ptr() : "");
             return 0;
         }
@@ -468,7 +407,6 @@ idx sCalc::genericCallback(idx cur, idx )
         data(cur+1,0,"%s", data(i) );
         del(cur+2,2);
         cont(cur,0,":=");
-//        return cur+1;
     }
     else if( (!strcmp(ct,",")) ){
         data(cur,0,"," );
@@ -493,9 +431,9 @@ const char * sCalc::varValue(const char * ct, const char * val)
     if(!varPrfx)varPrfx="";
 
     if(!val)
-        val=(char *)(varRem->outf("%s%s", varPrfx ,ct)); // get the variable 
+        val=(char *)(varRem->outf("%s%s", varPrfx ,ct));
     else 
-        varRem->inpf( val ,0 , "%s%s", varPrfx , ct ); // temporary variable 
+        varRem->inpf( val ,0 , "%s%s", varPrfx , ct );
     return val;
 }
 
@@ -503,27 +441,25 @@ idx sCalc::variablesCallback(idx cur, idx )
 {
     char * ct=cont(cur);
     const char * pp;
-    //sVar * varRem=0; const char * varPrfx=0;
 
-    if( cur+2<dim() && (!strcmp(cont(cur+1),":=")) ) { // if this is an alignment within expression ... execute it 
-        prep(cur+2);// prepare the lexem next to equal sign 
+    if( cur+2<dim() && (!strcmp(cont(cur+1),":=")) ) {
+        prep(cur+2);
         pp =data(cur+2); 
-        if(!pp)pp=cont(cur+2); // we still sometimes maintain the cont - for assigning the rvalue ranges which are not computeable at this point 
+        if(!pp)pp=cont(cur+2);
         if(!pp)pp="";
 
         varValue(ct, pp);
 
         _lxit[cur].type= _lxit[cur+2].type;
-        _lxit[cur].status|=Lexem::fReady; // mark as done 
+        _lxit[cur].status|=Lexem::fReady;
         data(cur,0,pp);
         cont(cur,0,cont(cur+2));
 
         del(cur+2);del(cur+1);
-        //del(cur);
         
-        return cur+1; // this way we force to reevaluate the lexems: there might have been some which now are computable 
+        return cur+1;
 
-    } else if( !isdigit(ct[0]) ) { // is this a global or local variable inquiry (not a assingment ) ? 
+    } else if( !isdigit(ct[0]) ) {
 
         pp=varValue(ct); 
 
@@ -542,16 +478,11 @@ idx sCalc::variablesCallback(idx cur, idx )
 
 
 const char * sCalc::symbText="equal" _ "equal" _ "inequal" _ "hasnt" _ "has" _ "concat" _ "after" _ "before" _ "repeat" _ "permute" _ "subrand" __;
-                             // 0     1    2     3      4       5
 idx sCalc::textCallback(idx cur, idx )
 {
     char * ct=cont(cur);
     idx res=0;
         
-    //_/_/_/_/_/_/_/_/_/
-    //_/
-    //_/ quoted strings
-    //_/
     enum { eDoubleEqual=0, eEqual, eNotEqual, eHasNot, eHas,ePlus, eAfter, eBefore, eRepeat, ePermute, eSubRandom};
 
         
@@ -562,19 +493,11 @@ idx sCalc::textCallback(idx cur, idx )
         return cur+1;
     }
     
-    // choices
     idx num=sNotIdx;
-    //const char * lchoices="==" _ "=" _ "!=" _ "hasnt" _ "has" _ "+" __;
-                         //  0      1      2       3        4      5
-    // find what to do 
     idx fndLen=sString::compareChoice(ct,symbText,&num,1,0);
     if( fndLen==sNotIdx )
         return 0;
 
-    //_/_/_/_/_/_/_/_/_/
-    //_/
-    //_/ binary operations 
-    //_/
     if(num<=eBefore) {
         if(cur==0)return 0;
         mNeed2(cur-1, Lexem::fString|Lexem::fNumber, cur+1, Lexem::fString|Lexem::fNumber);
@@ -582,61 +505,49 @@ idx sCalc::textCallback(idx cur, idx )
         char * posS=p1, * posE=p1+strlen(p1);
 
         switch( num ) {
-            case eDoubleEqual:case eEqual:  res=strcmp(p1, p2) ? 0 : 1 ; break; // = ==
-            case eNotEqual: res=strcmp(p1, p2) ? 1 : 0 ; break; // !=
-            case eHasNot: res=strstr(p1,p2) ? 0 : 1 ;break; // hasnt
-            case eHas: res=strstr(p1,p2) ? 1 : 0 ;break; // has 
-            case eAfter: posS=strstr(p1,p2) ; if(posS) posS+=strlen(p2); else posS=posE; break; // after 
-            case eBefore: posE=strstr(p1,p2)  ;if(!posE) posE=posS;break; // has         
-            case ePlus: cont(cur,0,"");break; // has         
+            case eDoubleEqual:case eEqual:  res=strcmp(p1, p2) ? 0 : 1 ; break;
+            case eNotEqual: res=strcmp(p1, p2) ? 1 : 0 ; break;
+            case eHasNot: res=strstr(p1,p2) ? 0 : 1 ;break;
+            case eHas: res=strstr(p1,p2) ? 1 : 0 ;break;
+            case eAfter: posS=strstr(p1,p2) ; if(posS) posS+=strlen(p2); else posS=posE; break;
+            case eBefore: posE=strstr(p1,p2)  ;if(!posE) posE=posS;break;
+            case ePlus: cont(cur,0,"");break;
             
             default: break;
         }
         
-        cont(cur-1,0,"%s %s %s",cont(cur-1),cont(cur),cont(cur+1)); //concatenate the content 
-        del(cur+1);del(cur);--cur; // delete the last two 
+        cont(cur-1,0,"%s %s %s",cont(cur-1),cont(cur),cont(cur+1));
+        del(cur+1);del(cur);--cur;
         if(num<=eHas) {
-            data(cur,0,"%" DEC,res); // set the result 
-            _lxit[cur].type= Lexem::fLogical; // the result type 
-            _lxit[cur].status|=Lexem::fReady; // mark as done 
+            data(cur,0,"%" DEC,res);
+            _lxit[cur].type= Lexem::fLogical;
+            _lxit[cur].status|=Lexem::fReady;
             return cur+1;
         }
-        /* // don't remember why did I block this '+', perhaps was interfering with math + 
-        else if(num==7){
-            data(cur,0,"%s%s",p1,p2); // set the result 
-            _lxit[cur].type= Lexem::fString; // the result type 
-        }*/
-        else if(num<=ePlus) { // +
+        else if(num<=ePlus) {
             data(cur,0,"%s%s", p1,p2);
             return cur+1;
         }
-        else if(num<=eBefore) { // after, before 
-            data(cur,(idx )(posE-posS),"%s",posS); // set the result 
-            _lxit[cur].type= Lexem::fString; // the result type 
-            _lxit[cur].status|=Lexem::fReady; // mark as done 
+        else if(num<=eBefore) {
+            data(cur,(idx )(posE-posS),"%s",posS);
+            _lxit[cur].type= Lexem::fString;
+            _lxit[cur].status|=Lexem::fReady;
             return cur+1;
         }
     }
 
-    //_/_/_/_/_/_/_/_/_/
-    //_/
-    //_/ unary operations 
-    //_/
     mNeed1(cur+1,Lexem::fString|Lexem::fNumber);
     idx funval=(idx)atoi(ct+fndLen);if(!funval)funval=1;
     sStr out, tmp;
     char * p =data(cur+1);
     if(num==eRepeat){ 
-        // requres number after them, read that  
-        for(idx ir=0; ir< funval; ++ir)  // if( !strcmp(",", cont(ia) ))continue;
+        for(idx ir=0; ir< funval; ++ir)
             out.printf("%s%s", ir ? " " : "" , p);
     }else if(num==ePermute || num==eSubRandom){ 
-        // prepare the list of pointers to items 
         sVec< char * > items;
-        for( char * pc=p; pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) ) // prepare the value 
+        for( char * pc=p; pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) )
             *items.add()=pc;
         idx rcnt=items.dim();
-        //char dsttmp[vFile_TEXTLINE_MAXLEN];
         if(num==ePermute)funval=rcnt;
         for(idx ir=0; ir<funval; ++ir) {
             double rnum=1.*rand()/RAND_MAX;
@@ -650,49 +561,37 @@ idx sCalc::textCallback(idx cur, idx )
     }
     data(cur,out.length(),"%s",out.ptr());
     out.cut(0);out.printf("%s %s",cont(cur),cont(cur+1));
-    cont(cur,0,"%s",out.ptr()); //concatenate the content 
-    del(cur+1); // delete the last two 
+    cont(cur,0,"%s",out.ptr());
+    del(cur+1);
         
-    _lxit[cur].type= Lexem::fString|Lexem::fNumber; // the result type 
-    _lxit[cur].status|=Lexem::fReady; // mark as done 
+    _lxit[cur].type= Lexem::fString|Lexem::fNumber;
+    _lxit[cur].status|=Lexem::fReady;
     return cur+1;
 }
 
 const char * sCalc::symbLogic="&&" _ "and" _ "||" _ "or" _ "!" _ "not" __;
-                             // 0     1      2        3     4      5
 
 idx sCalc::logicCallback(idx cur, idx )
 {
     char * ct=cont(cur);
     idx res=0;
     idx num=sNotIdx;
-//    const char * lchoices="&&" _ "and" _ "||" _ "or" _ "!" _ "not" __;
-                                // 0     1      2     3     4    5
     
-    // find what operation it is 
         if( sString::compareChoice(ct,symbLogic,&num,1,0)==(idx)(-1) )
                 return 0;
 
-    //_/_/_/_/_/_/_/_/_/
-    //_/
-    //_/ unary operations 
-    //_/
-    if(num==4 || num==5)  { // ! not
+    if(num==4 || num==5)  {
         mNeed1(cur+1,Lexem::fLogical);
         char * p=data(cur+1);
         res= ( !p || atoi( p )!=0 ) ? 0 : 1;
         cont(cur,0,"%s %s",cont(cur),cont(cur+1));
         del(cur+1);
-        data(cur,0,"%" DEC,res); // set the result 
+        data(cur,0,"%" DEC,res);
         _lxit[cur].status|=Lexem::fReady;
         _lxit[cur].type=Lexem::fLogical;
         return cur+1;
     }
 
-    //_/_/_/_/_/_/_/_/_/
-    //_/
-    //_/ unary operations 
-    //_/
     if(cur==0)return 0;
     mNeed2(cur-1, Lexem::fLogical, cur+1, Lexem::fLogical);
     char * p1=data(cur-1), *  p2=data(cur+1);
@@ -705,19 +604,17 @@ idx sCalc::logicCallback(idx cur, idx )
         default: break;
     }
 
-    // set the lower item and remove two following
-    cont(cur-1,0,"%s %s %s",cont(cur-1),cont(cur),cont(cur+1)); //concatenate the content 
-    del(cur+1);del(cur);--cur; // delete the last two 
-    data(cur,0,"%" DEC,res); // set the result 
-    _lxit[cur].status|=Lexem::fReady; // mark as done 
-    _lxit[cur].type=Lexem::fLogical; // the result type 
+    cont(cur-1,0,"%s %s %s",cont(cur-1),cont(cur),cont(cur+1));
+    del(cur+1);del(cur);--cur;
+    data(cur,0,"%" DEC,res);
+    _lxit[cur].status|=Lexem::fReady;
+    _lxit[cur].type=Lexem::fLogical;
     return cur+1;
 }
 
 const char * sCalc::symbMath="~" _ "+" _ "-" _ "*" _ "/" _ "%" _ "==" _ "=" _ "!=" _ ">=" _ ">" _ "<=" _ "<" _ "<<" _ ">>" _ "&" _ "|" _ "^" __;
-                            // 0     1     2     3     4     5     6     7     8      9      10    11     12    13     14     15    16    17
 
-idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
+idx sCalc::mathCallback(idx cur, idx , idx stage)
 {
     char * ct=cont(cur);
     double res=0;
@@ -725,33 +622,24 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
     idx wrk=0;
     stage =eMathLast;
 
-//    const char * lchoices="~" _ "+" _ "-" _ "*" _ "/" _ "%" _ "==" _ "=" _ "!=" _ ">=" _ ">" _ "<=" _ "<" _ "<<" _ ">>" _ "&" _ "|" _ "^" __;
-                                // 0     1     2     3     4     5     6     7     8      9      10    11     12    13     14     15    16    17
 
-    // quoted ... something we do deal with math 
     if ( _lxit[cur].status&Lexem::fQuoted ) {
         return 0;
     }    
     
-    // find what operation it is 
     if( sString::compareChoice(ct,symbMath,&num,1,0)==sNotIdx ) {
-        if(ct[0]=='0' && (ct[1]=='x' || ct[1]=='X') ){ // see if this is a hexadecimal ?  && strchr("0123456789ABCDEFabcdef",ct[2]) 
+        if(ct[0]=='0' && (ct[1]=='x' || ct[1]=='X') ){
             idx hexVal=0;wrk=sscanf(ct+2,"%" HEX,&hexVal);
             res=(double)hexVal;
         }
         else {
-            idx is; // check if this is a number 
+            idx is;
             for (is=0; ct[is] ; ++is)if( !strchr("0123456789eE-+.",ct[is])) break;
-            if(ct[is] || (wrk=sscanf(ct,"%lf",&res))==0) // not a number , can not be scanned or has no digit characters
+            if(ct[is] || (wrk=sscanf(ct,"%lf",&res))==0)
                 return 0;
         }
     }
 
-    // Es sirum em Valerain 
-    //_/_/_/_/_/_/_/_/_/
-    //_/
-    //_/ unary operations and numbers 
-    //_/
     if(stage>=eMathNumerical){
         bool isunary=false;
         if(num==0) isunary=true;
@@ -759,15 +647,14 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
         if(num==1 || num==2 ) {
             if(cur!=0) {
                 pct=cont(cur-1);
-                //if(pct[1]==0 && (pct[0]=='(' || pct[0]=='[' ||pct[0]==',') )
                 if(pct[1]==0 && (pct[0]=='(' || pct[0]==',' ) )
                     isunary=true; 
             }else 
-                isunary=true; // together with unary - + 
+                isunary=true;
         }
 
         if(isunary || num==sNotIdx ){
-            if(num==0 || num==1 || num==2 ) { // unary negation
+            if(num==0 || num==1 || num==2 ) {
                 mNeed1(cur+1, Lexem::fNumber);
                 char * p=data(cur+1) ; 
                 switch(num){
@@ -779,7 +666,7 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
                 del(cur+1);
             }
             
-            if(cur==1){ // check for unary + or - sign 
+            if(cur==1){
                 pct=cont(cur-1);
                 if( pct[1]==0 && (pct[0]=='-' || pct[0]=='+') ){
                     if(pct[0]=='-')res=-res;
@@ -795,17 +682,11 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
         }
     }
 
-    //_/_/_/_/_/_/_/_/_/
-    //_/
-        //_/ binary operations 
-    //_/
     idx type=Lexem::fLogical;
 
     if(cur==0)return 0;
     mNeed2(cur-1, Lexem::fNumber, cur+1, Lexem::fNumber);
     
-    // arythmetics operations
-    //double r1=atoi( data(cur-1) ), r2=atoi( data(cur+1) );
     const char * p1=cur>0 ? data(cur-1) : "0";
     const char * p2=data(cur+1);
     real r1=p1 ? atof( p1 ) : 0, r2=p2 ? atof( p2 ) : 0 ;
@@ -827,7 +708,6 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
         }
     }
 
-    // comparison 
     if(stage>=eMathComparative){
         switch ( num ) {
             case  6:case 7: res= (r1==r2) ? 1 : 0 ; wrk=1;break;
@@ -836,11 +716,10 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
             case 10: res= (r1>r2) ? 1 : 0 ; wrk=1;break;
             case 11: res= (r1<=r2) ? 1 : 0 ; wrk=1;break;
             case 12: res= (r1<r2) ? 1 : 0 ; wrk=1;break;
-            default: type=Lexem::fNumber; break; // if it does not produce logical result it produces a number 
+            default: type=Lexem::fNumber; break;
         }
     }
 
-    // bit operations 
     idx i1=(idx)r1, i2=(idx)r2;
     if(stage>=eMathBitwise) { 
         switch ( num ) {
@@ -855,13 +734,12 @@ idx sCalc::mathCallback(idx cur, idx , idx stage) // whattodo
     if(wrk==0)
         return 0;
 
-    // set the lower item and remove two following
-    cont(cur-1,0,"%s %s %s",cont(cur-1),cont(cur),cont(cur+1)); //concatenate the content 
-    del(cur+1);del(cur);--cur; // delete the last two 
-    if(floor(res)==res)data(cur,0,"%i",(idx)res); // set the result 
-    else data(cur,0,"%lf",res); // set the result 
-    _lxit[cur].status|=Lexem::fReady; // mark as done 
-    _lxit[cur].type=type; // the result type 
+    cont(cur-1,0,"%s %s %s",cont(cur-1),cont(cur),cont(cur+1));
+    del(cur+1);del(cur);--cur;
+    if(floor(res)==res)data(cur,0,"%i",(idx)res);
+    else data(cur,0,"%lf",res);
+    _lxit[cur].status|=Lexem::fReady;
+    _lxit[cur].type=type;
     return cur+1;
 }
 
@@ -888,31 +766,25 @@ idx sCalc::mathFuncCallback(idx cur, idx )
         fNone
     };
 
-    // find the name of the function
     idx fndLen=sString::compareChoice(ct,symbMathFunc,&num,1,fLg10);
-    if( fndLen==sNotIdx || cur>=dim()  || *cont(cur+1)!='(' ) // functions must be followed by parenthesis 
+    if( fndLen==sNotIdx || cur>=dim()  || *cont(cur+1)!='(' )
         return 0;
 
-        // some functions requre number after them, read that  
     real funval=1;sscanf(ct+fndLen,"%lf",&funval);
-//    mNeed1(cur+1, Lexem::fNumber);
     
-    // prepare all arguments 
     idx argstart=0,argend=0,cntarg=0;
-    // scan arguments in the function call and in function declaration
     if((_lxit[cur+1].status)&Lexem::fSubComplete)
         {argstart=cur+1; argend=argstart+1;}
     else {
-        for ( argend=argstart=cur+2; strcmp(")", cont(argend))  ;){ // scan lexic statement to the next parenthesis 
-            if( !strcmp(",", cont(argend)) ) { ++argend;continue; }// skip commas
-            argend=prep(argend);// prepare the arguments value 
+        for ( argend=argstart=cur+2; strcmp(")", cont(argend))  ;){
+            if( !strcmp(",", cont(argend)) ) { ++argend;continue; }
+            argend=prep(argend);
         }
     }
     sStr out;
     idx ia,io;
     real outval=0,val=0;
         
-    // numeric accumulator based functions 
     if(num>=fSum && num<=fMean) {
         real outval=0,val=0;
         idx ia;
@@ -921,7 +793,7 @@ idx sCalc::mathFuncCallback(idx cur, idx )
         else outval=0;
 
         for ( ia=argstart; ia<argend  ; ++ia){if( !strcmp(",", cont(ia) ))continue;
-            for( char * pc=data(ia); pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) ){ // prepare the value 
+            for( char * pc=data(ia); pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) ){
                 sscanf(pc,"%lf",&val);++cntarg;
 
                 switch ( num ) {
@@ -942,7 +814,7 @@ idx sCalc::mathFuncCallback(idx cur, idx )
         if(num==fSigma) {
             real mean=outval;
             for ( outval=0, ia=argstart; ia<argend  ; ++ia){if( !strcmp(",", cont(ia) ))continue;
-                for( char * pc=data(ia); pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) ){ // prepare the value 
+                for( char * pc=data(ia); pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) ){
                     sscanf(pc,"%lf",&val);
                     outval+= (val-mean)*(val-mean);
                 }
@@ -956,7 +828,7 @@ idx sCalc::mathFuncCallback(idx cur, idx )
     }else if(num>=fIRandom && num<=fRandom){ 
         real rmin=REAL_MAX, rmax=-REAL_MAX;
         for ( ia=argstart; ia<argend  ; ++ia){if( !strcmp(",", cont(ia) ))continue;
-            for( char * pc=data(ia); pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) ){ // prepare the value 
+            for( char * pc=data(ia); pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) ){
                 sscanf(pc,"%lf",&val);
                 rmin=sMin(rmin,val);
                 rmax=sMax(rmax,val);
@@ -964,16 +836,15 @@ idx sCalc::mathFuncCallback(idx cur, idx )
         }
         for(idx ir=0; ir< funval; ++ir) {
                 outval=(rmax-rmin+(num==fIRandom ? 1 : 0 ))*rand()/RAND_MAX+rmin;
-                //if(num==fIRandom)out.printf("%s"DEC, ir ? " " : "" , (idx)(outval>rmax  ? rmax : outval));
                 if(num==fIRandom)out.printf("%s%" DEC, ir ? " " : "" , (idx)(outval>rmax  ? rmax : outval));
                 else out.printf("%s""%lf", ir ? " " : "" , outval);
 
         }
     }
-    else { // if(num<fMean) // math functions
+    else {
         for (  io=0,ia=argstart; ia<argend  ; ++ia){if( !strcmp(",", cont(ia) ))continue;
                                 
-            for( char * pc=data(ia); pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) ){ // prepare the value 
+            for( char * pc=data(ia); pc ; pc=sString::skipWords(pc,sLen(pc),1,sString_symbolsBlank) ){
                 sscanf(pc,"%lf",&val) ;
                 real excoef=1.;
                 switch ( num ) {
@@ -1007,29 +878,19 @@ idx sCalc::mathFuncCallback(idx cur, idx )
 
     }
 
-    // replace function by its value 
-    if( (_lxit[cur+1].status)&Lexem::fSubComplete )--argend; // complete substatements do not have closing parenthesis 
+    if( (_lxit[cur+1].status)&Lexem::fSubComplete )--argend;
 
     data(cur,out.length(),"%s",out.ptr());
     out.cut(0);for(ia=cur+1; ia<=argend; ++ia) out.printf("%s ",cont(ia));
-    //if( (_lxit[cur+1].status)&Lexem::fSubComplete )cont(cur,0,"%s%s",ct,out.ptr()); //concatenate the content 
-    //else 
-    cont(cur,0,"%s%s",ct,out.ptr()); //concatenate the content 
-    //for(ia=argend; ia>cur; --ia) del(ia);
+    cont(cur,0,"%s%s",ct,out.ptr());
     del(cur+1,argend-cur);
     
-    // set the lower item and remove two following
-    _lxit[cur].status|=Lexem::fReady; // mark as done 
-    _lxit[cur].type=Lexem::fNumber; // the result type 
+    _lxit[cur].status|=Lexem::fReady;
+    _lxit[cur].type=Lexem::fNumber;
     return cur+1;
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ debug staff 
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 
@@ -1054,15 +915,9 @@ char * sCalc::collectResult (sStr * out, idx autoSpace, const char * spcSymb, id
     return out->ptr();
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ debug staff 
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 char * sCalc::debugPrint(const char * t)
 {
-    //sStr str(0,0,0,(sStrCallback)printf,stdout);
     sFil str("debug.log");
     str.printf("\n\n");
     if(t)str.printf("%s\n",t);

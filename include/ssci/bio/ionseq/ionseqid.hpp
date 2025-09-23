@@ -36,33 +36,6 @@
 #include <slib/core/dic.hpp>
 
 namespace slib {
-//    class StringRule
-//    {
-//        public:
-//            enum eTypeRule
-//            {
-//                undefined = 0,
-//                matchString,
-//                rangeString
-//            };
-//            eTypeRule eRule;
-//            idx ruleStart;
-//            idx ruleLen;
-//
-//            StringRule(){
-//                init (undefined, -1, -1);
-//            }
-//            void init (eTypeRule myrule, idx start, idx len)
-//            {
-//                eRule = myrule;
-//                ruleStart = start;
-//                ruleLen = len;
-//            }
-//            void addnewRule (eTypeRule myrule, idx start, idx len)
-//            {
-//                init (myrule, start, len);
-//            }
-//    };
 
     class IonSeqID
     {
@@ -90,10 +63,6 @@ namespace slib {
                 CompressedContainer = 0x02
             };
 
-//            struct indStats{
-//                    idx length;
-//                    idx count;
-//            };
 
             struct IDStats{
                     sVec <idx> compBin;
@@ -123,7 +92,6 @@ namespace slib {
                 bigContainer.cut(0);
                 idIndex.cut(0);
                 idsCompressedTrain.cut(0);
-                // Add the first element to point at 0
                 idIndex.vadd(1, 0);
                 libraryIndex.cut(0);
                 libraryContainer.cut(0);
@@ -189,7 +157,7 @@ namespace slib {
                 idx iwrd = indexBigC[iword].stringpos;
                 const char *charPos = bigContainer.ptr(iwrd);
                 if (idpos){
-                    *idpos = sLen (charPos + pos); //indexBigC[iword].idref;
+                    *idpos = sLen (charPos + pos);
                 }
                 return charPos + pos;
             }
@@ -205,13 +173,10 @@ namespace slib {
 
             bool setIndex(idx idnum, udx contNum, Container cont){
                 udx val = (cont == BigContainer) ? (contNum | LastBitUdx) : (contNum) & ~(LastBitUdx);
-//                udx val = (-contNum ^ (cont==BigContainer ? 1 : 0)) & (LastBitUdx);
-                idnum += 1; // Zero position is reserved
+                idnum += 1;
                 if( idnum < idIndex.dim() ) {
-                    // Already existing
                     *idIndex.ptr(idnum) = val;
                 } else {
-                    // Add a new one
                     idIndex.vadd(1, val);
                 }
 
@@ -225,15 +190,12 @@ namespace slib {
                 udx num = (regid & ~(LastBitUdx));
                 const char *retid = 0;
                 if (bit){
-                    // Goes to the Big Container
                     retid = getLetterFromBigContainer(num, 0, idlen, wStats);
                     buf->addString(retid, *idlen);
                 }
                 else {
-                    // Goes to the Compress Container
                     const char *s = idsCompressedTrain.ptr(num*4);
                     retid = uncompressString (buf, s, idlen, wStats);
-//                    retid = getStringfromLibrary(num, 0, idlen);
                 }
                 return retid;
             }
@@ -255,7 +217,6 @@ namespace slib {
                     buf->printf("avg per id compressed library: %" DEC "\n", idsCompressedTrain.length() / idIndex.dim());
                     buf->addString("\n");
                     if (stats.count) {
-                        // Get internal stats
                         buf->addString("Compressed Library:\n");
                         buf->printf("  Head avg: %" DEC "\n", stats.headLength / stats.count);
                         buf->printf("  Middle avg: %" DEC "\n", stats.middleLength / stats.count);
@@ -270,4 +231,4 @@ namespace slib {
 
     };
 }
-#endif // sBio_ionseqid_hpp
+#endif 

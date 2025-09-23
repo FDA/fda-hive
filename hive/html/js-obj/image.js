@@ -34,7 +34,6 @@ javaScriptEngine.include("js/vjImageView.js");
 vjHO.register('image').Constructor=function ()
 {
 
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.preview(node,dv);
@@ -44,11 +43,9 @@ vjHO.register('image').Constructor=function ()
     {
         var url="?cmd=objFile&propname=thumb&prefix=0&ids="+node.id;
         var dsname= "dsImage-"+node.id;
-        vjDS.add("infrastructure: loading image", dsname, "static://"+url );
+        vjDS.add("infrastructure: loading image", dsname, "static:
         this.viewer=new vjImageView({
             data: dsname,
-//            iconHeight:300,
-//            iconWidth:1000,
             ok: true
             });
         var tab=dv.obj.addTab("image","graph",[this.viewer]);

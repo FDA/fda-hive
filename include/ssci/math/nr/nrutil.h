@@ -36,10 +36,6 @@ using namespace slib;
 
 #define IMIN    sMin
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
-//extern real maxarg1,maxarg2;
-//#define FMAX(a,b) (maxarg1=(a),maxarg2=(b),(maxarg1) > (maxarg2) ? (maxarg1) : (maxarg2))
-//extern real sqrarg;
-//#define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
 
 namespace slib
 {
@@ -52,13 +48,9 @@ namespace slib
             static void free_vector(real *v, idx nl, idx nh);
             static idx * ivector(idx nl, idx nh);
             static void free_ivector(idx *v, idx nl, idx nh);
-            static real ** matrix(idx nrl, idx nrh, idx ncl, idx nch); 
+            static real ** matrix(idx nrl, idx nrh, idx ncl, idx nch);
             static void free_matrix(real **m, idx nrl, idx nrh, idx ncl, idx nch);
 
         };
 }
-#endif // sMath_nr_nrutil_h
-
-
-
-
+#endif 

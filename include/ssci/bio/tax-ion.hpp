@@ -28,21 +28,20 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #pragma once
-#ifndef sLib_TaxIon_hpp
-#define sLib_TaxIon_hpp
+#ifndef sBio_TaxIon_hpp
+#define sBio_TaxIon_hpp
 
 #include <slib/core.hpp>
 #include <slib/utils/tbl.hpp>
-
+#include <ion/sIon.hpp>
 namespace slib {
     class sTaxIon
     {
             sIon myION, *ION;
-            //static idx ion_TaxTraverserCallback(sIon * ion, sIonWander * ts, idx command );
             sIonWander ts, ts1, tsTree, ts2, ts3, ts4;
             sIonWander tsTIBG;
             idx * argTIBG, *argT1, *argTTree, *argT2, *argT3, *argT4;
-            sStr taxbuf;
+            sStr taxbuf,lbuf;
             sStr errormsg;
 
         public:
@@ -105,23 +104,14 @@ namespace slib {
             const char * getTaxIdsByName(const char *name, idx limit, sStr *taxResults00 = 0);
             const char * extractTaxIDfromSeqID(sStr *taxid, sStr *ginum, sStr *accnum, const char *seqid, idx seqlen = 0, const char *defaultStr = 0);
 
-            /* getTaxIdInfo:
-             * input:
-             *    taxid information and length of the id
-             * output: returns information of a specific taxid (comma separated):
-             * 1. current taxid
-             * 2. parent taxid
-             * 3. rank (contains species, genus, family, etc)
-             * 4. name (scientific name)
-             * 5. number of nodes under this taxid
-             */
-            const char * getTaxIdInfo(const char *taxid, idx taxidlen = 0);
+            const char * getTaxIdInfo(const char *taxid, idx taxidlen = 0, const char *fieldSeparator = ",");
             idx getTaxCount(const char * rank, idx ranklen = 0);
             idx getRecordCount(idx recordTypeIndex);
             idx dnaScreeningGItoAcc(sStr &dst, const char *src);
             const char *precompileGItoAcc(void);
-            bool filterbyParent (idx taxPar, idx taxid, sStr *path = 0, bool taxidOnly = false);
+            bool filterbyParent (idx taxPar, idx taxid, sStr *path = 0, bool taxidOnly = false, const char *fieldSeparator=",", const char * recordSeparator = 0);
+            idx filterByRank(sStr *dstTax, const char * srcTax, const char * requiredRank);
     };
-} // namespace
+}
 
-#endif // sLib_TaxIon_hpp
+#endif 

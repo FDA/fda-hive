@@ -33,10 +33,10 @@ DROP TABLE IF EXISTS `QPGrp`;
 CREATE TABLE `QPGrp` (
   `grpID` bigint(20) NOT NULL,
   `reqID` bigint(20) NOT NULL,
-  `jobIDCollect` bigint(20) NOT NULL DEFAULT '0',
+  `jobIDCollect` bigint(20) NOT NULL DEFAULT 0,
   `masterGrpID` bigint(20) DEFAULT NULL,
   KEY `qpreq_grpid` (`grpID`),
   KEY `qpreq_reqid` (`reqID`),
   KEY `qpreq_grp_req` (`grpID`,`reqID`),
   KEY `qpreq_master` (`masterGrpID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

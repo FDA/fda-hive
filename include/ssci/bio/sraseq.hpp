@@ -40,11 +40,8 @@ namespace slib {
         public:
             sSRASeq(const char* path, udx cache_size = 200 * 1024 * 1024);
             virtual ~sSRASeq();
-            // row/sequence/spot count
             virtual idx dim(void);
-            // number of reads in a row - 1 - based, 0 - whole row!!!
-            virtual idx num(idx num, idx readtypes = 0); // bio = 0 | all = 1 | tech = 2
-            // len/seq/qua/id of a read in a row - 1 - based, 0 - whole row!!!
+            virtual idx num(idx num, idx readtypes = 0);
             virtual idx len(idx num, idx iread = 1);
             virtual const char * seq(idx num, idx iread=0, idx ipos = 0, idx ilen = 0);
             virtual const char * id(idx num, idx iread = 0);
@@ -58,4 +55,4 @@ namespace slib {
     };
 }
 
-#endif // sSRA_seq_hpp
+#endif 

@@ -27,22 +27,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- * Xls.h
- *
- *  Created on: Oct 2, 2014
- *      Author: valt
- */
 
 #pragma once
 
 #include <stdlib.h>
 #include <slib/core/str.hpp>
+#include <slib/core/sIO.hpp>
 
 namespace Xls {
 
     const char * csvEncode(char *buf, const char *str, size_t buf_size);
-    int xls2csv(const char *xlsFile, const char *outDir, const char *reSheetNameFilter = NULL, slib::sStr * out_error = NULL);
-    int xlsx2csv(const char *xlsFile, const char *outDir, const char *reSheetNameFilter = NULL, slib::sStr * out_error = NULL);
-    int excel2csv(const char *xlsFile, const char *outDir, const char *reSheetNameFilter = NULL, slib::sStr * out_error = NULL);
+    int xls2csv(const char *xlsFile, const char *outDir, slib::sStr * out_error = NULL);
+    int xlsx2csv(const char *xlsFile, const char *outDir, slib::sStr * out_error = NULL, slib::sIO * out_log = NULL);
+    int excel2csv(const char *xlsFile, const char *outDir, slib::sStr * out_error = NULL, slib::sIO * out_log = NULL);
 }

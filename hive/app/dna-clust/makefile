@@ -30,17 +30,25 @@
 
 PROGRAMS += dna-clust
 
+OBJECT_TYPES = svc-clust
+
 PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
 dna-clust_SRCS = dna-clust.cpp
+
+APPS = Sequence-Hierarchical-Clustering:1
+
+MENUITEMS = \
+/Portal/Classifications/Sequence_Hierarchical_Clustering
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-clust,Sequence Profile Clusterization Engine,/Sequencing/)
 	$(call dist-app,dna-clust,dna-clust)

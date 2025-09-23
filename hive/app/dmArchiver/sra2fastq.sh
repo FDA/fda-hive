@@ -41,22 +41,27 @@ if [ "x$file" = "x" ]; then
 fi
 echo "Input file $file"
 
-which qapp
+which qapp.os${os}
 if [ ! "$?" = "0" ]; then
-    echo "qapp not found"
+    echo "qapp.os${os} not found"
     exit 3
 fi
 pushd . 1>/dev/null 2>&1
 cd $QPRIDE_BIN
-downpath=`qapp -configGet user.download`;
+downpath=`qapp.os${os} -configGet user.download`;
 if [ "x$downpath" = "x" ]; then
     echo "Cannot find 'user.download' in config"
     exit 4
 fi
-sraftpurl=`qapp -configGet 'dmArchiver.SRA-FTP'`;
+sraftpurl=`qapp.os${os} -configGet 'dmArchiver.SRA-FTP'`;
 if [ "x$sraftpurl" = "x" ]; then
     sraftpurl='http://ftp-trace.ncbi.nlm.nih.gov/sra'
     echo "Using default SRA FTP $sraftpurl"
+fi
+srawwwurl=`qapp.os${os} -configGet 'dmArchiver.SRA-WWW'`;
+if [ "x$srawwwurl" = "x" ]; then
+    srawwwurl='http://www.ncbi.nlm.nih.gov/Traces'
+    echo "Using default SRA WWW $srawwwurl"
 fi
 echo "user.download='$downpath'"
 echo "dmArchiver.SRA-FTP='$sraftpurl'"
@@ -99,6 +104,11 @@ cat >$ncbi_kfg <<KFG_EOF
 /config/default = "true"
 
 # The user's default public repository
+
+# The user's default public repository
+/repository/user/main/public/apps/file/volumes/flat = "files"
+/repository/user/main/public/apps/nakmer/volumes/nakmerFlat = "nannot"
+/repository/user/main/public/apps/nannot/volumes/nannotFlat = "nannot"
 /repository/user/main/public/apps/refseq/volumes/refseq = "refseq"
 /repository/user/main/public/apps/sra/volumes/sraFlat = "sra"
 /repository/user/main/public/apps/wgs/volumes/wgsFlat = "wgs"
@@ -111,8 +121,14 @@ cat >$ncbi_kfg <<KFG_EOF
 /repository/remote/main/NCBI/apps/wgs/volumes/fuseWGS = "wgs"
 /repository/remote/main/NCBI/root = "${sraftpurl}"
 
+# Remote access to NCBI's public repository
+/repository/remote/main/CGI/resolver-cgi = "${srawwwurl}/names/names.cgi"
+
 # Remote access to NCBI's protected repository
-/repository/remote/protected/CGI/resolver-cgi = "http://www.ncbi.nlm.nih.gov/Traces/names/names.cgi"
+/repository/remote/protected/CGI/resolver-cgi = "${srawwwurl}/names/names.cgi"
+
+# Aspera configuration
+/tools/ascp/max_rate = "450m"
 KFG_EOF
 
 if [ ! -s $ncbi_kfg ]; then

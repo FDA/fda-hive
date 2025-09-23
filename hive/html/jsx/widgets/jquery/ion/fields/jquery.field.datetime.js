@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.field.datetime.js
 
 $(function () {
     $.widget("ion.field_datetime", $.ion.field_base, {

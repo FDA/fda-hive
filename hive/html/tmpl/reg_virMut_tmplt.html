@@ -52,14 +52,14 @@ google.load("visualization", "1", {packages:["corechart"]});
 
     };
     
-    $(document).ready(function() 
-    {
+    gInitList += "virMutInit();";
+    function virMutInit () {
         globalAlgo = $('#mainAlgoArea').algoview({
             algoObj: algoProcess,
             svcType: "svc-reg_virMut",
             algoTitle: "Viral Mutation Comparator"
         });
-     });
+     };
   
   
 </script>

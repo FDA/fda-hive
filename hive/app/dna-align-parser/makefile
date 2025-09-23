@@ -40,7 +40,7 @@ ifeq ($(devdir),)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-align-parser,Alignment Parser,/Sequencing/, \
         maxJobs=4 \

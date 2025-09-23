@@ -47,4 +47,4 @@ namespace slib{
 
 
 
-#endif /* BIOGENCODE_HPP_ */
+#endif 

@@ -34,12 +34,11 @@ function vjIonExplorerView(viewer)
     this.proportionsTree=60;
     
     
-    var dsTree=vjDS.add("hierarchy of available folders", "ds"+explorer+"Tree" ,"http://"+ 
-            //"dna.cgi?cmd=objList&type=folder&prop=name,child&mode=csv");
+    var dsTree=vjDS.add("hierarchy of available folders", "ds"+explorer+"Tree" ,"http:
             "i.cgi?cmd=brgetjson&sub=%24root&brCnt=20&brStart=0&brSearchTotals=1"
             );
     
-    var dsList=vjDS.add("list of available objects", "ds"+explorer+"List" , "http://dna.cgi?cmd=objList&type=folder&prop=name,childs&mode=csv");
+    var dsList=vjDS.add("list of available objects", "ds"+explorer+"List" , "http:
                     
     var viewerHC = new vjIonHCView ({
         formObject : document.forms[this.formFolders],
@@ -91,4 +90,3 @@ function vjIonExplorerView(viewer)
 };
 
 
-//# sourceURL = getBaseUrl() + "/js/vjIonExplorerView.js"

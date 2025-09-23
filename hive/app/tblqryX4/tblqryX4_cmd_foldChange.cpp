@@ -43,7 +43,7 @@ namespace slib {
                 sVec <idx> colSet_1;
                 sVec <idx> colSet_2;
                 real threshold;
-                RowSorter sorter;   // used for sorting date
+                RowSorter sorter;
 
             public:
                 FoldChangeCommand(ExecContext & ctx) : Command(ctx)
@@ -77,8 +77,6 @@ bool FoldChangeCommand::init(const char * op_name, sVariant * arg)
     }
     if (sVariant * colSetVal = arg->getDicElt("threshold"))
     {
-        //const char * p=colSetVal->asString();if(*p=='[')++p;
-        //sString::scanRangeSet(p,0,&(colSet_2),0ll,0ll,0ll);
         threshold = colSetVal->asReal();
     }
 
@@ -91,9 +89,9 @@ bool FoldChangeCommand::init(const char * op_name, sVariant * arg)
     sorter_arg.setDic();
     sVariant * sorter_formula_arg = sorter_arg.setElt("formulas", 0);
     sorter_formula_arg->setList();
-    sorter_formula_arg->push(tmpFormula.ptr()); // put uniques at bottom
-    sorter_formula_arg->push("-abs(${Fold-Change})"); // put largest abs change at top
-    sorter_formula_arg->push("-${Fold-Change}"); // put +change before -change
+    sorter_formula_arg->push(tmpFormula.ptr());
+    sorter_formula_arg->push("-abs(${Fold-Change})");
+    sorter_formula_arg->push("-${Fold-Change}");
     if( !sorter.init(&sorter_arg, &_ctx, "fold-change") ) {
         return false;
     }
@@ -118,66 +116,58 @@ bool FoldChangeCommand::compute(sTabular * tbl)
     idx col_1 = colSet_1[0];
     idx col_2 = colSet_2[0];
 
-    sTxtTbl * toReturn = new sTxtTbl(); // add 3 more columns to the current one: fold-change,unique 1, unique 2
+    sTxtTbl * toReturn = new sTxtTbl();
 
     toReturn->initWritable(tbl->cols()+3,sTblIndex::fTopHeader,",");
 
-    real value_1, value_2;
-    bool uniq_1 = false, uniq_2=false;
+    real value_1 = 0, value_2 = 0;
+    bool uniq_1 = false, uniq_2 = false;
 
     sVariant tmp;
 
-    // go from the header to the end of the table
-    for (idx ir = -1; ir < tbl->rows(); ir++) // header index = -1
+    for( idx ir = -1; ir < tbl->rows(); ir++ )
     {
         uniq_1 = uniq_2 = false;
 
-        if (ir != -1) { // the value of the selected columns when not the header row
+        if( ir != -1 ) {
             value_1 = tbl->rval(ir, col_1, 0);
             value_2 = tbl->rval(ir, col_2, 0);
-        }
-        // compare those values to the threshold when not the header row
-        if (ir != -1 && (value_1 < threshold || value_2 < threshold)) {
-            continue;
-        }
 
-        // copy the row of the original table to the new table
-        for (idx ic = 0; ic < tbl->cols(); ic++)
-        {
+            if( value_1 < threshold || value_2 < threshold ) {
+                continue;
+            }
+        }
+        for( idx ic = 0; ic < tbl->cols(); ic++ ) {
             tmp.setNull();
             tbl->val(tmp, ir, ic, true);
             toReturn->addCell(tmp);
         }
 
-        if (ir==-1){
+        if( ir == -1 ) {
             sStr hdr_col;
-            hdr_col.printf("Unique Col-%" DEC "",col_1+1);
-            toReturn->addCell("Fold-Change",11, sVariant::value_REAL);
-            toReturn->addCell(hdr_col.ptr(),0,sVariant::value_INT);
-            hdr_col.printf(0,"Unique Col-%" DEC "",col_2+1);
-            toReturn->addCell(hdr_col.ptr(),0, sVariant::value_INT);
-        }
-
-        else {
+            hdr_col.printf("Unique Col-%" DEC "", col_1 + 1);
+            toReturn->addCell("Fold-Change", 11, sVariant::value_REAL);
+            toReturn->addCell(hdr_col.ptr(), 0, sVariant::value_INT);
+            hdr_col.printf(0, "Unique Col-%" DEC "", col_2 + 1);
+            toReturn->addCell(hdr_col.ptr(), 0, sVariant::value_INT);
+        } else {
             sVariant ratio;
-            if (value_1==0 && value_2==0){
+            if( value_1 == 0 && value_2 == 0 ) {
                 ratio.setReal(1);
-            } else if ( value_1 == 0 && value_2 != 0 ){
+            } else if( value_1 == 0 && value_2 != 0 ) {
                 uniq_2 = true;
-            } else if (  value_1 != 0 && value_2 == 0  ){
+            } else if( value_1 != 0 && value_2 == 0 ) {
                 uniq_1 = true;
             } else {
-                if (value_1 > value_2) {
-                    ratio.setReal(value_1/value_2);
-                }
-                else {
-                    ratio.setReal (- ( value_2/value_1 ));
+                if( value_1 > value_2 ) {
+                    ratio.setReal(value_1 / value_2);
+                } else {
+                    ratio.setReal(-(value_2 / value_1));
                 }
             }
             toReturn->addCell(ratio);
             toReturn->addBoolCell(uniq_1);
             toReturn->addBoolCell(uniq_2);
-
         }
         toReturn->addEndRow();
     }
@@ -190,28 +180,7 @@ bool FoldChangeCommand::compute(sTabular * tbl)
         return false;
     }
     _ctx.qlangCtx().setTable(0);
-    //sTxtTbl * reordered = new sTxtTbl(); // add 3 more columns to the current one: fold-change,unique 1, unique 2
-#if 0
-    reordered->initWritable(toReturn->cols(),sTblIndex::fTopHeader,",");
 
-    for (idx ir=-1; ir < sortedIndexes.dim(); ++ir){
-        for (idx ic=0; ic < toReturn->cols(); ++ic){
-            if (ir==-1){
-                sVariant curCell;
-                toReturn->val(curCell,ir,ic,true);
-                reordered->addCell(curCell);
-            } else {
-                idx newIndex = sortedIndexes[ir];
-                sVariant myCurCell;
-                toReturn->val(myCurCell,newIndex,ic,true);
-                reordered->addCell(myCurCell);
-            }
-        }
-        reordered->addEndRow();
-    }
-#endif
-
-//  setOutTable(toReturn);
     setOutTable(reordered);
     return true;
 }

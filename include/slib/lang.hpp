@@ -36,4 +36,4 @@
 
 using namespace slib;
 
-#endif // sLib_lang_hpp
+#endif 

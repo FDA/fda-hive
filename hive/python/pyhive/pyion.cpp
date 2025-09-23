@@ -48,14 +48,15 @@ static PyObject * Ion_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static void Ion_dealloc(pyhive::Ion *self)
 {
     delete self->ion;
-    self->ob_type->tp_free((PyObject*)self);
+    self->name.destroy();
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int Ion_init(pyhive::Ion *self, PyObject * args, PyObject * kwds);
 
 static PyObject * Ion_repr(pyhive::Ion * self)
 {
-    sStr buf("<%s ", self->ob_type->tp_name);
+    sStr buf("<%s ", Py_TYPE(self)->tp_name);
     if( self->name.length() ) {
         if( self->obj_id ) {
             self->obj_id.print(buf);
@@ -65,13 +66,13 @@ static PyObject * Ion_repr(pyhive::Ion * self)
         buf.addString(" ");
     }
     buf.printf("at %p>", self);
-    return PyString_FromString(buf.ptr());
+    return PyUnicode_FromString(buf.ptr());
 }
 
 static PyObject * Ion_get_name(pyhive::Ion * self, void * closure)
 {
     if( self->name.ptr() ) {
-        return PyString_FromString(self->name.ptr());
+        return PyUnicode_FromString(self->name.ptr());
     } else {
         Py_RETURN_NONE;
     }
@@ -83,50 +84,49 @@ static PyGetSetDef Ion_getsetters[] = {
 };
 
 PyTypeObject IonType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.Ion",              // tp_name
-    sizeof(pyhive::Ion),       // tp_basicsize
-    0,                         // tp_itemsize
-    (destructor)Ion_dealloc,   // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    (reprfunc)Ion_repr,        // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    0,                         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.Ion",
+    sizeof(pyhive::Ion),
+    0,
+    (destructor)Ion_dealloc,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)Ion_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     "ION graph database handle\n\n"\
     "Initialized from a HIVE ID (as integer or string or `pyhive.Id` object) and basename, or as full path:\n"\
     "   >>> pyhive.Ion(12345, 'foobar')\n"
-    "   <pyhive.Ion 12345/foobar.ion at 0x7fa2be26a0f0>\n"\
-    "   >>> pyhive.Ion(path='/tmp/dir/my_ions/foobar.ion')\n"\
-    "   <pyhive.Ion foobar.ion at 0x7fa2be26a0f0>\n",   // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    0,                         // tp_methods
-    0,                         // tp_members
-    Ion_getsetters,            // tp_getset
-    0,                         // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    (initproc)Ion_init,        // tp_init
-    0,                         // tp_alloc
-    Ion_new,                   // tp_new
+    "   <pyhive.Ion 12345/foobar at 0x7fa2be26a0f0>\n"\
+    "   >>> pyhive.Ion(path='/tmp/dir/my_ions/foobar') # without .ion extension\n"\
+    "   <pyhive.Ion foobar at 0x7fa2be26a0f0>\n",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Ion_getsetters,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (initproc)Ion_init,
+    0,
+    Ion_new,
 };
 
 static int Ion_init(pyhive::Ion *self, PyObject * args, PyObject * kwds)
@@ -146,31 +146,39 @@ static int Ion_init(pyhive::Ion *self, PyObject * args, PyObject * kwds)
     }
 
     if( id_arg && basename_arg ) {
-        pyhive::Obj obj;
-        if( !obj.init(id_arg) ) {
+        pyhive::Obj * obj = pyhive::Obj::create();
+        if( !obj->init(id_arg) ) {
+            Py_DECREF(obj);
             return -1;
         }
         sStr ion_path;
-        if( !obj.uobj || !obj.uobj->getFilePathname(ion_path, "%s.ion", basename_arg) ) {
-            sStr err_string("Failed to find ION database %s in object %s", basename_arg, obj.uobj ? obj.uobj->Id().print() : "0");
-            PyErr_SetString(PyExc_SystemError, err_string.ptr());
+        if( !obj->uobj || !obj->uobj->getFilePathname(ion_path, "%s.ion", basename_arg) ) {
+            sStr err_string("Failed to find ION database %s in object %s", basename_arg, obj->uobj ? obj->uobj->Id().print() : "0");
+            PyErr_SetString(pyhive::RuntimeError, err_string.ptr());
+            Py_DECREF(obj);
             return -1;
         }
+        ion_path.cut0cut(sMax<idx>(0, ion_path.length() - 4));
         self->ion = new sIon(ion_path.ptr(), sMex::fReadonly);
+        fprintf(stderr, "%s\n", ion_path.ptr());
         if( !self->ion->ok() ) {
             delete self->ion;
             self->ion = 0;
-            sStr err_string("Failed to load ION database %s from object %s", basename_arg, obj.uobj ? obj.uobj->Id().print() : "0");
-            PyErr_SetString(PyExc_SystemError, err_string.ptr());
+            sStr err_string("Failed to load ION database %s from object %s", basename_arg, obj->uobj ? obj->uobj->Id().print() : "0");
+            PyErr_SetString(pyhive::RuntimeError, err_string.ptr());
+            Py_DECREF(obj);
             return -1;
         }
+        self->obj_id = obj->uobj->Id();
+        self->name.cutAddString(0, basename_arg);
+        Py_DECREF(obj);
     } else if( path_arg ) {
         self->ion = new sIon(path_arg, sMex::fReadonly);
         if( !self->ion->ok() ) {
             delete self->ion;
             self->ion = 0;
             sStr err_string("Failed to load ION database at %s", path_arg);
-            PyErr_SetString(PyExc_SystemError, err_string.ptr());
+            PyErr_SetString(pyhive::RuntimeError, err_string.ptr());
             return -1;
         }
         self->name.cutAddString(0, sFilePath::nextToSlash(path_arg));
@@ -182,7 +190,6 @@ static int Ion_init(pyhive::Ion *self, PyObject * args, PyObject * kwds)
     return 0;
 }
 
-//static
 bool pyhive::Ion::typeinit(PyObject * mod)
 {
     if( PyType_Ready(&IonType) < 0 ) {
@@ -209,21 +216,21 @@ static void TaxIon_dealloc(pyhive::TaxIon *self)
 {
     Py_XDECREF(self->tax_db_obj);
     delete self->ptax_ion;
-    self->head.ob_type->tp_free((PyObject*)self);
+    Py_TYPE(&(self->head))->tp_free((PyObject*)self);
 }
 
 static int TaxIon_init(pyhive::TaxIon *self, PyObject * args, PyObject * kwds);
 
 static PyObject* TaxIon_repr(pyhive::TaxIon * self)
 {
-    sStr buf("<%s ", self->head.ob_type->tp_name);
+    sStr buf("<%s ", Py_TYPE(&(self->head))->tp_name);
     pyhive::Obj * obj = pyhive::Obj::check(self->tax_db_obj);
     if( obj && obj->uobj ) {
         obj->uobj->Id().print(buf);
         buf.addString(" ");
     }
     buf.printf("at %p>", self);
-    return PyString_FromString(buf.ptr());
+    return PyUnicode_FromString(buf.ptr());
 }
 
 static PyObject * TaxIon_get_tax_id_info(pyhive::TaxIon * self, PyObject * args, PyObject * kwds)
@@ -241,10 +248,10 @@ static PyObject * TaxIon_get_tax_id_info(pyhive::TaxIon * self, PyObject * args,
         return 0;
     }
     sTxtTbl result_parser;
-    result_parser.parseOptions().flags = 0; // no header!
+    result_parser.parseOptions().flags = 0;
     result_parser.setBuf(tax_result, tax_result_len);
     if( !result_parser.parse() || result_parser.cols() < 5  ) {
-        PyErr_SetString(PyExc_SystemError, "Taxonomy database result in unexpected format");
+        PyErr_SetString(pyhive::RuntimeError, "Taxonomy database result in unexpected format");
         return 0;
     }
     PyObject * ret_dict = PyDict_New();
@@ -257,11 +264,11 @@ static PyObject * TaxIon_get_tax_id_info(pyhive::TaxIon * self, PyObject * args,
     PyDict_SetItemString(ret_dict, "parent_tax_id", ret_parent_tax_id);
     Py_DECREF(ret_parent_tax_id);
 
-    PyObject * ret_rank = PyString_FromString(result_parser.printCell(buf, 0, 2));
+    PyObject * ret_rank = PyUnicode_FromString(result_parser.printCell(buf, 0, 2));
     PyDict_SetItemString(ret_dict, "rank", ret_rank);
     Py_DECREF(ret_rank);
 
-    PyObject * ret_name = PyString_FromString(result_parser.printCell(buf, 0, 3));
+    PyObject * ret_name = PyUnicode_FromString(result_parser.printCell(buf, 0, 3));
     PyDict_SetItemString(ret_dict, "name", ret_name);
     Py_DECREF(ret_name);
 
@@ -289,10 +296,10 @@ static PyObject * TaxIon_get_tax_ids_by_name(pyhive::TaxIon * self, PyObject * a
 
     sTxtTbl result_parser;
     sStr buf;
-    result_parser.parseOptions().flags = 0; // no header!
+    result_parser.parseOptions().flags = 0;
     result_parser.setBuf(tax_result, tax_result_len);
     if( (tax_result_len && !result_parser.parse()) || (result_parser.rows() && result_parser.cols() < 2) ) {
-        PyErr_SetString(PyExc_SystemError, "Taxonomy database result in unexpected format");
+        PyErr_SetString(pyhive::RuntimeError, "Taxonomy database result in unexpected format");
         return 0;
     }
 
@@ -303,7 +310,7 @@ static PyObject * TaxIon_get_tax_ids_by_name(pyhive::TaxIon * self, PyObject * a
         if( udx tax_id = result_parser.uval(ir, 0) ) {
             PyTuple_SET_ITEM(ret_tuple, 0, pyhive::udx2py(tax_id));
         } else {
-            PyErr_SetString(PyExc_SystemError, "Taxonomy database result in unexpected format");
+            PyErr_SetString(pyhive::RuntimeError, "Taxonomy database result in unexpected format");
             Py_DECREF(ret_tuple);
             Py_DECREF(ret_list);
             ret_list = 0;
@@ -312,9 +319,9 @@ static PyObject * TaxIon_get_tax_ids_by_name(pyhive::TaxIon * self, PyObject * a
 
         buf.cut0cut(0);
         if( result_parser.printCell(buf, ir, 1) ) {
-            PyTuple_SET_ITEM(ret_tuple, 1, PyString_FromString(buf.ptr()));
+            PyTuple_SET_ITEM(ret_tuple, 1, PyUnicode_FromString(buf.ptr()));
         } else {
-            PyErr_SetString(PyExc_SystemError, "Taxonomy database result in unexpected format");
+            PyErr_SetString(pyhive::RuntimeError, "Taxonomy database result in unexpected format");
             Py_DECREF(ret_tuple);
             Py_DECREF(ret_list);
             ret_list = 0;
@@ -358,46 +365,45 @@ static PyGetSetDef TaxIon_getsetters[] = {
 };
 
 PyTypeObject TaxIonType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.TaxIon",           // tp_name
-    sizeof(pyhive::TaxIon),    // tp_basicsize
-    0,                         // tp_itemsize
-    (destructor)TaxIon_dealloc,// tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    (reprfunc)TaxIon_repr,     // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    0,                         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.TaxIon",
+    sizeof(pyhive::TaxIon),
+    0,
+    (destructor)TaxIon_dealloc,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)TaxIon_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     "HIVE ION interface to NCBI taxonomy database\n\n"\
-    "Child class of `pyhive.Ion`", // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    TaxIon_methods,            // tp_methods
-    0,                         // tp_members
-    TaxIon_getsetters,         // tp_getset
-    &IonType,                  // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    (initproc)TaxIon_init,     // tp_init
-    0,                         // tp_alloc
-    TaxIon_new,                // tp_new
+    "Child class of `pyhive.Ion`",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    TaxIon_methods,
+    0,
+    TaxIon_getsetters,
+    &IonType,
+    0,
+    0,
+    0,
+    0,
+    (initproc)TaxIon_init,
+    0,
+    TaxIon_new,
 };
 
 static int TaxIon_init(pyhive::TaxIon *self, PyObject * args, PyObject * kwds)
@@ -420,7 +426,7 @@ static int TaxIon_init(pyhive::TaxIon *self, PyObject * args, PyObject * kwds)
     sHiveId tax_db_hive_id;
     sStr ionP, error_log;
     if( !sviolin::SpecialObj::findTaxDbIonPath(ionP, *pyhive_proc->proc->user, 0, &tax_db_hive_id, &error_log) ) {
-        PyErr_SetString(PyExc_SystemError, error_log.ptr());
+        PyErr_SetString(pyhive::RuntimeError, error_log.ptr());
         return -1;
     }
 
@@ -444,12 +450,11 @@ static int TaxIon_init(pyhive::TaxIon *self, PyObject * args, PyObject * kwds)
     self->tax_db_obj = (PyObject*)tax_db_obj;
     self->head.ion = self->ptax_ion->getIon();
     self->head.obj_id = tax_db_hive_id;
-    self->head.name.cutAddString(0, "ncbiTaxonomy.ion");
+    self->head.name.cutAddString(0, "ncbiTaxonomy");
 
     return 0;
 }
 
-//static
 bool pyhive::TaxIon::typeinit(PyObject * mod)
 {
     if( PyType_Ready(&TaxIonType) < 0 ) {
@@ -460,7 +465,6 @@ bool pyhive::TaxIon::typeinit(PyObject * mod)
     return true;
 }
 
-//static
 pyhive::TaxIon * pyhive::TaxIon::check(PyObject * o)
 {
     if( o && o->ob_type == &TaxIonType ) {
@@ -470,7 +474,6 @@ pyhive::TaxIon * pyhive::TaxIon::check(PyObject * o)
     }
 }
 
-//static
 pyhive::Ion * pyhive::Ion::check(PyObject * o)
 {
     if( o && o->ob_type == &IonType ) {
@@ -482,7 +485,6 @@ pyhive::Ion * pyhive::Ion::check(PyObject * o)
     }
 }
 
-//static
 sIon * pyhive::Ion::getIon(PyObject * o)
 {
     sIon * ret = NULL;

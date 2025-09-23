@@ -35,27 +35,20 @@
 #include <slib/core/dic.hpp>
 #include <slib/utils/sort.hpp>
 #include <ssci/math/rand/rand.hpp>
+#include <math.h>
 
 namespace slib
 {
-    class sStat { // lower level functions
+    class sStat {
     public:
+        struct tagSta{real ss,ave ; idx n;};
 
         static void statTest(real * actmat, idx rows, idx cols, sVec < sVec < idx > >  * colset, real * probvals, real * tstatvals);
+        static void statTestCols(real * actmat, idx rows, idx cols, sDic < sVec < idx > >  * rowset, real * probvals, real * tstatvals, bool isPariwiseTTest=false, tagSta * stats=0);
         static real studentsT(real t, real df);
         static real studentsF(real f, real df1, real df2);
-/*
-        static real min(sVec<idx> * array); //! will return minimum value of given array with related index
-        static real max(sVec<idx> * array); //! will return maximum value of given array with related index
-        static real mean(sVec<idx> * array); //! will return mean value of given array
-        static real median(sVec<idx> * array); //! will return median value of given array
-        static real mode(sVec<idx> * array); //! will return mode value of given array
-        static real range(sVec<idx> * array); //! will return range value of given array
-        static real variance(sVec<idx> * array); //! will return variance value of given array
-        static real stDev(sVec<idx> * array); //! will return standard deviation value of given array
-        */
 
-        template <class T> static real min(sVec<T> * array) //! will return minimum value of given array with related index
+        template <class T> static real min(sVec<T> * array)
         {
             if(array->dim()==0){
                 return sNotIdx;
@@ -66,13 +59,10 @@ namespace slib
                     itemp = i;
                 }
             }
-           /* if (pos){
-                *pos=(idx)itemp;
-            }*/
             return *array->ptr(itemp);
 
         }
-        template <class T> static real max(sVec<T> * array) //! will return miximum value of given array with related index
+        template <class T> static real max(sVec<T> * array)
         {
             if(array->dim()==0){
                 return sNotIdx;
@@ -83,13 +73,10 @@ namespace slib
                     itemp = i;
                 }
             }
-           /* if (pos){
-                *pos=itemp;
-            }*/
             return *array->ptr(itemp);
 
         }
-        template <class T> static real mean(sVec<T> * array){//!The "mean" is the "average"
+        template <class T> static real mean(sVec<T> * array){
             if(array->dim()==0){
                     return sNotIdx;
                 }
@@ -101,7 +88,7 @@ namespace slib
             return temp/(array->dim());
 
         }
-        template <class T> static real median(sVec<T> * array){ //!The "median" is the "middle" value in the list of numbers.
+        template <class T> static real median(sVec<T> * array){
             if(array->dim()==0){
                         return sNotIdx;
                     }
@@ -129,7 +116,7 @@ namespace slib
 
 
         }
-        template <class T> static real mode(sVec<T> * array){//! The "mode" is the value that occurs most often. If no number is repeated, then there is no mode for the list.
+        template <class T> static real mode(sVec<T> * array){
             if(array->dim()==0){
                            return sNotIdx;
                        }
@@ -153,14 +140,13 @@ namespace slib
                         iMaxRepeat = i;
                     }
                 }
-                //to do no mode mode
             if(iMaxRepeat==0) return sNotIdx;
             return *array->ptr(iMaxRepeat);
 
         }
 
 
-        template <class T> static real range(sVec<T> * array){//!The "range" is just the difference between the largest and smallest values.
+        template <class T> static real range(sVec<T> * array){
             real minimum=min(array);
             real maximum=max(array);
             return maximum-minimum;
@@ -222,24 +208,6 @@ namespace slib
             }
             return cnt;
         }
-        /*! Detect peaks in vector  based on the amplitude and other features. Returns the number of peaks.
-        *    signal : input vector.
-        *    peaks : results with the indices of the peaks detected
-        *    groups : (optional) vector with mapped positions of input to each peak
-        *    minPeak : detect peaks that are greater than minimum peak height, optional (default = 0)
-        *    threshold :  optional (default = 0)
-        *        detect peaks (valleys) that are greater (smaller) than `threshold`
-        *        in relation to their immediate neighbors.
-        *    minDistance :  optional (default = 1)
-        *        detect peaks (valleys) that are separated at least minDistance positions
-        *        from each other.
-        *    edge : {0:None, 1:'rising', 2:'falling', 3:'both'}, optional (default = 0)
-        *        for a flat peak, keep only the rising edge ('rising'), only the
-        *        falling edge ('falling'), both edges ('both'), or don't detect a
-        *        flat peak (None).
-        *    valley : bool, optional (default = False)
-        *        if True (1), detect valleys (local minima) instead of peaks.
-        */
 
         template<class T> static idx peakDetection(sVec<T> &signal, sVec<idx> * peak_inds, sVec<idx> * groups = 0, bool reportBoundaries = false,idx minDistance = 1, idx reportSideOfPlateau = 0, bool valleyDetection = false, T minPeak = 0, T threshold = 0)
         {
@@ -338,23 +306,67 @@ namespace slib
             return peak_inds ? p_peaks->dim() : groups->dim();
         }
 
+        template<class T> static T powerSum(sVec<T> &v, idx k)
+        {
+                T sum;
+                sSet(&sum);
+                for ( idx i = 0 ; i < v.dim() ; ++i ) {
+                    sum += pow(v[i],k);
+                }
+                return sum;
+        }
+        template<class T> static T simpsonIndex(sVec<T> &v)
+        {
+                return powerSum(v,2);
+        }
+        template<class T> static T giniSimpsonIndex(sVec<T> &v)
+        {
+                return 1 - simpsonIndex(v);
+        }
 
-        // A class to house the mixture of categorical factor analyzers
+        template<class T> static real shannonEntropy(sVec<T> &v)
+        {
+                real sum = 0; real cur_v = 0;
+                for ( idx i = 0 ; i < v.dim() ; ++i ) {
+                    cur_v = static_cast<real>(v[i]);
+                    if( likely (cur_v != 0) ) {
+                        sum -= cur_v * log10((real)cur_v);
+                    }
+                }
+                return sum;
+        }
+
+        template<class T> static real shannonEntropyDimensionNormalized(sVec<T> &v)
+        {
+                if( unlikely(v.dim()<=1 ) ) {
+                    return 0;
+                } else {
+                    return shannonEntropy(v)/log10(v.dim());
+                }
+        }
+
+        template<class T> static T collisionEntropy(sVec<T> &v)
+        {
+                T sum = simpsonIndex(v);
+                if( unlikely(sum == 0) ) {
+                    return 0;
+                }
+                return -log10(sum);
+        }
+
         class MixtureFactorAnalyzers {
 
             private:
                 idx numComp;
                 idx numVar;
                 idx * numVal;
-                real * p; // Latent variables
-                real *** mu; // List of probabilities organized by variable, component, value probability
+                real * p;
+                real *** mu;
 
                 void randomMFA(void) {
-                    // Initialize the probabilities of the latent classes
                     p = new real[numComp];
                     sRand::dirichletRand(p,numComp);
 
-                    // Initialize the probabilities of the factor models
                     mu = new real**[numVar];
                     for (idx d=0; d < numVar; d++) {
                         mu[d] = new real*[numComp];
@@ -372,9 +384,7 @@ namespace slib
                 void cumProbs(real * q, real *** nu);
 
             public:
-                // Constructors
 
-                // Random MFA
                 MixtureFactorAnalyzers(idx _numComp, idx _numVar, idx * _numVal) {
                     numComp = _numComp;
                     numVar = _numVar;
@@ -382,28 +392,23 @@ namespace slib
                     randomMFA();
                 };
 
-                // Construct from EM training algorithm
                 MixtureFactorAnalyzers(idx _numComp, idx _numVar, idx * _numVal, idx ** observations, idx numObs, real stopThresh, idx maxIter) {
-                                    // First, perform random initialization
                                     numComp = _numComp;
                                     numVar = _numVar;
                                     numVal = _numVal;
                                     randomMFA();
 
-                                    // Perform the first EM step
                                     real oldLL = logLikelihood(observations,numObs) / ((real) numObs);
                                     EMUpdate(observations,numObs);
                                     real newLL = logLikelihood(observations,numObs) / ((real) numObs);
                                     idx iter = 1;
 
-                                    // Iterate up to maxIter or until the average logLikelihood is small enough
                                     while ( iter < maxIter && newLL-oldLL < stopThresh) {
                                         oldLL = newLL;
                                         EMUpdate(observations,numObs);
                                         newLL = logLikelihood(observations,numObs) / ((real) numObs);
                                     }
 
-                                    //TODO Consider verbose mode
                                 };
 
                 real logLikelihood(idx ** observations, idx numObs);
@@ -416,8 +421,7 @@ namespace slib
 
 }
 
-#endif // sMath_stat_hpp
-
+#endif 
 
 
 

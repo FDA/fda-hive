@@ -28,11 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*********************
- *
- *      VIEWS
- *
- **********************/
 
 
 function vjRecombDownloadsView(viewer) {
@@ -164,7 +159,7 @@ function vjRecombSNPProfileSNPInDelsView(viewer) {
     this.isNrenderOnHide = true;
     this.options = {
         focusTarget : 'category',
-        isStacked : true, // true,
+        isStacked : true,
         width : viewer.width?viewer.width:'90%',
         height : 220,
         vAxis : {
@@ -203,7 +198,7 @@ function vjRecombSNPProfileSNPInDelsView(viewer) {
 function vjRecombPolyplotView (viewer) {
     this.options = {
         focusTarget: 'category',
-        isStacked: true, //true,
+        isStacked: true,
         width: '90%', height: 220,
         vAxis: { maxValue: 1, title: 'Recombination rate' },
         lineWidth: 1,
@@ -224,7 +219,7 @@ function vjRecombPolyplotScaledView (viewer) {
 function vjRecombCoverageView (viewer) {
     this.options = {
         focusTarget: 'category',
-        isStacked: true, //true,
+        isStacked: true,
         width: '90%', height: 220,
         vAxis: { maxValue: 1, title: 'Recombination rate' },
         lineWidth: 1,
@@ -246,11 +241,6 @@ function vjRecombCoverageScaledView (viewer) {
 
 
 
-/*********************
- *
- *      CONTROLS
- *
- **********************/
 function vjRecombSNPProfileControl(viewer)
 {
 
@@ -345,4 +335,3 @@ function vjRecombCoverageControl(viewer){
     return [ this.coverage, this.coverage_scaled];
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjRecombView.js"

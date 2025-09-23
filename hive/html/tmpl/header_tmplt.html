@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 
 <html>
@@ -12,17 +13,27 @@
     <META HTTP-EQUIV="expires" CONTENT="0" />
     <META HTTP-EQUIV="pragma" CONTENT="NO-CACHE" />
 
+
+    <script type="text/javascript" src="js/validate.js"></script>
+    <script type="text/javascript" src="js/purify.min.js"></script>
+
+    <!-- Style Sheets -->
     <link rel="stylesheet" type="text/css" href="jquery/jquery-ui/1.11.0/jquery-ui.css" />
+    <link rel="stylesheet" href="jquery/3rd/lightbox/lightbox.css" type="text/css" />
 
     <link rel="stylesheet" href="css/hive.css" type="text/css" />
     <link rel="stylesheet" href="css/top.css" type="text/css" />
-    <link rel="stylesheet" href="css/documentation.css" type="text/css" />
-    <link rel="stylesheet" href="css/qpstyles.css" type="text/css" />
-    <link rel="stylesheet" href="css/documentation.css" type="text/css" />
+    <link rel="stylesheet" href="css/modal.css" type="text/css"/>
 
     <link rel="stylesheet" href="css/header.css" type="text/css" />
+    <link rel="stylesheet" href="css/news-header.css" type="text/css" />
+    <link rel="stylesheet" href="css/footer.css" type="text/css" />
     
-    <link rel="stylesheet" href="jquery/3rd/lightbox/lightbox.css" type="text/css" />
+    <!--     Loads iconmoon icons and stylize them for the layout manager-->
+    <link rel="stylesheet" href="css/icons/icomoon/style.css" type="text/css"/>
+    
+    <!--     Loads fonts    -->
+    <link rel="stylesheet" href="jsx/widgets/css/font.css" type="text/css"/>
     
     <!-- order apparently matters for some browsers; using recommendations from https://github.com/RealFaviconGenerator -->
     <link rel="shortcut icon" href="img/hive-hexagon.ico">
@@ -31,18 +42,18 @@
     <link rel="icon" type="image/png" href="img/hive-hexagon-32.png" sizes="32x32">
 
     <!-- third-party javascripts -->
-    <script type="text/javascript" src="es-shims/es5-shim.min.js"></script>
-    <script type="text/javascript" src="es-shims/es5-sham.min.js"></script>
+<!-- will look at behavior, and return if need be     <script type="text/javascript" src="es-shims/es5-shim.min.js"></script>
+    <script type="text/javascript" src="es-shims/es5-sham.min.js"></script> -->
     <script type="text/javascript" src="json3/json3.min.js"></script>
-    <script type="text/javascript" src="jquery/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="jquery/jquery-2.2.4.js"></script>
     <script type="text/javascript" src="jquery/jquery-ui/1.11.0/jquery-ui.js"></script>
     <script type="text/javascript" src="jquery/3rd/jquery.livequery.js"></script>
     <script type="text/javascript" src="jquery/3rd/jquery.storageapi.min.js"></script>
     
     <script type="text/javascript" src="jsep/jsep.min.js"></script>
-     <script type="text/javascript" src="threejs/three.min.js"></script>
-     <script type="text/javascript" src="threejs/threex.domevent.js"></script>
-     
+    <script type="text/javascript" src="threejs/three.min.js"></script>
+    <script type="text/javascript" src="threejs/threex.domevent.js"></script>
+
 
     <!-- standard polyfills for old browsers -->
     <script type="text/javascript" src="js/polyfill.js"></script>
@@ -50,140 +61,138 @@
     <!-- new ui utils/helper methods -->
     <script type="text/javascript" src="jsx/widgets/jquery/jquery.utils.js"></script>
     <script type="text/javascript" src="jsx/widgets/jquery/jquery.hivetoolbar.js"></script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="oldjs/qpride.js"></script>
-
-
+    
     <!-- hive js framework -->
-    <script type="text/javascript" language="JavaScript1.1" src="js/basic.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/colors.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/json2.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjObj.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjQPride.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjDataSource.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjDataView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjJavaScript.js"></script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="js-obj/hive-objects.js"></script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjTable.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjTree.js"></script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjMenuView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjImageView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjTextView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjTableView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjTreeView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjRecordView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjHTMLView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjHelpView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjProgressView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjGoogleGraphView.js"></script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjHoneyComb.js"></script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjPageLayout.js"></script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjPageLayoutSequence.js"></script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjVisualElements.js"></script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjDataSourceView.js"> </script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjDataSeries.js"> </script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjAlignmentView.js"> </script>
+    <script type="text/javascript" src="js/basic.js"></script>
+    <script type="text/javascript" src="js/colors.js"></script>
+    <script type="text/javascript" src="js/json2.js"></script>
+    <script type="text/javascript" src="js/vjObj.js"></script>
+    <script type="text/javascript" src="js/vjQPride.js"></script>
+    <script type="text/javascript" src="js/vjDataSource.js"></script>
+    <script type="text/javascript" src="js/vjDataView.js"></script>
+    <script type="text/javascript" src="js/vjJavaScript.js"></script>
+    <script type="text/javascript" src="js/vjTable.js"></script>
+    <script type="text/javascript" src="js/vjTree.js"></script>
+    <script type="text/javascript" src="js/vjMenuView.js"></script>
+    <script type="text/javascript" src="js/vjImageView.js"></script>
+    <script type="text/javascript" src="js/vjTextView.js"></script>
+    <script type="text/javascript" src="js/vjTableView.js"></script>
+    <script type="text/javascript" src="js/vjTreeView.js"></script>
+    <script type="text/javascript" src="js/vjRecordView.js"></script>
+    <script type="text/javascript" src="js/vjHTMLView.js"></script>
+    <script type="text/javascript" src="js/vjHelpView.js"></script>
+    <script type="text/javascript" src="js/vjProgressView.js"></script>
+    <script type="text/javascript" src="js/vjGoogleGraphView.js"></script>
+    <script type="text/javascript" src="js/vjHoneyComb.js"></script>
+    <script type="text/javascript" src="js/vjPageLayout.js"></script>
+    <script type="text/javascript" src="js/vjPageLayoutSequence.js"></script>
+    <script type="text/javascript" src="js/vjVisualElements.js"></script>
+    <script type="text/javascript" src="js/vjDataSourceView.js"> </script>
+    <script type="text/javascript" src="js/vjDataSeries.js"> </script>
+    <script type="text/javascript" src="js/vjAlignmentView.js"> </script> 
+    <script type="text/javascript" src="js/vjExplorerBaseView.js"></script>
+    <script type="text/javascript" src="js/vjDirectoryView.js"></script>
+    <script type="text/javascript" src="js/vjExplorerUsrView.js"></script>
     
-    <script type="text/javascript" language="JavaScript1.1" src="js-obj/u-hiveseq.js"> </script>
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjHiveseqView.js"> </script>
+    <script type="text/javascript" src="js-obj/hive-objects.js"></script>
+    <script type="text/javascript" src="js-obj/u-hiveseq.js"> </script>
     
-    <script type="text/javascript" language="JavaScript1.1" src="js/vjTaxonomyView.js"> </script>
-    
+    <!-- d3 library -->
     <script type="text/javascript" src="d3js/core/d3.js"></script>
     <script type="text/javascript" src="d3js/core/d3.csv.js"></script>
     <script type="text/javascript" src="d3js/d3js_basics.js"></script>
 
-    <script type="text/javascript" language="JavaScript1.1" src="d3js/3d_scatter.js"> </script>
-    <script type="text/javascript" language="JavaScript1.1" src="d3js/zoomable_lineGraph.js"> </script>
-    
-    <script type="text/javascript" language="JavaScript1.1"
-        src="js/vjExplorerBaseView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1"
-        src="js/vjDirectoryView.js"></script>
-    <script type="text/javascript" language="JavaScript1.1"
-        src="js/vjExplorerUsrView.js"></script>
-
-    <script type="text/javascript" language="JavaScript1.1" src="js/facts.js"></script>
- 
+    <script type="text/javascript" src="js/facts.js"></script> 
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<!--    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>-->
+         
+    <link rel="stylesheet" href="jsx/widgets/css/json-viewer.css" type="text/css"/>
+    <script type="text/javascript" src="jsx/widgets/vanilla/json-viewer.js"></script>
 
 <!--
  $Id$
 -->
 
-
-
+<div id="dataSourceDiv"></div>
 
 <script  type="text/javascript" >
+    // Determine if user is working from a project
+    let getProjectInfo = function(fn){
+        vjDS.dsProjectInfo.reload(`http://?cmdr=propget&prop=Title%2Cname%2C&mode=json&ids=${projectHandler.getProjectID()}`,true)
+        vjDS.dsProjectInfo.register_callback(function(obj, data){
+            var json = JSON.parse(data);
+            // Change ID to nickname that will be picked up
+            if (json.name) { projectHandler.setProjectNickname(json.name) }
+            if (json.Title) { projectHandler.setProjectName(json.Title) }
+            if (fn) { fn() }
+        })
+    }
 
+    if (projectHandler.getProjectID()) {
+        vjDS.add("", "dsProjectInfo", `http://?cmdr=propget&prop=Description_Title%2Cname%2Cnickname&mode=json&ids=${projectHandler.getProjectID()}`)
+        getProjectInfo()
+    }
+
+    $.loadScript('jsx/widgets/jquery/jquery.dataSource.js');
 
     __updateEnvironment();
+    var totalNewsCount = 0;
+    
+    function postTimeout(){
+        vjDS.dsUserObjInfo.reload("http://?cmd=objQry&qry=alloftype(\"user-settings\").csv([\"notification_cutoff\",\"notification_checked_on\"])", true);
+        setTimeout(postTimeout, 600000);
+    }
 
-    function top_initNotifications()
-    {
-        var visualArray = new Array({
-            name : 'dvNotifications',
-            title : null,
-            align : 'left',
-            clickBriefExpand : true
+    alReadyTried = false;
+    function top_initNotifications() {
+        //find user settings object
+        vjDS.add("", "dsUserObjInfo", "http://?cmd=objQry&qry=alloftype(\"user-settings\").csv([\"notification_cutoff\",\"notification_checked_on\"])");
+        vjDS.dsUserObjInfo.register_callback(function(obj, data){
+            var settingsTable = new vjTable (data, undefined, vjTable_propCSV);
+            if(settingsTable.rows && settingsTable.rows.length > 0){ //object exists
+                vjDS.dsNotificationInfo.reload("http://?cmd=objQry&mode=json&qry=b%3Dalloftype(\"user-settings\").map({{notification_cutoff:.notification_cutoff}})[0].notification_cutoff;%0Aa%3Dalloftype(\"notification\").filter({%20.activation_date%20<%3D%20(datetime)(now())}).filter({%20.activation_date%20>%3D%20(datetime)(b)}).map({{text:.text,activation_date:.activation_date,created:.created}});%0Areturn%20a;", true);
+            }
         });
-        vjVIS.generate(visualArray);
-
-        vjDS.add("infrastructure: Notifications", "dsNotifications", "innerHTML://dsNotificationsDV");
-        var viewerNotifications = new vjTableView({
-            isStickyHeader : false,
-            data : 'dsNotifications',
-            bgColors : [
-                            '#DfDfff', '#ffffff'
-            ],
-            cols : [{
-                        name : new RegExp(/.*/),
-                        wrap : true
-                    }, {
-                        name : '<!--section-->',
-                        hidden : true
-                    }, {
-                        name : 'url',
-                        hidden : true
-                    }, {
-                        name : 'date',
-                        wrap : false
-                    }],
-            maxTxtLen : 100000,
-            newSectionWord : '<!--section-->',
-            newSectionColumn : 1,
-            geometry : {
-                width : '100%'
-            },
-            isok : true
+        vjDS.dsUserObjInfo.reload("http://?cmd=objQry&qry=alloftype(\"user-settings\").csv([\"notification_cutoff\",\"notification_checked_on\"])", true);
+        vjDS.add("", "dsNotificationInfo", "static://");
+        
+        // Determine new NEWS.
+        vjDS.dsNotificationInfo.register_callback(function(obj, data){
+            var json = JSON.parse(data);
+            totalNewsCount = json.length;
+            var printCount = totalNewsCount;
+            if(totalNewsCount > 9) printCount = "9+";
+            
+            if(totalNewsCount && $(".news-notification").length < 1){
+                $("#news_menuButton").append($(document.createElement("span"))
+                    .addClass("news-notification")
+                    .append($(document.createElement("a"))
+                        .attr("href", "#")
+                        .text(printCount)
+                    )
+                );
+            }
+            else if(totalNewsCount){
+                $(".news-notification").empty();
+                $(".news-notification").append($(document.createElement("a"))
+                    .attr("href", "#")
+                    .text(printCount)
+                )
+            }
         });
-        vjDV.add("dvNotificationsViewer", 600, 600);
-        vjDV.dvNotificationsViewer.add("News Feed", "help", "tab", [
-            viewerNotifications
-        ]);
-        vjDV.dvNotificationsViewer.render();
-        vjDV.dvNotificationsViewer.load();
+        setTimeout (postTimeout, 600000);
     }
 
     var gUserSettings;
-    function user_setvar(variable, value)
-    {
+    function user_setvar(variable, value) {
         if (!gUserSettings)
             return;
 
         gUserSettings.changeElementValue(variable, value);
         cookieSet('HIVE-user-' + variable, value);
     }
-    function user_getvar(variable, defaultValue, which)
-    {
+    
+    function user_getvar(variable, defaultValue, which) {
         if (!gUserSettings)
             return defaultValue;
         var res = gUserSettings.getElementValue(variable, which);
@@ -191,6 +200,17 @@
             return defaultValue;
         else
             return res;
+    }
+    
+    function user_get_curdir_save() {
+        if (!gUserSettings) {
+            return '';
+        }
+        if (parseBool(gUserSettings.getElementValue('curdir_save_curdir_explorer'))) {
+            return cookieGet("explorer_curdir_open") || '';
+        } else {
+            return gUserSettings.getElementValue('curdir_save') || '';
+        }
     }
     function user_init(executeAfter)
     {
@@ -210,6 +230,8 @@
         vjVIS.generate(visualArray);
         vjDS.add("infrastructure: Loading User Metadata Information", "dsCurrentUserRecord", "http://?cmd=objList&type=user-settings&mode=csv");
         vjDS.add("infrastructure: User Specifications", "dsCurrentUserSpec", "http://?cmd=propspec&type=user-settings");
+        vjDS.add("infrastructure: User Specifications Parsed & Loaded", "dsCurrentUserSpecLoaded", "");
+        vjDS["dsCurrentUserSpecLoaded"].refreshOnEmpty = true;
         vjDV.add("dvUserViewer", 600, 600);
 
         gUserSettings = new vjRecordView({
@@ -219,13 +241,18 @@
             objType : "user-settings",
             RVtag : "RVCurrentUser",
             implementSaveButton : true,
-            callbackRendered : executeAfter,
+            callbackRendered : function(viewer, text, page_request) {
+                vjDS["dsCurrentUserSpecLoaded"].reload("static://", true);
+                funcLink(executeAfter, this, text, page_request);
+            },
             onChangeCallback : function(viewer, element)
             {
                 cookieSet('HIVE-user-' + element.fld.name, element.value);
+                vjDS["dsCurrentUserSpecLoaded"].reload("static://", true);
             },
             reloadObjIDFromData : true,
             formObject : document.forms["form-menu"],
+            constructAllNonOptionField: true,
             isok : true
         });
 
@@ -246,8 +273,11 @@
         top_initNotifications();
     }
 
+    
+    /* Constructs content of Main pages(welcome, about etc.)*/
     function main_addSection(namesection, height, icon)
     {
+        /* Main pages located in html/help/ ??? */
         vjDS.add("infrastructure: " + namesection + " Page", "ds" + namesection + "Page", "http://help/hlp.page.main."
                         + namesection + ".html");
         vjDV.add(namesection + "-tab", "100%", height == 0 ? "300" : height).frame = 'none';
@@ -261,14 +291,17 @@
         vjDV[namesection + "-tab"].render();
         vjDV[namesection + "-tab"].load();
     }
-
+    
+    
+    /*Constructs menu of Introductory/Main  pages */
     function main_initToolbar(isvert)
     {
+        console.log('constructing main menu');
         vjDS.add("infrastructure: Constructing Toolbar", "dsToolbarmain", "innerText://dsToolbarMainDV");
         var actualToolbar = new vjPanelView({
             data : "dsToolbarmain",
             formObject : document.forms['form-toolbarmain'],
-            iconSize : isvert ? 24 : 48,
+            iconSize : isvert ? 24 : 24,
             showTitles : true,
             rootMenuStyle : isvert ? 'vertical' : 'horizontal'
         });
@@ -284,23 +317,15 @@
 
     gSysVersion = 0;
     gInitList = "top_init();\n" + gInitList;
+    vjDSNew = undefined;
     
-    
-    
-    $(document).ready(function() {
+    gInitList += "headerInit();";
+    function headerInit () {
         if ($("#header").addEventListener) {
             $("#header").addEventListener('contextmenu', function(e) {
                 alert("You've tried to open context menu"); //here you draw your own menu
                 e.preventDefault();
             }, false);
-        } else {
-            $("#header").contextmenu(function() {
-                $("#rmenu").attr("class", "show");  
-                $("#rmenu")[0].style.top =  mouseY(event) + 'px';
-                $("#rmenu")[0].style.left = mouseX(event) + 'px';
-   
-                window.event.returnValue = false;
-            });
         }
         
         $("#seeDS").on("click", function(){
@@ -375,7 +400,17 @@
                 }
             });
         });
-    });
+        
+        $("#dataSourceDiv").dataSource({});
+        vjDSNew = jQuery.getDataSource();
+        
+        
+        if(navigator.userAgent.indexOf('MSIE')!==-1 || navigator.appVersion.indexOf('Trident/') > 0) // If Internet Explorer, issue a pop up
+        {
+            $("#header").after("<div><p style='text-align: center;vertical-align: middle;color:red;font-size:large;'>You are using Internet Explorer, which is not supported by HIVE anymore. Please user Mozilla Firefox or Google Chrome</p></div>");
+            $(".content").css("top", "60px");
+        }
+    };
 
     // this is from another SO post...  
      $(document).bind("click", function(event) {

@@ -37,9 +37,9 @@
 #include <ulib/honeycomb.hpp>
 
 #include <slib/core/algo.hpp>
+#include <slib/std/crypt.hpp>
 #include <slib/std/cryptocipher.hpp>
-#include "uperm.hpp" // TODO remove this tmp include
-#include <qlib/QPrideBase.hpp>
+#include "uperm.hpp"#include <qlib/QPrideBase.hpp>
 
 #include <slib/std/url.hpp>
 #include <slib/std/file.hpp>
@@ -60,91 +60,29 @@ using namespace slib;
 static
 bool decodeCookie(sUsr & usr, const char* s, udx & key, idx & key2, udx& uid, sStr& sid, udx expire_secs)
 {
-    sStr buf, tmp;
-    if( s && *s ) {
-        const char* u = strchr(s, '@');
-        sMex cryptbin;
-        idx b64len;
-        if( u ) {
-            sid.printf(0, "%s", &u[1]);
-            b64len = u - s;
-        } else {
-            b64len = sLen(s);
-        }
-        if( b64len ) {
-            sString::decodeBase64(&cryptbin, s, b64len);
-        }
-        if( cryptbin.pos() ) {
-            if( sBlockCrypto::decrypt(&buf, sBlockCrypto::eAES256_HMACSHA256, cryptbin.ptr(), cryptbin.pos(), usr.getKey(), sLen(usr.getKey())) > 0 ) {
-                buf.add0(2);
-            }
-        }
-    }
-    udx ok = 0;
-    if( buf ) {
-        sString::searchAndReplaceSymbols(&tmp, buf.ptr(), 0, "|", 0, 0, true, true, true, true);
-        idx keylen = 0;
-        udx chksum = 0, timestamp = 0;
-        char* p = tmp.ptr();
-        for(idx i = 0; p; p = sString::next00(p), ++i) {
-            if( i == 0 ) {
-                ok += sscanf(p, "%" UDEC, &key) == 1 ? 1 : 0;
-            } else if( i == 1 ) {
-                ok += sscanf(p, "%" DEC, &key2);
-            } else if( i == 2 ) {
-                ok += sscanf(p, "%" UDEC, &uid);
-            } else if( i == 3 ) {
-                ok += sscanf(p, "%" UDEC, &timestamp);
-            } else if( i == 4 ) {
-                keylen = p - tmp.ptr() - 1;
-                ok += sscanf(p, "%" UDEC, &chksum);
-            }
-        }
-        time_t t = time(0);
-        udx now = mktime(gmtime(&t));
-        if( (now < timestamp) || (expire_secs && (now - timestamp) > expire_secs) ) {
-            uid = 0;
-            ok--;
-        }
-        udx chksum1 = sAlgo::algo_murmurHash64(buf.ptr(), keylen, 32, 0, timestamp);
-        if( chksum1 == chksum ) {
-            ok++;
-        }
-    }
-    return ok == 6;
+    return true;
 }
 
 static
 void setUserCookie(sCGI & cgi, sUsr & usr, sStr & sid)
 {
     sStr buf;
-    cgi.cookieSet("sessionID", "%s", usr.encodeSID(sid, buf));
-    cgi.cookieSet("userName", "%s", usr.Name());
+    cgi.cookieSet("sessionID", sCGI::eCookie_Secure | sCGI::eCookie_HttpOnly | sCGI::eCookie_SameSiteStrict, "%s", usr.encodeSID(sid, buf));
+    cgi.cookieSet("userName", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", usr.Name());
     const char* email = usr.Email();
-    cgi.cookieSet("email", "%s", email ? email : "");
+    cgi.cookieSet("email", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email ? email : "");
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Initializations
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 bool sUsrCGI::OnCGIInit(void)
 {
     m_apiVersion = pForm->uvalue("api", sUdxMax);
-    // this cookie is _always_ present to track sessions even for guests!
     sStr sid("%s", pForm->value("sessionID", ""));
     const char * ip = pForm->value("ADDR");
     udx key = 0, uid = 0;
-
-    // FIXME - temporary switch for new ulib code paths with UPObj-ification of types
-    if( const char * useTypeDomainIdStr = pForm->value("useTypeUPObj") ) {
-        sStr buf("%i", sString::parseBool(useTypeDomainIdStr)); // don't trust the string value - convert to "0" or "1"
-        setenv("TYPE_UPOBJ", buf.ptr(), 1);
-    }
-
     m_SID.destroy();
+#ifdef _DEBUG
+#endif
     {
         sQPrideBase * qp = m_User.QPride();
         udx cookie_expires = 1L * 24 * 60 * 60;
@@ -156,10 +94,8 @@ bool sUsrCGI::OnCGIInit(void)
         m_User.session(key, uid, rnd, ip);
     }
     setUserCookie(*this, m_User, m_SID);
-    udx userPerspective = pForm->uvalue("userPerspective", 0);
-    if( m_User.isAdmin() && userPerspective ) {
-        m_User.init(userPerspective);
-    }
+    udx projectId = pForm->uvalue("projectID", 0);
+    m_User.init(m_User.m_Id, projectId);
 #if _LOG_REQUEST_TO_AUDIT_LOG
         sStr buf;
         for(idx i = 0; i < pForm->dim(); ++i) {
@@ -171,11 +107,17 @@ bool sUsrCGI::OnCGIInit(void)
     return TParent::OnCGIInit();
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Login/Logout
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+const char* sUsrCGI::selfURL(sStr& url)
+{
+    sQPrideBase * qp = m_User.QPride();
+    if( qp ) {
+        qp->cfgStr(&url, 0, "baseURL");
+        if( url ) {
+            return url.ptr();
+        }
+    }
+    return TParent::selfURL(url);
+}
 
 void sUsrCGI::logout(void)
 {
@@ -183,98 +125,111 @@ void sUsrCGI::logout(void)
     setUserCookie(*this, m_User, m_SID);
 }
 
-void sUsrCGI::login(void)
+void sUsrCGI::loginInfo(void)
 {
-    const char * email = pForm->value("login");
-    const char * pswd = pForm->value("pswd");
-    const char * pswd2 = pForm->value("pswd2");
-    idx logCount = -1;
-
-    sQPrideBase * qp = m_User.QPride();
-    sUsr::ELoginResult eres = sUsr::eUserNotSet;
-    sUsr tokenized;
-    do {
-        udx token = 0;
-        if( sLen(pswd2) ) {
-            udx uid = 0;
-            idx rnd = 0;
-            if( !decodeCookie(m_User, pswd2, token, rnd, uid, m_SID, 0) || !tokenized.init(uid) ) {
-                redirectURL.cut(0);
-            }
-            email = tokenized.Email();
-        }
-        if( email && (pswd || token) ) {
-            headerSet("Status", "401");
-            eres = m_User.login(email, pswd, token, pForm->value("ADDR"), &logCount);
-            switch(eres) {
-                case sUsr::eUserOperational:
-                    headerSet("Status", "200");
-                    if( logCount == 0 && !token ) {
-                        // initial password was set by admin, user must now change it
-                        warning("You must change your password now.");
-                        sStr t("pswdSet&followTo=%s", redirectURL.ptr());
-                        redirectURL.replace(t);
-                        cookieSet("preset", "%" UDEC, m_User.addPasswordResetID(email));
-                        cookieSet("emailAct", "%s", email);
-                    }
-                    cookieSet("last_login", "%s", email);
-                    break;
-                case sUsr::eUserEmailNotValidated:
-                    redirectURL.cut(0);
-                    outSection("user_email_inactive");
-                    warning("Email address on the account is not validated. See web page for more information.");
-                    cookieSet("emailAct", "%s", email);
-                    break;
-                case sUsr::eUserBlocked:
-                    redirectURL.cut(0);
-                    outSection("user_account_inactive");
-                    warning("Your account is deactivated. Request activation on web page.");
-                    cookieSet("emailAct", "%s", email);
-                    break;
-                case sUsr::eUserAccountExpired:
-                    redirectURL.cut(0);
-                    outSection("user_account_expired");
-                    warning("Your account has expired. Request activation on web page.");
-                    cookieSet("emailAct", "%s", email);
-                    break;
-                case sUsr::eUserPswdExpired:
-                    redirectURL.printf(0, "user_pswd");
-                    warning("Your password has expired. You must change your password now.");
-                    cookieSet("emailAct", "%s", email);
-                    break;
-                case sUsr::eUserNotFound:
-                    cookieSet("followTo", redirectURL.ptr());
-                    error("Email or password is not recognized");
-                    redirectURL.cut(0);
-                    break;
-                case sUsr::eUserNotSet:
-                case sUsr::eUserInternalError:
-                    redirectURL.printf(0, "login");
-                    error("Authentication failed. See web page.");
-                    redirectURL.cut(0);
-                    break;
-            }
-        } else {
-            if( redirectURL ) {
-                cookieSet("followTo", redirectURL.ptr());
-                redirectURL.cut(0);
-            }
-        }
-    } while(false);
-
-    if( tokenized.Id() ) {
-        cookieSet("exname", "%s", tokenized.Name());
-        cookieSet("exemail", "%s", tokenized.Email());
+    raw |= 1;
+    if( !m_User.Id() || m_User.isGuest() ) {
+        dataForm.printf("0");
+    } else {
+        dataForm.printf("1");
     }
+}
+
+void sUsrCGI::loginCommon(const sUsr::ELoginResult eres, const char * email, const idx logCount)
+{
+    headerSet("Status", "200");
+    do {
+        if( !email || !email[0] ) {
+            email = m_User.Email();
+        }
+        switch(eres) {
+            case sUsr::eUserOperational:
+                if( logCount == 0 ) {
+                    warning("You must change your password now.");
+                    sStr t("pswdSet&followTo=%s", redirectURL.ptr());
+                    redirectURL.replace(t);
+                    cookieSet("preset", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%" UDEC, m_User.addPasswordResetID());
+                    cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                }
+                cookieSet("last_login", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                break;
+            case sUsr::eUserEmailNotValidated:
+                redirectURL.cut(0);
+                outSection("user_email_inactive");
+                warning("Email address on the account is not validated. See web page for more information.");
+                cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                break;
+            case sUsr::eUserBlocked:
+                redirectURL.cut(0);
+                outSection("user_account_inactive");
+                warning("Your account is deactivated. Request activation on web page.");
+                cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                break;
+            case sUsr::eUserAccountExpired:
+                redirectURL.cut(0);
+                outSection("user_account_expired");
+                warning("Your account has expired. Request activation on web page.");
+                cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                break;
+            case sUsr::eUserPswdExpired:
+                redirectURL.printf(0, "user_pswd");
+                warning("Your password has expired. You must change your password now.");
+                cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                break;
+            case sUsr::eUserLoginAttemptsWarn1Left:
+                redirectURL.cut(0);
+                warning("You have one last attempt to login before your will be locked.");
+                cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                break;
+            case sUsr::eUserLoginAttemptsNowLocked:
+                redirectURL.cut(0);
+                warning("Your account is now locked. Contact administrator.");
+                cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                break;
+            case sUsr::eUserLoginAttemptsTooMany:
+                redirectURL.cut(0);
+                warning("Your account is locked. Contact administrator.");
+                cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                break;
+            case sUsr::eUserLoginAttemptsTooManyTryLater:
+                redirectURL.cut(0);
+                warning("Too many failed attempts. Please try again later");
+                cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+                break;
+            case sUsr::eUserNotFound:
+                cookieSet("followTo", "%s", redirectURL.ptr());
+                error("Email or password is not recognized");
+                redirectURL.cut(0);
+                break;
+            case sUsr::eUserNotSet:
+                redirectURL.cut(0);
+                break;
+            case sUsr::eUserInternalError:
+                redirectURL.printf(0, "login");
+                error("Authentication failed. See web page.");
+                redirectURL.cut(0);
+                break;
+            case sUsr::eUserTokenExpired:
+                error("Token is expired");
+                redirectURL.cut(0);
+                break;
+        }
+    } while( false );
     setUserCookie(*this, m_User, m_SID);
 
     if( !raw ) {
         sStr login_opts, tmp;
+        sQPrideBase * qp = m_User.QPride();
         if( qp ) {
             qp->cfgStr(&login_opts, 0, "user.LoginTmpltList");
+            sStr sso_url;
+            qp->cfgStr(&sso_url, 0, "user.sso.url", 0);
+            if( sso_url ) {
+                cookieSet("sso_url", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", sso_url.ptr());
+            }
         }
         if( !login_opts ) {
-            login_opts.printf("user_login_pswd");
+            login_opts.printf(0, "user_login_pswd");
         }
         sString::searchAndReplaceSymbols(&tmp, login_opts, 0, ";,", 0, 0, true, true, true, true);
         for(char* p = tmp.ptr(); p; p = sString::next00(p)) {
@@ -287,56 +242,64 @@ void sUsrCGI::login(void)
     }
 }
 
-void sUsrCGI::userEmailAuth()
+void sUsrCGI::login(void)
 {
-    raw = 1;
-    const char * email = pForm->value("email");
-    if( !email || !email[0] ) {
-        headerSet("Status", "400");
-        error("missing url parameter 'email'");
-    } else {
-        switch( m_User.token(email, dataForm) ) {
-            case sUsr::eUserOperational:
-                break;
-            case sUsr::eUserEmailNotValidated:
-                headerSet("Status", "401");
-                error("Email is not validated");
-                break;
-            case sUsr::eUserBlocked:
-                headerSet("Status", "401");
-                error("User inactive");
-                break;
-            case sUsr::eUserAccountExpired:
-                headerSet("Status", "401");
-                error("Account expired, reactivate");
-                break;
-            case sUsr::eUserPswdExpired:
-                headerSet("Status", "401");
-                error("Password expired, change");
-                break;
-            case sUsr::eUserNotSet:
-            case sUsr::eUserInternalError:
-            case sUsr::eUserNotFound:
-                headerSet("Status", "404");
-                error("Email not found");
-                break;
-        }
+    const char * email = pForm->value("login");
+    const char * pswd = pForm->value("pswd");
+    idx logCount = -1;
+    sUsr::ELoginResult eres = sUsr::eUserNotSet;
+    if( email && pswd ) {
+        eres = m_User.login(email, pswd, pForm->value("ADDR"), &logCount);
     }
+    loginCommon(eres, email, logCount);
+}
+
+void sUsrCGI::SSO()
+{
+    sStr log;
+    const char * email = 0;
+    sQPrideBase * qp = m_User.QPride();
+    while( qp ) {
+        sStr auth_type, idp_var, idp, email_var;
+        qp->cfgStr(&auth_type, 0, "user.sso.auth_type", 0);
+        qp->cfgStr(&idp_var, 0, "user.sso.env_var_provider_id", 0);
+        qp->cfgStr(&idp, 0, "user.sso.provider_id", 0);
+        qp->cfgStr(&email_var, 0, "user.sso_env_var_email", 0);
+        if( !auth_type || !idp_var || !idp || !email_var) {
+            cookieSet("sso_on", "%s", "false");
+            break;
+        }
+        const char * v = getenv("AUTH_TYPE");
+        if( v && strcasecmp(auth_type, v) == 0 && idp_var ) {
+            log.printf("AUTH_TYPE='%s'", v);
+            v = getenv(idp_var);
+            if( v && strcasecmp(idp, v) == 0 ) {
+                log.printf("; %s='%s'", idp_var.ptr(), v);
+                email = getenv(email_var);
+                if( email ) {
+                    log.printf("; %s='%s'", email_var.ptr(), email);
+                }
+            }
+        }
+        break;
+    }
+    idx logCount = -1;
+    sUsr::ELoginResult eres = sUsr::eUserNotSet;
+    if( email && email[0] ) {
+        eres = m_User.loginByEmail(email, pForm->value("ADDR"), &logCount, log);
+    }
+    loginCommon(eres, email, logCount);
 }
 
 void sUsrCGI::batch(void)
 {
+    raw |= 1;
     m_User.batch(pForm->value("ADDR"));
     setUserCookie(*this, m_User, m_SID);
     error("%s", m_User.err.ptr());
     return;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Account settings
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 void sUsrCGI::userResendEmailVerify()
 {
@@ -345,7 +308,7 @@ void sUsrCGI::userResendEmailVerify()
     selfURL(baseURL);
     if( email && email[0] ) {
         if( m_User.sendEmailValidation(baseURL, email) ) {
-            alert("Email was sent to %s.", email);
+            alert("Email sent.");
         } else {
             if( !m_User.err ) {
                 m_User.err.printf(0, "Unknown error has occurred.");
@@ -439,6 +402,20 @@ void sUsrCGI::userGroupActivate()
     }
 }
 
+static void user_pswd(sUsrCGI & ucgi, sQPrideBase * qp, const char * section)
+{
+    sStr buf;
+    const char * checkComplexity = qp ? qp->cfgStr(&buf, 0, "user.pswdCheckComplexity", "1") : "1";
+    ucgi.cookieSet("cmplx", "%s", checkComplexity);
+    const char * minLen = qp ? qp->cfgStr(&buf, 0, "user.pswdMinLength", "15") : "15";
+    ucgi.cookieSet("mlen", "%s", minLen);
+    const char * useSymb = qp ? qp->cfgStr(&buf, 0, "user.pswdUseSymbols", "0") : "0";
+    ucgi.cookieSet("usym", "%s", useSymb);
+    if( section ) {
+        ucgi.outSection(section);
+    }
+}
+
 void sUsrCGI::userMgr()
 {
     if( m_User.isAdmin() ) {
@@ -449,24 +426,43 @@ void sUsrCGI::userMgr()
     }
 }
 
-void sUsrCGI::contact()
+void sUsrCGI::sendmail()
 {
     const char * email = pForm->value("emailAct", pForm->value("email"));
-    const char * subj = pForm->value("subject");
+    const char * subj = 0;
     const char * body = pForm->value("message");
+    const char * autoreply = pForm->value("autoreply");
+    const udx reqid = pForm->uvalue("reqid", 0);
 
+    sStr reponse2sender;
+    if( sIsExactly(autoreply, "contact") ) {
+        subj = "HIVE contact request";
+        reponse2sender.printf(0, "Thank you for submitting the question. You will be contacted shortly by our team."
+            " We look forward to working with you.\n\nThank you,\nHIVE at the U.S. Food and Drug Administration (FDA)\n");
+    } else if( sIsExactly(autoreply, "projreq") ) {
+        subj = "Project Request";
+        reponse2sender.printf(0, "Thank you for submitting project request #%" UDEC ". You will be contacted shortly regarding the next steps in the process by our team."
+            " We look forward to working with you.\n\nThank you,\nHIVE at the U.S. Food and Drug Administration (FDA)\n", reqid);
+    } else if( sIsExactly(autoreply, "accreq") ) {
+        subj = "Account Request";
+        reponse2sender.printf(0, "Thank you for submitting account request #%" UDEC ". You will be contacted shortly regarding the next steps in the process by our team."
+            " We look forward to working with you.\n\nThank you,\nHIVE at the U.S. Food and Drug Administration (FDA)\n", reqid);
+    }
     bool ok = true;
     if( !email || !email[0] ) {
-        error("Email address is required to submit a request.");
+        error("From email address is required to submit a request.");
+        ok = false;
     }
     if( !subj || !subj[0] ) {
         error("Please specify a brief description of the request on the subject line.");
+        ok = false;
     }
     if( !body || !body[0] ) {
         error("Message body should contain the description of the request.");
+        ok = false;
     }
     if( ok ) {
-        if( !m_User.contact(email, subj, body) ) {
+        if( !m_User.contact(email, subj, body, reponse2sender.ptr()) ) {
             error("%s", m_User.err.ptr());
         } else {
             alert("The message was successfully sent");
@@ -481,18 +477,35 @@ void sUsrCGI::userForgot()
         sStr baseURL;
         selfURL(baseURL);
         if( m_User.sendForgotten(baseURL, email) ) {
-            alert("Email was sent to %s", email);
+            if (!raw) {
+                alert("Email was sent to %s", email);
+            }
         } else {
             if( !m_User.err ) {
                 m_User.err.printf(0, "Uknown error has occured.");
             }
-            error("%s", m_User.err.ptr());
+            if (!raw) {
+                error("%s", m_User.err.ptr());
+            }
             redirectURL.cut(0);
         }
     } else {
         redirectURL.cut(0);
     }
-    outSection("user_forgot");
+    if (raw) {
+        sJSONPrinter printer(&dataForm);
+        printer.startObject();
+        if( !m_User.err ) {
+            sStr msg("Email was sent to %s", email);
+            printer.addKeyValue("message", msg.ptr());
+        } else {
+            printer.addKeyValue("error", m_User.err.ptr());
+        }
+        printer.endObject();
+        printer.finish();
+    } else {
+        outSection("user_forgot");
+    }
 }
 
 void sUsrCGI::passwordReset(void)
@@ -518,18 +531,19 @@ void sUsrCGI::passwordReset(void)
     }
     if( !redirectURL && email ) {
         if( pswd_reset_id ) {
-            // On first login, user is redirected to cmd=pswdSet with "preset" cookie
-            // already filled in, and no pswd cgi param. In this case, we do not want
-            // to overwrite the cookie, since empty "preset" would result in password
-            // change UI instead of password reset UI.
-            cookieSet("preset", "%" UDEC, pswd_reset_id);
+            cookieSet("preset", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%" UDEC, pswd_reset_id);
         }
         if( expires ) {
-            cookieSet("xp", "%" UDEC, expires);
+            cookieSet("xp", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%" UDEC, expires);
         }
-        cookieSet("emailAct", "%s", email);
+        cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
     }
-    outSection("user_pswd");
+    user_pswd(*this, m_User.QPride(), "user_pswd");
+}
+
+void sUsrCGI::passwordEdit(void)
+{
+    user_pswd(*this, m_User.QPride(), "user_pswd");
 }
 
 void sUsrCGI::passwordChange(void)
@@ -558,8 +572,8 @@ void sUsrCGI::passwordChange(void)
     if( m_User.err.length() ) {
         error("%s", m_User.err.ptr());
         redirectURL.cut(0);
-        cookieSet("emailAct", "%s", email);
-        outSection("user_pswd");
+        cookieSet("emailAct", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, "%s", email);
+        user_pswd(*this, m_User.QPride(), "user_pswd");
         return;
     } else {
         warning("User password has been updated.");
@@ -571,7 +585,7 @@ void sUsrCGI::passwordChange(void)
 void sUsrCGI::userReg(void)
 {
     cookieSet("newreg", "1");
-    outSection("user");
+    user_pswd(*this, m_User.QPride(), "user");
     return;
 }
 
@@ -604,7 +618,7 @@ void sUsrCGI::userSet(bool show)
         const char * newpass2 = pForm->value("newpass2");
         if( newpass2 && !*newpass2 )
             newpass2 = 0;
-        idx statusNeed = sUsr::eUserOperational; //pForm->ivalue("statusNeed",-1);
+        idx statusNeed = sUsr::eUserOperational;
         idx softExpiration = pForm->ivalue("softExpiration", -1);
         idx hardExpiration = pForm->ivalue("hardExpiration", -1);
         bool isnew = pForm->boolvalue("newreg", false);
@@ -635,22 +649,17 @@ void sUsrCGI::userSet(bool show)
         firstName = m_User.firstName();
         lastName = m_User.lastName();
     }
-    cookieSet("fn", firstName ? firstName : "");
-    cookieSet("ln", lastName ? lastName : "");
-    cookieSet("ugrp", m_User.groupList(false));
-    cookieSet("ugrp_all", m_User.groupList(true));
+    cookieSet("fn", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, firstName ? firstName : "");
+    cookieSet("ln", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, lastName ? lastName : "");
+    cookieSet("ugrp", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, m_User.groupList(false));
+    cookieSet("ugrp_all", sCGI::eCookie_Secure | sCGI::eCookie_SameSiteStrict, m_User.groupList(true));
     if( !m_User.Id() || m_User.isGuest() ) {
         cookieSet("newreg", "1");
     }
-    outSection("user");
+    user_pswd(*this, m_User.QPride(), "user");
     return;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Object Info
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 static void objsAddInfoRows(sVarSet &x, udx total, udx start)
 {
@@ -675,7 +684,6 @@ static void typeTreeFindCb(const sUsrType2 * utype, const sUsrType2 * recurse_st
 
     if( !param->force_print ) {
         if( param->search_id ) {
-            // if search key looks like an ID, skip types not matching the ID (or the object ID part, if search key does not specify domain)
             if( utype->id() != param->search_id && (param->search_id.domainId() != 0 || param->search_id.objId() != utype->id().objId()) ) {
                 return;
             }
@@ -691,18 +699,15 @@ static void typeTreeFindCb(const sUsrType2 * utype, const sUsrType2 * recurse_st
 
     *param->printed_ids.set(&utype->id(), sizeof(utype->id())) = 1;
 
-    // "main" inheritance path
     sDic<idx> parent_ids;
     for(const sUsrType2 * t = utype; t; ) {
         sHiveId id(t->id());
         idx * pseen = parent_ids.get(&id, sizeof(id));
         if( pseen && *pseen ) {
-            // avoid infinite loop in case of circular inheritance (shouldn't happen, but might)
             break;
         }
         *parent_ids.set(&id, sizeof(id)) = 1;
         const sUsrType2 * par = 0;
-        // pick the first non-virtual parent, or if none, just the first parent
         for(idx iparent = 0; iparent < t->dimParents(); iparent++) {
             if( iparent == 0 ) {
                 par = t->getParent(iparent);
@@ -718,7 +723,6 @@ static void typeTreeFindCb(const sUsrType2 * utype, const sUsrType2 * recurse_st
         sHiveId * id = static_cast<sHiveId*>(parent_ids.id(ipath));
         path_buf.addString("/");
         id->print(path_buf);
-        // ensure parents of current type get printed first
         if( !param->printed_ids.get(id, sizeof(*id)) ) {
             const sUsrType2 * par = sUsrType2::ensure(*param->user, *id, false, true);
             if( par ) {
@@ -736,7 +740,6 @@ static void typeTreeFindCb(const sUsrType2 * utype, const sUsrType2 * recurse_st
     tbl->addBoolCell(utype->isVirtual());
     tbl->addCell(sString::escapeForCSV(csv_buf, utype->description()));
 
-    // parents
     sVec<sHiveId> ids;
     sStr ids_buf;
     for(idx iparent = 0; iparent < utype->dimParents(); iparent++) {
@@ -745,7 +748,6 @@ static void typeTreeFindCb(const sUsrType2 * utype, const sUsrType2 * recurse_st
     sHiveId::printVec(ids_buf, ids);
     tbl->addCell(sString::escapeForCSV(csv_buf, ids_buf));
 
-    // includes
     ids.cut(0);
     ids_buf.cut0cut();
     for(idx iinc = 0; iinc < utype->dimIncludes(); iinc++) {
@@ -754,7 +756,6 @@ static void typeTreeFindCb(const sUsrType2 * utype, const sUsrType2 * recurse_st
     sHiveId::printVec(ids_buf, ids);
     tbl->addCell(sString::escapeForCSV(csv_buf, ids_buf));
 
-    // "main" inheritance path
     tbl->addCell(sString::escapeForCSV(csv_buf, path_buf));
 
     tbl->addEndRow();
@@ -762,6 +763,7 @@ static void typeTreeFindCb(const sUsrType2 * utype, const sUsrType2 * recurse_st
 
 void sUsrCGI::typeTree(void)
 {
+    raw |= 1;
     sTxtTbl tbl;
     tbl.initWritable(7, sTblIndex::fTopHeader);
     tbl.addCell("id");
@@ -788,7 +790,7 @@ void sUsrCGI::typeTree(void)
             }
         }
     }
-    sUsrType2::find(m_User, 0, pForm->value("type", ".*"), typeTreeFindCb, &param, 0, true); // find types lazily - we only need their hierarchy info
+    sUsrType2::find(m_User, 0, pForm->value("type", ".*"), typeTreeFindCb, &param, 0, true);
     tbl.finish();
     tbl.printCSV(dataForm);
     if( param.search_re ) {
@@ -798,6 +800,7 @@ void sUsrCGI::typeTree(void)
 
 void sUsrCGI::objs(void)
 {
+    raw |= 1;
     const char* type_name = pForm->value("type");
     const char* props = pForm->value("prop");
     const char* propN = pForm->value("prop_name");
@@ -817,31 +820,41 @@ void sUsrCGI::objs(void)
         sVec<sHiveId> pis;
         sHiveId::parseRangeSet(pis, pIds);
         pVal = (pVal && pVal[0]) ? pVal : "_id";
+        sUsrFolder * shared = (strcmp(pProp, "child") == 0 ? sSysFolder::SharedWithMe(m_User, false) : 0);
         for(idx i = 0; i < pis.dim(); ++i) {
-            std::auto_ptr<sUsrObj> obj(m_User.objFactory(pis[i]));
-            if( obj.get() ) {
-                sVarSet pvs;
-                obj->propGet(pProp, pvs);
-                for(idx r = 0; r < pvs.rows; ++r) {
-                    const char * pv = pvs.val(r, 0);
-                    if( pv && pv[0] ) {
-                        filter.printf(",%s", pv);
+            sUsrObj * obj = m_User.objFactory(pis[i]);
+            if( obj ) {
+                if( shared && obj->Id() == shared->Id() ) {
+                    sVec<sHiveId> ids;
+                    sStr gid("%" UDEC, m_User.groupId());
+                    shared->orphans(this->m_User, ids, 0, "!_creator", gid.ptr());
+                    for(idx i = 0; i < ids.dim(); ++i) {
+                        filter.printf(",%s", ids[i].print());
                         prop_name.printf(",%s", pVal);
                     }
+                } else {
+                    sVarSet pvs;
+                    obj->propGet(pProp, pvs);
+                    for(idx r = 0; r < pvs.rows; ++r) {
+                        const char * pv = pvs.val(r, 0);
+                        if( pv && pv[0] ) {
+                            filter.printf(",%s", pv);
+                            prop_name.printf(",%s", pVal);
+                        }
+                    }
                 }
+                delete obj;
             }
         }
+        delete shared;
         if(!filter) {
-            qty = 0; // empty result
+            qty = 0;
         }
     }
     sStr typeBuf;
     if( search ) {
         const char * p = search;
         do {
-            // search is a comma-delimited sequence of entries of the following form:
-            // 1. optional whitespace, "[type:", type name, "]", optional whitespace (e.g. "[type:u-file]"); or
-            // 2. a string (for matching a property value)
             const char * non_space = p;
             const char * comma = 0;
             const char * type_name_end = 0, * type_name_start = 0;
@@ -876,27 +889,10 @@ void sUsrCGI::objs(void)
         filter.printf(",%s", propV);
     }
     sUsrObjRes v;
-    udx total_qty = 0, fstart = from;
-    do {
-        // collect full page (qty)
-        if( qty ) {
-            const idx r = v.dim();
-            const idx nq = qty - v.dim();
-            m_User.objs2(type_name, v, (show_info && (fstart == from)) ? &total_qty : 0, prop_name ? prop_name.ptr(1) : 0, filter ? filter.ptr(1) : 0, props, pForm->boolvalue("perm"), fstart, nq);
-            if( r == v.dim() ) {
-                // no new items
-                break;
-            }
-            fstart += nq;
-        }
-        if( !showTrash && pIds ) {
-            total_qty -= m_User.removeTrash(v);
-        }
-    } while( (udx)(v.dim()) < qty );
-    if( !showTrash && !pIds ) {
-        total_qty -= m_User.removeTrash(v, true);
+    udx total_qty = 0;
+    if( qty ) {
+        m_User.objs2(type_name, v, show_info ? &total_qty : 0, prop_name ? prop_name.ptr(1) : 0, filter ? filter.ptr(1) : 0, props, pForm->boolvalue("perm"), from, cnt, false, showTrash);
     }
-
     sJSONPrinter json_printer;
     const bool is_json = strcasecmp("json", pForm->value("mode", "")) == 0;
     if( is_json ) {
@@ -938,20 +934,25 @@ static void rlimitHandler(int sig, siginfo_t *si, void * unused)
 }
 #endif
 
-qlang::sUsrEngine * sUsrCGI::queryEngineFactory(idx flags/* = 0 */)
+sUsrQueryEngine* sUsrCGI::queryEngineFactory(idx flags)
 {
-    return new qlang::sUsrEngine(m_User, flags);
+#if _DEBUG
+    return new sUsrInternalQueryEngine(m_User.QPride(), m_User, flags);
+#else
+    return new sUsrQueryEngine(m_User, flags);
+#endif
 }
 
-void sUsrCGI::objQry(sVariant * dst, const char * qry_text)
+void sUsrCGI::objQry(sVariant *dst, const char *qry_text)
 {
+    raw |= 1;
     if( !qry_text ) {
         qry_text = pForm->value("qry");
     }
-    if( !qry_text )
+    if( !qry_text ) {
         return;
-
-    bool silentErr = sString::parseBool(pForm->value("silentErr"));
+    }
+    const bool silentErr = sString::parseBool(pForm->value("silentErr"));
     const bool is_json = strcasecmp("json", pForm->value("mode", "")) == 0;
 
     idx ctx_flags = 0;
@@ -959,13 +960,12 @@ void sUsrCGI::objQry(sVariant * dst, const char * qry_text)
         ctx_flags |= qlang::sUsrContext::fUnderscoreId;
     }
 
-    std::auto_ptr<qlang::sUsrEngine> engine(queryEngineFactory(ctx_flags));
+    sUsrQueryEngine *engine = queryEngineFactory(ctx_flags);
     sVariant local_result;
-    sVariant * presult = dst ? dst : &local_result;
+    sVariant *presult = dst ? dst : &local_result;
     sStr error;
 
 #ifndef WIN32
-    // If a query takes >30 sec or >2 GB heap or stack, something is very wrong
     struct sigaction sa;
     sa.sa_flags = SA_SIGINFO;
     sigemptyset(&sa.sa_mask);
@@ -973,22 +973,35 @@ void sUsrCGI::objQry(sVariant * dst, const char * qry_text)
     sigaction(SIGXCPU, &sa, NULL);
 
     struct rlimit rlim;
-    rlim.rlim_cur = 30; rlim.rlim_max = rlim.rlim_cur + 10;
+    rlim.rlim_cur = 30;
+    rlim.rlim_max = rlim.rlim_cur + 10;
     setrlimit(RLIMIT_CPU, &rlim);
-    rlim.rlim_cur = 1<<31; rlim.rlim_max = rlim.rlim_cur + (1<<29);
+    rlim.rlim_cur = 1 << 31;
+    rlim.rlim_max = rlim.rlim_cur + (1 << 29);
     setrlimit(RLIMIT_DATA, &rlim);
     setrlimit(RLIMIT_STACK, &rlim);
 #endif
 
     if( !engine->parse(qry_text, 0, &error) ) {
-        if (!silentErr)
+        if (!silentErr) {
+#ifdef _DEBUG
             dataForm.printf("error : failed to parse query : %s", error.ptr());
+#else
+            dataForm.printf("error : failed to parse query");
+#endif
+        }
+        delete engine;
         return;
     }
-
-    if( !engine->eval(*presult, &error) ) {
-        if (!silentErr)
+    if( !engine->eval(qry_text, 0, *presult, &error) ) {
+        if (!silentErr) {
+#ifdef _DEBUG
             dataForm.printf("error : failed while running query : %s", error.ptr());
+#else
+            dataForm.printf("error : failed while running query");
+#endif
+        }
+        delete engine;
         return;
     }
 
@@ -996,15 +1009,15 @@ void sUsrCGI::objQry(sVariant * dst, const char * qry_text)
         if( is_json ) {
             presult->print(dataForm, sVariant::eJSON);
         } else {
-            // Default formating: a single object ID as an integer; an object ID list as comma-separated integers; strings and more complex data structures as themselves, with C-style escapes
             dataForm.printf("%s", presult->asString());
         }
     }
+    delete engine;
 }
 
 void sUsrCGI::objDel(void)
 {
-
+    raw |= 1;
     sQPrideBase * qp = m_User.QPride();
     idx reqId = qp?qp->reqId:0;
 
@@ -1015,10 +1028,10 @@ void sUsrCGI::objDel(void)
         sVec<sHiveId> ids;
         sHiveId::parseRangeSet(ids, obj_ids);
         for(idx i = 0; i < ids.dim(); ++i) {
-            std::auto_ptr<sUsrObj> obj(m_User.objFactory(ids[i]));
+            std::unique_ptr<sUsrObj> obj(m_User.objFactory(ids[i]));
             if( obj.get() && obj->actDelete() ) {
                 for(sUsrObjRes::IdIter it = parents.first(); parents.has(it); parents.next(it)) {
-                    std::auto_ptr<sUsrObj> p_obj(m_User.objFactory(*parents.id(it)));
+                    std::unique_ptr<sUsrObj> p_obj(m_User.objFactory(*parents.id(it)));
                     sUsrFolder * p_src_obj = ((sUsrFolder*) p_obj.get());
                     if(reqId) {
                         p_src_obj->progress_CallbackFunction = sQPrideBase::reqProgressStatic;
@@ -1028,15 +1041,16 @@ void sUsrCGI::objDel(void)
                     p_src_obj->detach(*obj.get());
                 }
             }
-            if(reqId)qp->reqProgress(reqId,2,i,i,ids.dim()); //hardcoded lazyreport seconds (no svc accessible here).
+            if(reqId)qp->reqProgress(reqId,2,i,i,ids.dim());
         }
     }
 }
 
 void sUsrCGI::objRemove(void)
 {
-    const char* obj_ids = pForm->value("ids");
-    const char* src_id = pForm->value("src");
+    raw |= 1;
+    const char * obj_ids = pForm->value("ids");
+    const char * src_id = pForm->value("src");
 
     sVec<sHiveId> s_ids;
     if( src_id && strcmp(src_id, "root") == 0 ) {
@@ -1044,38 +1058,37 @@ void sUsrCGI::objRemove(void)
     } else if( src_id && strcmp(src_id, "all") == 0 ) {
         sUsrObjRes res;
         m_User.objs2("sysfolder,folder", res, 0, "child", obj_ids);
-        for(sUsrObjRes::IdIter it = res.first(); res.has(it); res.next(it)) {
+        for( sUsrObjRes::IdIter it = res.first(); res.has(it); res.next(it) ) {
             *(s_ids.add()) = *res.id(it);
         }
     } else if( src_id ) {
         s_ids.add()->parse(src_id);
     }
-    if(!s_ids.dim()) {
+    if( !s_ids.dim() ) {
         s_ids.add();
     }
 
     sQPrideBase * qp = m_User.QPride();
-    idx reqId = qp?qp->reqId:0;
+    idx reqId = qp ? qp->reqId : 0;
 
     sVec<sHiveId> ids, copied_ids;
     sHiveId::parseRangeSet(ids, obj_ids);
-    sVec<sHiveId> *p_ids = &ids;
+    sVec<sHiveId> * p_ids = &ids;
     dataForm.printf("{");
-    for(idx i = 0; i < s_ids.dim(); ++i) {
-        if( !s_ids[i] ) {  // Copy objects that you don't have permissions to their parents to your tree (e.g.) and revoke permissions from old links
+    for( idx i = 0; i < s_ids.dim(); ++i ) {
+        if( !s_ids[i] ) {
             sUsrFolder * _inbox = sSysFolder::Inbox(m_User);
             if( _inbox ) {
                 _inbox->attachCopy(p_ids, _inbox, 0, &copied_ids, true);
-    //            _inbox->actRemove(p_ids, 0, true, true);
                 p_ids = &copied_ids;
                 s_ids[i] = _inbox->Id();
                 delete _inbox;
             }
         }
-        std::auto_ptr<sUsrObj> src_obj(m_User.objFactory(s_ids[i]));
+        std::unique_ptr<sUsrObj> src_obj(m_User.objFactory(s_ids[i]));
         if( src_obj.get() && src_obj->isTypeOf("(folder|sysfolder)") ) {
-            sUsrFolder * p_src_obj = ((sUsrFolder*) src_obj.get());
-            if(reqId) {
+            sUsrFolder * p_src_obj = ((sUsrFolder *)src_obj.get());
+            if( reqId ) {
                 p_src_obj->progress_CallbackFunction = sQPrideBase::reqProgressStatic;
                 p_src_obj->progress_CallbackParamObject = qp;
                 p_src_obj->progress_CallbackParamReqID = &reqId;
@@ -1084,8 +1097,9 @@ void sUsrCGI::objRemove(void)
         } else {
             dataForm.printf("\"%s\" : { \"signal\" : \"delete\", \"data\" : { \"error\":\"failed to access source folder\"} } \n,", s_ids[i].print());
         }
-
-        if(reqId)qp->reqProgress(reqId,2,i,i,s_ids.dim()); //hardcoded lazyreport seconds (no svc accessible here).
+        if( reqId ) {
+            qp->reqProgress(reqId, 2, i, i, s_ids.dim());
+        }
     }
     dataForm.cut(dataForm.length() - 1);
     dataForm.printf("}");
@@ -1093,6 +1107,7 @@ void sUsrCGI::objRemove(void)
 
 void sUsrCGI::objMove(bool isCopy)
 {
+    raw |= 1;
     const char* obj_ids = pForm->value("ids");
     const char* src_id = pForm->value("src");
     sHiveId dst_id(pForm->value("dest"));
@@ -1102,7 +1117,6 @@ void sUsrCGI::objMove(bool isCopy)
         sVec<sHiveId> copied_ids, s_ids, *p_ids;
         p_ids = &ids;
         if( src_id && strcmp(src_id, "all") == 0 ) {
-            //if no parental id is provided then perform the same action for all parents;
             sUsrObjRes res;
             m_User.objs2("folder,sysfolder,", res, 0, "child", obj_ids);
             for(sUsrObjRes::IdIter it = res.first(); res.has(it); res.next(it)) {
@@ -1117,7 +1131,7 @@ void sUsrCGI::objMove(bool isCopy)
             s_ids.add()->parse(pForm->value("src"));
         }
         dataForm.printf("{");
-        std::auto_ptr<sUsrObj> dst_obj(m_User.objFactory(dst_id));
+        std::unique_ptr<sUsrObj> dst_obj(m_User.objFactory(dst_id));
         if( dst_obj.get() && dst_obj->isTypeOf("(folder|sysfolder)") && ids.dim() ) {
             sUsrFolder * _inbox = sSysFolder::Inbox(m_User);
             sStr ret_buf, failed_Ids;
@@ -1128,7 +1142,7 @@ void sUsrCGI::objMove(bool isCopy)
                     s_ids[i] = _inbox ? _inbox->Id() : sHiveId();
                     no_src = true;
                 }
-                std::auto_ptr<sUsrObj> src_obj(m_User.objFactory(s_ids[i]));
+                std::unique_ptr<sUsrObj> src_obj(m_User.objFactory(s_ids[i]));
                 if( src_obj.get() && src_obj->isTypeOf("(folder|sysfolder)") ) {
                     if( isCopy ) {
                         ((sUsrFolder*) src_obj.get())->attachCopy(p_ids, (sUsrFolder*) dst_obj.get(), &dataForm, 0, no_src);
@@ -1160,19 +1174,22 @@ void sUsrCGI::objMove(bool isCopy)
 
 void sUsrCGI::folderCreate(void)
 {
+    raw |= 1;
     const char* name = pForm->value("name");
     sHiveId id(pForm->value("ids"));
     sUsrFolder * c_obj = 0;
     if( id && name ) {
-        std::auto_ptr<sUsrObj> src_obj(m_User.objFactory(id));
+        std::unique_ptr<sUsrObj> src_obj(m_User.objFactory(id));
         if( src_obj.get() ) {
             if( src_obj->isTypeOf("(folder|sysfolder)") ) {
                 c_obj = ((sUsrFolder*) src_obj.get())->createSubFolder(name);
-                dataForm.printf("{\"");
-                c_obj->IdStr(&dataForm);
-                dataForm.printf("\" : { \"signal\" : \"folder\", \"data\" : { \"to\":\"");
-                src_obj->IdStr(&dataForm);
-                dataForm.printf("\"} } }");
+                if( c_obj ) {
+                    dataForm.printf("{\"");
+                    c_obj->IdStr(&dataForm);
+                    dataForm.printf("\" : { \"signal\" : \"folder\", \"data\" : { \"to\":\"");
+                    src_obj->IdStr(&dataForm);
+                    dataForm.printf("\"} } }");
+                }
             }
         }
     }
@@ -1185,38 +1202,228 @@ void sUsrCGI::folderCreate(void)
 
 void sUsrCGI::allStat(void)
 {
+    raw |= 1;
     sDic<udx> list;
     m_User.all(list, pForm->value("type"));
     sVarSet res;
-    res.setColId(0, "id");
-    res.setColId(1, "name");
-    res.setColId(2, "path");
-    res.setColId(3, "value");
-    for(idx i = 0; i < list.dim(); ++i) {
-        res.addRow().addCol("all").addCol("type_count").addCol((const char*) list.id(i)).addCol(*list.ptr(i));
-    }
-    res.printCSV(dataForm);
-}
-
-#if 0
-static bool useTypeUPObj()
-{
-    static bool use_type_upobj = false;
-    static bool first_call = true;
-
-    if( first_call ) {
-        // TYPE_UPOBJ env variable can be set via sUsrCGI::OnCGIInit() by &useTypeUPObj=1 url param
-        if( const char * s = getenv("TYPE_UPOBJ") ) {
-            use_type_upobj = sString::parseBool(s);
+    if( sIs(pForm->value("mode"), "json") ) {
+        sJSONPrinter printer(&dataForm);
+        printer.startObject();
+        printer.addKeyValue("_id", "0");
+        printer.addKeyValue("_type", "sysfolder");
+        printer.addKey("type_count");
+        printer.startObject();
+        for(idx i = 0; i < list.dim(); ++i) {
+            printer.addKeyValue((const char*) list.id(i), *list.ptr(i));
         }
-        first_call = false;
+        printer.endObject();
+        printer.endObject();
+        printer.finish();
+    } else {
+        res.setColId(0, "id");
+        res.setColId(1, "name");
+        res.setColId(2, "path");
+        res.setColId(3, "value");
+        for(idx i = 0; i < list.dim(); ++i) {
+            res.addRow().addCol("all").addCol("type_count").addCol((const char*) list.id(i)).addCol(*list.ptr(i));
+        }
+        res.printCSV(dataForm);
     }
-    return use_type_upobj;
 }
+
+void objCountAdd(sVariant & o, sUsrObj & child, const bool listIds)
+{
+    sVariant * count = o.getDicElt("count");
+    if( !count ) {
+        count = o.setElt("count", (idx) 0);
+    }
+    if( count ) {
+        *count += (idx)1;
+    }
+    if( listIds ) {
+        sVariant * ids = o.getDicElt("ids");
+        if( !ids) {
+            ids = o.setElt("ids", true);
+            if( ids ) {
+                ids->setList();
+            }
+        }
+        if( ids ) {
+            ids->push(child.IdStr());
+        }
+    }
+}
+
+void objCountObj(sUsr & user, const sHiveId & id, sVariant & counts, const bool extend, const bool listIds)
+{
+    sUsrObj * child = user.objFactory(id);
+    bool found = false;
+    for(idx i = 0; child && i < counts.dim(); ++i) {
+        sVariant * o = counts.getListElt(i);
+        if( o && o->isDic() ) {
+            sVariant * tt = o->getDicElt("types");
+            bool typeNameNotEmpty = false;
+            if( tt && tt->isList() ) {
+                for(idx j = 0; j < tt->dim(); ++j) {
+                    const char * tn = tt->getListElt(j)->asString();
+                    typeNameNotEmpty |= tn && tn[0];
+                    if( tn && child->isTypeOf(tn) ) {
+                        objCountAdd(*o, *child, listIds);
+                        found = true;
+                    }
+                }
+            }
+            if( !typeNameNotEmpty ) {
+                objCountAdd(*o, *child, listIds);
+            }
+        }
+    }
+    if( extend && !found && child ) {
+        sVariant x;
+        x.setDic();
+        x.setElt("title", child->getType()->title());
+        sVariant tt;
+        tt.setList();
+        tt.push(child->getTypeName());
+        x.setElt("types", tt);
+        objCountAdd(x, *child, listIds);
+        counts.push(x);
+    }
+    delete child;
+}
+
+void sUsrCGI::objCount(void)
+{
+    bool success = false;
+    sVariant result, rtype_buf;
+
+    sJSONParser parser;
+    idx json_parse_txt_len = 0;
+    const char * json_parse_txt = pForm->value("parse", 0, &json_parse_txt_len);
+    while( parser.parse(json_parse_txt, json_parse_txt_len, 0, 0) ) {
+        sVariant & res = parser.result();
+        if( res.isDic() ) {
+            const char * parent_field = "child";
+            sVariant * f = res.getDicElt("parent_field");
+            if( f && !f->isNullish() ) {
+                parent_field = f->asString();
+            }
+            f = res.getDicElt("show_other");
+            bool extend = true;
+            if( f ) {
+                extend = f->asBool();
+            }
+            f = res.getDicElt("list_ids");
+            bool listIds = false;
+            if( f && !f->isNullish() ) {
+                listIds = f->asBool();
+            }
+            sVariant * rtypes = res.getDicElt("rtypes");
+            if( rtypes ) {
+                if( !rtypes->isList() ) {
+                    break;
+                }
+                for(idx i = 0; i < rtypes->dim(); ++i) {
+                    sVariant * o = rtypes->getListElt(i);
+                    if( o && o->isDic() ) {
+                        sVariant * count = o->setElt("count", (udx) 0);
+                        if( !count ) {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                rtype_buf.setList();
+                rtypes = &rtype_buf;
+            }
+            if( !rtypes->dim() ) {
+                sVariant t;
+                t.setDic();
+                if( !t.setElt("title", "all") || !t.setElt("count", (udx) 0) ) {
+                    break;
+                }
+            }
+            sVec<sHiveId> children;
+            sVariant * parents = res.getDicElt("parents");
+            if( parents && parents->isList() ) {
+                result.setList();
+                sDic<char> seen;
+                for(idx i = 0; i < parents->dim(); ++i) {
+                    sHiveId id(parents->getListElt(i)->asString());
+                    if( seen.get(&id, sizeof(sHiveId)) ) {
+                        continue;
+                    }
+                    seen.set(&id, sizeof(sHiveId));
+                    sVariant * par = result.push(true);
+                    if( !par ) {
+                        break;
+                    }
+                    par->setDic();
+                    sVariant * tcount = par->setElt("type_count", true);
+                    if( !tcount ) {
+                        break;
+                    }
+                    tcount->clone(*rtypes);
+                    if( id ) {
+                        sUsrObj * parent = m_User.objFactory(id);
+                        if( parent ) {
+                            par->setElt("_id", parent->IdStr());
+                            par->setElt("_type", parent->getTypeName());
+                            sVarSet pvs;
+                            children.empty();
+                            parent->propGet(parent_field, pvs);
+                            for(idx r = 0; r < pvs.rows; ++r) {
+                                const char * pv = pvs.val(r, 0);
+                                if( pv && pv[0] ) {
+                                    sHiveId::parseRangeSet(children, pv);
+                                }
+                            }
+                            for(idx i = 0; i < children.dim(); ++i) {
+                                objCountObj(m_User, children[i], *tcount, extend, listIds);
+                            }
+                            delete parent;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        par->setElt("_id", 0);
+                        par->setElt("_type", "sysfolder");
+                        sUsrObjRes out;
+                        if( m_User.objs2(0, out, 0, 0, 0, "") ) {
+                            for(sUsrObjRes::IdIter it = out.first(); out.has(it); out.next(it)) {
+                                const sHiveId * id = out.id(it);
+                                if( id ) {
+                                    objCountObj(m_User, *id, *tcount, extend, listIds);
+                                }
+                            }
+                        }
+                    }
+                }
+                success = true;
+            }
+        }
+        break;
+    }
+    if( !success ) {
+        headerSet("Status", "400");
+    } else {
+        const sVariant::Whitespace * ws = 0;
+#if _DEBUG
+        ws = sVariant::getDefaultWhitespace(sVariant::eJSON);
+#else
+        sVariant::Whitespace ws1;
+        ws1.indent = ws1.space = ws1.newline  = "";
+        ws = &ws1;
 #endif
+        result.print(dataForm, sVariant::eJSON, ws);
+    }
+}
 
 void sUsrCGI::propSpec(const char* type_name, const char* view_name, const char* props)
 {
+    raw |= 1;
     enum {
         eCSV,
         eJSON
@@ -1304,11 +1511,140 @@ void sUsrCGI::propSpec(const char* type_name, const char* view_name, const char*
     }
     if( mode == eJSON ) {
         json_printer.endObject();
+        json_printer.finish();
     }
 }
 
+void sUsrCGI::propSpec2(const char* type_name, const char* view_name, const char* props)
+{
+    raw |= 1;
+    bool pretty = pForm->boolvalue("pretty",
+#ifdef _DEBUG
+        true
+#else
+        false
+#endif
+        );
+
+    if( !type_name ) {
+        type_name = pForm->value("type");
+    }
+
+    sStr autoType;
+    if(!type_name) {
+        sHiveId id(pForm->value("ids"));
+        if( id ) {
+            sUsrObj * pobj = m_User.objFactory(id);
+            if(pobj && pobj->Id())
+                type_name=pobj->getTypeName();
+            if(type_name)
+                type_name=autoType.printf("%s",type_name);
+            delete pobj;
+        }
+        if(!type_name)
+            return;
+    }
+    if( !view_name ) {
+        view_name = pForm->value("view");
+    }
+    if( !props ) {
+        props = pForm->value("prop");
+    }
+    sStr filter00;
+    if( props ) {
+        sString::searchAndReplaceSymbols(&filter00, props, 0, ",", 0, 0, true, true, true, true);
+        filter00.add0();
+    }
+    sJSONPrinter json_printer;
+    if( const sUsrType2 * type = sUsrType2::ensure(m_User, type_name) ) {
+        json_printer.init(&dataForm, pretty ? 0 : "", pretty ? 0 : "");
+        json_printer.startObject();
+        type->printJSON2(m_User, json_printer, true);
+
+        if( sLen(pForm->value("actions", "")) > 0 ) {
+            sVec<const sUsrAction*> actions;
+            for(idx ia = 0; ia < type->dimActions(m_User); ia++) {
+                const sUsrAction * act = type->getAction(m_User, ia);
+                if( act && !act->isObjAction() ) {
+                    *actions.add(1) = act;
+                }
+            }
+            if( actions.dim() ) {
+                json_printer.addKey("_action");
+                json_printer.startArray();
+                for(idx ia = 0; ia < actions.dim(); ia++) {
+                    json_printer.addValue(actions[ia]->name());
+                }
+                json_printer.endArray();
+            }
+        }
+        json_printer.endObject();
+    }
+    json_printer.finish();
+}
+
+void sUsrCGI::propSpec3(const char * types)
+{
+    raw |= 1;
+    if( !types ) {
+        types = pForm->value("types");
+    }
+    const bool print_actions = sLen(pForm->value("actions", "")) > 0;
+
+    sStr types00;
+    if( !types ) {
+        sVec<sHiveId> ids;
+        sHiveId::parseRangeSet(ids, pForm->value("ids"));
+        for(idx i = 0; i < ids.dim(); ++i) {
+            sUsrObj * pobj = m_User.objFactory(ids[i]);
+            if( pobj && pobj->Id() ) {
+                types00.printf("%s", pobj->getTypeName());
+                types00.add0();
+            }
+            delete pobj;
+        }
+    } else {
+        sString::searchAndReplaceSymbols(&types00, types, 0, ",", 0, 0, true, true, true, true);
+    }
+    types00.add0(2);
+
+    sDic<bool> printed;
+    sJSONPrinter json_printer;
+    json_printer.init(&dataForm);
+    headerSet("Content-Type", "%s", contentTypeByExt(".json"));
+    json_printer.startArray();
+    for(const char * t = types00; t; t = sString::next00(t) ) {
+        if( const sUsrType2 * type = sUsrType2::ensure(m_User, t) ) {
+            if( !printed.get(t) ) {
+                printed.set(t);
+                json_printer.startObject();
+                type->printJSON(m_User, json_printer, true);
+                if( print_actions ) {
+                    sVec<const sUsrAction*> actions;
+                    for(idx ia = 0; ia < type->dimActions(m_User); ia++) {
+                        const sUsrAction * act = type->getAction(m_User, ia);
+                        if( act && !act->isObjAction() ) {
+                            *actions.add(1) = act;
+                        }
+                    }
+                    if( actions.dim() ) {
+                        json_printer.addKey("_action");
+                        json_printer.startArray();
+                        for(idx ia = 0; ia < actions.dim(); ia++) {
+                            json_printer.addValue(actions[ia]->name());
+                        }
+                        json_printer.endArray();
+                    }
+                }
+            }
+        }
+        json_printer.endObject();
+    }
+    json_printer.endArray();
+    json_printer.finish();
+}
+
 namespace {
-    // allow iterating over sUsrObjRes either by its default sort order, or explicitly by a vector of object ids
     struct PropGetResIter {
         sUsrObjRes::IdIter it;
         const sUsrObjRes * res;
@@ -1352,7 +1688,6 @@ static void propGet_printTypeNamesCb(const sUsrType2 * utype, const sUsrType2 * 
     if( buf->length() ) {
         buf->addString(",");
     }
-    // exact match regexp
     buf->printf("^%s$", utype->name());
 }
 
@@ -1366,9 +1701,12 @@ void sUsrCGI::propGet(sUsrObjRes * obj_ids, const char* view_name, const char* p
     if( !view_name ) {
         view_name = pForm->value("view");
     }
-    const bool show_actions = pForm->boolvalue("actions");
+    raw |= 1;
+    const udx show_actions = pForm->uvalue("actions", 0);
+    const udx show_js_components = pForm->uvalue("js_components", 0);
     const bool show_perm = pForm->boolvalue("perm");
-    const bool flatten_tree = pForm->boolvalue("flatten"); // simplify json by omitting decorative list nodes
+    const bool flatten_tree = pForm->boolvalue("flatten");
+    idx dim_explicit_objs = 0;
     sUsrObjRes res;
     sVec<sHiveId> explicit_ids;
     if( !obj_ids ) {
@@ -1376,6 +1714,7 @@ void sUsrCGI::propGet(sUsrObjRes * obj_ids, const char* view_name, const char* p
         const char * obj_qry = pForm->value("objQry");
         if( ii && ii[0] ) {
             sHiveId::parseRangeSet(explicit_ids, ii);
+            dim_explicit_objs = explicit_ids.dim();
         } else if( obj_qry && obj_qry[0] ) {
             sVariant qry_result;
             objQry(&qry_result, obj_qry);
@@ -1391,8 +1730,7 @@ void sUsrCGI::propGet(sUsrObjRes * obj_ids, const char* view_name, const char* p
             const char * type_names = "*";
             const char * type_names_qry = pForm->value("type");
             if( type_names_qry && strcmp(type_names_qry, "*") != 0 ) {
-                // resolve types in c++ rather than sql, both for speed and security
-                sUsrType2::find(m_User, 0, type_names_qry, propGet_printTypeNamesCb, &type_names_buf, false, true); // find types lazily - we only need their names
+                sUsrType2::find(m_User, 0, type_names_qry, propGet_printTypeNamesCb, &type_names_buf, false, true);
                 type_names = type_names_buf.ptr();
             }
             if( type_names && *type_names ) {
@@ -1404,17 +1742,22 @@ void sUsrCGI::propGet(sUsrObjRes * obj_ids, const char* view_name, const char* p
         }
     }
     const char * show_files_wildcard = pForm->value("files", 0);
+    const bool show_files_size = pForm->boolvalue("files_size", false);
     sJSONPrinter my_json_printer;
     if( !json_printer ) {
         json_printer = &my_json_printer;
     }
     if( mode == eCSV ) {
-        dataForm.addString("id,name,path,value\n");
+        dataForm.addString("id,name,path,value");
+        if( show_files_size ) {
+            dataForm.addString(",size");
+        }
+        dataForm.addString("\n");
     } else if( mode == eJSON && json_printer == &my_json_printer) {
         json_printer->init(&dataForm);
     }
     if( obj_ids ) {
-        if( mode == eJSON && obj_ids->dim() > 1 ) {
+        if( mode == eJSON && dim_explicit_objs != 1 ) {
             json_printer->startArray();
         }
         for(PropGetResIter it(obj_ids, explicit_ids); it; ++it) {
@@ -1432,12 +1775,11 @@ void sUsrCGI::propGet(sUsrObjRes * obj_ids, const char* view_name, const char* p
             }
             if( show_actions || show_files_wildcard ) {
                 const sHiveId * id = obj_ids->id(it);
-                std::auto_ptr<sUsrObj> obj(m_User.objFactory(*id));
+                std::unique_ptr<sUsrObj> obj(m_User.objFactory(*id));
                 if( obj.get() ) {
                     if( show_actions ) {
-                        sVarSet acts;
                         sVec<sStr> vec;
-                        obj->actions(vec);
+                        obj->actions(vec, show_actions > 1);
                         if( mode == eJSON ) {
                             if( vec.dim() ) {
                                 json_printer->addKey("_action");
@@ -1448,6 +1790,7 @@ void sUsrCGI::propGet(sUsrObjRes * obj_ids, const char* view_name, const char* p
                                 json_printer->endArray();
                             }
                         } else {
+                            sVarSet acts;
                             sStr a;
                             for(idx i = 0; i < vec.dim(); ++i) {
                                 a.printf(",%s", vec[i].ptr());
@@ -1462,16 +1805,44 @@ void sUsrCGI::propGet(sUsrObjRes * obj_ids, const char* view_name, const char* p
                             }
                         }
                     }
+                    if( show_js_components ) {
+                        sVec<sStr> vec;
+                        obj->jscomponents(vec, show_js_components > 1);
+                        if( mode == eJSON ) {
+                            if( vec.dim() ) {
+                                json_printer->addKey("_js_component");
+                                json_printer->startArray();
+                                for(idx i = 0; i < vec.dim(); ++i) {
+                                    json_printer->addValue(vec[i].ptr());
+                                }
+                                json_printer->endArray();
+                            }
+                        } else {
+                            sVarSet jscos;
+                            sStr a;
+                            for(idx i = 0; i < vec.dim(); ++i) {
+                                a.printf(",%s", vec[i].ptr());
+                            }
+                            if( a ) {
+                                jscos.addRow().addCol(obj->Id()).addCol("_js_component").addCol("").addCol(a.ptr(1));
+                            }
+                            if( mode == eCSV ) {
+                                jscos.printCSV(dataForm, 0);
+                            } else {
+                                jscos.printProp(dataForm, 0, 1, 2, 3);
+                            }
+                        }
+                    }
                     if( show_files_wildcard ) {
                         switch( mode ) {
                             case eCSV:
-                                obj->fileProp(dataForm, true, show_files_wildcard);
+                                obj->fileProp(dataForm, true, show_files_wildcard, show_files_size);
                                 break;
                             case eJSON:
-                                obj->fileProp(*json_printer, show_files_wildcard, true);
+                                obj->fileProp(*json_printer, show_files_wildcard, true, show_files_size) ;
                                 break;
                             case eProp:
-                                obj->fileProp(dataForm, false, show_files_wildcard);
+                                obj->fileProp(dataForm, false, show_files_wildcard, show_files_size);
                                 break;
                         }
                     }
@@ -1481,7 +1852,7 @@ void sUsrCGI::propGet(sUsrObjRes * obj_ids, const char* view_name, const char* p
                 json_printer->endObject();
             }
         }
-        if( mode == eJSON && obj_ids->dim() > 1 ) {
+        if( mode == eJSON && dim_explicit_objs != 1 ) {
             json_printer->endArray();
         }
     }
@@ -1489,11 +1860,13 @@ void sUsrCGI::propGet(sUsrObjRes * obj_ids, const char* view_name, const char* p
 
 void sUsrCGI::propSet(sVar* form)
 {
+    raw |= 1;
     m_User.propSet(form ? *form : *pForm, dataForm);
 }
 
-void sUsrCGI::propSet2(sVar* form/* = 0 */)
+void sUsrCGI::propSet2(sVar* form)
 {
+    raw |= 1;
     if( !form ) {
         form = pForm;
     }
@@ -1504,7 +1877,7 @@ void sUsrCGI::propSet2(sVar* form/* = 0 */)
         sDic<sUsrPropSet::Obj> modified_objs;
         sUsrPropSet upropset(m_User);
         upropset.setSrc(json_parse_txt, json_parse_txt_len).disableFileRoot();
-        if( upropset.run(&modified_objs) ) {
+        if( upropset.run(&modified_objs, sUsrPropSet::fOverwriteExistingSameType) ) {
             if( m_User.updateComplete() ) {
                 sJSONPrinter printer(&dataForm);
                 printer.startObject();
@@ -1519,15 +1892,12 @@ void sUsrCGI::propSet2(sVar* form/* = 0 */)
                 }
                 printer.endObject();
             } else {
-                // updateComplete failed
                 dataForm.addString("error: database connection error 2\n");
             }
         } else {
-            // json error
             dataForm.printf("error: %s\n", upropset.getErr());
         }
     } else {
-        // updateStart failed
         dataForm.addString("error: database connection error 1\n");
     }
 }
@@ -1550,24 +1920,18 @@ static bool is_potential_settable_prop_name(const char * s)
 
 void sUsrCGI::propBulkSet(void)
 {
-    // parameters:
-    // ids = list of object ids
-    // objQry = query language expression evaluating to a list of object ids (appended to ids and uniquified)
-    // fmla = formula appled to each object as topic, expected to produce a string
-    // mapfile = object ID of csv table with 2 columns, from / to (for mapping formula result)
-    // prop = name of field to set with the result
     const char * ids = pForm->value("ids");
     const char * obj_qry = pForm->value("objQry");
     const char * fmla = pForm->value("fmla");
     const char * mapfile_id = pForm->value("mapfile");
     const char * prop_name = pForm->value("prop");
 
-    std::auto_ptr<qlang::sUsrEngine> engine(queryEngineFactory(qlang::sUsrContext::fUnderscoreId));
+    std::unique_ptr<sUsrQueryEngine> engine(queryEngineFactory(qlang::sUsrContext::fUnderscoreId));
     sStr error, result, cell, path;
     sVariant value;
+    raw |= 1;
 
 #ifndef WIN32
-    // If a query takes >30 sec or >2 GB heap or stack, something is very wrong
     struct sigaction sa;
     sa.sa_flags = SA_SIGINFO;
     sigemptyset(&sa.sa_mask);
@@ -1586,11 +1950,7 @@ void sUsrCGI::propBulkSet(void)
     sHiveId::parseRangeSet(ids_list, ids);
 
     if( obj_qry && obj_qry[0] ) {
-        if( !engine->parse(obj_qry, 0, &error) ) {
-            dataForm.printf("error : failed to parse objQry : %s", error.ptr());
-            return;
-        }
-        if( !engine->eval(value, &error) ) {
+        if( !engine->eval(obj_qry, 0, value, &error) ) {
             dataForm.printf("error : failed while running objQry : %s", error.ptr());
             return;
         }
@@ -1613,14 +1973,8 @@ void sUsrCGI::propBulkSet(void)
         dataForm.printf("error : missing fmla");
         return;
     }
-
-    if( !engine->parse(fmla, 0, &error) ) {
-        dataForm.printf("error : failed to parse fmla : %s", error.ptr());
-        return;
-    }
-
     sTxtTbl mapfile_tbl;
-    sDic<idx> mapfile_dic; // map from cell content to row number for first column ("from") of mapfile_tbl
+    sDic<idx> mapfile_dic;
     if (mapfile_id && mapfile_id[0]) {
         const sUsrFile * ufile = dynamic_cast<const sUsrFile*>(m_User.objFactory(mapfile_id));
         if( !ufile ) {
@@ -1678,7 +2032,7 @@ void sUsrCGI::propBulkSet(void)
         }
 
         value.setNull();
-        if( !engine->eval(value, &error) ) {
+        if( !engine->eval(fmla, 0, value, &error) ) {
             dataForm.printf("error : failed while running fmla on id %s : %s", id.print(), error.ptr());
             return;
         }
@@ -1698,8 +2052,6 @@ void sUsrCGI::propBulkSet(void)
         }
 
         if( !have_path ) {
-            // if there is no such field in the object, we have to construct the entire prop tree
-            // to create a reasonable path
             sUsrObj * uobj = m_User.objFactory(id);
             if( !uobj ) {
                 dataForm.printf("error : object %s could not be opened", id.print());
@@ -1731,6 +2083,7 @@ void sUsrCGI::propBulkSet(void)
 
 void sUsrCGI::propDel(void)
 {
+    raw |= 1;
     const char* objIds = pForm->value("ids");
     const char* prop = pForm->value("prop");
     const char* path = pForm->value("path");
@@ -1739,7 +2092,7 @@ void sUsrCGI::propDel(void)
     sVec<sHiveId> os;
     sHiveId::parseRangeSet(os, objIds);
     for(idx o = 0; o < os.dim(); ++o) {
-        std::auto_ptr<sUsrObj> obj(m_User.objFactory(os[o]));
+        std::unique_ptr<sUsrObj> obj(m_User.objFactory(os[o]));
         if( obj.get() ) {
             if( !obj->propDel(prop, path, value) ) {
                 dataForm.printf("err.");
@@ -1763,6 +2116,7 @@ void sUsrCGI::propDel(void)
 
 void sUsrCGI::simpleCast(void)
 {
+    raw |= 1;
     const char* objIds = pForm->value("ids");
     const char* type = pForm->value("type");
 
@@ -1772,9 +2126,10 @@ void sUsrCGI::simpleCast(void)
         dataForm.printf("{");
         for(idx o = 0; o < os.dim(); ++o) {
             dataForm.printf("%s\n \"%s\" : ", o > 0 ? "," : "", os[o].print());
-            std::auto_ptr<sUsrObj> obj(m_User.objFactory(os[o]));
+            std::unique_ptr<sUsrObj> obj(m_User.objFactory(os[o]));
             if( obj.get() ) {
-                sStr type_from("%s", obj->getTypeName());
+                sStr type_from;
+                type_from.addString(obj->getTypeName());
                 sUsrObj * o = obj->cast(type);
                 if( o && o != obj.get() ) {
                     dataForm.printf("{ \"signal\" : \"cast\", \"data\" : { \"from\" : \"%s\", \"to\" : \"%s\" } }", type_from.ptr(), type);
@@ -1790,6 +2145,7 @@ void sUsrCGI::simpleCast(void)
 
 void sUsrCGI::permSet(void)
 {
+    raw |= 1;
     const char* objIds = pForm->value("ids");
     const char* optObjIds = pForm->value("optIds");
     const char* groupIds = pForm->value("groups");
@@ -1818,7 +2174,6 @@ void sUsrCGI::permSet(void)
                             }
                         }
                     }
-
                     ok &= m_User.setPermission(gs[g], os[o], perm, flags, &viewId);
                 }
             }
@@ -1836,7 +2191,6 @@ void sUsrCGI::permSet(void)
                             }
                         }
                     }
-
                     m_User.setPermission(gs[g], opt_os[o], opt_perm, opt_flags, &viewId, objIds);
                 }
             }
@@ -1852,6 +2206,7 @@ void sUsrCGI::permSet(void)
 
 void sUsrCGI::permCopy(void)
 {
+    raw |= 1;
     const sHiveId objFrom(pForm->value("from"));
     const char* objIds = pForm->value("ids");
 
@@ -1874,74 +2229,191 @@ void sUsrCGI::permCopy(void)
 
 void sUsrCGI::groupAdd(void)
 {
-    const char* nm = pForm->value("name");
-    const char* abbr = pForm->value("abbr");
-    const char* parent = pForm->value("parent");
-
-    if( !m_User.groupCreate(nm, abbr, parent) && !m_User.err ) {
-        m_User.err.printf("Request unsuccessful, try again later.");
+    raw |= 1;
+    if( !m_User.isGuest() ) {
+        const char* nm = pForm->value("name");
+        const char* abbr = pForm->value("abbr");
+        const char* parent = pForm->value("parent");
+        if( !m_User.groupCreate(nm, abbr, parent) && !m_User.err ) {
+            m_User.err.printf("Request unsuccessful, try again later.");
+        }
+        dataForm.printf("%s", m_User.err ? m_User.err.ptr() : "ok");
     }
-    dataForm.printf("%s", m_User.err ? m_User.err.ptr() : "ok");
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ User Info
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 void sUsrCGI::userList(void)
 {
-    idx isGrp = pForm->ivalue("ugrp");
-    idx allUsers = pForm->ivalue("usr");
-    idx active = pForm->ivalue("active");
-    const char * search = pForm->value("search");
-    bool primaryGrpOnly = pForm->boolvalue("primaryGrpOnly");
-
-    sVec<sStr> lst;
-    m_User.listUsr(&lst, isGrp, allUsers, active, search, primaryGrpOnly);
-    dataForm.printf("id,path,name\n");
-    for(idx i = 0; i < lst.dim(); ++i) {
-        const char * userName = lst[i].ptr();
-        const char * groupPath = sString::next00(userName);
-        const char * id = sString::next00(groupPath);
-        dataForm.printf("%s,%s,%s\n", id, groupPath, userName);
+    raw |= 1;
+    sJSONPrinter json_printer;
+    const bool printJson = pForm->boolvalue("json");
+    if( printJson ) {
+        json_printer.init(&dataForm);
+        json_printer.startArray();
+    } else {
+        dataForm.printf("id,path,name\n");
     }
+    idx isGrp = pForm->ivalue("ugrp");
+    if( !m_User.isGuest() || isGrp ) {
+        idx allUsers = pForm->ivalue("usr");
+        idx active = pForm->ivalue("active");
+        bool billable = pForm->boolvalue("billable");
+        bool with_system = pForm->boolvalue("withSystem");
+        const char * search = pForm->value("search");
+        bool primaryGrpOnly = pForm->boolvalue("primaryGrpOnly");
+        sVec<sStr> lst;
+        m_User.listUsr(&lst, isGrp, allUsers, active, search, primaryGrpOnly, billable, with_system);
+        for(idx i = 0; i < lst.dim(); ++i) {
+            const char * userName = lst[i].ptr();
+            const char * groupPath = sString::next00(userName);
+            const char * id = sString::next00(groupPath);
+            if( printJson ) {
+                json_printer.startObject();
+                json_printer.addKeyValue("id", id);
+                json_printer.addKeyValue("path", groupPath);
+                json_printer.addKeyValue("name", userName);
+                json_printer.endObject();
+            } else {
+                dataForm.printf("%s,%s,%s\n", id, groupPath, userName);
+            }
+        }
+    }
+    if( printJson ) {
+        json_printer.endArray();
+        json_printer.finish();
+    }
+}
+
+void sUsrCGI::userInfo(void)
+{
+    raw |= 1;
+    bool pretty = pForm->boolvalue("pretty",
+#ifdef _DEBUG
+        true
+#else
+        false
+#endif
+        );
+    const char * prefix = pForm->value("prefix");
+    bool with_inactive = pForm->boolvalue("active");
+    bool with_system = pForm->boolvalue("withSystem");
+
+    sJSONPrinter json_printer;
+    json_printer.init(&dataForm, pretty ? 0 : "", pretty ? 0 : "");
+    json_printer.startObject();
+    m_User.printUserInfo(json_printer, true, 0, false, prefix, with_inactive, with_system);
+    json_printer.endObject();
+    json_printer.finish();
 }
 
 void sUsrCGI::groupList(void)
 {
-    idx isGrp = pForm->ivalue("ugrp");
-    idx usersOnly = pForm->ivalue("usr");
-    const char * search = pForm->value("search");
+    raw |= 1;
+    if( !m_User.isGuest() ) {
+        idx isGrp = pForm->ivalue("ugrp");
+        idx usersOnly = pForm->ivalue("usr");
+        const char * search = pForm->value("search");
 
-    sVec<sStr> lst;
-    m_User.listGrp(&lst, isGrp, usersOnly, search);
-    dataForm.printf("id,path,name\n");
-    for(idx i = 0; i < lst.dim(); ++i) {
-        const char * userName = lst[i].ptr();
-        const char * groupPath = sString::next00(userName);
-        const char * id = sString::next00(groupPath);
-        dataForm.printf("%s,%s,%s\n", id, groupPath, userName);
+        sVec<sStr> lst;
+        m_User.listGrp(&lst, isGrp, usersOnly, search);
+        dataForm.printf("id,path,name\n");
+        for(idx i = 0; i < lst.dim(); ++i) {
+            const char * userName = lst[i].ptr();
+            const char * groupPath = sString::next00(userName);
+            const char * id = sString::next00(groupPath);
+            dataForm.printf("%s,%s,%s\n", id, groupPath, userName);
+        }
     }
 }
 
 void sUsrCGI::inactList()
 {
-    idx isGrp = pForm->ivalue("ugrp");
+    raw |= 1;
+    if( !m_User.isGuest() ) {
+        idx isGrp = pForm->ivalue("ugrp");
 
-    sVec<sStr> lst;
-    m_User.listInactive(&lst, isGrp);
-    for(idx i = 0; i < lst.dim(); ++i) {
-        dataForm.printf("%s\n", lst[i].ptr());
+        sVec<sStr> lst;
+        m_User.listInactive(&lst, isGrp);
+        for(idx i = 0; i < lst.dim(); ++i) {
+            dataForm.printf("%s\n", lst[i].ptr());
+        }
     }
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Files
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+void sUsrCGI::file2(void)
+{
+    const char * r = pForm->value("HTTP_RANGE", NULL);
+
+    if( !r || !r[0] ) {
+        file();
+        return;
+    }
+    sStr rangeStr("%s", r);
+    const char * obj_ids = pForm->value("ids");
+    const char * filename = pForm->value("filename");
+    const char * propname = pForm->value("propname");
+    idx prefix = pForm->ivalue("prefix", 1);
+
+    sVec<sHiveId> ids;
+    sHiveId::parseRangeSet(ids, obj_ids);
+    sStr log;
+    for( idx i = 0; i < ids.dim(); ++i ) {
+        std::unique_ptr<sUsrObj> obj(m_User.objFactory(ids[i], 0, ePermCanDownload));
+        if( obj.get() ) {
+            sFilePath nm;
+            if( prefix ) {
+                nm.printf("o%s-", obj->Id().print());
+            }
+            sStr path;
+            if( filename && filename[0] ) {
+                if( obj->getFilePathname(path, "%s", filename) ) {
+                    nm.printf("%s", filename);
+                }
+            } else if( propname && propname[0] ) {
+                obj->propGet(propname, &nm);
+                obj->getFilePathname(path, "%s", nm.ptr());
+            } else if( const sUsrFile * u_file = dynamic_cast<const sUsrFile *>(obj.get()) ) {
+                u_file->getFile(path);
+                sStr fnm, ext;
+                if( path && u_file->propGet("path") ) {
+                    nm.makeName(path, "%%flnm");
+                } else {
+                    u_file->propGet("ext", &ext);
+                    u_file->propGet("name", &fnm);
+                    if( sLen(ext) ) {
+                        nm.makeName(fnm, "%%flnmx%s%s", ext ? "." : "", ext ? ext.ptr() : "");
+                    } else {
+                        nm.makeName(fnm, "%%flnm");
+                    }
+                }
+            } else {
+                continue;
+            }
+
+            if( path ) {
+                sFil fl(path, sMex::fReadonly);
+                if( fl.ok() ) {
+                    if( raw < 1 )
+                        raw = 1;
+
+                    sHtml::sPartPair::TParts ranges = sHtml::parseRange(rangeStr, fl.length());
+                    if( ranges.dim() == 0 ) {
+                        headerSet("Status", "416");
+                        return;
+                    } else {
+                        idx totalBufferSize = outBinByteRange(&path, nm.ptr(), &ranges);
+                        if( totalBufferSize != -1 ) {
+                            m_User.audit(sUsr::eUserAuditActions, "download", "objID='%s'; file='%s'; bytes='%" DEC "'", obj->Id().print(), nm.ptr(), totalBufferSize);
+                        }
+                    }
+                } else {
+                    error("Referred file '%s' is not found.", nm.ptr());
+                }
+            }
+        }
+    }
+}
+
 void sUsrCGI::file(void)
 {
     const char * obj_ids = pForm->value("ids");
@@ -1950,13 +2422,13 @@ void sUsrCGI::file(void)
     idx maxSize = pForm->ivalue("maxSize", sIdxMax);
     idx offset = pForm->ivalue("offset", 0);
     const char * ellipsize = pForm->value("ellipsize");
-    idx prefix=pForm->ivalue("prefix",1);
+    idx prefix = pForm->ivalue("prefix",1);
 
     sVec<sHiveId> ids;
     sHiveId::parseRangeSet(ids, obj_ids);
     sStr log;
     for(idx i = 0; i < ids.dim(); ++i) {
-        std::auto_ptr<sUsrObj> obj(m_User.objFactory(ids[i], 0, ePermCanDownload));
+        std::unique_ptr<sUsrObj> obj(m_User.objFactory(ids[i], 0, ePermCanDownload));
         if( obj.get() ) {
             sFilePath nm;
             if( prefix ) {
@@ -1974,7 +2446,6 @@ void sUsrCGI::file(void)
                 u_file->getFile(path);
                 sStr fnm, ext;
                 if( path && u_file->propGet("path") ) {
-                    // old ways
                     nm.makeName(path, "%%flnm");
                 } else {
                     u_file->propGet("ext", &ext);
@@ -1991,7 +2462,9 @@ void sUsrCGI::file(void)
             if( path ) {
                 sFil fl(path, sMex::fReadonly);
                 if( fl.ok() ) {
-                    if(raw<1)raw = 1;
+                    if( raw < 1 ) {
+                        raw |= 1;
+                    }
                     sStr fl_ellipsized;
 
                     const char * fl_buf = fl.ptr();
@@ -2001,7 +2474,6 @@ void sUsrCGI::file(void)
                         fl_buf += offset;
                         fl_buf_len -= offset;
                     } else if( offset < 0 && -offset <= fl_buf_len ) {
-                        // negative offsets are from the end of the file
                         fl_buf += fl_buf_len + offset;
                         fl_buf_len = -offset;
                     }
@@ -2017,6 +2489,7 @@ void sUsrCGI::file(void)
                         fl_buf = fl_ellipsized.ptr();
                         fl_buf_len = fl_ellipsized.length();
                     }
+
                     outBin(fl_buf, fl_buf_len, fl_buf_len == fl.length() ? sFile::time(path) : 0, true, "%s", nm.ptr());
                     m_User.audit(sUsr::eUserAuditActions, "download", "objID='%s'; file='%s'; bytes='%" DEC "'", obj->Id().print(), nm.ptr(), fl_buf_len);
                 } else {
@@ -2029,172 +2502,659 @@ void sUsrCGI::file(void)
 
 void sUsrCGI::dropboxList(void)
 {
-    // initialize user setting object
+    raw |= 1;
+    const sHiveId dbid(pForm->value("dropbox"));
+    const char * path = dbid ? pForm->value("path") : 0;
+    const char * search = pForm->value("search");
+
+    sVarSet res;
+    res.setColId(0, "id");
+    res.setColId(1, "name");
+    res.setColId(2, "size");
     sUsrObjRes dropboxList;
     m_User.objs2("dropbox", dropboxList, 0, 0, 0, "dropbox_path,dropbox_name");
-    if( !dropboxList.dim() ) {
+    sStr dbpath, dbname;
+    sDir lst;
+    for(sUsrObjRes::IdIter it = dropboxList.first(); dropboxList.has(it); dropboxList.next(it)) {
+        const sHiveId * id = dropboxList.id(it);
+        if( dbid && id && *id && dbid != *id ) {
+            continue;
+        }
+        const sUsrObjRes::TObjProp * prop = dropboxList.get(it);
+        if( prop ) {
+            dbname.cut0cut();
+            const sUsrObjRes::TPropTbl * dbp = dropboxList.get(*prop, "dropbox_path");
+            if( dbp ) {
+                dbpath.printf(0, "%s", dropboxList.getValue(dbp));
+            }
+            if( const sUsrObjRes::TPropTbl * t = dropboxList.get(*prop, "dropbox_name") ) {
+                sStr x("%s", dropboxList.getValue(t));
+                sString::searchAndReplaceStrings(&dbname, x, x.length(), "/" __, "\\/" __, 0, false);
+            }
+            if( !dbp || !dbpath || !dbname ) {
+                continue;
+            }
+            if( path ) {
+                dbpath.printf("/%s", path);
+            }
+            idx flags = sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs) | sFlag(sDir::bitSubdirSlash);
+            if( search && search[0] ) {
+                flags |= sFlag(sDir::bitRecursive);
+            }
+            lst.cut();
+            lst.find(flags, dbpath.ptr(), search, 0, 0, dropboxList.getValue(dbp));
+            for(idx ie = 0; ie < lst.dimEntries(); ++ie) {
+                dbpath.printf(0, "/%s/%s", dbname.ptr(), lst.getEntryPath(ie));
+                const char * abs_path = lst.getEntryAbsPath(ie);
+                res.addRow();
+                res.addCol(*id);
+                res.addCol(dbpath);
+                if( sDir::exists(abs_path) ) {
+                    res.addCol((idx)-1);
+                } else {
+                    res.addCol(sFile::size(abs_path));
+                }
+            }
+        }
+    }
+    if( !res.rows ) {
+        res.cols = 3;
+    }
+    res.printCSV(dataForm);
+
+}
+
+static bool validDate(const char * s) {
+    struct tm tmp;
+    return sLen(s) == 10 && sString::parseDateTime(&tmp, s);
+}
+
+static bool validHours(const char * s) {
+    char * endptr = 0;
+    real val = s ? strtod(s, &endptr) : 0;
+    return val > 0 && *endptr == 0;
+}
+
+static bool timelogAddEntry_pushValue(sUsrObj * obj, sUsrObjPropsTree & tree, idx inode_parent, const char * prop, const char * value)
+{
+    bool success = false;
+    if( sUsrObjPropsNode * parent_node = tree.getNodeByIndex(inode_parent) ) {
+        if( const sUsrObjPropsNode * node = parent_node->push(prop, value) ) {
+            parent_node = 0;
+            const char * path = node->path();
+            success = obj->propSet(prop, &path, &value, 1, true);
+        }
+    }
+    return success;
+}
+
+void sUsrCGI::timelogAddEntry(void)
+{
+    const char * start_date = pForm->value("start_date");
+    if( !validDate(start_date) ) {
+        error("Invalid start_date");
+        return;
+    }
+    const char * end_date = pForm->value("end_date");
+    if( !validDate(end_date) || strcmp(start_date, end_date) > 0 ) {
+        error("Invalid end_date");
+        return;
+    }
+    const char * hours = pForm->value("hours");
+    if( !validHours(hours) ) {
+        error("Invalid hours");
+        return;
+    }
+    const char * comment = pForm->value("comment");
+    sHiveId project_id(pForm->value("project_id"));
+    std::unique_ptr<sUsrObj> obj(m_User.objFactory(project_id));
+    if( !obj.get() || !obj->isTypeOf("HIVE_Development_Project_List+") ) {
+        error("Invalid project");
+        return;
+    }
+    sUsrObjPropsTree props_tree(m_User, obj->getTypeName());
+
+    m_User.updateStart();
+    obj->propBulk(props_tree.getTable(), 0, "time_log_reporter" _ "time_log_date" _ "time_log_end_date" _ "time_log_hours" _ "time_log_comment" __);
+    props_tree.useTable(props_tree.getTable());
+
+    bool success = false;
+    if( const sUsrObjPropsNode * node_parent = props_tree.push("_row_time_log") ) {
+        idx inode_parent = node_parent->treeIndex();
+        node_parent = 0;
+        success = timelogAddEntry_pushValue(obj.get(), props_tree, inode_parent, "time_log_reporter", m_User.Email());
+        success = success && timelogAddEntry_pushValue(obj.get(), props_tree, inode_parent, "time_log_date", start_date);
+        success = success && timelogAddEntry_pushValue(obj.get(), props_tree, inode_parent, "time_log_end_date", end_date);
+        success = success && timelogAddEntry_pushValue(obj.get(), props_tree, inode_parent, "time_log_hours", hours);
+        if( comment ) {
+            success = success && timelogAddEntry_pushValue(obj.get(), props_tree, inode_parent, "time_log_comment", comment);
+        }
+    }
+    if( success ) {
+        m_User.updateComplete();
+        dataForm.printf("%s", project_id.print());
+    } else {
+        m_User.updateAbandon();
+        error("Failed to add log entry");
         return;
     }
 
-    const char * whichdropbox = pForm->value("dropbox");
-    const char * wildcard = pForm->value("wildcard", "*");
-    idx outs = 3;
-    sString::xscanf(pForm->value("out", "title|files"), "%b=3|title|files;", &outs);
-    if( !outs ) {
-        outs = 3;
-    }
-    sVarSet res;
-    res.setColId(0, "id");
-    res.setColId(1, "title");
-    res.setColId(2, "path");
-    res.setColId(3, "existing_id");
-    sStr pathS, buf;
-    sDir lst;
-    for(sUsrObjRes::IdIter it = dropboxList.first(); dropboxList.has(it); dropboxList.next(it)) {
-        sHiveId dropbox_id = *dropboxList.id(it);
-        const char * dropbox_name = 0;
-        pathS.cut0cut();
-        buf.cut0cut();
-        lst.cut();
-        if( const sUsrObjRes::TPropTbl * t = dropboxList.get(*dropboxList.get(it), "dropbox_path") ) {
-            pathS.addString(dropboxList.getValue(t));
-        }
-        if( const sUsrObjRes::TPropTbl * t = dropboxList.get(*dropboxList.get(it), "dropbox_name") ) {
-            dropbox_name = dropboxList.getValue(t);
-        }
-        if( !pathS || !dropbox_name || !*dropbox_name ) {
-            continue;
-        }
-        if( whichdropbox && strcmp(whichdropbox, dropbox_name) != 0 ) { // this dropbox has not been asked for
-            continue;
-        }
-
-        res.addRow();
-        res.addCol(dropbox_id); // tree node id
-        if( outs & 1 ) {
-            res.addCol(dropbox_name); // tree node title - use readable name
-        } else {
-            res.addCol(""); // tree node title - use default (same as id)
-        }
-        buf.cut(0);
-        buf.addString("/", 1);
-        dropbox_id.print(buf);
-        buf.addString("/", 1);
-        idx buf_id_len = buf.length();
-        res.addCol(buf);
-        if( outs == 1 ) {
-            // only dropbox titles are requested
-            continue;
-        }
-        const char * dir = strstr(pathS, "://");
-        if( dir ) {
-            dir += 3;
-        } else {
-            dir = pathS;
-        }
-        lst.find(sFlag(sDir::bitFiles) | sFlag(sDir::bitRecursive), dir, wildcard, 0, 0, dir);
-        for(idx ie = 0; ie < lst.dimEntries(); ie++) {
-            const char * relative_path = lst.getEntryPath(ie);
-            res.addRow();
-            res.addCol(relative_path); // tree node id
-            res.addCol(""); // tree node title - use default (same as id)
-            if( outs & 2 ) {
-                // print relative file path
-                buf.cut(buf_id_len);
-                buf.addString(relative_path);
-                res.addCol(buf);
-            } else {
-                // nothing
-                res.addCol("");
-            }
-            sUsrObjRes existing;
-            // TODO fix invalid way to find 'existing file' just!!! by its name
-            m_User.objs2("u-file+", existing, 0, "orig-name", relative_path, 0, 1);
-            if( existing.dim() ) {
-                res.addCol(existing.firstId()->print());
-            }
-        }
-    }
-    res.printCSV(dataForm);
+    printf("%s", project_id.print());
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Ion Commands
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+void sUsrCGI::loginToken(void)
+{
+    const char * email = pForm->value("email");
+    const char * token = pForm->value("token");
+
+    idx logCount = -1;
+    sUsr::ELoginResult eres = sUsr::eUserNotSet;
+    if( email && token ) {
+        eres = m_User.loginByToken(email, token, pForm->value("ADDR"), &logCount);
+    }
+    loginCommon(eres, email, logCount);
+}
+
+void sUsrCGI::genToken(void)
+{
+    const char * name = pForm->value("name", "Token");
+    const char * expir = pForm->value("expir");
+    idx expir_unix = -sIdxMax;
+
+    if( expir ) {
+        struct tm tmp;
+        expir_unix = sString::parseDateTime(&tmp, expir);
+        if ( expir_unix == -sIdxMax ) {
+            error("Invalid token expiratation date");
+            return;
+        }
+    }
+
+    idx keyLen = 30;
+    sStr keyBuf;
+    keyBuf.printf("%s|%s|%s|", m_User.IdStr(), m_User.firstName(), m_User.lastName());
+    sPassword::cryptoRandomString(keyBuf, keyLen);
+
+    sStr saltBuf;
+    idx saltLen = 12;
+    sPassword::cryptoRandomString(saltBuf, saltLen);
+
+    sStr tokenBuf;
+    idx iterations = sPBKDF2_HMAC<sSHA256>::default_iterations;
+    sPBKDF2_HMAC<sSHA256> pbkdf2(keyBuf.ptr(), saltBuf.ptr(0), saltLen, iterations);
+    pbkdf2.printBase64(tokenBuf);
+
+    sStr hashBuf;
+    sPassword::encodePassword(hashBuf, tokenBuf.ptr());
+
+    sUsrObjRes us;
+    m_User.objs2("user-settings", us);
+    if( us.dim() != 1 ) {
+        error("Unable to find user-settings object");
+        return;
+    }
+    const sHiveId * id = us.firstId();
+    if ( !id ) {
+        error("Unable to retreive user-settings object id");
+        return;
+    }
+    sUsrObj * uobj = m_User.objFactory(*id);
+    if ( !uobj ) {
+        error("Unable to create user-settings object");
+        return;
+    }
+
+    sUsrObjPropsTree props_tree(m_User, uobj->getTypeName());
+    m_User.updateStart();
+    uobj->propBulk(props_tree.getTable(), 0, "account_token_name" _ "account_token_hash" _ "account_token_expiration" __);
+    props_tree.useTable(props_tree.getTable());
+
+    bool success = false;
+    if( const sUsrObjPropsNode * node_parent = props_tree.push("account_token") ) {
+        idx inode_parent = node_parent->treeIndex();
+        node_parent = 0;
+        success = timelogAddEntry_pushValue(uobj, props_tree, inode_parent, "account_token_name", name);
+        success = success && timelogAddEntry_pushValue(uobj, props_tree, inode_parent, "account_token_hash", hashBuf.ptr());
+        if ( expir ) {
+            sStr expirBuf;
+            expirBuf.printf("%lld", expir_unix);
+            success = success && timelogAddEntry_pushValue(uobj, props_tree, inode_parent, "account_token_expiration", expirBuf.ptr(0));
+        }
+        sStr time_buf;
+        time_t curr_time = time(0);
+        time_buf.printf("%ld", curr_time);
+        success = success && timelogAddEntry_pushValue(uobj, props_tree, inode_parent, "account_token_created", time_buf.ptr());
+    }
+
+    if( success ) {
+        m_User.updateComplete();
+        dataForm.printf("%s", tokenBuf.ptr(0));
+    } else {
+        m_User.updateAbandon();
+        error("Failed to add token to user-settings");
+        return;
+    }
+}
+
 void sUsrCGI::ionObjList(void)
 {
-    /*
-    const char * ids=pForm->value("ids");
-    const char * filename=pForm->value("filename");
-    sVec<sHiveId> ion_ids;
-    if(ids)sHiveId::parseRangeSet(ion_ids,ids);
-
-
-    sStr path00;
-    for ( idx iio=0; iio<ion_ids.dim(); ++iio) {
-        sUsrObj us(m_User, ion_ids[iio]);
-        if( !us.Id() ) {
-            continue;
-        }
-        us.getFilePathname(path00, "%s", filename ? filename : 0);
-    }
-    if(!path00.length()){
-        error("No valid ions specified.");
-    }
-    path00.add0(2);
-    sHoneyCombSet hc(path00.ptr(),sMex::fReadonly);
-    if(!hc.ok()){
-        error("Referred ions are corrupt of missing.");
-    }
-
-    const char * type=pForm->value("type");
-    const char * name=pForm->value("name");
-    const char * value=pForm->value("value");
-    sHoneyComb::Locator loc;
-    sIO buf(sMex::fBlockDoubling,(sIO::callbackFun)::printf);
-    while ( hc.objListIterate(&loc, true, type, name, value , &buf) ) {
-    }
-
-    //sUsrObj us(m_User, userSetList[0]);
-    //sVec<sHiveId> ionList;m_User.objs("ions", ions);
-*/
 }
 
 void sUsrCGI::ionPropGet(void)
 {
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Main Command Function
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+void sUsrCGI::createProject(void)
+{
+    sStr errBuf;
+    sHiveId outId = 0;
+    const char * name = pForm->value("name", 0);
+    const char * description = pForm->value("description", 0);
+    const char * type = pForm->value("type", 0);
+    if( !name || !name[0] ) {
+        errBuf.printf("Must give non-empty parameter 'name'. ");
+        headerSet("Status", "400");
+    }
+    if( !description || !description[0] ) {
+        errBuf.printf("Must give non-empty parameter 'description'. ");
+        headerSet("Status", "400");
+    }
+    if( !type || !type[0] ) {
+        errBuf.printf("Must give non-empty parameter 'type'. ");
+        headerSet("Status", "400");
+    }
+    if( !errBuf ) {
+        if( sRC rc = m_User.createProject(outId, name, description, type) ) {
+            if( rc.val.parts.bad_entity == sRC::eUser && rc.val.parts.state == sRC::eNotAuthorized ) {
+                errBuf.printf("Not authorized to create projects. ");
+                headerSet("Status", "403");
+            } else if( rc.val.parts.bad_entity == sRC::eType && rc.val.parts.state == sRC::eInvalid ) {
+                errBuf.printf("Given type must descend from type 'project'. ");
+                headerSet("Status", "400");
+            } else {
+                errBuf.printf("Internal server error: %s ", rc.print());
+                headerSet("Status", "500");
+            }
+        }
+    }
+    sJSONPrinter printer(&dataForm);
+    printer.startObject();
+    printer.addKeyValue("projectID", outId.print());
+    if( errBuf ) {
+        printer.addKeyValue("error", errBuf.ptr(0));
+    }
+    printer.endObject();
+    printer.finish();
+}
+
+void sUsrCGI::availableProjects(void)
+{
+    sStr errBuf;
+    sStr buf;
+    sVec<sUsr::Project> projs;
+    sJSONPrinter printer(&dataForm);
+    printer.startObject();
+
+    if( sRC rc = m_User.availableProjects(projs) ) {
+        errBuf.printf("Internal server error: %s ", rc.print());
+        headerSet("Status", "500");
+    }
+    printer.addKey("data");
+    printer.startObject();
+    for (int i = 0; !errBuf && i < projs.dim(); i++) {
+        buf.cut(0);
+        buf.printf("%" UDEC, projs[i].projectId);
+        printer.addKey(buf.ptr(0));
+        buf.cut(0);
+        printer.startObject();
+
+        printer.addKey("role");
+        switch( projs[i].role ) {
+            case sUsr::eProjectViewer:      printer.addKeyValue("role", "Viewer"); break;
+            case sUsr::eProjectDataHandler: printer.addKeyValue("role", "DataHandler"); break;
+            case sUsr::eProjectContributer: printer.addKeyValue("role", "Contributor"); break;
+            case sUsr::eProjectAdmin:       printer.addKeyValue("role", "Admin"); break;
+            default:
+                errBuf.printf("Internal server error: Unknown role for project %" UDEC, projs[i].projectId);
+                headerSet("Status", "500");
+                break;
+        }
+        const bool oldSUMode = m_User.m_SuperUserMode;
+        m_User.m_SuperUserMode = true;
+        sUsrObj projObj(m_User, sHiveId(projs[i].projectId, 0));
+        printer.addKeyValue("Title", projObj.propGet("Title"));
+        printer.addKeyValue("Description_full", projObj.propGet("Description_full"));
+        printer.addKeyValue("created", projObj.propGet("created"));
+        m_User.m_SuperUserMode = oldSUMode;
+        printer.endObject();
+    }
+    printer.endObject();
+
+    if( errBuf ) {
+        printer.addKeyValue("error", errBuf.ptr(0));
+    }
+    printer.endObject();
+    printer.finish();
+}
+
+void sUsrCGI::projectMembers(void)
+{
+    sStr buf;
+    sStr errBuf;
+    sVec<sUsr::ProjectMember> projMembers;
+    if( sRC rc = m_User.projectMembers(projMembers) ) {
+        errBuf.printf("Internal server error: %s ", rc.print());
+        headerSet("Status", "500");
+    }
+    sJSONPrinter printer(&dataForm);
+    printer.startObject();
+    printer.addKey("data");
+    printer.startObject();
+    for (int i = 0; !errBuf && i < projMembers.dim(); i++) {
+        buf.cut(0);
+        buf.printf("%" UDEC, projMembers[i].userId);
+        printer.addKey(buf.ptr(0));
+        buf.cut(0);
+        switch( projMembers[i].role) {
+            case sUsr::eProjectViewer:      buf.printf("Viewer"); break;
+            case sUsr::eProjectDataHandler: buf.printf("DataHandler"); break;
+            case sUsr::eProjectContributer: buf.printf("Contributor"); break;
+            case sUsr::eProjectAdmin:       buf.printf("Admin"); break;
+            default:
+                errBuf.printf("Internal server error: Unknown role for project %" UDEC, m_User.getProject());
+                headerSet("Status", "500");
+                break;
+        }
+        printer.addValue(buf.ptr(0));
+    }
+    printer.endObject();
+    if( errBuf ) {
+        printer.addKeyValue("error", errBuf.ptr(0));
+    }
+    printer.endObject();
+    printer.finish();
+}
+
+void sUsrCGI::addToProject(void)
+{
+    const udx userId = pForm->uvalue("userId", 0);
+    const char * roleStr = pForm->value("role", 0);
+    sStr errBuf;
+    sUsr::EProjectRole role = sUsr::eProjectViewer;
+
+    if( !userId ) {
+        errBuf.printf("Must give non-zero parameter 'userId'. ");
+        headerSet("Status", "400");
+    }
+    if( !roleStr || !roleStr[0] ) {
+        errBuf.printf("Must give non-empty parameter 'role'. ");
+        headerSet("Status", "400");
+    }
+    if( !errBuf ) {
+        switch( roleStr[0] ) {
+            case 'A': role = sUsr::eProjectAdmin; break;
+            case 'C': role = sUsr::eProjectContributer; break;
+            case 'D': role = sUsr::eProjectDataHandler; break;
+            case 'V': role = sUsr::eProjectViewer; break;
+            default:
+                errBuf.printf("Parameter 'role' must be one of 'A','C','D', or 'V'");
+                headerSet("Status", "400");
+                break;
+        }
+    }
+    if( !errBuf ) {
+        if( sRC rc = m_User.addToProject(userId, role) ) {
+            if( rc.val.parts.bad_entity == sRC::eUser && rc.val.parts.state == sRC::eNotAuthorized ) {
+                errBuf.printf("Not authorized to add users to project. ");
+                headerSet("Status", "403");
+            } else if( rc.val.parts.bad_entity == sRC::eID && rc.val.parts.state == sRC::eNotFound ) {
+                errBuf.printf("User ID not found. ");
+                headerSet("Status", "400");
+            } else if( rc.val.parts.bad_entity == sRC::eGroup && rc.val.parts.state == sRC::eExists ) {
+                errBuf.printf("User is already a member of the project. Remove user first. ");
+                headerSet("Status", "400");
+            } else {
+                errBuf.printf("Internal server error: %s ", rc.print());
+                headerSet("Status", "500");
+            }
+        }
+    }
+
+    sJSONPrinter printer(&dataForm);
+    printer.startObject();
+    if( errBuf ) {
+        printer.addKeyValue("error", errBuf.ptr(0));
+    }
+    printer.endObject();
+    printer.finish();
+}
+
+void sUsrCGI::removeFromProject(void)
+{
+    sStr errBuf;
+    const udx userId = pForm->uvalue("userId", 0);
+
+    if( !userId ) {
+        errBuf.printf("Must give non-zero parameter 'userId'. ");
+        headerSet("Status", "400");
+    }
+    if( !errBuf ) {
+        if( sRC rc = m_User.removeFromProject(userId) ) {
+            if( rc.val.parts.bad_entity == sRC::eUser && rc.val.parts.state == sRC::eNotAuthorized ) {
+                errBuf.printf("Not authorized to remove users from project. ");
+                headerSet("Status", "403");
+            } else if( rc.val.parts.bad_entity == sRC::eGroup && rc.val.parts.state == sRC::eNotFound ) {
+                errBuf.printf("Given user is not a member of project. ");
+                headerSet("Status", "400");
+            } else if( rc.val.parts.bad_entity == sRC::eID && rc.val.parts.state == sRC::eProhibited ) {
+                errBuf.printf("Not allowed to remove self from project. Another project administrator can remove you. ");
+                headerSet("Status", "400");
+            } else {
+                errBuf.printf("Internal server error: %s ", rc.print());
+                headerSet("Status", "500");
+            }
+        }
+    }
+
+    sJSONPrinter printer(&dataForm);
+    printer.startObject();
+    if( errBuf ) {
+        printer.addKeyValue("error", errBuf.ptr(0));
+    }
+    printer.endObject();
+    printer.finish();
+}
+
+void sUsrCGI::moveCheck(void)
+{
+
+
+
+
+}
+
+void sUsrCGI::moveToProject(void)
+{
+
+
+}
+
+void sUsrCGI::moveToHome(void)
+{
+
+
+}
+
+bool sUsrCGI::resolveFile(const char * filename)
+{
+
+    if( sIs("help/", filename) ) {
+        const char * ver = strrchr(filename, '-');
+        if( ver ) {
+            sStr app("%.*s/%.*s", (int)(ver - filename - 5), &filename[5], (int)(sLen(ver) - 6), &ver[1]);
+            return loadAppPage(app.ptr());
+        }
+    }
+    return false;
+}
+
+bool sUsrCGI::loadAppPage(const char * app)
+{
+    const char * help = "hlp.svc-";
+    const bool is_help = sIs(help, app);
+    sStr app_ver;
+    sString::searchAndReplaceSymbols(&app_ver, &app[is_help ? sLen(help) : 0], 0, "/", 0, 0, true, false, true, true);
+    app_ver.add0(2);
+    if( sString::cnt00(app_ver) >= 2 ) {
+        sUsrObjRes v;
+        const char * version = sString::next00(app_ver.ptr());
+        m_User.objs2("^algorithm$+", v, 0, "name", app_ver.ptr(), "version");
+        if( v.dim() ) {
+            for( sUsrObjRes::IdIter it = v.first(); v.has(it); v.next(it) ) {
+                const sUsrObjRes::TObjProp * prop = v.get(it);
+                if( prop ) {
+                    if( const sUsrObjRes::TPropTbl * w = v.get(*prop, "version") ) {
+                        if( sIs(version, v.getValue(w)) ) {
+                            std::unique_ptr<sUsrObj> obj(m_User.objFactory(*v.id(it)));
+                            if( obj.get() ) {
+                                const char * t = obj->getFilePathname(app_ver, is_help ? "app_help.html" : "app_tmplt.html");
+                                if( t ) {
+                                    sFil f(t, sMex::fReadonly);
+                                    if( f.ok() ) {
+                                        if( is_help ) {
+                                            dataForm.cutAddString(0, f.ptr(), f.length());
+                                            raw = 1;
+                                        } else {
+                                            htmlBody.cutAddString(0, f.ptr(), f.length());
+                                            raw = 0;
+                                        }
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void sUsrCGI::CBERConnect(void)
+{
+    const char * atype = pForm->value("applicationtype");
+    const char * stn = pForm->value("STN");
+    if( atype && atype[0] && stn && stn[0] ) {
+        IUrlEncoder * enc = CUrl::GetDefaultEncoder();
+        if( enc ) {
+            if( !m_User.isGuest() ) {
+                sHiveId projId;
+                sUsrObjRes projs;
+                sStr wunit, stn2;
+                const bool oldSUMode = m_User.m_SuperUserMode;
+                m_User.m_SuperUserMode = true;
+                m_User.objs2("^project$+", projs, 0, 0, 0, "work_unit,stn", false);
+                m_User.m_SuperUserMode = oldSUMode;
+                for(sUsrObjRes::IdIter it = projs.first(); projs.has(it); projs.next(it)) {
+                    const sHiveId * id = projs.id(it);
+                    if( id && *id == projId ) {
+                        projId.reset();
+                        break;
+                    }
+                    const sUsrObjRes::TObjProp * prop = projs.get(it);
+                    if( prop ) {
+                        if( const sUsrObjRes::TPropTbl * w = projs.get(*prop, "work_unit") ) {
+                            wunit.printf(0, "%s", projs.getValue(w));
+                        } else {
+                            wunit.cut0cut();
+                        }
+                        if( const sUsrObjRes::TPropTbl * t = projs.get(*prop, "stn") ) {
+                            stn2.printf(0, "%s", projs.getValue(t));
+                        } else {
+                            stn2.cut0cut();
+                        }
+                        if( !wunit || !stn2 ) {
+                            continue;
+                        }
+                        if( strcasecmp(atype, wunit.ptr()) == 0 && strcasecmp(stn, stn2.ptr()) == 0 ) {
+                            projId = *id;
+                        }
+                    }
+                }
+                if( projId ) {
+                    sVec<sUsr::Project> projects;
+                    sRC rc = m_User.availableProjects(projects);
+                    bool found = false;
+                    if( !rc ) {
+                        for(idx i = 0; i < projects.dim(); i++) {
+                            if( projects[i].projectId == projId.objId() ) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if( !found ) {
+                        projId.reset();
+                    }
+                }
+                if( !projId ) {
+                    error("Project %s%s not found or permission denied", atype, stn);
+                    executeJS("funcLink('?cmd=home&follow=///r/home');");
+                } else {
+                    executeJS("projectHandler.setProjectID(%s); funcLink('?cmd=home&follow=///r/home');", projId.print());
+                }
+            } else {
+                redirectURL.printf(0, "login&follow=");
+                enc->EncodeArgName("cberconnect&applicationtype=", redirectURL);
+                enc->EncodeArgValue(atype, redirectURL);
+                enc->EncodeArgName("&STN=", redirectURL);
+                enc->EncodeArgValue(stn, redirectURL);
+            }
+        } else {
+            headerSet("Status", "503");
+        }
+    } else {
+        headerSet("Status", "400");
+    }
+}
+
 idx sUsrCGI::Cmd(const char * cmd)
 {
     idx retval = 1;
     enum enumCommands
     {
-        eLogin, eLogout, eBatch, ePswdSet, ePswdChange, eUserGet, eUserSet, eUserReg, eUsrList, eGrpList, eGrpAdd, ePermSet,
-        ePropSpec, ePropGet, eObjs, eObjQry, ePropSet, ePropSet2, ePropBulkSet, ePropDel, eSimpleTypeCast, eContactUs, eTypeTree,
-        eFile, eDropboxList, eUsrV0, eUsrV1, eUsrV2, eUsrV3, eUsrFgt, eObjDel, eInactiveList, eUsrV4, eUsrMgr, ePermCopy, eAllStat,
-        eObjRemove,eObjCopy,eObjCut,eFolderCreate,eUsrEmAuth,
-        eIonObjList,eIonPropGet,
+        eLogin, eLogout, eLoginInfo, eBatch, ePswdSet, ePswdEdit, ePswdChange,
+        eUserGet, eUserSet, eUserReg, eUsrList, eUserInfo, eGrpList, eGrpAdd, ePermSet,
+        ePropSpec, ePropSpec2, ePropSpec3, ePropGet, eObjs, eObjQry, ePropSet, ePropSet2, ePropBulkSet, ePropDel,
+        eSimpleTypeCast, eSendMail, eTypeTree, eFile, eFile2, eDropboxList,
+        eUsrV0, eUsrV1, eUsrV2, eUsrV3, eUsrFgt, eObjDel, eInactiveList, eUsrV4, eUsrMgr, ePermCopy, eAllStat,
+        eObjRemove, eObjCopy, eObjCut, eObjCount, eFolderCreate, eUsrSSO,
+        eIonObjList, eIonPropGet,
+        eTimelogAddEntry,
+        eGenToken, eLoginToken,
+        eAvailableProjects, eProjectMembers, eAddToProject, eRemoveFromProject, eMoveCheck, eMoveToProject, eMoveToHome, eCBERConnect,
+        eCreateProject,
         eLast
     };
-
-    const char * listCommands = "login" _ "logout" _ "batch" _ "pswdSet" _ "pswdChange" _ "user" _ "userSet" _ "userReg" _ "usrList" _ "grpList" _ "grpAdd" _ "permset" _
-    "propspec" _ "propget" _ "objList" _ "objQry" _ "propset" _ "propset2" _ "propBulkSet" _ "propDel" _ "scast" _ "sendmail" _ "typeTree" _
-    "objFile" _ "dropboxlist" _ "userV0" _ "userV1" _ "userV2" _ "userV3" _ "forgot" _ "objDel" _ "inactive" _ "userV4" _ "mgr" _ "permcopy" _ "allStat" _
-    "objRemove" _ "objCopy" _ "objCut" _ "folderCreate" _ "emauth" _
-    "ionObjList" _ "ionObjGet" _
-    __;
+    const char * listCommands =
+        "login" _ "logout" _ "loginInfo" _ "batch" _ "pswdSet" _ "user_pswd" _ "pswdChange" _
+        "user" _ "userSet" _ "userReg" _ "usrList" _ "userInfo" _ "grpList" _ "grpAdd" _ "permset" _
+        "propspec" _ "propspec2" _ "propspec3" _ "propget" _ "objList" _ "objQry" _ "propset" _ "propset2" _ "propBulkSet" _ "propDel" _
+        "scast" _ "sendmail" _ "typeTree" _ "objFile" _ "objFile2" _ "dropboxlist" _
+        "userV0" _ "userV1" _ "userV2" _ "userV3" _ "forgot" _ "objDel" _ "inactive" _ "userV4" _ "mgr" _ "permcopy" _ "allStat" _
+        "objRemove" _ "objCopy" _ "objCut" _ "objcount" _ "folderCreate" _ "sso" _
+        "ionObjList" _ "ionObjGet" _
+        "timelogAddEntry" _
+        "genToken" _ "loginToken" _
+        "availableProjects" _ "projectMembers" _ "addToProject" _ "removeFromProject" _ "moveCheck" _ "moveToProject" _
+        "moveToHome" _ "cberconnect" _ "createProject"
+        __;
 
     idx cmdnum = -1;
-    if(cmd)
+    if(cmd) {
         sString::compareChoice(cmd, listCommands, &cmdnum, false, 0, true);
-
+    }
     switch(cmdnum) {
         case eLogin:
             login();
@@ -2202,11 +3162,17 @@ idx sUsrCGI::Cmd(const char * cmd)
         case eLogout:
             logout();
             break;
+        case eLoginInfo:
+            loginInfo();
+            break;
         case eBatch:
             batch();
             break;
         case ePswdSet:
             passwordReset();
+            break;
+        case ePswdEdit:
+            passwordEdit();
             break;
         case ePswdChange:
             passwordChange();
@@ -2222,6 +3188,9 @@ idx sUsrCGI::Cmd(const char * cmd)
             break;
         case eUsrList:
             userList();
+            break;
+        case eUserInfo:
+            userInfo();
             break;
         case eGrpList:
             groupList();
@@ -2244,8 +3213,8 @@ idx sUsrCGI::Cmd(const char * cmd)
         case eUsrV4:
             userGroupActivate();
             break;
-        case eUsrEmAuth:
-            userEmailAuth();
+        case eUsrSSO:
+            SSO();
             break;
         case eUsrFgt:
             userForgot();
@@ -2256,8 +3225,8 @@ idx sUsrCGI::Cmd(const char * cmd)
         case eUsrMgr:
             userMgr();
             break;
-        case eContactUs:
-            contact();
+        case eSendMail:
+            sendmail();
             break;
         case ePermSet:
             permSet();
@@ -2280,6 +3249,12 @@ idx sUsrCGI::Cmd(const char * cmd)
         case ePropSpec:
             propSpec();
             break;
+        case ePropSpec2:
+            propSpec2();
+            break;
+        case ePropSpec3:
+            propSpec3();
+            break;
         case ePropGet:
             propGet();
             break;
@@ -2301,6 +3276,9 @@ idx sUsrCGI::Cmd(const char * cmd)
         case eFile:
             file();
             break;
+        case eFile2:
+            file2();
+            break;
         case eDropboxList:
             dropboxList();
             break;
@@ -2319,6 +3297,9 @@ idx sUsrCGI::Cmd(const char * cmd)
         case eAllStat:
             allStat();
             break;
+        case eObjCount:
+            objCount();
+            break;
 
         case eIonObjList:
             ionObjList();
@@ -2327,8 +3308,50 @@ idx sUsrCGI::Cmd(const char * cmd)
             ionPropGet();
             break;
 
+        case eTimelogAddEntry:
+            timelogAddEntry();
+            break;
+
+        case eGenToken:
+            genToken();
+            break;
+        case eLoginToken:
+            loginToken();
+            break;
+
+        case eAvailableProjects:
+            availableProjects();
+            break;
+        case eProjectMembers:
+            projectMembers();
+            break;
+        case eAddToProject:
+            addToProject();
+            break;
+        case eRemoveFromProject:
+            removeFromProject();
+            break;
+        case eMoveCheck:
+            moveCheck();
+            break;
+        case eMoveToProject:
+            moveToProject();
+            break;
+        case eMoveToHome:
+            moveToHome();
+            break;
+        case eCBERConnect:
+            CBERConnect();
+            break;
+        case eCreateProject:
+            createProject();
+            break;
         default:
-            cmdnum = -1;
+            if( sIs("app/", cmd) && loadAppPage( &cmd[4] ) ) {
+                cmdnum = 0;
+            } else {
+                cmdnum = -1;
+            }
             break;
     }
     if( cmdnum == -1 ) {

@@ -27,20 +27,35 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+
+/*
+Colors
+light blue -- #f0f5f9
+light grey -- #f5f5f5
+grey blue --- #94abbd
+blue -------- #0275d8
+blue -------- #1e88e5
+dark blue --- #00559f
+
+*/
+
+
 .layout-infobox {
     /*position: absolute;*/
     background: #fff;
     /*margin-bottom: 0;*/
     /*border: 1px solid white;*/
     background-color: white;
-    border-radius: 5px;
-    margin: 2px;
+    border-radius: 0px;
+/*    margin: 2px;*/
     height: 50px;
 }
 
 .layout-infobox .panel-heading {
-    padding: 3px 5px;
-    background-color: #f9f9f9;
+    padding: 0px;
+    background-color: #fff;
+    border-bottom: 1px solid #f9f9f9;
 }
 
 .layout-infobox .panel-heading.druggable {
@@ -74,6 +89,7 @@
 .layout-infobox .panel-body {
     padding: 0px;
     margin: 0px;
+/*    margin-top:15px; panel goes out of the border at the bottom */
 }
 
 .layout-infobox.north-border {
@@ -102,24 +118,27 @@
 
 .layout-infobox .infobox-toolbar {
     position: absolute;
-    right: 10px;
-    top: 10px;
-    /*width: 100px;*/
+    right: 3px;
+    top: 3px;
     text-align: right;
-    /*z-index: 100;*/
 }
 
 .layout-infobox .infobox-toolbar button {
     border: none;
     background-color: initial;
+    line-height: 0px;
+    display: none;
+    color: #555555;
 }
-
-.layout-infobox .infobox-toolbar button span {
-    opacity: 0.2;
+.layout-infobox:hover  .infobox-toolbar button {
+    display: inline-block;
 }
-
-.layout-infobox .infobox-toolbar button span:hover {
-    opacity: 2;
+.layout-infobox .infobox-toolbar button:hover {
+    color: #1e88e5;
+}
+.layout-infobox .infobox-toolbar button:active,.layout-infobox .infobox-toolbar button:focus {
+    color: #00559f;
+    outline: none;
 }
 
 .layout-infobox .split-area {

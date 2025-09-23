@@ -38,22 +38,18 @@ slib_SRCS =  core/core.cpp core/mex.cpp core/algo.cpp core/hash.cpp core/hash2.c
 	std/online_protocols.cpp std/regexp.cpp std/string.cpp std/stringparse.cpp \
 	std/stringscanf.cpp std/stringxprintscanf.cpp std/stringsearch.cpp \
 	std/stringstyle.cpp std/stringcode.cpp std/stringdatetime.cpp std/clr.cpp \
-	std/varset.cpp std/dbg.cpp std/cgi.cpp std/url.cpp \
+	std/varset.cpp std/dbg.cpp std/cgi.cpp std/crypt.cpp std/url.cpp \
 	std/sha1.cpp std/sha256.cpp std/storage.cpp std/variant.cpp std/cryptocipher.cpp \
 	utils/heatmap.cpp utils/txtcateg.cpp utils/txtformat.cpp utils/tbl.cpp \
 	utils/tbltbl.cpp utils/sort.cpp utils/sVioDB.cpp \
 	utils/intervalTree.cpp utils/tree.cpp utils/som.cpp \
 	utils/vtree.cpp utils/basicCollapse.cpp \
 	utils/json/json-lexer.cpp utils/json/parser.cpp utils/json/printer.cpp \
-	utils/multipart_parser.cpp \
+	utils/multipart_parser.cpp utils/cron.cpp \
 	lang/calc.cpp lang/lang.cpp lang/lang_stdlib.cpp
 
-# PCRE support
 std/regexp.cpp_CXXFLAGS = $(if $(HAS_PCRE),$(PCRE_CFLAGS))
 
-# mbedTLS stuff; aesni.c requires x64 assembly, so we check for compiler's target ABI
-# g++ -v => Target: x86_64-redhat-linux
-# clang -v => Target: x86-64-pc-linux-gnu
 mbedtls_CXXFLAGS = -Istd -Istd/mbedtls
 ifneq ($(shell $(CXX) -v 2>&1 | grep 'Target: x86_64'),)
     mbedtls_CXXFLAGS += -DMBEDTLS_AESNI_C -DMBEDTLS_HAVE_X86_64

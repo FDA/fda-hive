@@ -35,8 +35,7 @@
 #include <stdint.h>
 
 #include <slib/core/def.hpp>
-
-// macros allowing us to define enum names and corresponding description strings in one place
+#include <slib/core/str.hpp>
 
 #define SLIB_RC_OPERATION_ENTRIES \
     SLIB_RC_ENTRY_WITH_VAL(eOperationNone, 0, 0), \
@@ -153,7 +152,6 @@
     SLIB_RC_ENTRY(eWaiting, "waiting"), \
     SLIB_RC_ENTRY(eWriting, "writing"), \
     SLIB_RC_ENTRY(eDownload, "downloading"), \
-    /* Insert new entries after existing ones and before this line */ \
     SLIB_RC_ENTRY_WITH_VAL(eOperationOther, 255, "some operation on")
 
 #define SLIB_RC_ENTITY_ENTRIES \
@@ -326,7 +324,7 @@
     SLIB_RC_ENTRY(eCertificate, "certificate"), \
     SLIB_RC_ENTRY(eServer, "server"), \
     SLIB_RC_ENTRY(eAuthentication, "authentication"), \
-    /* Insert new entries after existing ones and before this line */ \
+    SLIB_RC_ENTRY(eArguments, "arguments"), \
     SLIB_RC_ENTRY_WITH_VAL(eEntityOther, 255, "something")
 
 #define SLIB_RC_STATE_ENTRIES \
@@ -405,7 +403,7 @@
     SLIB_RC_ENTRY(eWrongOrder, "in wrong order"), \
     SLIB_RC_ENTRY(eWrongType, "of wrong type"), \
     SLIB_RC_ENTRY(eZero, "is zero"), \
-    /* Insert new entries after existing ones and before this line */ \
+    SLIB_RC_ENTRY(eNotProperlyPassed, "not properly passed"), \
     SLIB_RC_ENTRY_WITH_VAL(eStateOther, 255, "in some state")
 
 #define SLIB_RC_ENTRY(id, description) id
@@ -413,54 +411,59 @@
 
 namespace slib
 {
-    class sStr; // forward-declare
+    class sStr;
 
-    //! 32-bit status code: operation A on target entity B failed because other entity C has unexpected state D
-    struct sRC
-    {
-            // TODO: use scoped enums when we switch to c++11 : "enum EFoo: unsigned char"
-            //! Operation performed on an entity
-            enum EOperation {
-                SLIB_RC_OPERATION_ENTRIES
-            };
-            //! Entity that is either the target of an operation or whose bad status caused an operation to fail
-            enum EEntity {
-                SLIB_RC_ENTITY_ENTRIES
-            };
-            //! Unexpected states of an entity
-            enum EState {
-                SLIB_RC_STATE_ENTRIES
-            };
+    struct sRC {
+            enum EOperation { SLIB_RC_OPERATION_ENTRIES };
+            enum EEntity { SLIB_RC_ENTITY_ENTRIES };
+            enum EState { SLIB_RC_STATE_ENTRIES };
 
             union {
                     struct {
-                            //TODO: change members from unsigned char to scoped enums when we switch to c++11
-                            unsigned char op; //!< sRC::EOperation value: what operation was attempted
-                            unsigned char op_target; //!< sRC::EEntity value: operation on what thing
-                            unsigned char bad_entity; //!< sRC::EEntity value: other thing with unexpected state that was encountered
-                            unsigned char state; //!< sRC::EState value: the unexpected state of bad_entity
+                            unsigned char op;
+                            unsigned char op_target;
+                            unsigned char bad_entity;
+                            unsigned char state;
                     } parts;
                     uint32_t whole;
             } val;
+            udx line;
+            const char * file;
+            sStr ctx;
 
-            static const sRC zero; //!< default unset RC value
+            static const sRC zero;
 
             inline sRC()
             {
                 val.whole = 0;
+                line = 0;
+                file = nullptr;
             }
-
-            inline sRC(EOperation op_, EEntity op_target_, EEntity bad_entity_, EState state_)
+#define RC(op_, op_target_, bad_entity_, state_, ...) sRC(op_, op_target_, bad_entity_, state_, __LINE__, __FILE__, ##__VA_ARGS__)
+            inline sRC(EOperation op_, EEntity op_target_, EEntity bad_entity_, EState state_, udx line, const char * file, const char * context = nullptr, ...)
             {
-                set(op_, op_target_, bad_entity_, state_);
+                set(op_, op_target_, bad_entity_, state_, line, file);
+                if( context && context[0] ) {
+                    ctx.cut0cut();
+                    sCallVarg(ctx.vprintf, context);
+                }
             }
 
-            inline bool set(EOperation op_, EEntity op_target_, EEntity bad_entity_, EState state_)
+#define RCSET(rc, op_, op_target_, bad_entity_, state_, ...) rc.set(op_, op_target_, bad_entity_, state_, __LINE__, __FILE__, ##__VA_ARGS__)
+#define RCSETP(rc, op_, op_target_, bad_entity_, state_, ...) rc->set(op_, op_target_, bad_entity_, state_, __LINE__, __FILE__, ##__VA_ARGS__)
+            inline bool set(EOperation op_, EEntity op_target_, EEntity bad_entity_, EState state_, udx line, const char * file, const char * context = nullptr, ...)
             {
                 val.parts.op = (unsigned char)op_;
                 val.parts.op_target = (unsigned char)op_target_;
                 val.parts.bad_entity = (unsigned char)bad_entity_;
                 val.parts.state = (unsigned char)state_;
+                this->line = line;
+                const char * p = strrchr(file, '/');
+                this->file = p ? p : file;
+                if( context && context[0] ) {
+                    ctx.cut0cut();
+                    sCallVarg(ctx.vprintf, context);
+                }
                 return isSet();
             }
 
@@ -472,6 +475,9 @@ namespace slib
             inline sRC & operator=(const sRC & rhs)
             {
                 val = rhs.val;
+                line = rhs.line;
+                file = rhs.file;
+                ctx.cutAddString(0, rhs.ctx.ptr(), rhs.ctx.length());
                 return *this;
             }
 
@@ -485,22 +491,16 @@ namespace slib
                 return !isSet();
             }
 
-            //! useful for the following pattern: <code> if( sRC rc = foobar(...) ) { /* foobar failed, error handled here */ } </code>
             inline operator bool() const
             {
                 return isSet();
             }
 
-            static const char * operation2string(EOperation op, bool asEnumName=false);
-            static const char * entity2string(EEntity entity, bool asEnumName=false);
-            static const char * state2string(EState state, bool asEnumName=false);
-            //! Print an sRC code
-            /*! \param out where to print; if 0, prints to internal static buffer
-             *  \param asEnumNames if true, prints EOperation/EEntity/EState enum names ("eParsing eTable")
-             *      instead of corresponding descriptions ("parsing table")
-             *  \returns pointer to start of printed string */
-            const char * print(sStr * out=0, bool asEnumNames=false) const;
+            static const char * operation2string(EOperation op, bool asEnumName = false);
+            static const char * entity2string(EEntity entity, bool asEnumName = false);
+            static const char * state2string(EState state, bool asEnumName = false);
+            const char * print(sStr * out = 0, bool asEnumNames = false) const;
     };
 };
 
-#endif /* sLib_core_rc_hpp */
+#endif

@@ -36,7 +36,6 @@
 #include <ssci/bio/bioseq.hpp>
 #include <ssci/bio/bioal.hpp>
 
-//#define DEBUGGING_WINDOWRESIZING
 
 namespace slib {
 
@@ -46,6 +45,7 @@ namespace slib {
         public:
             typedef enum eBaseCalls {
                 baseNone = -1,
+                baseFirst = 0,
                 baseA = 0,
                 baseC = 1,
                 baseG = 2,
@@ -59,66 +59,144 @@ namespace slib {
 
             struct position
             {
-                idx base[6];
-                idx baseAny;
-                baseCalls basecall;
+                idx base[8];
+                idx basecall;
                 idx coverage;
-                sVec<idx> referenceSimil;
-
+                sDic<idx> referenceSimil;
+                void addSim(idx ref_ind, idx cnt) {
+                    static sStr bbuf;
+                    bbuf.cut0cut();
+                    bbuf.printf("%" DEC ,ref_ind);bbuf.add0();
+                    if( !referenceSimil(bbuf.ptr()) )
+                        referenceSimil[bbuf.ptr()] = cnt;
+                    else
+                        referenceSimil[bbuf.ptr()] += cnt;
+                }
+                void mergeSim(position & o) {
+                    const char * cr_id = 0;
+                    idx slen = 0;
+                    for(idx i = 0 ; i < o.referenceSimil.dim() ; ++i) {
+                        cr_id =  (const char *)o.referenceSimil.id(i,&slen);
+                        if( !referenceSimil.get(cr_id,slen) )
+                            *referenceSimil.set(cr_id,slen) = o.referenceSimil[i];
+                        else
+                            *referenceSimil.set(cr_id,slen) += o.referenceSimil[i];
+                        o.referenceSimil[i] = 0;
+                    }
+                }
+                void addInsSim(idx ref_ind,const char *  ins, idx cnt) {
+                    static sStr bbuf;
+                    bbuf.cut0cut();
+                    bbuf.printf("%" DEC "-ins-%s",ref_ind,ins);bbuf.add0();
+                    if( !referenceSimil(bbuf.ptr()) )
+                        referenceSimil[bbuf.ptr()] = cnt;
+                    else
+                    referenceSimil[bbuf.ptr()] += cnt;
+                }
                 position()
                 {
                     init();
                 }
-                inline idx getGappyCoverage(bool withAmbiguities = false)  // ACGT, read supported Deletion and GAPS
+                inline idx getACGTCoverage(bool withAmbiguities)
+                {
+                    idx res = getBaseCoverage(baseA) + getBaseCoverage(baseC) + getBaseCoverage(baseG) + getBaseCoverage(baseT);
+                    if( withAmbiguities ) res += getBaseCoverage(baseN);
+                    if( res < 0 ) res = 0;
+                    return res;
+                }
+                inline idx getCoverage(bool withAmbiguities)
                 {
                     idx res = coverage;
+                    if( !withAmbiguities ) res -= base[baseN];
                     if( res < 0 ) res = 0;
                     return res;
                 }
-                inline idx getSupportedCoverage(bool withAmbiguities = false)  //ACGT and read supported Deletion
-                {
-                    idx res = base[baseA] + base[baseC] + base[baseG] + base[baseT] + base[baseDel];
-                    if( res < 0 ) res = 0;
-                    if( withAmbiguities ) res += baseAny;
-                    return res;
+                inline bool isSupportedInsertion(idx * compare, real cutoff, idx minCov, idx * cov = 0 ) {
+                    return isCoverageSupported(cov?*cov:base[baseIns],compare,cutoff,minCov);
                 }
-                inline idx getAllCoverage(bool withAmbiguities = false) //everythin ACGT, read supported Deletions, GAPS and Insertions
-                {
-                    idx res = coverage + base[baseIns];
-                    if( res < 0 ) res = 0;
-                    if( withAmbiguities ) res += baseAny;
-                    return res;
+
+                inline bool isInsertionPhased(idx call, idx * compare, real cutoff, idx minCov, idx * cov = 0, bool isConfirmed = false) {
+                    idx cur_cov = (cov?*cov:base[baseIns]), closest_call, min_dist = sIdxMax, cur_dist = 0;
+                    for(idx k = 0; k < baseIns; ++k) {
+                        cur_dist = sAbs(base[baseIns] - base[k]);
+                        if( cur_dist < min_dist ) {
+                            min_dist = cur_dist;
+                            closest_call = k;
+                        }
+                    }
+                    if(closest_call!=call)
+                        return false;
+                    if(!isConfirmed)
+                        return !isCoverageBifurcating(sAbs(base[call] - cur_cov),compare,cutoff,minCov);
+                    return (((real)cur_cov)/coverage) >= cutoff;
                 }
-                inline idx getCoverageGap()    //Get GAPS
-                {
-                    return getGappyCoverage() - getSupportedCoverage();
+
+                inline bool isCoverageBifurcating(idx cov, idx * compare, real cutoff, idx minCov) {
+                    idx minResCov = sMin(cov, (coverage-cov));
+                    real freq = (real) minResCov / (compare ? (*compare) : coverage);
+
+                    return ( (freq > cutoff) && minResCov >= minCov );
                 }
-                inline idx getCoverage(baseCalls b){
+                inline bool isCoverageSupported(idx cov, idx * compare, real cutoff, idx minCov) {
+                    real freq = (real) cov / (compare ? (*compare) : coverage);
+
+                    return ( (freq > cutoff) && cov >= minCov );
+                }
+                inline idx getBaseCoverage(baseCalls b){
                     if( base[b] < 0 )
                         return 0;
                     return base[b];
                 }
+                inline idx getBasecallCoverage(){
+                    return base[basecall];
+                }
+                inline real getBasecallConfidence(){
+                    return getBaseConfidence((baseCalls)basecall);
+                }
+                inline real getBaseConfidence(baseCalls cbase){
+                    return (real)getBaseCoverage(cbase)/getCoverage(false);
+                }
+                inline real getLikeability(void){
+                    if(getCoverage(false)==1)return 0;
+                    return (real)((getBaseCoverage(baseA)*getBaseCoverage(baseC)) + (getBaseCoverage(baseA)*getBaseCoverage(baseG)) + (getBaseCoverage(baseA)*getBaseCoverage(baseT))
+                        + (getBaseCoverage(baseA)*getBaseCoverage(baseDel)) + (getBaseCoverage(baseA)*getBaseCoverage(baseGap))
+                        + (getBaseCoverage(baseC)*getBaseCoverage(baseG)) + (getBaseCoverage(baseC)*getBaseCoverage(baseT))
+                        + (getBaseCoverage(baseC)*getBaseCoverage(baseDel)) + (getBaseCoverage(baseC)*getBaseCoverage(baseGap))
+                        + (getBaseCoverage(baseG)*getBaseCoverage(baseT)) + (getBaseCoverage(baseG)*getBaseCoverage(baseDel)) + (getBaseCoverage(baseG)*getBaseCoverage(baseGap))
+                        + (getBaseCoverage(baseT)*getBaseCoverage(baseDel)) + (getBaseCoverage(baseG)*getBaseCoverage(baseGap))
+                        + (getBaseCoverage(baseDel)*getBaseCoverage(baseGap)))/(getCoverage(false)*(getCoverage(false)-1));
+                }
                 inline idx setbasecall()
                 {
                     idx max = 0; baseCalls maxI = baseNone;
-                    for(idx i = 0; i <= baseDel; ++i) {
+                    for(idx i = baseFirst; i <= baseLast; ++i) {
+                        if( i == baseIns || i == baseN ) continue;
                         if( base[i] > max ) {
                             max = base[i];
                             maxI = (baseCalls)i;
                         }
                     }
                     basecall = maxI;
-                    if(maxI<0 && baseAny>0)
+                    if(maxI<0 && base[baseN]>0)
                         basecall = baseN;
                     return maxI;
                 }
+                inline char basechar() {
+                    if(basecall>baseNone && basecall<=baseT)
+                        return (char)sBioseq::mapRevATGC[basecall];
+                    if(isN())
+                        return 'N';
+                    if(basecall==baseDel || basecall==baseGap)
+                        return '-';
+                    return 'I';
+                }
                 inline bool isGap(real thrshld)
                 {
-                    return ( ((real)getCoverageGap()/getGappyCoverage(true)) >= thrshld );
+                    return ( ((real)getBaseCoverage(baseGap)/getCoverage(true)) >= thrshld );
                 }
                 inline bool isN()
                 {
-                    return (basecall == baseN);
+                    return (base[basecall] < base[baseN]);
 
                 }
                 void init()
@@ -126,48 +204,41 @@ namespace slib {
                     for(idx j = 0; j < sDim(base); ++j) {
                         base[j] = 0;
                     }
-                    referenceSimil.set(0);
+                    referenceSimil.mex()->flags |= sMex::fSetZero;
+                    referenceSimil.empty();
                     coverage = 0;
-                    baseAny = 0;
                     basecall = baseNone;
                 }
                 void copy(position & p)
                 {
                     coverage = p.coverage;
                     basecall = p.basecall;
-                    if(p.referenceSimil.dim())referenceSimil.copy(&p.referenceSimil);
+                    if(p.referenceSimil.dim()) {
+                        referenceSimil.borrow(&p.referenceSimil);
+                    }
                     for(idx l = 0; l < sDim(base); ++l) {
                         base[l] = p.base[l];
                     }
-                    baseAny = p.baseAny;
                 }
-                inline bool add(idx rpts, idx letter, idx ref_sim_ind)
+                inline bool add(idx rpts, baseCalls letter, idx ref_sim_ind)
                 {
-                    if( letter > baseLast ) { // wrong input
+                    if( letter > baseLast || letter < baseFirst ) {
                         return false;
                     }
-                    if ( letter < 0 ) { //multiple alignment gap
-                        coverage += rpts;
-                        return true;
-                    }
-                    if(letter == baseN) {
-                        baseAny += rpts;
-                        return true;
-                    }
                     base[letter] += rpts;
-                    if(letter<5) {   // if NOT insertion adjust coverage, similarities and basecall.
+                    if( base[letter] < 0 ) {
+                        base[letter] -= rpts;
+                        if(letter!=baseIns)
+                            coverage -= rpts;
+                    }
+                    if(letter!=baseIns) {
                         coverage += rpts;
-                        if(referenceSimil.dim()>ref_sim_ind)referenceSimil[ref_sim_ind] += rpts;
-
-                        if( base[letter] < 0 ) {
-                            base[letter] = 0;
-                        }
-                        if((idx)basecall<0)basecall=(baseCalls)letter;
-                        else if( basecall != letter && rpts>0 ){
-                            setbasecall();
-                        }
-                        else if( basecall == letter && rpts<0 ){
-                            setbasecall();
+                        addSim(ref_sim_ind,rpts);
+                        if(letter!=baseN) {
+                            if( basecall<=baseNone )
+                                basecall=letter;
+                            else if( (basecall != letter && rpts>0) || (basecall == letter && rpts<0) )
+                                setbasecall();
                         }
                     }
                     return true;
@@ -175,44 +246,29 @@ namespace slib {
                 void transfer(position &p)
                 {
                     coverage += p.coverage;
-                    baseAny += p.baseAny;
                     p.coverage = 0;
-                    p.baseAny = 0;
                     for(idx l = 0; l < sDim(base) ; ++l) {
                         base[l] += p.base[l];
-                        p.base[l] = -1;
+                        p.base[l] = 0;
                     }
                     setbasecall();
                     p.basecall = baseNone;
-                    for(idx iR = 0; iR < referenceSimil.dim(); ++iR) {
-                        referenceSimil[iR] += p.referenceSimil[iR];
-                        p.referenceSimil[iR] = -1;
-                    }
+                    mergeSim(p);
                 }
-                inline void remove(idx rpts, idx letter, idx ref_sim_ind)
+                inline void remove(idx rpts, baseCalls letter, idx ref_sim_ind)
                 {
                     add(-rpts, letter, ref_sim_ind);
                 }
-//                inline void set(idx rpts, idx letter, idx ref_sim_ind)
-//                {
-//                    coverage = rpts;
-//                    base[letter] = rpts;
-//                    if(referenceSimil.dim()>ref_sim_ind)referenceSimil[ref_sim_ind] = rpts;
-//                }
 
-                inline bool isDiff(idx alBase) {
-                    return !(isN() || (alBase==6) || (basecall == alBase));
+                inline bool isDiff(idx alBase, real l_cutoff) {
+                    if( alBase == baseN || isN() || (basecall == alBase) )
+                        return false;
+                    return getBaseConfidence((sBioseqpopul::baseCalls) alBase) < l_cutoff;
                 }
 
-                inline bool isDiff(position * cmp, real thrshld)
+                inline bool isDiff(position * cmp)
                 {
-                    bool isp1G=isGap(thrshld);
-                    bool isp2G=cmp->isGap(thrshld);
-                    if( isp1G && isp2G ) {
-                        return false;
-                    } else if( isp1G || isp2G ) {
-                        return true;
-                    } else if ( isN() || cmp->isN() ) {
+                    if ( isN() || cmp->isN() ) {
                         return false;
                     }
                     return basecall!=cmp->basecall;
@@ -221,7 +277,7 @@ namespace slib {
                 bool isBifurcatingPosition(real cutoff,idx minCov, idx * firstInd = 0, idx * secInd = 0, idx * compare = 0)
                 {
                     idx max = 0, secondmax = 0;
-                    for(idx k = 0; k < 5; ++k) {
+                    for(idx k = 0; k < baseIns; ++k) {
                         if( max < base[k] ) {
                             secondmax = max;
                             max = base[k];
@@ -239,9 +295,8 @@ namespace slib {
                         }
                     }
                     if(!secondmax) return false;
-                    //check that both the newly created clone and the remaining clone are above threshold
-                    real freq = sMin((real) secondmax / (compare ? (*compare) : coverage), (real) (coverage-secondmax) / (compare ? (*compare) : coverage));
                     idx minResCov = sMin(secondmax, (coverage-secondmax));
+                    real freq = (real) minResCov / (compare ? (*compare) : coverage);
 
                     return (freq > cutoff) && minResCov >= minCov;
                 }
@@ -254,15 +309,17 @@ namespace slib {
             struct clonePosition
             {
                     idx baseCov;
-//                    sVec<idx> coverPerRef;
 
                     clonePosition(){
                         baseCov = 0;
-//                        coverPerRef.set(0);
                     }
-                    inline idx base()
+                    inline idx base(void)
                     {
-                        return (baseCov >> 60) & 0xF;
+                        return (baseCov >> 60) &0xF;
+                    }
+                    inline bool isInsertion(void)
+                    {
+                        return (baseCov >> 60) < 0;
                     }
                     inline idx coverage()
                     {
@@ -274,14 +331,6 @@ namespace slib {
                             val = 0;
                         baseCov = (baseCov & 0xF000000000000000) | (val & 0xFFFFFFFFFFFFFFF);
                     }
-//                    inline void setBase(idx val)
-//                    {
-//                        if( val == 6 )
-//                            val = 7;
-//                        if( val < 0 )
-//                            val = 6;
-//                        baseCov = (baseCov & 0xFFFFFFFFFFFFFFF) | ((val & 0xF) << 60);
-//                    }
                     inline void setBase(idx val)
                     {
                         if( val < 0 )
@@ -298,41 +347,26 @@ namespace slib {
                         return ( base() == baseN);
                     }
 
-                    inline bool isSupportedGap()
+                    inline bool isDeletion()
                     {
                         return ( base() == baseDel);
                     }
 
-//
-//                    inline bool isMultiGap()
-//                    {
-//                        return ( base() == 6);
-//                    }
-//
-//                    inline bool isN()
-//                    {
-//                        return ( base() == 7);
-//                    }
-//
-//                    inline bool isSupportedGap()
-//                    {
-//                        return ( base() == 4);
-//                    }
 
                     inline bool isAnyGap()
                     {
-                        return isMultiGap() || isSupportedGap();
+                        return isMultiGap() || isDeletion();
                     }
 
-                    inline void setPosition(sBioseqpopul::position * p)
+                    inline void setPosition(position * p)
                     {
                         setBase(p->basecall);
-                        setCoverage(p->getSupportedCoverage(true));
+                        setCoverage(p->getCoverage(true));
                     }
-                    inline void setGap (sBioseqpopul::position * p)
+                    inline void setGap (position * p)
                     {
                         setBase(-1);
-                        setCoverage( p->getCoverageGap() );
+                        setCoverage( p->getBaseCoverage(baseGap) );
                     }
                     void swap (clonePosition * n_pos) {
                         clonePosition p;
@@ -361,7 +395,7 @@ namespace slib {
                     inline bool hasMerged(void) {
                         return mergeclID>=0 && mergeclID!=clID;
                     }
-                    inline bool isLink(void) {
+                    inline bool isDiverging(void) {
                         return hasParent() && hasMerged() && parentClID!=mergeclID;
                     }
                     inline bool wasKilled(void) {
@@ -387,7 +421,7 @@ namespace slib {
             struct points
             {
                     idx position;
-                    idx base;
+                    sVec<idx> bases;
                     points()
                     {
                         sSet(this, 0);
@@ -420,7 +454,6 @@ namespace slib {
             struct cloneFingPrs
             {
                     sVec<clonePat> fingerPrints;
-//            idx relativeTo;
             };
 
             static idx sortClonesComparator(void * parameters, void * arr, idx i1, idx i2);
@@ -439,14 +472,39 @@ namespace slib {
                 clSortBySize = 0x010
             };
 
-        private:
+            static const char * convertBaseCallVector2String(sVec<idx> & basecalls, sStr & buf) {
+                return convertBaseCallArr2String(basecalls.ptr(),basecalls.dim(),buf);
+            }
+            static const char * convertBaseCallArr2String(idx * basecalls, idx basecnt, sStr & buf) {
+                buf.cut0cut();
+                for(idx i = 0 ; i < basecnt ; ++i ) {
+                    buf.printf("%c", sBioseq::mapRevATGC[basecalls[i]]);
+                }
+                return buf.ptr();
+            }
+            static idx convertString2BaseCallVector(const char *  basecallstr, sVec<idx> & basecalls, idx slen = 0) {
+                idx len = slen?slen:sLen(basecallstr);
+                for(idx i = 0 ; i < len ; ++i ) {
+                    basecalls.vadd(1, sBioseq::mapATGC[(idx)basecallstr[i]]);
+                }
+                return basecalls.dim();
+            }
 
-//        static idx referenceSize;
+            static bool isDiffBases (idx * bases1, idx bcnt1, idx * bases2, idx bcnt2) {
+                if( bcnt1 != bcnt2)
+                    return true;
+                idx i = 0;
+                for( ; i < bcnt1 && (bases1[i]==bases2[i]) ; ++i ) {
+                    if(bases1[i]==baseN || bases2[i]==baseN)return false;
+                }
+                return i != bcnt1;
+            }
+
+        private:
     };
 
     template<class Tobj> class sWdw
     {
-//            sVec<Tobj> wParent;
         private:
             sVec<Tobj> _vec;
             inline idx _mod(idx i)
@@ -460,9 +518,6 @@ namespace slib {
             }
 
         public:
-//            sWdw(idx size){
-//                init(size);
-//            };
 
             virtual void init(idx size)
             {
@@ -472,10 +527,6 @@ namespace slib {
                 extrPos = 0;
             }
 
-            //  Only one bifurcation position is considered in each window.
-            //  It is still a vector of bifurcated IDs and bases to catch the case of
-            //  multiple bifurcations in one position (e.g.: A:60% T:20% G:15% C:5%).
-//            idx base;                                 //  base holds the base in this clone that created the bifurc from the father clone
             inline idx length()
             {
                 return (_vec.dim() / 2);
@@ -568,8 +619,6 @@ namespace slib {
                 _vec.insert(getfirst(), t_size);
 
                 curMatPOS += t_size;
-//                if(extrPos)
-//                    extrPos+=t_size;
                 if( mergeMatPOS )
                     mergeMatPOS += t_size;
             }
@@ -608,7 +657,6 @@ namespace slib {
             typedef sWdw<sBioseqpopul::position> cParent;
         private:
             bool _report_ref;
-
         public:
             void init(idx t_size, idx t_ofs, idx t_clID, idx t_ref_cnt)
             {
@@ -633,45 +681,48 @@ namespace slib {
                 curSubPOS = 0;
                 parentClID = 0;
                 startSubPOS = 0;
-                deathSubPOS = 0;
                 mergingScore = 0;
                 mergingCl = -1;
                 mergedToCl = -1;
-                mergeSubPOS = -1;
+                lastSubPOS = -1;
                 avCov = 0;
-                for(idx i = 0; i < dim(); ++i) {
-                    sBioseqpopul::position * p = ptr(i);
-                    p->referenceSimil.resize(ref_cnt);
-                    p->referenceSimil.set(0);
-                }
             }
             void init(sClone * newCl, idx t_clID);
             idx offset;
-            //Clone indices
             idx clID, parentClID;
             idx startSubPOS;
             idx curSubPOS;
 
             idx ref_cnt;
 
-            //Death event
-            idx deathSubPOS;
 
-            //Merge event
             idx mergedToCl, mergingCl, mergingScore;
-            idx mergeSubPOS;
-
+            idx lastSubPOS;
             real avCov;
 
-            //event
             bool merged, merging, killed, dead;
 
-            //extracted
 
-            //Bifurcation event
             idx supportCnt;
             idx bifurcation_pos;
-            sBioseqpopul::points lastBif;
+            sVec<sBioseqpopul::points> prevBif;
+            void registerBifurcation(idx pos, sVec<idx> new_bases) {
+                sBioseqpopul::points * cur_bif = prevBif.add();
+                cur_bif->position = pos;
+                cur_bif->bases.copy( &new_bases );
+            }
+            bool wasBifurcationConsidered(idx new_pos, sVec<idx> &new_bases) {
+                for(idx i = 0 ; i < prevBif.dim() ; ++i) {
+                    sBioseqpopul::points * cur_bif = prevBif.ptr(i);
+                    if( cur_bif->position == new_pos && !sBioseqpopul::isDiffBases( cur_bif->bases.ptr(), cur_bif->bases.dim(), new_bases.ptr(), new_bases.dim() ) ) {
+                        return true;
+                    }
+                }
+                if(prevBif.dim() && prevBif.last()->position < new_pos) {
+                    prevBif.cut(0);
+                }
+                return false;
+            }
             real bifurcation_pvalue,bifurcation_bayes;
 
             virtual sBioseqpopul::position * pos(idx i)
@@ -687,9 +738,14 @@ namespace slib {
                     pos(i)->reset();
             }
 
-            bool alive()
+            bool valid()
             {
-                return !(killed || dead || merged || length() + curSubPOS < startSubPOS);
+                return !(killed || dead || merged || (length() + curSubPOS < startSubPOS));
+            }
+
+            bool active()
+            {
+                return !dead && !(merged && lastSubPOS < 0);
             }
 
 
@@ -698,14 +754,19 @@ namespace slib {
                 return (parentClID >=0 && parentClID!=clID);
             }
 
+            bool createdWithinFrame( idx frameCnt = 0)
+            {
+                return startSubPOS >= curSubPOS - (frameCnt*length());
+            }
+
             real avCoverage() {
                 if( avCov ) {
                     return avCov;
                 }
                 idx ret = 0, cov_pos = 0;
                 for(idx i = 0; i < dim(); ++i) {
-                    if( ptr(i)->getGappyCoverage() ){
-                        ret += ptr(i)->getGappyCoverage();
+                    if( ptr(i)->getCoverage(true) ){
+                        ret += ptr(i)->getCoverage(true);
                         ++cov_pos;
                     }
                 }
@@ -716,7 +777,7 @@ namespace slib {
 
             bool isGap(idx i, real thrshld) {
                 if( !avCoverage() ) return false;
-                return (real)pos(i)->getSupportedCoverage(true)/avCov < thrshld;
+                return (real)pos(i)->getACGTCoverage(true)/avCov < thrshld;
             }
 
             void setCalls(idx st = -1, idx end = -1)
@@ -779,21 +840,19 @@ namespace slib {
                 return mod(subPos - curSubPOS);
             }
 
-            idx getLastDiff(sClone * dest,idx start,idx end);
-
-//            inline bool isFuzzy(idx p, real cutoff)
-//            {
-//                if(!avCoverage())return true;
-//                return (real)pos(p)->getCoverage()/avCoverage() < cutoff;
-//            }
             void strech(idx addSize);
 
             virtual void mergeTo(sClone * merged, idx pos);
 
+            void markAsDead() {
+                lastSubPOS = -10;
+                mergeMatPOS = getrawfirst();
+            };
+
             inline idx getfirstNonZero(idx * start = 0, idx * end = 0)
             {
                 idx st = start ? *start : getrawfirst(), ed = end ? *end : getTailLast();
-                while( !(pos(st) && pos(st)->getSupportedCoverage(true)) && st < ed )
+                while( !(pos(st) && pos(st)->getCoverage(true)) && st < ed )
                     ++st;
                 return st;
             }
@@ -802,17 +861,17 @@ namespace slib {
             {
                 idx st = start ? *start : getrawfirst(), ed = end ? *end : getTailLast();
                 --ed;
-                if( merged && mergeSubPOS < ed )
-                    ed = mergeSubPOS;
-                while( !(pos(ed) && pos(ed)->getSupportedCoverage(true)) && ed > st )
+                if( merged && lastSubPOS < ed )
+                    ed = lastSubPOS;
+                while( !(pos(ed) && pos(ed)->getCoverage(true)) && ed > st )
                     --ed;
                 return ed + 1;
             }
 
-            inline void addL(idx isx, idx rpts, idx letter, idx ref_sim_ind){
+            inline void addL(idx isx, idx rpts, sBioseqpopul::baseCalls letter, idx ref_sim_ind){
                 pos(isx)->add(rpts,letter,_report_ref?ref_sim_ind:0);
             }
-            inline void removeL(idx isx, idx rpts, idx letter, idx ref_sim_ind){
+            inline void removeL(idx isx, idx rpts, sBioseqpopul::baseCalls letter, idx ref_sim_ind){
                 pos(isx)->remove(rpts,letter,_report_ref?ref_sim_ind:0);
             }
 
@@ -830,29 +889,35 @@ namespace slib {
             sBioseqpopul::cloneSummary summary;
             sBioseqpopul::cloneStats stats;
 
-            inline idx getSubPosBase(idx pos);
-            inline idx getSubPosCoverage(idx pos);
+            inline idx getSummaryEnd() {
+                if(summary.end<0){
+                    return summary.start+seqCov.dim();
+                }
+                return summary.end;
+            }
             sBioseqpopul::clonePosition *  getSubPos(idx pos);
             inline idx getLastSupportedPosition(idx pos = 0) {
+                idx my_start = summary.start;
                 if(pos <= 0)
-                    pos = seqCov.dim() - 1 + summary.start;
+                    pos = seqCov.dim() - 1 + my_start;
                 idx res = pos;
-                while ( res >= summary.start && getSubPos(res)->isMultiGap() ) {
+                while ( res >= my_start && getSubPos(res)->isMultiGap() ) {
                     --res;
                 }
-                if( res <= summary.start ) {
+                if( res <= my_start ) {
                     return -1;
                 }
                 return res;
             }
             inline idx getFirstSupportedPosition(idx pos = 0 ) {
+                idx my_start = summary.start;
                 if(pos <= 0)
-                    pos = summary.start;
+                    pos = my_start;
                 idx res = pos;
-                while (res < seqCov.dim() + summary.start && getSubPos(res)->isMultiGap() ) {
+                while (res < seqCov.dim() + my_start && getSubPos(res)->isMultiGap() ) {
                     ++res;
                 }
-                if( res >= seqCov.dim() + summary.start ) {
+                if( res >= seqCov.dim() + my_start ) {
                     return -1;
                 }
                 return res;
@@ -876,16 +941,14 @@ namespace slib {
             }
 
 
-//            void readClone(sClone * clone, real avCoverage, bool toEnd = false);
     };
 
-//    struct sSimilIndex { idx defint; idx simil;}
     class sFrameConsensus
     {
         private:
             sVec<sCloneConsensus> _vec;
-            sVec < sVec < idx > > _childList;
-            sVec < sVec < idx > > _mergeList;
+            sVec<sVec<sMex::Pos> > _frame_shifts;
+            sVec<sMex::Pos> _common_coordinates;
             sStr _simil_id_buf;
         public:
             typedef idx (*callbackType)(void * param, idx countDone, idx progressCur, idx percentMax);
@@ -894,127 +957,101 @@ namespace slib {
 
             idx sub_start, sub_end, simil_size;
             sFrameConsensus(idx t_simil_size) {
-                sub_start = 0;
-                sub_end = 0;
+                sub_start = sub_end = 0;
+                progress_CallbackFunction = 0; progress_CallbackParam = 0;
                 simil_size = t_simil_size;
             }
 
             sDic<idx> similarities;
 
-            void createChildList()
-            {
-                for(idx i = 0; i < dim(); ++i) {
-                    if( ptr(i)->summary.clID >= 0 && ptr(i)->seqCov.dim() ) {
-                        sVec<idx> * children = _childList.ptrx(ptr(i)->summary.clID);
-                        for(idx j = i; j < dim(); ++j) {
-                            if( ptr(j)->summary.hasParent() && ptr(j)->summary.parentClID ) {
-                                *children->add() = ptr(j)->summary.parentClID;
-                            }
-                        }
-                    }
-                }
-            }
+            idx dim(){return _vec.dim();};
 
-            sVec<idx> * getChildren(sCloneConsensus * cl)
-            {
-                if( cl->summary.clID < 0 || cl->summary.clID >= _childList.dim() ) {
-                    return 0;
-                }
-                if( !_childList.ptr(cl->summary.clID)->dim() ) {
-                    return 0;
-                }
-                return _childList.ptr(cl->summary.clID);
-            }
-
-            bool updateChildList(sCloneConsensus * cl, idx oldParentClID, idx newParentClID) {
-                if(oldParentClID != newParentClID) {
-                    if( oldParentClID < _childList.dim() ) {
-                        return false;
-                    }
-                    sVec<idx> * op = _childList.ptr(oldParentClID);
-                    sVec<idx> * np = _childList.ptr(newParentClID);
-                    idx i = 0;
-                    for(i = 0 ; i < np->dim() && (*(np->ptr(i)) == cl->summary.clID ) ; ++i );
-                    *np->ptrx(i)=cl->summary.clID;
-                    for(i = 0 ; i < op->dim() ; ++i ) {
-                        if(*(op->ptr(i)) == cl->summary.clID ) {
-                            op->del(i,1);
-                            return true;
-                        }
-                    }
-                    return true;
-                }
-                return false;
-            }
-
-            void createMergeList()
-            {
-                for(idx i = 0; i < dim(); ++i) {
-                    if( ptr(i)->summary.clID >= 0 && ptr(i)->seqCov.dim() ) {
-                        sVec<idx> * merged = _mergeList.ptrx(ptr(i)->summary.clID);
-                        for(idx j = i; j < dim(); ++j) {
-                            if( ptr(j)->summary.hasMerged() && ptr(j)->summary.mergeclID ) {
-                                *merged->add() = ptr(j)->summary.mergeclID;
-                            }
-                        }
-                    }
-                }
-            }
-
-            sVec<idx> * getMerged(sCloneConsensus * cl) {
-                if( cl->summary.clID < 0 || cl->summary.clID >= _mergeList.dim() ) {
-                    return 0;
-                }
-                if( !_mergeList.ptr(cl->summary.clID)->dim() ) {
-                    return 0;
-                }
-                return _mergeList.ptr(cl->summary.clID);
-            }
-
-            bool updateMergeList(sCloneConsensus * cl, idx oldMergeClID, idx newMergeClID) {
-                if(oldMergeClID != newMergeClID) {
-                    if( oldMergeClID < _mergeList.dim() ) {
-                        return false;
-                    }
-                    sVec<idx> * om = _mergeList.ptr(oldMergeClID);
-                    sVec<idx> * nm = _mergeList.ptr(newMergeClID);
-                    idx i = 0;
-                    for(i = 0 ; i < nm->dim() && (*(nm->ptr(i)) == cl->summary.clID ) ; ++i );
-                    *nm->ptrx(i)=cl->summary.clID;
-                    for(i = 0 ; i < om->dim() ; ++i ) {
-                        if(*(om->ptr(i)) == cl->summary.clID ) {
-                            om->del(i,1);
-                            return true;
-                        }
-                    }
-                    return true;
-                }
-                return false;
-            }
+            sCloneConsensus * ptr(idx i = 0 ) {return _vec.ptr(i);};
+            sCloneConsensus * add( idx i = 0 ){return _vec.add();};
+            sCloneConsensus * ptrx( idx i = 0 ){_frame_shifts.resize(i+1); return _vec.ptrx(i);};
 
             bool reorderClones(void);
             idx mergeAll(void);
-            idx trimClones(void);  //trim everything before first variation and after last variation
-            bool patchClones();
-            idx cleanOutClones(sVec<idx> &cloneIndex);
+            idx trimClones(void);
             void getCloneStats(sBioseqpopul::cloneStats * clSum);
-            idx pairClones(sVec<short> * alClonIds, sBioal * bioal, sVec<idx> * cloneIndex, sVec<sBioseqAlignment::Al *> * alSub = 0, sVec<sVec<idx> > * alSubLUT = 0);
             sCloneConsensus * getParentOnLocation(idx iCl,idx pos);
             sCloneConsensus * getMergedOnLocation(idx iCl,idx pos);
             idx getClonesPositionsOnLocation(idx pos, sVec<idx> &cloneIDs, sVec<sBioseqpopul::clonePosition> &ret );
-            static idx sortPositionsComparator(void * parameters, void * arr, idx i1, idx i2);
-            idx getFirstMutation(idx iCl, idx pos = 0);
-
+            idx getFirstMutation(idx iCl, idx pos = 0, bool ignoreGaps = false);
+            idx getLastMutation(idx iCl, idx pos = 0 , bool ignoreGaps = false);
             idx remapSimilarities(sDic<idx> *sim, idx icl, idx pos, idx remapped_icl);
             void remapSimilarities( sVec<idx> &icl,sVec<idx> &sorted, idx pos);
-            const char * contructSimilaritiesID ( idx icl, idx pos, idx reference );
+            const char * contructSimilaritiesID ( idx icl, idx pos, const char * reference );
 
-            sCloneConsensus * ptr(idx i = 0 ) {return _vec.ptr(i);};
-            sCloneConsensus * ptrx( idx i = 0 ){return _vec.ptrx(i);};
-            idx dim(){return _vec.dim();};
-            bool mergePositions(sCloneConsensus * dstCl, sCloneConsensus * srcCl, idx frmStart = 0, idx frmEnd = 0);
+            static idx sortPositionsComparator(void * parameters, void * arr, idx i1, idx i2);
+
+            idx common_coord_pos(idx pos) {
+                return frame_pos(-1,pos);
+            }
+            idx get_common_coord_ins_size(idx pos) {
+                for(idx i = 0 ; i < _common_coordinates.dim() ; ++i ) {
+                    if( _common_coordinates[i].pos == pos )
+                        return _common_coordinates[i].size;
+                    if( _common_coordinates[i].pos > pos )
+                        return 0;
+                }
+                return 0;
+            }
+            idx frame_pos( idx icl, idx pos){
+                sVec< sMex::Pos > * cr_frm_shifts = &_common_coordinates;
+                if(icl>=0)
+                    cr_frm_shifts = _frame_shifts.ptrx(icl);
+                idx sub_start = (icl>=0)?ptr(icl)->summary.start:0;
+                if(cr_frm_shifts->dim()==0)return sub_start+pos;
+                idx i = 0, tot_ins = 0;
+                while( i < cr_frm_shifts->dim() && pos > cr_frm_shifts->ptr(i)->pos){
+                    tot_ins += cr_frm_shifts->ptr(i)->size;
+                    ++i;
+                }
+                if(i==0) return sub_start+pos;
+                return sub_start + pos + tot_ins;
+            };
+            bool isLink(sCloneConsensus * cl) {
+                if ( !cl->summary.hasParent() || !cl->summary.hasMerged() || !cl->summary.isDiverging() ){
+                    return false;
+                }
+                sCloneConsensus * pCl = getParentOnLocation( cl->summary.clID, cl->summary.start );
+                sCloneConsensus * mCl = getMergedOnLocation( cl->summary.clID, cl->getSummaryEnd() );
+                if (mCl || pCl) {
+                    return false;
+                }
+                if( pCl->summary.end > cl->summary.end && mCl->summary.start < cl->summary.start )
+                    return true;
+                return false;
+            }
+            void register_frameshift(idx icl , idx pos, idx size) {
+                sVec< sMex::Pos > * cr_frm_shifts = _frame_shifts.ptrx(icl);
+
+                sMex::Pos * frmshift = cr_frm_shifts->add();
+                frmshift->pos = pos;
+                frmshift->size = size;
+                idx i = 0;
+                for( ; i < _common_coordinates.dim() ; ++i) {
+                    if(_common_coordinates[i].pos > pos)
+                        break;
+                    else if ( _common_coordinates.ptr(i)->pos == pos) {
+                        if ( _common_coordinates.ptr(i)->size < size ) {
+                            _common_coordinates.ptr(i)->size = size;
+                            i = -1;
+                            break;
+                        }
+                    }
+                }
+                if(i>=0) {
+                    frmshift = _common_coordinates.insert(i,1);
+                    frmshift->pos = pos;
+                    frmshift->size = size;
+                }
+            }
+            bool mergePositions(sCloneConsensus * dstCl, sCloneConsensus * srcCl, idx frmStart = 0, idx frmEnd = 0, bool adjustForGaps = false);
 
             idx getSimilarities(idx cloneID, idx framePos, sBioseqpopul::position * p );
+            idx getInsSimilarities(idx cloneID, idx framePos, sBioseqpopul::position * p, const char * ins );
 
             idx getCloneSupport(idx i);
 
@@ -1025,15 +1062,15 @@ namespace slib {
             }
 
             void updateDependencies(sCloneConsensus * oldCl, sCloneConsensus * newCl) {
-                if( oldCl && newCl ) {
+                if( oldCl && newCl && oldCl!=newCl ) {
                     for( idx j = 0 ; j < dim(); ++j ) {
                         sCloneConsensus * chCl = ptr(j);
                         if( j > oldCl->summary.clID ) {
                             if( chCl->summary.hasParent() && chCl->summary.parentClID == oldCl->summary.clID )
                                 chCl->summary.parentClID = newCl->summary.clID;
-                            if(chCl->summary.hasMerged() && chCl->summary.mergeclID == oldCl->summary.clID)
-                                chCl->summary.mergeclID = newCl->summary.clID;
                         }
+                        if(chCl->summary.hasMerged() && chCl->summary.mergeclID == oldCl->summary.clID)
+                            chCl->summary.mergeclID = newCl->summary.clID;
                     }
                 }
             }
@@ -1042,12 +1079,12 @@ namespace slib {
                 if( cl ) {
                     for( idx j = 0 ; j < dim(); ++j ) {
                         sCloneConsensus * chCl = ptr(j);
-                        if( j > cl->summary.clID && chCl->summary.hasParent() && chCl->summary.parentClID == cl->summary.clID && chCl->summary.first_bif_pos < cl->summary.start ) {
-                            sCloneConsensus * pCl = getParentOnLocation( cl->summary.clID, chCl->summary.first_bif_pos );
+                        if( j > cl->summary.clID && chCl->summary.hasParent() && chCl->summary.parentClID == cl->summary.clID && chCl->summary.start < cl->summary.start ) {
+                            sCloneConsensus * pCl = getParentOnLocation( cl->summary.clID, chCl->summary.start );
                             chCl->summary.parentClID = pCl ? pCl->summary.clID : chCl->summary.clID;
                         }
-                        if( chCl->summary.hasMerged() && chCl->summary.mergeclID == cl->summary.clID && chCl->summary.end < cl->summary.start ) {
-                            sCloneConsensus * pCl = getParentOnLocation( cl->summary.clID, chCl->summary.end );
+                        if( chCl->summary.hasMerged() && chCl->summary.mergeclID == cl->summary.clID && chCl->getSummaryEnd() < cl->summary.start ) {
+                            sCloneConsensus * pCl = getParentOnLocation( cl->summary.clID, chCl->getSummaryEnd() );
                             chCl->summary.mergeclID = pCl ? pCl->summary.clID : chCl->summary.clID;
                         }
                     }
@@ -1057,12 +1094,12 @@ namespace slib {
                 if( cl ) {
                     for( idx j = 0 ; j < dim(); ++j ) {
                         sCloneConsensus * chCl = ptr(j);
-                        if( j > cl->summary.clID && chCl->summary.hasParent() && chCl->summary.parentClID == cl->summary.clID && chCl->summary.first_bif_pos > cl->summary.end ) {
-                            sCloneConsensus * mCl = getMergedOnLocation(cl->summary.clID, chCl->summary.first_bif_pos);
+                        if( j > cl->summary.clID && chCl->summary.hasParent() && chCl->summary.parentClID == cl->summary.clID && chCl->summary.start > cl->getSummaryEnd() ) {
+                            sCloneConsensus * mCl = getMergedOnLocation(cl->summary.clID, chCl->summary.start);
                             chCl->summary.parentClID = mCl ? mCl->summary.clID : chCl->summary.clID;
                         }
-                        if( chCl->summary.hasMerged() && chCl->summary.mergeclID == cl->summary.clID && chCl->summary.end > cl->summary.end ) {
-                            sCloneConsensus * mCl = getMergedOnLocation(cl->summary.clID, chCl->summary.end);
+                        if( chCl->summary.hasMerged() && chCl->summary.mergeclID == cl->summary.clID && chCl->getSummaryEnd() > cl->getSummaryEnd() ) {
+                            sCloneConsensus * mCl = getMergedOnLocation(cl->summary.clID, chCl->getSummaryEnd());
                             chCl->summary.mergeclID = mCl ? mCl->summary.clID : chCl->summary.clID;
                         }
                     }
@@ -1070,7 +1107,9 @@ namespace slib {
             }
             bool setConsensusStat(sBioseqpopul::cloneStats &clSum);
 
-            bool validateSimilarities(idx simil_size, sDic<idx> * ext_sim = 0);
+            bool areDifferent(sCloneConsensus * cl1, sCloneConsensus * cl2, idx start = 0 , idx end = 0);
+
+            idx cleanOutClones(sVec<idx> &cloneIndex);
             idx sOutSimilarities(const char * flnm);
             idx createFrameMaps( const char * skp2gps, const char * gps2skp, const char * skp2gpsSpprt, const char * gps2skpSpprt);
     };
@@ -1081,18 +1120,36 @@ namespace slib {
             sVec<sClone> _clones;
             sVec<idx> _cloneInds;
             real avCov;
-            real gap_thrshld;
-//            sStr _buf;
+            sDic< sDic <idx> > _all_frame_insertions;
+        protected:
+            real gap_thrshld,_cutoff;
+            sDic<idx> * getInsertionsDic(idx icl, idx pos) {
+                static sStr cr_buf;
+                cr_buf.cut0cut();
+                cr_buf.printf(0,"%" DEC "-%" DEC ,icl,pos);
+                cr_buf.add0();
+                return _all_frame_insertions.get(cr_buf.ptr());
+            }
+            sDic<idx> & setInsertionsDic(idx icl, idx pos) {
+                static sStr cr_buf;
+                cr_buf.cut0cut();
+                cr_buf.printf("%" DEC "-%" DEC ,icl,pos);
+                cr_buf.add0();
+                return  _all_frame_insertions[cr_buf.ptr()];
+            }
         public:
+            idx minBifCov;
             sWdw<idx> _coverage;
             idx ref_cnt;
 
-            sFrame(idx t_ref_cnt, real t_gap_thrshld)
+            sFrame(idx t_ref_cnt, real t_gap_thrshld, real t_cutoff, idx t_minBifCov)
             {
                 _coverage.flagOn(sMex::fSetZero);
                 avCov = 0;
                 ref_cnt = t_ref_cnt;
                 gap_thrshld = t_gap_thrshld;
+                _cutoff = t_cutoff;
+                minBifCov = t_minBifCov;
             }
 
             void clean() {
@@ -1113,6 +1170,226 @@ namespace slib {
             }
 
             const char * printCoverage(sStr * out = 0);
+
+            void addInsertion(idx cloneID, idx subpos, sVec<idx> & basecalls, idx rpts, idx subID = -1) {
+                sDic<idx> & _insertions =  setInsertionsDic(cloneID,subpos);
+                static sStr cr_buf;
+                cr_buf.cut0cut(0);
+                const char * insertion_call = sBioseqpopul::convertBaseCallVector2String(basecalls, cr_buf);
+                idx * in_rpts = _insertions.get(insertion_call);
+                if ( !in_rpts )
+                    *_insertions.set(insertion_call) = rpts;
+                else
+                    *in_rpts += rpts;
+                if(subID>=0)
+                    ptr(cloneID)->pos(subpos)->addInsSim(subID,insertion_call,rpts);
+            }
+
+            void removeInsertion(idx cloneID, idx subpos, sVec<idx> & basecalls, idx rpts, idx subID = -1) {
+                addInsertion(cloneID,subpos,basecalls,-rpts, subID);
+            }
+
+            idx getPhasedInsertionStr(sClone * w, idx ip, real cutoff, idx minBifCov, sStr &s_insertions, bool isConfirmed = false) {
+                sBioseqpopul::position * p = w->pos(ip);
+                if( p->isSupportedInsertion(0,cutoff,minBifCov) && p->isInsertionPhased(p->basecall,_coverage.pos(ip-w->curSubPOS),cutoff,minBifCov,0,true) ) {
+                    idx ins_cov = 0, slen;
+                    const char * cr_ins = getDominantInsertionChar(w->clID,ip,slen,ins_cov);
+                    if(!cr_ins || !p->isSupportedInsertion(0,cutoff,minBifCov,&ins_cov) || !p->isInsertionPhased(p->basecall,_coverage.pos(ip-w->curSubPOS),cutoff,minBifCov,&ins_cov, isConfirmed) )
+                        return 0;
+                    s_insertions.cutAddString(0,cr_ins,slen);
+                    return ins_cov;
+                }
+                return 0;
+            }
+
+            sClone * getValidClone(idx ind, idx * start = 0 , idx * mergedPos = 0) {
+                sClone * w = ptr(ind);
+                if(!w || w->killed) return 0;
+                while(w->merged){
+                    if(start && mergedPos){
+                        if(w->lastSubPOS>=*start || w->lastSubPOS<0)
+                            *mergedPos=w->lastSubPOS;
+                    }
+                    w=ptr(w->mergedToCl);
+                }
+                if(!w || w->killed) return 0;
+                return w;
+            }
+
+            bool getPhasedInsertionVec(sClone * w, idx ip, real cutoff, idx minBifCov, sVec<idx> &insertions, bool isConfirmed = false) {
+                static sStr c_buf;
+                c_buf.cut0cut(0);
+                idx ins_cov = getPhasedInsertionStr(w,ip,cutoff,minBifCov,c_buf,isConfirmed);
+                if(!ins_cov)
+                    return 0;
+                sBioseqpopul::convertString2BaseCallVector(c_buf,insertions,c_buf.length());
+                return ins_cov;
+            }
+
+            idx getPositionInsertionBasecalls(sClone * cl, idx ip, real cutoff, idx minBifCov, sVec<idx> & basecalls, idx * ins_cov = 0) {
+                sBioseqpopul::position * p = cl->pos(ip);
+                basecalls.cut(0);
+
+                basecalls.vadd(1,p->basecall);
+                idx l_ins_cov = getPhasedInsertionVec(cl, ip, cutoff, minBifCov,basecalls);
+                if(ins_cov)*ins_cov = l_ins_cov;
+                return basecalls.dim();
+            }
+
+            bool isDiffPositionInsertionBasecalls(sClone * cl1, sClone * cl2, idx ip, real cutoff, idx minBifCov) {
+                static sVec<idx> basecalls1;
+                static sVec<idx> basecalls2;
+                basecalls1.cut(0);basecalls2.cut(0);
+                sBioseqpopul::position * p1 = cl1->pos(ip), * p2 = cl2->pos(ip);
+                getPositionInsertionBasecalls(cl1,ip, cutoff,minBifCov, basecalls1);
+                getPositionInsertionBasecalls(cl2,ip, cutoff,minBifCov, basecalls2);
+                if( p1->isN() || p2->isN() )
+                    return false;
+                return sBioseqpopul::isDiffBases(basecalls1.ptr(),basecalls1.dim(),basecalls2.ptr(),basecalls2.dim());
+            }
+
+            bool isDiffPositionInsertion(sClone * cl1, sClone * cl2, idx ip ,real cutoff, idx minBifCov) {
+                static sVec<idx> basecalls;
+                basecalls.cut(0);
+                sBioseqpopul::position * p = cl1->pos(ip);
+                getPositionInsertionBasecalls(cl1,ip, cutoff,minBifCov, basecalls);
+                if( !p->isN() && areBasecallsThere(cl2,ip,basecalls,cutoff,minBifCov) )
+                    return false;
+                basecalls.cut(0);
+                p = cl2->pos(ip);
+                getPositionInsertionBasecalls(cl2,ip, cutoff,minBifCov, basecalls);
+                if(  !p->isN() && areBasecallsThere(cl1,ip,basecalls,cutoff,minBifCov) )
+                    return false;
+
+                if( cl1->pos(ip)->isN() && cl1->pos(ip)->isN() )
+                    return false;
+                return true;
+            }
+
+            bool areBasecallsThere(sClone *cl, idx ip, sVec<idx> &basecalls, real cutoff, idx minBifCov) {
+                sBioseqpopul::position * p = cl->pos(ip);
+                if(!basecalls.dim()) {
+                    if(!p->getCoverage(false))
+                        return true;
+                    return false;
+                }
+                idx c_base = basecalls[0];
+                if( ((real)p->getBaseCoverage(static_cast<sBioseqpopul::baseCalls>(c_base))/ p->getCoverage(false)) < cutoff)
+                    return false;
+                if( basecalls.dim() > 1 ) {
+                    idx ins_cov = isInsertionInPos(cl->clID, ip, basecalls.ptr(1), basecalls.dim()-1);
+                    if(((real)ins_cov/p->getCoverage(false))<cutoff)
+                        return false;
+                }
+                return true;
+            }
+
+            idx getDominantInsertion(idx cloneID, idx subpos, idx &max_cnt) {
+                sDic<idx> * _insertions =  getInsertionsDic(cloneID,subpos);
+                if(!_insertions)
+                    return 0;
+                sStr id_buf;
+                idx max_i = -1;
+                max_cnt = 0;
+                for(idx i = 0 ; i < _insertions->dim() ; ++i ) {
+                    if( max_cnt < *_insertions->ptr(i) ) {
+                        max_cnt = *_insertions->ptr(i);
+                        max_i = i;
+                    }
+                }
+                return max_i;
+            }
+
+            idx getDominantInsertion(idx cloneID, idx subpos, sVec<idx> & basecalls, idx &cnt) {
+                idx slen = 0;
+                const char * cr_ins = getDominantInsertionChar(cloneID, subpos, slen, cnt);
+                if(!cr_ins)return 0;
+                sBioseqpopul::convertString2BaseCallVector(cr_ins,basecalls,slen);
+                return basecalls.dim();
+            }
+            const char * getDominantInsertionChar(idx cloneID, idx subpos, idx &slen, idx &cnt) {
+                sDic<idx> * _insertions =  getInsertionsDic(cloneID,subpos);
+                if(!_insertions)
+                    return 0;
+                sStr id_buf;
+                idx max_cnt = 0, max_i = 0;
+                for(idx i = 0 ; i < _insertions->dim() ; ++i ) {
+                    if( max_cnt < *_insertions->ptr(i) ) {
+                        max_cnt = *_insertions->ptr(i);
+                        max_i = i;
+                    }
+                }
+                cnt = max_cnt;
+                return (const char *)_insertions->id(max_i, &slen);
+            }
+
+            idx isInsertionInPos(idx cloneID, idx subpos, idx * basecalls, idx basecnt) {
+                static sStr cr_buf;
+                sDic<idx> * _insertions =  getInsertionsDic(cloneID,subpos);
+                if(!_insertions)
+                    return 0;
+                cr_buf.cut0cut();
+                const char * insertion_call = sBioseqpopul::convertBaseCallArr2String(basecalls, basecnt, cr_buf);
+                idx * in_rpts = _insertions->get(insertion_call);
+                if ( !in_rpts )
+                    return 0;
+                return *in_rpts;
+            }
+
+            idx getDominantInsertionCov(idx cloneID, idx subpos) {
+                sDic<idx> * _insertions =  getInsertionsDic(cloneID,subpos);
+                if(!_insertions)
+                    return 0;
+                sStr id_buf;
+                idx max_cnt = 0;
+                for(idx i = 0 ; i < _insertions->dim() ; ++i ) {
+                    if( max_cnt < *_insertions->ptr(i) ) {
+                        max_cnt = *_insertions->ptr(i);
+                    }
+                }
+                return max_cnt;
+            }
+
+            idx getSecondDominantInsertionCov(idx cloneID, idx subpos) {
+                sDic<idx> * _insertions =  getInsertionsDic(cloneID,subpos);
+                if(!_insertions)
+                    return 0;
+                sStr id_buf;
+                idx max_cnt = 0,second_cnt = 0, cr_cnt = 0;
+                for(idx i = 0 ; i < _insertions->dim() ; ++i ) {
+                    cr_cnt = *_insertions->ptr(i);
+                    if( max_cnt < cr_cnt ) {
+                        second_cnt = max_cnt;
+                        max_cnt = cr_cnt;
+                    }
+                    if( second_cnt < cr_cnt && cr_cnt < max_cnt )
+                        second_cnt = cr_cnt;
+                }
+                return second_cnt;
+            }
+            idx getSecondDominantInsertion(idx cloneID, idx subpos, sVec<idx> &basecalls, idx &cnt) {
+                sDic<idx> * _insertions =  getInsertionsDic(cloneID,subpos);
+                if(!_insertions)
+                    return 0;
+                sStr id_buf;
+                idx max_cnt = 0,second_cnt = 0, sec_ind = 0,  cr_cnt = 0;
+                for(idx i = 0 ; i < _insertions->dim() ; ++i ) {
+                    cr_cnt = *_insertions->ptr(i);
+                    if( max_cnt < cr_cnt ) {
+                        second_cnt = max_cnt;
+                        max_cnt = cr_cnt;
+                    }
+                    if( second_cnt < cr_cnt && cr_cnt < max_cnt ) {
+                        second_cnt = cr_cnt;
+                        sec_ind = i;
+                    }
+                }
+                cnt = second_cnt;
+                idx slen = 0;
+
+                sBioseqpopul::convertString2BaseCallVector((const char *)_insertions->id(sec_ind,&slen),basecalls,slen);
+                return basecalls.dim();
+            }
 
             inline sClone * ptr(idx k = 0)
             {
@@ -1148,7 +1425,7 @@ namespace slib {
                     newclID = k +start;
                     if(oldclID==newclID) continue;
                     tcl = ptr(oldclID);
-                    if( !tcl->dead && !(tcl->merged && tcl->mergeSubPOS<0) ) {
+                    if( tcl->active() ) {
                         for(idx j = 0; j < start+ cnt; ++j) {
                             jcl = ptr( j );
                             if( j >= start) {
@@ -1177,33 +1454,45 @@ namespace slib {
             }
             inline bool isFuzzy( sClone * w,idx p, real cutoff )
             {
-                return isFramePositionFuzzy(p-w->curSubPOS, cutoff) || isClonalPositionFuzzy(w, p, cutoff) ;
+                return isFramePositionFuzzy(p, cutoff) || isClonalPositionFuzzy(w, p, cutoff) ;
             }
             inline bool isFramePositionFuzzy( idx p, real cutoff )
             {
                 if(!avCoverage())return true;
-                return (real)*_coverage.pos(p)/avCoverage() < cutoff;
+                return (real)*_coverage.pos(p - getMainClone()->curSubPOS)/avCoverage() < cutoff;
+            }
+            inline idx getLastNonFuzzyPosition(sClone * w , real cutoff) {
+                idx start = w->getfirstNonZero();
+                idx end = w->getlastNonZero();
+                for(idx i = end ; i>=start ; --i) {
+                    if(!isClonalPositionFuzzy(w,i,cutoff))
+                        return i;
+                }
+                return start-1;
             }
             inline bool isClonalPositionFuzzy(sClone * w, idx p, real cutoff)
             {
-                if(! *_coverage.pos(p -w->curSubPOS))return true;
-                return ( (real)w->pos(p)->getGappyCoverage()/ *_coverage.pos(p-w->curSubPOS) < cutoff || (real)w->pos(p)->getGappyCoverage() / w->avCoverage() < cutoff);
+                if( *_coverage.pos(p - w->curSubPOS) <= 0)return true;
+                return ( (real)w->pos(p)->getCoverage(false)/ sMax((real)*_coverage.pos(p-w->curSubPOS), w->avCoverage()) < cutoff);
+            }
+            inline bool isClonalInsertionFuzzy(sClone * w, idx p, real cutoff, idx &ins_ind)
+            {
+                if( *_coverage.pos(p - w->curSubPOS) <= 0)return true;
+                idx comb_cov = sMax((real)*_coverage.pos(p-w->curSubPOS), w->avCoverage());
+                if ( ( (real)w->pos(p)->getBaseCoverage(sBioseqpopul::baseIns)/ comb_cov < cutoff) )
+                    return true;
+                idx ins_cnt;
+                ins_ind = getDominantInsertion(w->clID,p,ins_cnt);
+                return ( (real)ins_cnt/ comb_cov < cutoff);
             }
             void move(idx pos);
             void setCalls(void);
+            void correctInsertions(sClone * w);
 
-            sClone * branch(idx prevID, idx setbase, idx offset);
+            sClone * branch(idx prevID, sVec<idx> & setbase, idx offset);
             void resize(idx addSize);
 
-            idx mergeClones(real cutoff);
-            idx killClones(real cutoff, bool keepOneAlive);
-            idx computeStep(real cutoff, idx minOveral);
-
-            void shiftFrames(idx moveTo);
-            idx extractCons(sFrameConsensus * cloneCons, idx POS, bool toEnd = false);
-
-            idx getSingleFingPrint(sBioseqpopul::clonePat * p, idx parentClID, idx childID, real fuzzy_coverages_threshold, idx * start = 0, idx * end = 0);
-            idx getFingPrints(sVec<sBioseqpopul::clonePat> * patterns, idx * relativeTo, real fuzzy_coverages_threshold);
+            idx getSingleFingPrint(sBioseqpopul::clonePat * p, idx parentClID, idx childID, real fuzzy_coverages_threshold, idx bif_start, idx * start = 0, idx * end = 0);
 
             idx getLastDiff(sClone * w1, sClone * w2, idx start, idx end ,real cutoff);
             idx getFirstDiff(sClone * w1, sClone * w2, idx start, idx end ,real cutoff);
@@ -1254,14 +1543,44 @@ namespace slib {
                 return t;
             }
 
-            //AUX
-            const char * diff(idx cl1, idx cl2);
-//            void clean(bool full=false){if(full){for(idx i=0;i<_coverage.dim();++i)*_coverage.ptr(i)=0;}   for(idx i=0;i<cnt();++i) ptr(i)->clean();}//initFrames
+            void mergeClones(sClone * dst, sClone * src, idx matPos)
+            {
+                idx start = src->subPos(matPos);
+                idx ed = src->getTailLast(), cnt = 0;
+                idx slen = 0;
+                const char * basecalls = 0;
+                sVec<idx> ins_vec;
+                for(idx i = start; i < ed; ++i) {
+                    if(src->pos(i)->base[sBioseqpopul::baseIns]) {
+                        sDic<idx> * _insertions =  getInsertionsDic(src->clID,i);
+                        if(!_insertions)
+                            continue;
+                        for(idx in = 0 ; in < _insertions->dim() ; ++in ) {
+                            ins_vec.cut();
+                            cnt = *_insertions->ptr(in);
+                            basecalls = (const char*)_insertions->id(in,&slen);
+                            sBioseqpopul::convertString2BaseCallVector(basecalls,ins_vec,slen);
+                            removeInsertion(src->clID,i,ins_vec,cnt);
+                            addInsertion(dst->clID,i,ins_vec,cnt);
+                            _insertions =  getInsertionsDic(src->clID,i);
+                        }
+                    }
+                }
+                src->mergeTo(dst, matPos);
+            }
+
+            void mergeCloneRange(sClone * dst, sClone * src, idx subStart, idx subEnd) {
+                for(idx i = subStart; i < subEnd; ++i) {
+                    dst->pos(i)->transfer(*src->pos(i));
+                }
+            }
+
+            const char * diff(idx cl1, idx cl2,bool onlydiffs = true);
             idx cntAlive()
             {
                 idx ali = 0;
                 for(idx i = 0; i < cnt(); ++i) {
-                    if( ptr(i)->alive() && !ptr(i)->killed )
+                    if( ptr(i)->valid() && !ptr(i)->killed )
                         ++ali;
                 }
                 return ali;
@@ -1270,7 +1589,7 @@ namespace slib {
             {
                 idx clon = -1;
                 for(idx i = 0; i < cnt(); ++i) {
-                    if( ptr(i)->alive() ) {
+                    if( ptr(i)->valid() ) {
                         clon = i;
                         break;
                     }
@@ -1301,7 +1620,7 @@ namespace slib {
             {
                 avCov = 0;
                 for(idx i = 0; i < cnt(); ++i) {
-                    if( ptr(i)->alive() && !ptr(i)->killed )
+                    if( ptr(i)->valid() )
                         ptr(i)->avCov = 0;
                 }
             }
@@ -1309,15 +1628,14 @@ namespace slib {
             void killall(void)
             {
                 for(idx i = 0; i < cnt(); ++i) {
-                    if( ptr(i)->alive() )
+                    if( ptr(i)->valid() )
                         ptr(i)->killed = true;
                 }
             }
 
-            static idx getAlBoundaries(sBioal * bioal, idx * alList, idx posStart, idx posEnd, idx &alStart, idx &alEnd, idx alCnt);
+            static bool getAlBoundaries(sBioal * bioal, idx * alList, idx posStart, idx posEnd, idx &alStart, idx &alEnd, idx alCnt);
 
     };
 }
 
-#endif // sBio_seqpopul_hpp
-
+#endif 

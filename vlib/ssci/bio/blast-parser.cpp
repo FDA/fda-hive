@@ -45,35 +45,32 @@ const char * sBioAlBlast::readVal ( char * src,const char * find, const char * f
     return fnd;
 }
 
-const char * sBioAlBlast::getNextLine(sStr * Buf, const char * currentPtr, idx sizeLeftover)
+const char * sBioAlBlast::getNextLine(sStr * Buf, const char * const startPtr, const idx sizeLeftover)
 {
     Buf->cut(0);
-    idx nextPtr=sString::copyUntil(Buf, currentPtr, sizeLeftover,"\r\n");
+    const char * newPtr = startPtr + sString::copyUntil(Buf, startPtr, sizeLeftover,"\r\n");
 
-    currentPtr += nextPtr;
-    // make sure that nextPtr is not pointing to \r\n but pointing to beginning of next line
-    while( ((*currentPtr=='\r')||(*currentPtr=='\n')) && (currentPtr<(currentPtr+sizeLeftover)) )
-        ++currentPtr;
-    return currentPtr;
+    while( (newPtr < (startPtr + sizeLeftover)) && ((*newPtr == '\r') || (*newPtr == '\n')) ) {
+        ++newPtr;
+    }
+    return newPtr;
 }
 
-idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, sVec < idx > * alignOut,  idx scoreFilter, idx minMatchLength, idx maxMissQueryPercent, sDic < idx > * rgm, sDic < idx > * sub,sDic < idx > * qry, idx blastOutMode, sDic <idx> *unalignedQry)
+idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, sVec < idx > * alignOut,  idx scoreFilter, idx minMatchLength, bool isMinMatchPercentage, idx maxMissQueryPercent, sDic < idx > * rgm, sDic < idx > * sub,sDic < idx > * qry, idx blastOutMode, sDic <idx> *unalignedQry)
 {
-    //sString::searchAndReplaceSymbols(fileContent, filesize,"\r\n",0,0,true,true,false,false);
-    //char * buf=fileContent;
     const char * ptr=fileContent;
+    const char * const endPtr = fileContent + filesize;
     char * buf;
-    // temporary variables
     sStr t;
     idx num,cntFound=0;
 
     idx qryLen=0, qryId=0,subId=0, alScore=0;
+    real minMatchLengthPerc = (real)minMatchLength/100;
     sStr Buf;
 
 
-    for (idx iAl=0, iLine=0; *ptr && (0 < (fileContent+filesize-ptr)) ; ++iAl , ++iLine){
+    for (idx iAl=0, iLine=0; ptr < endPtr; ++iAl , ++iLine){
 
-        //buf=sString::next00(buf); if(!buf)break;
         const char * ptr0=ptr;
         ptr = getNextLine(&Buf,ptr,fileContent+filesize-ptr);
         buf=Buf.ptr();
@@ -83,12 +80,10 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
 
         if( strstr (buf,"Query=") ) {
 
-            //Determine the query identifier
             t.cut(0);sString::cleanEnds(&t,buf+6, 0,sString_symbolsBlank,true);
-            idx qryIdStart = (idx)(ptr0-fileContent);   // remember query Id Start
+            idx qryIdStart = (idx)(ptr0-fileContent);
 
             t.cut(t.length()-2);
-            // walk through strings until we find the query length
             while(*ptr &&
                 (
                     (blastOutMode == eBlastStandardOut && !readVal (buf,"Length", "%" DEC, &qryLen))
@@ -98,12 +93,11 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                     (blastOutMode == eBlastBlatOut && !readVal (buf,"(", "%" DEC, &qryLen))
                 )
                 ){
-//                buf=sString::next00(buf);
                 ptr = getNextLine(&Buf,ptr,fileContent+filesize-ptr);
                 buf=Buf.ptr();
-                t.printf("%s",buf);  // Append the next line to the query Id
+                t.printf("%s",buf);
             }
-            t.cut(t.length() - strlen(buf));  // Remove Length line from t.ptr()
+            t.cut(t.length() - strlen(buf));
             t.add0();
 
             if(qry){
@@ -118,7 +112,6 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             t.cut(0);sString::cleanEnds(&t,buf, 0,">" sString_symbolsBlank,true);
             idx subIDtemp = 0;
             if(sub){
-//                *sub->set(t,0,&subIDtemp)=(buf-fileContent);
                 *sub->set(t,0,&subIDtemp)=(idx)(ptr0-fileContent);
             }else {
                 sscanf(t,"%" DEC,&subIDtemp);
@@ -126,20 +119,20 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             idx * idSubptr = 0;
             sStr tid;
             sString::searchAndReplaceSymbols(&tid,t.ptr(),0," ","\0",true,true,false,true);
-            if (rgm && rgm->dim() != 0){   // There is a dictionary to look for
-                idSubptr = rgm->get(tid.ptr());  // So go and get something
-            } //for old .vioseq format bioseq->id(i) returns id with leading '>'
+            if (rgm && rgm->dim() != 0){
+                idSubptr = rgm->get(tid.ptr());
+            }
             if (!idSubptr && rgm) {
                 sStr tt(">%s",tid.ptr());
                 idSubptr = rgm->get(tt.ptr());
             }
 
-            if (!idSubptr){  // There is nothing in the dictionary, or return value is 0
+            if (!idSubptr){
                 char *p = strstr(tid.ptr(), "HIVESEQID=");
-                if (p){  // If there is a HIVESEQID=, get it in idSubptr
+                if (p){
                     sscanf(p+10,"%" DEC "", idSubptr);
                 }
-                else // There is no HIVESEQ
+                else
                     idSubptr = &subIDtemp;
             }
             else if (!idSubptr)
@@ -156,35 +149,9 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             (*unqry) = (*unqry) + 1;
 
         }
-        /*else if (strncmp("ref|",buf,4)==0) {
-            t.cut(0);sString::cleanEnds(&t,buf, 0,">" sString_symbolsBlank,true);
-
-            sStr s;
-            idx slength = 0;
-            for(char * p = t.ptr(); p < t.ptr() + t.length(); ++p) {
-                if( s.length() == 0 && *p == '|' ) {
-                    s.printf("%s", p+1);
-                    ++slength;
-                } else if( s.length() > 0 && *p == '|' ) {
-                    s.cut(slength-1);
-                    s.add0();
-                    continue;
-                } else if( slength > 0 )
-                    ++slength;
-            }
-
-            sStr idSubStr;
-            idSubStr.printf("%s", s.ptr());
-            idx * idSubptr;
-            idSubptr = rgm->get(idSubStr.ptr());
-            if (idSubptr) subId = *idSubptr;
-            else {
-                continue;
-            }
-        }*/
 
         if(strstr (buf,"Score =") ) {
-            sVec<idx> QS,QE,SS,SE;//record every query and subject num;
+            sVec<idx> QS,QE,SS,SE;
             sStr ALSEQ1,ALSEQ2;
             sVec<idx> S1, S2;
             idx alMissMatches=0;
@@ -192,9 +159,7 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             idx alLength0 = 0;
             char alStrand=0;
 
-            // read the score and the Strand information
             while(*ptr && !readVal (buf,"Score", "%" DEC, &alScore) ){
-//                buf=sString::next00(buf);
                 ptr = getNextLine(&Buf,ptr,fileContent+filesize-ptr);
                 buf=Buf.ptr();
             }
@@ -212,7 +177,6 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             if (blastOutMode != eBlastProteinOut){
                 sString::searchAndReplaceSymbols(buf,0,sString_symbolsBlank,"",0,true,true,false,true);
                 while(*ptr && !readVal (buf,"Strand=Plus/", "%c", &alStrand) ){
-                    //                buf=sString::next00(buf);
                     ptr = getNextLine(&Buf,ptr,fileContent+filesize-ptr);
                     buf=Buf.ptr();
                     sString::searchAndReplaceSymbols(buf,0,sString_symbolsBlank,"",0,true,true,false,true);
@@ -222,11 +186,7 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                 alStrand = 'P';
             }
 
-            // now loop over alignment itself
-//            ptr = getNextLine(&Buf,ptr,fileContent+filesize-ptr);
-//            buf=Buf.ptr();
 
-            // !*ptr
             while ( *buf ) {
                 char *ptr2;
                 const char *ptr_prev = ptr;
@@ -236,14 +196,12 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                 buf=Buf.ptr();
 
                 if(buf[0]=='>' || strstr(buf,"Query=") || strstr(buf,"Score") )
-                    {// buf-=2;
-                    //ptr -= (strlen(buf) + 1);
+                    {
                     idx dif = ptr - ptr_prev;
                     ptr -= dif;
-                    break; // this is the next Query or subject alignment information
+                    break;
                     }
 
-                // read the query line
                 if( !readVal(buf,"Query","%" DEC,&num) )
                     continue;
 
@@ -254,13 +212,10 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                 ptr2=sString::skipWords(buf,0,3);
                 QE.vadd(1,(idx)atol(ptr2));
 
-//                buf=sString::next00(buf);
                 ptr = getNextLine(&Buf,ptr,fileContent+filesize-ptr);
                 buf=Buf.ptr();
 
-                //read the sbject line
                 while( *ptr && !readVal(buf,"Sbjct","%" DEC,&num) ){
-//                    buf=sString::next00(buf);
                     ptr = getNextLine(&Buf,ptr,fileContent+filesize-ptr);
                     buf=Buf.ptr();
                 }
@@ -273,25 +228,25 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
 
             }
 
-            // if this alignment does not pass filters, skip this
             if (scoreFilter && alScore<scoreFilter)
                 continue;
             idx alLength = (alLength0 == 0) ? (abs(QE[QE.dim()-1]-QS[0])+1) : alLength0;
+            if(isMinMatchPercentage)
+                minMatchLength = qryLen * minMatchLengthPerc;
             if ( alLength < minMatchLength )
                   continue;
 
             char * alseq1=ALSEQ1.ptr(), * alseq2=ALSEQ2.ptr();
-            idx count1, count2;//count '-' in query and subject
+            idx count1, count2;
             idx h,l, q=0;
 
 
-            // now parse the query and subject lines
-            for( l=0 ; l<QS.dim() ; ++l ) { // for every single alignment lineset
+            for( l=0 ; l<QS.dim() ; ++l ) {
                 idx seclen=sLen(alseq1);
                 S1.add(seclen);
                 S2.add(seclen );
 
-                for( h=0,count1=0,count2=0 ; h<seclen ; h++ ) //for every single line
+                for( h=0,count1=0,count2=0 ; h<seclen ; h++ )
                 {
 
                     if(alStrand=='P'){
@@ -302,7 +257,7 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                                 S2[q]=SS[l]+h-count2;
                             } else if(alseq2[h]=='-') {
                                 S2[q]=-1;
-                                S1[q]=QS[l]+h-count2;
+                                S1[q]=QS[l]+h-count1;
                                 count2++;
                             } else {
                                 S1[q]=QS[l]+h-count1;
@@ -343,7 +298,6 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                 alseq2=sString::next00(alseq2);
             }
 
-            // skip if did not pass the minimal accuracy criteria
             if ( (100*(alMissMatches&0xFFFF))/alLength > maxMissQueryPercent)
                 continue;
 
@@ -351,21 +305,18 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
             sBioseqAlignment::Al * hdr=(sBioseqAlignment::Al *)alignOut->add(sizeof(sBioseqAlignment::Al)/sizeof(idx));
             hdr->setFlags(alStrand=='P' ? sBioseqAlignment::fAlignForward : (sBioseqAlignment::fAlignBackward|sBioseqAlignment::fAlignBackwardComplement));
             if (hdr->flags()&sBioseqAlignment::fAlignBackward) {
-                hdr->setSubStart(SE[l-1]);//hdr->subEnd=SS[0];
-                hdr->setQryStart(qryLen-QE[l-1]);//hdr->qryEnd=qryLen-QS[0];
+                hdr->setSubStart(SE[l-1]);
+                hdr->setQryStart(qryLen-QE[l-1]);
             }
             else {
-                hdr->setSubStart(SS[0]); //hdr->subEnd=SE[l-1];
-                hdr->setQryStart(QS[0]); //hdr->qryEnd=QE[l-1];
+                hdr->setSubStart(SS[0]);
+                hdr->setQryStart(QS[0]);
             }
             hdr->setIdSub(subId);
             hdr->setIdQry(qryId);
-            //hdr->idSrc=0;
             hdr->setScore(alScore);
             hdr->setLenAlign(alLength);
             hdr->setDimAlign(q*2);
-//                hdr->missMatches=((alMissMatches&0xFFFF));// | ((matchcounters[2]&0xFFFF)<<16) | ((matchcounters[3]&0xFFFF)<<32);
-            //store in the output buffer
             idx * pointerToWrite=alignOut->add(2*q);
             hdr=(sBioseqAlignment::Al *)alignOut->ptr(curOfs);
             for(idx r=0;r<q;r++)    {
@@ -382,10 +333,8 @@ idx sBioAlBlast::SSSParseAlignment(sIO * log, char * fileContent, idx filesize, 
                 }
             }
             hdr->setSubStart(hdr->subStart()-1);
-            //--hdr->subEnd;
             if(!((hdr->flags())&sBioseqAlignment::fAlignBackward)){
                 hdr->setQryStart(hdr->qryStart()-1);
-                //--hdr->qryEnd;
             }
 
 

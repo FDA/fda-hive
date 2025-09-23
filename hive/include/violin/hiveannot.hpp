@@ -43,7 +43,6 @@ namespace sviolin
     {
         public:
             struct sequenceInfo{
-                //sequenceInfo(){sSet(this,0);};
                 sDic <idx> idList;
                 sDic <const char *> sequenceList;
             };
@@ -58,5 +57,4 @@ namespace sviolin
     };
 
 }
-//
 #endif

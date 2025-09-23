@@ -64,6 +64,195 @@ extern char ** environ;
     #define SPIPE2_TRACE(...)
 #endif
 
+sPipe2::CmdLine::CmdLine()
+{
+    _exe_pos = _dir_pos = -1;
+}
+
+sPipe2::CmdLine& sPipe2::CmdLine::operator=(const sPipe2::CmdLine & rhs)
+{
+    _exe_pos = rhs._exe_pos;
+    _dir_pos = rhs._dir_pos;
+
+    if( rhs._buf.length() ) {
+        _buf.cutAddString(0, rhs._buf.ptr(), rhs._buf.length());
+    } else {
+        _buf.empty();
+    }
+
+    if( rhs._argv_pos.dim() ) {
+        _argv_pos.cut(0);
+        _argv_pos.add(rhs._argv_pos.dim());
+        for(idx i = 0; i < rhs._argv_pos.dim(); i++) {
+            _argv_pos[i] = rhs._argv_pos[i];
+        }
+    } else {
+        _argv_pos.empty();
+    }
+
+    _env.empty();
+    if( rhs._env.dim() ) {
+        for(idx i = 0; i < rhs._env.dim(); i++) {
+            idx name_len = 0;
+            const char * name = static_cast<const char *>(rhs._env.id(i, &name_len));
+            const idx * ppos = rhs._env.ptr(i);
+            *_env.setString(name, name_len) = *ppos;
+        }
+    }
+
+    return *this;
+}
+
+sPipe2::CmdLine & sPipe2::CmdLine::exe(const char * exe_name)
+{
+    _exe_pos = _buf.length();
+    _argv_pos.resize(1);
+    _argv_pos[0] = _buf.length();
+    _buf.addString(exe_name);
+    _buf.add0();
+    return *this;
+}
+
+sPipe2::CmdLine & sPipe2::CmdLine::vexe(const char * fmt, ...)
+{
+    _exe_pos = _buf.length();
+    _argv_pos.resize(1);
+    _argv_pos[0] = _buf.length();
+    sCallVarg(_buf.vprintf, fmt);
+    _buf.add0();
+    return *this;
+}
+
+sPipe2::CmdLine & sPipe2::CmdLine::arg(const char * arg_val, idx len)
+{
+    *_argv_pos.add(1) = _buf.length();
+    _buf.addString(arg_val, len);
+    _buf.add0();
+    return *this;
+}
+
+sPipe2::CmdLine & sPipe2::CmdLine::varg(const char * fmt, ...)
+{
+    *_argv_pos.add(1) = _buf.length();
+    sCallVarg(_buf.vprintf, fmt);
+    _buf.add0();
+    return *this;
+}
+
+sPipe2::CmdLine & sPipe2::CmdLine::copyArgs(const CmdLine & rhs)
+{
+    for(idx i = 0; i < rhs._argv_pos.dim(); i++) {
+        arg(rhs._buf.ptr(rhs._argv_pos[i]));
+    }
+    return *this;
+}
+
+sPipe2::CmdLine & sPipe2::CmdLine::cd(const char * dir)
+{
+    _dir_pos = _buf.length();
+    _buf.addString(dir);
+    _buf.add0();
+    return *this;
+}
+
+sPipe2::CmdLine & sPipe2::CmdLine::env(const char * name, const char * value, idx value_len)
+{
+    *_env.setString(name) = _buf.length();
+    _buf.addString(value, value_len);
+    _buf.add0();
+    return *this;
+}
+
+sPipe2::CmdLine & sPipe2::CmdLine::venv(const char * name, const char * value, ...)
+{
+    *_env.setString(name) = _buf.length();
+    sCallVarg(_buf.vprintf, value);
+    _buf.add0();
+    return *this;
+}
+
+sPipe2::CmdLine & sPipe2::CmdLine::unsetEnv(const char * pattern)
+{
+    sFileGlob gl;
+    if( gl.compile(pattern, true) ) {
+        for(idx i = 0; i < _env.dim(); i++) {
+            const char * name = static_cast<const char *>(_env.id(i));
+            if( gl.match(name) ) {
+                *_env.setString(name) = -1;
+            }
+        }
+
+        sStr name;
+        for(char ** pen = environ; pen && *pen; pen++) {
+            const char * en = *pen;
+            const char * name_end = strchr(en, '=');
+            idx name_len = name_end ? name_end - en : sLen(en);
+            name.cutAddString(0, name_len ? en : "", name_len);
+            if( gl.match(name) ) {
+                *_env.setString(name) = -1;
+            }
+        }
+    }
+    return *this;
+}
+
+const char * sPipe2::CmdLine::printBash(sStr * out) const
+{
+    if( !out ) {
+        static sStr buf;
+        out = &buf;
+    }
+    idx start_pos = out->length();
+    out->add0cut();
+
+    if( const char * dir = getStr(_dir_pos) ) {
+        out->addString("cd ");
+        sString::escapeForShell(*out, dir);
+        out->addString(" && ");
+    }
+
+    bool weird_env_vars = false;
+    for(idx i = 0; i < _env.dim() && !weird_env_vars; i++) {
+        idx name_len = 0;
+        const char * name = static_cast<const char *>(_env.id(i, &name_len));
+        for(idx j = 0; j < name_len; j++) {
+            if( !isalnum(name[j]) && name[j] != '_' ) {
+                weird_env_vars = true;
+                break;
+            }
+        }
+    }
+    if( weird_env_vars ) {
+        out->addString("env ");
+    }
+    for(idx i = 0; i < _env.dim(); i++) {
+        idx name_len = 0;
+        const char * name = static_cast<const char *>(_env.id(i, &name_len));
+        const char * value = getStr(*_env.ptr(i));
+        if( name_len ) {
+            if( weird_env_vars ) {
+                sString::escapeForShell(*out, name, name_len);
+            } else {
+                out->addString(name, name_len);
+            }
+            out->addString("=");
+
+            if( value && *value ) {
+                sString::escapeForShell(*out, value);
+            }
+            out->addString(" ");
+        }
+    }
+
+    for(idx i = 0; i < _argv_pos.dim(); i++) {
+        if( i ) {
+            out->addString(" ");
+        }
+        sString::escapeForShell(*out, getStr(_argv_pos[i]));
+    }
+    return out->ptr(start_pos);
+}
+
 void sPipe2::IO::reset()
 {
     io = NULL;
@@ -76,7 +265,6 @@ void sPipe2::IO::reset()
     pipe_fds[0] = pipe_fds[1] = -1;
 }
 
-//static
 bool sPipe2::openPipeFDs(int pipe_fds[2], bool nonblock_read, bool nonblock_write)
 {
     if( ::pipe(pipe_fds) < 0 ) {
@@ -99,7 +287,6 @@ bool sPipe2::IO::openPipeFDs(bool nonblock_read, bool nonblock_write)
     return sPipe2::openPipeFDs(pipe_fds, nonblock_read, nonblock_write);
 }
 
-//static
 bool sPipe2::closePipeFD(int pipe_fds[2], idx i)
 {
     if( pipe_fds[i] ) {
@@ -116,7 +303,6 @@ bool sPipe2::IO::closePipeFD(idx i)
     return sPipe2::closePipeFD(pipe_fds, i);
 }
 
-//static
 bool sPipe2::closePipeFDs(int pipe_fds[2])
 {
     bool ret = false;
@@ -148,7 +334,6 @@ idx sPipe2::IO::readFromPipe(char * buf, idx buf_len)
             read_total += read_len;
             io->add(buf, read_len);
         } else if( read_len == 0 || errno == EAGAIN || errno == EWOULDBLOCK ) {
-            // more IO might come later
             SPIPE2_TRACE("read %" DEC " bytes from fd %d; breaking", read_len, pipe_fds[0]);
             break;
         } else {
@@ -168,7 +353,6 @@ idx sPipe2::IO::writeToPipe(idx io_pos)
 
     idx wrote_total = 0;
 
-    // don't die on SIGPIPE from write(2)!
     sigset_t sigpipeset, oldsigset;
     sigemptyset(&sigpipeset);
     sigemptyset(&oldsigset);
@@ -180,11 +364,9 @@ idx sPipe2::IO::writeToPipe(idx io_pos)
         if( wrote_len > 0 ) {
             wrote_total += wrote_len;
         } else if( wrote_len == 0 || errno == EAGAIN || errno == EWOULDBLOCK ) {
-            // more IO might come later
             break;
         } else {
             if( errno == EPIPE ) {
-                // clear pending SIGPIPE
                 struct timespec zerotime;
                 zerotime.tv_sec = 0;
                 zerotime.tv_nsec = 0;
@@ -195,7 +377,6 @@ idx sPipe2::IO::writeToPipe(idx io_pos)
         }
     }
 
-    // unblock SIGPIPE if needed
     pthread_sigmask(SIG_SETMASK, &oldsigset, 0);
 
     return wrote_total;
@@ -247,13 +428,17 @@ bool sPipe2::IO::setupForkedChild(idx i, FILE * stream, const sStr & path_buf)
     return ret;
 }
 
-sPipe2::sPipe2() : _watch_entries(sMex::fExactSize)
+sPipe2::sPipe2(sPipe2::CmdLine * cmd_line) : _watch_entries(sMex::fExactSize)
 {
     _stdin.reset();
     _stdout.reset();
     _stderr.reset();
-    _dir_pos = -1;
-    _exe_pos = -1;
+
+    if( cmd_line ) {
+        _cmd_line = cmd_line;
+    } else {
+        _cmd_line = &_local_cmd_line;
+    }
 
     _stdin.discard = _stdout.discard = _stderr.discard = false;
     _limit_time = _limit_cpu = _hard_limit_cpu = 0;
@@ -306,7 +491,7 @@ sPipe2 & sPipe2::setStdOut(sIO * io)
     return *this;
 }
 
-sPipe2 & sPipe2::setStdOut(const char * file, bool append/*=false*/)
+sPipe2 & sPipe2::setStdOut(const char * file, bool append)
 {
     _stdout.path_pos = _buf.length();
     _stdout.append = append;
@@ -335,7 +520,7 @@ sPipe2 & sPipe2::setStdErr(sIO * io)
     return *this;
 }
 
-sPipe2 & sPipe2::setStdErr(const char * file, bool append/*=false*/)
+sPipe2 & sPipe2::setStdErr(const char * file, bool append)
 {
     _stderr.path_pos = _buf.length();
     _stderr.append = append;
@@ -364,7 +549,7 @@ sPipe2 & sPipe2::setStdOutErr(sIO * io)
     return *this;
 }
 
-sPipe2 & sPipe2::setStdOutErr(const char * file, bool append/*=false*/)
+sPipe2 & sPipe2::setStdOutErr(const char * file, bool append)
 {
     _stdout.path_pos = _stderr.path_pos = _buf.length();
     _stdout.append = _stderr.append = append;
@@ -375,47 +560,6 @@ sPipe2 & sPipe2::setStdOutErr(const char * file, bool append/*=false*/)
 sPipe2 & sPipe2::setStdOutErr(int file_desc)
 {
     _stdout.local_fd = _stderr.local_fd = file_desc;
-    return *this;
-}
-
-sPipe2 & sPipe2::setDir(const char * dir)
-{
-    _dir_pos = _buf.length();
-    _buf.addString(dir);
-    _buf.add0();
-    return *this;
-}
-
-sPipe2 & sPipe2::setEnv(const char * name, const char * value, idx value_len/* = 0*/)
-{
-    *_env.setString(name) = _buf.length();
-    _buf.addString(value, value_len);
-    _buf.add0();
-    return *this;
-}
-
-sPipe2 & sPipe2::unsetEnv(const char * pattern/* = "*" */)
-{
-    sFileGlob gl;
-    if( gl.compile(pattern, true) ) {
-        for(idx i = 0; i < _env.dim(); i++) {
-            const char * name = static_cast<const char *>(_env.id(i));
-            if( gl.match(name) ) {
-                *_env.setString(name) = -1;
-            }
-        }
-
-        sStr name;
-        for(char ** pen = environ; pen && *pen; pen++) {
-            const char * en = *pen;
-            const char * name_end = strchr(en, '=');
-            idx name_len = name_end ? name_end - en : sLen(en);
-            name.cutAddString(0, name_len ? en : "", name_len);
-            if( gl.match(name) ) {
-                *_env.setString(name) = -1;
-            }
-        }
-    }
     return *this;
 }
 
@@ -451,7 +595,7 @@ sPipe2 & sPipe2::hardLimitMem(idx size)
     return *this;
 }
 
-sPipe2 & sPipe2::setMonitor(sPipe2::monCb cb, const char * files00, void * param/* = 0 */, real timeout_sec/* = 5*/, bool always_call/* = false*/)
+sPipe2 & sPipe2::setMonitor(sPipe2::monCb cb, const char * files00, void * param, real timeout_sec, bool always_call)
 {
     _mon_cb = cb;
     _mon_cb_param = param;
@@ -474,54 +618,29 @@ sPipe2 & sPipe2::setMonitor(sPipe2::monCb cb, const char * files00, void * param
     return *this;
 }
 
-sPipe2 & sPipe2::setExe(const char * exe)
-{
-    _exe_pos = _buf.length();
-    _argv_pos.cut(0);
-    *_argv_pos.add(1) = _buf.length();
-    _buf.addString(exe);
-    _buf.add0();
-
-    return *this;
-}
-
-sPipe2 & sPipe2::addArg(const char * arg, idx len/* = 0 */)
-{
-    *_argv_pos.add(1) = _buf.length();
-    _buf.addString(arg, len);
-    _buf.add0();
-    return *this;
-}
-
-// messages for use in selfpipe
 #define SELFPIPE_WAIT "w"
 #define SELFPIPE_MON "m"
 #define SELFPIPE_CPU_TIME "t"
 #define SELFPIPE_DTOR "d"
 
-bool sPipe2::kill(idx sig/* = -9 */)
+bool sPipe2::kill(idx sig)
 {
 #ifdef SLIB_WIN
-    // TODO
     return false;
 #else
 
     bool ret = false;
     idx force_retcode = 0;
 
-    // kill a daemon's entire process group; otherwise, only kill the process itself
     if( _is_running ) {
         ret = (::kill(_mode == eDaemon ? -_pid : _pid, sig) == 0);
 
-        // in daemon mode, the waiter thread works by polling. Instead of waiting for it to
-        // discover that the process is killed, cancel the waiter and immediately tell the callback
-        // thread over self-pipe.
         if( sig && _mode == eDaemon ) {
             pthread_mutex_lock(&_waiter_timer_mtx);
             if( _waiter_tid > 0 ) {
                 pthread_cancel(_waiter_tid);
                 _is_running = false;
-                force_retcode = 128 + sAbs(sig); // same logic as bash, see http://unix.stackexchange.com/questions/99112/default-exit-code-when-process-is-terminated
+                force_retcode = 128 + sAbs(sig);
                 ::write(_self_pipe_fds[1], SELFPIPE_WAIT, 1);
             }
             pthread_mutex_unlock(&_waiter_timer_mtx);
@@ -529,7 +648,6 @@ bool sPipe2::kill(idx sig/* = -9 */)
     }
 
     if( sig ) {
-        // handleCallbacks() will reap waiter and timer threads, but the callback thread should be reaped by us here
         if( _callback_tid > 0 ) {
             pthread_join(_callback_tid, 0);
             _callback_tid = 0;
@@ -537,7 +655,6 @@ bool sPipe2::kill(idx sig/* = -9 */)
     }
 
     if( force_retcode ) {
-        // set _retcode after other threads have finished
         _retcode = force_retcode;
     }
 
@@ -597,12 +714,10 @@ namespace {
             exe_name = exe_name_;
             if( exe_name && exe_name[0] != sDir::sysSep ) {
                 if( strchr(exe_name, sDir::sysSep) ) {
-                    // exe_name is a relative path in current working directory
                     env_path = 0;
                     mode = eRelative;
                     SPIPE2_TRACE("constructing relative path resolver for %s", exe_name_);
                 } else {
-                    // exe_name is just the filename, iterate over PATH env variable to find it
                     env_path = sLib_getenv_PATH();
                     mode = eEnvPath;
                     SPIPE2_TRACE("constructing env path resolver for %s with PATH='%s'", exe_name_, env_path);
@@ -620,7 +735,6 @@ namespace {
                     cwd_len = -1;
                 }
             } else {
-                // exe_name is an absolute path
                 mode = eAbsolute;
                 SPIPE2_TRACE("constructing absolute resolver for %s", exe_name_);
             }
@@ -690,17 +804,11 @@ namespace {
     };
 };
 
-// this function exists because (1) for some reason there is no execvpe(3) on OSX, and
-// (2) because we want to resolve exe's abspath using the original current working
-// directory, not the new directory to which we switched in executeBG()
 static int sLib_execvpe(const char * exe, char ** argv, char ** envp, const char * dir)
 {
 #ifdef SLIB_WIN
-    // TODO
     return -1;
 #else
-    // construct path resolver before changing directory to properly resolve relative paths
-    // as relative to initial working directory
     ExePathResolver path_resolver(exe);
 
     if( dir && !sDir::chDir(dir) ) {
@@ -724,23 +832,34 @@ static int sLib_execvpe(const char * exe, char ** argv, char ** envp, const char
 
     for(const char * abs_path = path_resolver.getAbsPath(); abs_path; abs_path = path_resolver.nextAbsPath()) {
         SPIPE2_TRACE("execve() on %s, argv = %s", abs_path, printbuf.ptr());
-        ::execve(abs_path, argv, envp); // on success, does not return
+        ::execve(abs_path, argv, envp);
     }
 
+    int saved_errno = errno;
     SPIPE2_EXEC_SYS_FAIL("execve() failed: %s", strerror(errno));
-    return -1;
+    errno = saved_errno;
+
+    switch(errno) {
+        case EACCES:
+        case ENOEXEC:
+        case EISDIR:
+            return 126;
+        case ENOENT:
+        case ENOTDIR:
+        case ELIBBAD:
+            return 127;
+    }
+    return 1;
 #endif
 }
 
 #ifndef SLIB_WIN
 void sPipe2::forkedChild()
 {
-    // redirect pipes
     _stdin.setupForkedChild(0, stdin, _buf);
     _stdout.setupForkedChild(1, stdout, _buf);
     _stderr.setupForkedChild(1, stderr, _buf);
 
-    // close any extraneuous file descriptors
     int max_fd = 0;
     struct rlimit lim;
     sSet(&lim);
@@ -757,48 +876,47 @@ void sPipe2::forkedChild()
 
     char ** new_envp = environ;
     sVec<char *> new_env_vec;
-    sStr new_env_buf;
-    if( _env.dim() ) {
-        // filter parent env
+    sStr new_mutable_buf;
+    if( _cmd_line->_env.dim() ) {
+        sDic<idx> was_overridden_env;
+
         for(char ** pen = environ; pen && *pen; pen++) {
             const char * en = *pen;
             const char * equals = strchr(en, '=');
             idx name_len = equals ? equals - en : sLen(en);
             const char * name = name_len ? en : "";
 
-            if( idx * ppos = _env.get(name, name_len) ) {
-                // we have an override for this env variable
+            if( const idx * ppos = _cmd_line->_env.get(name, name_len) ) {
                 if( *ppos >= 0 ) {
-                    // .. and the override didn't unset this env variable
-                    const char * new_value = getStr(*ppos);
-                    new_env_buf.addString(name, name_len);
-                    new_env_buf.addString("=");
-                    new_env_buf.add(new_value);
+                    const char * new_value = _cmd_line->getStr(*ppos);
+                    new_mutable_buf.addString(name, name_len);
+                    new_mutable_buf.addString("=");
+                    new_mutable_buf.add(new_value);
                     SPIPE2_TRACE("env: override %*s=%s", (int)name_len, name, new_value);
 
-                    *ppos = -1; // mark as done
+                    was_overridden_env.setString(name, name_len);
                 } else {
                     SPIPE2_TRACE("env: unset %s", name);
                 }
             } else {
-                // no override for this env variable, keep from parent env
-                new_env_buf.add(en);
+                new_mutable_buf.add(en);
                 SPIPE2_TRACE("env: keep %s", en);
             }
         }
-        // add variables not present in parent env
-        for(idx ie = 0; ie < _env.dim(); ie++) {
-            if( _env[ie] >= 0 ) {
-                const char * name = static_cast<const char *>(_env.id(ie));
-                const char * new_value = getStr(_env[ie]);
-                new_env_buf.addString(name);
-                new_env_buf.addString("=");
-                new_env_buf.add(new_value);
+        for(idx ie = 0; ie < _cmd_line->_env.dim(); ie++) {
+            idx name_len = 0;
+            const char * name = static_cast<const char *>(_cmd_line->_env.id(ie, &name_len));
+            idx env_pos = *_cmd_line->_env.ptr(ie);
+            if( env_pos >= 0 && name_len && !was_overridden_env.get(name, name_len) ) {
+                const char * new_value = _cmd_line->getStr(env_pos);
+                new_mutable_buf.addString(name, name_len);
+                new_mutable_buf.addString("=");
+                new_mutable_buf.add(new_value);
                 SPIPE2_TRACE("env: add %s=%s", name, new_value);
             }
         }
-        new_env_buf.add0(2);
-        for(char * en = new_env_buf; en && *en; en = sString::next00(en)) {
+        new_mutable_buf.add0(2);
+        for(char * en = new_mutable_buf; en && *en; en = sString::next00(en)) {
             *new_env_vec.add(1) = en;
         }
         *new_env_vec.add(1) = 0;
@@ -806,11 +924,11 @@ void sPipe2::forkedChild()
     }
 
     sVec<char *> arg_vec(sMex::fExactSize);
-    arg_vec.resize(_argv_pos.dim() + 1);
-    for(idx i = 0; i < _argv_pos.dim(); i++) {
-        arg_vec[i] = getStr(_argv_pos[i]);
+    arg_vec.resize(_cmd_line->_argv_pos.dim() + 1);
+    for(idx i = 0; i < _cmd_line->_argv_pos.dim(); i++) {
+        arg_vec[i] = _cmd_line->getStr(_cmd_line->_argv_pos[i]);
     }
-    arg_vec[_argv_pos.dim()] = 0;
+    arg_vec[_cmd_line->_argv_pos.dim()] = 0;
 
     if( _limit_cpu || _hard_limit_cpu ) {
         sSet(&lim);
@@ -827,15 +945,13 @@ void sPipe2::forkedChild()
         lim.rlim_cur = _limit_heap;
         lim.rlim_max = _hard_limit_heap ? _hard_limit_heap : RLIM_SAVED_MAX;
         SPIPE2_TRACE("Heap limit: %" DEC " (%" DEC " hard)", _limit_heap, _hard_limit_heap);
-        // set both RLIMIT_AS and RLIMIT_DATA, since which one is relevant depends on the operating system's malloc() implementation
-        // http://stackoverflow.com/questions/23768601/posix-rlimit-what-exactly-can-we-assume-about-rlimit-data
         if( ::setrlimit(RLIMIT_AS, &lim) || ::setrlimit(RLIMIT_DATA, &lim) ) {
             SPIPE2_TRACE("setrlimit() failed: %s", strerror(errno));
         }
     }
 
-    if( sLib_execvpe(getStr(_exe_pos), arg_vec.ptr(), new_envp, getStr(_dir_pos)) < 0 ) {
-        exit(-1);
+    if( int retcode = sLib_execvpe(_cmd_line->getStr(_cmd_line->_exe_pos), arg_vec.ptr(), new_envp, _cmd_line->getStr(_cmd_line->_dir_pos)) ) {
+        exit(retcode);
     }
 
     exit(0);
@@ -845,14 +961,12 @@ void sPipe2::forkedChild()
 sRC sPipe2::execute(sPipe2::ExecMode mode, sPipe2::doneCb cb, void * param)
 {
 #ifdef SLIB_WIN
-    // TODO
     return sRC(sRC::eLaunching, sRC::eProcess, sRC::eOperation, sRC::eNotSupported);
 #else
-    // sanity check: if daemonizing, input redirection to callback or open file descriptor doesn't make sense
     if( mode == eDaemon ) {
         if( _stdin.io || _stdin.local_fd >= 0 || _stdout.io || _stdout.local_fd >= 0 || _stderr.io || _stderr.local_fd >= 0 ) {
             SPIPE2_EXEC_SYS_FAIL("%s", "invalid i/o redirection in daemon mode");
-            return sRC(sRC::eCreating, sRC::eProcess, sRC::eParameter, sRC::eInvalid);
+            return RC(sRC::eCreating, sRC::eProcess, sRC::eParameter, sRC::eInvalid);
         }
     }
 
@@ -863,58 +977,46 @@ sRC sPipe2::execute(sPipe2::ExecMode mode, sPipe2::doneCb cb, void * param)
     _done_cb = cb;
     _done_cb_param = param;
 
-    _retcode = -1;
+    _retcode = 1;
     pid_t child_pid = -1;
 
     _stdin.want_pipe_fds = _stdin.io;
-    // stdin: blocking on reading side, non-blocking on writing side; so spawn will wait for our
-    // stdin callback to finish, and we can use select() to see when spawn is ready to read from
-    // the callback.
     if( _stdin.want_pipe_fds && !_stdin.openPipeFDs(false, true) ) {
         SPIPE2_EXEC_SYS_FAIL("pipe() failed: %s", strerror(errno));
-        rc.set(sRC::eCreating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
+        RCSET(rc, sRC::eCreating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
         goto FAIL;
     }
 
     _stderr.want_pipe_fds = _stderr.io;
-    // stderr: blocking on writing side; we cannot allow spawn to overflow the kernel's pipe buffer
     if( _stderr.want_pipe_fds && !_stderr.openPipeFDs(true, false) ) {
         SPIPE2_EXEC_SYS_FAIL("pipe() failed: %s", strerror(errno));
-        rc.set(sRC::eCreating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
+        RCSET(rc, sRC::eCreating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
         goto FAIL;
     }
 
-    // in daemon mode, we will need a pipe to retrieve daemon's pid
     _stdout.want_pipe_fds = _stdout.io || mode == eDaemon;
-    // stdout: blocking on writing side; we cannot allow spawn to overflow the kernel's pipe buffer
     if( _stdout.want_pipe_fds && !_stdout.openPipeFDs(true, false) ) {
         SPIPE2_EXEC_SYS_FAIL("pipe() failed: %s", strerror(errno));
-        rc.set(sRC::eCreating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
+        RCSET(rc, sRC::eCreating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
         goto FAIL;
     }
 
     child_pid = fork();
 
     if( child_pid < 0 ) {
-        // fork failed!
         SPIPE2_EXEC_SYS_FAIL("fork() failed: %s", strerror(errno));
-        rc.set(sRC::eCreating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
+        RCSET(rc, sRC::eCreating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
     } else if( child_pid == 0 ) {
-        // inside forked child
 
 #ifdef SLIB_LINUX
-        // linux-only: die if parent is killed
-        // http://stackoverflow.com/questions/284325/how-to-make-child-process-die-after-parent-exits
         prctl(PR_SET_PDEATHSIG, SIGHUP);
 #endif
 
-        // close unnecessary pipe fds
         _stdin.closePipeFD(1);
         _stdout.closePipeFD(0);
         _stderr.closePipeFD(0);
 
         if( mode == eDaemon ) {
-            // create a new session and process group, then fork again!
             if( setsid() < 0 ) {
                 SPIPE2_EXEC_SYS_FAIL("setsid() failed: %s", strerror(errno));
                 exit(-1);
@@ -922,16 +1024,12 @@ sRC sPipe2::execute(sPipe2::ExecMode mode, sPipe2::doneCb cb, void * param)
 
             pid_t daemon_pid = fork();
             if( daemon_pid < 0 ) {
-                // second fork failed!
                 SPIPE2_EXEC_SYS_FAIL("fork() failed: %s", strerror(errno));
                 exit(-1);
             } else if( daemon_pid == 0 ) {
-                // daemonized (second forked) child
                 _stdout.closePipeFDs();
-                forkedChild(); // does not return
+                forkedChild();
             } else {
-                // original forked child, which needs to inform parent process about daemon_pid and then exit
-                // POSIX says pipe writes of at least PIPE_BUF bytes are atomic, and PIPE_BUF >= 512
                 if( FILE * strm = ::fdopen(_stdout.pipe_fds[1], "w") ) {
                     fprintf(strm, "%" DEC, (idx)daemon_pid);
                     exit(0);
@@ -941,64 +1039,53 @@ sRC sPipe2::execute(sPipe2::ExecMode mode, sPipe2::doneCb cb, void * param)
                 }
             }
         } else {
-            forkedChild(); // does not return
+            forkedChild();
         }
     } else {
-        // inside parent on successful fork
         _pid = child_pid;
         _is_running = true;
 
-        // close unnecessary pipe fds
         _stdin.closePipeFD(0);
         _stdout.closePipeFD(1);
         _stderr.closePipeFD(1);
 
         if( mode == eFG ) {
-            // open a self-pipe
             if( !openPipeFDs(_self_pipe_fds, true, true) ) {
-                rc.set(sRC::eCreating, sRC::eProcess, sRC::ePipe, sRC::eFailed);
+                RCSET(rc, sRC::eCreating, sRC::eProcess, sRC::ePipe, sRC::eFailed);
                 goto FAIL;
             }
 
-            // use a thread to waitpid so we can select() on it
             if( pthread_create(&_waiter_tid, 0, waiterThread, (void*) this) == 0 ) {
                 SPIPE2_TRACE("created waiter thread %lu", _waiter_tid);
             }
 
-            // timer for file monitoring and CPU limit
             if( _mon_cb || _limit_time ) {
                 if( pthread_create(&_timer_tid, 0, timerThread, (void*) this) == 0 ) {
                     SPIPE2_TRACE("created timer thread %lu", _timer_tid);
                 }
             }
 
-            // run any callbacks in the foreground
-            handleCallbacks(false);
+            handleCallbacks(false, &rc);
         } else if( mode == eBG ) {
-            // open a self-pipe
             if( !openPipeFDs(_self_pipe_fds, true, true) ) {
-                rc.set(sRC::eCreating, sRC::eProcess, sRC::ePipe, sRC::eFailed);
+                RCSET(rc, sRC::eCreating, sRC::eProcess, sRC::ePipe, sRC::eFailed);
                 goto FAIL;
             }
 
-            // wait for background process to finish in a thread
             if( pthread_create(&_waiter_tid, 0, waiterThread, (void*) this) == 0 ) {
                 SPIPE2_TRACE("created waiter thread %lu", _waiter_tid);
             }
 
-            // timer for file monitoring and CPU limit
             if( _mon_cb || _limit_time ) {
                 if( pthread_create(&_timer_tid, 0, timerThread, (void*) this) == 0 ) {
                     SPIPE2_TRACE("created timer thread %lu", _timer_tid);
                 }
             }
 
-            // handle any callbacks in a thread
             if( pthread_create(&_callback_tid, 0, callbackThread, (void*) this) == 0 ) {
                 SPIPE2_TRACE("created callback thread %lu", _callback_tid);
             }
         } else if( mode == eDaemon ) {
-            // read daemon pid from child's stdout pipe
             if( FILE * strm = ::fdopen(_stdout.pipe_fds[0], "r") ) {
                 ::fscanf(strm, "%" DEC, &_pid);
                 ::fclose(strm);
@@ -1006,21 +1093,20 @@ sRC sPipe2::execute(sPipe2::ExecMode mode, sPipe2::doneCb cb, void * param)
                 SPIPE2_TRACE("daemon PID is %" DEC, _pid);
             } else {
                 SPIPE2_EXEC_SYS_FAIL("fdopen() failed: %s", strerror(errno));
-                rc.set(sRC::eWaiting, sRC::eProcess, sRC::eIO, sRC::eFailed);
+                RCSET(rc, sRC::eWaiting, sRC::eProcess, sRC::eIO, sRC::eFailed);
                 _stdout.closePipeFD(0);
             }
 
-            // reap temporary child process
             if( ::waitpid(child_pid, &_retcode, 0) != child_pid ) {
-                rc.set(sRC::eWaiting, sRC::eProcess, sRC::eOperation, sRC::eFailed);
-                _retcode = -1;
+                RCSET(rc, sRC::eWaiting, sRC::eProcess, sRC::eOperation, sRC::eFailed);
+                if( !_retcode ) {
+                    _retcode = 1;
+                }
             }
 
-            // monitor daemon process in a thread, if needed
             if( _mon_cb ) {
-                // open a self-pipe
                 if( !openPipeFDs(_self_pipe_fds, true, true) ) {
-                    rc.set(sRC::eCreating, sRC::eProcess, sRC::ePipe, sRC::eFailed);
+                    RCSET(rc, sRC::eCreating, sRC::eProcess, sRC::ePipe, sRC::eFailed);
                     goto FAIL;
                 }
 
@@ -1035,7 +1121,6 @@ sRC sPipe2::execute(sPipe2::ExecMode mode, sPipe2::doneCb cb, void * param)
         }
     }
 
-    // either inside parent on successful fork, or on fork failure
 
     return rc;
 
@@ -1046,8 +1131,7 @@ sRC sPipe2::execute(sPipe2::ExecMode mode, sPipe2::doneCb cb, void * param)
 #endif
 }
 
-// handles callbacks, reaps timer and waiter thread when done
-void sPipe2::handleCallbacks(bool in_thread)
+void sPipe2::handleCallbacks(bool in_thread, sRC * out_rc)
 {
     fd_set rfds, wfds;
     struct timeval select_timeout;
@@ -1065,7 +1149,7 @@ void sPipe2::handleCallbacks(bool in_thread)
         FD_ZERO(&rfds);
         FD_ZERO(&wfds);
         select_timeout.tv_sec = 0;
-        select_timeout.tv_usec = 100; // sleep for up to 100 microseconds before retrying to read spawn's stdout
+        select_timeout.tv_usec = 100;
 
 #ifdef _DEBUG_TRACE_PIPE2
         debug_lst_wfds.cut0cut();
@@ -1093,16 +1177,11 @@ void sPipe2::handleCallbacks(bool in_thread)
             SPIPE2_TRACE("%s", "selfpipe not available");
         }
 
-        // greedy read from stder/stdout; we cannot select() on them because they are blocking on spawn side
-        // and spawn won't start writing until we read; we cannot make them non-blocking on spawn side because
-        // a naive spawn that writes faster than we can read will overflow the kernel's pipe buffer.
         if( _stderr.pipe_fds[0] >= 0 ) {
             _stderr.readFromPipe(buf.ptr(), buf_len);
         }
         if( _stdout.pipe_fds[0] >= 0 ) {
             if( !is_stdout_blocking && _stdin.pipe_fds[1] < 0 && _stderr.pipe_fds[0] < 0 ) {
-                // common case optimization: if there is no more stdin being read or stderr captured, we
-                // can put stdout into blocking mode to avoid the non-blocking-read / spin cycle.
                 ::fcntl(_stdout.pipe_fds[0], F_SETFL, fcntl(_stdout.pipe_fds[0], F_GETFL) | O_NONBLOCK);
                 is_stdout_blocking = true;
             }
@@ -1116,8 +1195,6 @@ void sPipe2::handleCallbacks(bool in_thread)
 
         SPIPE2_TRACE("selecting on %d max fd; reading: %s; writing: %s", nfds, debug_lst_rfds.length() ? debug_lst_rfds.ptr() : "none", debug_lst_wfds.length() ? debug_lst_wfds.ptr() : "none");
         idx nselected = select(nfds, &rfds, &wfds, NULL, &select_timeout);
-        // don't allow thread cancellation in the middle of a callback
-        //pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
         if( nselected < 0 ) {
             SPIPE2_TRACE("%s", "No file descriptors got selected");
             break;
@@ -1132,41 +1209,46 @@ void sPipe2::handleCallbacks(bool in_thread)
                 ::read(_self_pipe_fds[0], &code, 1);
                 SPIPE2_TRACE("selfpipe says '%c'", code);
                 if( code == SELFPIPE_WAIT[0] ) {
-                    // launched process has terminated; _retcode is guaranteed to have been set
-                    // first, handle any unflushed output from the child
                     if( _stderr.pipe_fds[0] >= 0 ) {
                         _stderr.readFromPipe(buf.ptr(), buf_len);
                     }
                     if( _stdout.pipe_fds[0] >= 0 ) {
                         _stdout.readFromPipe(buf.ptr(), buf_len);
                     }
-                    // then run _done_cb and stop
                     if( _done_cb ) {
                         _done_cb(_retcode, _done_cb_param);
                     }
+                    if( out_rc && out_rc->isUnset() && _retcode ) {
+                        if( _retcode == 126 ) {
+                            RCSETP(out_rc, sRC::eExecuting, sRC::eCommandLine, sRC::eFile, sRC::eInvalid);
+                        } else if( _retcode == 127 ) {
+                            RCSETP(out_rc, sRC::eExecuting, sRC::eCommandLine, sRC::eFile, sRC::eNotFound);
+                        } else if( _retcode > 128 && _retcode <= 192 ) {
+                            RCSETP(out_rc, sRC::eExecuting, sRC::eCommandLine, sRC::eProcess, sRC::eKilled);
+                        } else {
+                            RCSETP(out_rc, sRC::eExecuting, sRC::eCommandLine, sRC::eProcess, sRC::eFailed);
+                        }
+                    }
                     break;
                 } else if( code == SELFPIPE_DTOR[0] ) {
-                    // daemon mode, sPipe2 is being destructed, process will continue running
                     break;
                 } else if( code == SELFPIPE_CPU_TIME[0] ) {
-                    // launched process has run out of time; kill. Don't return right now - waiter thread neads to waitpid() it
-                    // ::kill() instead of sPipe2::kill() because sPipe2::kill() should not be used from callback thread
                     SPIPE2_TRACE("kill %" DEC " -9", _mode == eDaemon ? -_pid : _pid);
                     if( ::kill(_mode == eDaemon ? -_pid : _pid, 9) ) {
                         SPIPE2_TRACE("kill failed: %s", strerror(errno));
                     }
+                    if( out_rc && out_rc->isUnset() ) {
+                        RCSETP(out_rc, sRC::eExecuting, sRC::eCommandLine, sRC::eTimeout, sRC::eExpired);
+                    }
                 } else if( code == SELFPIPE_MON[0] ) {
-                    // time to scan for changes in monitored files
                     monitorFiles();
                 }
             }
         }
-        //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     }
 
     _is_running = false;
 
-    // If callbacks are done, we can stop the timer
     pthread_mutex_lock(&_waiter_timer_mtx);
     if( _timer_tid > 0 ) {
         SPIPE2_TRACE("Canceling timer thread %lu", _timer_tid);
@@ -1223,21 +1305,31 @@ void sPipe2::monitorFiles()
 }
 
 #ifndef SLIB_WIN
-//static
 void * sPipe2::waiterThread(void * param_)
 {
     sPipe2 * self = static_cast<sPipe2*>(param_);
-    idx self_pid = self->_pid;
+    pid_t self_pid = self->_pid;
 
     if( self->_mode == eDaemon ) {
-        // daemon process is not our child, so we must poll for it to finish
-        // TODO on Linux, replace polling with netlink-based proc monitor + bpf filter
-        // TODO see http://netsplit.com/the-proc-connector-and-socket-filters
         while( ::kill(self_pid, 0) == 0 ) {
-            ::usleep(500 * 1000); // 0.5 seconds = 500k microseconds
+            ::usleep(500 * 1000);
         }
-    } else if( waitpid(self_pid, &self->_retcode, 0) != self_pid ) {
-        self->_retcode = -1;
+    } else {
+        int status = 0;
+        pid_t ret_pid = waitpid(self_pid, &status, 0);
+        if( WIFEXITED(status) ) {
+            self->_retcode = WEXITSTATUS(status);
+        } else if( WIFSIGNALED(status) ) {
+            self->_retcode = 128 + WTERMSIG(status);
+        } else {
+            self->_retcode = 1;
+        }
+
+        if( ret_pid != self_pid ) {
+            if( !self->_retcode ) {
+                self->_retcode = 1;
+            }
+        }
     }
 
     SPIPE2_TRACE("waiter thread: waited for pid %" DEC "; return code = %d", self_pid, self->_retcode);
@@ -1252,7 +1344,6 @@ void * sPipe2::waiterThread(void * param_)
     pthread_exit(0);
 }
 
-//static
 void * sPipe2::timerThread(void * param_)
 {
     sPipe2 * self = static_cast<sPipe2*>(param_);
@@ -1279,7 +1370,6 @@ void * sPipe2::timerThread(void * param_)
         }
 
         if( code[0] == SELFPIPE_CPU_TIME[0] ) {
-            // we've just told handleCallbacks() to kill the process - our thread's job is done
             break;
         } else if( self->_limit_time ) {
             cur_time = sTime::systime();
@@ -1291,7 +1381,6 @@ void * sPipe2::timerThread(void * param_)
     pthread_exit(0);
 }
 
-//static
 void * sPipe2::callbackThread(void * param_)
 {
     sPipe2 * self = static_cast<sPipe2*>(param_);
@@ -1302,7 +1391,7 @@ void * sPipe2::callbackThread(void * param_)
 }
 #endif
 
-sRC sPipe2::execute(idx * out_retcode/* = 0 */)
+sRC sPipe2::execute(idx * out_retcode)
 {
     sRC rc = execute(eFG, 0, 0);
     if( out_retcode ) {
@@ -1311,12 +1400,12 @@ sRC sPipe2::execute(idx * out_retcode/* = 0 */)
     return rc;
 }
 
-sRC sPipe2::executeBG(sPipe2::doneCb cb/* = 0 */, void * param/* = 0 */)
+sRC sPipe2::executeBG(sPipe2::doneCb cb, void * param)
 {
     return execute(eBG, cb, param);
 }
 
-sRC sPipe2::executeDaemon(sPipe2::doneCb cb/* = 0 */, void * param/* = 0 */)
+sRC sPipe2::executeDaemon(sPipe2::doneCb cb, void * param)
 {
     return execute(eDaemon, cb, param);
 }
@@ -1324,7 +1413,6 @@ sRC sPipe2::executeDaemon(sPipe2::doneCb cb/* = 0 */, void * param/* = 0 */)
 sPipe2::~sPipe2()
 {
     if( _is_running && _mode == eDaemon ) {
-        // cancel threads but don't kill the process
 
         pthread_mutex_lock(&_waiter_timer_mtx);
         if( _waiter_tid > 0 ) {
@@ -1335,7 +1423,6 @@ sPipe2::~sPipe2()
         }
         pthread_mutex_unlock(&_waiter_timer_mtx);
 
-        // handleCallbacks will take care of reaping timer and waiter
 
         if( _callback_tid > 0 ) {
             pthread_join(_callback_tid, 0);

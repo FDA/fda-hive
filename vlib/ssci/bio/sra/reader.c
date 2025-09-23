@@ -146,7 +146,6 @@ rc_t CC TRunReader_ReadCell(const TRunReader* cself, int64_t rowid, int64_t coli
         if( rc == 0 ) {
             TRunReaderColumn* c = ( TRunReaderColumn* )( &cself->cols[colid - 1] );
             if( c->idx == 0 ) {
-                /* add column on fly */
                 if( (rc = VCursorAddColumn(self->curs, &c->idx, c->name)) != 0 ) {
                     if( (c->flags & ercol_Optional) || GetRCState(rc) == rcExists ) {
                         rc = 0;

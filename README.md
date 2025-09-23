@@ -123,4 +123,4 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
   with expert software and hardware developers and system administration privileges to deploy, configure and maintain its
   operations. Currently discussions are ongoing on the mechanism to provide outreach through academic partners.
 
-##### *corresponding author: Vahan Simonyan PhD, vahan.simonyan@fda.hhs.gov / vahansim@gmail.com*
+##### *corresponding author: Vahan Simonyan PhD, vahansim at gmail.com*

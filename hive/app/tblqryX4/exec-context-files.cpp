@@ -159,7 +159,7 @@ idx ExecContext::allocateRequestLoadReqTables(sVec<idx> & loader_handles, idx da
     return cnt;
 }
 
-idx ExecContext::allocateRequestLoadObjTables(sVec<idx> & loader_handles, const sHiveId & objID, const char * glob)
+idx ExecContext::allocateRequestLoadObjTables(sVec<idx> & loader_handles, const sHiveId & objID, const char * glob, bool fallback_default_name)
 {
     sUsrObj obj(*_proc.user, objID);
     if( !obj.Id() ) {
@@ -172,12 +172,11 @@ idx ExecContext::allocateRequestLoadObjTables(sVec<idx> & loader_handles, const 
     for(idx i=0; i<files.dimEntries(); i++) {
         idx loader_handle = allocateLoaderHandle();
         *loader_handles.add(1) = loader_handle;
-        requestLoadObjTable(loader_handle, objID, files.getEntryPath(i));
+        requestLoadObjTable(loader_handle, objID, files.getEntryPath(i), 0, fallback_default_name);
     }
     return files.dimEntries();
 }
 
-//! can only be called during op init stage
 void ExecContext::requestLoadObjqryTable(idx loader_handle, qlang::ast::Node * qry_node)
 {
     InputTableSource * src = _in_tables[loader_handle].sources.add(1);
@@ -185,7 +184,6 @@ void ExecContext::requestLoadObjqryTable(idx loader_handle, qlang::ast::Node * q
     src->qry_node = qry_node;
 }
 
-//! can only be called during op process stage
 sTabular * ExecContext::getLoadedTable(idx loader_handle)
 {
     return hasLoaderHandle(loader_handle) ? _in_tables[loader_handle].tbl : 0;
@@ -201,7 +199,6 @@ bool ExecContext::isLoadedTable(const sTabular * tbl) const
     return false;
 }
 
-//! can only be called during op process stage
 sTabular * ExecContext::releaseLoadedTable(idx loader_handle)
 {
     if( hasLoaderHandle(loader_handle) ) {
@@ -238,7 +235,6 @@ sTxtTbl * ExecContext::newCSVorVCF(const char * name, const char * tblIdxPath, c
     }
 
     if( opts.absrowCnt && opts.absrowCnt < sIdxMax ) {
-        // if we are only parsing the top of the table, we don't want to save the index
         delete tbl;
         tbl = vcf ? new sVcfTbl() : new sTxtTbl();
         if( tblDataPath ) {
@@ -293,7 +289,7 @@ void ExecContext::pushInputTable(idx loader_handle, sTabular * tbl, bool owned)
         cat = new sCatTabular;
         cat->pushSubTable(_in_tables[loader_handle].tbl, _in_tables[loader_handle].owned);
         _in_tables[loader_handle].tbl = cat;
-        _in_tables[loader_handle].owned = true; // cat-table is owned by the exec context
+        _in_tables[loader_handle].owned = true;
     }
 
     cat->pushSubTable(tbl, owned);
@@ -324,7 +320,6 @@ bool ExecContext::loadFileObject(idx loader_handle, InputTableSource * source)
     if( !saneFilePath(tblDataPath) && source->fallback_default_name && ufile ) {
         tblDataPath.cut0cut();
         if( ufile->isTypeOf("excel-file") ) {
-            // use the first sheet (sort by natural string comparison)
             sDir files;
             if( ufile->files(files, sFlag(sDir::bitFiles) | sFlag(sDir::bitRecursive) | sFlag(sDir::bitSubdirSlash), "*.csv") ) {
                 sVec<const char *> entries;
@@ -338,76 +333,83 @@ bool ExecContext::loadFileObject(idx loader_handle, InputTableSource * source)
                 obj->getFilePathname(tblDataPath, "%s", entries[ind_entries[0]]);
             }
         } else {
-            // fall back to u-file's default file
             ufile->getFile(tblDataPath);
         }
     }
+    bool usable_tblDataPath = true;
     if( !saneFilePath(tblDataPath) ) {
-        logError("Object %s doesn't have file \"%s\"", objIDStr.ptr(), tblname);
-        delete obj;
-        return false;
+        usable_tblDataPath = false;
+        if( _missing_tbl_nonfatal ) {
+            logWarning("Object %s doesn't have file \"%s\"", objIDStr.ptr(), tblname);
+        } else {
+            logError("Object %s doesn't have file \"%s\"", objIDStr.ptr(), tblname);
+            delete obj;
+            return false;
+        }
     }
     if( !tblname ) {
         tblname = sFilePath::nextToSlash(tblDataPath);
     }
 
-    if( const char * idx_suffix = getLoaderTblSourceString(source->idx_suffix_index) ) {
-        tblIdxName.printf("obj%s-%s.%s.idx2", objIDStr.ptr(), tblname, idx_suffix);
-    } else {
-        tblIdxName.printf("obj%s-%s.idx2", objIDStr.ptr(), tblname);
-    }
-    _proc.cfgPath(tblIdxPath, 0, tblIdxName, "tblqryx.tableRepository");
-
-    sTxtTbl::ParseOptions opts;
-    opts.flags = sTblIndex::fSaveRowEnds;
-    if( _top_header )
-        opts.flags |= sTblIndex::fTopHeader;
-    if( _left_header )
-        opts.flags |= sTblIndex::fLeftHeader;
-
-    if( ufile && ufile->isTypeOf("csv-table") ) {
-        opts.colsep = ",";
-    } else if( ufile && ufile->isTypeOf("tsv-table") ) {
-        opts.colsep = "\t";
-    } else {
-        opts.colsep = getLoaderTblSourceString(source->colsep_index);
-    }
-    opts.comment = getLoaderTblSourceString(source->comment_prefix_index);
-    opts.absrowCnt = source->parse_cnt;
-    opts.initialOffset = source->initial_offset;
-    opts.headerOffset = source->header_offset;
-    opts.absrowStart = source->parse_start;
-    opts.maxLen = source->max_len;
-
-    _waiting_for_req = 0;
-    sTxtTbl * tbl = newCSVorVCF(tblDataPath, tblIdxPath, tblDataPath, 0, 0, opts);
-    if( !tbl ) {
-        if( _waiting_for_req ) {
-            logDebug("Index for table %s for object %s locked by request %" DEC, tblDataPath.ptr(), objIDStr.ptr(), _waiting_for_req);
+    sTxtTbl * tbl = 0;
+    if( usable_tblDataPath ) {
+        if( const char * idx_suffix = getLoaderTblSourceString(source->idx_suffix_index) ) {
+            tblIdxName.printf("obj%s-%s.%s.idx2", objIDStr.ptr(), tblname, idx_suffix);
         } else {
-#ifdef _DEBUG
-            // Don't show storage paths to user!
-            fprintf(stderr, "Failed to parse table %s for object %s\n", tblDataPath.ptr(), objIDStr.ptr());
-#endif
-            logError("Failed to parse table %s for object %s\n", tblname, objIDStr.ptr());
+            tblIdxName.printf("obj%s-%s.idx2", objIDStr.ptr(), tblname);
         }
-        delete obj;
-        return false;
-    }
+        _proc.cfgPath(tblIdxPath, 0, tblIdxName, "tblqryx.tableRepository");
+
+        sTxtTbl::ParseOptions opts;
+        opts.flags = sTblIndex::fSaveRowEnds;
+        if( _top_header )
+            opts.flags |= sTblIndex::fTopHeader;
+        if( _left_header )
+            opts.flags |= sTblIndex::fLeftHeader;
+
+        if( ufile && ufile->isTypeOf("csv-table") ) {
+            opts.colsep = ",";
+        } else if( ufile && ufile->isTypeOf("tsv-table") ) {
+            opts.colsep = "\t";
+        } else {
+            opts.colsep = getLoaderTblSourceString(source->colsep_index);
+        }
+        opts.comment = getLoaderTblSourceString(source->comment_prefix_index);
+        opts.absrowCnt = source->parse_cnt;
+        opts.initialOffset = source->initial_offset;
+        opts.headerOffset = source->header_offset;
+        opts.absrowStart = source->parse_start;
+        opts.maxLen = source->max_len;
+
+        _waiting_for_req = 0;
+        tbl = newCSVorVCF(tblDataPath, tblIdxPath, tblDataPath, 0, 0, opts);
+        if( !tbl ) {
+            if( _waiting_for_req ) {
+                logDebug("Index for table %s for object %s locked by request %" DEC, tblDataPath.ptr(), objIDStr.ptr(), _waiting_for_req);
+            } else {
+#ifdef _DEBUG
+                fprintf(stderr, "Failed to parse table %s for object %s\n", tblDataPath.ptr(), objIDStr.ptr());
+#endif
+                logError("Failed to parse table %s for object %s\n", tblname, objIDStr.ptr());
+            }
+            delete obj;
+            return false;
+        }
 
 #ifdef _DEBUG
-    fprintf(stderr, "Loading table %s for object %s (index file %s)\n", tblDataPath.ptr(), objIDStr.ptr(), tblIdxPath.ptr(0));
+        fprintf(stderr, "Loaded table %s for object %s (index file %s)\n", tblDataPath.ptr(), objIDStr.ptr(), tblIdxPath.ptr(0));
 #endif
 
-    sStr pretty_name;
-    if( ufile ) {
-        ufile->propGet("name", &pretty_name);
-        pretty_name.shrink00();
-    }
+        sStr pretty_name;
+        if( ufile ) {
+            ufile->propGet("name", &pretty_name);
+            pretty_name.shrink00();
+        }
 
-    tbl->setTableMetadata("name", pretty_name.length() ? pretty_name.ptr() : tblname);
-    tbl->setTableMetadata("obj", objIDStr.ptr());
-    pushInputTable(loader_handle, tbl);
+        tbl->setTableMetadata("name", pretty_name.length() ? pretty_name.ptr() : tblname);
+        tbl->setTableMetadata("obj", objIDStr.ptr());
+        pushInputTable(loader_handle, tbl);
+    }
 
     delete obj;
     return true;
@@ -432,49 +434,64 @@ bool ExecContext::loadRequestFile(idx loader_handle, InputTableSource * source)
     }
     _proc.cfgPath(tblIdxPath, 0, tblIdxName, "tblqryx.tableRepository");
 
+    bool usable_tblFil = true;
     if( source->data_is_grp ) {
         if( !_proc.grpGetData(source->data_req_id, tblname, &tblFil, true, 0, &tblFilTime) ) {
-            logError("Request group %" UDEC " doesn't have table %s", source->data_req_id, tblname);
-            return false;
+            usable_tblFil = false;
+            if( _missing_tbl_nonfatal ) {
+                logWarning("Request group %" UDEC " doesn't have table %s", source->data_req_id, tblname);
+            } else {
+                logError("Request group %" UDEC " doesn't have table %s", source->data_req_id, tblname);
+                return false;
+            }
         }
     } else {
         if( !_proc.reqGetData(source->data_req_id, tblname, &tblFil, true, &tblFilTime) ) {
-            logError("Request %" UDEC " doesn't have table %s", source->data_req_id, tblname);
+            usable_tblFil = false;
+            if( _missing_tbl_nonfatal ) {
+                logWarning("Request %" UDEC " doesn't have table %s", source->data_req_id, tblname);
+            } else {
+                logError("Request %" UDEC " doesn't have table %s", source->data_req_id, tblname);
+                return false;
+            }
+        }
+    }
+
+    sTxtTbl * tbl = 0;
+    if( usable_tblFil ) {
+        sTxtTbl::ParseOptions opts;
+        opts.flags = sTblIndex::fSaveRowEnds;
+        if( _top_header )
+            opts.flags |= sTblIndex::fTopHeader;
+        if( _left_header )
+            opts.flags |= sTblIndex::fLeftHeader;
+
+        opts.colsep = getLoaderTblSourceString(source->colsep_index);
+        opts.comment = getLoaderTblSourceString(source->comment_prefix_index);
+        opts.absrowCnt = source->parse_cnt;
+        opts.initialOffset = source->initial_offset;
+        opts.headerOffset = source->header_offset;
+        opts.absrowStart = source->parse_start;
+        opts.maxLen = source->max_len;
+
+        _waiting_for_req = 0;
+        tbl = newCSVorVCF(tblname, tblIdxPath, 0, &tblFil, tblFilTime, opts);
+        if( !tbl ) {
+            if( _waiting_for_req ) {
+                logDebug("Index for table %s for request %" UDEC " locked by request %" UDEC, tblname, source->data_req_id, _waiting_for_req);
+            } else {
+                logError("Failed to parse table %s for request %" UDEC, tblname, source->data_req_id);
+            }
             return false;
         }
-    }
-
-    sTxtTbl::ParseOptions opts;
-    opts.flags = sTblIndex::fSaveRowEnds;
-    if( _top_header )
-        opts.flags |= sTblIndex::fTopHeader;
-    if( _left_header )
-        opts.flags |= sTblIndex::fLeftHeader;
-
-    opts.colsep = getLoaderTblSourceString(source->colsep_index);
-    opts.comment = getLoaderTblSourceString(source->comment_prefix_index);
-    opts.absrowCnt = source->parse_cnt;
-    opts.initialOffset = source->initial_offset;
-    opts.headerOffset = source->header_offset;
-    opts.absrowStart = source->parse_start;
-    opts.maxLen = source->max_len;
-
-    _waiting_for_req = 0;
-    sTxtTbl * tbl = newCSVorVCF(tblname, tblIdxPath, 0, &tblFil, tblFilTime, opts);
-    if( !tbl ) {
-        if( _waiting_for_req ) {
-            logDebug("Index for table %s for request %" UDEC " locked by request %" UDEC, tblname, source->data_req_id, _waiting_for_req);
-        } else {
-            logError("Failed to parse table %s for request %" UDEC, tblname, source->data_req_id);
-        }
-        return false;
-    }
 
 #ifdef _DEBUG
-    fprintf(stderr, "Loading table %s for request %" UDEC " (index file %s)\n", tblname, source->data_req_id, tblIdxPath.ptr(0));
+        fprintf(stderr, "Loaded table %s for request %" UDEC " (index file %s)\n", tblname, source->data_req_id, tblIdxPath.ptr(0));
 #endif
 
-    tbl->setTableMetadata("name", tblname);
+        tbl->setTableMetadata("name", tblname);
+    }
+
     pushInputTable(loader_handle, tbl);
 
     return true;

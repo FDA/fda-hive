@@ -48,8 +48,8 @@ namespace slib {
                     idx isrc;
                     idx ivarying;
                 };
-                sVec<RowCoord> _row_map; // map from non-header output rows
-                sVec<idx> _col_varying_map; // map from non-header output cols
+                sVec<RowCoord> _row_map;
+                sVec<idx> _col_varying_map;
 
             public:
                 sAddedRowsTabular(sTabular * src)
@@ -201,23 +201,6 @@ bool CmdAddMissingRows::evalParam(CmdAddMissingRows::ParsedParam & param, const 
     return true;
 }
 
-/*
-    { "op": "addmissingrows",
-      "arg": {
-          "abscissa": {
-              "col": 0,
-              "dense": true, // false by default
-              "maxGap": 1 // default: determine automagically
-              "minValue": { "formula": "2 + 2" }, // or 2 etc., default is automatic
-              "maxValue": { "formula": "min(100, blah())" }, // or 100 etc., default is automatic
-          },
-          "add": [
-              { "col": 0, "value": 1},
-              { "col": 1, "value": {"formula": "abc()"}},
-              { "col": "*", "value": 0 }
-          ]
-    } }
- */
 
 bool CmdAddMissingRows::init(const char * op_name, sVariant * tqs_arg)
 {
@@ -285,8 +268,6 @@ bool CmdAddMissingRows::init(const char * op_name, sVariant * tqs_arg)
 
 static idx estimateAbscissaMaxGap(sTabular * tbl, idx icol)
 {
-    // Estimate the maximum acceptable abscissa gap between consecutive rows
-    // as max(1, 2 * most_frequent_gap - 1)
     sDic<idx> gaps;
     idx nrows = sMin<idx>(tbl->rows() - 1, 10000);
     for(idx ir=0; ir<nrows; ir++) {
@@ -309,7 +290,6 @@ static idx estimateAbscissaMaxGap(sTabular * tbl, idx icol)
     return sMax<idx>(1, 2 * mode_gaps - 1);
 }
 
-// values in icol are assumed to be strictly monotonic increasing or decreasing
 static idx findStartEndRow(sTabular * tbl, idx icol, bool is_descending, idx val, bool is_start)
 {
     if( tbl->rows() == 0 ) {
@@ -327,7 +307,6 @@ static idx findStartEndRow(sTabular * tbl, idx icol, bool is_descending, idx val
 
         if( is_start ) {
             if( is_descending ) {
-                // want first row where res <= val
                 if( res <= val ) {
                     ibest = imid;
                     next_search = -1;
@@ -335,7 +314,6 @@ static idx findStartEndRow(sTabular * tbl, idx icol, bool is_descending, idx val
                     next_search = 1;
                 }
             } else {
-                // want first row where res >= val
                 if( res >= val ) {
                     ibest = imid;
                     next_search = -1;
@@ -345,7 +323,6 @@ static idx findStartEndRow(sTabular * tbl, idx icol, bool is_descending, idx val
             }
         } else {
             if( is_descending ) {
-                // want last row where res >= val
                 if( res >= val ) {
                     ibest = imid;
                     next_search = 1;
@@ -353,7 +330,6 @@ static idx findStartEndRow(sTabular * tbl, idx icol, bool is_descending, idx val
                     next_search = -1;
                 }
             } else {
-                // want last row where res <= val
                 if( res <= val ) {
                     ibest = imid;
                     next_search = 1;
@@ -385,7 +361,6 @@ void CmdAddMissingRows::addMissingRow(sAddedRowsTabular * out, idx abscissa_valu
         _cur_abscissa_val = abscissa_value;
         for(idx iia=0; iia < non_abscissa_varying_cols; iia++) {
             if( !_add_values[varying2iadd[iia]].fmla->eval(tmp_val, _ctx.qlangCtx()) ) {
-                // ignore errors for now
                 tmp_val.setNull();
                 _ctx.qlangCtx().clearError();
             }
@@ -491,7 +466,6 @@ bool CmdAddMissingRows::compute(sTabular * in_table)
         return 0;
     }
     if( in_table->cols() < 1 || in_table->rows() < 1 ) {
-        // trivial case
         setOutTable(in_table);
         return true;
     }
@@ -554,7 +528,6 @@ bool CmdAddMissingRows::compute(sTabular * in_table)
             }
             tmp_vec.cut(0);
         } else {
-            // an unmatched "add" arg is not an error (we may want to apply same tqs to related tables with slightly different sets of columns)
             _ctx.logDebug("addMissingRows command: skipping add column argument '%s' - column not found or not unique in table\n", _add_cols_args[i]->asString());
         }
     }
@@ -565,17 +538,13 @@ bool CmdAddMissingRows::compute(sTabular * in_table)
     for(idx ic=0; ic<in_table->cols(); ic++) {
         sVariant fixed_val;
         if( ic == abscissa_col ) {
-            // abscissa is implicitly varying
             out->_col_varying_map[abscissa_col] = 0;
         } else if( out2iadd[ic] < 0 ) {
-            // default fixed value
             fixed_val = _add_default_value.val;
         } else if( !_add_values[out2iadd[ic]].fmla ) {
-            // non-default fixed value
             fixed_val = _add_values[out2iadd[ic]].val;
         } else {
-            // varying value
-            out->_col_varying_map[ic] = 1 + non_abscissa_varying_cols++; // 0 is abscissa
+            out->_col_varying_map[ic] = 1 + non_abscissa_varying_cols++;
             *varying2iadd.add(1) = out2iadd[ic];
         }
         out->_fixed_cols.addCell(fixed_val);
@@ -598,7 +567,6 @@ bool CmdAddMissingRows::compute(sTabular * in_table)
         idx start_val = in_table->ival(start_row, abscissa_col);
         idx end_val = in_table->ival(end_row, abscissa_col);
 
-        // (ascending case) add rows from abscissa.minValue to start_val (exclusive)
         addMissingRowSpan(out, abscissa_start, true, start_val, false, abscissa_max_gap, varying2iadd, non_abscissa_varying_cols, varying_val);
 
         for(idx ir=start_row; ir<=end_row; ir++) {
@@ -607,14 +575,12 @@ bool CmdAddMissingRows::compute(sTabular * in_table)
             coord->ivarying = -sIdxMax;
 
             if( ir < end_row ) {
-                // insert intermediate missing rows
                 idx cur_val = in_table->ival(ir, abscissa_col);
                 idx next_val = in_table->ival(ir + 1, abscissa_col);
                 addMissingRowSpan(out, cur_val, false, next_val, false, abscissa_max_gap, varying2iadd, non_abscissa_varying_cols, varying_val);
             }
         }
 
-        // (ascending case) add rows from end_val (exclusive) to abscissa.maxValue (exclusive)
         addMissingRowSpan(out, end_val, false, abscissa_end, true, abscissa_max_gap, varying2iadd, non_abscissa_varying_cols, varying_val);
     }
 
@@ -622,7 +588,6 @@ bool CmdAddMissingRows::compute(sTabular * in_table)
         out->_varying_cols.finish();
         setOutTable(out);
     } else {
-        // if src is effectively identical to tbl, kill it - tbl already satisfies the criteria, and will work faster without the wrapper
         delete out;
         setOutTable(in_table);
     }

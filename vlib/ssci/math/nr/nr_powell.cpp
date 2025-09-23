@@ -31,14 +31,12 @@
 #include <math.h>
 
 #define TINY 1.0e-25
-#define XI(_v_i,_v_j, _v_n)   xi2d[(_v_i)*(_v_n+1)+(_v_j)] // makes one dimensional array into two
-//#define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
+#define XI(_v_i,_v_j, _v_n)   xi2d[(_v_i)*(_v_n+1)+(_v_j)]
 
 idx sMathNR::powell(idx maxiter, real p[], idx n, real ftol, real *fret,callBackOptim func, void * usr)
 {
     idx iter=0;
 
-    //void linmin(real p[], real xi[], idx n, real *fret, real (*func)(real []));
     real * xi2d=sMathNRUtil::vector(1,(n+1)*(n+1));
     for(idx ii=0;ii<=n;++ii) {
         for(idx jj=0;jj<=n;++jj) {

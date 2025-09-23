@@ -38,8 +38,6 @@ idx IonSeqID::lcommon(const char *s, idx strlen1, const char *t, idx strlen2) {
     if (!strlen2){
         strlen2 = sLen (t);
     }
-//    idx len = strlen1 < strlen2 ? strlen1 : strlen2;
-//    idx longest = 0;
 
     sVec <idx> aux;
     idx *curr = aux.add(strlen1);
@@ -97,7 +95,6 @@ idx IonSeqID::searchCompressed(const char *s, idx len, bool tail, idx *lenmatch)
         idx retlen;
         const char *retid = getStringfromCompressedLibrary(iword, 0, &retlen);
         idx commonlength = 0;
-        // Look for longest match
         idx minlen = len > retlen ? retlen : len;
         if( !tail ) {
             while( commonlength < minlen && s[commonlength] == retid[commonlength] ) {
@@ -109,7 +106,6 @@ idx IonSeqID::searchCompressed(const char *s, idx len, bool tail, idx *lenmatch)
             }
         }
         if (commonlength == retlen && commonlength > maxlen){
-            // if it is better than other, then use it
             maxlen = commonlength;
             bestword = iword;
         }
@@ -150,26 +146,19 @@ bool IonSeqID::addID(const char *id, idx lenid)
         lenid = sLen(id);
     }
     if (idIndex.dim() <= 1){
-        // If the index is empty, put it in the large Container
         idx newIDpos = getNewId();
         idx indexBigContainer = addBigContainer(newIDpos, id, lenid);
-        // And register its value in the Index
         return setIndex(newIDpos, indexBigContainer, BigContainer);
     }
     else if (idsCompressedTrain.length() > 0){
-        // look in the compressed sequences
         idx startmatch;
         idx posStartLibrary = searchCompressed (id, lenid, false, &startmatch);
 
-        // Find if the tail matches another string in the library
         idx endmatch;
         idx posEndLibrary = searchCompressed (id, lenid, true, &endmatch);
 
-        // What are we doing if it doesn't match?
-//        posEndLibrary == -1 ? 0 : posEndLibrary; // put it to 0, for now
 
         if ((posStartLibrary != -1 && startmatch > matchFilterHead) && (posEndLibrary != -1 && endmatch > matchFilterTail)){
-            // we found a match
 
             idx v1 = compressString (posStartLibrary, id, lenid, startmatch, endmatch, posEndLibrary);
             idx newIDpos = getNewId();
@@ -178,29 +167,19 @@ bool IonSeqID::addID(const char *id, idx lenid)
     }
 
     {
-        // look in the big Container
-        // Find best match in the big Container
         idx startmatch;
         idx posbigC = searchBigContainer (id, lenid, &startmatch);
 
-        // if we found a similar one, compress
         if (posbigC != -1 && startmatch > matchFilterHead){
-            //compress both and put them in the compressed Container
             idx lenauxstr;
             const char *auxstr = getLetterFromBigContainer(posbigC, 0, &lenauxstr);
 
-            // Find matches at the end of the string
             idx endmatch = endsWith (id, lenid, auxstr, lenauxstr);
 
-            // TODO:  Validate if the tail matches another string in the library
 
-            // Create a new library
-            // 1) for the start
             idx posStartLibrary = addStringCompressedLibrary(id, startmatch);
-            // 2) for the end
             idx posEndLibrary = addStringCompressedLibrary(id+lenid-endmatch, endmatch);
 
-            // Create two entries in the compressed library
             idx v1 = compressString (posStartLibrary, id, lenid, startmatch, endmatch, posEndLibrary);
             idx newIDpos = getNewId();
             setIndex(newIDpos, v1, CompressedContainer);
@@ -209,7 +188,6 @@ bool IonSeqID::addID(const char *id, idx lenid)
             setIndex(indexBigC[posbigC].idref, v2, CompressedContainer);
         }
         else {
-            // add the new word into the big Container
             idx newIDpos = getNewId();
             idx indexBigContainer = addBigContainer(newIDpos, id, lenid);
             setIndex(newIDpos, indexBigContainer, BigContainer);
@@ -239,31 +217,26 @@ idx IonSeqID::compressString (udx startLibrary, const char *s, idx slen, idx sta
     sStr *buf = &idsCompressedTrain;
     unsigned char stlib = (unsigned char) startLibrary;
     unsigned char endlib = (unsigned char) endLibrary;
-    //
     idx pos = buf->length();
     idx is = slen - (end + start) + 2;
-    idx ix = (4 - is&0x3) & 0x3;
+    idx ix = (4 - (is&0x3)) & 0x3;
     idx ib = is + ix;
-    buf->resize(pos+ib); // make sure buffer is big enough
+    buf->resize(pos+ib);
     char *b=buf->ptr(pos);
     idx ipos = 0;
 
-    // Add 1 char with starting Library
     b[ipos++] = (LastBitChar | (stlib & ~LastBitChar));
 
-    // Add all the characters in the middle
     idx icount = 0;
     while (icount < (is - 2)){
         b[ipos++] = s[start+icount++];
     }
 
-    // Add as many zeroes as necessary to make it multiple of 4
     while (ix){
         b[ipos++] = 0;
         --ix;
     }
 
-    // Add 1 last char with end library
     b[ipos] = (LastBitChar | (endlib & ~LastBitChar));
 
     return pos/4;
@@ -292,7 +265,6 @@ const char * IonSeqID::uncompressString (sStr *buf, const char *s, idx *len, boo
         ++is;
         bitOn = s[is] & LastBitChar;
     }
-    // Check the last bit
     char end = s[is] & ~(LastBitChar);
     const char *lastString = getStringfromCompressedLibrary(end, 0, &templen2);
     if (lastString && *lastString){
@@ -303,7 +275,6 @@ const char * IonSeqID::uncompressString (sStr *buf, const char *s, idx *len, boo
     if (len){
         *len = buf->length() - initpos;
     }
-    // Report start length
     if (wStats){
         stats.count += 1;
         stats.headLength += templen1;

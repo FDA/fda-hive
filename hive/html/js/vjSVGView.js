@@ -27,30 +27,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- * var viewer = new vjSVGView({
- *    plots: [myplot],
- *    // downloadLink = "download-svg-id", // id or dom element reference of <a> to use for SVG download link
- *  // downloadLinkText = "Download SVG", // customize SVG download link's text
- * });
- */
 function vjSVGView ( viewer )
 {
 
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
 
     if(!this.geometry)this.geometry=new Object();
     if(!this.showAxis)this.showAxis=true;
-    if(!this.downloadGenerateText) this.downloadGenerateText = "Generate downloadable graph…";
+    if(!this.downloadGenerateText) this.downloadGenerateText = "Generate downloadable graph";
     if(!this.downloadGeneratingText) this.downloadGeneratingText = "[Generating downloadable graph]";
     if(!this.downloadLinkText)this.downloadLinkText="Download graph as SVG file";
     if (!this.downloadDataSource) this.downloadDataSource = false;
-    //alert(this.selectCallback)
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ HTML viewer constructors
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.composerFunction=function( viewer , content)
     {
@@ -69,7 +56,6 @@ function vjSVGView ( viewer )
             for(var ic=0;ic<plot.collection.length;++ic){
                 var dsname=verarr(plot.collection[ic].name);
                 var serObj=plot.collection[ic];
-                //alerJ('j='+ic,plot.collection[ic]);
                 for (var is=0 ,i ; is<dsname.length; ++is ) {
                     for(i=0; i<this.data.length; i++){
                         if (this.data[i] == dsname[is])
@@ -85,8 +71,7 @@ function vjSVGView ( viewer )
                 alert("DEVELOPER ALERT: datasource "+this.data[is]+ " is not found");
 
 
-            vjDS[this.data[is]].register_callback( {'obj': vjDS[this.data[is]]}); // register ourselves a callback for a data updater
-            //alerJ('register', serObj)
+            vjDS[this.data[is]].register_callback( {'obj': vjDS[this.data[is]]});
         }
     };
 
@@ -97,7 +82,6 @@ function vjSVGView ( viewer )
             this.downloadLinkManage = true;
         }
         var max_width;
-        //if (!this.tab && this.width)
         if (this.width)
             max_width = this.width;
         else if (this.tab && this.tab.parent)
@@ -108,7 +92,6 @@ function vjSVGView ( viewer )
             max_width = this.resize_info.newW;
 
         var max_height;
-        //if (!this.tab && this.height)
         if (this.height)
             max_height = this.height;
         else if (this.tab && this.tab.parent)
@@ -129,11 +112,10 @@ function vjSVGView ( viewer )
             this.geometry.width = max_width;
 
         if(!this.geometry.height)
-            this.geometry.height =  max_height - (this.downloadLinkManage?30:0) < 0 ? 0 : max_height - (this.downloadLinkManage?30:0); //25px hardcoded in downloadLink tag
+            this.geometry.height =  max_height - (this.downloadLinkManage?30:0) < 0 ? 0 : max_height - (this.downloadLinkManage?30:0);
 
         if(!this.geometry0) {
             if (!max_width || !max_height) {
-                // on first refresh(), don't attempt to render if viewer geometry is still unknown
                 return;
             }
             this.geometry0 = { width: this.geometry.width, height: this.geometry.height, max_width: max_width, max_height: max_height };
@@ -148,7 +130,6 @@ function vjSVGView ( viewer )
             this.chartScale0 = this.getChartScale();
             this.chartArea = { width: this.chartScale0.x, height: this.chartScale0.y };
 
-            //    needed to set initial chartArea left, top, right and bottom positions
             this.rescaleChartArea(this.chartScale0, 0, true);
         } else if (this.resize_info) {
             if (!this.chartScale0)
@@ -160,15 +141,13 @@ function vjSVGView ( viewer )
             if (this.chartArea.width < this.geometry.width || this.chartArea.height < this.geometry.height || this.chartArea.width > minimalScale.x || this.chartArea.height > minimalScale.y) {
                 this.rescaleChartArea(newScale, 0, true);
             } else {
-                // rescaleChartArea must always be called before updateGeometry
                 this.rescaleChartArea(this.chartScale0, 0, true);
             }
             this.updateGeometry();
         }
         
-        //with new interface, width and height switch to NaN
-        if (isNaN(this.chartArea.width)) this.chartArea.width = "95%";
-        if (isNaN(this.chartArea.height)) this.chartArea.height = "95%";
+        if (isNaN(parseFloat(this.chartArea.width))) this.chartArea.width = "95%";
+        if (isNaN(parseFloat(this.chartArea.height))) this.chartArea.height = "95%";
 
         var width = this.geometry.width;
         var height = this.geometry.height;
@@ -176,8 +155,6 @@ function vjSVGView ( viewer )
       
         this.scene=new vjSVGBase();
         this.scene.TransformTest = function(coord) {
-         //   coord.x= coord.x+1;
-  //          coord.y= coord.x+1;
             return coord; 
         };
         
@@ -188,10 +165,6 @@ function vjSVGView ( viewer )
             var rx=screen.width/2;
             var ry=screen.height/2;
             
-     //     var rx=xtouch;
-     //       var ry=ytouch;
-     //       if (screen.height*.7<screen.width)
-      //      r=screen.width/2;
             
             if (x>rx){
                 var c=x-rx;
@@ -199,8 +172,6 @@ function vjSVGView ( viewer )
                 var alpha= adjust(theta,rx);
                 var _x= (Math.cos(alpha)*rx-c);
                 x = x +_x;
-      //        console.log("x: "+Obj[i][0]+" r: "+r+" c: "+c);
-      //         console.log(Math.sin(alpha)*r+" " +c);  
          
             }        
             else if(x<rx){
@@ -243,57 +214,34 @@ function vjSVGView ( viewer )
                if(cx>x)
                    {
                        x= F*Math.tan(x+cx)*angle*(Math.PI / 180);
-                 //   console.log (x+"x> "+cx);
 
                    }  
                else if(cx<x)
                    {
                        x= F*Math.tan(cx-x)*angle*(Math.PI / 180);
-                      //  console.log (x+"x< "+cx+x);
                    }
                if(cy>y)
                    {
                    y= F*Math.tan(y+cy)*angle*(Math.PI / 180);
-             //       console.log (y+"y> "+cy);
                    }
             else if(cy<y)
                 {
                        y= F*Math.tan(cy-y)*angle*(Math.PI / 180);
-                //        console.log (y+"y< "+cy+y);
                 }
-        //
                coord.x=x+coord.x;
                 coord.y=y+coord.y;
-              //  console.log(x+", "+y);
            
             return coord;
         };
         this.scene.sizeXYZ={x:width,y:height, z:0};
         this.scene.shiftXYZ={x:width,y:height, z:0};
- //       this.scene.sizeXYZ={x:'200px',y:height, z:0};
- //       this.scene.shiftXYZ={x:'200px',y:height, z:0};
-      /*  if(__getEnvironment()=="mobile")
-        {
-           document.getElementById("DV_Process_taxonomy NT_0-svg").addEventListener("mousedown", down, false);
-           document.getElementById("DV_Process_taxonomy NT_0-svg").addEventListener("mouseup", up, false);
-           document.getElementById("DV_Process_taxonomy NT_0-svg").addEventListener("click", getClickPosition, false);
-           
-        }*/
-        //alert("parent Width " + this.tab.parent.width + " parent Height " + this.tab.parent.height)
 
-        // Double-wrapping to avoid breaking fragile table-based layout with oversized SVGs.
-        // Outer wrapper (this.svgdivSizer) has fixed width/height to allow enclosing elements to size correctly.
-        // Inner wrapper (this.svgdiv) has absolute positioning (so svgdivSizer needs to be relative positioned)
-        // to hide the SVG's true size from the enclosing table and so avoid breaking enclosing layout.
-        // Anything in this.div which is below svgdivSizer (e.g. this.downloadLink) needs to be positioned
-        // with a fixed top to avoid drawing on top of the SVG.
         this.div.innerHTML = "<div style='position:relative;width:"+max_width+"px;height:"+max_height+"px;'><div style='position:absolute;'></div></div>";
 
         if (this.downloadLinkManage) {
             var ttable="<table id='" + this.container + "-svg-download-positioner' style='position:absolute;top:"+height+"px;' width="+width+">";
             ttable +="<tr> <td>" + "<a id='"+this.container+"-svg-download' href='#'>" + "<img width=16 height=16 src=./img/download.gif style='vertical-align:middle;'/>&nbsp;<small id='" + this.container + "-downloadTextSVG'>" + this.downloadGenerateText + "</small></a>";
             ttable +="</td>";
-            //this.div.innerHTML += "<a id='"+this.container+"-svg-download' href='#' style='position:absolute;top:"+height+"px;' download='" + sanitizeElementAttr(download_name) + "'>" + "<img width=16 height=16 src=./img/download.gif style='vertical-align:middle;'/>&nbsp;<small id=" + this.container + "-downloadTextSVG'>" + this.downloadLinkText + "</small></a>";
 
             if (this.downloadDataSource){
                 var download_id = this.container +"-dataSource-svg-download";
@@ -316,11 +264,9 @@ function vjSVGView ( viewer )
 
         this.svgdivSizer = this.div.firstChild;
         this.svgdiv = this.svgdivSizer.firstChild;
-        this.svgdiv.innerHTML="<svg id='"+this.container+"-svg' xmlns='"+this.scene.elementSource+"' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink'"+ (this.geometry && this.geometry.width ? "width='"+this.geometry.width+"'" : "" )+" "+(this.geometry && this.geometry.height ? "height='"+this.geometry.height+"'" : "" )+" >"+
-            //" <circle cx='100' cy='100' r='40' stroke='black' stroke-width='2' fill='red' />"+
+        this.svgdiv.innerHTML="<svg id='"+this.container+"-svg' xmlns='"+this.scene.elementSource+"' version='1.1' xmlns:xlink='http:
             "</svg>";
         this.scene.svg=gObject(this.container+"-svg");
-        //alert(this.scene.svg)
         this.compose();
     };
 
@@ -392,7 +338,6 @@ function vjSVGView ( viewer )
         }
         return scale;
     };
-    // requires chartArea to be fully initialized
     this.updateGeometry = function() {
         function sumOnlyAbsolutes() {
             var sum = 0;
@@ -420,15 +365,12 @@ function vjSVGView ( viewer )
         }
     };
 
-    // Update chartArea, geometry, and scene.svg if plots requested more space
     this.defaultRescaleChartArea = function(plotScale, threshold, force) {
-        // Don't change the geometry unless the requested plot scale significantly disagrees with existing one
         if (!force && !threshold) threshold = 1.5;
         var origScale = this.getChartScale();
         if (!force && plotScale.x / origScale.x < threshold && plotScale.y / origScale.y < threshold)
             return false;
 
-        // If we were relying on default left/top offsets before resizing, we need to now save them
         if (this.chartArea.left == undefined)
             this.chartArea.left = this.chartArea.right = (parseInt(this.geometry.width) - origScale.x)/2;
         if (this.chartArea.top == undefined)
@@ -437,7 +379,6 @@ function vjSVGView ( viewer )
         this.chartArea.width = plotScale.x;
         this.chartArea.height = plotScale.y;
      
-        //resizing the area if it is a mobile device
         if(__getEnvironment()=="mobile"){
             this.chartArea.height = screen.height*.70;
             this.chartArea.width = screen.width;
@@ -449,15 +390,10 @@ function vjSVGView ( viewer )
 
     this.compose=function()
     {
-         //this.scene=new vjSVGScene(gObject(this.container+"-svg"));
-        //alert(gObject(this.container+"-svg"))
-
-        //this.scene.symbol("rectangle",{x:1000,y:200,z:0},'10px');
-
-        //this.scene.scaleMatrix({ x:gPgW/3, y:gPgH/3, z:1 } );
 
 
-        // Check if plots require more space than what we are giving them
+
+
         if (this.rescaleChartArea(this.getPreferredScale()))
             this.updateGeometry();
 
@@ -470,24 +406,18 @@ function vjSVGView ( viewer )
         });
         this.scene.scaleMatrix({x:1,y:-1,z:1});
 
-        //alert(this.objCls)
         for(var iplot=0; iplot<this.plots.length; ++iplot)
         {
-        //    this.plots[iplot].rotation={crd:{x:0,y:0,z:0},vec:{x:0,y:0,z:1},angle:45};
             this.plots[iplot].ownerView = this;
             this.plots[iplot].children=[];
             if (this.selectCallback) {
-                //funcLink(this.selectCallback)
                 this.plots[iplot].selectCallback = this.selectCallback;
-                //alert(this.plots[iplot].selectCallback)
             }
-            //alerJ("Axis ",this.Axis.y)
             this.plots[iplot].construct(this.Axis,this.chartArea,this.scene);
             this.plots[iplot].render(this.scene);
         }
 
         if (this.downloadLink) {
-            // make sure to invalidate objectUrl with saveable svg blob if svg has been re-rendered
             if (this.objectUrl) {
                 URL.revokeObjectURL(this.objectUrl);
                 this.objectUrl = 0;
@@ -543,10 +473,9 @@ function vjSVGView ( viewer )
 
     this.init();
 
-    this.objectUrl = null; // saveable svg blob URL
-    this.objectBlob = null; // saveable svg blob
+    this.objectUrl = null;
+    this.objectBlob = null;
 
-    // create object URL from the svg
     this.onDownloadGenerateClick = function() {
         if (this.downloadLink) {
             var async = false;
@@ -555,15 +484,13 @@ function vjSVGView ( viewer )
                 var images = this.svgdiv.getElementsByTagNameNS(vjSVGElementSource, "image");
                 var cnt_image_fixup_needed = 0;
                 for (var i = 0; i < images.length; i++) {
-                    var href = images[i].getAttributeNS("http://www.w3.org/1999/xlink", "href");
+                    var href = images[i].getAttributeNS("http:
                     if (href && !href.startsWith("data:")) {
                         cnt_image_fixup_needed++;
                     }
                 }
 
                 if (cnt_image_fixup_needed) {
-                    // need to clone the div and replace image hrefs with data uris
-                    // async because chromer requires async-mode xhr for arraybuffer
                     async = true;
                     var download_text = gObject(this.container + "-downloadTextSVG");
                     if (download_text) {
@@ -576,7 +503,7 @@ function vjSVGView ( viewer )
                     var images = svgdiv.getElementsByTagNameNS(vjSVGElementSource, "image");
 
                     for (var i = 0; i < images.length; i++) {
-                        var href = images[i].getAttributeNS("http://www.w3.org/1999/xlink", "href");
+                        var href = images[i].getAttributeNS("http:
                         if (href && !href.startsWith("data:")) {
                             (function (viewer, image, href) {
                                 var xhr = new XMLHttpRequest();
@@ -584,7 +511,6 @@ function vjSVGView ( viewer )
                                 xhr.responseType = "arraybuffer";
                                 xhr.onload = function() {
                                     var content_type = xhr.getResponseHeader("Content-Type") || "image/png";
-                                    // ugly method to turn binary arraybuffer into base64 reasonably efficiently and avoid stack overflow
                                     var data = "data:" + content_type + ";base64," + btoa((function(u8ary) {
                                         var accum = "";
                                         for(var j = 0; j < u8ary.length; j++) {
@@ -592,7 +518,7 @@ function vjSVGView ( viewer )
                                         }
                                         return accum;
                                     } (new Uint8Array(xhr.response))));
-                                    image.setAttributeNS("http://www.w3.org/1999/xlink", "href", data);
+                                    image.setAttributeNS("http:
                                     cnt_image_fixup_done++;
 
                                     if (cnt_image_fixup_done >= cnt_image_fixup_needed) {
@@ -628,8 +554,6 @@ function vjSVGView ( viewer )
         download_link.download = this.getTitle() + ".svg";
         download_link.href = this.objectUrl;
         if (__isIE && navigator.msSaveBlob) {
-            // IE10 doesn't support download from createObjectURL(); instead, it uses a completely non-standard msSaveBlob API
-            // https://msdn.microsoft.com/en-us/library/hh779016(v=vs.85).aspx
             var that = this;
             download_link.onclick = function() {
                 window.navigator.msSaveBlob(that.objectBlob, download_link.download);
@@ -644,12 +568,10 @@ function vjSVGView ( viewer )
 function adjust(angle, radius){
     var Inc=radius/90,diff,alpha = 0;
     if (angle<90){
-        //   var alpha=angle-(90/angle)*Inc;
         diff=angle-90;
         alpha=angle-(angle/Inc);
     }
     else if (angle>90){
-        //var alpha=angle+(90/angle)*Inc;
         diff=angle-90;
         diff=90-diff;
         alpha=angle+(diff/Inc);
@@ -659,4 +581,3 @@ function adjust(angle, radius){
     return alpha;
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjSVGView.js"

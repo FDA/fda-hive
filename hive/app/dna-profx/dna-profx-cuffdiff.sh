@@ -29,6 +29,10 @@
 # * DEALINGS IN THE SOFTWARE.
 # */
 
+dna_profx_tools() {
+    echo "cufflinks-2.0.2"
+}
+
 dna_profx_prepare () {
 
 }

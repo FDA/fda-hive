@@ -33,33 +33,17 @@
 
 #include <qpsvc/qpsvc.hpp>
 
-class QPSvcDnaAlignx: public sQPSvc
+class QPSvcDnaAlignxBlast: public sQPSvc
 {
         typedef sQPSvc TParent;
     public:
-        /*
-        enum eAlgorithm
-        {
-            eBlast = 1,
-            eBowtie,
-            eTophat,
-            eOther
-        };
-        sStr blastNTParam;
-        eAlgorithm algorithmtype;
-*/
-        QPSvcDnaAlignx(sQPride& qp): TParent(qp){}
-        virtual ~QPSvcDnaAlignx(){}
+        QPSvcDnaAlignxBlast(sQPride& qp): TParent(qp){}
+        virtual ~QPSvcDnaAlignxBlast(){}
 
         virtual const char* getSvcName() const
         {
-            return "dna-alignx";
+            return "dna-alignx-blast";
         }
-        /*
-        void setQuery(const char * qry);
-        void setSubject(const char * sub);
-        void setAlgorithm();
-        void setobjDefaultParameters();*/
 };
 
-#endif // DnaQC_hpp
+#endif

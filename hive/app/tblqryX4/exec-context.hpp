@@ -58,40 +58,29 @@ namespace slib {
                 idx reqID() const { return _proc.reqId; }
                 idx outReqID() const { return _out_req; }
 
-                ////
-                // CSV file loading
-                ////
 
-                //! can only be called during op init stage
                 idx allocateLoaderHandle();
 
                 bool hasLoaderHandle(idx loader_handle) const;
 
-                //! can only be called during op init stage
                 void requestLoadReqTable(idx loader_handle, idx dataReqID, bool isgrp, const char * tblname, const char * idx_suffix=0, const char * colsep=0, const char * commentPrefix=0, idx parseStart = 0, idx parseCnt=sIdxMax, idx initialOffset=0, idx headerOffset=-1, idx maxLen=sIdxMax);
-                //! can only be called during op init stage
-                void requestLoadObjTable(idx loader_handle, const sHiveId & objID, const char * tblname, const char * idx_suffix=0, bool fallback_default_name=true, const char * colsep=0, const char * commentPrefix=0, idx parseStart = 0, idx parseCnt=sIdxMax, idx initialOffset=0, idx headerOffset=-1, idx maxLen=sIdxMax);
-                //! can only be called during op init stage
+                void requestLoadObjTable(idx loader_handle, const sHiveId & objID, const char * tblname, const char * idx_suffix=0, bool fallback_default_name=false, const char * colsep=0, const char * commentPrefix=0, idx parseStart = 0, idx parseCnt=sIdxMax, idx initialOffset=0, idx headerOffset=-1, idx maxLen=sIdxMax);
                 idx allocateRequestLoadReqTables(sVec<idx> & loader_handles, idx dataReqID, bool isgrp, const char * glob);
-                //! can only be called during op init stage
-                idx allocateRequestLoadObjTables(sVec<idx> & loader_handles, const sHiveId & objID, const char * glob);
+                idx allocateRequestLoadObjTables(sVec<idx> & loader_handles, const sHiveId & objID, const char * glob, bool fallback_default_name=false);
 
-                //! can only be called during op init stage
                 void requestLoadObjqryTable(idx loader_handle, qlang::ast::Node * qry_node);
-                //! can only be called during op process stage
                 sTabular * getLoadedTable(idx loader_handle);
-                //! can only be called during op process stage
                 bool isLoadedTable(const sTabular * tbl) const;
-                //! can only be called during op process stage
                 sTabular * releaseLoadedTable(idx loader_handle);
 
-                ////
-                // Error logging
-                ////
 
                 void logError(const char * fmt, ...) __attribute((format(printf, 2, 3)))
                 {
                     sCallVargPara2(_proc.vreqSetInfo, _proc.reqId, sQPrideBase::eQPInfoLevel_Error, fmt);
+                }
+                void logWarning(const char * fmt, ...) __attribute((format(printf, 2, 3)))
+                {
+                    sCallVargPara2(_proc.vreqSetInfo, _proc.reqId, sQPrideBase::eQPInfoLevel_Warning, fmt);
                 }
                 void logInfo(const char * fmt, ...) __attribute((format(printf, 2, 3)))
                 {
@@ -106,9 +95,6 @@ namespace slib {
                     sCallVargPara(this->_proc.vlogOut, sQPrideBase::eQPLogType_Trace, fmt);
                 }
 
-                ////
-                // Progress reporting
-                ////
 
                 idx reportSubProgress(idx items, idx progress, idx progressMax);
                 static idx reportSubProgressStatic(void * param, idx items, idx progress, idx progressMax);
@@ -145,7 +131,6 @@ namespace slib {
                     bool fallback_default_name;
 
                     InputTableSource();
-                    // no destructor - qry_node is freed by owner
                 };
                 struct InputTable {
                     sTabular * tbl;
@@ -157,6 +142,7 @@ namespace slib {
                 };
                 sVec<InputTable> _in_tables;
                 sVec<sVariant> _in_table_qry_results;
+                bool _missing_tbl_nonfatal;
 
                 const char * getLoaderTblSourceString(idx index) const;
 
@@ -165,7 +151,6 @@ namespace slib {
                 idx _subProgressNum;
                 idx _subProgressCur;
 
-                // input
                 sVariant _tqs;
                 qlang::ast::Node * _root_objQry;
                 sVariant _objQryResult;
@@ -173,7 +158,6 @@ namespace slib {
                 sVec<Command*> _commands;
                 idx _cur_icmd;
 
-                // output
                 bool _top_header, _left_header;
                 sTabular *_out_table;
 

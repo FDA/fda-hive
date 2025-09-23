@@ -33,12 +33,28 @@ ifeq ($(devdir),)
 endif
 include $(devdir)/build/makefile.meta
 
-.PHONY: dist
+createdb:
+	@./db_create.sh $(HIVE_DB) $(HIVE_DB_USER) $(HIVE_DB_PWD) $(HIVE_DB_HOST) $(HIVE_DB_PORT)
+
+initdb:
+	@./db_init.sh $(HIVE_DB) $(HIVE_DB_USER) $(HIVE_DB_PWD) $(HIVE_DB_HOST) $(HIVE_DB_PORT)
+
+sync::
+	@echo "Reading database: -db $(HIVE_DB) -host $(HIVE_DB_HOST) -port $(HIVE_DB_PORT) -u $(HIVE_DB_USER) -p xxxx"
+	@perl db2svn.pl -db $(HIVE_DB) -host $(HIVE_DB_HOST) -port $(HIVE_DB_PORT) -u $(HIVE_DB_USER) -p $(HIVE_DB_PWD)
+	@if [ -f ~/work/SVN/git-set-keywords.pl ]; then \
+	    ~/work/SVN/git-set-keywords.pl; \
+	fi
+
+chicken-egg:
+	@$(call run-qapp,,,>"$(srcdir)/db_init_data_type.sql",-user qapp -db_init_data_type_sql);
+	@$(call run-qapp,,,>"$(srcdir)/db_init_data_domain.sql",-user qapp -db_init_data_domain_sql);
+
+.PHONY: dist sync
 dist::
+ifndef PACKAGING
 ifdef INSTALLING
-	@$(call qp-sql,UPType.sql)
-	@$(call qp-sql,UPType_data.sql)
-	@$(call qp-sql,UPTypeField.sql)
-	@$(call qp-sql,UPTypeField_data.sql)
 	@./db_init_sp.sh $(HIVE_DB) $(HIVE_DB_USER) $(HIVE_DB_PWD) $(HIVE_DB_HOST) $(HIVE_DB_PORT)
 endif
+endif
+	$(call copy-src,*)

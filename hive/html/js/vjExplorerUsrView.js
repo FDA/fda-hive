@@ -57,41 +57,38 @@ function vjExplorerUsrView (viewer) {
                                tabname : "research projects",
                                tabico : "bio-project",
                                types: "^HIVE_Development_Project_List$",
-                               url : { type : "^HIVE_Development_Project_List$"
+                               url : { type : "^HIVE_Development_Project_List$%2B"
                                }
                            }, {
                                tabname : "annotations",
                                tabico : "rec",
                                types: "^u-annot$,^u-ionAnnot$",
-                               url : { type : "^u-annot$,^u-ionAnnot$,^u-ionExpress$" }
+                               url : { type : "^u-annot$,^u-ionAnnot$%2B" }
                            }, {
                                tabname : "files",
                                tabico : "ico-file",
-                               types: "^u-file$,^excel-file$,-table$", // exclude all svc
+                               types: "^u-file$,^table$,^u-idList$",
                                url : { type : "^u-file$,^table$%2B,^u-idList$" }
                            }, {
                                tabname : "spectra",
                                tabico : "ico-file",
                                types: "^spectra$,^spectra-MS$,^spectra-lib$",
-                               url : { type : "spectra,spectra-MS,spectra-lib" }
+                               url : { type : "^spectra" }
                            }, {
                                tabname : "images",
                                tabico : "ico-image",
                                types: "^image$",
-                               url : { type : "^image$" }
+                               url : { type : "^image$%2B" }
                            }, {
                                tabname : "computations",
                                tabico : "svc-process",
-                               types: "^svc(?!-(archiver|download)$).*$",
-                               url : { type : "svc-.*,!svc-archiver,!svc-download",//align,svc-prof,svc-recomb,svc-popul,svc-clust,svc-algo,svc-spectra,svc-dmTableToViodbParser,svc-algo-annotMapper,svc-hiveseq,svc-genemark,svc-textClustering,svc-dna-screening,svc-mothur",
-                                   prop:"svcTitle,status,progress100,name,uri,created,svc,submitter"}
+                               types: "svc-.*,!svc-archiver,!svc-download",
+                               url : { type : "^svc-computations-base$%2B" }
                            }, {
                                tabname : "data-loading",
                                tabico : "dataload",
-                               types: "^svc-archiver$,^svc-download$",
-                               url : { type : "^svc-archiver$,^svc-download$",
-                                   prop:"svcTitle,status,progress100,name,uri,created"
-                                   }
+                               types: "^svc-archiver$,^svc-download$,^svc-compressor$",
+                               url : { type : "^svc-data-loading-base$%2B" }
                            }, {
                                tabname : "projects",
                                tabico : "bio-project",
@@ -119,8 +116,8 @@ function vjExplorerUsrView (viewer) {
                                url : { type : "^HIVE-protocol$" }
                            } ];
 
-    this.folderURL =  "http://?cmd=objList&type=sysfolder,folder&actions=1&cnt=1000000&prop=_type,name,child&mode=csv&showtrash=true";
+    this.folderURL =  "http:
+    this.aa_testAttribute = true;
     vjExplorerBaseView.call(this,viewer);
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjExplorerUsrView.js"

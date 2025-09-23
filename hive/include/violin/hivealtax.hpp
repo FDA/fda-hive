@@ -33,6 +33,11 @@
 
 #include <ssci/bio.hpp>
 #include <ssci/bio/tax-ion.hpp>
+#include <violin/hiveidmap.hpp>
+#include <violin/hivetaxtree.hpp>
+#include <violin/hiveseq.hpp>
+#include <violin/hiveal.hpp>
+
 #define NUM_RANKS 8
 
 #define PROGRESS(items,cur,max) (m_callback && !m_callback(m_callbackParam, items, ((cur) * 1.0 / (max)) * 100, 100))
@@ -44,15 +49,14 @@ namespace sviolin
         public:
             struct stats
             {
-                    idx min;     //! stores minimum value
-                    idx max;     //! stores maximum value
-                    real localnum;    //! stores number of elements
-                    idx num;    //! stores number of elements (sample size)
-                    real sum;    //! stores sum of elements
-                    real sumsq;  //! stores the sum square of elements
+                    idx min;
+                    idx max;
+                    real localnum;
+                    idx num;
+                    real sum;
+                    real sumsq;
                     idx family_taxid_pos;
                     idx leaf_taxid_pos;
-//                    sStr acclist;
             };
         private:
             struct RanksAndWeights
@@ -63,7 +67,6 @@ namespace sviolin
             };
             sUsr * user;
             RanksAndWeights rankList[NUM_RANKS];
-//            sNCBITaxTree * TAX;
 
             sHiveIdMap *NT;
             idx iterationNumber, iteration;
@@ -74,7 +77,6 @@ namespace sviolin
             real calculateShannonEntropy (sDic <idx> *taxCnt, idx rankdim, idx totRankWeight = 1 , sStr * outReport = 0);
             real ShannonFunction(sDic<idx> * taxCnt, idx totalPopulation);
             idx RankedTaxCountFunction(sDic<idx> & dstTaxCnt, sDic<idx> * srcTaxCnt, const char * requiredRank);
-            idx filterByRank(sStr *dstTax, const char * srcTax, const char * requiredRank);
 
             void addStats(stats *st, idx lnum = 0)
             {
@@ -82,7 +84,6 @@ namespace sviolin
                     st->localnum = lnum;
                 }
                 if (st->localnum > 0){
-                    // If it is a new chunk
                     st->sum += st->localnum;
                     st->sumsq += (st->localnum * st->localnum);
                     if( st->num == 0 ) {
@@ -187,14 +188,12 @@ namespace sviolin
                 m_callback = 0;
                 m_callbackParam = 0;
 
-//                TAX = myTree;
                 NT = idMap;
                 if (user){
                     if (myTree == 0){
                     sStr myTaxTreePath;
                     sTaxTreeMap findObjId(*user);
                     findObjId.getFileName(myTaxTreePath);
-                  //  TAX = new sNCBITaxTree(myTaxTreePath);
                     }
                     if (idMap == 0){
                         NT = new sHiveIdMap(*user, "giTaxVioDB");
@@ -213,7 +212,7 @@ namespace sviolin
             }
 
             real analyzeResults(sFil * outTaxCnt, sDic<idx> *taxCnt, sFil * outSha = 0);
-            idx CurateResult(sDic<idx> *taxCnt, sHiveseq *Sub, sHiveal *hiveal, sDic<idx> *giCnt, const char *taxDepth = "leaf", sTxtTbl *tbl = 0, idx colNumber = 0);
+            idx CurateResult(sDic<idx> *taxCnt, sHiveseq *Sub, sHiveal *hiveal, sDic<idx> *giCnt, const char *taxDepth = "leaf", sTxtTbl *tbl = 0, idx colNumber = 0, bool useAlignments = false);
             idx reportResults(sFil * outTaxCnt, sDic<idx> *taxCnt, sFil * outGiCnt = 0, sDic<idx> *accCnt = 0);
 
             idx setTaxidContainer (const char* str, idx len = 0){
@@ -235,5 +234,4 @@ namespace sviolin
     };
 
 }
-//
-#endif// sHivealtax_hpp
+#endif

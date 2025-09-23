@@ -29,20 +29,26 @@
 # */
 
 LIBRARIES += qlib
-PROGRAMS += qapp qsrv qctl qhunt
+PROGRAMS += qapp qsrv qctl qhunt hive.cgi
+
+OBJECT_TYPES=qphost qpsvc \
+             svc-computations-base svc-data-loading-base svc-http-post
 
 qlib_SRCS = QPrideBase.cpp QPride.cpp \
 	QPrideDB.cpp QPrideCmdline.cpp \
 	QPrideProc.cpp QPrideClient.cpp QPrideCGI.cpp \
 	QPrideUtils.cpp \
-	QPrideConnection.cpp QPrideSrv.cpp QPrideGenericLauncher.cpp
+	QPrideConnection.cpp QPrideSrv.cpp
 
-# to privide default db connection information
 CXXFLAGS=$(HIVE_DB_CXXFLAGS)
+
+hive.cgi_SRCS = hivecgi.cpp
+hive.cgi_LIBS = $(VLIB_LIB)
+hive.cgi_XLIBS = $(MYSQL_LIB_STATIC)
 
 qapp_SRCS = QPrideApp.cpp
 qapp_LIBS = $(VLIB_LIB)
-qapp_XLIBS = $(MYSQL_LIB)
+qapp_XLIBS = $(MYSQL_LIB_STATIC)
 
 qctl_SRCS = QPrideCtl.cpp
 qctl_LIBS = $(VLIB_LIB)
@@ -61,8 +67,7 @@ ifeq ($(devdir),)
 endif
 include $(devdir)/build/makefile.meta
 
-# config here goes before service since it he initaial service
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,qm,Queue Manager,/System/, \
             maxJobs=1 \
@@ -74,6 +79,11 @@ dist::
             cmdLine='qsrv.os\$$(os)' \
             isUp=1 \
         )
+	$(call dist-service-register,test,test service,/Test/System/, \
+            isUp=0 \
+            parallelJobs=1 \
+            cmdLine='qhunt.os\$$(os)' \
+        )
 	$(call dist-service-register,human-interaction,Human Interaction,/System/, \
             isUp=0 \
             maxJobs=1 \
@@ -81,4 +91,11 @@ dist::
 	$(call dist-app,qm,qapp,qapp.os$(SLIB_PLATFORM))
 	$(call dist-app,qm,qsrv,qsrv.os$(SLIB_PLATFORM))
 	$(call dist-src,qm,qpstart.sh.os$(SLIB_PLATFORM),qpstart.sh.os$(SLIB_PLATFORM))
+	$(call dist-src,qm,qlang.sh.os$(SLIB_PLATFORM),qlang.sh.os$(SLIB_PLATFORM))
+	$(call dist-src,qm,qm_maintain.sh.os$(SLIB_PLATFORM),qm_maintain.sh.os$(SLIB_PLATFORM))
+	$(call dist-src,qm,qputils.sh.os$(SLIB_PLATFORM),qputils.sh.os$(SLIB_PLATFORM))
 	$(call dist-src,qm,'~/.hive_bash_rc',hive_bash_rc)
+	$(call dist-src,qm,xlsx2csv.py,xlsx2csv.py)
+	$(call dist-qry,qm,mico2-os$(SLIB_PLATFORM)/,alloftype('tool_pkg',{name:'MiCo2'}))
+	$(call dist-qry,qm,mico3-os$(SLIB_PLATFORM)/,alloftype('tool_pkg',{name:'MiCo3'}))
+

@@ -34,13 +34,12 @@ using namespace slib;
 
 #include <ctype.h>
 
-// sizes of variable acepting different kind of format specifiers
-#define textSIZEOFINT           64       // should be width or strlen(sprintf(intnumber))
-#define textSIZEOFREAL          64       // see above ...
-#define textSIZEOFADDRESS       64 // should be (sizeof(void*)*2) each byte is two hexadecimal characters
-#define textSIZEOFCHAR          1       // 1 
-#define textSIZEOFPERCENT       1       // 1 
-#define textSIZEOFDEFAULT       1       // 1 
+#define textSIZEOFINT           64
+#define textSIZEOFREAL          64
+#define textSIZEOFADDRESS       64
+#define textSIZEOFCHAR          1
+#define textSIZEOFPERCENT       1
+#define textSIZEOFDEFAULT       1
 
 
 const char sStr::zero[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -50,22 +49,21 @@ idx sStr::vprintfSizeOf(const char * formatDescription,va_list marker)
     idx len=0,lenAdd,width,stopCountingWidth,isLong,isLongLong;
     const char *fmt;
     const char * typeOf;
-    void *pVal; /*idx iVal; double fVal;*/
+    void *pVal;
 
 
     if(!formatDescription)return 0;
 
     for(fmt=formatDescription;*fmt;fmt++){
-        if(*fmt=='%'){ // scan for format specification
+        if(*fmt=='%'){
             bool have_width = false;
-            width=0; stopCountingWidth=0;// see the width of the variable, example: %10.3lf 
-            //for(typeOf=fmt+1; *typeOf && *typeOf!='%' && !isalpha((idx)(*typeOf)); typeOf++ ){
+            width=0; stopCountingWidth=0;
             for(typeOf=fmt+1; *typeOf && strchr("01234567890.+-*",*typeOf) ; typeOf++ ){ 
                 if(*typeOf=='*' ){
                     have_width = true;
                     width+=va_arg(marker, int );
                 }
-                else if(*typeOf=='.') {// stop counting if dot is enountered after some numbers 
+                else if(*typeOf=='.') {
                     stopCountingWidth=1;
                     if(typeOf[1]=='*' ){
                         have_width = true;
@@ -73,33 +71,33 @@ idx sStr::vprintfSizeOf(const char * formatDescription,va_list marker)
                         ++typeOf;
                     }
                 }
-                if( isdigit((int)(*typeOf)) && (!stopCountingWidth)) {// accumulate the width
+                if( isdigit((int)(*typeOf)) && (!stopCountingWidth)) {
                     have_width = true;
                     width=width*10+(*typeOf)-'0';
                 }
             }
-            width = sMax<idx>(0, width); // negative width from * is illegal
+            width = sMax<idx>(0, width);
 
             isLong=0;isLongLong=0;
-            if(*typeOf=='l' && *(typeOf+1)=='l'){isLongLong=1;typeOf+=2;} // long format 
-            else if(*typeOf=='l'){isLong=1;typeOf++;} // long format 
+            if(*typeOf=='l' && *(typeOf+1)=='l'){isLongLong=1;typeOf+=2;}
+            else if(*typeOf=='l'){isLong=1;typeOf++;}
 
             switch(tolower((int)*typeOf)){
             case 'i': case 'd': case 'x': case 'u':
-                if(isLongLong)/*iVal=*/va_arg(marker, long long int);
-                else if(isLong)/*iVal=*/va_arg(marker, long int);
-                else /*iVal=*/va_arg(marker, int );
+                if(isLongLong)va_arg(marker, long long int);
+                else if(isLong)va_arg(marker, long int);
+                else va_arg(marker, int );
                 lenAdd=textSIZEOFINT;
                 break;
             case 'f': case 'g': case 'e':
-                if(isLong)/*fVal=*/va_arg(marker, double );
-                else /*fVal=*/va_arg(marker, double );
+                if(isLong)va_arg(marker, double );
+                else va_arg(marker, double );
                 lenAdd=textSIZEOFREAL;
                 break;
             case 's':
                 pVal=va_arg(marker, char * );
                 if(!pVal) lenAdd=sLen("(NULL)")+16;
-                else if( have_width ) lenAdd=width; // if width is specified (even if width == 0), pVal might not be 0-terminated
+                else if( have_width ) lenAdd=width;
                 else lenAdd=sLen(pVal);
                 break;
             case 'p':
@@ -107,10 +105,10 @@ idx sStr::vprintfSizeOf(const char * formatDescription,va_list marker)
                 lenAdd=textSIZEOFADDRESS;
                 break;
             case 'c':
-                /*iVal=*/va_arg(marker, int );
+va_arg(marker, int );
                 lenAdd=textSIZEOFCHAR;
                 break;
-            case '%': // %% or alike 
+            case '%':
                 lenAdd=textSIZEOFPERCENT;
                 break;
             default: 
@@ -132,36 +130,25 @@ idx sStr::vprintfSizeOf(const char * formatDescription,va_list marker)
 
 char * sStr::vprintf( const char * formatDescription, va_list marker )
 {
-    /*idx debug=0;
-    if(debug){
-        char aaa[64096];
-        vsprintf(aaa,formatDescription,marker) ; // extend the necessary amount
-        debug=0;
-    }*/
 
-    // container is readonly ? skip additions
     if((flags&fReadonly))return last();
     
-    // determine the size of the printout 
     va_list marker0;va_copy(marker0,marker);
     idx len = vprintfSizeOf(formatDescription,marker0);
     va_end(marker0);
 
-    //idx len=64000;
     if(!len)return last();
     
-    // now we determine the size needed in a new sMex container 
-    // and append the new content there
     char * cont;
     idx ps=pos();
     if(flags&fDirectFileStream) {
         cont=(char*)malloc(len+1);
     } else {
-        resize(ps+len+1);// extend the necessary amount +1 for zero symbol
+        resize(ps+len+1);
         cont=(char *)ptr(ps);
     }
     if(cont) {
-        vsprintf(cont,formatDescription,marker) ; // extend the necessary amount
+        vsprintf(cont,formatDescription,marker) ;
     }
     idx realLen=sLen(cont);
     if(flags&fDirectFileStream) {
@@ -170,7 +157,7 @@ char * sStr::vprintf( const char * formatDescription, va_list marker )
             free(cont);
         }
     } else {
-        cut(ps+realLen); // cut back to right before the zero
+        cut(ps+realLen);
     }
 
     if(realLen>len){
@@ -183,7 +170,6 @@ char * sStr::vprintf( const char * formatDescription, va_list marker )
         exit(0);
     }
 
-    //callback(cont); // call the callback function
     return cont;
 }
 
@@ -201,7 +187,7 @@ void sStr::shrink00( const char * separ, idx dozeros)
 
 }
 
-idx sStr::recCnt(bool skipEmpty /* = true */, char sep /* = 0 */)
+idx sStr::recCnt(bool skipEmpty, char sep)
 {
     idx qty = 0;
     sMex::Pos p;
@@ -213,7 +199,7 @@ idx sStr::recCnt(bool skipEmpty /* = true */, char sep /* = 0 */)
     return qty;
 }
 
-bool sStr::recNext(sMex::Pos & rec, bool skipEmpty /* = true */, char sep /* = 0 */)
+bool sStr::recNext(sMex::Pos & rec, bool skipEmpty, char sep)
 {
     const char * p;
     if( rec.pos == sIdxMax ) {
@@ -228,18 +214,17 @@ bool sStr::recNext(sMex::Pos & rec, bool skipEmpty /* = true */, char sep /* = 0
         }
     } else {
         p = ptr(rec.pos + rec.size);
-        // find end of separator
         for(; p < last(); ++p ) {
             if( sep && *p == sep ) {
             } else if( *p == '\n' || *p == '\r' ) {
                 if( *p == '\r' && (p < last()) && p[1] == '\n' ) {
-                    ++p; // \r\n one record
+                    ++p;
                 }
             } else {
                 break;
             }
             if( !skipEmpty ) {
-                ++p; // start of next record
+                ++p;
                 break;
             }
         }
@@ -248,7 +233,6 @@ bool sStr::recNext(sMex::Pos & rec, bool skipEmpty /* = true */, char sep /* = 0
         }
     }
     rec.pos = p - ptr(0);
-    // find end of new record
     while( p < last() && (sep ? *p != sep : (*p != '\n' && *p != '\r')) ) {
         ++p;
     }
@@ -256,7 +240,7 @@ bool sStr::recNext(sMex::Pos & rec, bool skipEmpty /* = true */, char sep /* = 0
     return length() > 0;
 }
 
-bool sStr::recNth(const idx offset, sMex::Pos & rec, bool skipEmpty /* = true */, char sep /* = 0 */)
+bool sStr::recNth(const idx offset, sMex::Pos & rec, bool skipEmpty, char sep)
 {
     idx qty = -1;
     while(offset >= 0) {

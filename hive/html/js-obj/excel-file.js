@@ -33,7 +33,6 @@ vjHO.register('excel-file').Constructor=function ()
     if (this.objCls) return;
     vjHiveObjectSvcBase.call(this);
 
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.mode = 'fullview';
@@ -68,10 +67,9 @@ vjHO.register('excel-file').Constructor=function ()
             formObject: formObject,
             urlExchangeParameter: function(url, arg, val) {
                 if (url.indexOf("qpbg_") != 0) {
-                    // do not change table_sheets URL
                     return url;
                 } else if (arg == "tbl") {
-                    return url.replace(new RegExp('^(qpbg_[^:]+://)[^/]+//'), "$1" + val + "//");
+                    return url.replace(new RegExp('^(qpbg_[^:]+:
                 } else if (arg == "start" || arg == "cnt") {
                     url = urlExchangeParameter(url, arg, val);
                     var start = parseInt(this.computeSubmitableValue("start", "0", url));
@@ -81,7 +79,6 @@ vjHO.register('excel-file').Constructor=function ()
                     if (!cnt)
                         cnt = 1000;
                     if (start + cnt < 100 && this.computeSubmitableValue("src", "-", url) != "-") {
-                        // +1 for header
                         url = urlExchangeParameter(url, "parseCnt", start + cnt + 1)
                     } else {
                         url = urlExchangeParameter(url, "parseCnt", "-");
@@ -93,9 +90,7 @@ vjHO.register('excel-file').Constructor=function ()
             },
             computeSubmitableValue: function(arg, def, url) {
                 if (arg == "tbl" && url.indexOf("qpbg_") == 0) {
-                    // /tblQry is a non-submittable node; the most convenient place to update its url
-                    // seems to be using this.evalVariables - and the best callback to update that is here :/
-                    var filename = url.split("//")[1];
+                    var filename = url.split("
                     this.evalVariables.tbl = filename ? filename : "-";
                     return filename;
                 } else {
@@ -157,7 +152,7 @@ vjHO.register('excel-file').Constructor=function ()
                     }, this);
                     this.redrawMenuView();
                 }
-                if (vjDS[this.data[1]].url == "static://") {
+                if (vjDS[this.data[1]].url == "static:
                     this_.readyPreview(defaultFilename);
                 }
             }
@@ -187,13 +182,13 @@ vjHO.register('excel-file').Constructor=function ()
         }
         panel.evalVariables.tbl = filename;
         var ds = this.makeDS("table_preview");
-        ds.reload("qpbg_tblqryx4://" + filename + "//cnt=20&parseCnt=21&objs=" + this.loadedID, true);
+        ds.reload("qpbg_tblqryx4:
     };
 
     this.addUrlSet({
         "table_sheets": {
             title: "Retrieving list of sheets",
-            active_url: "http://?cmd=propget&files=%2A.csv&mode=csv&prop=none",
+            active_url: "http:
             objs: "ids",
             header: "id,file,path,name"
         },
@@ -203,7 +198,7 @@ vjHO.register('excel-file').Constructor=function ()
     });
 
     this.urlSet["downloadables"].header = null;
-    this.urlSet["downloadables"].active_url = "http://?cmd=propget&files=%2A.csv&mode=csv&prop=orig_name";
+    this.urlSet["downloadables"].active_url = "http:
 
     this.tabs = {
         icons: ["table", "download"],

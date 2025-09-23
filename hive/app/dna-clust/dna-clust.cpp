@@ -43,9 +43,7 @@
 
 class validPositionList {
 private:
-    //sStr _buf;
     sVec<uint16_t> _posbuf;
-    //sStr _sumbuf;
     idx _delta;
     bool _needSummary;
     real _minFreq;
@@ -54,28 +52,28 @@ private:
         char consensus;
         char consensus0;
         char consensus1;
-        char totalFreq;
+        char maxFreq;
         positionSummary() { sSet(this, 0); }
     };
     sVec<positionSummary> _summaries;
 
     enum EPositionBits {
-        fFreq0 = 1 << 0, //!< at least one profile has A frequency at this position which is above noise floor
-        fFreq1 = 1 << 1, //!< at least one profile has C (T) frequency at this position which is above noise floor
-        fFreq2 = 1 << 2, //!< at least one profile has G frequency at this position which is above noise floor
-        fFreq3 = 1 << 3, //!< at least one profile has T (C) frequency at this position which is above noise floor
-        fFreq4 = 1 << 4, //!< at least one profile has In frequency at this position which is above noise floor
-        fFreq5 = 1 << 5, //!< at least one profile has Del frequency at this position which is above noise floor
-        fDeltaTotalFreqMeetsThreshold = 1 << 6, //!< at least one profile within delta of the position has a frequency which satisfies the threshold
-        fNotAllTotalFreqMeetsThreshold = 1 << 7, //!< not all profiles have SNP-relevantnt ACGTID frequencies which satisfy the threshold
-        fUsed = 1 << 8, //!< at least one profile has a record at this position
-        fSomeCoverage = 1 << 9, //!< at least one profile has coverage at this position which satisfies threshold
-        fNotAllCoverage = 1 << 10, //!< not all profiles have coverage at this position which satisfies threshold
-        fNotAllSameConsensus1 = 1 << 11, //!< not all consensus letters are equal (for single-base consensus)
-        fNotAllSameConsensus2 = 1 << 12, //!< all consensus letters are equal (for two-base consensus)
-        fNotAllSameConsensusReference = 1 << 13, //!< not all consensus letters match reference
-        fConsensusSet = 1 << 14, //!< consensus letter is set
-        fNotAllSameTotalFreq = 1 << 15 //!< not all profiles have the same total frequency
+        fFreq0 = 1 << 0,
+        fFreq1 = 1 << 1,
+        fFreq2 = 1 << 2,
+        fFreq3 = 1 << 3,
+        fFreq4 = 1 << 4,
+        fFreq5 = 1 << 5,
+        fDeltaMaxFreqMeetsThreshold = 1 << 6,
+        fNotAllMaxFreqMeetsThreshold = 1 << 7,
+        fUsed = 1 << 8,
+        fSomeCoverage = 1 << 9,
+        fNotAllCoverage = 1 << 10,
+        fNotAllSameConsensus1 = 1 << 11,
+        fNotAllSameConsensus2 = 1 << 12,
+        fNotAllSameConsensusReference = 1 << 13,
+        fConsensusSet = 1 << 14,
+        fNotAllSameMaxFreq = 1 << 15
     };
 
 public:
@@ -103,10 +101,8 @@ public:
         _summaries.mex()->flags = sMex::fBlockDoubling | sMex::fSetZero;
     }
 
-//     FIXME: need to reverse order of loops when setting
-//    void emptySummary() { _summaries.empty(); }
 
-    void set(idx recIdx, bool matchTotalFreq, bool hasFreq[6], bool matchCov, sBioseqSNP::SNPRecord &rec, real totalFreq)
+    void set(idx recIdx, bool matchMaxFreq, bool hasFreq[6], bool matchCov, sBioseqSNP::SNPRecord &rec, real maxFreq)
     {
         assert(recIdx >= 0);
 
@@ -118,7 +114,6 @@ public:
                 _summaries.resize(newsize);
             }
         }
-//printf("set @ %" DEC " : %d %d %c %c : %02x -> ", recIdx, matchFreq, matchCov, letter, consensus, (unsigned int)_buf[recIdx] << 24 >> 24);
 
         _posbuf[recIdx] |= fUsed;
 
@@ -128,12 +123,12 @@ public:
             }
         }
 
-        if( matchTotalFreq ) {
+        if( matchMaxFreq ) {
             for (idx pos = sMax<idx>(0, recIdx-_delta); pos <= recIdx+_delta; pos++) {
-                _posbuf[pos] |= fDeltaTotalFreqMeetsThreshold;
+                _posbuf[pos] |= fDeltaMaxFreqMeetsThreshold;
             }
         } else if( _needSummary ) {
-            _posbuf[recIdx] |= fNotAllTotalFreqMeetsThreshold;
+            _posbuf[recIdx] |= fNotAllMaxFreqMeetsThreshold;
         }
 
         if( matchCov ) {
@@ -147,7 +142,6 @@ public:
             char myconsensus0;
             char myconsensus1;
 
-            //for consensus consisting of two most frequent bases
             idx letNum0=-1, letNum1=-1;
             idx cnt0=0, cnt1=0;
             for (idx let=0; let<=3; let++) {
@@ -168,24 +162,22 @@ public:
 
             if (_posbuf[recIdx] & fConsensusSet) {
                 myconsensus = _summaries[recIdx].consensus;
-                //myconsensus0 = _summaries[recIdx].consensus0;
-                //myconsensus1 = _summaries[recIdx].consensus1;
 
-                if( _minFreq > 0 ) { //set freq to zero if it is below minFreq
-                    if( totalFreq * 100 < _minFreq )
-                        totalFreq = 0;
-                    if( _summaries[recIdx].totalFreq < _minFreq )
-                        _summaries[recIdx].totalFreq = 0;
+                if( _minFreq > 0 ) {
+                    if( maxFreq * 100 < _minFreq )
+                        maxFreq = 0;
+                    if( _summaries[recIdx].maxFreq < _minFreq )
+                        _summaries[recIdx].maxFreq = 0;
                 }
 
-                if (fabs(totalFreq * 100 - _summaries[recIdx].totalFreq) > 100) {
-                    _posbuf[recIdx] |= fNotAllSameTotalFreq;
+                if (fabs(maxFreq * 100 - _summaries[recIdx].maxFreq) > 100) {
+                    _posbuf[recIdx] |= fNotAllSameMaxFreq;
                 }
             } else {
                 _summaries[recIdx].consensus = rec.consensus;
                 _summaries[recIdx].consensus0 = (letNum0>=0)?(sBioseq::mapRevATGC[letNum0]):rec.consensus;
                 _summaries[recIdx].consensus1 = (letNum1>=0)?(sBioseq::mapRevATGC[letNum1]):rec.consensus;
-                _summaries[recIdx].totalFreq = 100 * totalFreq;
+                _summaries[recIdx].maxFreq = 100 * maxFreq;
                 _posbuf[recIdx] |= fConsensusSet;
             }
 
@@ -202,7 +194,6 @@ public:
             }
         }
 
-//printf("%02x (%02x %02x %s)\n", (unsigned int)_buf[recIdx] << 24 >> 24, HEXCHAR(_buf[recIdx] & 1), HEXCHAR(_buf[recIdx] & (1<<1)), meetsThreshold(recIdx) ? "ok" : "no");
     }
 
     inline idx dim() const { return _posbuf.dim(); }
@@ -215,14 +206,14 @@ public:
     bool meetsThreshold(idx recIdx, bool allowPartialCoverage) const
     {
         return isUsed(recIdx) &&
-               (_posbuf[recIdx] & fDeltaTotalFreqMeetsThreshold) &&
+               (_posbuf[recIdx] & fDeltaMaxFreqMeetsThreshold) &&
                (allowPartialCoverage ? (_posbuf[recIdx] & fSomeCoverage) : !(_posbuf[recIdx] & fNotAllCoverage));
     }
 
     bool meetsThresholdACGT(idx recIdx, idx acgtIdx, bool allowPartialCoverage) const
     {
         return isUsed(recIdx) &&
-               (_posbuf[recIdx] & fDeltaTotalFreqMeetsThreshold) &&
+               (_posbuf[recIdx] & fDeltaMaxFreqMeetsThreshold) &&
                (_posbuf[recIdx] & (fFreq0 << acgtIdx)) &&
                (allowPartialCoverage ? (_posbuf[recIdx] & fSomeCoverage) : !(_posbuf[recIdx] & fNotAllCoverage));
     }
@@ -251,12 +242,12 @@ public:
         return !(_posbuf[recIdx] & fNotAllSameConsensusReference);
     }
 
-    bool hasSameTotalFreq(idx recIdx) const
+    bool hasSameMaxFreq(idx recIdx) const
     {
         if (recIdx < 0 || recIdx >= dim())
             return false;
 
-        return !(_posbuf[recIdx] & fNotAllSameTotalFreq);
+        return !(_posbuf[recIdx] & fNotAllSameMaxFreq);
     }
 
     bool hasAllMeetFreqThreshold(idx recIdx) const
@@ -264,7 +255,7 @@ public:
         if (recIdx < 0 || recIdx >= dim())
             return false;
 
-        return !(_posbuf[recIdx] & fNotAllTotalFreqMeetsThreshold);
+        return !(_posbuf[recIdx] & fNotAllMaxFreqMeetsThreshold);
     }
 };
 
@@ -403,7 +394,7 @@ struct SNPprofileHandleSet
         {
             bool ret = true;
 
-            noiseCutoffs[0][0] = -1; // invalidate the cutoffs
+            noiseCutoffs[0][0] = -1;
 
             if( _is_heptagon ) {
                 if( _pool->validHandle(_heptagon_noise_handle) ) {
@@ -469,7 +460,6 @@ private:
         _iref = rhs._iref;
         _valid_position_lists = rhs._valid_position_lists;
 
-        /* rhs may have a different lifetime from us, so we need to request _file on our own */
         _file = 0;
         _buf_initialized = false;
         _buf = _bufend  = _buf_prev = 0;
@@ -576,7 +566,6 @@ public:
     sPooledSNPCSVFreqIter(const sPooledSNPCSVFreqIter &rhs) { init (rhs); }
     sPooledSNPCSVFreqIter& operator=(const sPooledSNPCSVFreqIter &rhs)
     {
-        // if we already are initialized and using a file, make sure to release it now
         releaseData_impl();
         init(rhs);
         return *this;
@@ -622,13 +611,15 @@ public:
         for(idx i=0; i<6; i++) {
             has_freq[i] = getDenoisedFreq(i);
         }
-        valid_position_lists[_iref].set(this->_rec.position, meetsThreshold(this->_totalFreq), has_freq, meetsCoverage(), this->_rec, this->_totalFreq);
+        valid_position_lists[_iref].set(this->_rec.position, meetsThreshold(this->_maxFreq), has_freq, meetsCoverage(), this->_rec, this->_maxFreq);
     }
+
+    inline real getMaxFreq() const { return this->_maxFreq; }
 
     inline bool hasSameConsensus() { return _valid_position_lists[_iref].hasSameConsensus(this->_rec.position); }
     inline bool hasSame2Consensus() { return _valid_position_lists[_iref].hasSame2Consensus(this->_rec.position); }
     inline bool hasSameConsensusReference() { return _valid_position_lists[_iref].hasSameConsensusReference(this->_rec.position); }
-    inline bool hasSameTotalFreq() { return _valid_position_lists[_iref].hasSameTotalFreq(this->_rec.position); }
+    inline bool hasSameMaxFreq() { return _valid_position_lists[_iref].hasSameMaxFreq(this->_rec.position); }
     inline bool hasAllMeetFreqThreshold() { return _valid_position_lists[_iref].hasAllMeetFreqThreshold(this->_rec.position); }
 };
 
@@ -641,6 +632,7 @@ protected:
     idx _iref;
     udx _pos;
     idx _total_pos;
+    idx _num_increments;
     char _c;
     bool _haveRec;
 
@@ -679,6 +671,7 @@ public:
         _iref = 0;
         _pos = 0;
         _total_pos = 0;
+        _num_increments = 0;
         _c = '-';
         _haveRec = false;
     }
@@ -691,6 +684,7 @@ public:
         _iref = rhs._iref;
         _pos = rhs._pos;
         _total_pos = rhs._total_pos;
+        _num_increments = rhs._num_increments;
         _c = rhs._c;
         _haveRec = rhs._haveRec;
     }
@@ -711,11 +705,13 @@ public:
     inline idx segment_impl() const { return _iref; }
     inline idx segmentPos_impl() const { return _pos; }
     inline idx pos_impl() const { return _total_pos; }
+    inline idx numIncrements() const { return _num_increments; }
     ShrunkIter* clone_impl() const { return new ShrunkIter(*this); }
     inline ShrunkIter& increment_impl()
     {
         _pos++;
         _total_pos++;
+        _num_increments++;
         if( _pos >= (udx)_valid_position_lists[_iref].dim() ) {
             _pos = 0;
             _iref++;
@@ -729,9 +725,23 @@ public:
     {
         return _c == '-' ? 0 : _it.getDenoisedFreq(atgcIndex);
     }
-    inline const sBioseqSNP::SNPRecord& getSNPRecord() const
+    inline real getMaxFreq() const
     {
-        return _it.getSNPRecord();
+        return _c == '-' ? 0 : _it.getMaxFreq();
+    }
+    inline idx coverage() const
+    {
+        return _c == '-' ? 0 : _it.getSNPRecord().coverage();
+    }
+    inline idx atgcCount(idx atgcIndex) const
+    {
+        if( _c == '-' || atgcIndex < 0 || atgcIndex >= 6 ) {
+            return 0;
+        } else if( atgcIndex < 4 ) {
+            return _it.getSNPRecord().atgc[atgcIndex];
+        } else {
+            return _it.getSNPRecord().indel[atgcIndex - 4];
+        }
     }
 };
 
@@ -740,14 +750,16 @@ static const char * algorithmNames =
     "fast-neighbor-joining" _
     "single-link" _
     "complete-link" _
-    "SNPcompare" __;
+    "SNPcompare" _
+    "shrunk-only" __;
 
 enum eAlgorithms {
     eNeighborJoining = 0,
     eFastNeighborJoining,
     eSingleLink,
     eCompleteLink,
-    eSNPcompare
+    eSNPcompare,
+    eShrunkOnly
 };
 
 enum eSNPCompareAlgorithms {
@@ -765,7 +777,6 @@ protected:
         DnaClust &_proc;
         idx _req;
 
-        // algorithmic parameters
         sVec<sHiveId> _profileIDs;
         sVec<sHiveId> _genomeIDs;
         sVec<idx> _references;
@@ -779,8 +790,20 @@ protected:
         bool _shrunkGenome;
         bool _shrunkSNPClass;
         bool _shrunkSNPPos;
+        bool _shrunkOnly;
+        enum {
+            eSaveShrunkSNP_frequency,
+            eSaveShrunkSNP_coverage
+        } _saveShrunkSNPClassCellType;
+        enum {
+            eSaveShrunkSNP_position,
+            eSaveShrunkSNP_atgc,
+            eSaveShrunkSNP_atgcindel
+        } _saveShrunkSNPClassColType;
+        sStr _shrunkSNPClassProfilesTitle;
+        qlang::ast::Node *_saveShrunkSNPClassColLabelTemplate;
+        qlang::ast::Node *_profileLabelTemplate;
 
-        // data and calculations
         sHiveseq * _referenceSeq;
         sVec<sPooledSNPCSVFreqIter> _iters;
         sFilPool _profilePool;
@@ -788,7 +811,6 @@ protected:
         sVec<validPositionList> _positionLists;
         sHierarchicalClustering * _clust;
 
-        // loadParams helpers
         bool loadProfileIDs();
         bool loadGenomeIDs();
         bool loadReferences();
@@ -831,6 +853,11 @@ protected:
             _shrunkGenome = false;
             _shrunkSNPClass = false;
             _shrunkSNPPos = false;
+            _shrunkOnly = false;
+            _saveShrunkSNPClassCellType = eSaveShrunkSNP_frequency;
+            _saveShrunkSNPClassColType = eSaveShrunkSNP_atgcindel;
+            _saveShrunkSNPClassColLabelTemplate = 0;
+            _profileLabelTemplate = 0;
         }
 
         ~DnaClustContext()
@@ -838,6 +865,8 @@ protected:
             delete _referenceSeq;
             delete _dist;
             delete _clust;
+            delete _saveShrunkSNPClassColLabelTemplate;
+            delete _profileLabelTemplate;
         }
 
         bool loadParams();
@@ -858,7 +887,6 @@ public:
     virtual idx OnExecute(idx);
 };
 
-// Print profiling job IDs as names in Newick/CSV output
 static idx nodePrintfCallback(sStr &out, sHierarchicalClustering &clust, idx x, void *param)
 {
     sVec <sHiveId> *idList = static_cast<sVec<sHiveId>*>(param);
@@ -887,9 +915,24 @@ bool DnaClust::DnaClustContext::saveExaminedReferences()
 
 bool DnaClust::DnaClustContext::loadProfileIDs()
 {
-    if (_proc.formHiveIdValues("profileID", &_profileIDs) < 0) {
+    if (_proc.formHiveIdValues("profileID", _profileIDs) <= 0) {
         _proc.logOut(eQPLogType_Error, "Empty profileID list for %" DEC " request; terminating\n", _req);
         _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Need a non-empty list of profiling results");
+        return false;
+    }
+
+    sUsrQueryEngine engine(*_proc.user);
+    sStr err;
+
+    const char * profileLabelTemplateString = _proc.formValue("profileLabelTemplate");
+    if( !profileLabelTemplateString || !*profileLabelTemplateString ) {
+        profileLabelTemplateString = "$(profile): $(profile.name)";
+    }
+
+    if( engine.parseTemplate(profileLabelTemplateString, 0, &err) ) {
+        _profileLabelTemplate = engine.getParser().releaseAstRoot();
+    } else {
+        _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Failed to parse profile label template: %s", err ? err.ptr() : "");
         return false;
     }
     return true;
@@ -897,7 +940,7 @@ bool DnaClust::DnaClustContext::loadProfileIDs()
 
 bool DnaClust::DnaClustContext::loadGenomeIDs()
 {
-    if (_proc.formHiveIdValues("referenceID", &_genomeIDs) < 0) {
+    if (_proc.formHiveIdValues("referenceID", _genomeIDs) <= 0) {
         _proc.logOut(eQPLogType_Error, "Empty referenceID genome list for %" DEC " request; terminating\n", _req);
         _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Need a non-empty list of reference genomes");
         return false;
@@ -911,7 +954,6 @@ bool DnaClust::DnaClustContext::loadReferences()
     sStr genomeIDsStr, errStr;
     sHiveId::printVec(genomeIDsStr, _genomeIDs, ";");
     _referenceSeq = new sHiveseq(_proc.user, genomeIDsStr.ptr(), sBioseq::eBioModeShort, false, false, &errStr);
-    //_referenceSeq->reindex();
     if (_referenceSeq->dim() < 1) {
         _proc.reqSetInfo(_req, eQPInfoLevel_Error, "No data found for reference genome IDs %s%s%s", genomeIDsStr.ptr(), errStr.length() ? ": " : "", errStr.length() ? errStr.ptr() : "");
         return false;
@@ -923,7 +965,6 @@ bool DnaClust::DnaClustContext::loadReferences()
     if (tmpstr && !strcmp(tmpstr, "zero"))
         incompleteOK = true;
 
-    // map from reference id to number of profiles using it (if >= 0); or -1 to ignore
     sVec<idx> allRefCounts(sMex::fExactSize);
     allRefCounts.resize(_referenceSeq->dim() + 1);
     allRefCounts[0] = -1;
@@ -950,19 +991,16 @@ bool DnaClust::DnaClustContext::loadReferences()
         }
     }
 
-    // Count in how many profiles is each reference present
     sVec<bool> incrementRefCounts(sMex::fExactSize);
     sStr profileRefsBuf;
     for (idx i=0; i<_profileIDs.dim(); i++) {
         sUsrFile profileObject(_profileIDs[i], _proc.user);
-        // handle both modern multivalue subSet and legacy ";"-delimeted single-value subSet
         profileRefsBuf.cut(0);
         if( const char * profileRefs = profileObject.propGet00("subSet", &profileRefsBuf, ";") ) {
             for(idx ic=0; ic<profileRefsBuf.length(); ic++) {
                 if( profileRefsBuf[ic] == ';' )
                     profileRefsBuf[ic] = 0;
             }
-            // Profile object has explicit list of references; take care to increment each count only once
             incrementRefCounts.resize(allRefCounts.dim());
             for(idx ref=0; ref<allRefCounts.dim(); ref++) {
                 incrementRefCounts[ref] = false;
@@ -979,7 +1017,6 @@ bool DnaClust::DnaClustContext::loadReferences()
                 }
             }
         } else {
-            // profile object used all references
             for(idx ref=1; ref<allRefCounts.dim(); ref++) {
                 if( allRefCounts[ref] >= 0 ) {
                     allRefCounts[ref]++;
@@ -988,10 +1025,6 @@ bool DnaClust::DnaClustContext::loadReferences()
         }
     }
 
-    /* If incompleteReferences is "zero", we use all requested subjects present in
-     * at least one profile (missing ones will be automatically treated as zero).
-     * If incompleteReferences is "skip", we use only those requested subects
-     * present in all profiles */
     for (idx ref=1; ref<allRefCounts.dim(); ref++) {
         if( allRefCounts[ref] > 0 && (incompleteOK || allRefCounts[ref] == _profileIDs.dim()) ) {
             _references.vadd(1, ref);
@@ -1019,37 +1052,41 @@ bool DnaClust::DnaClustContext::loadAlgorithm()
         _clust = new sCompleteLinkClustering;
         break;
     case eSNPcompare:
+    case eShrunkOnly:
         _clust = 0;
         break;
     default:
         _clust = new sNeighborJoining;
     }
 
-    sStr distanceName;
-    _proc.formValue("distance", &distanceName);
+    if( _clust ) {
+        sStr distanceName;
+        _proc.formValue("distance", &distanceName);
 
-    if (!strcmp(distanceName.ptr(), "manhattan"))
-        _dist = new sManhattanDist<real,sPooledSNPCSVFreqIter>();
-    else if (!strcmp(distanceName.ptr(), "maximum"))
-        _dist = new sMaximumDist<real,sPooledSNPCSVFreqIter>();
-    else if (!strcmp(distanceName.ptr(), "pnorm")) {
-        real p = _proc.formRValue("pValue");
-        if (p < 1.0) {
-            _proc.logOut(eQPLogType_Error, "Invalid pValue == %g, expected pValue >= 1.0 for %" DEC " request; terminating\n", p, _req);
-            _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Expected parameter p >= 1.0, but %g was given", p);
-            return false;
+        if( !strcmp(distanceName.ptr(), "manhattan") ) {
+            _dist = new sManhattanDist<real, sPooledSNPCSVFreqIter>();
+        } else if( !strcmp(distanceName.ptr(), "maximum") ) {
+            _dist = new sMaximumDist<real, sPooledSNPCSVFreqIter>();
+        } else if( !strcmp(distanceName.ptr(), "pnorm") ) {
+            real p = _proc.formRValue("pValue");
+            if( p < 1.0 ) {
+                _proc.logOut(eQPLogType_Error, "Invalid pValue == %g, expected pValue >= 1.0 for %" DEC " request; terminating\n", p, _req);
+                _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Expected parameter p >= 1.0, but %g was given", p);
+                return false;
+            }
+            _dist = new sPNormDist<real, sPooledSNPCSVFreqIter>(p);
+        } else if( !strcmp(distanceName.ptr(), "canberra") ) {
+            _dist = new sCanberraDist<real, sPooledSNPCSVFreqIter>();
+        } else if( !strcmp(distanceName.ptr(), "pearson") ) {
+            bool uncentered = _proc.formIValue("pearsonUncentered");
+            bool squared = _proc.formIValue("pearsonSquared");
+            _dist = new sPearsonDist<real, sPooledSNPCSVFreqIter>(uncentered, squared);
+        } else if( !strcmp(distanceName.ptr(), "cosine") ) {
+            _dist = new sCosineDist<real, sPooledSNPCSVFreqIter>();
+        } else {
+            _dist = new sEuclideanDist<real, sPooledSNPCSVFreqIter>();
         }
-        _dist = new sPNormDist<real,sPooledSNPCSVFreqIter>(p);
-    } else if (!strcmp(distanceName.ptr(), "canberra"))
-        _dist = new sCanberraDist<real,sPooledSNPCSVFreqIter>();
-    else if (!strcmp(distanceName.ptr(), "pearson")) {
-        bool uncentered = _proc.formIValue("pearsonUncentered");
-        bool squared = _proc.formIValue("pearsonSquared");
-        _dist = new sPearsonDist<real,sPooledSNPCSVFreqIter>(uncentered, squared);
-    } else if (!strcmp(distanceName.ptr(), "cosine"))
-        _dist = new sCosineDist<real,sPooledSNPCSVFreqIter>();
-    else // "euclidean" is the default
-        _dist = new sEuclideanDist<real,sPooledSNPCSVFreqIter>();
+    }
 
     return true;
 }
@@ -1088,6 +1125,47 @@ bool DnaClust::DnaClustContext::loadShrunk()
     _shrunkGenome = _proc.formBoolValue("saveShrunk");
     _shrunkSNPClass = _proc.formBoolValue("saveShrunkSNPClass");
     _shrunkSNPPos = _proc.formBoolValue("saveShrunkSNPPos");
+    _shrunkOnly = _proc.formBoolValue("saveShrunkOnly");
+
+    if( sIsExactly(_proc.formValue("saveShrunkSNPClassCellType"), "frequency") ) {
+        _saveShrunkSNPClassCellType = eSaveShrunkSNP_frequency;
+    } else if( sIsExactly(_proc.formValue("saveShrunkSNPClassCellType"), "coverage") ) {
+        _saveShrunkSNPClassCellType = eSaveShrunkSNP_coverage;
+    }
+
+    if( sIsExactly(_proc.formValue("saveShrunkSNPClassColType"), "position") ) {
+        _saveShrunkSNPClassColType = eSaveShrunkSNP_position;
+    } else if( sIsExactly(_proc.formValue("saveShrunkSNPClassColType"), "atgc") ) {
+        _saveShrunkSNPClassColType = eSaveShrunkSNP_atgc;
+    } else if( sIsExactly(_proc.formValue("saveShrunkSNPClassColType"), "atgcindel") ) {
+        _saveShrunkSNPClassColType = eSaveShrunkSNP_atgcindel;
+    }
+
+    _proc.formValue("saveShrunkSNPClassProfilesTitle", &_shrunkSNPClassProfilesTitle);
+    _shrunkSNPClassProfilesTitle.shrink00();
+    if( !_shrunkSNPClassProfilesTitle.length() ) {
+        _shrunkSNPClassProfilesTitle.addString("profile");
+    }
+
+    sUsrQueryEngine engine(*_proc.user);
+    sStr err;
+
+    const char * saveShrunkSNPClassColLabelTemplateString = _proc.formValue("saveShrunkSNPClassColLabelTemplate");
+    if( !saveShrunkSNPClassColLabelTemplateString || !*saveShrunkSNPClassColLabelTemplateString ) {
+        if( _saveShrunkSNPClassColType == eSaveShrunkSNP_position ) {
+            saveShrunkSNPClassColLabelTemplateString = "isub=$(isub) pos=$(position)";
+        } else {
+            saveShrunkSNPClassColLabelTemplateString = "isub=$(isub) pos=$(position) $(letter)";
+        }
+    }
+
+    if( engine.parseTemplate(saveShrunkSNPClassColLabelTemplateString, 0, &err) ) {
+        _saveShrunkSNPClassColLabelTemplate = engine.getParser().releaseAstRoot();
+    } else {
+        _proc.reqSetInfo(_req, eQPInfoLevel_Error, "Failed to parse shrunk SNP classification table column label template: %s", err ? err.ptr() : "");
+        return false;
+    }
+
     return true;
 }
 
@@ -1128,21 +1206,18 @@ void DnaClust::DnaClustContext::loadProfileIters()
         bool want_noise = false;
         if( _filterNoise ) {
             const char *profileNoiseFilterParams = profileObject.propGet("noiseFilterParams");
-            // Do not attempt to filter this profiler object's noise if it was already filtered during profiling
             if (!profileNoiseFilterParams || !strcmp(profileNoiseFilterParams, "none")) {
                 want_noise = true;
             }
         }
 
         if( profileObject.getFilePathname(profile_path, "SNPprofile.csv") ) {
-            // this is a heptagon profile with one snp file for all references
             num_files_opened = _profileHandles[i].initHeptagon(_proc, profileObject, &_profilePool, want_noise);
         } else {
             num_files_opened = _profileHandles[i].initHexagon(_proc, profileObject, &_profilePool, _references.ptr(), _references.dim(), want_noise);
         }
 
         if( !num_files_opened ) {
-            // nothing to do...
             _proc.logOut(sQPrideBase::eQPLogType_Info, "Skip profile %s, no relevant subjects\n", profileObject.Id().print());
             continue;
         }
@@ -1183,8 +1258,8 @@ bool DnaClust::DnaClustContext::calcSNPCompare()
             case eSNPCompareAlgorithm_CompareConsensus:
                 if (it.hasSameConsensusReference())
                     continue;
-                else { //if ((!it.hasSameConsensus())||(!it.hasSameTotalFreq()) || !it.hasAllMeetFreqThreshold())
-                    if ((!it.hasSameConsensus())||(!it.hasSameTotalFreq()))
+                else {
+                    if ((!it.hasSameConsensus())||(!it.hasSameMaxFreq()))
                         mismatch.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
                     else
                         match.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position); }
@@ -1192,21 +1267,18 @@ bool DnaClust::DnaClustContext::calcSNPCompare()
             case eSNPCompareAlgorithm_FreqCutOff:
                 if (it.hasSameConsensusReference())
                     continue;
-                //nothing.printf("%" DEC ",%u\r\n", subjectList[ir], it.getSNPRecord().position);
                 else {
-                    if ((!it.hasSameTotalFreq() || !it.hasAllMeetFreqThreshold()))
+                    if ((!it.hasSameMaxFreq() || !it.hasAllMeetFreqThreshold()))
                         mismatch.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
                     else
                         match.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
                 }
                 break;
             case eSNPCompareAlgorithm_Compare2Consensus:
-                //if (it.hasSameConsensusReference() || !it.hasAllMeetFreqThreshold())
                 if (it.hasSameConsensusReference())
                     continue;
-                //else { if ((!it.hasSame2Consensus())||(!it.hasSameTotalFreq()) || !it.hasAllMeetFreqThreshold())
                 else {
-                    if ((!it.hasSame2Consensus())||(!it.hasSameTotalFreq()))
+                    if ((!it.hasSame2Consensus())||(!it.hasSameMaxFreq()))
                         mismatch.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
                     else
                         match.printf("%" DEC ",%" UDEC "\r\n", _references[it.segment()], it.getSNPRecord().position);
@@ -1239,7 +1311,7 @@ bool DnaClust::DnaClustContext::calcShrunk()
     }
     if (_shrunkSNPPos) {
         shrunkSNPPosFile = new sFil;
-        if( !reqInitFile(*shrunkSNPClassFile, "shrunk-snp-per-position.csv") ) {
+        if( !reqInitFile(*shrunkSNPPosFile, "shrunk-snp-per-position.csv") ) {
             return false;
         }
     }
@@ -1250,15 +1322,20 @@ bool DnaClust::DnaClustContext::calcShrunk()
     sVec<sVariant> profileLabels;
     profileLabels.resize(_profileIDs.dim());
     for (idx i=0; i<_profileIDs.dim(); i++) {
-        queryText.cut(0);
-        queryText.printf("(\"%s\" as obj).name", _profileIDs[i].print());
+        if( _profileLabelTemplate ) {
+            sVariant profileID;
+            profileID.setHiveId(_profileIDs[i]);
+            engine.registerBuiltinValue("profile", profileID);
+            if( _profileLabelTemplate->run(engine.getContext()) ) {
+                profileLabels[i] = engine.getContext().getReturnValue();
+            }
+        }
 
-        if (engine.parse(queryText) && engine.eval(queryResult)) {
-            profileLabels[i].setSprintf("%s: %s", _profileIDs[i].print(), queryResult.asString());
-        } else {
+        if( !profileLabels[i].asBool() ) {
             profileLabels[i].setHiveId(_profileIDs[i]);
         }
     }
+    engine.getContext().removeBuiltin("profile");
 
     _proc.logOut(sQPrideBase::eQPLogType_Trace, "Finding reference names for shrunk genomes\n");
     sVec<const char *> referenceNames;
@@ -1271,23 +1348,42 @@ bool DnaClust::DnaClustContext::calcShrunk()
             referenceNames[ir]++;
     }
 
-    if (_shrunkSNPClass) {
-        // Print the header
-        _proc.logOut(sQPrideBase::eQPLogType_Trace, "Starting to print shrunk-snp-classification.csv\n");
-        shrunkSNPClassFile->printf("profile");
-        for (ShrunkIter it(_iters[0], _positionLists.ptr(), _references.dim(), !_thresholdAny); it.valid(); ++it) {
-            for (idx k=0; k<6; k++) {
-                sVariant columnLabel;
-                columnLabel.setSprintf("isub=%" DEC " pos=%" DEC " ", _references[it.segment()], it.getSNPRecord().position);
-                if (k<4)
-                    columnLabel.append("%c", sBioseq::mapRevATGC[k]);
-                else if (k == 4)
-                    columnLabel.append("ins");
-                else
-                    columnLabel.append("del");
+    const idx nShrunkSnpClassLetters = (_saveShrunkSNPClassColType == eSaveShrunkSNP_position) ? 1 : (_saveShrunkSNPClassColType == eSaveShrunkSNP_atgc) ? 4 : 6;
+    idx total_ref_size = 0;
+    for( idx i = 0; i < _positionLists.dim(); i++ ) {
+        total_ref_size += _positionLists[i].dim();
+    }
 
+    if (_shrunkSNPClass) {
+        _proc.logOut(sQPrideBase::eQPLogType_Trace, "Starting to print shrunk-snp-classification.csv\n");
+        sString::escapeForCSV(*shrunkSNPClassFile, _shrunkSNPClassProfilesTitle);
+
+        sVariant columnLabel;
+        sStr referenceName, letterStr;
+        for (ShrunkIter it(_iters[0], _positionLists.ptr(), _references.dim(), !_thresholdAny); it.valid(); ++it) {
+            for(idx k = 0; k < nShrunkSnpClassLetters; k++) {
+                engine.getContext().registerBuiltinIdxConst("isub", _references[it.segment()]);
+                referenceName.cutAddString(0, referenceNames[it.segment()]);
+                engine.getContext().registerBuiltinStringPtr("id", &referenceName, true);
+                engine.getContext().registerBuiltinIdxConst("position", it.segmentPos());
+                letterStr.cut0cut();
+                if( k < 4 ) {
+                    letterStr.addString((const char *)&sBioseq::mapRevATGC[k], 1);
+                } else if( k == 4 ) {
+                    letterStr.addString("ins");
+                } else {
+                    letterStr.addString("del");
+                }
+
+                columnLabel.setNull();
+                if( _saveShrunkSNPClassColLabelTemplate->run(engine.getContext()) ) {
+                    columnLabel = engine.getContext().getReturnValue();
+                }
                 shrunkSNPClassFile->printf(",");
                 columnLabel.print(*shrunkSNPClassFile, sVariant::eCSV);
+            }
+            if( it.numIncrements() % 16384 == 0 ) {
+                _proc.reqProgress(-1, it.pos(), total_ref_size * 3);
             }
         }
         shrunkSNPClassFile->printf("\r\n");
@@ -1296,11 +1392,9 @@ bool DnaClust::DnaClustContext::calcShrunk()
     sVec<real> freqsCache;
     for (idx i=0; i<_profileIDs.dim(); i++) {
         _proc.logOut(sQPrideBase::eQPLogType_Trace, "Finding shrunk for profile %s\n", _profileIDs[i].print());
-        // shrunk genome subsequence name
         if (_shrunkGenome)
             shrunkGenomeFile->printf("%s>%s\r\n", i?"\r\n":"", profileLabels[i].asString());
 
-        // row label for classification table
         if (_shrunkSNPClass)
             profileLabels[i].print(*shrunkSNPClassFile, sVariant::eCSV);
 
@@ -1312,11 +1406,31 @@ bool DnaClust::DnaClustContext::calcShrunk()
             if (_shrunkSNPClass || _shrunkSNPPos) {
                 for (idx k=0; k<6; k++) {
                     real freq = 100 * it.getDenoisedFreq(k);
-                    if (_shrunkSNPClass)
-                        shrunkSNPClassFile->printf((freq < 0.01) ? ",0" : ",%.2lf", freq);
-                    if (_shrunkSNPPos)
+                    if( _shrunkSNPClass && k < nShrunkSnpClassLetters ) {
+                        if( _saveShrunkSNPClassColType == eSaveShrunkSNP_position ) {
+                            if( _saveShrunkSNPClassCellType == eSaveShrunkSNP_frequency ) {
+                                real max_freq = 100 * it.getMaxFreq();
+                                shrunkSNPClassFile->printf((max_freq < 0.01) ? ",0" : ",%.2lf", max_freq);
+                            } else {
+                                idx coverage = it.coverage();
+                                shrunkSNPClassFile->printf(",%" DEC, coverage);
+                            }
+                        } else {
+                            if( _saveShrunkSNPClassCellType == eSaveShrunkSNP_frequency ) {
+                                shrunkSNPClassFile->printf((freq < 0.01) ? ",0" : ",%.2lf", freq);
+                            } else {
+                                idx atgcCount = it.atgcCount(k);
+                                shrunkSNPClassFile->printf(",%" DEC, atgcCount);
+                            }
+                        }
+                    }
+                    if( _shrunkSNPPos ) {
                         freqsCache.vadd(1, freq);
+                    }
                 }
+            }
+            if( it.numIncrements() % 16384 == 0 ) {
+                _proc.reqProgress(-1, total_ref_size + it.pos(), total_ref_size * 3);
             }
         }
 
@@ -1326,7 +1440,6 @@ bool DnaClust::DnaClustContext::calcShrunk()
 #ifdef _DEBUG
         printf("\tShrunk %s to %" DEC " positions\n", _profileIDs[i].print(), shrunkPos);
 #endif
-        // Sanity check
         if (shrunkSize >= 0 && shrunkSize != shrunkPos) {
             _proc.logOut(eQPLogType_Error, "Inconsistent shrunk genome lengths for %" DEC " request; terminating\n", _req);
             _proc.reqSetInfo(_req, eQPInfoLevel_Error, DNA_CLUST_DEFAULT_ERROR);
@@ -1338,7 +1451,6 @@ bool DnaClust::DnaClustContext::calcShrunk()
 
     if (_shrunkSNPPos) {
         _proc.logOut(sQPrideBase::eQPLogType_Trace, "Starting to print shrunk-snp-per-position.csv\n");
-        // Print the header
         shrunkSNPPosFile->printf("isub,position,letter");
         for (idx i=0; i<_profileIDs.dim(); i++) {
             shrunkSNPPosFile->printf(",");
@@ -1350,8 +1462,7 @@ bool DnaClust::DnaClustContext::calcShrunk()
 
         for (ShrunkIter it(_iters[0], _positionLists.ptr(), _references.dim(), !_thresholdAny); it.valid(); ++it, shrunkPos++) {
             for (idx k=0; k<6; k++) {
-                // Print the row label
-                shrunkSNPPosFile->printf("%" DEC ",%" UDEC ",", _references[it.segment()], it.getSNPRecord().position);
+                shrunkSNPPosFile->printf("%" DEC ",%" UDEC ",", _references[it.segment()], it.segmentPos());
                 if (k<4)
                     shrunkSNPPosFile->printf("%c", sBioseq::mapRevATGC[k]);
                 else if (k == 4)
@@ -1359,12 +1470,14 @@ bool DnaClust::DnaClustContext::calcShrunk()
                 else
                     shrunkSNPPosFile->printf("del");
 
-                // Print transposed shrunk frequency table row
                 for (idx ip=0; ip<_profileIDs.dim(); ip++) {
                     real freq = freqsCache[6*(shrunkSize * ip + shrunkPos) + k];
                     shrunkSNPPosFile->printf((freq < 0.01) ? ",0" : ",%.2lf", freq);
                 }
                 shrunkSNPPosFile->printf("\r\n");
+            }
+            if( it.numIncrements() % 16384 == 0 ) {
+                _proc.reqProgress(-1, total_ref_size * 2 + it.pos(), total_ref_size * 3);
             }
         }
     }
@@ -1449,7 +1562,6 @@ idx DnaClust::OnExecute(idx req)
     }
 #endif
 
-    // FIXME : for debugging in release mode
     setupLog(true, sQPrideBase::eQPLogType_Trace);
 
     DnaClustContext ctx(*this, req);
@@ -1474,7 +1586,7 @@ idx DnaClust::OnExecute(idx req)
 
     if (ctx.getAlgorithm() == eSNPcompare) {
         ctx.calcSNPCompare();
-        sQPrideBase::reqProgress(reqId, 0, -1, 100, 100); // force progress to 100% when done
+        sQPrideBase::reqProgress(reqId, 0, -1, 100, 100);
         reqSetStatus(req, eQPReqStatus_Done);
         return 0;
     }
@@ -1490,16 +1602,21 @@ idx DnaClust::OnExecute(idx req)
         progress100Start = 33;
     }
 
-    progress100End = 99;
-    if (!ctx.calcClust()) {
-        reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0;
+    if( ctx.getAlgorithm() != eSNPcompare && ctx.getAlgorithm() != eShrunkOnly ) {
+        progress100End = 99;
+
+        if( !ctx.calcClust() ) {
+            reqSetStatus(req, eQPReqStatus_ProgError);
+            return 0;
+        }
+
+        progress100Start = 99;
     }
 
     progress100Start = 0;
     progress100End = 100;
-    sQPrideBase::reqProgress(reqId, 0, -1, 100, 100); // force progress to 100% when done
-    reqSetStatus(req, eQPReqStatus_Done); // change the status
+    sQPrideBase::reqProgress(reqId, 0, -1, 100, 100);
+    reqSetStatus(req, eQPReqStatus_Done);
     return 0;
 }
 
@@ -1508,7 +1625,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     DnaClust backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-clust",argv[0]));
     return (int)backend.run(argc,argv);

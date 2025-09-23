@@ -34,36 +34,29 @@ using namespace slib;
 
 void sBioseqSet::attach(sBioseq * bioseq, idx seqNum, idx seqCnt, idx partialRangeStart, idx partialRangeEnd)
 {
-    // adjust the number of sequences being pushed here
     idx seqlongCnt = seqCnt, seqshortCnt = seqCnt;
     if(!seqCnt || seqCnt>bioseq->dim() ){
         seqCnt=bioseq->dim();
     }
     seqlongCnt = bioseq->getlongCount();
     seqshortCnt = bioseq->getshortCount();
-//    }
 
-    // attach a new sBioseq to our sBioseqSet
-    // we do it in reverse because the last element
-    // will frequently be the one which is adding more sequences
     idx ib=0;
     for ( ib=biosR.dim()-1; ib>=0 && biosR[ib]!=bioseq; --ib)
         ;
-    if(ib<0){ // couldn't find this sBioseq ... a new one, perhaps
+    if(ib<0){
         biosR.vadd(1,bioseq);
         ib=biosR.dim()-1;
     }
 
-    // for select its last element
     RefSeq  * rs=0;
 
     if( refs.dim()>0 ){
-        // compare if we can just concatenate this with the last element
         rs=refs.ptr(refs.dim()-1);
-        if( rs->bioNum==ib &&  // same sequence
-            rs->seqNum+rs->seqCnt==seqNum && // the next sequence in range is being added  ?
-            rs->partialRangeStart==partialRangeStart && // same range start
-            rs->partialRangeEnd==partialRangeEnd // same range end
+        if( rs->bioNum==ib &&
+            rs->seqNum+rs->seqCnt==seqNum &&
+            rs->partialRangeStart==partialRangeStart &&
+            rs->partialRangeEnd==partialRangeEnd
             ){
             rs->seqCnt+=seqCnt;
             rs->longseqCnt += seqlongCnt;
@@ -72,7 +65,7 @@ void sBioseqSet::attach(sBioseq * bioseq, idx seqNum, idx seqCnt, idx partialRan
         else rs=0;
     }
 
-    if( !rs ){ // otherwise we add the value
+    if( !rs ){
         rs=refs.add();
         rs->bioNum=ib;
         rs->seqNum=seqNum;
@@ -93,13 +86,13 @@ sBioseq * sBioseqSet::ref(idx * inum, idx *seqCnt, idx mode)
 {
     idx ir,cnt;
     RefSeq * rs;
-    if( seqInd.dim() && mode<0 ) { // if it has been indexed
+    if( seqInd.dim() && mode<0 ) {
         ir=seqInd[(*inum)];
         (*inum)=(ir&0xFFFFFFFF);
         rs=refs.ptr( (ir>>32)&0xFFFFFFFF );
         return biosR[rs->bioNum];
     }
-    else { // if it has not been indexed
+    else {
         idx tDim=0;
         for(ir=0; ir<refs.dim(); ++ir ) {
             rs=refs.ptr(ir);
@@ -115,7 +108,6 @@ sBioseq * sBioseqSet::ref(idx * inum, idx *seqCnt, idx mode)
             }
         }
     }
-    // If I could not find it, but is a vioseqlist (cause totDimVioseqlist is not 0) , then return pointer to biosR[0]
     if (totDimVioseqlist > 0){
         return biosR[0];
     }

@@ -90,12 +90,6 @@ idx sVioDBCGI::Cmd(const char * cmd)
     ctype[4] = "other";
 
 
-    //"vioDBPath=ababa&vioDBFileFlag=test&cmd=vdbGetTypeCnt"
-    //"vioDBPath=ababa&vioDBFileFlag=test&cmd=vdbGetRecordCnt&typeIndex=1"
-    //"vioDBPath=ababa&vioDBFileFlag=test&cmd=vdbGetRelationCnt&typeIndex=1&recordIndex=1"
-    //"vioDBPath=ababa&vioDBFileFlag=test&cmd=vdbGetRecordList&cnt=20&typeIndex=3&start=100"
-    //"vioDBPath=ababa&vioDBFileFlag=test&cmd=vdbGetReLationList&cnt=20&typeIndex=3&start=100"
-    //"ids=10303&cmd=vdbGetHeader&sessionID=user186"
 
     if( cmdnum == -1 ) {
         return sCGI::Cmd(cmd);
@@ -118,7 +112,7 @@ idx sVioDBCGI::Cmd(const char * cmd)
         }
 
 
-        std::auto_ptr<sUsrObj> infile(user->objFactory(objid));
+        std::unique_ptr<sUsrObj> infile(user->objFactory(objid));
         if( infile->Id() ) {
             const char * file = pForm->value("file", "");
             const char * ext = pForm->value("ext", "");
@@ -177,7 +171,7 @@ idx sVioDBCGI::Cmd(const char * cmd)
             }
             for(idx i=0;i<typeCnt;i++){
                 sVioDB::TypeList * typelist_type=db.GetTypePointer(i+1);
-                idx relCnt=typelist_type->relCnt;//sizeof(typelist_type->rels)/(sizeof(sVioDB::RLST));
+                idx relCnt=typelist_type->relCnt;
                 buf.printf("%" DEC ",%s,%s,%" DEC ",%" DEC ",\"",typelist_type->index,(const char *)&typelist_type->tnameOfs,ctype[(typelist_type->ctype)-1],relCnt,typelist_type->cnt);
                 sVec < idx > rels;rels.add(relCnt);
                 for(idx j=0;j<relCnt;j++){
@@ -268,7 +262,6 @@ idx sVioDBCGI::Cmd(const char * cmd)
         }return 1;
         case eGetRecordDetail:{
             sStr buf;
-      //      buf.printf(0,"typeName,ctype,recordIndex,bodysize,body\n");
             buf.printf(0,"Index,content\n");
             if(typeIndex>0 && recordIndex >0){
                 sVioDB::TypeList * typelist_type=db.GetTypePointer(typeIndex);
@@ -303,5 +296,5 @@ idx sVioDBCGI::Cmd(const char * cmd)
         } return 1;
         default:break;
     };
-    return sCGI::Cmd(cmd ); // let the underlying Management code to deal with untreated commands
+    return sCGI::Cmd(cmd );
 }

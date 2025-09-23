@@ -18,7 +18,7 @@
 <!--  <script src="js-obj-new/svc-dna-insilico.js"></script>-->
 <script type="application/javascript">
 
-setLocationTitle("dna-insilico: HIVE");
+setLocationTitle("Insilico sequence generator: HIVE");
 
 
 var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
@@ -33,8 +33,10 @@ var algoProcess=new valgoProcess(thisProcessID,  process_qpsvc, process_svc);
 algoProcess.visibleParameters=["name","inSilicoGeneral","inSilicoOutput", "inSilicoEntry"];                                 
 if (thisQuery)
 {
-    algoProcess.initialPresets = { inSilicoSourceObjId: thisQuery,
-                                    name: "query:s=["+thisQuery+"] as objlist; return s[0].name;"};
+    let thisQuery1 = '"' + thisQuery.replace(/,/g, '","') + '"';
+    algoProcess.initialPresets = {
+        inSilicoSourceObjId: thisQuery,
+        name: "query:s=[" + thisQuery1 + "] as objlist; return s[0].name;"};
 }
 algoProcess.autoexpand= thisProcessID.length ? "all" : 1 ; 
 algoProcess.noResultViewers = true;
@@ -72,20 +74,42 @@ algoProcess.doneComputing = function (viewer, reqid, stat)
      if(stat>=5) {
         var exposeAlignments = vjDV[algoProcess.recViewerName].getElement("storeAlignments");
         if (exposeAlignments && exposeAlignments.value != 0){
-            valgoToolbarDoneList= //<!-- type,align,order,name,title,icon,path,url,description // -->
-                ",right,2,alignment,Aligning Tools,img-algo/dna-tools.gif,/alignment,,Reference based assembly and profiling analysis\n"+
-                ",right,2,aligner,Hexagon Alignment,img-algo/hive-hexagon.gif,/alignment/aligner,?cmd=dna-hexagon-new&id=$(::thisProcessID),Proceed to alignment, Alignment, etc...\n";
+
+            valgoToolbarDoneList = [
+                {
+                    type: '',
+                    align: 'right',
+                    order: '2',
+                    name: 'alignment',
+                    title: 'Aligning Tools',
+                    icon: 'img-algo/dna-tools.gif',
+                    path: '/alignment',
+                    url: '',
+                    description: 'Reference based assembly and profiling analysis'
+                },
+                {
+                    type: '',
+                    align: 'right',
+                    order: '2',
+                    name: 'aligner',
+                    title: 'Hexagon Alignment',
+                    icon: 'img-algo/hive-hexagon.gif',
+                    path: '/alignment/aligner',
+                    url: '?cmd=dna-hexagon&id=$(::thisProcessID)',
+                    description: 'Proceed to alignment, Alignment, etc...'
+                }
+            ]
         }
     }
 }
 
-$(document).ready(function() 
-{
+gInitList += "insilicoInit();";
+function insilicoInit () {
     globalAlgo = $('#mainAlgoArea').algoview({
         algoObj: algoProcess,
         svcType: "svc-dna-insilico",
-        algoTitle: "dna-insilico"
+        algoTitle: "Insilico sequence generator"
     });
-});
+};
 </script>
 

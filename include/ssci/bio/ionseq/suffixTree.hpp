@@ -46,7 +46,6 @@ namespace slib
             idx link;
             idx edge;
             idx _id;
-//            sNode (const sNode &);
             const sNode & operator= (const sNode &);
 
         public:
@@ -67,11 +66,6 @@ namespace slib
             {
             }
 
-//            void init (sEdge *e){
-//                isRoot = false;
-//                isLeaf = true;
-//                edge = e
-//            }
 
             void init (idx edgePos){
                 init (false, false, true);
@@ -113,34 +107,6 @@ namespace slib
             void serialize(sStr *out, sDic <idx> *transMap, sVec <sEdge> *map, sVec <idx> *words, sStr *wordContainer, sVec <sNode>*nodeArray);
 
 
-//        public:
-//            idx startNode;
-//            idx endNode;
-//            idx startStringPos;
-//            idx endStringPos;
-//
-//
-//            sStr *stringContainer;
-//        public:
-//            void init(idx stNode = -1, idx edNode = 0, idx startStrPos = 0, idx endStrPos = 0){
-//               startNode = stNode;
-//               endNode = edNode;
-//               startStringPos = startStrPos;
-//               endStringPos = endStrPos;
-//            }
-//
-//            // New edge is created, node is not assigned
-//            TreeEdge(){
-//                init (-1, 0, 0, 0);
-//            }
-//            TreeEdge(idx start, idx end, idx first, idx last){
-//                init (start, end, first, last);
-//            }
-//
-//            // Destructor
-//            ~TreeEdge(){
-//
-//            }
 
     };
 
@@ -216,36 +182,6 @@ namespace slib
             }
 
     };
-//    class LastPosTree
-//    {
-//        public:
-//            idx rootNode;   // Root of suffix tree
-//            idx startIndex; // start of the string
-//            idx endIndex;   // end of the string
-//
-//            LastPosTree(){
-//                rootNode=0;
-//                startIndex = -1;
-//                endIndex = -1;
-//            }
-//            LastPosTree (idx root, idx start, idx end){
-//                rootNode = root;
-//                startIndex = start;
-//                endIndex = end;
-//            }
-//
-//            bool endTree(){
-//                return startIndex > endIndex;
-//            }
-//
-//            bool endSubTree(){
-//                return endIndex >= startIndex;
-//            }
-//
-//            void print(sStr *inputString){
-//                ::printf("rootNode:%" DEC " startIndex:%" DEC " %c", rootNode, startIndex, inputString->ptr(startIndex)[0]);
-//            }
-//    };
 
     class SuffixTree
     {
@@ -258,9 +194,9 @@ namespace slib
 
             idx rootNode;
             idx expNode;
-            sVec <sNode> nodeArray; // Nodes container
-            sVec <sEdge> edgeArray; // Container of sEdges
-            sDic<idx> edgeList; // dictionary of edgeArray info
+            sVec <sNode> nodeArray;
+            sVec <sEdge> edgeArray;
+            sDic<idx> edgeList;
             idx countNodes;
             sStr wordsContainer;
             sVec <idx> words;
@@ -270,7 +206,6 @@ namespace slib
 
         public:
             SuffixTree (){
-                // Add a new node
                 countNodes = 0;
                 edgeArray.cut(0);
                 nodeArray.cut(0);
@@ -302,7 +237,7 @@ namespace slib
                 out->addString("key\tStartNode\tEndNode\t\tSuffixLink\t\tFirstIndex\tLastIndex\tString\n");
                 idx idlen;
                 for (idx i = 0; i < edgeList.dim(); ++i){
-                    idx *val = edgeList.ptr(i); // iterate over all values
+                    idx *val = edgeList.ptr(i);
                     if (val && *val >= 0){
                         sEdge *e = edgeArray.ptr(*val);
                         idx *ival = static_cast<idx *>(edgeList.id(i, &idlen));
@@ -345,14 +280,12 @@ namespace slib
 
             static idx getHashKey(idx num, idx character)
             {
-//                idx hashkey = (node + ((character) << 59)); // very simple hashkey
                 idx hashkey = num * 100 + character;
                 return hashkey;
             }
 
             static idx getHashKey(idx num, char character)
             {
-//                idx hashkey = (node + ((character) << 59)); // very simple hashkey
                 idx hashkey = num * 100 + numFromLetter(character);
                 return hashkey;
             }
@@ -375,7 +308,6 @@ namespace slib
             sEdge *setNewEdge(sNode *exp, sNode*root, idx start, idx end, idx hkey, idx iword){
                 sEdge *ne = edgeArray.add(1);
                 ne->init(exp, root, start, end, iword);
-                // register the key in dictionary
                 registerKey(hkey);
                 return ne;
             }
@@ -453,7 +385,6 @@ namespace slib
                 char zeroChar = 0;
                 idx prevCnt = stack->dim();
                 for (idx i = 0; i < 128; ++i){
-                    // For all the characters
                     if (i >= 97 && i <= 122){
                         continue;
                     }
@@ -469,87 +400,8 @@ namespace slib
                 return stack->dim() - prevCnt;
             }
 
-//            sVec <TreeEdge> edgeArray;
-//            sDic <idx> edgeList;
-//            idx lastEdge;
-//            sStr inputString;
-//            idx inputLength;
-//            idx numNodes;
-////            LastPosTree *lastPos;
-//
-//            void insertEdge (TreeEdge *edge){
-//                idx key = getHashKey(edge->startNode, inputString[edge->startStringPos]);
-//                idx edgepos = edge - edgeArray.ptr();
-//                idx * myedge = edgeList.get(&key, 1);
-//                if (myedge){
-//                    *myedge = edgepos;
-//                }
-//                else {
-//                    *edgeList.set(&key, 1) = edgepos;
-//                }
-//            }
-//
-//            void removeEdge (TreeEdge *edge){
-//                idx key = getHashKey(edge->startNode, inputString[edge->startStringPos]);
-//
-//                idx * myedge = edgeList.get(&key, 1);
-//                if (myedge){
-//                    *myedge = -1;
-//                }
-//            }
-//            void movetoClosestParent(LastPosTree *lastPos);
-//            idx splitEdge(LastPosTree &e, idx edgepos);
-//
-//
-//        public:
-//            SuffixTree(const char *s, idx slen = 0){
-//                numNodes = 0;
-//                inputString.printf(0,"%s", s);
-//
-//                if(slen){
-//                    inputLength = slen;
-//                }
-//                else {
-//                    inputLength = inputString.length();
-//                }
-//                nodeArray.resize(inputLength);
-//            }
-//
-//            void createTree(LastPosTree &tree, idx lastIndex);
-//
-//            void insert(const char *str, idx len = 0);
-//            void printAllEdges(sStr *out);
-//            bool search(const char *searchString, idx stringlen);
-//
-//            idx getHashKey (idx node, idx character){
-//                idx hashkey = (node + ((character) << 59)); // very simple hashkey
-//                return hashkey;
-//            }
-//
-//            idx findLocalEdge (sDic <idx> *dic, idx node, char asciiChar){
-//                idx key = getHashKey(node, asciiChar);
-//                idx * myedge = dic->get(&key, 1);
-//                if (myedge){
-//                    return *myedge;
-//                }
-//                return -1;
-//            }
-//
-//            TreeEdge * findEdge(idx startNode, char character){
-//                idx edgePos = findLocalEdge (&edgeList, startNode, character);
-//                TreeEdge *e = 0;
-//                if (edgePos < 0){
-//                    return 0;
-////                    e = edgeArray.add(1);
-////                    e->init(-1, edgeArray.dim(), -1, -1);
-//                }
-//                else {
-//                    e = edgeArray.ptr(edgePos);
-//                }
-//                return e;
-//            }
 
     };
 
 }
-#endif // sMath_suffixTree_hpp
+#endif 

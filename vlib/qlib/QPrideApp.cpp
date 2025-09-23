@@ -57,7 +57,7 @@ idx QAppProc::OnExecute(idx req)
     }
     printf(":::::::::::%s\n", exec);
     if( !exec || *exec == 0 ) {
-        return 0; // nothing to do
+        return 0;
     }
     sCmdLine cmd;
     cmd.parse(exec);
@@ -83,7 +83,7 @@ int main(int argc, const char * argv[])
     }
     if( sString::parseBool( cmd.next("-daemon") ) ) {
         sStr tmp;
-        sApp::args(argc, argv); // remember arguments in global for future
+        sApp::args(argc, argv);
         QAppProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "qapp", argv[0]));
         return (int) backend.run(argc, argv);
     }

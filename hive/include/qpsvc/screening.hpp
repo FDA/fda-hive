@@ -38,12 +38,12 @@ class DnaScreening: public sQPSvc
         typedef sQPSvc TParent;
     public:
         enum eBranch{
-            eHeaxoganVsRepre =0,
+            eHexagonVsRepre = 0,
             eBlastVsNT,
             eOther
         };
 
-        DnaScreening(sQPride& qp, const sHiveId & objId, const eBranch branch = eHeaxoganVsRepre);
+        DnaScreening(sQPride& qp, const sHiveId & objId, const eBranch branch = eHexagonVsRepre);
         virtual ~DnaScreening();
 
         virtual const char* getSvcName() const
@@ -52,7 +52,7 @@ class DnaScreening: public sQPSvc
         }
         void setObjId(const sHiveId & objId);
         void setFile(const char * file, ...) __attribute__((format(printf, 2, 3)));
-        void setAlgorithm(const eBranch branch = eHeaxoganVsRepre);
+        void setAlgorithm(const eBranch branch = eHexagonVsRepre);
 };
 
-#endif // DnaScreening_hpp
+#endif 

@@ -36,14 +36,14 @@ namespace slib {
     enum ePerm
     {
         ePermNone           = 0x00000000,
-        ePermCanBrowse      = 0x00000001, // checked when accessed by type
+        ePermCanBrowse      = 0x00000001,
         ePermCanRead        = 0x00000002,
         ePermCanWrite       = 0x00000004,
         ePermCanExecute     = 0x00000008,
         ePermCanDelete      = 0x00000010,
         ePermCanAdmin       = 0x00000020,
         ePermCanShare       = 0x00000040,
-        ePermCanDownload    = 0x00000080, //!< permission to list and download object files; checked by sUsrObj::fileProp() and by sUsrCGI::file()
+        ePermCanDownload    = 0x00000080,
         ePermMask           = 0x000000FF,
         ePermCompleteAccess = 0xFFFFFFFF
     };
@@ -59,10 +59,8 @@ namespace slib {
         eFlagDefault = eFlagInheritDown
     };
 
-    //! read |-delimeted list of permissions
     udx permPermParse(const char * src, idx len=0);
 
-    //! read |-delimeted list of permission flags
     udx permFlagParse(const char * src, idx len=0);
 
     char * permPrettyPrint(sStr &dst, const udx perm, const udx flags);
@@ -70,4 +68,4 @@ namespace slib {
     void permPretty2JSON(sJSONPrinter & printer, udx num_group, const char * pretty_group, const char * perm_pretty_print, udx perm_perm = 0, udx perm_flags = 0);
 };
 
-#endif // sLib_uperm_h
+#endif 

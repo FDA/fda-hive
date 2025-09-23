@@ -35,7 +35,7 @@
 #include <zip.h>
 #endif
 
-sRC dmRemoteFile::getFile(const char * filename, idx * size /* = 0 */, const char * wget_opts /* = 0 */, const char * url /* = 0 */, ...)
+sRC dmRemoteFile::getFile(const char * filename, idx * size, const char * wget_opts, const char * url, ...)
 {
     sRC rc;
     sStr surl;
@@ -48,7 +48,6 @@ sRC dmRemoteFile::getFile(const char * filename, idx * size /* = 0 */, const cha
         if( size ) {
             *size = 0;
             if( !isRecursive ) {
-                // this request is not essential so we shorten the timeout
                 sStr cmd("wget --no-check-certificate --timeout=450 --spider '%s' 2>&1", surl.ptr());
                 sIO spider;
                 idx ret = sPipe::exeFS(&spider, cmd, 0, m_callback, m_callbackParam, 0, m_callbackSecs);
@@ -168,7 +167,7 @@ bool dmLib::File::init(const char * path, const char * name)
     return _location;
 }
 
-bool dmLib::unpack(const char * path, const char * name /* = 0 */, sStr * log /* = 0 */, sStr * msg /* = 0 */, callbackFunc callb /* = 0 */, void * callbParam /* = 0 */, idx callbsecs /* = 10 */)
+bool dmLib::unpack(const char * path, const char * name, sStr * log, sStr * msg, callbackFunc callb, void * callbParam, idx callbsecs)
 {
     if( path && path[0] && (sDir::exists(path) || sFile::exists(path)) ) {
         sStr dummy;
@@ -186,7 +185,6 @@ bool dmLib::unpack(const char * path, const char * name /* = 0 */, sStr * log /*
         if( callb ) {
             start_size = sDir::size(dd);
         }
-        // final report on top level, with '-' to force update
         if( !collect(path, sFilePath::nextToSlash(name ? name : path), *log, *msg, 0, callb, callbParam, callbsecs) ||
             ( callb && !callb(callbParam, start_size - sDir::size(dd)) ) ) {
             msg->printf("Interrupted by user\n");
@@ -218,7 +216,6 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
     if( sDir::exists(path) ) {
         log.printf("%4" DEC " directory '%s' meta: '%s'\n", level, path, meta);
         sDir dir;
-        // follow links only on top level since actual request to process data could consist of links
         const idx links = level ? sFlag(sDir::bitNoLinks) : 0;
         dir.find(sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs) | links, path, "*");
         sStr m(sMex::fExactSize);
@@ -235,7 +232,6 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
     } else {
         static sDic<sStr> decompressors;
         if( !decompressors.dim() ) {
-            // when adding new tool check if its successful exit code is zero and adjust command line!!!
             decompressors.set(".bz2")->printf("bzip2 -cd \"%%s\" >\"%%s\"");
             decompressors.set(".bzip2")->printf("bzip2 -cd \"%%s\" >\"%%s\"");
             decompressors.set(".tbz2")->printf("bzip2 -cd \"%%s\" >\"%%s.tar\"");
@@ -244,23 +240,18 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
             decompressors.set(".tgz")->printf("gzip -cd \"%%s\" >\"%%s.tar\"");
             decompressors.set(".tar")->printf("tar --overwrite -xvf \"%%s\"");
             decompressors.set(".zip")->printf("unzip -o \"%%s\"");
-#if HAS_SRA // more like if whole adoption is present
-            decompressors.set(".sra")->printf("sra2fastq.os" SLIB_PLATFORM" \"%%s\"");
+#if HAS_SRA             decompressors.set(".sra")->printf("sra2fastq.os" SLIB_PLATFORM" \"%%s\"");
             decompressors.set(".bam")->printf("samtools view -h \"%%s\" > \"%%s.sam\"");
             decompressors.set(".bcl")->printf("bcl2fastq2.sh.os" SLIB_PLATFORM" \"%%s\" \"%%s\"");
-            // TODO decompressors.set(".fast5")->printf("poretools fastq \"%%s\" \"%%s\"");
 #endif
             decompressors.set(".hivepack-zip")->printf("unzip -o \"%%s\"");
         }
-        // get LAST extension
         const char * ext = strrchr(path, '.');
         sStr * dc = decompressors.get(ext);
         if( dc && _unpack_depth < _max_unpack_depth) {
             sFilePath workDir(path, "%%dir/" DMLIB_TMP_PREFIX "%" DEC "-%%flnm/", level);
             sDir::removeDir(workDir);
             if( sDir::makeDir(workDir) ) {
-                // only needed on rear occasion of curtain file extensions above
-                // like .tgz when we need to say that output file will be .tar
                 sFilePath outFile(path, "%%flnmx");
                 sFilePath cmd(meta, dc->ptr(), path, outFile.ptr());
                 sStr cmdLine("cd \"%s\" && %s", workDir.ptr(), cmd.ptr());
@@ -280,7 +271,6 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
                     qtyAll.find(sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs) | sFlag(sDir::bitNamesOnly), workDir, "*");
                     if( sString::cnt00(qtyFile) == sString::cnt00(qtyAll) && sString::cnt00(qtyFile) == 1 ) {
                         char * sl = sFilePath::nextToSlash(meta);
-                        // remove self prefix if container has single file which name starts with name of the container
                         if( sl ) {
                             sFilePath s(meta, "%%flnmx"), q(qtyFile, "%%flnmx"), qx(qtyFile, "%%flnm");
                             if( s && ((q && strcasecmp(s, q) == 0) || (qx && strcasecmp(s, qx) == 0)) ) {
@@ -317,7 +307,6 @@ bool dmLib::collect(const char * path, const char * meta, sStr & log, sStr & msg
     return retval;
 }
 
-// static
 void dmLib::clean(const char * path)
 {
     sDir dir;
@@ -329,7 +318,6 @@ void dmLib::clean(const char * path)
     }
 }
 
-// static
 idx dmLib::arcDim(const char * path)
 {
     idx ret = -1;
@@ -352,8 +340,7 @@ idx dmLib::arcDim(const char * path)
     return ret;
 }
 
-// static
-bool dmLib::pack(const char * srcPath, sStr & dstPath, EPackAlgo algo, sStr * log /* = 0 */, sStr * msg /* = 0 */, sStr * name /* = 0 */, callbackFunc callb /* = 0 */, void * callbParam /* = 0 */, idx callbSecs /* = 10 */, bool deletePackedFiles /* = false */, bool packAllFiles /* = false */)
+bool dmLib::pack(const char * srcPath, sStr & dstPath, EPackAlgo algo, sStr * log, sStr * msg, sStr * name, callbackFunc callb, void * callbParam, idx callbSecs, bool deletePackedFiles, bool packAllFiles)
 {
     if( !srcPath[0] || !dstPath ) {
         return false;
@@ -455,16 +442,5 @@ bool dmLib::pack(const char * srcPath, sStr & dstPath, EPackAlgo algo, sStr * lo
         name->printf("%s", dstName.ptr());
     }
 
-    // Changed logic to move in the zip cmd instead of deleting here
-//    if (deletePackedFiles) {
-//        // Get file list for removal
-//        sStr searchExt("*.*");
-//        sDir results;
-//        results.list(sFlag(sDir::bitFiles), srcPath, searchExt.ptr(), 0, 0);
-//        for(const char * ptr = results; ptr && *ptr; ptr = sString::next00(ptr)) {
-//            if (strcmp(ptr,dstName.ptr())==0) continue;
-//            sFile::remove(ptr);
-//        }
-//    }
     return ret == 0;
 }

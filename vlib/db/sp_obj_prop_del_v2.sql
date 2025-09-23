@@ -44,6 +44,7 @@ BEGIN
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
     DECLARE del_qty BIGINT UNSIGNED DEFAULT 0;
 
     CALL sp_permission_check_v2(p_group_id, p_member_sql, p_obj_domainID, p_obj_id, p_permissions, @allowed);

@@ -30,7 +30,6 @@
 
 LIBRARIES += qpsvc
 
-#qpsvc_SRCS = qpsvc.cpp archiver.cpp dna-parser.cpp compressor.cpp annot.cpp dna-qc.cpp qpsvc-dna-hexagon.cpp qpsvc-dna-alignx.cpp screening.cpp
 qpsvc_SRCS = qpsvc.cpp archiver.cpp dna-parser.cpp compressor.cpp annot.cpp dna-qc.cpp screening.cpp dm-dna-cgi.cpp
 
 ifeq ($(devdir),)

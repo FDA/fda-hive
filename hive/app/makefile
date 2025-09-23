@@ -35,26 +35,24 @@ endif
 include $(devdir)/build/makefile.meta
 
 DIST_LIST = \
-    dna-cgi dmDownloader \
-    dna-alignment-comparator dna-tnseq \
-    dna-hexagon dna-heptagon \
-    dna-alignx tblqryX4 \
-    dmArchiver dmAnnot \
-    dna-align-parser dna-parser dna-screening \
-    dna-profx dna-qc dna-clust algo-annotMapper \
-    dna-hiveseq \
-    svc-batcher generic-launcher dna-multi-qc \
-    dna-insilico \
-    dna-differential-profiler
+    algo-annotMapper dna-alignmulti dna-clust dna-hiveseq dna-qc svc-batcher \
+    dmAnnot dna-align-parser dna-denovoassembly dna-insilico dna-screening tblqryX4 \
+    dmArchiver dna-alignQC dna-differential-profiler dna-multi-qc dna-tnseq ViralMutationComparator \
+    dmDownloader dna-alignx dna-heptagon dna-parser ion \
+    dna-alignment-comparator dna-cgi dna-hexagon dna-profx
 
-# MOVE!! your app from BUILD_LIST to DIST_LIST when it is ready to be deployed, DO NOT COPY!
 BUILD_LIST = \
-    $(DIST_LIST)
+    $(DIST_LIST) \
+    viocgi \
+    dna-denovoassembly \
+    dna-fingerprint
 
-.PHONY: all clean
-all clean::
+.PHONY: sync
+sync::
 	$(call make-list,$@,$(BUILD_LIST))
 
 .PHONY: dist
 dist::
 	$(call make-list,$@,$(DIST_LIST))
+
+

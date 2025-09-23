@@ -32,8 +32,10 @@
 
 #include <slib/utils.hpp>
 
+#include <qpsvc/qpsvc-dna-hexagon.hpp>
 #include <ssci/bio.hpp>
 #include <violin/violin.hpp>
+#include <violin/alignparse.hpp>
 
 class DnaHexagonCollector: public sQPrideProc
 {
@@ -46,12 +48,10 @@ class DnaHexagonCollector: public sQPrideProc
 
         idx getTheFlags(void)
         {
-            //idx isDoubleHash = formIValue("doubleHash") ? true : false;
             idx reverseEngine = formIValue("reverseEngine", 0);
             idx keepAllMatches = formIValue("keepAllMatches", 1);
-            idx fragmentScore = formIValue("fragmentScore", 0);
             idx flagSet = sBioseqAlignment::fAlignForward;
-            if( formIValue("isglobal") ) flagSet |= sBioseqAlignment::fAlignGlobal; //else flagSet|=sBioseqAlignment::fAlignLocal;
+            if( formIValue("isglobal") ) flagSet |= sBioseqAlignment::fAlignGlobal;
             if( formIValue("isbackward", 1) ) {
                 flagSet|=sBioseqAlignment::fAlignBackward|sBioseqAlignment::fAlignBackwardComplement;
                 if( formIValue("isbackward", 1) == 2 ) flagSet &= ~sBioseqAlignment::fAlignForward;
@@ -62,7 +62,16 @@ class DnaHexagonCollector: public sQPrideProc
             if( formIValue("doubleHash") ) flagSet |= sBioseqAlignment::fAlignOptimizeDoubleHash;
             if( formIValue("alignmentEngine") == 0 ) flagSet |= sBioseqAlignment::fAlignIdentityOnly;
 
-            if( formBoolValue("keepMarkovnikovMatches", false) ) flagSet |= sBioseqAlignment::fAlignKeepMarkovnikovMatch;
+            idx resolveConflicts = formIValue("resolveConflicts", false);
+            if( resolveConflicts ) {
+                if(resolveConflicts == 1) flagSet |= sBioseqAlignment::fAlignKeepResolveMarkovnikov;
+                if(resolveConflicts == 2) flagSet |= sBioseqAlignment::fAlignKeepResolveBalanced;
+
+                idx resolveConflictsScore = formIValue("resolveConflictsScore", false);
+                if( resolveConflictsScore == 1 ) flagSet |= sBioseqAlignment::fAlignKeepResolvedHits;
+                if( resolveConflictsScore == 2 ) flagSet |= sBioseqAlignment::fAlignKeepResolvedSymmetry;
+                if( formBoolValue("resolveConfictsUnique", false) ) flagSet |= sBioseqAlignment::fAlignKeepResolveUnique;
+            }
 
             if( formBoolValue("keepPairedOnly", false) ) flagSet |= sBioseqAlignment::fAlignKeepPairedOnly;
             if( formBoolValue("keepPairOnSameSubject", false) ) flagSet |= sBioseqAlignment::fAlignKeepPairOnSameSubject;
@@ -95,94 +104,57 @@ idx DnaHexagonCollector::OnExecute(idx req)
     params.maxFragmentLength = formIValue("fragmentLengthMax", 0);
     params.seed = rand_seed;
 
+    if( params.flags&(sBioseqAlignment::fAlignKeepResolveBalanced|sBioseqAlignment::fAlignKeepResolveMarkovnikov) ) {
+        if( params.flags&(sBioseqAlignment::fAlignKeepRandomBestMatch|sBioseqAlignment::fAlignKeepUniqueMatch|sBioseqAlignment::fAlignKeepBestFirstMatch|sBioseqAlignment::fAlignKeepFirstMatch) ) {
+            params.flags&=~(sBioseqAlignment::resolveConflicts);
+            logOut(eQPLogType_Warning,"Please to choose keep more than one read in order to resolve conflicts");
+            reqSetInfo(req, eQPInfoLevel_Warning,"Please choose to keep more than one read in order to resolve conflicts");
+        }
+    }
 
-    sStr errS;
-    const char * subject = formValue("subject");
+
+    sStr errS,sSubj;
+    const char * subject = QPSvcDnaHexagon::getSubject00(objs[0],sSubj);
     sHiveseq Sub(user, subject, sBioseq::eBioModeShort, false, false, &errS);
     if( Sub.dim() == 0 ) {
-        reqSetInfo(req, eQPInfoLevel_Error, "Reference '%s' sequences are missing or corrupted%s%s", subject ? subject : "unspecified", errS ? ": " : "", errS ? errS.ptr() : "");
+        reqSetInfo(req, eQPInfoLevel_Error, "dna-heptagon-collect: Reference '%s' sequences are missing or corrupted%s%s", subject ? subject : "unspecified", errS ? ": " : "", errS ? errS.ptr() : "");
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
-    const char * query = formValue("query");
+
+    sStr sQry;
+    const char * query = QPSvcDnaHexagon::getQuery00(objs[0],sQry);
     sHiveseq Qry(sQPride::user, query, sBioseq::eBioModeShort, false, false, &errS);
     if( Qry.dim() == 0 ) {
-        reqSetInfo(req, eQPInfoLevel_Error, "Query '%s' sequences are missing or corrupted%s%s", query ? query : "unspecified", errS ? ": " : "", errS ? errS.ptr() : "");
+        reqSetInfo(req, eQPInfoLevel_Error, "dna-heptagon-collect: Query '%s' sequences are missing or corrupted%s%s", query ? query : "unspecified", errS ? ": " : "", errS ? errS.ptr() : "");
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
 
-    sStr srcAlignmentsT00;
-
-    grpDataPaths(grpId, "alignment-slice.vioalt", &srcAlignmentsT00, "dna-hexagon");
-    //srcAlignmentsT.shrink00();
-    //grpDataPaths(grpId, "alignment-slice.vioalt", &srcAlignmentsT00, "dna-alignx");
-    logOut(eQPLogType_Debug, "Alignment slice list count %" DEC, sString::cnt00(srcAlignmentsT00));
-
+    logOut(eQPLogType_Debug, "Concatenating results");
     const char * resultFileTemplate = formValue("resultFileTemplate", 0);
     if( !resultFileTemplate ) {
         resultFileTemplate = "";
     }
-    sStr pathBuf;
-    reqAddFile(pathBuf, "%salignment.hiveal", resultFileTemplate);
-    pathBuf.add0();
-    const char * coverT = reqAddFile(pathBuf, "%s", "coverage_dict");
-    const char * dstAlignmentsT = pathBuf.ptr();
-    if( !dstAlignmentsT || !coverT ) {
-        reqSetInfo(req, eQPInfoLevel_Error, "Failed to add %s", dstAlignmentsT ? "coverage" : "combined alignments");
+    params.countHiveAlPieces = 4000000;
+    params.combineFiles = false;
+
+    sStr hexagonIdBuf;
+    if (reqGetData(reqId, "hexagonMasterId", &hexagonIdBuf)) {
+        if (hexagonIdBuf.length()) {
+            masterId = strtoll(hexagonIdBuf.ptr(0), 0, 10);
+        }
+    }
+
+    AlignMapParser alignParser(*this, Sub, Qry);
+    if (sRC rc = alignParser.joinAls(params, 0, resultFileTemplate)) {
+        reqSetInfo(req, eQPInfoLevel_Error, "Error when combining alignments: %s", rc.print());
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
-    sVioal vioAltAAA(0, &Sub, &Qry);
-    vioAltAAA.myCallbackFunction = sQPrideProc::reqProgressStatic;
-    vioAltAAA.myCallbackParam = this;
-    sDic<sBioal::LenHistogram> lenHistogram;
-    sVec<idx> subCoverage(coverT);
 
-    logOut(eQPLogType_Debug, "Concatenating results '%s', '%s'", dstAlignmentsT, coverT);
 
-    params.countHiveAlPieces = 4000000;
-    params.combineFiles = false;
-    vioAltAAA.DigestCombineAlignmentsRaw(dstAlignmentsT, srcAlignmentsT00, params, &lenHistogram, &subCoverage);
-
-    if( lenHistogram.dim() ) {
-        const char * histPath = reqAddFile(pathBuf, "%shistogram.csv", resultFileTemplate);
-        if( histPath ) {
-            logOut(eQPLogType_Debug, "Preparing histogram '%s'", histPath);
-            if( !sFile::exists(histPath) || sFile::remove(histPath) ) {
-                sFil hist(histPath);
-                if( hist.ok() ) {
-                    sBioal::printAlignmentHistogram(&hist, &lenHistogram);
-                    histPath = 0; // success!
-                }
-            }
-        }
-        if( histPath ) {
-            reqSetInfo(req, eQPInfoLevel_Error, "Failed to save histogram");
-            logOut(eQPLogType_Error, "Cannot operate on '%s'", histPath);
-            reqSetStatus(req, eQPReqStatus_ProgError);
-            return 0;
-        }
-    }
-    /*
-     sHivealtax * idAlTax = new sHivealtax(user, objs[0].Id(), (idx)1, (idx)0);
-     sDic < idx > taxCnt;
-     char buf[1024];sprintf(buf,"%" DEC,objs[0],objs[0].Id());
-     idAlTax->CurateResult(taxCnt, 0, subject, buf, "leaf");
-     idx newSpeciesFound = idAlTax->analyzeResults(&taxCnt,0, query, "alignment");
-     */
-
-#ifndef _DEBUG
-    sStr filenames00;
-    sString::searchAndReplaceSymbols(&filenames00,srcAlignmentsT00,0,","sString_symbolsBlank,(const char *)0,0,true,true,true,true);
-    for( const char * flnm=filenames00; flnm; flnm=sString::next00(flnm) ) {
-        if(sFile::exists(flnm) && !sFile::remove(flnm)) {
-            logOut(eQPLogType_Warning,"Failed to delete alignment file : \"%s\"\n",flnm);
-        }
-    }
-#endif
-
-    if( reqProgress(-1, 100, 100) ) { //Do not change status if request was stopped.
+    if( reqProgress(-1, 100, 100) ) {
         reqSetProgress(req, -1, 100);
         reqSetStatus(req, eQPReqStatus_Done);
     }
@@ -194,7 +166,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     DnaHexagonCollector backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-hexagon-collector", argv[0]));
     return (int) backend.run(argc, argv);

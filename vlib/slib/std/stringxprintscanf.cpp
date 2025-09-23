@@ -34,8 +34,6 @@
 
 using namespace slib;
 
-// Like strncpy, but ensures the result is zero-terminated, meaning
-// dest needs to potentially have enough buffer for n+1 bytes
 inline static char *_strnzcpy(char *dest, const char *src, size_t n)
 {
     const char *s;
@@ -46,7 +44,6 @@ inline static char *_strnzcpy(char *dest, const char *src, size_t n)
     return dest;
 }
 
-// Like strpbrk, but only scans no more than n bytes in s
 static const char *_strnpbrk(const char *s, const char *accept, size_t n)
 {
     for (const char *t = s; t < s+n && *t; t++)
@@ -57,15 +54,6 @@ static const char *_strnpbrk(const char *s, const char *accept, size_t n)
 }
 
 
-/*! sscanf of the substring of KeyFormat string which is between <find> and <scanto> symbolsets
- * \param wb scratch buffer
- * \param scnFormat scanf format string which scans for one value
- * \param KeyFormat source string
- * \param pVal out-parameter for value scanned
- * \param find symbolset that starts the scanning region
- * \param scanto symbolset that ends the scanning region
- * \returns 1 on success, 0 on failure
- */
 static idx scanAfter(sStr * wb,const char * scnFormat,const char * KeyFormat,char * pVal,const char * find,const char * scanto)
 {
     wb->cut(0);
@@ -84,7 +72,7 @@ static idx scanAfter(sStr * wb,const char * scnFormat,const char * KeyFormat,cha
 
 idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const char * formatDescription, va_list marker)
 {
-    idx iChoice,is,isScanned,icnt;//,isNON;
+    idx iChoice,is,isScanned,icnt;
     const char * pItem, * curT;
     const char *  toEndSym="=><; \t\r\n";
     const char * pFormat;
@@ -99,8 +87,6 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
     if (!textScanEnd)
         textScanEnd = textScan + strlen(textScan);
 
-    // is it undefined
-    //isNON=sString::searchSubstring(textScan,0,"default" _ "undefined" __,1,0,1) ? 1 : 0 ;
 
     for(icnt=0, fmt=formatDescription; *fmt && textScan<=textScanEnd; ++fmt){
         if(*fmt!='%')continue;
@@ -110,7 +96,6 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
         sString::changeCase(bFormat.ptr(),0,sString::eCaseLo);
         pFormat=bFormat.ptr();
 
-        // position to the type variable
         isLong=0;isLongLong=0;
         for(typeOf=fmt+1; *typeOf  ; ++typeOf ){
             if(strchr("01234567890.+-",*typeOf))continue;
@@ -119,17 +104,16 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
             else break;
         }
 
-        //switch(tolower((int)*typeOf)){
         switch(*typeOf){
             case 'i': case 'd': case 'u': case 'x': case 'c':
             case 'I': case 'D': case 'X': case 'C': {
                 idx64 val=0, vmin,vmax;
 
-                if( isLongLong) {vmin=-0x7FFFFFF; vmax=0x7FFFFFF; }//{vmin=-0x7FFFFFFFFFFFFFFF, vmax=0x7FFFFFFFFFFFFFFF;}
+                if( isLongLong) {vmin=-0x7FFFFFF; vmax=0x7FFFFFF; }
                 else if(isLong) {vmin=-0x7FFFFFF; vmax=0x7FFFFFF; }
                 else { val=(idx)val;vmin=-0x7FFFFFF; vmax=0x7FFFFFF; }
                 isScanned=bufscanf(textScan,textScanEnd,pFormat,&val);
-                if(isScanned!=1) scanAfter(&wb,pFormat,fmt,(char *)&val,"=",toEndSym);                // if couldn't scan try default value
+                if(isScanned!=1) scanAfter(&wb,pFormat,fmt,(char *)&val,"=",toEndSym);
                 scanAfter(&wb,pFormat,fmt,(char *)&vmin,">",";" sString_symbolsBlank);
                 scanAfter(&wb,pFormat,fmt,(char *)&vmax,"<",";" sString_symbolsBlank);
 
@@ -144,7 +128,6 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
                     vmax = (idx) vmax;
                 }
 
-                // check for minimum and maximum
                 if(islower(*typeOf)){
                     if(val>vmax)val=vmax;
                     if(val<vmin)val=vmin;
@@ -158,11 +141,11 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
             case 'F': case 'G': case 'E':{
                 double val=0, vmin=-DBL_MAX, vmax=DBL_MAX;
                 isScanned=bufscanf(textScan,textScanEnd,pFormat,&val);
-                if(isScanned!=1) scanAfter(&wb,pFormat,fmt,(char *)&val,"=",toEndSym);                // if couldn't scan try default value
+                if(isScanned!=1) scanAfter(&wb,pFormat,fmt,(char *)&val,"=",toEndSym);
                 scanAfter(&wb,pFormat,fmt,(char *)&vmin,">",";" sString_symbolsBlank);
                 scanAfter(&wb,pFormat,fmt,(char *)&vmax,"<",";" sString_symbolsBlank);
                 if(islower(*typeOf)){
-                    if( val<vmin )val=vmin; // check for minimum and maximum
+                    if( val<vmin )val=vmin;
                     if( val>vmax )val=vmax;
                 }
                 *va_arg(marker, double * )=val;
@@ -182,20 +165,19 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
                 else
                     scanAfter(str,0,fmt,0,"=",toEndSym);
                 }++icnt;break;
-            case 'n':{ // format line e=defaultvalue^bi1value^bit2value^somebitvalue=number^bitNvalue;
+            case 'n':{
                 idx val=0;
                 if(strpbrk(fmt,"^;")==0)pItem="%n=0^FALSE^TRUE^OFF^ON^NO^YES^CANCEL^OK^0^1;";
                 else pItem=fmt;
                 isScanned=0;
                 is=0;
-                for(iChoice=0;;iChoice++){ // scan all choices
-                    pItem=strpbrk(pItem,"^;");if((*pItem)!='^')break; // no more items
+                for(iChoice=0;;iChoice++){
+                    pItem=strpbrk(pItem,"^;");if((*pItem)!='^')break;
                     pItem++;
 
                     is=sString::compareNUntil(textScan,pItem,textScanEnd-textScan,"=^;",0);
-                    if(strchr(";^=",pItem[is])){isScanned=1;break;} //if we have found it
+                    if(strchr(";^=",pItem[is])){isScanned=1;break;}
                 }
-                // if couldn't find try default value otherwise get the value of the choice or it's number
                 if(!isScanned) {
                     if(bufscanf(textScan,textScanEnd,"%" DEC,(idx *)&val)<1)
                         scanAfter(&wb,"%" DEC,fmt,(char *)&val,"=",";^");
@@ -204,26 +186,25 @@ idx sString::xvbufscanf(const char * textScan, const char *textScanEnd, const ch
                 else val=iChoice;
                 *va_arg(marker, idx * )=val;
                 } ++icnt;break;
-            case 'b': { // format line f=defaultvalue|bi1value|bit2value|somebitvalue=number|bitNvalue;
+            case 'b': {
                 idx val=0;
-                for(curT=textScan;curT && curT<textScanEnd && *curT;){ // scan through all the pieces of the input string
+                for(curT=textScan;curT && curT<textScanEnd && *curT;){
                     pItem=fmt;
                     isScanned=0;
                     is=0;
-                    for(iChoice=0;;iChoice++){ // scan all choices
-                        pItem=strpbrk(pItem,"|;");if(!pItem || (*pItem)!='|')break; // no more items
+                    for(iChoice=0;;iChoice++){
+                        pItem=strpbrk(pItem,"|;");if(!pItem || (*pItem)!='|')break;
                         pItem++;
 
                         is=sString::compareNUntil(curT,pItem,textScanEnd-curT,"=|;",0);
-                        if(strchr(";|=",pItem[is])){isScanned=1;break;} //if we have found it
+                        if(strchr(";|=",pItem[is])){isScanned=1;break;}
                     }
-                    // if couldn't find try default value otherwise get the value of the choice or it's number
                     if(isScanned){
                         idx valScan=0;
                         if(pItem[is]=='='){scanAfter(&wb,"%" HEX,pItem+is,(char *)&valScan,0,"|;");val|=valScan;}
                         else val|=(((idx)1)<<iChoice);
                     }
-                    curT=_strnpbrk(curT+is,"|;",textScanEnd-(curT+is)); // next piece
+                    curT=_strnpbrk(curT+is,"|;",textScanEnd-(curT+is));
                     if(curT){curT++;
                         while(curT<textScanEnd && *curT!=0 && (  (*curT==' ') || (*curT=='\t') || (*curT=='\r') || (*curT=='\r') )  )curT++;
                     }
@@ -256,13 +237,12 @@ idx sString::xbufscanf(const char *textScan, const char *textScanEnd, const char
 }
 
 
-// printf to <RetBuf> string using extended KeyFormat to the variable pVal
 
 char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va_list marker)
 {
     idx iChoice;
     idx iVal,iTmp,isFnd;
-    const char *   toEndSym="%=><; \t\r\n";//, *curT;
+    const char *   toEndSym="%=><; \t\r\n";
     const char * pFormat;
     const char * pItem;
     const char * fmt, *it;
@@ -276,18 +256,15 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
             continue;
         }
         if( fmt[1] == '%' ) {
-            // special case "%%" to avoid confusing sString::copyUntil
             str->add(++fmt, 1);
             continue;
         }
-        //sString::copyUntil(fmt,bFormat,0,toEndSym);pFormat=bFormat;
         bFormat.cutAddString(0, fmt, 1);
         sString::copyUntil(&bFormat, fmt + 1, 0, toEndSym);
         sString::changeCase(bFormat.ptr(),0,sString::eCaseLo);
         bFormat.shrink00();
         pFormat=bFormat.ptr();
 
-        // position to the type variable
         isLong=0;isLongLong=0;
         for(typeOf=fmt+1; *typeOf  ; ++typeOf ){
             if(strchr("01234567890.+-",*typeOf))continue;
@@ -295,19 +272,15 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
             else if(*typeOf=='l') {if(!isLong)isLong=1; else isLongLong=1;}
             else break;
         }
-        //sStr Fmt;
 
-        //switch(tolower((int)*typeOf)){
         idx crct= (*typeOf=='S') ? (*typeOf) : tolower(*typeOf);
         switch(crct){
             case 'i': case 'd': case 'u': case 'x':
-            //case 'I': case 'D': case 'X':
                 if(isptr) str->printf(pFormat, isLongLong ? *va_arg(marker, long long int * ) : ((isLong) ? *va_arg(marker, long int * ) : *va_arg(marker, int * ) ));
                 else str->printf(pFormat, isLongLong ? va_arg(marker, idx64) : ((isLong) ? va_arg(marker, long int) : va_arg(marker, int) ));
                 fmt += bFormat.length() - 1;
                 break;
             case 'f': case 'g': case 'e':
-            //case 'F': case 'G': case 'E':
                 if(isptr)str->printf(pFormat,*va_arg(marker, double * ) );
                 else str->printf(pFormat,va_arg(marker, double) );
                 fmt += bFormat.length() - 1;
@@ -327,7 +300,7 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
                 }break;
             case 'c':
                 if(isptr)str->printf(pFormat,*va_arg(marker, char * ) );
-                else str->printf(pFormat,va_arg(marker, int ) ); // under linux passing char generates an warning/error
+                else str->printf(pFormat,va_arg(marker, int ) );
                 fmt += bFormat.length() - 1;
                 break;
             case 'p':
@@ -337,20 +310,18 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
                 break;
             case 'n':
                 if(isptr)iVal=*va_arg(marker, idx * );
-                else iVal=va_arg(marker, idx);// iVal=*((int *)pVal); // example "%e=|first=numvalue^second^third;"
+                else iVal=va_arg(marker, idx);
                 if(strpbrk(fmt,"^;")==0)pItem="%n=0^FALSE^TRUE^OFF^ON^NO^YES^CANCEL^OK^0^1;";
                 else pItem=fmt;
                 isFnd=0;
-                for(iChoice=0;;iChoice++){ // scan all choices
-                    // position to the next choice
-                    pItem=strpbrk(pItem,"^;");if(!pItem || (*pItem)!='^')break; // no more items
+                for(iChoice=0;;iChoice++){
+                    pItem=strpbrk(pItem,"^;");if(!pItem || (*pItem)!='^')break;
                     pItem++;
 
-                    pFormat = strpbrk(pItem, "=^;"); // find the numvalue for the current choice
+                    pFormat = strpbrk(pItem, "=^;");
                     if( pFormat && pFormat[0] == '=' && scanAfter(&wb, "%" HEX, pFormat, (char *) &iTmp, 0, "^;") ) {
-                        // read the numvalue
                     } else {
-                        iTmp = (iChoice); // no numvalue - it is indexed from 0
+                        iTmp = (iChoice);
                     }
                     if( iTmp == iVal ) {
                         it = strpbrk(pItem, "=^;");
@@ -359,30 +330,28 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
                         str->add(pItem, (idx) (it - pItem));
                         isFnd = 1;
                         break;
-                    } // if we have found the predefined value  copy it to return buffer
+                    }
                 }
-                if(!isFnd)str->printf("%" DEC,iVal);// no match - print as a number
+                if(!isFnd)str->printf("%" DEC,iVal);
                 fmt = strpbrk(fmt, ";" sString_symbolsBlank);
                 if( fmt && *fmt != ';' ) --fmt;
                 break;
 
             case 'b':
                 if(isptr)iVal= *va_arg(marker, idx * );
-                else iVal=va_arg(marker, idx);// iVal=*((int *)pVal); // example "%f=|first=numvalue|second|third;"
+                else iVal=va_arg(marker, idx);
                 pItem=fmt;
                 isFnd=0;
-                for(iChoice = 0; iChoice < (idx) (sizeof(idx) * 8); iChoice++) { // scan all choices
-                    // position to the next flag
-                    pItem=strpbrk(pItem,"|;");if(!pItem || (*pItem)!='|')break; // no more items
+                for(iChoice = 0; iChoice < (idx) (sizeof(idx) * 8); iChoice++) {
+                    pItem=strpbrk(pItem,"|;");if(!pItem || (*pItem)!='|')break;
                     pItem++;
 
-                    pFormat = strpbrk(pItem, "=|;"); // find the numvalue for the choice
+                    pFormat = strpbrk(pItem, "=|;");
                     if( pFormat && pFormat[0] == '=' && scanAfter(&wb, "%" HEX, pFormat, (char *) &iTmp, 0, "|;") ) {
-                        // read the numvalue
                     } else {
-                        iTmp = (((idx) 1) << iChoice); // no numvallue .. the valie is the one with index-th bit set
+                        iTmp = (((idx) 1) << iChoice);
                     }
-                    if( iVal & iTmp ) { // if current value has the current bit set
+                    if( iVal & iTmp ) {
                         if( isFnd )
                             str->add("|", 1);
                         it = strpbrk(pItem, "=|;");
@@ -405,7 +374,6 @@ char *  sString::xvprint(sStr * str,bool isptr,const char * formatDescription,va
             break;
         }
     }
-    // ensure str's buffer is always initialized and zero-terminated
     str->add0cut();
     return str->ptr();
 }
@@ -443,16 +411,14 @@ void sString::xscanSect(const char * src, idx len,SectVar * varIO, idx cnt)
 
     for(idx iv=0; iv<cnt && varIO[iv].loc ; ++iv) {
 
-        if(varIO[iv].loc[sLen(varIO[iv].loc)+1]==0)term="[" __; // the whole section is required
+        if(varIO[iv].loc[sLen(varIO[iv].loc)+1]==0)term="[" __;
         else term="[" _ "\n" __;
 
-        // first we locate the variable in the input source
         idx st=0,en=0;
-        searchStruc(src, len, varIO[iv].loc, term,&st,&en); // first we find out variable
-        if(st!=en)cleanEnds(&buf,src+st,en-st,"=" sString_symbolsBlank,true); // then we clean equal signs and spaces at both ends
+        searchStruc(src, len, varIO[iv].loc, term,&st,&en);
+        if(st!=en)cleanEnds(&buf,src+st,en-st,"=" sString_symbolsBlank,true);
         if(!buf.length())buf.add(__,2);
 
-        // now we read the values
         xscanf(buf.ptr(),varIO[iv].fmtin,varIO[iv].val);
         buf.cut(0);
     }
@@ -467,24 +433,23 @@ idx sString::xprintSect(sStr * out, const char * doTabs, SectVar* varIO, idx cnt
 
     for(idx iv=0; iv<cnt && varIO[iv].loc ; ++iv) {
 
-        if(lastSect.length()==0 || strcmp(lastSect.ptr(),varIO[iv].loc)!=0 ){ // if this is a different section
-            out->printf("%s%s\n",doTabs,varIO[iv].loc); // output the section name
+        if(lastSect.length()==0 || strcmp(lastSect.ptr(),varIO[iv].loc)!=0 ){
+            out->printf("%s%s\n",doTabs,varIO[iv].loc);
             rowVBS+=1;
-            lastSect.printf(0,"%s",varIO[iv].loc); // and we remember what was the last section
+            lastSect.printf(0,"%s",varIO[iv].loc);
         }
 
         if( varIO[iv].loc[sLen(varIO[iv].loc) + 1] == 0 ) {
-            // whole section is one variable ?
         } else {
-            out->printf("%s  %s = ", doTabs, next00(varIO[iv].loc)); // then we write the variable name
+            out->printf("%s  %s = ", doTabs, next00(varIO[iv].loc));
         }
-        xprintp(out,varIO[iv].fmtout ? varIO[iv].fmtout : varIO[iv].fmtin ,varIO[iv].val);// now we write the values
+        xprintp(out,varIO[iv].fmtout ? varIO[iv].fmtout : varIO[iv].fmtin ,varIO[iv].val);
         if(varIO[iv].comment)out->printf(" %s",varIO[iv].comment);
-        out->printf("\n");// and a newline
+        out->printf("\n");
         rowVBS+=1;
     }
 
-    out->printf("%s[End]\n",doTabs); rowVBS+=1;// output the last section
+    out->printf("%s[End]\n",doTabs); rowVBS+=1;
     return rowVBS;
 }
 

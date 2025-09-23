@@ -37,9 +37,7 @@
     {
         public:
         static bool traveseProp(sUsrObj & so, sUsr & user, const char * prop, const char * traverse_prop, const char * type_filter, sStr * log);
-        /*! \param[out] pFileSlices NULL or a pointer to NULL, in which case it will be set to a newly allocated sMex (caller is responsible for deleting it)
-                        containing CSV table of file indices and start lines */
         static idx customizeSubmission(sVar * pForm , sUsr * user, sUsrProc * obj, sQPride::Service * pSvc, sStr * log, sMex **pFileSlices = 0);
     };
 
-#endif // sHiveTools_hpp
+#endif 

@@ -31,7 +31,7 @@
 function vjD3JS_TreeView ( viewer )
 {
     loadCSS("d3js/css/phylog_tree.css");
-    vjD3View.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjD3View.call(this,viewer);
 
     if (!viewer.width) this.width=1400;
     else this.width = viewer.width;
@@ -58,9 +58,6 @@ function vjD3JS_TreeView ( viewer )
     var idGenerator = 0;
     
     
-    //will hold information about nodes that are paged through
-    //format will be like so:
-    //key (string or integer) -> {start val, count, end val}
     this.pagedNodeInfo = {};
     
     
@@ -174,7 +171,6 @@ function vjD3JS_TreeView ( viewer )
     
     this.d3Compose=function(data)
     {
-        //if (data.length*7 > this.height) this.height = data.length*7;
         if (data == "") return;
         
         var jsonTree;
@@ -223,7 +219,7 @@ function vjD3JS_TreeView ( viewer )
             if (!node.children)
                 return 0;
             
-            if (level == that.openLevels-1/* || that.openLevels == -1*/)
+            if (level == that.openLevels-1)
                 node.children.forEach(collapse);
             
             for (var i = 0; i < node.children.length; i++)
@@ -271,7 +267,6 @@ function vjD3JS_TreeView ( viewer )
     
     this.update = function (source) 
     {
-        // Compute the new tree layout.
         var nodes = this.tree.nodes(this.root).reverse(),
               links = this.tree.links(nodes);
         
@@ -290,22 +285,17 @@ function vjD3JS_TreeView ( viewer )
 
             this.d3svg.attr("height", height + this.margin.top + this.margin.bottom);
             
-            //this.root = jsonTree;
             this.root.x0 = this.height / 2;
             this.root.y0 = 0;
             this.update(this.root);
             return;
         }
         var maxDepth = -1;
-        //var maxCurLength = -1;
         nodes.forEach(function(d) { 
             if (!that.useDepthForTree && (d.curLength && d.curLength >= 0 && d.curLength+d.depth > maxDepth))
                 maxDepth = d.curLength + d.depth; 
             else if (d.depth > maxDepth)
-                maxDepth = d.depth;/*
-            
-            if (maxCurLength < d.curLength)
-                maxCurLength = d.curLength;*/
+                maxDepth = d.depth;
         });
         
         var lengthToUse;
@@ -315,7 +305,6 @@ function vjD3JS_TreeView ( viewer )
             lengthToUse = (width-100) / maxDepth;
         if (lengthToUse < 5) lengthToUse = 5;
 
-        // Normalize for fixed-depth.
         nodes.forEach(function(d) { 
             if (!that.useDepthForTree && (d.curLength && d.curLength >= 0)){
                 if (maxDepth > 100)
@@ -329,12 +318,10 @@ function vjD3JS_TreeView ( viewer )
         
         this.correctXTree(this.root, this.height-60);
 
-        // Update the nodes…
         var node = this.svg.selectAll("g.node")
              .data(nodes, function(d, i) { 
                  return d.id || (d.id = ++idGenerator); });
 
-        // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("g")
               .attr("class", "node")
               .attr("transform", function(d) { 
@@ -342,10 +329,8 @@ function vjD3JS_TreeView ( viewer )
               .attr("id", function(d){
                   if (that.idElem) return d[that.idElem];
               });
-              //.on("click", this.click);
 
         nodeEnter.append("circle")
-            //.attr("r", 1e-6)
             .style("fill", function(d) { 
                   if (d.color == "red" && d[that.comparator] == that.lastNode[that.comparator]) 
                       return "red";
@@ -363,7 +348,6 @@ function vjD3JS_TreeView ( viewer )
               .style("fill-opacity", 1e-6)
               .on("click", this.clickText);
 
-        // Transition nodes to their new position.
          var nodeUpdate = node.transition()
              .duration(this.duration)
               .attr("transform", function(d) { 
@@ -379,7 +363,6 @@ function vjD3JS_TreeView ( viewer )
          nodeUpdate.select("text")
               .style("fill-opacity", 1);
 
-         // Transition exiting nodes to the parent's new position.
          var nodeExit = node.exit().transition()
               .duration(this.duration)
               .attr("transform", function(d) { 
@@ -392,31 +375,27 @@ function vjD3JS_TreeView ( viewer )
          nodeExit.select("text")
               .style("fill-opacity", 1e-6);
 
-         // Update the links…
          var link = this.svg.selectAll("path.link")
               .data(links, function(d) { 
                   return d.target.id; });
 
-         // Enter any new links at the parent's previous position.
          link.enter().insert("path", "g")
               .attr("class", "link")
               .attr("d", function(d) {
                   var o = {x: source.x0, y: source.y0};
                   if(d.target.x > that.height)
                       that.d3svg.attr("height", d.target.x + that.margin.top + that.margin.bottom+200);
-                  if(d.target.y > (that.width - that.margin.right - that.margin.left - 70)){ //20 just in case the text is a little long
+                  if(d.target.y > (that.width - that.margin.right - that.margin.left - 70)){
                       that.width = d.target.y + that.margin.left + that.margin.right+300;
                       that.d3svg.attr("width", that.width);
                   }
                   return that.diagonal({source: o, target: o});
               });
 
-         // Transition links to their new position.
          link.transition()
               .duration(this.duration)
               .attr("d", this.diagonal);
 
-         // Transition exiting nodes to the parent's new position.
          link.exit().transition()
               .duration(this.duration)
               .attr("d", function(d) {
@@ -425,21 +404,18 @@ function vjD3JS_TreeView ( viewer )
               })
               .remove();
 
-         // Stash the old positions for transition.
          nodes.forEach(function(d) {
              d.x0 = d.x;
              d.y0 = d.y;
          });
          
          this.nodes = nodes;
-         this.links = links;//not sure need to remember links tho
-         //that.root = root;
+         this.links = links;
          
          if (this.onFinishUpdate) 
              this.onFinishUpdate(this);
     };
     
-    // Toggle children on click.
     this.click = function(d) {
         if (that.lastNode){
             that.lastNode.color = "";
@@ -487,12 +463,11 @@ function vjD3JS_TreeView ( viewer )
 };
 
 
-//Controller for the Taxonomy Page. To allow the viewers and the functionality to be reused
 function vjD3TaxonomyControl(viewer){
-    var originalurl = "http://?cmd=ionTaxDownInfo&taxid=1&level=2&raw=1";
-    vjDS.add("","dsTaxTree","http://?cmd=ionTaxDownInfo&taxid=1&level=2&raw=1");
-    vjDS.add("", "dsRecord", "http://?cmd=ionTaxInfo&taxid=&raw=1")
-    vjDS.add("","dsTreeViewerSpec","static://type_id,name,title,type,parent,role,is_key_fg,is_readonly_fg,is_optional_fg,is_multi_fg,is_hidden_fg,is_brief_fg,is_summary_fg,order,default_value,constraint,constraint_data,description\n"
+    var originalurl = "http:
+    vjDS.add("","dsTaxTree","http:
+    vjDS.add("", "dsRecord", "http:
+    vjDS.add("","dsTreeViewerSpec","static:
                                 +"taxonomy,name_list,Names,list,,,0,1,0,0,0,0,0,,,,,\n"
                                 +"taxonomy,taxName,Tax-name,string,name_list,,0,1,1,1,0,0,0,,,,,\n"
                                 +"taxonomy,taxid,Taxonomy ID,integer,,,0,1,0,0,0,0,0,,,,,\n"
@@ -500,11 +475,11 @@ function vjD3TaxonomyControl(viewer){
                                 +"taxonomy,path,Ancestry,string,,,0,1,0,0,0,0,0,,,,,\n"
                                 +"taxonomy,rank,Rank,string,,,0,1,0,0,0,0,0,,,,,\n"
                                 +"taxonomy,bioprojectID,BioProjectID,integer,,,0,1,0,0,0,0,0,,,,,\n");
-    vjDS.add("", "dsTreeChildren", "static://");
+    vjDS.add("", "dsTreeChildren", "static:
     vjDS.dsTaxTree.register_callback(function (viewer, content){
-        vjDS.dsTreeChildren.reload("static://" + content, true);
+        vjDS.dsTreeChildren.reload("static:
     });
-    vjDS.add("", "dsSearch", "static://");
+    vjDS.add("", "dsSearch", "static:
     vjDS["dsSearch"].register_callback(onSearchResults);
 
     if (viewer.taxIds){
@@ -514,11 +489,11 @@ function vjD3TaxonomyControl(viewer){
         for (var i = 1; i < this.taxIds.length; i++){
             tt += "," + this.taxIds[i];
         }
-        vjDS.dsTaxTree.reload("http://?cmd=ionTaxParent&taxid=" + tt + "&commonParent=true&raw=1", true);
-        origianalurl = "http://?cmd=ionTaxParent&taxid=" + tt + "&commonParent=true&raw=1";
+        vjDS.dsTaxTree.reload("http:
+        origianalurl = "http:
     }
     else
-        vjDS.dsTaxTree.reload("http://?cmd=ionTaxDownInfo&taxid=1&level=2&raw=1", true);
+        vjDS.dsTaxTree.reload("http:
     
     var graphViewer=new vjD3JS_TreeView({
         data: 'dsTreeChildren',
@@ -559,13 +534,12 @@ function vjD3TaxonomyControl(viewer){
     });
     
     lastNodeController = 0;    
-    var nodeToUrl={}; //maps the node name to the last url submitted;
+    var nodeToUrl={};
     
     function onClickCircle (dElement){
         if (!dElement.children || (dElement.children.length <= 0 && dElement.totalChidren != 0))
                 updateNodeInfo(dElement);
         lastNodeController = dElement;
-        //onLoadChildren();
     }
     
     function updateNodeInfo (dElement){
@@ -573,7 +547,6 @@ function vjD3TaxonomyControl(viewer){
         var val = 10;
         if (nodeToUrl[lastNodeController.taxid]) val = nodeToUrl[lastNodeController.taxid].cnt;
         
-        //updating the right hand side
         var url = vjDS["dsRecord"].url;
         url = urlExchangeParameter(url, "taxid", dElement.taxid);
         vjDS["dsRecord"].reload(url, true);
@@ -599,20 +572,17 @@ function vjD3TaxonomyControl(viewer){
             
             panel.rows = [
                 { name : 'refresh', icon: "refresh", order: 0, align:"left", description: "Refresh to original", url: onRefresh},
-                //{ name : 'loadChildren', align : 'left', order : '1', description : 'Load Children', title : 'Load Children', url: onLoadChildren },
                 { name : 'prev', icon: "previous", order: 1, align:"right", url: onPage},
                 { name : 'ppager', align:'right', order:1, title:'at a time', description: 'Select Number of Children to Load' , type:'select', options: actualOptions, value:val, onChangeCallback: onPage, url: onPage},
                 { name : 'next', icon: "next", order: 2, align:"right", url: onPage},
-                { name : 'serachType', type : 'select', options:[[0, "Attach to Root"], [1, "Generate New Root"]/*, [2, "Multiple Search"]*/], order:3, align:"right", description : 'Select way to search for node', title:"Search Option", onChangeCallback: onChngSrch},
+                { name : 'serachType', type : 'select', options:[[0, "Attach to Root"], [1, "Generate New Root"]], order:3, align:"right", description : 'Select way to search for node', title:"Search Option", onChangeCallback: onChngSrch},
                 { name : 'search', type : 'text', rgxpOff: true, align : 'right', size: 32, order : 4, description : 'Search', url: onSearch, path: "/search" }
             ];
             panel.rebuildTree();
-            //panel.redrawMenuView();
             panel.refresh();
         }
         
         
-        //checking if there are any more nodes, loading any children 
     };
     function onLoadChildren (viewer, node, a,b,c){
          if(!lastNodeController || lastNodeController.totalChildren == 0) return;
@@ -623,13 +593,13 @@ function vjD3TaxonomyControl(viewer){
         if (nodeToUrl[lastNodeController.taxid])
             tmpUrl = nodeToUrl[lastNodeController.taxid].url;
         else{
-            tmpUrl = "http://?cmd=ionTaxDownInfo&taxid=" + lastNodeController.taxid + "&cnt=10";
+            tmpUrl = "http:
             nodeToUrl[lastNodeController.taxid] = {url: tmpUrl, cnt:10};
         }
         
         if (!lastNodeController.parent){
             var dsName1 = "dsTreeChildren" + Math.round(Math.random()*1000);
-            vjDS.add("", dsName1, "http://?cmd=ionTaxDownInfo&taxid="+lastNodeController.parentTax+"&level=1&raw=1");
+            vjDS.add("", dsName1, "http:
             vjDS[dsName1].register_callback(onTreeParentLoaded);
             
             vjDS[dsName1].load();
@@ -647,7 +617,7 @@ function vjD3TaxonomyControl(viewer){
     
     function onTreeParentLoaded(viewer, content){
         var tmp = vjDS["dsTreeChildren"].url.substring(9);
-        vjDS["dsTreeChildren"].reload("static://" + content + tmp, true);
+        vjDS["dsTreeChildren"].reload("static:
     };
     
     function appendAllChildren (appendTo, node){
@@ -659,22 +629,12 @@ function vjD3TaxonomyControl(viewer){
         }
     };
     
-    //resets all of the parameters and the entire tree to default, 2 first levels from the root
     function onRefresh (viewer, node){
-        vjDS["dsTaxTree"].reload("http://?cmd=ionTaxDownInfo&taxid=1&level=2&raw=1", true);
+        vjDS["dsTaxTree"].reload("http:
     };
     
-    //controlls the paging of the tree
     function onPage (viewer, node){
         console.log(node);
-        /*
-         * If selected previous:
-         * check that not at the very 1st node. if not, just change the counter to the appropriate one and reload the tree.
-         * If changed the counter option:
-         * change the URL
-         * If clicked next:
-         * remember old state, change the start node, number of nodes to show. add that to the tree info 
-         * */
         
         if (node.name == "prev"){
             var cnt = viewer.tree.root.children[3].value;
@@ -709,7 +669,7 @@ function vjD3TaxonomyControl(viewer){
                     info.cnt = node.value;
                 }
                 else{
-                    nUrl = "http://?cmd=ionTaxDownInfo&taxid=" + lastNodeController.taxid + "&cnt=" + node.value;
+                    nUrl = "http:
                     nodeToUrl[lastNodeController.taxid] = {url: nUrl, cnt: node.value};
                 }
             }
@@ -722,7 +682,7 @@ function vjD3TaxonomyControl(viewer){
                 else
                     nodeInfo.end = nodeInfo.start + nodeInfo.cnt;
                 
-                nUrl =  "http://?cmd=ionTaxDownInfo&taxid=" + lastNodeController.taxid + "&cnt=" + nodeInfo.cnt + "&start=" + nodeInfo.start;
+                nUrl =  "http:
             }
             
             var dsName = "dsTreeChildren" + Math.round(Math.random()*1000);
@@ -771,7 +731,7 @@ function vjD3TaxonomyControl(viewer){
                 return;
             
             var dsName = "dsTreeChildren" + Math.round(Math.random()*1000);
-            vjDS.add("", dsName, "http://?cmd=ionTaxDownInfo&taxid=" + lastNodeController.taxid + "&cnt=" + actCnt + "&start=" + actStart);
+            vjDS.add("", dsName, "http:
             vjDS[dsName].register_callback(onTreeChildrenLoaded);
             
             vjDS[dsName].load();
@@ -791,7 +751,7 @@ function vjD3TaxonomyControl(viewer){
              if(!lastNodeController) return;
             
             var dsName = "dsTreeChildren" + Math.round(Math.random()*1000);
-            var tmpUrl = "http://?cmd=ionTaxParent&parent=" + lastNodeController.taxid + "&name=" + vjDS.escapeQueryLanguage(viewer.tree.root.children[6].value) + "&raw=1";
+            var tmpUrl = "http:
             vjDS.add("", dsName, tmpUrl);
             vjDS[dsName].register_callback(onTreeChildrenLoaded);
             
@@ -802,19 +762,18 @@ function vjD3TaxonomyControl(viewer){
             return;
         }
         
-        //if the attach to root option is selected
         if (searchOption == 0){
              if(!lastNodeController) return;
             
             var dsName = "dsTreeChildren" + Math.round(Math.random()*1000);
-            var tmpUrl = "http://?cmd=ionTaxParent&parent=" + lastNodeController.taxid + "&taxid=" + node.taxID + "&raw=1";
+            var tmpUrl = "http:
             vjDS.add("", dsName, tmpUrl);
             vjDS[dsName].register_callback(onTreeChildrenLoaded);
             
             vjDS[dsName].load();
         }
-        else if (searchOption == 1){ //just reload and bring the first 2 levels if available.
-            vjDS["dsTaxTree"].reload("http://?cmd=ionTaxDownInfo&taxid=" + node.taxID + "&level=2&raw=1", true);
+        else if (searchOption == 1){
+            vjDS["dsTaxTree"].reload("http:
         }
         
         panel.rows.splice(1);
@@ -832,7 +791,7 @@ function vjD3TaxonomyControl(viewer){
         var el = this.findElement(node.name, container);
         
         if (el.value && el.value.length >= 3){
-            var nUrl = "http:// ?cmd=ionTaxidByName&limit=20&name="+el.value + String.fromCharCode(e.which) +"&parent=" + lastNodeController.taxid + "&raw=1";
+            var nUrl = "http:
             searchVal = el.value + String.fromCharCode(e.which);
             
             vjDS["dsSearch"].reload(nUrl, true);

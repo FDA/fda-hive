@@ -29,28 +29,31 @@
  */
 
 if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
+
+javaScriptEngine.include("js/vjTableViewX2.js");
+javaScriptEngine.include("js/vjPluggableToolbar.js");
 javaScriptEngine.include("js/vjAnnotationView.js");
+
+
 
 google.load("visualization", "1", {packages:["corechart"]});
 
 vjHO.register('svc-algo-ionAnnotMapper').Constructor=function ()
 {
     
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         console.log("Constructing Full view from svc-algo-ionAnnotMapper.js");
         var id = docLocValue("id");
         
-        vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files=*.{fasta}&mode=csv&prop=none&ids="+algoProcessID, 0, "id,name,path,value");
-        vjDS.add("", "dsSeq","http://?cmd=seqList&out=num|id|len&ids=" + id);
+        vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http:
+        vjDS.add("", "dsSeq","http:
         
         
-        vjDS.add("Retrieving cross-ranges", "crossmap","qpbg_tblqryx4://crossingRanges.csv//cnt=20&objs="+id);
-        vjDS.add("Retrieving annotations", 'annotations',"static://");
-        vjDS.add("loading ... ","dsAnnotFiles","http://?cmd=objList&type=u-annot,u-ionAnnot&mode=csv&prop=name,size,created&start=0&cnt=10");
-        //vjDS.add("Retrieving Statistics",'annot_stat',"http://?cmd=anotMapperResults&procID="+docLocValue("id")+"&anotFiles=&isIon=1&showStat=1&typeToShow=&cnt=1000&start=0");
-        vjDS.add("Retrieving Statistics",'annot_stat',"static://");
+        vjDS.add("Retrieving cross-ranges", "crossmap","qpbg_tblqryx4:
+        vjDS.add("Retrieving annotations", 'annotations',"static:
+        vjDS.add("loading ... ","dsAnnotFiles","http:
+        vjDS.add("Retrieving Statistics",'annot_stat',"static:
         
         var that = {};
         
@@ -64,7 +67,6 @@ vjHO.register('svc-algo-ionAnnotMapper').Constructor=function ()
             parentCls: main_objCls,
             isok:true});
         
-        that.result_viewerArr[1].onClickRange = this.onClickRange;
             
         
         var preload_input = {"annot":""};
@@ -84,7 +86,6 @@ vjHO.register('svc-algo-ionAnnotMapper').Constructor=function ()
         
         that.stat_viewerArr = new vjAnnotationHitsGraphControl({
             data: "annot_stat",
-            //width:'80%',
             height:240,
             formName:formName,
             preload_input:preload_input,
@@ -96,32 +97,15 @@ vjHO.register('svc-algo-ionAnnotMapper').Constructor=function ()
                    {
                         tabId: 'resultsTable',
                         tabName: "Results",
-                        position: {posId: 'resultsTable', top:'0', bottom:'50%', left:'20%', right:'75%'},
+                        position: {posId: 'resultsTable', top:'0', bottom:'100%', left:'20%', right:'100%'},
                         viewerConstructor: {
                             instance: that.result_viewerArr
                         },
                         autoOpen: ["computed"]
-                   },{
-                        tabId: 'annotationTable',
-                        tabName: "Annotation",
-                        position: {posId: 'annotationTable', top:'50%', bottom:'100%', left:'20%', right:'75%'},
-                        viewerConstructor: {
-                            instance: that.annotation_viewerArr
-                        },
-                        autoOpen: ["computed"]
-                   },{
-                        tabId: 'statTable',
-                        tabName: "Statistics",
-                        position: {posId: 'annotationTable', top:'50%', bottom:'100%', left:'20%', right:'75%'},
-                        viewerConstructor: {
-                            instance: that.stat_viewerArr
-                        }/*,
-                        autoOpen: ["computed"]*/
                    }
         ];
         
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
-        algoWidgetObj.openTab("annotationTable");
 
     };
     
@@ -133,7 +117,7 @@ vjHO.register('svc-algo-ionAnnotMapper').Constructor=function ()
         if (!ionObjs)
             return ;
         var rangeToAdd = "&pos_start=" + node.start + "&pos_end=" + node.end;
-        var url = "qpbg_http://?cmd=ionGenBankAnnotPosMap&cnt=-1&fromComputation=0&ionObjs="+ ionObjs + "&seqID="+ seqID + rangeToAdd;
+        var url = "qpbg_http:
         
         vjDS["annotations"].reload(url,true);
         vjDS["annotations"].parser = function (ds, text) {

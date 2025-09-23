@@ -49,6 +49,8 @@ BEGIN
         WHERE o.domainID = ? AND o.objID = ? AND ',
         p_member_sql, ' INTO @res');
 
+-- select @q;
+
     PREPARE x FROM @q;
     SET @perm = p_permissions;
     SET @dom = IFNULL(p_obj_domainID, 0);

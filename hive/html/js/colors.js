@@ -28,9 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/**********************************************
-* color functions
-**********************************************/
 
 
 function randColor()
@@ -300,7 +297,6 @@ var gClrTable = new Array (
     "#9ACD32"
     );
 
-// http://www.w3.org/TR/css3-color/#svg-color
 var vjStandardColors = {
     aliceblue: "#f0f8ff",
     antiquewhite: "#faebd7",
@@ -505,25 +501,18 @@ function vjColor(source) {
 
     this.hue = function() {
         if (this.r > this.g && this.g >= this.b) {
-            // red domain: r max, b min, g ascending
             return 60 * (this.g - this.b) / (this.r - this.b);
         } else if (this.g >= this.r && this.r > this.b) {
-            // yellow domain: g max, b min, r descending
             return 60 * (1 + (this.g - this.r) / (this.g - this.b));
         } else if (this.g > this.b && this.b >= this.r) {
-            // green domain: g max, r min, b ascending
             return 60 * (2 + (this.b - this.r) / (this.g - this.r));
         } else if (this.b >= this.g && this.g > this.r) {
-            // cyan domain: b max, r min, g descending
             return 60 * (3 + (this.b - this.g) / (this.b - this.r));
         } else if (this.b > this.r && this.r >= this.g) {
-            // blue domain": b max, g min, r ascending
             return 60 * (4 + (this.r - this.g) / (this.b - this.g));
         } else if (this.r >= this.b && this.b > this.g) {
-            // magenta domain: r max, g min, b descending
             return 60 * (5 + (this.r - this.b) / (this.r - this.g));
         }
-        // black, white, or grey
         return 0;
     };
 
@@ -540,19 +529,15 @@ function vjColor(source) {
     };
 }
 
-// red, green, and blue are in [0, 255]
 function vjRGB(red, green, blue)
 {
     return new vjColor({r:red, g:green, b:blue});
 }
 
-// hue is in [0, 360); chroma is in [0, 1]; lightness is in [0, 1] (where 0 is black, 1 is white)
 function vjHCL(hue, chroma, lightness)
 {
-    // clamp lightness in [0, 1]
     lightness = Math.max(0, Math.min(lightness, 1));
 
-    // clamp chroma to a valid range for the HCL bicone
     if (lightness >= 0.5)
         chroma = Math.min(chroma, 2 - 2*lightness);
     else
@@ -601,8 +586,6 @@ function randRangeColor(lowth, hith) {
     return randColor;
 }
 
-// hue is in [0, 360); saturation is in [0, 1]; lightness is in [0, 1] (where 0
-// is black, 1 is white)
 function vjHSL(hue, saturation, lightness) {
     var ret = vjHCL(hue, (1 - Math.abs(2 * lightness - 1)) * saturation, lightness);
     ret.s = saturation;
@@ -610,9 +593,8 @@ function vjHSL(hue, saturation, lightness) {
 }
 
 var valgoGenomeColors = new Array();
-for (var it = 0; it < gClrTable.length; ++it) valgoGenomeColors[it] = pastelColor(gClrTable[(it + 1) % (gClrTable.length)]); // make colors for those
+for (var it = 0; it < gClrTable.length; ++it) valgoGenomeColors[it] = pastelColor(gClrTable[(it + 1) % (gClrTable.length)]);
 
 var vjGenomeColors = new Array();
-for (var it = 0; it < gClrTable.length; ++it) vjGenomeColors[it] = pastelColor(gClrTable[(it + 1) % (gClrTable.length)],0.6); // make colors for those
+for (var it = 0; it < gClrTable.length; ++it) vjGenomeColors[it] = pastelColor(gClrTable[(it + 1) % (gClrTable.length)],0.6);
 
-//# sourceURL = getBaseUrl() + "/js/colors.js"

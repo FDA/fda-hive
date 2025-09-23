@@ -49,11 +49,6 @@ sQPrideCmdline::~sQPrideCmdline ()
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Configuration
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 char * sQPrideCmdline::QP_configGet( sStr * vals00, const char * pars00, bool single)
 {
@@ -65,9 +60,9 @@ char * sQPrideCmdline::QP_configGet( sStr * vals00, const char * pars00, bool si
     else {
 
         for ( const char *p=pars00; p ; ++p) {
-            vals00->printf("%s",sApp::cfgget("QPCfg",p,""));
+            vals00->printf("%s", sApp::cfgget("QPCfg", p, ""));
             vals00->add0();
-            vals00->printf(p);
+            vals00->printf("%s", p);
             vals00->add0();
         }
     }
@@ -90,11 +85,6 @@ idx sQPrideCmdline::QP_requestGet(idx req , void * R, bool isGrp, char * service
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Data
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 char * sQPrideCmdline::QP_reqDataGet(idx , const char * dataName, sMex * data)
 {
@@ -138,11 +128,6 @@ bool sQPrideCmdline::QP_reqDataSet(idx , const char * dataName, idx dsize , cons
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Service
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 idx sQPrideCmdline::QP_serviceGet(void * Svc, const char * , idx )
 {

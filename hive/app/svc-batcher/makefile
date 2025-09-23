@@ -30,8 +30,8 @@
 
 PROGRAMS += svc-batcherproc svc-batcherproc1
 
-PROGRAMS_LIBS = -lviolib -ldmlib $(VLIB_LIB)
-PROGRAMS_XLIBS = $(MYSQL_LIB) $(LIBZIP_LIB)
+PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
+PROGRAMS_XLIBS = $(MYSQL_LIB)
 
 svc-batcherproc_SRCS = svc-batcherproc.cpp
 svc-batcherproc1_SRCS = svc-batcherproc1.cpp
@@ -41,7 +41,8 @@ ifeq ($(devdir),)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+
+PHONY: dist
 dist::
 	$(call dist-service-register,svc-batcher,Service Batcher,/System/)
 	$(call dist-app,svc-batcher,svc-batcherproc)

@@ -33,9 +33,7 @@ using namespace slib;
 
 idx Bumper::loopAnnots (idx current_layer, idx thisChunk) {
 
-    //for( idx iannots = 0; iannots < annotations[current_layer].dim(); ++iannots) {  // Jonny
 
-    // Compute virtual starts and ends here
     idx _vs = annotationToInsert.start / nucleotideChunkSize;
     idx _ve = annotationToInsert.end / nucleotideChunkSize;
 
@@ -46,36 +44,24 @@ idx Bumper::loopAnnots (idx current_layer, idx thisChunk) {
 
     for( idx layer = current_layer; layer < annotations[thisChunk].dim(); ++layer) {
 
-        // Need to check to see if there is room in this layer to add the annotation
-        // annot & _annotation = annotations[current_layer][iannots]; // Jonny
 
             annot & _annotation = annotations[thisChunk][layer];
 
 
 
-            // Doesn't overlap at all
             if((_annotation.virtualStart > annotationToInsert.virtualEnd) || (_annotation.virtualEnd < annotationToInsert.virtualStart)) {
                 continue;
             } else {
-                // Overlaps
                 layer++;
 
-                // Check to see if we are at max layers and exit out if we are
-                //if (layer >= maxLayers)
-                //    return 0;
 
-                // Allocate new layer if layer is needed
-                //if (annotations[thisChunk].dim() - 1 < current_layer)
-                //    pNewLayer = annotations[thisChunk].add(1);
 
-                // Call recursive function with in order to place in next layer
                 loopAnnots(layer, thisChunk);
                 return 0;
        }
 
 
     }
-    // calculate virtual start and end
 
        annot * pNewAnnot = annotations[thisChunk].add(1);
 
@@ -92,7 +78,6 @@ idx Bumper::loopAnnots (idx current_layer, idx thisChunk) {
 
 idx Bumper::add(idx _annotationStart, idx _annotationEnd, sStr & _source, sStr & _seqID, sStr & _idTypeId){
 
-    // assign to local annotation;
 
     annotationToInsert.start = _annotationStart;
     annotationToInsert.end = _annotationEnd;
@@ -103,10 +88,8 @@ idx Bumper::add(idx _annotationStart, idx _annotationEnd, sStr & _source, sStr &
     annotationToInsert.source.printf(0,"%s",_source.ptr());
     annotationToInsert.seqID.printf(0,"%s",_seqID.ptr());
     annotationToInsert.idTypeId.printf(0,"%s",_idTypeId.ptr());
-    // Annotation start and end positions are passed in
     idx thisChunk = -1;
 
-    // Need to query chunks to see if one already exists
     for (idx i = 0; i < annotationChunks.dim(); i++) {
         if (annotationChunks[i].lookFor(annotationToInsert.start)) {
             thisChunk = i;
@@ -114,33 +97,27 @@ idx Bumper::add(idx _annotationStart, idx _annotationEnd, sStr & _source, sStr &
         }
     }
 
-    // If chunk doesn't exist, error!
-    // ERROR
     if (thisChunk==-1) {
         ::printf("ERROR - no chunk exists to hold this annotation");
         return 2;
     }
 
-    // check to see if there is a default layer of 0
     if (annotations.dim() <= 0) {
         ::printf("ERROR - no default layer!");
         return 3;
     }
 
-    // Check to see if chunk is full
 
-    if (annotationChunks[thisChunk].annotationsAdded.find(_source.ptr()) && annotationChunks[thisChunk].annotationsAdded[_source.ptr()] >= annotationDensity) // Chunk already filled with annotations; return and continue
+    if (annotationChunks[thisChunk].annotationsAdded.find(_source.ptr()) && annotationChunks[thisChunk].annotationsAdded[_source.ptr()] >= annotationDensity)
         return 1;
     annotationChunks[thisChunk].annotationsAdded[_source.ptr()] +=1;
-    // Do the Bump!  Loop through all annotations and bump up as needed
-    idx current_layer = 0; // Always start at layer 0
-    loopAnnots(current_layer, thisChunk); // Add annotation to the appropriate place
+    idx current_layer = 0;
+    loopAnnots(current_layer, thisChunk);
 
     return 0;
 }
 
 idx Bumper::print(sStr & output, bool printHeader) {
-    // Header
     output.cut(0);
     if (printHeader){
         output.printf("seqID,start,end,virtual_start,virtual_end,source, idType-Id\n");

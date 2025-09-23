@@ -63,7 +63,7 @@ namespace slib
             {   sStr str;sCallVarg(str.vprintf,fmt);return lock ((const void*)str.ptr(), str.length() , jobId);}
         idx unlock ( idx jobId, const char * fmt, ... ) 
             {   sStr str;sCallVarg(str.vprintf,fmt);return unlock ( (const void*)str.ptr(), str.length() , jobId);}
-        template <class Tobj >  idx lock ( Tobj & key, idx jobId ) // getpid() 
+        template <class Tobj >  idx lock ( Tobj & key, idx jobId )
             {return lock ((const void*)&key, sizeof(key) , jobId);}
         template <class Tobj >  idx unlock ( Tobj & key, idx jobId ) 
             {return unlock ((const void*)&key, sizeof(key) , jobId);}
@@ -74,8 +74,7 @@ namespace slib
 
 
 }
-#endif // sLib_std_gate_hpp
-
+#endif 
 
 
 

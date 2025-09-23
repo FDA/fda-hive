@@ -27,13 +27,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// This is a drop-in replacement for the SVGPathSeg and SVGPathSegList APIs that were removed from
-// SVG2 (https://lists.w3.org/Archives/Public/www-svg/2015Jun/0044.html), including the latest spec
-// changes which were implemented in Firefox 43 and Chrome 46.
 
 (function() { "use strict";
     if (!("SVGPathSeg" in window)) {
-        // Spec: http://www.w3.org/TR/SVG11/single-page.html#paths-InterfaceSVGPathSeg
         window.SVGPathSeg = function(type, typeAsLetter, owningPathSegList) {
             this.pathSegType = type;
             this.pathSegTypeAsLetter = typeAsLetter;
@@ -62,7 +58,6 @@
         SVGPathSeg.PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
         SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
         SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
-        // Notify owning PathSegList on any changes so they can be synchronized back to the path element.
         SVGPathSeg.prototype._segmentChanged = function() {
             if (this._owningPathSegList)
                 this._owningPathSegList.segmentChanged(this);
@@ -336,8 +331,6 @@
         Object.defineProperty(SVGPathSegCurvetoQuadraticSmoothRel.prototype, "x", { get: function() { return this._x; }, set: function(x) { this._x = x; this._segmentChanged(); }, enumerable: true });
         Object.defineProperty(SVGPathSegCurvetoQuadraticSmoothRel.prototype, "y", { get: function() { return this._y; }, set: function(y) { this._y = y; this._segmentChanged(); }, enumerable: true });
 
-        // Add createSVGPathSeg* functions to SVGPathElement.
-        // Spec: http://www.w3.org/TR/SVG11/single-page.html#paths-InterfaceSVGPathElement.
         SVGPathElement.prototype.createSVGPathSegClosePath = function() { return new SVGPathSegClosePath(undefined); }
         SVGPathElement.prototype.createSVGPathSegMovetoAbs = function(x, y) { return new SVGPathSegMovetoAbs(undefined, x, y); }
         SVGPathElement.prototype.createSVGPathSegMovetoRel = function(x, y) { return new SVGPathSegMovetoRel(undefined, x, y); }
@@ -360,12 +353,10 @@
     }
 
     if (!("SVGPathSegList" in window)) {
-        // Spec: http://www.w3.org/TR/SVG11/single-page.html#paths-InterfaceSVGPathSegList
         window.SVGPathSegList = function(pathElement) {
             this._pathElement = pathElement;
             this._list = this._parsePath(this._pathElement.getAttribute("d"));
 
-            // Use a MutationObserver to catch changes to the path's "d" attribute.
             this._mutationObserverConfig = { "attributes": true, "attributeFilter": ["d"] };
             this._pathElementMutationObserver = new MutationObserver(this._updateListFromPathMutations.bind(this));
             this._pathElementMutationObserver.observe(this._pathElement, this._mutationObserverConfig);
@@ -381,8 +372,6 @@
             enumerable: true
         });
 
-        // Add the pathSegList accessors to SVGPathElement.
-        // Spec: http://www.w3.org/TR/SVG11/single-page.html#paths-InterfaceSVGAnimatedPathData
         Object.defineProperty(SVGPathElement.prototype, "pathSegList", {
             get: function() {
                 if (!this._pathSegList)
@@ -391,14 +380,10 @@
             },
             enumerable: true
         });
-        // FIXME: The following are not implemented and simply return SVGPathElement.pathSegList.
         Object.defineProperty(SVGPathElement.prototype, "normalizedPathSegList", { get: function() { return this.pathSegList; }, enumerable: true });
         Object.defineProperty(SVGPathElement.prototype, "animatedPathSegList", { get: function() { return this.pathSegList; }, enumerable: true });
         Object.defineProperty(SVGPathElement.prototype, "animatedNormalizedPathSegList", { get: function() { return this.pathSegList; }, enumerable: true });
 
-        // Process any pending mutations to the path element and update the list as needed.
-        // This should be the first call of all public functions and is needed because
-        // MutationObservers are not synchronous so we can have pending asynchronous mutations.
         SVGPathSegList.prototype._checkPathSynchronizedToList = function() {
             this._updateListFromPathMutations(this._pathElementMutationObserver.takeRecords());
         }
@@ -415,14 +400,12 @@
                 this._list = this._parsePath(this._pathElement.getAttribute("d"));
         }
 
-        // Serialize the list and update the path's 'd' attribute.
         SVGPathSegList.prototype._writeListToPath = function() {
             this._pathElementMutationObserver.disconnect();
             this._pathElement.setAttribute("d", SVGPathSegList._pathSegArrayAsString(this._list));
             this._pathElementMutationObserver.observe(this._pathElement, this._mutationObserverConfig);
         }
 
-        // When a path segment changes the list needs to be synchronized back to the path element.
         SVGPathSegList.prototype.segmentChanged = function(pathSeg) {
             this._writeListToPath();
         }
@@ -461,11 +444,9 @@
         SVGPathSegList.prototype.insertItemBefore = function(newItem, index) {
             this._checkPathSynchronizedToList();
 
-            // Spec: If the index is greater than or equal to numberOfItems, then the new item is appended to the end of the list.
             if (index > this.numberOfItems)
                 index = this.numberOfItems;
             if (newItem._owningPathSegList) {
-                // SVG2 spec says to make a copy.
                 newItem = newItem.clone();
             }
             this._list.splice(index, 0, newItem);
@@ -478,7 +459,6 @@
             this._checkPathSynchronizedToList();
 
             if (newItem._owningPathSegList) {
-                // SVG2 spec says to make a copy.
                 newItem = newItem.clone();
             }
             this._checkValidIndex(index);
@@ -502,12 +482,10 @@
             this._checkPathSynchronizedToList();
 
             if (newItem._owningPathSegList) {
-                // SVG2 spec says to make a copy.
                 newItem = newItem.clone();
             }
             this._list.push(newItem);
             newItem._owningPathSegList = this;
-            // TODO: Optimize this to just append to the existing attribute.
             this._writeListToPath();
             return newItem;
         }
@@ -526,7 +504,6 @@
             return string;
         }
 
-        // This closely follows SVGPathParser::parsePath from Source/core/svg/SVGPathParser.cpp.
         SVGPathSegList.prototype._parsePath = function(string) {
             if (!string || string.length == 0)
                 return [];
@@ -629,7 +606,6 @@
             }
 
             Source.prototype._nextCommandHelper = function(lookahead, previousCommand) {
-                // Check for remaining coordinates in the current command.
                 if ((lookahead == "+" || lookahead == "-" || lookahead == "." || (lookahead >= "0" && lookahead <= "9")) && previousCommand != SVGPathSeg.PATHSEG_CLOSEPATH) {
                     if (previousCommand == SVGPathSeg.PATHSEG_MOVETO_ABS)
                         return SVGPathSeg.PATHSEG_LINETO_ABS;
@@ -641,16 +617,12 @@
             }
 
             Source.prototype.initialCommandIsMoveTo = function() {
-                // If the path is empty it is still valid, so return true.
                 if (!this.hasMoreData())
                     return true;
                 var command = this.peekSegmentType();
-                // Path must start with moveTo.
                 return command == SVGPathSeg.PATHSEG_MOVETO_ABS || command == SVGPathSeg.PATHSEG_MOVETO_REL;
             }
 
-            // Parse a number from an SVG path. This very closely follows genericParseNumber(...) from Source/core/svg/SVGParserUtilities.cpp.
-            // Spec: http://www.w3.org/TR/SVG11/single-page.html#paths-PathDataBNF
             Source.prototype._parseNumber = function() {
                 var exponent = 0;
                 var integer = 0;
@@ -663,7 +635,6 @@
 
                 this._skipOptionalSpaces();
 
-                // Read the sign.
                 if (this._currentIndex < this._endIndex && this._string.charAt(this._currentIndex) == "+")
                     this._currentIndex++;
                 else if (this._currentIndex < this._endIndex && this._string.charAt(this._currentIndex) == "-") {
@@ -672,13 +643,11 @@
                 }
 
                 if (this._currentIndex == this._endIndex || ((this._string.charAt(this._currentIndex) < "0" || this._string.charAt(this._currentIndex) > "9") && this._string.charAt(this._currentIndex) != "."))
-                    // The first character of a number must be one of [0-9+-.].
                     return undefined;
 
-                // Read the integer part, build right-to-left.
                 var startIntPartIndex = this._currentIndex;
                 while (this._currentIndex < this._endIndex && this._string.charAt(this._currentIndex) >= "0" && this._string.charAt(this._currentIndex) <= "9")
-                    this._currentIndex++; // Advance to first non-digit.
+                    this._currentIndex++;
 
                 if (this._currentIndex != startIntPartIndex) {
                     var scanIntPartIndex = this._currentIndex - 1;
@@ -689,22 +658,18 @@
                     }
                 }
 
-                // Read the decimals.
                 if (this._currentIndex < this._endIndex && this._string.charAt(this._currentIndex) == ".") {
                     this._currentIndex++;
 
-                    // There must be a least one digit following the .
                     if (this._currentIndex >= this._endIndex || this._string.charAt(this._currentIndex) < "0" || this._string.charAt(this._currentIndex) > "9")
                         return undefined;
                     while (this._currentIndex < this._endIndex && this._string.charAt(this._currentIndex) >= "0" && this._string.charAt(this._currentIndex) <= "9")
                         decimal += (this._string.charAt(this._currentIndex++) - "0") * (frac *= 0.1);
                 }
 
-                // Read the exponent part.
                 if (this._currentIndex != startIndex && this._currentIndex + 1 < this._endIndex && (this._string.charAt(this._currentIndex) == "e" || this._string.charAt(this._currentIndex) == "E") && (this._string.charAt(this._currentIndex + 1) != "x" && this._string.charAt(this._currentIndex + 1) != "m")) {
                     this._currentIndex++;
 
-                    // Read the sign of the exponent.
                     if (this._string.charAt(this._currentIndex) == "+") {
                         this._currentIndex++;
                     } else if (this._string.charAt(this._currentIndex) == "-") {
@@ -712,7 +677,6 @@
                         expsign = -1;
                     }
 
-                    // There must be an exponent.
                     if (this._currentIndex >= this._endIndex || this._string.charAt(this._currentIndex) < "0" || this._string.charAt(this._currentIndex) > "9")
                         return undefined;
 
@@ -757,7 +721,6 @@
                 var lookahead = this._string[this._currentIndex];
                 var command = this._pathSegTypeFromChar(lookahead);
                 if (command == SVGPathSeg.PATHSEG_UNKNOWN) {
-                    // Possibly an implicit command. Not allowed if this is the first command.
                     if (this._previousCommand == SVGPathSeg.PATHSEG_UNKNOWN)
                         return null;
                     command = this._nextCommandHelper(lookahead, this._previousCommand);

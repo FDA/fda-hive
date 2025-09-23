@@ -30,4 +30,3 @@
 
 alert("executing dynamically loaded Javascript Source code");
 
-//# sourceURL = getBaseUrl() + "/js/jsTest.js"

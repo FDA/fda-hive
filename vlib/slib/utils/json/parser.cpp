@@ -34,7 +34,6 @@
 
 using namespace slib;
 
-//static
 const char * sJSONParser::tokenName(sJSONParser::EToken token)
 {
     switch(token) {
@@ -79,7 +78,7 @@ slib::sJSONParser::sJSONParser()
     debug_lexer = debug_parser = false;
 }
 
-void slib::sJSONParser::setParseCallback(slib::sJSONParser::parseCallback cb, void * cb_param, bool no_result, sStr * decode_buf/* = 0 */)
+void slib::sJSONParser::setParseCallback(slib::sJSONParser::parseCallback cb, void * cb_param, bool no_result, sStr * decode_buf)
 {
     _cb = cb;
     _cb_param = cb_param;
@@ -107,7 +106,7 @@ bool sJSONParser::handleValue(sJSONParser::ParseNode & node, sJSONParser::EToken
 
     bool failure = false;
     sVariant * cur_accum = _levels[_levels.dim() - 1].accum;
-    bool accum_pushed_value = false; // will we use the pushed value as an accumulator for further values?
+    bool accum_pushed_value = false;
 
     switch(token) {
         case sJSONParser::eTokenNull:
@@ -127,7 +126,7 @@ bool sJSONParser::handleValue(sJSONParser::ParseNode & node, sJSONParser::EToken
             node.val_raw = _buf + tokval->start_pos;
             node.val_raw_len = tokval->raw_len;
             if( !_no_result ) {
-                new_val.setInt(node.val.i);
+                new_val.setBool(node.val.i);
             }
             break;
         case sJSONParser::eTokenInt:
@@ -177,7 +176,7 @@ bool sJSONParser::handleValue(sJSONParser::ParseNode & node, sJSONParser::EToken
             }
             NodeLevel * lev = _levels.add(1);
             lev->node_type = eNodeArrayElement;
-            lev->index = -1; // guard value: nothing in this array has been lexed yet
+            lev->index = -1;
             lev->accum = 0;
             break;
         }
@@ -194,7 +193,7 @@ bool sJSONParser::handleValue(sJSONParser::ParseNode & node, sJSONParser::EToken
             }
             NodeLevel * lev = _levels.add(1);
             lev->node_type = eNodeObjectElement;
-            lev->index = -1; // guard value: nothing in this object has been lexed yet]
+            lev->index = -1;
             lev->accum = 0;
             break;
         }
@@ -243,7 +242,7 @@ bool sJSONParser::handleValue(sJSONParser::ParseNode & node, sJSONParser::EToken
     return !failure;
 }
 
-bool slib::sJSONParser::parse(const char *buf, idx len/* = 0 */, idx * plen_parsed/* = 0*/, idx flags/* = fParseEmptyNull*/)
+bool slib::sJSONParser::parse(const char *buf, idx len, idx * plen_parsed, idx flags)
 {
     _result.setNull();
     _error.cut(0);
@@ -298,11 +297,9 @@ bool slib::sJSONParser::parse(const char *buf, idx len/* = 0 */, idx * plen_pars
         switch(node.node_type) {
             case eNodeTopLevel:
                 if( _levels[0].index == -1 ) {
-                    // first token encountered
                     node.index = _levels[0].index = 0;
                     if( token == sJSONParser::eTokenEOF ) {
                         if( flags & fParseEmpty ) {
-                            // empty JSON text, but flags tell us that's OK
                             _levels.cut(0);
                         } else {
                             _error.cutAddString(0, "JSON syntax error: unexpected empty input");
@@ -315,11 +312,8 @@ bool slib::sJSONParser::parse(const char *buf, idx len/* = 0 */, idx * plen_pars
                         failure = !handleValue(node, token, &tokval);
                     }
                 } else if( token == sJSONParser::eTokenEOF ) {
-                    // We've finished with the top value, and then the file ended
                     _levels.cut(0);
                 } else {
-                    // We've finished with the top value, and then there is more data in the buffer :/
-                    // Note: fParsePrefix case is handled in while() condition at end of outer loop
                     wrongToken(token, &tokval, "end of input");
                     failure = true;
                 }
@@ -334,7 +328,6 @@ bool slib::sJSONParser::parse(const char *buf, idx len/* = 0 */, idx * plen_pars
                     if( node.index < 0 ) {
                         node.index = _levels[nlevels - 1].index = 0;
                     } else if( token == eTokenComma ) {
-                        // read what comes after comma
                         token = lexer.lex(tokval);
                         if( token == eTokenError ) {
                             failure = true;
@@ -363,7 +356,6 @@ bool slib::sJSONParser::parse(const char *buf, idx len/* = 0 */, idx * plen_pars
                     if( node.index < 0 ) {
                         node.index = _levels[nlevels - 1].index = 0;
                     } else if( token == eTokenComma ) {
-                        // read what comes after comma
                         token = lexer.lex(tokval);
                         if( token == eTokenError ) {
                             failure = true;
@@ -375,12 +367,10 @@ bool slib::sJSONParser::parse(const char *buf, idx len/* = 0 */, idx * plen_pars
 
                     if( !failure ) {
                         if( token == eTokenString ) {
-                            // preserve tokval for use as key
                             token = lexer.lex(tokval2);
                             if( token == eTokenColon ) {
                                 token = lexer.lex(tokval2);
 
-                                // now we can copy from tokval into node, since decode_buf is no longer being realloced under us
                                 if( tokval.str_len ) {
                                     node.key_str = tokval.str_in_decode_buf ? tokval.decode_buf.ptr(tokval.str_start) : _buf + tokval.str_start;
                                 } else {
@@ -454,9 +444,8 @@ void sJSONParser::setValueError(ParseNode & node, const char * msg_fmt, ...)
 void slib::sJSONParser::vsetError(idx line, idx col, const char * raw, const char * msg_fmt, va_list ap)
 {
     _error.cut0cut();
-
     if( line >= 0 ) {
-        if( col >= 0) {
+        if( col >= 0 ) {
             _error.printf("line %" DEC " col %" DEC ": ", line + 1, col + 1);
         } else {
             _error.printf("line %" DEC ": ", line);
@@ -464,17 +453,14 @@ void slib::sJSONParser::vsetError(idx line, idx col, const char * raw, const cha
     } else if( col >= 0 ) {
         _error.printf("col %" DEC ": ", col);
     }
-
     _error.vprintf(msg_fmt, ap);
-
-    if( !_buf || !_buflen || !raw || !*raw )
+    if( !_buf || !_buflen || !raw || !*raw ) {
         return;
+    }
 
-    // find subset of affected line up to 80 characters wide
     static const idx max_len_affected = 80;
-    static const idx max_len_left = max_len_affected / 2 - 1; // when printing a very long line, print at most 39 characters to left of affected one
+    static const idx max_len_left = max_len_affected / 2 - 1;
 
-    // FIXME: don't chop in middle of a utf8 character
 
     idx len_left = 0;
     for(; raw - len_left > _buf && len_left < max_len_affected - 1 && raw[-len_left - 1] && raw[-len_left - 1] != '\r' && raw[-len_left - 1] != '\n'; len_left++);

@@ -24,15 +24,15 @@
     var process_svc="svc-dna-alignQC";
     var process_qpsvc="dna-alignQC";
 
-//    vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files="+vjDS.escapeQueryLanguage("*.{out,csv,vcf,json,png,tsv,txt,fasta,fastq,fa}")+"&mode=csv&prop=none&ids="+thisProcessID, 0, "id,name,path,value");
+    vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files="+vjDS.escapeQueryLanguage("*.{out,csv,vcf,json,png,tsv,txt,fasta,fastq,fa}")+"&mode=csv&prop=none&ids="+thisProcessID, 0, "id,name,path,value");
 
 
     var algoProcess=new valgoProcess(thisProcessID,  process_qpsvc, process_svc);
     //algoProcess.callbackLoaded = inputLoaded;
-    algoProcess.visibleParameters=["alignQC_objid"];                                 
+    algoProcess.visibleParameters=["name", "alignQC_objid"];                                 
     
     algoProcess.autoexpand= thisProcessID.length ? "all" : 1 ; 
-    algoProcess.noResultViewers = true;
+    algoProcess.noResultViewers = false;
     
     algoProcess.submitButtonName="SUBMIT";
     //algoProcess.recViewerName = "dvRecordViewer123";
@@ -42,53 +42,33 @@
     var thisProcessID = 0;
 
 
-    algoProcess.inputLoaded = function(viewer) 
-    {
-        algoProcess.setValue("scissors", "hiveseq");
-        algoProcess.setValue("split", "query_objId");
-        //algoProcess.setValue("slice", "1000000");
-    
-        // 0///Standard|1///Vertebrate Mitochondrial|2///Yeast Mitochondrial|3///Mold, Protozoan, and Coelenterate Mitochondrial
-    //    var recordV = vjDV["DV_Parameter_view"];
-        
-    //    var el = recordV.getElement("codonTable");
-    //    el.fld.constraint_data = "";
-    //    for (var it=0; it<codonTbl.length; ++it) {
-    //        if (it) el.fld.constraint_data += "|";
-    //        el.fld.constraint_data += it.toString() + "///" + codonTbl[it];
-    //    }
-    
-    //    recordV.redraw();
-    }
-    algoProcess.doneComputing = function (viewer, reqid, stat)
-    {
+
+    algoProcess.doneComputing = function(viewer, reqid, stat) {
         thisProcessID = docLocValue("id");
-        
-         if(stat>=5) {
+
+        if (stat >= 5) {
             var nam = algoProcess.getValue("name"); // this is how you get the variables from the input form in JS
-            
+
             currentCompletionState = "computed";
-            algoWidgetObj.iterateAlgoJSON (algoWidgetObj.optionsForPage.subTabs, "algoMenu");
-               
-               // this is how you call the Hive Object to construct you result viewers
-               //
-               var node = {
-                    _type : 'svc-dna-alignQC',   // your back-end service name
-                    id : docLocValue("id"), // read the id from the URL
+            algoWidgetObj.iterateAlgoJSON(algoWidgetObj.optionsForPage.subTabs,
+                    "algoMenu");
+
+            // this is how you call the Hive Object to construct you result viewers
+            var node = {
+                _type : 'svc-dna-alignQC', // your back-end service name
+                id : docLocValue("id"), // read the id from the URL
             };
             var results = vjHO.fullview(node._type, node, $.getAlgoViewManager().options.jsonForPage.subTabs.results);
-            return true;
-    
         }
     }
-    
-    $(document).ready(function() 
-    {
+
+    gInitList += "alignQcInit();";
+    function alignQcInit() {
         globalAlgo = $('#mainAlgoArea').algoview({
-            algoObj: algoProcess,
-            svcType: "svc-dna-alignQC",
-            algoTitle: "Dna Alignment QC"
+            algoObj : algoProcess,
+            svcType : "svc-dna-alignQC",
+            algoTitle : "Dna Alignment QC"
         });
-    });
+    };
 </script>
 

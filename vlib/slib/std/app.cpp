@@ -58,7 +58,6 @@ udx sApp::err_location = commonsetup();
 static
 void SigHupHandler(int sig)
 {
-    // ignore
 }
 
 static
@@ -86,13 +85,12 @@ static struct
 };
 static struct sigaction sig_saves[sDim(sigs)];
 
-sApp::sApp(int largc /* = 0 */, const char ** largv /* = 0 */, const char ** lenvp /* = 0 */)
+sApp::sApp(int largc, const char ** largv, const char ** lenvp)
 {
     args(largc, largv, lenvp);
 #ifndef _DEBUG
 #ifdef WIN32
 #else
-    /* install signal handlers */
     for(int i = 0; i < sDim(sigs); ++i) {
         struct sigaction act;
         memset(&act, 0, sizeof(act));
@@ -116,19 +114,19 @@ char * sApp::cfgget(const char * section, const char * name, const char * defVal
     sStr nm("%s%s%s", section, section ? "." : "", name), t;
     char * res = (char *) var->out(nm.ptr(), 0, 0);
 
-    if( !res ) { // read from file
+    if( !res ) {
         if( !cfg || !cfg->length() ) {
             return (char *) sVar::nonconst(defVal);
         }
         idx st = 0, en = 0;
         sString::searchAndReplaceSymbols(&t, nm.ptr(), 0, ".", 0, 0, true, true, true);
-        sString::searchStruc(cfg->ptr(),cfg->length(),t.ptr(), "[" _ "\n" __,&st,&en); // first we find out variable
+        sString::searchStruc(cfg->ptr(),cfg->length(),t.ptr(), "[" _ "\n" __,&st,&en);
         t.cut(0);
-        if(st!=en)sString::cleanEnds(&t,cfg->ptr(st),en-st,"=" sString_symbolsBlank,true); // then we clean equal signs and spaces at both ends
+        if(st!=en)sString::cleanEnds(&t,cfg->ptr(st),en-st,"=" sString_symbolsBlank,true);
         if( !t.length() ) {
             t.add(__, 2);
         }
-        var->inp(nm.ptr(), t.ptr(), t.length()); // remember this so we don't go to the file next time
+        var->inp(nm.ptr(), t.ptr(), t.length());
         res = (char *) var->out(nm.ptr(), defVal, 0);
     }
     return res;
@@ -149,7 +147,6 @@ idx sApp::cfgsave(const char * section00, bool truncate)
         for(idx i = 0; i < var->dim(); ++i) {
             const char * nm = (const char *) var->id(i);
             if( section && (strncmp(nm, section, l) != 0 || nm[l] != '.') ) {
-                // section specified and this is not one of those
                 continue;
             }
             const char * val = var->value(nm, 0);

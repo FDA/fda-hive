@@ -70,20 +70,18 @@ sVioseq2::errParser sVioseq2::listErrors[]={
     {0},
 };
 
-// static
-udx sVioseq2::getPartCount(const udx fileSize, udx maxChunkSize /* = ((udx) 8) * 1024 * 1024 * 1024 */)
+udx sVioseq2::getPartCount(const udx fileSize, udx maxChunkSize)
 {
-    udx numchunks = 0;
+    udx numchunks = 1;
     if( fileSize ) {
         maxChunkSize = maxChunkSize ? maxChunkSize : fileSize;
         udx chunkCnt = (fileSize - 1) / maxChunkSize + 1;
         for(numchunks = 1; numchunks < chunkCnt; numchunks *= 4) {
         }
     }
-    return sMin(numchunks, (udx) 256);
+    return numchunks;
 }
 
-//static
 udx sVioseq2::getPrefixLength(const udx partCount)
 {
     udx prefixLength = 0;
@@ -98,7 +96,7 @@ inline bool parallelizationfilter(const char * cpy, idx sizeComb, idx comb)
     idx base = 1;
     idx sum = 0;
     for(idx i = sizeComb - 1; 0 <= i; i--) {
-        sum += sBioseqAlignment::_seqBits(cpy, i, 0) * base;
+        sum += sBioseqAlignment::_seqBits(cpy, i) * base;
         base *= 4;
     }
     return sum == comb;
@@ -131,7 +129,7 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
     idx res = 0, ires;
     sFilePath firstfile(outfile, "%%pathx-0.vioseq2");
     sStr filenames;
-    if( chunksForThisPrefix <= 1 ) {  // Single process version
+    if( chunksForThisPrefix <= 1 ) {
         if( flags & sVioseq2::eCreateVioseqlist ) {
             res = parseSequenceFile(firstfile, flnm, flags, primers00, complexityWindow, complexityEntropy, 0, 0);
             sFilePath tmpfile(firstfile, "%%flnm");
@@ -142,23 +140,20 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
         if( res <= 0 ) {
             return res;
         }
-    } else { // "Parallel" Version
+    } else {
         sVec<sVec<Infopart> > partList;
         partList.resize(chunksForThisPrefix);
         sVec<idx> countRes;
         countRes.resize(chunksForThisPrefix);
         TSequential_parse_callback_data data;
         for(udx i = 0; i < chunksForThisPrefix; i++) {
-            // We must append a number to the name of the file and send it to parse
             sFilePath newfile(outfile, "%%pathx-%" UDEC ".vioseq2", i);
             ires = parseSequenceFile(newfile, flnm, flags, primers00, complexityWindow, complexityEntropy, sizeComb, i, &partList[i]);
             countRes[i] = ires;
             if( ires == 0 && i != 0 ) {
-                // if there is no sequence, try another combination, but not for first which has ids
                 continue;
             }
             if( ires < 0 ) {
-                // If there is an error, exit
                 res = ires;
                 break;
             }
@@ -186,7 +181,6 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
             return res;
         }
         {
-            // I must fix AddRelation for the first vioseq2
             sVioDB dbi(firstfile, 0, 0, 0);
             fixAddRelation(&dbi, &partList, countRes);
         }
@@ -194,14 +188,13 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
         ::printf("%s\n", filenames.ptr(0));
 #endif
         if( (flags & sVioseq2::eCreateVioseqlist) == 0 ) {
-            sVioDB db; //(outfile, "vioseq2", (idx)4, (idx)3);
+            sVioDB db;
             db.concatFiles(outfile, filenames, "vioseq2", m_isSingleFile, true);
         }
     }
     if( flags & sVioseq2::eCreateVioseqlist ) {
         sVioDB dbi(firstfile, 0, 0, 0);
-        res = dbi.GetRecordCnt(eRecID_TYPE);    // Get the count of long mode sequences to return
-        // Create a Hiveseq File with all information
+        res = dbi.GetRecordCnt(eRecID_TYPE);
         sStr errmsg;
         sFil fp(outfile);
         fp.cut(0);
@@ -217,7 +210,6 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
     return res;
 }
 
-//static
 idx sVioseq2::fixAddRelation(sVioDB *db, sVec<sVec<Infopart> > * partList, idx *countRes, const char * partFiles00, callbackType callback, void * callbackParam)
 {
     idx nchunks = (partList && partList->dim()) ? partList->dim() : sString::cnt00(partFiles00);
@@ -241,7 +233,6 @@ idx sVioseq2::fixAddRelation(sVioDB *db, sVec<sVec<Infopart> > * partList, idx *
 
         for(idx j = 0; j < part->dim(); j++) {
             rpart = part->ptr(j);
-//            ::printf("%lld - %lld \n", rpart->origID, rpart->partID + offset);
             idx relationCnt = 0;
             if( !rpart->origID ) {
                 return -1;
@@ -262,16 +253,11 @@ idx sVioseq2::fixAddRelation(sVioDB *db, sVec<sVec<Infopart> > * partList, idx *
     return 0;
 }
 
-//bool sVioseq2::fileSeqValidation(const char *outfile)
-//{
-//
-//}
 
 idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx flags, const char * primers00, idx complexityWindow, real complexityEntropy, idx sizecomb, idx comb, sVec<Infopart> * iPart)
 {
 
-    // try opening the original sequence file and parse it
-    sFil inf(0); // mapATGC the input file
+    sFil inf(0);
     if( strcmp(flnm, "stdin") == 0 )
         inf.readIO((FILE*) stdin);
     else
@@ -280,11 +266,8 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
         return -8;
     }
     if( !inf.length() )
-        return -9;  // Empty file
+        return -9;
 
-//    if (!fileSeqValidation(inf.ptr())){
-//        return -5;  // Corrupted Header
-//    }
 
     if( flags & eParseMultiVioDB ) {
         setSingleFile(true);
@@ -301,19 +284,18 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
     idx relationlistREC[3] = {
         1,
         3,
-        4 }; // REC is linked to Id's and Sequences
+        4 };
     idx relationlistSEQ[1] = {
         3 };
     idx relationlistQUA[1] = {
-        4 }; // QUA is linked to Infile
+        4 };
 
     db.AddType(sVioDB::eOther, 1, relationlistIDS, "ids", 1);
     db.AddType(sVioDB::eOther, 3, relationlistREC, "rec", 2);
     db.AddType(sVioDB::eOther, 1, relationlistSEQ, "seq", 3);
     db.AddType(sVioDB::eOther, 1, relationlistQUA, "qua", 4);
 
-    if( ((flags >> 16) & 0xF) == 0 ) { // I do not have a hint, find the extension
-        // Get file extension
+    if( ((flags >> 16) & 0xF) == 0 ) {
         const sFilePath ext(flnm, "%%ext");
         if( (strcasecmp(ext, "fasta") == 0) || (strcasecmp(ext, "fa") == 0) ) {
             flags |= (eTreatAsFastA | eParseQuaBit);
@@ -330,7 +312,7 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
             flags |= (eTreatAsFastA | eParseQuaBit);
         }
     }
-    { // Parse with the correct format
+    {
         sFile::remove(baseFileName);
         sFil baseFile(baseFileName);
         baseFile.cut(0);
@@ -341,29 +323,22 @@ idx sVioseq2::parseSequenceFile(const char * outfile, const char * flnm, idx fla
         } else if( flags & eTreatAsFastQ ) {
             res = parseFastQ(db, baseFile, inf.ptr(), inf.length(), flags, primers00, complexityWindow, complexityEntropy, sizecomb, comb, iPart);
         } else if( flags & eTreatAsSAM ) {
-//            initVariables(baseFile, 0, sizecomb, comb, flags, complexityWindow, complexityEntropy);
             res = ParseSam(inf.ptr(), inf.length(), db, baseFile, 0, 0, 0, iPart);
-            freeVariables();
         } else if( flags & eTreatAsAnnotation ) {
-//            initVariables(baseFile, 0, sizecomb, comb, flags, complexityWindow, complexityEntropy);
             res = ParseGb(inf.ptr(), inf.length(), db, baseFile, iPart);
-            freeVariables();
         } else if( flags & eTreatAsMA ) {
             sBioseq::mapATGC[(idx) '-'] = 0xFF;
             res = parseFasta(db, baseFile, inf.ptr(), inf.length(), flags, primers00, complexityWindow, complexityEntropy, sizecomb, comb, iPart);
             sBioseq::mapATGC[(idx) '-'] = 4;
-            freeVariables();
         } else {
             sFilePath quanm(flnm, "%%pathx%s", ".qual");
             sFil qua(quanm, sMex::fReadonly);
             if( qua ) {
                 res = parseFasta(db, baseFile, inf.ptr(), inf.length(), flags | eParsedQualities, primers00, complexityWindow, complexityEntropy, sizecomb, comb, iPart);
-//                if(!primers00 && complexityWindow==0 ) // if primers are defined ,or complexity level is defined  ... some sequences will not be taken in
-//                    parseQualities(db, baseFile, qua.ptr(), qua.length(), flags);
             } else
                 res = parseFasta(db, baseFile, inf.ptr(), inf.length(), flags, primers00, complexityWindow, complexityEntropy, sizecomb, comb, iPart);
-
         }
+        freeVariables();
     }
     sFile::remove(baseFileName);
     setFlagsDB(db, flags);
@@ -391,11 +366,10 @@ void sVioseq2::updateBitQualities(char *origQua, char *currQua, idx lenSeq)
 
 }
 
-idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx fastalen, idx flags, const char * primers00, idx complexityWindow, real complexityEntropy, idx sizecomb, idx comb, sVec<Infopart> * iPart) //sDic < idx > * dicofs , idx flags)
+idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx fastalen, idx flags, const char * primers00, idx complexityWindow, real complexityEntropy, idx sizecomb, idx comb, sVec<Infopart> * iPart)
 {
 
     isParallelversion = 0;
-    // If we get a pointer to sVec, it is the parallel version
     if( sizecomb != 0 ) {
         isParallelversion = 1;
     }
@@ -403,20 +377,17 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
     idx idofs = 0, seqofs = -1, idnext = -1;
 
     const char * c0 = fasta, *c = c0, *e = c + fastalen, *p = "\n";
-    EParseItem mode = eSeq, pmode = eNone; //, num=-1;
-    //char let1; // retrieve 2-bit presentation of a particular base (A,T,G,C)  for the current query position
+    EParseItem mode = eSeq, pmode = eNone;
 
     Rec rec;
 
     while( c0 < e && (*c0 == '\n' || *c0 == '\r') )
-        ++c0; // skip first empty lines
+        ++c0;
     c = c0;
     if( c > e ) {
-        return -6; // negative length provided?
+        return -6;
     }
 
-    //idx bm=dynamicMatch( Mat.ptr(), seq, seq, start, lenfos, start,lenfos , maxDiag, history, costs );
-    //bm=dynamicMatch( Mat.ptr(), seq, seq, start, lenfos, start,lenfos , maxDiag, history, costs , lenseq );
 
     idx errCode = 0;
     sFil aux;
@@ -427,18 +398,15 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
     bool isBitQual;
     sStr qty(sMex::fSetZero);
     sStr prefix;
-    prefix.add(0, 5*sizecomb); // for two bit representation
+    prefix.add(0, 5*sizecomb);
     const idx p100pcnt = e - c0;
     for(udx iN = 0; c < e; p = c, ++c) {
-        if( *p == '\n' || *p == '\r' || c == e - 1 ) { // first choice is for windows and unix, the second is for mac, the third is end of file
+        if( *p == '\n' || *p == '\r' || c == e - 1 ) {
             if(*p=='\r' && c<e-1 && *c=='\n'){++c;}
             if( mode == eIdLine && *c!='>') {
                 mode = eSeq;
                 seqofs = c - c0;
             } else if( mode == eSeq && (*c == '>' || *c == '@') ) {
-//                if( *c == '+' && (c != e-1)) {
-//                    return -5;  //  Error in the format
-//                }
                 mode = eIdLine;
                 idnext = c - c0;
             } else if( *c == '#' || c == e - 1 ) {
@@ -446,17 +414,17 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                 mode = eStop;
             }
 
-            if( pmode == eSeq && mode != eSeq ) { // generate record
+            if( pmode == eSeq && mode != eSeq ) {
                 if( PROGRESS(cntFound, c - c0, p100pcnt, 80) ) {
                     errCode = -3;
                     break;
                 }
                 if( m_recLimit && m_recLimit < iN ) {
-                    errCode = -2;  //  I have reached the limit number of sequences allowed to parse
+                    errCode = -2;
                     break;
                 }
                 if( idofs > seqofs || seqofs > idnext ) {
-                    return -4;  // Format Error
+                    return -4;
                 }
 
                 const char * id = c0 + idofs;
@@ -467,8 +435,6 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                     ++id;
                 }
 
-                // count the length of the ID line
-                // and add it to the destination
                 idx il, iddiclen = 0;
                 const char *bb = "H#=";
                 const char *b;
@@ -477,7 +443,7 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                 idx rptcount = 1;
                 for(il = 0; id + il <= nxt && id[il] != '\n' && id[il] != '\r'; ++il) {
                     if( !iddiclen && il > 2 && (id[il] == ' ' || id[il] == '\t') )
-                        iddiclen = il; // also mark where the first word of the dictionary ends
+                        iddiclen = il;
                     if( id[il] != *bb ) {
                         continue;
                     }
@@ -485,7 +451,6 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                     a = il;
                     while( 1 ) {
                         if( *b == 0 ) {
-                            // We found it
                             idhiverpt = il;
                             rptcount = 0;
                             while( id[a] != '\n' ) {
@@ -494,13 +459,12 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                             break;
                         }
                         if( id[a++] != *b++ ) {
-                            // We didn't find it
                             break;
                         }
                     }
                 }
                 if( !iddiclen ) {
-                    iddiclen = il; // if it is a single word ... it is what is used for dictionarizing
+                    iddiclen = il;
                 }
                 if( rptcount < 0 ) {
                     rptcount = 1;
@@ -509,57 +473,42 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                     il = idhiverpt;
                 }
                 if( !il ) {
-                    errCode = -1;  // invalid value of id length
+                    errCode = -1;
                     break;
                 }
-//                addNewSequence(baseFile, db, id, il, seq, 0, (nxt - seq));
                 bool isValid = true;
-                // If is a parallel version, check if we need to parse
-                char *cpr = prefix.ptr(0);  //prefix.add(0,sizecomb);
+                char *cpr = prefix.ptr(0);
                 sBioseq::compressATGC((sStr *) cpr, seq, ((c == e - 1) ? 1 : 0) + sizecomb, false, 0);
                 if( (isParallelversion) && !parallelizationfilter(prefix.ptr(), sizecomb, comb) ) {
-                    // Do not parse this read
                     isValid = false;
                     if (!complexityWindow){ ++iNN;}
                 }
-                // isValid and complexityWindow and comb == 0 ==>  Id's,  isok,  parse
-                //      0   0   0  ==> 0  0  0  do nothing, do not parse (if comb == 0) Ids
-                //      0   1   0  ==> 0  1  0  check if comb = 0 and parse Id
-                //      1   0   0  ==> 0  0  1  parse
-                //      1   1   0  ==> 0  0  1  check if is valid and parse
-                //      0   0   1  ==> 1  0  0 do nothing, do not parse (if comb == 0) Ids
-                //      0   1   1  ==> 0  1  1 (if comb = 0 and parse Id )
-                //      1   0   1  ==> 1  0  1 parse
-                //      1   1   1  ==> 0  1  1 check if is valid and parse
                 if( !complexityWindow && !comb) {
-                    // Add ID_Type only if it's the first chunk
                     addRecID(db, id, il);
                     idNum++;
                 }
-                if( isValid || complexityWindow ) { // now squeeze the sequence
+                if( isValid || complexityWindow ) {
                     qty.cut(0);
                     ++cntFound;
                     rec.ofsSeq = baseFile.length();
                     while( mapATGC[(idx) (*seq)] == 0xFF && seq < nxt )
-                        ++seq; // new-code
-                    char * cpy = baseFile.add(0, (nxt - seq) / 4 + 1); // for two bit representation
-                    rec.lenSeq = sBioseq::compressATGC((sStr *) cpy, seq, ((c == e - 1) ? 1 : 0) + nxt - seq, false, &qty); // TODO : cut the bufflen extension length to req.lenseq
-                    baseFile.cut(rec.ofsSeq + (rec.lenSeq - 1) / 4 + 1); // new-code
+                        ++seq;
+                    char * cpy = baseFile.add(0, (nxt - seq) / 4 + 1);
+                    rec.lenSeq = sBioseq::compressATGC((sStr *) cpy, seq, ((c == e - 1) ? 1 : 0) + nxt - seq, false, &qty);
+                    baseFile.cut(rec.ofsSeq + (rec.lenSeq - 1) / 4 + 1);
 
-                    // complexity filtering
                     bool isok = (complexityWindow != 0) ? sFilterseq::complexityFilter(cpy, rec.lenSeq, complexityWindow, complexityEntropy) : true;
 
                     idx primershift = 0;
                     if( isok && primers00 ) {
-                        //                    primershift=primerCut(baseFile,rec,0,cpy,primers00); // cut the primer from the sequence
                         if( primershift == sNotIdx )
-                            isok = false; // sequence is to be discarded completely
+                            isok = false;
                     }
 
                     idx lqua = 0;
                     isBitQual = (qty.length() != 0) ? true : false;
 
-                    if( isok && rec.lenSeq && isBitQual ) { // reserve the space for qualities
+                    if( isok && rec.lenSeq && isBitQual ) {
                         if( (flags & eParseQuaBit) ) {
 
                             baseFile.add0();
@@ -569,7 +518,7 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                             lqua = rec.lenSeq;
                             baseFile.add(0, rec.lenSeq);
                         }
-                    } else { // just add a single space with a reserved character
+                    } else {
                         lqua = 1;
                         baseFile.addSeparator(separator, 1);
                     }
@@ -577,16 +526,13 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                     if( isok == false ) {
                         baseFile.cut(rec.ofsSeq);
                     } else {
-                        // Add record to sVioDB
-                        if( complexityWindow && !comb ) {  // Add ID_Type only if it's the first one
+                        if( complexityWindow && !comb ) {
                             addRecID(db, id, il);
                             idNum++;
                         }
                         if( isValid ) {
-                            // Add it to the tree
                             unique = tree->addSequence(rec.ofsSeq, rec.lenSeq);
                             if( unique == -1 ) {
-                                // It is unique
                                 baseFile.cut(rec.ofsSeq + (rec.lenSeq - 1) / 4 + 1 + lqua);
                                 if( (flags & eParseNoId) == 0 )
                                     baseFile.add(id, il);
@@ -595,13 +541,9 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                                 *vofs.add() = rec;
                                 uniqueCount++;
 
-                                // Add Sequences to sVioDB
-                                //                        cpy=baseFile.ptr(rec.ofsSeq);
-                                //                        db.AddRecord(eRecSEQ_TYPE,(void *)cpy, (rec.lenSeq-1)/4+1);
                                 ids.vadd(1, uniqueCount - 1);
                                 ods.vadd(1, iNN);
                             } else {
-                                // check qualities and merge them if it's possible
                                 Rec *origRec = vofs.ptr(unique);
                                 char *origQua = baseFile.ptr(origRec->ofsSeq) + ((origRec->lenSeq - 1) / 4 + 1);
                                 if( origQua[0] != separator[0] ) {
@@ -617,7 +559,6 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
                                 }
                                 origRec->countSeq += rptcount;
 
-                                // Candidate is rejected
                                 baseFile.cut(rec.ofsSeq);
                                 removeCount++;
 
@@ -638,7 +579,6 @@ idx sVioseq2::parseFasta(sVioDB & db, sFil & baseFile, const char * fasta, idx f
 
     }
     if( errCode != 0 ) {
-        // Delete and Exit
         return errCode;
     }
     return writeSortVioDB(baseFile, db, iPart, true);
@@ -648,7 +588,6 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
 {
 
     isParallelversion = 0;
-    // If sizecomb is different than 0, it is a parallel version
     if( sizecomb != 0 ) {
         isParallelversion = 1;
     }
@@ -656,11 +595,11 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
     const char * c0 = fasta, *c = c0, *e = c + fastalen, *p = "\n";
     EParseItem mode = eQual, pmode = eNone;
     while( c0 < e && (*c0 == '\n' || *c0 == '\r') ) {
-        ++c0; // skip initial empty lines
+        ++c0;
     }
     c = c0;
     if( c > e ) {
-        return -6; // negative length provided?
+        return -6;
     }
 
     BioseqTree tree(&baseFile, 0);
@@ -670,10 +609,10 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
     sApp::err_location = 0;
     sStr qty(sMex::fSetZero);
     sStr prefix;
-    prefix.add(0, 5 * sizecomb); // for two bit representation
+    prefix.add(0, 5 * sizecomb);
     const idx p100pcnt = e - c0;
     for(udx iN = 0; c < e; p = c, ++c) {
-        if( *p == '\n' || *p == '\r' || c == e - 1 ) { // first choice is for windows and unix, the second is for mac, the third is end of file
+        if( *p == '\n' || *p == '\r' || c == e - 1 ) {
             if(*p=='\r' && c<e-1 && *c=='\n'){++c;}
             if( mode == eIdLine ) {
                 mode = eSeq;
@@ -695,17 +634,17 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
                 mode = eStop;
             }
 
-            if( pmode == eQual && mode != eQual ) { // generate record
+            if( pmode == eQual && mode != eQual ) {
                 if( PROGRESS(cntFound, c - c0, p100pcnt,80) ) {
-                    errCode = -3; // The process was killed by user/administrator
+                    errCode = -3;
                     break;
                 }
                 if( m_recLimit && m_recLimit < iN ) {
-                    errCode = -2;  //  I have reached the limit number of sequences allowed to parse
+                    errCode = -2;
                     break;
                 }
                 if( idofs > seqofs || seqofs > idsecofs || idsecofs > qualofs || qualofs > idnext ) {
-                    return -4;  // Format Error in FastQ file
+                    return -4;
                 }
 
                 const char * id = c0 + idofs;
@@ -718,8 +657,6 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
                     ++id;
                 }
 
-                // count the length of the ID line
-                // and add it to the destination
                 idx il, iddiclen = 0;
                 const char *bb = "H#=";
                 const char *b;
@@ -728,7 +665,7 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
                 idx rptcount = 1;
                 for(il = 0; id + il < nxt && id[il] != '\n' && id[il] != '\r'; ++il) {
                     if( !iddiclen && il > 2 && (id[il] == ' ' || id[il] == '\t') )
-                        iddiclen = il; // also mark where the first word of the dictionary ends
+                        iddiclen = il;
                     if( id[il] != *bb ) {
                         continue;
                     }
@@ -736,7 +673,6 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
                     a = il;
                     while( 1 ) {
                         if( *b == 0 ) {
-                            // We found it
                             idhiverpt = il;
                             rptcount = 0;
                             while( id[a] != '\n' ) {
@@ -745,14 +681,13 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
                             break;
                         }
                         if( id[a++] != *b++ ) {
-                            // We didn't find it
                             break;
                         }
                     }
                     b = bb;
                 }
                 if( !iddiclen ) {
-                    iddiclen = il; // if it is a single word ... it is what is used for dictionarizing
+                    iddiclen = il;
                 }
                 if( rptcount < 0 ) {
                     rptcount = 1;
@@ -761,7 +696,7 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
                     il = idhiverpt;
                 }
                 if( !il ) {
-                    errCode = -1;  // invalid value of id length
+                    errCode = -1;
                     break;
                 }
 
@@ -776,7 +711,6 @@ idx sVioseq2::parseFastQ(sVioDB &db, sFil & baseFile, const char * fasta, idx fa
     }
 
     if( errCode != 0 ) {
-        // Delete and Exit
         return errCode;
     }
 
@@ -813,13 +747,13 @@ char * sVioseq2::skipUntilEOL(const char * ptr, const char * lastpos)
     while( (*ptr != '\r' && *ptr != '\n') && ptr < lastpos )
         ++ptr;
 
-    if( ptr < lastpos )
+    while( (*ptr == '\n' || *ptr == '\r') && ( ptr < lastpos ))
         ++ptr;
     return (char *) ptr;
 }
 
 void sVioseq2::skipMismatchesAtTheLeftEnd(const char * ptr, const char * lastpos, idx * skipLeftPositions)
-{   //count number of zeros at the left end of MD:Z:0T0T0G0A1G0C3A0G1A1G0A0T0A1T0C0A1T0C0G0C0A0G0A0T2A0T0C0A0
+{
     while( (*ptr != 'D') && (*ptr != '\r' && *ptr != '\n') && ptr < lastpos ) {
         ++ptr;
         if( *ptr == 'D' && *(ptr - 1) == 'M' && ptr + 4 < lastpos ) {
@@ -841,7 +775,7 @@ void sVioseq2::skipMismatchesAtTheLeftEnd(const char * ptr, const char * lastpos
 }
 
 void sVioseq2::skipMismatchesAtTheRightEnd(const char * ptr, const char * lastpos, idx * skipRightPositions)
-{   ////count number of zeros at the right end of MD:Z:0T0T0G0A1G0C3A0G1A1G0A0T0A1T0C0A1T0C0G0C0A0G0A0T2A0T0C0A0
+{
     while( (*ptr != 'D') && (*ptr != '\r' && *ptr != '\n') && ptr < lastpos ) {
         ++ptr;
         if( *ptr == 'D' && *(ptr - 1) == 'M' && ptr + 4 < lastpos ) {
@@ -888,9 +822,9 @@ char * sVioseq2::scanAllUntilSpace(const char * ptr, sStr * strVal, const char *
 {
     idx p = 0;
     while( (ptr[p] != '\r' && ptr[p] != '\n') && ptr + p < lastpos && ((ptr[p] == '\t') || (allowSpaces && ptr[p] == ' ')) )
-        ++p; //shift while name
+        ++p;
 
-    const char * start = ptr + p; //remember start of the name
+    const char * start = ptr + p;
 
     while( ptr + p < lastpos && ptr[p] != '\n' && ptr[p] != '\r' && (!allowSpaces || ptr[p] != ' ') && ptr[p] != '\t' )
         ++p;
@@ -908,14 +842,9 @@ char * sVioseq2::cigar_parser(const char * ptr, const char * lastpos, sVec<idx> 
 {
     sStr full_str;
     *lenalign = 0;
-    //*qry_start=0;
-    //idx del_counter = 0;
-    //idx ins_counter = 0;
     idx shift = 0, firstTime = true;
     idx current_qry = 0;
-    //idx qry_end = 0;
-    idx current_sub = 0; //sub_start-1;
-    //idx sub_end = sub_start-1;
+    idx current_sub = 0;
     if (matches){
         *matches = 0;
     }
@@ -923,9 +852,8 @@ char * sVioseq2::cigar_parser(const char * ptr, const char * lastpos, sVec<idx> 
         idx number;
         ptr = scanUntilLetterOrSpace(ptr, &number, lastpos);
 
-        // If there is a tab or a space, end parsing (no spaces or tabs allowed in CIGAR)
         if( *ptr == ' ' || *ptr == '\t' ) {
-            break;    //return (char *)ptr;
+            break;
         }
 
 
@@ -939,19 +867,17 @@ char * sVioseq2::cigar_parser(const char * ptr, const char * lastpos, sVec<idx> 
             (*matches)+=number;
 
         }
-        if( *ptr == 'N' /* || *ptr == 'H'*/ ) {
+        if( *ptr == 'N') {
             current_sub += number;
             continue;
         }
 
-        // Soft clipping; ignore these positions in creating the hiveal object
         if (*ptr == 'S'){
             current_qry += number;
             continue;
         }
 
-        // Hard clipping; these positions are not in the reads (removed out) and so should be skipped
-        if( *ptr == 'H' ) { // *ptr == 'S' ||
+        if( *ptr == 'H' ) {
             if (!firstTime){
                 continue;
             }
@@ -962,7 +888,6 @@ char * sVioseq2::cigar_parser(const char * ptr, const char * lastpos, sVec<idx> 
         if( !strchr("MXDI=", *ptr) )
             continue;
 
-        // If we start from deletion, we move the subject
         if( firstTime && *ptr == 'D') {
             current_sub += number;
             firstTime = false;
@@ -991,14 +916,13 @@ char * sVioseq2::cigar_parser(const char * ptr, const char * lastpos, sVec<idx> 
     return (char *) ptr;
 }
 
-//idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db , sFil & baseFile, sVec < idx > * alignOut, sDic <idx> * rgm)
-idx sVioseq2::convertSAMintoAlignmentMap(const char * fileContent, idx filesize, sVec<idx> * alignOut, sDic<idx> * rgm, idx minMatchLength, idx maxMissQueryPercent, sDic<idx> *sub, sDic<idx> *qry, bool useRowInformationtoExtractQry)
+idx sVioseq2::convertSAMintoAlignmentMap(const char * fileContent, idx filesize, sVec<idx> * alignOut, sDic<idx> * rgm, idx minMatchLength, bool isMinMatchPercentage, idx maxMissQueryPercent, sDic<idx> *sub, sDic<idx> *qry, bool useRowInformationtoExtractQry,  sFil * samHeader, sFil *samcontent, sFil * samFooter)
 {
     idx res = 0;
-    sVioDB db;    //(0, "vioseq2", (idx)4, (idx)3);
-    sFil baseFile;    //(baseFileName);
+    sVioDB db;
+    sFil baseFile;
     sVioseq2 v;
-    res = v.ParseSam(fileContent, filesize, db, baseFile, alignOut, rgm, true, 0, sub, qry, minMatchLength, maxMissQueryPercent, useRowInformationtoExtractQry);
+    res = v.ParseSam(fileContent, filesize, db, baseFile, alignOut, rgm, true, 0, sub, qry, minMatchLength, isMinMatchPercentage, maxMissQueryPercent, useRowInformationtoExtractQry, samHeader, samcontent, samFooter);
 
     return res;
 }
@@ -1014,7 +938,7 @@ const char * getLine(sStr & buf, const char * fileContent)
     for(i = 0; fileContent[i] && fileContent[i] != '\n' && fileContent[i] != '\r'; ++i) {
     }
 
-    buf.add(fileContent, (fileContent[i] == '\r') ? (i+1) : i); // keeping the '\r' for repositioning the pointer back to the beginning of the line, and remove it later
+    buf.add(fileContent, (fileContent[i] == '\r') ? (i+1) : i);
     buf.add0();
 
     if( fileContent[i] == '\r' && fileContent[i + 1] == '\n' )
@@ -1036,11 +960,11 @@ const char * getInfoFromHeader(const char * srcFile, sStr & out, const char * wh
     for(idx sr = 0; *srcFile; sr++) {
         srcFile = getLine(line, srcFile);
         if( found == 1 ) {
-            if( strncmp(line, " ", 1) != 0 && strncmp(line.ptr(1), " ", 1) != 0 ){ // check if it is not the continuation of the previous line
-                srcFile = srcFile - line.length(); // re-positioning the pointer to the beginning of the current line
+            if( strncmp(line, " ", 1) != 0 && strncmp(line.ptr(1), " ", 1) != 0 ){
+                srcFile = srcFile - line.length();
                 break;
             }
-            sString::cleanEnds(line, line.length(), sString_symbolsBlank, true); // if the current line is the continuation of the previous one, concatenate them
+            sString::cleanEnds(line, line.length(), sString_symbolsBlank, true);
             out.printf("%s ", line.ptr());
         } else if( found == 0 ) {
             found = checkElement(line, whatToLookFor);
@@ -1048,8 +972,8 @@ const char * getInfoFromHeader(const char * srcFile, sStr & out, const char * wh
                 sString::cleanEnds(line, line.length(), sString_symbolsBlank, true);
                 out.printf("%s", line.ptr(sLen(whatToLookFor)));
             }
-            else if (checkElement(line, "ORIGIN")) { // if the current line starts with ORIGIN => we are at the end of the header and feature sections
-                srcFile = srcFile - line.length(); // need to reposition to the beginning of the line for sequence extraction operation
+            else if (checkElement(line, "ORIGIN")) {
+                srcFile = srcFile - line.length();
                 break;
             }
             continue;
@@ -1060,28 +984,14 @@ const char * getInfoFromHeader(const char * srcFile, sStr & out, const char * wh
         sString::cleanEnds(out, out.length(), sString_symbolsBlank, true);
         sString::searchAndReplaceSymbols(&line, out, out.length(), sString_symbolsSpace, 0, 0, true, true, false, true);
         out.cut(0);
-        idx i =0;
-        // Trying to compose in NCBI header format for the fasta:
-        // gi|23313|gb|CP5515
-        for (const char * p = line.ptr(0); p ; p = sString::next00(p)){
-            if (i==0){
-                out.addString("gb|");
-                out.addString(p);
-            }
-            if (i==1){
-                out.addString("gi|");
-                out.addString(p+3);
-            }
-            out.addString("|");
-            i++;
-        }
+        out.addString(line.ptr());
 
     }
     return srcFile;
 }
-const char * extractSequence(const char * srcFile, sStr & sequenceOut)
+const char * sVioseq2::extractGBSequence(const char * srcFile, sStr & sequenceOut)
 {
-    sStr line;
+    static sStr line;
     line.cut(0);
     sequenceOut.cut(0);
     idx foundOri = 0;
@@ -1098,7 +1008,7 @@ const char * extractSequence(const char * srcFile, sStr & sequenceOut)
                 sequenceOut.printf("%s", sString::next00(seq, e));
             }
         } else if( foundOri == 0 ) {
-            foundOri = checkElement(line, "ORIGIN"); // ORIGIN is the start line for sequence in genbank file
+            foundOri = checkElement(line, "ORIGIN");
             continue;
         }
     }
@@ -1108,7 +1018,6 @@ const char * extractSequence(const char * srcFile, sStr & sequenceOut)
 
 idx sVioseq2::ParseGb(const char * fileContent, idx filesize, sVioDB &db, sFil & baseFile, sVec<Infopart> * iPart)
 {
-    //const char * src = fileContent;
     idx acceptedCount = 0;
     sVioDBQualities = false;
     for(idx iL = 0; *fileContent; iL++) {
@@ -1120,10 +1029,10 @@ idx sVioseq2::ParseGb(const char * fileContent, idx filesize, sVioDB &db, sFil &
             sString::cleanEnds(myLine, myLine.length(), sString_symbolsBlank, true);
             sStr spaceLine;
             sString::searchAndReplaceSymbols(&spaceLine, myLine, myLine.length(), sString_symbolsSpace, 0, 0, true, true, false, true);
-            locus.printf(0, "gb|%s", sString::next00(spaceLine, 1));
+            locus.printf(0, "%s", sString::next00(spaceLine, 1));
             fileContent = getInfoFromHeader(fileContent, def, "DEFINITION ");
             fileContent = getInfoFromHeader(fileContent, version, "VERSION     ");
-            fileContent = extractSequence(fileContent, sequence);
+            fileContent = extractGBSequence(fileContent, sequence);
             sStr locusDef("%s%s", version.length() ? version.ptr() : locus.ptr(), def.length() ? def.ptr() : "");
             bool accept = addNewSequence(baseFile, db, locusDef.ptr(), locusDef.length(), sequence.ptr(), 0, sequence.length());
             acceptedCount += (idx) accept;
@@ -1133,74 +1042,88 @@ idx sVioseq2::ParseGb(const char * fileContent, idx filesize, sVioDB &db, sFil &
     return acceptedCount;
 }
 
-idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil & baseFile, sVec<idx> * alignOut, sDic<idx> * rgm, bool alignOnly, sVec<Infopart> * iPart, sDic<idx> * sub, sDic<idx> * qry, idx minMatchLength, idx maxMissQueryPercent, bool useRowInformationtoExtractQry)
+idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil & baseFile, sVec<idx> * alignOut, sDic<idx> * rgm, bool alignOnly, sVec<Infopart> * iPart, sDic<idx> * sub, sDic<idx> * qry, idx minMatchLength, bool isMinMatchPercentage, idx maxMissQueryPercent, bool useRowInformationtoExtractQry, sFil * samHeader, sFil *samData, sFil * samFooter)
 {
-//    bool produceOutputFile = (alignOnly) ? false : true;
 
-    bool extractSubFromDictionary = sub && (sub->dim() > 0) ? true : false; // Allow extracting information if dictionary pointers are provided with
+    bool extractSubFromDictionary = sub && (sub->dim() > 0) ? true : false;
     bool extractQryFromDictionary = (qry && (qry->dim() > 0)) ? true : false;
     sStr SEQ, QUA, qty, tmp, idQry;
     sStr seqrev;
     udx acceptedCount = 0;
     sVioDBQualities = false;
     const char * buf = fileContent;
-//    char * buf=(char *)fileContent;
-    const char * lastPos = fileContent + filesize;
+    const char * const lastPos = fileContent + filesize;
     const idx p100pcnt = lastPos - fileContent + 1;
 
     idx flag, subStart, score, lenalign = 0, qryStart;
+
+    real minMatchLengthPerc = (real)minMatchLength/100;
     udx cntFound = 0;
+    udx cntReads = 0;
     sStr idSubStr, t;
 
     bool alignflag;
     idx errCode = 0;
 
-    idx iAl;
-    for(iAl = 0; buf < lastPos; ++iAl) {
+    for(idx iAl = 0; buf < lastPos; ++iAl) {
         const char * prevPosB = buf;
-
-        //
-        // skip comments
-        //
         if( *buf == '@' ) {
-            buf = skipUntilEOL(buf, lastPos);
+            const char * ptr = skipUntilEOL(buf, lastPos);
+            if( samHeader ) {
+                samHeader->add(buf, ptr - buf);
+            }
+            buf = ptr;
             continue;
         }
+        if( samData ) {
+            const char * eol = skipUntilEOL(buf, lastPos);
+            const idx lnLen = eol - buf;
 
-        //
-        // read the query information
-        //
+            const char * flagP = sString::skipWords(buf, lnLen, 1, "\t");
+            const char * rname = sString::skipWords(buf, lnLen, 2, "\t");
+            const char * cigar = sString::skipWords(buf, lnLen, 5, "\t");
+            const char * seq_ptr = sString::skipWords(buf, lnLen, 9, "\t");
+            idx samFlag = 0;
+            scanNumUntilEOL(flagP, &samFlag, eol);
+            if( (samFlag & 0x4)  || (rname && *rname == '*') || (cigar && *cigar == '*') || (seq_ptr && *seq_ptr == '*') ) {
+                if( samFooter ) {
+                    samFooter->add(buf, eol - buf);
+                }
+            } else {
+                if( seq_ptr ) {
+                    samData->add(buf, seq_ptr - buf);
+                    seq_ptr = sString::skipWords(seq_ptr, lnLen- (seq_ptr - buf), 1, "\t");
+                    if( seq_ptr && seq_ptr[0] != '*' ) {
+                        seq_ptr = sString::skipWords(seq_ptr, lnLen - (seq_ptr - buf), 1, "\t");
+                    }
+                    if( seq_ptr ) {
+                        samData->add(seq_ptr, eol - seq_ptr);
+                    } else {
+                        samData->add("\n", 1);
+                    }
+                }
+            }
+        }
         buf = scanAllUntilSpace(buf, &idQry, lastPos, false);
 
         const char * id = idQry.ptr(0);
         idx idlen = idQry.length();
         idx idQryA = id ? atoidx(id) : sNotIdx;
-        if( qry ) { // if auto-query dictionarizing is allowed ... use it
-//            *qry->set(id, 0, &idQryA) = prevPosB - fileContent;
+        if( qry ) {
             if (extractQryFromDictionary){
                 idQryA = sFilterseq::getrownum(*qry, id);
             }
             else {
-//                idx * IDbuf = qry->get(id);
-//                if( IDbuf ) {
-//                    idQryA = *IDbuf;
-//                }
-//                else{
                 *qry->set(id, 0, &idQryA) = prevPosB - fileContent;
-//                }
             }
         }
         if(useRowInformationtoExtractQry){
-            // use the row number as Qry Number
-            idQryA = (idx)cntFound;
+            idQryA = (idx)cntReads;
         }
         if( idQryA == sNotIdx ) {
             buf = skipUntilEOL(buf, lastPos);
             continue;
         }
-        //
-        // read the flags information
-        //
         buf = scanNumUntilEOL(buf, &flag, lastPos);
         if( flag == sNotIdx )
             continue;
@@ -1215,24 +1138,14 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
         } else {
             dir_flag = sBioseqAlignment::fAlignForward;
         }
-        if( flag & 0x100 ) {    // Skip the sequence
-            buf = skipUntilEOL(buf, lastPos);
-            continue;
-        }
-        //
-        // read the subject information
-        //
         idSubStr.cut(0);
         buf = scanAllUntilSpace(buf, &idSubStr, lastPos);
         const char * idSubS = idSubStr;
         if( (!idSubS || (idSubS[0] == '*' && idSubS[1] == 0)) && alignflag ) {
             alignflag = false;
-//            buf = skipUntilEOL(buf, lastPos);
-//            ++cntFound;
-//            continue;
         }
         if( alignflag && (*idSubS == '>' || *idSubS == '@') ) {
-            ++idSubS; // old format vioseq would return these characters in id line
+            ++idSubS;
         }
         idx idSub = sNotIdx;
         if( alignflag && rgm && rgm->dim() ) {
@@ -1240,12 +1153,7 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
             if( pid )
                 idSub = *pid;
         }
-        if( idSub == sNotIdx ) {
-            //const char * p = strstr(idSubS, "H#=");
-            //if (p) p+=3; else p=idSubS;
-            sscanf(idSubS, "%" DEC "", &idSub);
-        }
-        if( idSub == sNotIdx && sub ) { // if auto-subject dictionarizing is allowed ... use it
+        if( idSub == sNotIdx && sub ) {
             if (alignflag && extractSubFromDictionary){
                 idSub = sFilterseq::getrownum(*sub, idSubS);
                 if (idSub == sNotIdx){
@@ -1253,42 +1161,24 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
                     break;
                 }
             }
-            else {
-                *sub->set(idSubS, 0, &idSub) = prevPosB - fileContent;
-            }
-//            idx * IDbuf = sub->get(idSubS);
-//            if( IDbuf ) {
-//                idSub = *IDbuf;
-//            }
-//            else if (true){
-//                *sub->set(idSubS, 0, &idSub) = prevPosB - fileContent;
-//            }
-//            else {
-//                return -1;
-//            }
         }
-        if( idSub == sNotIdx && alignOut ) { // Skip the sequence: reference is not recognized
+        if( alignflag && idSub == sNotIdx ) {
+            sscanf(idSubS, "%" DEC "", &idSub);
+        }
+        if( idSub == sNotIdx && alignOut ) {
             buf = skipUntilEOL(buf, lastPos);
-//            ++cntFound;
+            ++cntReads;
             continue;
         }
 
-        //
-        // read alignment positions
-        //
         idx LeftPositionsToSkip = 0;
-        skipMismatchesAtTheLeftEnd(buf, lastPos, &LeftPositionsToSkip);
         idx RightPositionsToSkip = 0;
-        skipMismatchesAtTheRightEnd(buf, lastPos, &RightPositionsToSkip);
 
         buf = scanNumUntilEOL(buf, &subStart, lastPos);
         if( subStart )
-            subStart--; //sam subStart is 1-based, vioalt is 0-based
-        subStart = subStart + LeftPositionsToSkip; //positionsToSkip
+            subStart--;
+        subStart = subStart + LeftPositionsToSkip;
 
-        //
-        // read scores
-        //
         buf = scanNumUntilEOL(buf, &score, lastPos);
         if( score == sNotIdx )
             continue;
@@ -1297,27 +1187,15 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
         if( (*buf == '\n' || *buf == '\r') || buf >= lastPos )
             continue;
 
-        //
-        // read matching train, cigar
-        //
         idx ofsThisAl = 0, headerSize, numMatches=0;
         if( (alignOut != 0) && (alignflag == true) ) {
             ofsThisAl = alignOut->dim();
             headerSize = sizeof(sBioseqAlignment::Al) / sizeof(idx);
-            alignOut->add(headerSize);        // add space for header
+            alignOut->add(headerSize);
             buf = cigar_parser(buf, lastPos, alignOut, &lenalign, &qryStart, LeftPositionsToSkip + RightPositionsToSkip, &numMatches);
-//            if( qryStart ) {
-//                if( dir_flag && (sBioseqAlignment::fAlignBackwardComplement | sBioseqAlignment::fAlignBackward) ) {
-//                    qryStart = qryStart + LeftPositionsToSkip; //positionsToSkip
-//                }
-//            }
-            //lenalign=lenalign-positionsToSkip;//positionsToSkip
         } else {
             buf = scanAllUntilSpace(buf, 0, lastPos);
         }
-        //
-        // skip the unnecessary information
-        //
         idx len;
         buf = scanAllUntilSpace(buf, 0, lastPos);
         buf = scanAllUntilSpace(buf, 0, lastPos);
@@ -1325,15 +1203,14 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
         buf = scanAllUntilSpace(buf, &SEQ, lastPos);
         len = SEQ.length() - 1;
 
-        // Can check here against CIGAR if information is returned from cigar_parser
-        //
 
-        if( strstr(SEQ, "*") || (len == 0) ) {
+        if( strstr(SEQ, "*") || (len <= 0) ) {
             buf = skipUntilEOL(buf, lastPos);
             continue;
         }
-        if( len > 0 )
-            len = len - LeftPositionsToSkip; //positionsToSkip
+        if( len > 0 ) {
+            len = len - LeftPositionsToSkip;
+        }
         buf = scanAllUntilSpace(buf, &QUA, lastPos);
 
         if( !alignOnly ) {
@@ -1342,18 +1219,29 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
                 break;
             }
             if( m_recLimit && m_recLimit < acceptedCount ) {
-                errCode = -2;  //  I have reached the limit number of sequences allowed to parse
+                errCode = -2;
                 break;
             }
-            if( flag & 0x10 ){
-                // Reverse complement
+            if( QUA.length() == 2 && QUA.ptr()[0] == '*' ) {
+                QUA.resize(SEQ.length()-1);
+                memset(QUA.ptr(), 40 + '!', SEQ.length()-1);
+                QUA.add0();
+            }
+            if( flag & 0x10 ) {
                 seqrev.cut(0);
                 seqrev.add(SEQ.ptr(), len);
                 idx revll = len - 1;
                 for(idx ll = 0; ll < len; ++ll, --revll) {
                     SEQ[ll] = sBioseq::mapRevATGC[sBioseq::mapComplementATGC[sBioseq::mapATGC[(idx) seqrev[revll]]]];
                 }
-
+                if( (SEQ.length() == QUA.length()) ) {
+                    seqrev.cut(0);
+                    seqrev.add(QUA.ptr(), len);
+                    idx revll = len - 1;
+                    for(idx ll = 0; ll < len; ++ll, --revll) {
+                        QUA[ll] = seqrev[revll];
+                    }
+                }
             }
             const char * seq = SEQ.ptr();
             const char * qua = (SEQ.length() == QUA.length()) ? QUA.ptr() : 0;
@@ -1364,24 +1252,23 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
             bool accept = addNewSequence(baseFile, db, id, idlen, seq, qua, len);
             acceptedCount += (idx) accept;
         }
-
-        // if this alignment does not pass filters, skip this
+        ++cntReads;
+        if(isMinMatchPercentage)
+            minMatchLength = len*minMatchLengthPerc;
         if( minMatchLength && numMatches < minMatchLength ) {
             alignOut->cut(ofsThisAl);
             continue;
         }
-        // skip if did not pass the minimal accuracy criteria
         if ( maxMissQueryPercent && lenalign && ((100*(lenalign-numMatches))/lenalign > maxMissQueryPercent)){
             alignOut->cut(ofsThisAl);
             continue;
         }
 
         buf = skipUntilEOL(buf, lastPos);
-        //if cigar_parser added no elements to alignOut, remove the useless header:
         ++cntFound;
         if( (alignOut != 0) && (alignflag == true) ) {
 
-            idx dimAlign = lenalign * 2;  //alignOut->dim()-ofsThisAl+headerSize;
+            idx dimAlign = lenalign * 2;
             if( dimAlign == 0 ) {
                 alignOut->cut(ofsThisAl);
                 continue;
@@ -1396,8 +1283,6 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
 
             idx * m = hdr->match();
 
-//            subStart += m[0];
-//            qryStart += m[1];
             qryStart = qryStart + LeftPositionsToSkip;
             if( (subStart == sNotIdx) || (subStart < 0) ) {
                 alignOut->cut(ofsThisAl);
@@ -1418,7 +1303,7 @@ idx sVioseq2::ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil 
         return writeSortVioDB(baseFile, db, iPart);
     }
     PROGRESS(cntFound, 100, 100, 90);
-    return errCode ? errCode : cntFound;
+    return errCode ? errCode : cntReads;
 }
 
 bool sVioseq2::addNewSequence(sFil & baseFile, sVioDB &db, const char *id, idx idlen, const char *seq, const char *qua, idx seqlen)
@@ -1431,16 +1316,13 @@ bool sVioseq2::addNewSequence(sFil & baseFile, sVioDB &db, const char *id, idx i
     prefix.cut(0);
     prefix.add(0,sizecomb);
     bool isValid = true;
-    // If is a parallel version, check if we need to parse
-    char *cpr = prefix.ptr(0);  //prefix.add(0,sizecomb);
+    char *cpr = prefix.ptr(0);
     sBioseq::compressATGC((sStr *) cpr, seq, sizecomb, false, 0);
     if( (isParallelversion) && !parallelizationfilter(prefix.ptr(), sizecomb, comb) ) {
-        // Do not parse this read, but check counters 'idNum'
         isValid = false;
     }
     if( !complexityWindow ) {
         if( !comb ) {
-            // Add ID_Type only if it's the first chunk
             addRecID(db, id, idlen);
             idNum++;
         }
@@ -1453,25 +1335,20 @@ bool sVioseq2::addNewSequence(sFil & baseFile, sVioDB &db, const char *id, idx i
     idx rptcount = extractRptCount(id, &idlen);
 
     bool isQual = qua == 0 ? 0 : 1;
-    // now squeeze the sequence
     rec.ofsSeq = baseFile.length();
-    char * cpy = baseFile.add(0, (seqlen) / 4 + 1); // for two bit representation
+    char * cpy = baseFile.add(0, (seqlen) / 4 + 1);
     sStr qty(sMex::fSetZero);
     qty.resize(seqlen / 8 + 1);
     rec.lenSeq = sBioseq::compressATGC((sStr *) cpy, seq, seqlen, false, &qty);
 
-    baseFile.cut(rec.ofsSeq + (rec.lenSeq - 1) / 4 + 1); // new-code
+    baseFile.cut(rec.ofsSeq + (rec.lenSeq - 1) / 4 + 1);
 
-    // complexity filtering
     bool isok = (complexityWindow != 0) ? sFilterseq::complexityFilter(cpy, rec.lenSeq, complexityWindow, complexityEntropy) : true;
 
-//    idx primershift = 0;
 
     if( isQual ) {
         char *pqu;
-        // now squeeze the qualities
         if( isok && rec.lenSeq ) {
-            //        qua += qshift + primershift;
             if( (flags & eParseQuaBit) ) {
                 idx lqua = (rec.lenSeq - 1) / 8 + 1;
                 char * pqu = baseFile.add(0, lqua);
@@ -1479,7 +1356,7 @@ bool sVioseq2::addNewSequence(sFil & baseFile, sVioDB &db, const char *id, idx i
                 for(idx iq = 0; iq < rec.lenSeq; ++iq)
                     if( qua[iq] > 53 )
                         pqu[iq / 8] |= ((idx) 1) << (iq % 8);
-            } else { ///char * pqu=baseFile.add(qua,rec.lenSeq);
+            } else {
                 pqu = baseFile.add(0, rec.lenSeq);
                 for(idx iq = 0; iq < rec.lenSeq; ++iq) {
                     pqu[iq] = ((qua[iq] - 33) > 0) ? (qua[iq] - 33) : 0;
@@ -1493,9 +1370,7 @@ bool sVioseq2::addNewSequence(sFil & baseFile, sVioDB &db, const char *id, idx i
         return false;
     }
 
-    // Add record to sVioDB
-    if( complexityWindow && comb == 0) {  // Add ID_Type only if it's the first one
-        // Add record to sVioDB
+    if( complexityWindow && comb == 0) {
         addRecID(db, id, idlen);
         idNum++;
     }
@@ -1504,16 +1379,13 @@ bool sVioseq2::addNewSequence(sFil & baseFile, sVioDB &db, const char *id, idx i
         return false;
     }
 
-    // Add it to the tree
     char *currQua = 0;
     if( isQual ) {
         currQua = baseFile.ptr(rec.ofsSeq) + ((rec.lenSeq - 1) / 4 + 1);
-        // If there are 'N's in the sequence, reduce the quality to 'min'
         char * Nb = (char *) qty.ptr();
         for(idx is = 0; is < rec.lenSeq; is++) {
             if( Nb[is / 8] != 0 ) {
                 if( Nb[is / 8] & (0x01 << (is % 8)) ) {
-                    //::printf( "A %lld,", is);
                     currQua[is] = 0;
                 }
             } else
@@ -1521,21 +1393,14 @@ bool sVioseq2::addNewSequence(sFil & baseFile, sVioDB &db, const char *id, idx i
         }
     }
 
-    // Add it to the tree
     unique = tree->addSequence(rec.ofsSeq, rec.lenSeq);
     if( unique == -1 ) {
-        // It is unique
-//            if( (flags & eParseNoId) == 0 ) {
-//                baseFile.add(id, idlen);
-//                baseFile.add0();
-//            }
         rec.countSeq = rptcount;
         *vofs.add() = rec;
         uniqueCount++;
         ids.vadd(1, uniqueCount - 1);
         ods.vadd(1, iNN);
     } else {
-        // check qualities
         Rec *origRec = vofs.ptr(unique);
         if( isQual ) {
             char *origQua = baseFile.ptr(origRec->ofsSeq) + ((origRec->lenSeq - 1) / 4 + 1);
@@ -1556,7 +1421,6 @@ idx sVioseq2::writeSortVioDB(sFil & baseFile, sVioDB &db, sVec<Infopart> * iPart
 {
     baseFile.remap(sMex::fReadonly);
     const char * separator = "\xFF";
-    // I must sort them, modifying vofs
     sVec<Rec> vofsSort(sMex::fBlockDoubling);
     sVec<idx> inSort;
     inSort.cut(0);
@@ -1566,7 +1430,6 @@ idx sVioseq2::writeSortVioDB(sFil & baseFile, sVioDB &db, sVec<Infopart> * iPart
     outSort.resize(uniqueCount);
     Rec rec;
 
-    //tree.inOrderTree2 (0, &inSort);
     tree->inOrderTree3(0, &inSort, &simSort);
 
     idx longres = 0;
@@ -1575,7 +1438,7 @@ idx sVioseq2::writeSortVioDB(sFil & baseFile, sVioDB &db, sVec<Infopart> * iPart
     PROGRESS(longres, 90, 100, 90);
     for(idx inx = 0; inx < inSort.dim(); inx++) {
         rec = vofs[inSort[inx]];
-        {   // I must merge countSeq and simSeq in 1 variable
+        {
             idx sim = simSort[inx];
             idx rpt = rec.countSeq;
             if( sim == -1 ) {
@@ -1586,7 +1449,6 @@ idx sVioseq2::writeSortVioDB(sFil & baseFile, sVioDB &db, sVec<Infopart> * iPart
         }
         *vofsSort.add() = rec;
         outSort[inSort[inx]] = inx;
-        // Add Rec
         db.AddRecord(eRecREC_TYPE, (void *) &rec, sizeof(Rec));
         db.AddRecordRelationshipCounter(eRecREC_TYPE, 0, 1);
         db.AddRecordRelationshipCounter(eRecREC_TYPE, 0, 2);
@@ -1596,7 +1458,7 @@ idx sVioseq2::writeSortVioDB(sFil & baseFile, sVioDB &db, sVec<Infopart> * iPart
             db.AddRecord(eRecSEQ_TYPE, (void *) cpy, (rec.lenSeq - 1) / 4 + 1);
             char *pqu = cpy + (rec.lenSeq - 1) / 4 + 1;
             if( pqu[0] != separator[0] ) {
-                pqu++;  // to delete the nonseparator char
+                pqu++;
                 quaBitLen.vadd(1, inx);
                 db.AddRecordRelationshipCounter(eRecREC_TYPE, 0, 3);
                 db.AddRecord(eRecQUA_TYPE, (void *) pqu, (rec.lenSeq - 1) / 8 + 1);
@@ -1604,7 +1466,6 @@ idx sVioseq2::writeSortVioDB(sFil & baseFile, sVioDB &db, sVec<Infopart> * iPart
         }
         else {
             db.AddRecordRelationshipCounter(eRecREC_TYPE, 0, 3);
-            // Add Sequences to sVioDB
             char *cpy = baseFile.ptr(rec.ofsSeq);
             db.AddRecord(eRecSEQ_TYPE, (void *) cpy, (rec.lenSeq - 1) / 4 + 1);
             if (sVioDBQualities == true){
@@ -1618,49 +1479,47 @@ idx sVioseq2::writeSortVioDB(sFil & baseFile, sVioDB &db, sVec<Infopart> * iPart
     db.AllocRelation();
     idx invert = 1;
     PROGRESS(longres, 95, 100, 90);
-    if( isParallelversion ) { // Do not add relation type
+    if( isParallelversion ) {
         for(idx i = 0; i < ids.dim(); i++) {
             Infopart tmp;
             tmp.origID = idsN[i] + 1;
             tmp.partID = outSort[ids[i]] + 1;
             tmp.numID = comb;
-            iPart->vadd(1, tmp);    // TODO: change vadd by resize
+            iPart->vadd(1, tmp);
             invert = -1;
             PROGRESS(longres, 94, 100, 90);
         }
         if( comb == 0 ) {
             for(idx i = 0; i < idNum; i++) {
-                db.AddRelation(eRecID_TYPE, 1, i + 1, i + 1); // eRecREC_TYPE
+                db.AddRelation(eRecID_TYPE, 1, i + 1, i + 1);
                 PROGRESS(longres, 95, 100, 90);
             }
         }
     } else {
         for(idx i = 0; i < ids.dim(); i++) {
-            db.AddRelation(eRecID_TYPE, 1, i + 1, outSort[ids[i]] + 1); // eRecREC_TYPE
+            db.AddRelation(eRecID_TYPE, 1, i + 1, outSort[ids[i]] + 1);
         }
     }
 
     PROGRESS(longres, 96, 100, 90);
     if (checkQuaBit){
-        // Check quabit qualities for 'N's
         for(idx i = 0; i < uniqueCount; i++) {
             PROGRESS(longres, 96, 100, 90);
-            db.AddRelation(eRecREC_TYPE, 1, i + 1, (ods[inSort[i]] + 1) * invert); // eRecID_TYPE
-            db.AddRelation(eRecREC_TYPE, 2, i + 1, i + 1); // eRecSEQ_TYPE
+            db.AddRelation(eRecREC_TYPE, 1, i + 1, (ods[inSort[i]] + 1) * invert);
+            db.AddRelation(eRecREC_TYPE, 2, i + 1, i + 1);
         }
         for(idx i = 0; i < quaBitLen.dim(); i++) {
             PROGRESS(longres, 97, 100, 90);
-            db.AddRelation(eRecREC_TYPE, 3, quaBitLen[i] + 1, i + 1); // eRecQUA_TYPE
+            db.AddRelation(eRecREC_TYPE, 3, quaBitLen[i] + 1, i + 1);
         }
     }
     else {
-        // Each read has a quality associated
         for(idx i = 0; i < uniqueCount; i++) {
             PROGRESS(longres, 98, 100, 90);
-            db.AddRelation(eRecREC_TYPE, 1, i + 1, (ods[inSort[i]] + 1) * invert); // eRecID_TYPE
-            db.AddRelation(eRecREC_TYPE, 2, i + 1, i + 1); // eRecSEQ_TYPE
+            db.AddRelation(eRecREC_TYPE, 1, i + 1, (ods[inSort[i]] + 1) * invert);
+            db.AddRelation(eRecREC_TYPE, 2, i + 1, i + 1);
             if (sVioDBQualities == true){
-                db.AddRelation(eRecREC_TYPE, 3, i + 1, i + 1); // eRecQUA_TYPE
+                db.AddRelation(eRecREC_TYPE, 3, i + 1, i + 1);
             }
         }
     }
@@ -1668,14 +1527,11 @@ idx sVioseq2::writeSortVioDB(sFil & baseFile, sVioDB &db, sVec<Infopart> * iPart
     db.Finalize(m_isSingleFile);
     PROGRESS(longres, 99, 100, 90);
 
-//    return vofsSort.dim();
-    return longres;   // return long mode
+    return longres;
 }
 
 idx sVioseq2::extractRptCount(const char *id, idx *idlen)
 {
-    // count the length of the ID line
-    // and add it to the destination
     idx il, iddiclen = 0;
     const char * nxt = id + *idlen;
     const char *bb = "H#=";
@@ -1685,7 +1541,7 @@ idx sVioseq2::extractRptCount(const char *id, idx *idlen)
     idx rptcount = 1;
     for(il = 0; id + il < nxt && id[il] != '\n' && id[il] != '\r'; ++il) {
         if( !iddiclen && il > 2 && (id[il] == ' ' || id[il] == '\t') )
-            iddiclen = il; // also mark where the first word of the dictionary ends
+            iddiclen = il;
         if( id[il] != *bb ) {
             continue;
         }
@@ -1693,7 +1549,6 @@ idx sVioseq2::extractRptCount(const char *id, idx *idlen)
         a = il;
         while( 1 ) {
             if( *b == 0 ) {
-                // We found it
                 idhiverpt = il;
                 rptcount = 0;
                 while( id[a] != '\n' ) {
@@ -1702,14 +1557,13 @@ idx sVioseq2::extractRptCount(const char *id, idx *idlen)
                 break;
             }
             if( id[a++] != *b++ ) {
-                // We didn't find it
                 break;
             }
         }
         b = bb;
     }
     if( !iddiclen ) {
-        iddiclen = il; // if it is a single word ... it is what is used for dictionarizing
+        iddiclen = il;
     }
     if( rptcount < 0 ) {
         rptcount = 1;
@@ -1718,7 +1572,7 @@ idx sVioseq2::extractRptCount(const char *id, idx *idlen)
         il = idhiverpt;
     }
     if( !il ) {
-        return -1;  // invalid value of id length
+        return -1;
     }
     *idlen = il;
     return rptcount;

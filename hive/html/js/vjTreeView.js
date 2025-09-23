@@ -27,40 +27,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// doNotPropagateUp
-/*
-    dataFormat: "csv", // data source format: "csv" or "newick"
-    expansion: 1, // the variable showing the expansion incrment
-    hideEmpty:false, // show hide  empty nodes
-    showLeaf:false, //  show hide leaf nodes
-    scaleDist:20, // the scale for distances
-    showRoot:true, // show/hide root node
-    autoexpand:1, // the number of levels to automatically expand
-    className: '', // the class for the style of the whole tree
-    icons{ empty:, plus:, minus:, leaf}, // icons
-    showIcons: true/false // shows or hides the icons for individual rows
-    selectedNode: /path,  // the path of the selection item
-    showChildrenCount: true, // show/hide the count of children
-    selectionObject:'' ,  // the name of the DOM object where the selection is copied
-    selectionColor : 'blue', // the color for selection elements
-    highlightColor : 'blue', // the color for highlights
-    linkLeafCallback: 'javascript:function(viewer,node,nodepath) or http://', // link callbacks for leafs
-    linkBrancCallback: 'javascript: or http://', // link callbacks for branches
-    excludeObjRegexp: {id: /^info* /g}, // the list of elements to hide
-    this.multiSelect=false;
-    hierarchyComputer
-*/
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 function vjTreeView ( viewer )
 {
-//    viewer.that=this;
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
 
     if(!this.dataFormat)this.dataFormat="csv";
     if(this.showIcons===undefined) this.showIcons=true;
@@ -74,13 +45,15 @@ function vjTreeView ( viewer )
     if(!this.icons.minus)this.icons.minus='img/recCollapse.gif';
     if(this.icons.leaf===undefined)this.icons.leaf='img/recItem.gif';
     if(!this.iconSize)this.iconSize=12;
+    if(this.cmdMoreNodes && typeof this.disableBranches !== 'boolean'){ this.disableBranches = false; }
     if(!this.hierarchyColumn)this.hierarchyColumn='path';
     if(!this.className)this.className="TREEVIEW_table";
+    
     if(!this.classNameSelected)this.classNameSelected=this.className+"_selected";
     if(!this.classNameHighlighted)this.classNameHighlighted=this.className+"_highlighted";
     if(this.checkIndeterminateTitle === undefined)
         this.checkIndeterminateTitle = "Partially selected";
-
+    if(!this.isDropbox) this.isDropbox = false;
     if(this.drag)this.drag=new dragDrop();
     this.tree = new vjTree();
 
@@ -95,39 +68,40 @@ function vjTreeView ( viewer )
         var data = this.getData(0);
         return data && data.isTreeSeries;
     };
-    this.parseContent=function(content)
-    {
+    this.defaultParseContent=function(content)
+    {   
         if (this.dataFormat === "newick") {
-            if (!this.tree)
-                this.tree = new vjTree();
+            if (!this.tree) this.tree = new vjTree();
 
             this.tree.parseNewick(content, this.tree.root);
         } else if (this.dataFormat === "json" ) {
-            if (!this.tree)
-                this.tree = new vjTree();
+            if (!this.tree) this.tree = new vjTree();
 
             this.tree.parseJson(content, this.tree.root);
         } else {
-            // this.dataFormat === "csv"
             var tbl=new vjTable(content, 0, vjTable_propCSV);
             tbl.mangleRows(this.exclusionObjRegex, "delete");
-            if(this.preTreatNodesBeforeParsing)
-                this.preTreatNodesBeforeParsing(tbl,content);
-            if(this.precompute)
-                tbl.enumerate(this.precompute, this);
-
-            if (this.tree)
+            if(this.preTreatNodesBeforeParsing)  this.preTreatNodesBeforeParsing(tbl,content);
+            
+            if(this.precompute) tbl.enumerate(this.precompute, this);
+            
+            if ( this.tree && !this.isDropbox){
                 this.tree.parseTable(tbl, this.tree.root);
-            else
+            } else if(this.tree && this.isDropbox){
+                this.tree.parseTable(tbl, this.tree.root , false , false , this.isDropbox);
+            }else {
                 this.tree = new vjTree(tbl,this.hierarchyColumn);
+            }
         }
     };
+    if (!this.parseContent) {
+        this.parseContent = this.defaultParseContent;
+    }
 
 
     this.composerFunction=function( viewer , content )
     {
         if(this.debug)alert(content);
-        // If we are using a tree series, the series handles all precompute/postcompute steps
         if (this.hasTreeSeries()) {
             this.tree = this.getData(0).tree;
             this.refresh();
@@ -145,16 +119,18 @@ function vjTreeView ( viewer )
 
         this.maintainPreviousData=false;
 
-        //tbl.enumerate("alert(row.path);" );
-
-        this.tree.enumerate( "if(params.autoexpand && (params.autoexpand=='all' || node.depth<=params.autoexpand) && !node.isNexpandable && node.children && node.children.length>0)node.expanded=params.expansion;" , {autoexpand:this.autoexpand, expansion: this.expansion} ) ;
-        //this.tree.enumerate( "if(node.name!='root')node.name=node['file-name']" ) ;
+        this.tree.enumerate(function(params,node){
+            if(params.autoexpand &&
+                    (params.autoexpand=='all' || node.depth<=params.autoexpand) &&
+                    !node.isNexpandable &&
+                    node.children &&
+                    node.children.length>0 )
+                node.expanded=params.expansion;
+        }, {autoexpand:this.autoexpand, expansion: this.expansion} ) ;
 
         if(this.postcompute)
             this.tree.enumerate(this.postcompute, this);
-        //if(this.debug)alerJ(content,this.tree);
         this.refresh();
-//        if(this.drag)this.setDnDobjects();
     };
 
     this.refresh=function(node)
@@ -176,7 +152,7 @@ function vjTreeView ( viewer )
             this.div.innerHTML=t;
         }
         else {
-            var o = gObject(this.getNode_ElementID(node.parent,node.name));
+            var o = gObject(this.getNode_ElementID(node.parent, node.id ? node.id : node.path));
             if(o) {
                 o.innerHTML = t;
             }
@@ -193,12 +169,30 @@ function vjTreeView ( viewer )
         var dragOperation=this.setDragElementsOperation;
         var dropOperation=this.setDropElementsOperation;
         if(dragOperation===undefined){
-            dragOperation="if(node.path){var o=gObject(sanitizeElementId(params.that.container+node.path));" +
-                    "if(o)o=o.parentNode;if(o){params.list.push(o);}}";
+            dragOperation=function(params,node) {
+                if (node.path) {
+                    var o = gObject(sanitizeElementId(params.that.container
+                            + node.path));
+                    if (o)
+                        o = o.parentNode;
+                    if (o) {
+                        params.list.push(o);
+                    }
+                }
+            }
         }
         if(dropOperation===undefined){
-            dropOperation="if(node.path){var o=gObject(sanitizeElementId(params.that.container+node.path));" +
-                    "if(o)o=o.parentNode;if(o){params.list.push(o);}}";
+            dropOperation=function(params,node){
+                if (node.path) {
+                    var o = gObject(sanitizeElementId(params.that.container
+                            + node.path));
+                    if (o)
+                        o = o.parentNode;
+                    if (o) {
+                        params.list.push(o);
+                    }
+                }
+            }
         }
         this.dragListO=new Array();
         this.tree.enumerate(dragOperation,{list:this.dragListO,that:this});
@@ -259,11 +253,6 @@ function vjTreeView ( viewer )
     };
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ tree manipulations
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
 
     this.doExpand=function( thisNode , state, withParents)
     {
@@ -276,7 +265,7 @@ function vjTreeView ( viewer )
             if(state==-1)thisNode.expanded=-thisNode.expanded;
             else if(state>=0)thisNode.expanded=state;
         }
-        return thisNode; // returns the root
+        return thisNode;
     };
 
     this.doSelect=function( thisNode , state, renderAll , autoExpand, original)
@@ -314,9 +303,15 @@ function vjTreeView ( viewer )
 
         if ((!this.multiSelect || (!gKeyCtrl && !gKeyShift)) && !original) {
             if (renderAll) {
-                this.enumerate("node.selected=0;var o=gObject(sanitizeElementId('"+this.container+"'+node.path)); if(o)params.setClass.nodeSelected(node,o)", this);
+                this.enumerate(function(that,node){
+                    node.selected=0;
+                    var o=gObject(sanitizeElementId(that.container+node.path));
+                    if(o) {
+                        that.setClass.nodeSelected(node,o)
+                    }
+                }, this);
             } else {
-                this.enumerate("node.selected=0", this);
+                this.enumerate(function(that,node){node.selected=0}, this);
             }
         }
 
@@ -356,11 +351,6 @@ function vjTreeView ( viewer )
         return this.tree.accumulate("(!node.selected)","node",new Object());
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ event handlers
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
 
     this.onClickExpandNode=function(container, nodepath, state )
     {
@@ -368,7 +358,6 @@ function vjTreeView ( viewer )
 
         if (state>0) {
             var data = this.getData(0);
-            // vjTreeSeries expands itself via getMoreNodes()
             if (data.isTreeSeries) {
                 if (!data.cmdMoreNodes) data.cmdMoreNodes = this.cmdMoreNodes;
                 data.getMoreNodes(node);
@@ -380,7 +369,6 @@ function vjTreeView ( viewer )
             }
         }
         this.doExpand( node, state, false) ;
-
         var linkExpand = 0 ;
 
         if(!linkExpand && node.expandNodeCallback)
@@ -401,15 +389,11 @@ function vjTreeView ( viewer )
         }
         var node=this.tree.findByPath(nodepath);
 
-      //  if(!this.multiSelect)
-      //      this.enumerate("node.selected=false;var o=gObject(sanitizeElementId('"+this.container+"'+node.path)); if(o)o.className='"+this.className+"';");
-      //  node.selected=node.selected ? false : true ;
         if( !this.notSelectable ) {
             this.doSelect( node, node.selected ? (this.alwaysSelected?1:0) : 1, true, false);
 
-            //this.selectedNode=nodepath;
             var o=gObject(sanitizeElementId(this.container+node.path));
-            if(o)this.setClass.nodeSelected(node,o);//node.selected ? (this.classNameSelected+node.selected) : this.className;
+            if(o)this.setClass.nodeSelected(node,o);
 
             if(this.selectionObject && this.selectionObject.length!=0 ) {
                 var o=gObject(this.selectionObject);
@@ -433,9 +417,7 @@ function vjTreeView ( viewer )
             if(node.leafnode && this.linkLeafCallback)linkCB=this.linkLeafCallback;
             else if(this.linkBranchCallback)linkCB=this.linkBranchCallback;
         }
-        //alerJ(this.linkLeafCallback,node);
 
-        //funcLink( linkCB , this );
         funcLink( linkCB, this, node );
 
         if(this.selectDoesExpand)
@@ -446,8 +428,6 @@ function vjTreeView ( viewer )
             this.tree.enumerate("if(node.selected)node.checked=1;else node.checked=0;");
             this.updateDependents();
         }
-        //if(this.selectionColor)
-        //this.refresh();
 
     };
 
@@ -457,11 +437,11 @@ function vjTreeView ( viewer )
         if (!o) {
             return;
         }
-        if (!state || state > 0) {
+        if ((!state || state > 0) && !o.disabled) {
             o.checked = state;
             o.indeterminate = false;
             o.removeAttribute("title");
-        } else {
+        } else if(!o.disabled){
             o.checked = true;
             o.indeterminate = true;
             if (this.checkIndeterminateTitle) {
@@ -477,7 +457,6 @@ function vjTreeView ( viewer )
         var node=this.tree.findByPath(nodepath);
         var cntChecked=0, cntSomeHalf=0;
         for( var ic=0; ic<node.children.length; ++ic){
-            //alert("parent "+nodepath + " checking for a child named " + node.children[ic].path + " status="+node.children[ic].checked);
             if(node.children[ic].checked){
                 ++cntChecked;
                  if(node.children[ic].checked<0)
@@ -486,7 +465,6 @@ function vjTreeView ( viewer )
 
         }
 
-        //alerJ(nodepath + " checked " + cntChecked );
 
         node.checked=(cntChecked==node.children.length && cntSomeHalf==0) ? 1 : (cntChecked ? -1 : 0 );
         this.formCheckSwitchTriState( node.path, node.checked );
@@ -508,7 +486,7 @@ function vjTreeView ( viewer )
 
         var cnt_checked = 0;
         for (var ic=0; ic<node.children.length; ic++) {
-            cnt_checked += this.initCheckTriState(node.children[ic], node.checked && this.checkPropagate ? 1 : undefined);
+            cnt_checked += this.initCheckTriState(node.children[ic], node.checked > 0 && this.checkPropagate ? 1 : undefined);
         }
         if (node.children.length && !this.doNotPropagateUp) {
             if (cnt_checked == node.children.length) {
@@ -519,15 +497,7 @@ function vjTreeView ( viewer )
                 node.checked = 0;
             }
         }
-        /*
-        if (node.checked != was_checked) {
-            if (node.leafnode && this.checkLeafCallback) {
-                funcLink(this.checkLeafCallback, this, node);
-            } else if (this.checkBranchCallback) {
-                funcLink(this.checkBranchCallback, this, node);
-            }
-        }
-        */
+        
         this.formCheckSwitchTriState(node.path, node.checked);
         return node.checked > 0 ? 1 : 0;
     };
@@ -547,12 +517,9 @@ function vjTreeView ( viewer )
                 viewer.formCheckSwitchTriState(node.path, node.checked);
             }, this, undefined, undefined, node);
         }
-        //if(node.parent)node.parent.checked = 0 ;
 
         if(node.parent && node.parent.path && (!this.doNotPropagateUp ))
             this.setParentCheckTriState(this.formObject.elements, node.parent.path, !this.doNotPropagateUp );
-
-        //this.formCheckSwitchTriState(prfx+cursel, (ischecked ? true : false ) );
 
         var linkCB=0;
         if(node.leafnode && this.checkLeafCallback)linkCB=this.checkLeafCallback;
@@ -561,8 +528,6 @@ function vjTreeView ( viewer )
         var res = 1;
         if(linkCB)
             res = funcLink( linkCB, this, node );
-
-        //this.refresh();
 
         this.updateDependents();
         return true;
@@ -578,25 +543,18 @@ function vjTreeView ( viewer )
     this.onMouseOver=function(container, nodepath , state,event )
     {
         var node=this.tree.findByPath(nodepath);
-        //alerJ(nodepath , node );
         var o=gObject(sanitizeElementId(this.container+node.path));
         if(!o)return;
-//        if(this.highlightRow) o=o.parentNode;
         if(state>0)
-            this.setClass.nodeHighlighted(node,o); //this.classNameHighlighted;
+            this.setClass.nodeHighlighted(node,o);
         else
-           this.setClass.nodeSelected(node,o);//node.selected ? this.classNameSelected+node.selected : this.className;
+           this.setClass.nodeSelected(node,o);
 
         if(this.onMouseOverCallback){
             funcLink( this.onMouseOverCallback, this, node, state,event );
         }
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ generators
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
 
     this.setIcons = {
         self : this,
@@ -610,7 +568,7 @@ function vjTreeView ( viewer )
             return t;
         },
         leaf : function() {
-            t="";
+            var t="";
             if(this.self.icons.leaf)
                 t= "<img border=0 width="+this.self.iconSize+" height="+this.self.iconSize+" src='"+this.self.icons.leaf+"' />";
             return t;
@@ -646,10 +604,8 @@ function vjTreeView ( viewer )
             var t = " ";
             if (!state) {
                 t = this.tag + "='" + this.self.className + "'";
-            } else if (state == 1) {    //highlighted
-                //we don't give default class for highlighted trs
-            } else if (state == 2) {    //selected
-              //we don't give default class for selected trs
+            } else if (state == 1) {
+            } else if (state == 2) {
             } else {
                 return alert("DEV alert: not tristate flag");
             }
@@ -659,10 +615,6 @@ function vjTreeView ( viewer )
             var t = " ";
             if (!state) {
                 t = this.tag + "='" + this.self.className + "'";
-//            } else if (state == 1) {    //highlighted
-//                t = this.tag + "='" + this.self.classNameSelected + "" + state + "'";
-//            } else if (state == 2) {    //selected
-//                t = this.tag + "='" + this.self.classNameSelected + "" + state +  "'";
             } else {
                 t = this.tag + "='" + this.self.classNameSelected + "" + state +  "'";
             }
@@ -688,7 +640,6 @@ function vjTreeView ( viewer )
 
     this.outputNodeTreeView=function( node )
     {
-
         if(!node)node=this.tree.root;
         if(!this.showLeaf && node.leafnode) return "";
 
@@ -700,25 +651,17 @@ function vjTreeView ( viewer )
 
 
         if(this.showRoot<=node.depth && !node.doNOTshow) {
-            t="<table border=0 width='100%' ";
-            t+=this.setClass.table();
-            t+=">";
-            t+="<tr";
-//            t+=this.setClass.tr();
-
-            t+=">";
-            t+="<td width='"+ (this.scaleDist*(node.distance ? node.distance : 1) )+"px' ";
-            t+=this.setClass.td();
-            t+=" align=right valign=middle>";
+            t = `<table border=0 width='100%' ${this.setClass.table()}>
+                    <tr>
+                        <td width='${(this.scaleDist*(node.distance ? node.distance : 1) )}px' ${this.setClass.td()} align=right valign=middle>
+                `
             if(!node.leafnode ){
-                if(cntCh>=1 && !node.isNexpandable){
+                if((cntCh>=1 || node.size == -1)  && !node.isNexpandable){
                     t+="<button " + this.setClass.branchButton() + " type='button' onclick='javascript:vjObjEvent(\"onClickExpandNode\",\""+this.objCls+"\", \""+sanitizeElementAttrJS(node.path)+"\","+ ((node.expanded>=this.expansion&& cntCh <= node.children.length) ? 0 : this.expansion )+"); stopDefault(event);'>";
                     t += this.setIcons.branch(node,cntCh);
                     t+="</button>";
-                }
-                else {
-                    this.setIcons.emptyBranch(node);
-
+                }  else {
+                    t += this.setIcons.emptyBranch(node);
                 }
             }else{
                 t += this.setIcons.leaf(node);
@@ -726,7 +669,7 @@ function vjTreeView ( viewer )
 
             t+="</td>";
 
-            t+=this.setIcons.node(node);//<td></td>
+            t+=this.setIcons.node(node);
 
             var realText="";
             if( !this.showName && node.title)realText=node.title;
@@ -741,28 +684,39 @@ function vjTreeView ( viewer )
             t+=" title='"+sanitizeElementAttr(realVal)+"'";
             t+=" valign=middle>";
             t+="<div class='linker' tabindex='0'  onclick='javascript:vjObjEvent(\"onClickNode\",\""+this.objCls+"\", \""+sanitizeElementAttrJS(node.path)+"\"); stopDefault(event);'>";
-            
+
             if( (!node.uncheckable) && ( (this.checkBranches && !node.leafnode) || (this.checkLeafs && node.leafnode) ) )  {
-                var checkstate=node.checked ? "checked='checked'" : "" ;
-                t+="<input type=checkbox "+checkstate +" id='"+sanitizeElementId(this.container+"_check_"+node.path)+"' onclick='javascript:vjObjEvent(\"onCheckNode\",\""+this.objCls+"\", \""+sanitizeElementAttrJS(node.path)+"\"); stopEventPropagation(event);' ";
-                t+="/>";
-                t+="&nbsp;";
+                let checkstate = node.checked === 1 ? "checked" : "" ;
+                let disabled = this.disableBranches && !node.leafnode && cntCh < 1 ? 'disabled' : ""; 
+                
+                t+=`<input 
+                        type=checkbox  
+                        ${checkstate} 
+                        ${disabled} 
+                        id='${sanitizeElementId(this.container+"_check_"+node.path)}' 
+                        onclick='javascript:vjObjEvent(\"onCheckNode\",\"${this.objCls}\", \"${sanitizeElementAttrJS(node.path)}\"); stopEventPropagation(event);' 
+                    /> &nbsp;`;
             }
             t+=realText;
-            if(cntCh>=1 && this.showChildrenCount)t+="&nbsp;<small><b>["+cntCh+"]</b></small>";
+            if(node.size != undefined && Number(node.size) > -1)   t += `&nbsp; <snap class="tree-view--info"> &nbsp; ${formatBytes(node.size)}</snap>`
+                
+            if(cntCh>=1 && this.showChildrenCount) t+="&nbsp;<small><b>["+cntCh+"]</b></small>";
             t+="</div>";
+            if(this.nodeRenderCallback){
+                t+="<div class='linker' >";
+                t+=funcLink(this.nodeRenderCallback, this, node);
+                t+="</div>";
+            }
+            
             t+="</td></tr>";
         }
-        var sectNam=this.getNode_ElementID(node);
+        var sectNam=this.getNode_ElementID(node , node.id ? node.id : node.path);
         if(node.expanded && cntCh>=1 ){
             if (this.showRoot <= node.depth) {
                 t += "<tr";
-    //            if(!(node.expanded && cntCh>=1)){
-    //                t+=" style='visibility:hidden;display:none' ";
-    //            }
                 t+=">";
                 t += "<td  valign='left' style='border:0;padding:0;";
-    
+
                 t += this.setIcons.background_td(node);
                 t += "'></td>";
                 t += "<td colspan=2 id='" + sectNam + "'>";
@@ -771,14 +725,14 @@ function vjTreeView ( viewer )
 
         if( cntCh>=1 && node.expanded) {
             for( var i=0 ;i<node.children.length && !node.doNOshowChildren ; ++i) {
-                t+="<span id='"+this.getNode_ElementID(node, node.children[i].name)+"'>";
+                t+="<span id='"+this.getNode_ElementID(node, node.children[i].id ? node.children[i].id : node.children[i].path)+"'>";
                 t+=this.outputNodeTreeView ( node.children[i] ) ;
                 t+="</span>";
             }
         }
         if(this.showRoot<=node.depth)
             t+="</td></tr>";
-//        }
+
         if(this.showRoot<=node.depth && !node.doNOTshow) {
             t+="</table>";
         }
@@ -786,9 +740,4 @@ function vjTreeView ( viewer )
         if(this.appendNodeHTML)t+=this.appendNodeHTML;
         return t;
     };
-
-
-
 }
-
-//# sourceURL = getBaseUrl() + "/js/vjTreeView.js"

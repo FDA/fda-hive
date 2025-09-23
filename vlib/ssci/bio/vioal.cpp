@@ -58,7 +58,79 @@
     if(totSubjectCoverage) { \
         *totSubjectCoverage->ptrx(_al->sub) += _hdr->lenAlign() ; \
     }
-#define _getHdrFromAlFact(_al) (sBioseqAlignment::Al * )fileList[_al->iFile].ptr( _al->ofsFile )
+
+void sVioal::_countForConflicts(ALFact * al1, sVec< sFil> & fileList,  idx * pSubHits, idx sublen, digestParams & params) {
+    if( pSubHits && (params.flags & sBioseqAlignment::fAlignKeepResolvedHits) )
+        pSubHits[al1->sub] += al1->rpt;
+    else if( pSubHits &&  (params.flags & sBioseqAlignment::fAlignKeepResolvedSymmetry) ) {
+        sBioseqAlignment::Al * hdr1 = _getHdrFromAlFact(al1, fileList);
+        idx sstart = hdr1->getSubjectStart(hdr1->match()), slen = hdr1->lenAlign(), iSH = 4 * al1->sub;
+        pSubHits[iSH] += (((sstart + slen) * (sstart + slen + 1) - (sstart - 1) * sstart) / 2 - (slen + 1) * sublen / 2) * al1->rpt;
+        pSubHits[iSH+3] += (((slen -sublen)* (slen + 1)) / 2 ) * al1->rpt;
+        if( sstart < 2 * sublen / 3 ) {
+            if( sstart + slen > 2 * sublen / 3 ) {
+                slen = (2 * sublen / 3) - sstart;
+            }
+            pSubHits[iSH+1] += (((sstart + slen) * (sstart + slen + 1) - (sstart - 1) * sstart) / 2 - (slen + 1) * (2 * sublen / 3)) * al1->rpt;
+            pSubHits[iSH+3] += ((slen * (slen + 1)) / 2 - (slen + 1) * (2 * sublen / 3)) * al1->rpt;
+
+            slen = hdr1->lenAlign();
+        }
+        if( sstart + slen > sublen / 3 ) {
+            if( sstart < sublen / 3 ) {
+                slen -= sublen / 3 - sstart;
+                sstart = sublen / 3;
+            }
+            pSubHits[iSH + 2] += (((sstart + slen) * (sstart + slen + 1) - (sstart - 1) * sstart) / 2 - (slen + 1) * (2 * sublen / 3)) * al1->rpt;
+            pSubHits[iSH+3] += ((slen * (slen + 1)) / 2 - (slen + 1) * (2 * sublen / 3)) * al1->rpt;
+        }
+    }
+}
+
+void sVioal::_countForConflicts(sBioseqAlignment::Al * hdr, idx * pSubHits, idx sublen, digestParams & params) {
+    if( pSubHits && (params.flags & sBioseqAlignment::fAlignKeepResolvedHits) ) {
+        pSubHits[hdr->idSub()]+=Qry->rpt(hdr->idQry());
+    }
+    else if( pSubHits && (params.flags & sBioseqAlignment::fAlignKeepResolvedSymmetry) ) {
+        idx sstart = hdr->getSubjectStart(hdr->match()), slen = hdr->lenAlign(), rpt = Qry->rpt(hdr->idQry()), iSH = 4 * hdr->idSub();
+        pSubHits[iSH] += (((sstart + slen) * (sstart + slen + 1) - (sstart - 1) * sstart) / 2 - (slen + 1) * sublen / 2) * rpt;
+        pSubHits[iSH+3] += (((slen -sublen)* (slen + 1)) / 2 ) * rpt;
+
+        if( sstart < 2 * sublen / 3 ) {
+            if( sstart + slen > 2 * sublen / 3 ) {
+                slen = (2 * sublen / 3) - sstart;
+            }
+            pSubHits[iSH+1] += (((sstart + slen) * (sstart + slen + 1) - (sstart - 1) * sstart) / 2 - (slen + 1) * (2 * sublen / 3)) * rpt;
+            pSubHits[iSH+3] += ((slen * (slen + 1)) / 2 - (slen + 1) * (2 * sublen / 3)) * rpt;
+
+            slen = hdr->lenAlign();
+        }
+        if( sstart + slen > sublen / 3 ) {
+            if( sstart < sublen / 3 ) {
+                slen -= sublen / 3 - sstart;
+                sstart = sublen / 3;
+            }
+            pSubHits[iSH+2] += (((sstart + slen) * (sstart + slen + 1) - (sstart - 1) * sstart) / 2 - (slen + 1) * (2 * sublen / 3)) * rpt;
+            pSubHits[iSH+3] += ((slen * (slen + 1)) / 2 - (slen + 1) * (2 * sublen / 3)) * rpt;
+        }
+    }
+}
+
+void sVioal::_scaleConflictScores(sVec<idx> & pSubHits, digestParams & params) {
+    for(idx i = 0 ; i < pSubHits.dim() && (params.flags & sBioseqAlignment::fAlignKeepResolvedSymmetry) ; i+=4 ) {
+        pSubHits[i] = 1000*(1 - ((real)sAbs(pSubHits[i])/sAbs(pSubHits[i+3])));
+        pSubHits[i+1] = 1000*(1 - ((real)sAbs(pSubHits[i+1])/sAbs(pSubHits[i+3])));
+        pSubHits[i+2] = 1000*(1 - ((real)sAbs(pSubHits[i+2])/sAbs(pSubHits[i+3])));
+    }
+}
+
+idx sVioal::_getConflictScore(idx * pSubHits, idx l_sub, digestParams &params) {
+    if( !pSubHits )
+        return -sIdxMax;
+    if ( params.flags & sBioseqAlignment::fAlignKeepResolvedHits )
+        return pSubHits[l_sub];
+    return pSubHits[4*l_sub] + pSubHits[4*l_sub + 1] + pSubHits[4*l_sub+2];
+}
 
 bool sVioal::filterPair(ALFact * _i1, ALFact * _i2, sBioseqAlignment::Al *_hdr1, sBioseqAlignment::Al *_hdr2, digestParams &params) {
     if( !(params.flags&sBioseqAlignment::fAlignIsPairedEndMode) ) return false;
@@ -67,23 +139,23 @@ bool sVioal::filterPair(ALFact * _i1, ALFact * _i2, sBioseqAlignment::Al *_hdr1,
             return true;
     }
     if( (params.flags&sBioseqAlignment::fAlignKeepPairDirectionality) ) {
-        if ( !(_hdr1->isForward())!=!(_hdr2->isBackwardComplement() ) || !(_hdr1->isBackwardComplement())!=!(_hdr2->isForward()) ) { /*logical X0R*/
+        if ( !(_hdr1->isForward())!=!(_hdr2->isReverseComplement() ) || !(_hdr1->isReverseComplement())!=!(_hdr2->isForward()) ) {
             return true;
         }
     }
     idx fragmentLength = 0, abs = 1;
     if( params.maxFragmentLength || params.minFragmentLength ) {
 
-        if ( !(_hdr1->isForward())!=!(_hdr2->isBackwardComplement() ) || !(_hdr1->isBackwardComplement())!=!(_hdr2->isForward()) ) { /*logical X0R*/
+        if ( !(_hdr1->isForward())!=!(_hdr2->isReverseComplement() ) || !(_hdr1->isReverseComplement())!=!(_hdr2->isForward()) ) {
             return true;
         } else {
-            if( _hdr1->isForward() ) {                                   //  1------------               2---------------(2+lenAlign)
+            if( _hdr1->isForward() ) {
                 fragmentLength = _i2->pos + _hdr2->lenAlign() - _i1->pos ;
-            } else {                                                     //  2------------               1---------------(1+lenAlign)
+            } else {
                 fragmentLength = _i1->pos + _hdr1->lenAlign() - _i2->pos ;
             }
         }
-        if( fragmentLength < 0 && ( params.maxFragmentLength < 0 || params.minFragmentLength < 0 ) ) {  // in case  pairs are pointing outwards <---      ---->
+        if( fragmentLength < 0 && ( params.maxFragmentLength < 0 || params.minFragmentLength < 0 ) ) {
             abs = -1;
         }
     }
@@ -98,17 +170,14 @@ bool sVioal::filterPair(ALFact * _i1, ALFact * _i2, sBioseqAlignment::Al *_hdr1,
 idx sVioal::DigestFirstStage(sVioDB * db, sBioseqAlignment::Al * hdr, sBioseqAlignment::Al * hdre, sBioseq * qry , sBioal::Stat * stat, bool selectedOnly  , bool doQueries, idx biomode, idx oneRepeatForall)
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Scan Alignments one by one
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
 
     idx * match;
     idx iAl, idSub,idQry,  iTot;
     idx myRecordID=0;
+    static sBioseqAlignment::Al tmp_hdr;
+    sBioseqAlignment::Al * c_hdr = 0;
 
-    //idx foundAll=0,foundAllRpt=0;
+
 
 
     for( iAl=0, iTot=0 ; hdr<hdre; hdr=sShift(hdr,hdr->sizeofFlat()) , ++iTot) {
@@ -121,45 +190,46 @@ idx sVioal::DigestFirstStage(sVioDB * db, sBioseqAlignment::Al * hdr, sBioseqAli
 
         stat[1+isub].found+=1;
         stat[1+isub].foundRpt+=(biomode==sBioseq::eBioModeShort)?rpt:1;
-        //foundAll++;
-        //foundAllRpt+=rpt;
 
         match=hdr->match();
+        c_hdr = hdr;
+        if( hdr->isPerfect( qry->len(hdr->idQry()) ) ) {
+            match = 0;
+            tmp_hdr = *hdr;
+            tmp_hdr.setDimAlign(0);
+            hdr = &tmp_hdr;
+        }
+
         idSub=hdr->idSub();
         idQry=hdr->idQry();
 
-        // add the Alignment Record and reserve space for three relationships
         db->AddRecord(eTypeAlignment,(const void *)hdr, sizeof(sBioseqAlignment::Al) );
-        db->AddRecordRelationshipCounter(eTypeAlignment, 0, 1); // 1 here means the relationship to Match : see relationshiplistAlignment[1]
-        db->AddRecordRelationshipCounter(eTypeAlignment, 0, 2); // 2 here means the relationship to Rpt : see relationshiplistAlignment[2]
-//        db->AddRecordRelationshipCounter(eTypeAlignment, 0, 3); // 3 here means the relationship to Match : see relationshiplistAlignment[3]
+        if(match)db->AddRecordRelationshipCounter(eTypeAlignment, 0, 1);
+        db->AddRecordRelationshipCounter(eTypeAlignment, 0, 2);
 
-        // add the Match Record and reserve space for a single relationships to Alignment
         myRecordID=0;
 
-        if(db->SetRecordIndexByBody((const void *)match, eTypeMatch, &myRecordID, sizeof(idx)*hdr->dimAlign() ))
+        if(match && db->SetRecordIndexByBody((const void *)match, eTypeMatch, &myRecordID, sizeof(idx)*hdr->dimAlign() ))
             db->AddRecord(eTypeMatch,(const void *)match, sizeof(idx)*hdr->dimAlign() );
 
-//        db->AddRecordRelationshipCounter(eTypeMatch, 0, 1); // 1 here means the relationship to Match : see relationshiplistMatch[1]
 
-        // add the Subject Record and reserve space for a single relationships to Alignment
         myRecordID=0;
         if(db->SetRecordIndexByBody((const void *)&(idSub), eTypeSubject, &myRecordID))
             db->AddRecord(eTypeSubject,(const void *)&(idSub), sizeof(idx));
-        db->AddRecordRelationshipCounter(eTypeSubject, myRecordID, 1); // 1 here means the relationship to Match : see relationshiplistSubject[1]
+        db->AddRecordRelationshipCounter(eTypeSubject, myRecordID, 1);
 
-        // add the Query Record and reserve space for a single relationships to Alignment
         if(doQueries){
             myRecordID=0;
             if(db->SetRecordIndexByBody((const void *)&(idQry), eTypeQry, &myRecordID))
                 db->AddRecord(eTypeQry,(const void *)&(idQry), sizeof(idx));
-            db->AddRecordRelationshipCounter(eTypeQry, myRecordID, 1); // 1 here means the relationship to Match : see relationshiplistQuery[1]
+            db->AddRecordRelationshipCounter(eTypeQry, myRecordID, 1);
         }
 
         myRecordID=0;
         if(db->SetRecordIndexByBody((const void *)&(rpt), eTypeRpt, &myRecordID))
             db->AddRecord(eTypeRpt,(const void *)&(rpt), sizeof(idx));
         ++iAl;
+        hdr = c_hdr;
     }
 
     return 1;
@@ -181,19 +251,24 @@ idx sVioal::DigestFragmentStage(ALFact * als, ALFact * ale, sBioal::Stat *  stat
 idx sVioal::DigestSecondStage(sVioDB * db, sBioseq * qry, idx * pAl, sBioseqAlignment::Al * hdr,sBioseqAlignment::Al * hdre , bool selectedOnly, bool doQueries, idx oneRepeatForall)
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Scan Alignments one by one
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
 
     idx  *match, idSub, idQry;
+    static sBioseqAlignment::Al tmp_hdr;
+    sBioseqAlignment::Al * c_hdr = 0;
+
     for(  ; hdr<hdre; hdr=sShift(hdr,hdr->sizeofFlat()) ) {
         if( selectedOnly && !((hdr->flags())&(sBioseqAlignment::fSelectedAlignment) ) )
             continue;
 
 
         match=hdr->match();
+        c_hdr = hdr;
+        if( hdr->isPerfect( qry->len(hdr->idQry()) ) ) {
+            match = 0;
+            tmp_hdr = *hdr;
+            tmp_hdr.setDimAlign(0);
+            hdr = &tmp_hdr;
+        }
         idSub=hdr->idSub();
         idQry=hdr->idQry();
 
@@ -201,10 +276,12 @@ idx sVioal::DigestSecondStage(sVioDB * db, sBioseq * qry, idx * pAl, sBioseqAlig
 
         idx mySubID=db->GetRecordIndexByBody((const void *)&(idSub), eTypeSubject);
         idx myQryID=db->GetRecordIndexByBody((const void *)&(idQry), eTypeQry);
-        idx myMatchID=db->GetRecordIndexByBody((const void *)match, eTypeMatch,  sizeof(idx)*hdr->dimAlign() );
+        if(match) {
+            idx myMatchID=db->GetRecordIndexByBody((const void *)match, eTypeMatch,  sizeof(idx)*hdr->dimAlign() );
+            db->AddRelation(eTypeAlignment, 1, (*pAl)+1, myMatchID);
+        }
         idx myRptID=db->GetRecordIndexByBody((const void *)&rpt, eTypeRpt,  sizeof(idx) );
 
-        db->AddRelation(eTypeAlignment, 1, (*pAl)+1, myMatchID);
 
         db->AddRelation(eTypeAlignment, 2, (*pAl)+1, myRptID);
 
@@ -215,6 +292,7 @@ idx sVioal::DigestSecondStage(sVioDB * db, sBioseq * qry, idx * pAl, sBioseqAlig
             db->AddRelation(eTypeQry, 1, myQryID,  (*pAl)+1 );
 
         ++(*pAl);
+        hdr = c_hdr;
     }
 
     return 1;
@@ -224,29 +302,26 @@ idx sVioal::DigestSecondStage(sVioDB * db, sBioseq * qry, idx * pAl, sBioseqAlig
 idx sVioal::DigestInit(sVioDB * db , const char * outputfilename)
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Create the Data format headers
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
 
-    db->init(outputfilename,"vioalt",6,3);//constructor: 6 types(Alignment, Matches, Subjects, Queries, Stat, Repeats) 3 is the maximum relationships
+    db->init(outputfilename,"vioalt",7,4);
 
 
-    idx relationlistAlignment[3]={2,6,0}; //{2,3,4}; // to Matches (, Queries and Subjects), Repeats
-    idx relationlistMatch[1]={1}; // to the Alignment
-    idx relationlistSubject[1]={1}; // to the Alignment
-    idx relationlistQuery[1]={1}; // to the Alignment
-    idx relationlistStat[1]={1}; // to itself ?
-    idx relationlistRpts[1]={6}; // to itself ?
+    idx relationlistAlignment[4]={2,6,0,7};
+    idx relationlistMatch[1]={1};
+    idx relationlistSubject[1]={1};
+    idx relationlistQuery[1]={1};
+    idx relationlistStat[1]={1};
+    idx relationlistRpts[1]={6};
 
+    idx relationlistSAM[1]={1};
 
-    db->AddType(sVioDB::eOther,3,relationlistAlignment,"align", 1); // Alignments are Al structures
-    db->AddType(sVioDB::eOther,1,relationlistMatch,"match", 2); // Match trains
-    db->AddType(sVioDB::eInt,1,relationlistSubject,"subject", 3); // subject Ids
-    db->AddType(sVioDB::eInt,1,relationlistQuery,"query", 4); // query Ids
-    db->AddType(sVioDB::eOther,1,relationlistStat,"stat", 5); // query Ids
-    db->AddType(sVioDB::eInt,1,relationlistRpts,"repeat", 6); // query Ids
+    db->AddType(sVioDB::eOther,4,relationlistAlignment,"align", 1);
+    db->AddType(sVioDB::eOther,1,relationlistMatch,"match", 2);
+    db->AddType(sVioDB::eInt,1,relationlistSubject,"subject", 3);
+    db->AddType(sVioDB::eInt,1,relationlistQuery,"query", 4);
+    db->AddType(sVioDB::eOther,1,relationlistStat,"stat", 5);
+    db->AddType(sVioDB::eInt,1,relationlistRpts,"repeat", 6);
+    db->AddType(sVioDB::eOther,1,relationlistSAM,"sam", 7);
     return 1;
 
 }
@@ -254,142 +329,29 @@ idx sVioal::DigestInit(sVioDB * db , const char * outputfilename)
 idx sVioal::Digest(const char* outputfilename, bool combineFile, sBioseqAlignment::Al * rawAlignment, idx size , sBioal::Stat * statFailed, bool selectedOnly  , bool doQueries, idx biomode)
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Create the Data format headers
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
 
     sVioDB db;
     DigestInit(&db , outputfilename);
 
-/*
-    sVioDB db(outputfilename,"vioalt",5,3);//constructor: 4 types(Alignment, Matches, Subjects, Queries) 3 is the maximum relationships
 
 
-    idx relationlistAlignment[1]={2}; //{2,3,4}; // to Matches, Queries and Subjects
-    idx relationlistMatch[1]={1}; // to the Alignment
-    idx relationlistSubject[1]={1}; // to the Alignment
-    idx relationlistQuery[1]={1}; // to the Alignment
-    idx relationlistStat[1]={1}; // to itself ?
-
-    db.AddType(sVioDB::eOther,3,relationlistAlignment,"align", 1); // Alignments are Al structures
-    db.AddType(sVioDB::eOther,1,relationlistMatch,"match", 2); // Match trains
-    db.AddType(sVioDB::eInt,1,relationlistSubject,"subject", 3); // subject Ids
-    db.AddType(sVioDB::eInt,1,relationlistQuery,"query", 4); // query Ids
-    db.AddType(sVioDB::eOther,1,relationlistStat,"stat", 5); // query Ids
-*/
-
-
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Scan Alignments one by one
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
     sVec < Stat > stat(sMex::fSetZero); stat.add(1+Sub->dim());
 
     sBioseqAlignment::Al * hdr=rawAlignment, * hdre=sShift(rawAlignment,size*sizeof(idx));
     DigestFirstStage(&db, hdr, hdre, Qry, stat, selectedOnly  , doQueries, biomode);
 
-    /*
-    sBioseqAlignment::Al * hdr, * hdre=sShift(rawAlignment,size*sizeof(idx));;
-    idx * match;
-    idx iAl, idSub,idQry,  iTot;
-    idx myRecordID=0;
-
-    //idx foundAll=0,foundAllRpt=0;
-
-    for( hdr=rawAlignment, iAl=0, iTot=0 ; hdr<hdre; hdr=sShift(hdr,hdr->sizeofFlat()) , ++iTot) {
-
-        if( selectedOnly && !((hdr->flags())&(sBioseqAlignment::fSelectedAlignment) ) )
-            continue;
-
-        idx isub=hdr->idSub();
-        idx rpt=Qry->rpt(hdr->idQry());
-
-        stat[1+isub].found+=1;
-        stat[1+isub].foundRpt+=(biomode==0)?rpt:1;
-        //foundAll++;
-        //foundAllRpt+=rpt;
-
-        match=hdr->match();
-        idSub=hdr->idSub();
-        idQry=hdr->idQry();
-
-        // add the Alignment Record and reserve space for three relationships
-        db.AddRecord(eTypeAlignment,(const void *)hdr, sizeof(sBioseqAlignment::Al) );
-        db.AddRecordRelationshipCounter(eTypeAlignment, 0, 1); // 1 here means the relationship to Match : see relationshiplistAlignment[1]
-//      db.AddRecordRelationshipCounter(eTypeAlignment, 0, 2); // 2 here means the relationship to Match : see relationshiplistAlignment[2]
-//      db.AddRecordRelationshipCounter(eTypeAlignment, 0, 3); // 3 here means the relationship to Match : see relationshiplistAlignment[3]
-
-        // add the Match Record and reserve space for a single relationships to Alignment
-        myRecordID=0;
-
-        if(db.SetRecordIndexByBody((const void *)match, eTypeMatch, &myRecordID, sizeof(idx)*hdr->dimAlign() ))
-            db.AddRecord(eTypeMatch,(const void *)match, sizeof(idx)*hdr->dimAlign() );
-
-//      db.AddRecordRelationshipCounter(eTypeMatch, 0, 1); // 1 here means the relationship to Match : see relationshiplistMatch[1]
-
-        // add the Subject Record and reserve space for a single relationships to Alignment
-        myRecordID=0;
-        if(db.SetRecordIndexByBody((const void *)&(idSub), eTypeSubject, &myRecordID))
-            db.AddRecord(eTypeSubject,(const void *)&(idSub), sizeof(idx));
-        db.AddRecordRelationshipCounter(eTypeSubject, myRecordID, 1); // 1 here means the relationship to Match : see relationshiplistSubject[1]
-
-        // add the Query Record and reserve space for a single relationships to Alignment
-        if(doQueries){
-            myRecordID=0;
-            if(db.SetRecordIndexByBody((const void *)&(idQry), eTypeQry, &myRecordID))
-                db.AddRecord(eTypeQry,(const void *)&(idQry), sizeof(idx));
-            db.AddRecordRelationshipCounter(eTypeQry, myRecordID, 1); // 1 here means the relationship to Match : see relationshiplistQuery[1]
-        }
-        ++iAl;
-    }
-     */
     if(statFailed){
-        //statFailed=this->Qry.dim()-foundAll;
         stat[0]=*statFailed;
     }
 
     db.AddRecord(eTypeStat,(const void *)stat, sizeof(Stat)*stat.dim());
-    db.AddRecordRelationshipCounter(eTypeStat, 1, 1); // 1 here means the relationship to Match : see relationshiplistQuery[1]
+    db.AddRecordRelationshipCounter(eTypeStat, 1, 1);
 
     db.AllocRelation();
-    /*
-    idx iAl;
-    for( hdr=rawAlignment, iAl=0 ; hdr<hdre; hdr=sShift(hdr,hdr->sizeofFlat()) ) {
-        if( selectedOnly && !((hdr->flags())&(sBioseqAlignment::fSelectedAlignment) ) )
-            continue;
-
-
-        match=hdr->match();
-        idSub=hdr->idSub();
-        idQry=hdr->idQry();
-
-
-        idx mySubID=db.GetRecordIndexByBody((const void *)&(idSub), eTypeSubject);
-        idx myQryID=db.GetRecordIndexByBody((const void *)&(idQry), eTypeQry);
-        idx myMatchID=db.GetRecordIndexByBody((const void *)match, eTypeMatch,  sizeof(idx)*hdr->dimAlign() );
-
-
-        db.AddRelation(eTypeAlignment, 1, iAl+1, myMatchID);
-        //db.AddRelation(eTypeAlignment, 2, iAl+1, mySubID);
-        //db.AddRelation(eTypeAlignment, 3, iAl+1, myQryID);
-
-        // db.AddRelation(eTypeMatch, eTypeAlignment, iAl+1, iAl+1, 1);
-
-        db.AddRelation(eTypeSubject, 1, mySubID, iAl+1 );
-
-        if(doQueries)
-            db.AddRelation(eTypeQry, 1, myQryID, iAl+1 );
-
-        ++iAl;
-    }
-     */
     idx iAlCnt=0;
     DigestSecondStage(&db, Qry, &iAlCnt, hdr,hdre , selectedOnly  , doQueries);
 
-    db.AddRelation(eTypeStat, 1, 1, 1); // 1 here means the relationship to Match : see relationshiplistQuery[1]
+    db.AddRelation(eTypeStat, 1, 1, 1);
 
     db.Finalize(combineFile);
     return 1;
@@ -401,27 +363,12 @@ idx sVioal::Digest(const char* outputfilename, bool combineFile, sBioseqAlignmen
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Vioalt information
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 
 struct linkList {
         sVec<idx> list;
         void addNode(idx value, idx index = -1) {
-//            short int l = 0;
-//            idx selfInd = list.dim();
-//
-//            if ( value <= 0x3fffffff ) {
-//                l = 0;
-//            } else {
-//                l = 1;
-//            }
-//
             idx * n = list.add();
-//            sConvPtr(n,idx) = 0;
             *n = 0;
             if( index >= 0 ) {
                 setLink( index, list.dim()-1 );
@@ -525,8 +472,6 @@ idx sVioal::DigestPairedEnds( sVec<ALFact> &als, sVec<sFil> & fileList, sVioal::
                 *long2al.set(&iLongQry,sizeof(iLongQry)) = lst.list.dim();
             }
             lst.appendNode(i,*ind1);
-//            endAl1 = long2al.set(&iLongQry,sizeof(iLongQry));
-//            *endAl1->add() = i;
         }
         reads_short2long[iqry];
     }
@@ -539,15 +484,15 @@ idx sVioal::DigestPairedEnds( sVec<ALFact> &als, sVec<sFil> & fileList, sVioal::
     real best1Score = 0, best2Score = 0, end1Score = 0, end2Score = 0;
     idx bestCnt =0 ;
     sVec<idx> subHits(sMex::fSetZero|sMex::fExactSize); idx * pSubHits = 0;
-    if( (params.flags&sBioseqAlignment::fAlignKeepMarkovnikovMatch) ) {
-        subHits.resize(Sub->dim());
+    if( (params.flags&sBioseqAlignment::resolveConflicts) ) {
+        subHits.resize(((params.flags&sBioseqAlignment::fAlignKeepResolvedHits)?1:4)*Sub->dim());
         pSubHits = subHits.ptr();
     }
     idx tot = 0, leftCnt = 0, rightCnt = 0;
     bool onesideonly = false;
     for( idx i1 = 0 ; i1 < _bioal_long_cnt/2 ; ++i1 ) {
         if((i1%10000==0) && myCallbackFunction){
-            if( !myCallbackFunction(myCallbackParam,i1,15+5*i1/(_bioal_long_cnt/2),100) )
+            if( !myCallbackFunction(myCallbackParam,i1,15+3*i1/(_bioal_long_cnt/2),100) )
                 return 0;
         }
         idx i2 = _getPairedRead (i1);
@@ -579,8 +524,8 @@ idx sVioal::DigestPairedEnds( sVec<ALFact> &als, sVec<sFil> & fileList, sVioal::
             idx ia2 = onesideonly? 0: *endAl2;
             while ( !isA2Last ) {
                 al2 = onesideonly? 0: als.ptr(lst.getValue(ia2));
-                hdr1 = _getHdrFromAlFact(al1);
-                hdr2 = al2 ? _getHdrFromAlFact(al2):0;
+                hdr1 = _getHdrFromAlFact(al1, fileList);
+                hdr2 = al2 ? _getHdrFromAlFact(al2, fileList):0;
                 if( onesideonly || !filterPair(al1, al2, hdr1, hdr2,params) ) {
                     end1Score = 0; end2Score = 0;
                     *filteredPairedAls.add() = lst.getValue(ia1);
@@ -626,17 +571,17 @@ idx sVioal::DigestPairedEnds( sVec<ALFact> &als, sVec<sFil> & fileList, sVioal::
             al2 = filteredPairedAls[ip+1]>=0?als.ptr(filteredPairedAls[ip+1]):0;
 
             ++al1->rpt;
+            idx d = Sub->len(al1->sub);
             ++leftCnt;
-            if( pSubHits ) {
-                ++pSubHits[al1->sub];
+            if( pSubHits && (!(params.flags&sBioseqAlignment::fAlignKeepResolveUnique) || filteredPairedAls.dim() == 4) ) {
+                _countForConflicts(al1, fileList, pSubHits, d, params);
             }
             if( al2 ) {
                 ++al2->rpt;
-                if( pSubHits ) {
-                    ++pSubHits[al2->sub];
+                if( pSubHits && (!(params.flags&sBioseqAlignment::fAlignKeepResolveUnique) || filteredPairedAls.dim() == 4) ) {
+                    _countForConflicts(al2, fileList, pSubHits, d, params);
                 }
                 ++rightCnt;
-                //HI bit signifies tha the read is part of aligned fragment;
                 al1->idQry |= (idx)1<<((8*sizeof(idx))-1);
                 al2->idQry |= (idx)1<<((8*sizeof(idx))-1);
             }
@@ -647,11 +592,16 @@ idx sVioal::DigestPairedEnds( sVec<ALFact> &als, sVec<sFil> & fileList, sVioal::
         if(rightCnt)++tot;
 
     }
+    _scaleConflictScores(subHits,params);
     if( pSubHits || lenHistogram || totSubjectCoverage ) {
         idx bestSub = -1, is1 = 0, len = 0;
         bool isHit = false;
 
         for( idx i1 = 0 ; i1 < _bioal_long_cnt ; ++i1 ) {
+            if((i1%10000==0) && myCallbackFunction){
+                if( !myCallbackFunction(myCallbackParam,i1,18+2*i1/(_bioal_long_cnt),100) )
+                    return 0;
+            }
             endAl1 = long2al.get(&i1,sizeof(i1));
             is1 = Qry->long2short(i1);
             len = Qry->len(is1);
@@ -664,25 +614,46 @@ idx sVioal::DigestPairedEnds( sVec<ALFact> &als, sVec<sFil> & fileList, sVioal::
             isHit = false;
             if( pSubHits ) {
                 bestSub = -1;
+                idx totSubScore = 0;
                 bool isA1Last = false;
                 idx ia1 = *endAl1;
                 while ( !isA1Last ) {
                     al1 = als.ptr(lst.getValue(ia1));
                     if ( al1->rpt ) {
-                        if( bestSub < 0 || pSubHits[bestSub] < pSubHits[al1->sub]) {
-                            bestSub = al1->sub;
+                        if(params.flags & sBioseqAlignment::fAlignKeepResolveBalanced) {
+                            totSubScore += _getConflictScore( pSubHits, al1->sub, params);
+                        } else if(params.flags & sBioseqAlignment::fAlignKeepResolveMarkovnikov) {
+                            if( bestSub < 0 ||  _getConflictScore(pSubHits, bestSub, params) < _getConflictScore( pSubHits, al1->sub,params) ) {
+                                bestSub = al1->sub;
+                            }
                         }
                     }
                     isA1Last = lst.isLastNode(ia1);
                     ia1 = lst.getLink(ia1);
                 }
+                bestSub = ((idx)(sRand::ran0(&params.seed)*totSubScore))%totSubScore;
+                totSubScore = 0;
+
                 isA1Last = false;
                 ia1 = *endAl1;
+                ALFact * prevAl1 = 0;
                 while ( !isA1Last ) {
                     al1 = als.ptr(lst.getValue(ia1));
-                    if ( al1->rpt && bestSub != al1->sub) {
+                    if( (params.flags & sBioseqAlignment::fAlignKeepResolveBalanced) ) {
+                        if(al1->rpt ) {
+                            totSubScore += _getConflictScore( pSubHits, al1->sub, params);
+                            if( bestSub >=0 && totSubScore > bestSub ) {
+                                bestSub = -1;
+                                ++prevAl1->rpt;
+                            } else {
+                                --al1->rpt;
+                            }
+                        }
+                    }
+                    else if ( (params.flags & sBioseqAlignment::fAlignKeepResolveMarkovnikov) && al1->rpt && bestSub != al1->sub) {
                         --al1->rpt;
                     }
+                    prevAl1 = al1;
                     isA1Last = lst.isLastNode(ia1);
                     ia1 = lst.getLink(ia1);
                 }
@@ -794,19 +765,72 @@ idx sVioal::__sort_totalAlignmentSorter_onQuery(void * param, void * arr , idx i
     return 0;
 }
 
+sBioseqAlignment::Al * sVioal::getConflictResolvedHDR(sBioseqAlBundleAscIter & it, sVec<idx> &subHits, digestParams &params)
+{
+    if( !it.valid() ) {
+        return 0;
+    }
+    static sBioseqAlBundleAscIter t_it(it);
+    if(params.flags & sBioseqAlignment::fAlignKeepResolveBalanced) {
+        t_it.reset(it);
+    }
 
+    sBioseqAlignment::Al *hdr = *it;
+    idx q = hdr->idQry();
+    idx bestSub = hdr->idSub(), lastSub = -1, totSubScore = 0, bestSubCnt = 1;
+    static sVec<sBioseqAlignment::Al *> bestAls;
+    bestAls.cut();
 
+    while ( it.valid() && hdr->idQry() == q ) {
+        if( (params.flags & sBioseqAlignment::fAlignKeepResolveBalanced) && lastSub != hdr->idSub() ){
+            totSubScore += _getConflictScore(subHits.ptr(), hdr->idSub(), params);
+            lastSub = hdr->idSub();
+        } else if(params.flags & sBioseqAlignment::fAlignKeepResolveMarkovnikov) {
+            if( _getConflictScore(subHits.ptr(), bestSub,params) < _getConflictScore(subHits.ptr(), hdr->idSub(), params) ) {
+                bestSub = hdr->idSub();
+                bestAls.cut();
+                bestAls.vadd(1, hdr);
+            } else if (hdr->idSub() == bestSub ) {
+                bestAls.vadd(1, hdr);
+            }
+        }
+        hdr=*(++it);
+    }
+    if( totSubScore && (params.flags & sBioseqAlignment::fAlignKeepResolveBalanced) ) {
+        hdr = *t_it;
+        idx bestSubScore = ((idx)(sRand::ran0(&params.seed)*totSubScore))%totSubScore;
+        totSubScore = 0, bestSub = -1, lastSub = -1;
+        while ( t_it.valid() && hdr->idQry() == q ) {
+            hdr = *t_it;
+            ++t_it;
+            if(lastSub == hdr->idSub()) {
+                if ( lastSub == bestSub ) {
+                    bestAls.vadd(1, hdr);
+                }
+                continue;
+            }
+            lastSub = hdr->idSub();
+            totSubScore += _getConflictScore( subHits.ptr(), hdr->idSub(), params);
+            if( bestSub < 0 && totSubScore > bestSubScore ) {
+                bestSub = hdr->idSub();
+                bestAls.cut();
+                bestAls.vadd(1, hdr);
+            }
+            hdr = *(++t_it);
+        }
+    }
+    return bestAls[((idx)(sRand::ran0(&params.seed)*bestSubCnt))%bestSubCnt];
+}
 
-idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * filenames, digestParams &params, sDic < sBioal::LenHistogram > * lenHistogram, sVec < idx > * totSubjectCoverage, idx sortFlags /*= 0*/)
+idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * filenames, digestParams &params, sDic < sBioal::LenHistogram > * lenHistogram, sVec < idx > * totSubjectCoverage, idx sortFlags, const char * samFilenames00)
 {
     if( !outputfilename )
         return 0;
     sStr filenames00;
     sString::searchAndReplaceSymbols(&filenames00,filenames,0,"," sString_symbolsBlank,(const char *)0,0,true,true,true,true);
-    idx iFile=0 ,iAl , iTot;
+    idx iFile=0;
 
 
-    // prepare the list of all alignments in all files for sorting
     if(!alFactors)alFactors=&AlFactors;
     sVec < sFil  > fileList;
     idx cntFiles=sString::cnt00(filenames00);
@@ -814,26 +838,17 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
     sVec < char > HitBits(sMex::fSetZero);HitBits.resize(Qry->dim()/8+1);
     char * hitBits=HitBits.ptr();;
 
-    /*
-    sStr concatFileNameForManyRequests;
-    if(cntFiles>100) {
-        concatFileNameForManyRequests.printf("%s.concatenated.vioalt",filenames00);
-        sFile::remove(concatFileNameForManyRequests);
-        for( const char * flnm=filenames00; flnm; flnm=sString::next00(flnm)) {
-            sFile::copy(concatFileNameForManyRequests,flnm,true);
-        }
-
-    }*/
     idx l;
-    //udx sMinAl=0xFFFFFFFFFFFFFFFFull, sMaxAl=0;
     udx outOfPlace=0, prvPos=-1;
     idx irand=64;
-
     sVec<idx> subHits(sMex::fSetZero|sMex::fExactSize);
 
-    if( !(params.flags&sBioseqAlignment::fAlignIsPairedEndMode) && (params.flags&sBioseqAlignment::fAlignKeepMarkovnikovMatch) ) {
-        subHits.resize( Sub->dim() );
+    sVec<sFil> samContentFileList;
+
+    if( !(params.flags&sBioseqAlignment::fAlignIsPairedEndMode) && (params.flags&sBioseqAlignment::resolveConflicts) ) {
+        subHits.resize( ((params.flags&sBioseqAlignment::fAlignKeepResolvedHits)?1:4)*Sub->dim() );
         bool filteredMatches = sBioseqAlignment::doSelectMatches(params.flags);
+        idx cnt_iq_hdrs = 0;
         for( const char * flnm=filenames00; flnm; flnm=sString::next00(flnm) ) {
             sFil * fl=fileList.add();
             fl->init(flnm,sMex::fReadonly);
@@ -841,17 +856,26 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
                 fileList.cut(fileList.dim()-1);
                 continue;
             }
-
-            sBioseqAlignment::Al * hdr=(sBioseqAlignment::Al * )fl->ptr(), * hdre=sShift(hdr,fl->length());
+            cnt_iq_hdrs = 0;
+            sBioseqAlignment::Al * hdr=(sBioseqAlignment::Al * )fl->ptr(), * hdre=sShift(hdr,fl->length()), * hdrPrv = hdr;
             for(  ; hdr<hdre ; hdr=sShift(hdr,hdr->sizeofFlat()) ) {
                 if( filteredMatches && !(hdr->flags()&sBioseqAlignment::fSelectedAlignment) ) {
                     continue;
                 }
-                subHits[hdr->idSub()] += Qry->rpt( hdr->idQry() );
+                if( hdrPrv->idQry()!=hdr->idQry() ) {
+                    if(!(params.flags&sBioseqAlignment::fAlignKeepResolveUnique) || cnt_iq_hdrs == 1)
+                        _countForConflicts(hdrPrv, subHits.ptr(), Sub->len(hdrPrv->idSub()), params);
+                    cnt_iq_hdrs = 0;
+                }
+                ++cnt_iq_hdrs;
+                hdrPrv = hdr;
             }
+            if(!(params.flags&sBioseqAlignment::fAlignKeepResolveUnique) || cnt_iq_hdrs == 1)
+                _countForConflicts(hdrPrv, subHits.ptr(), Sub->len(hdrPrv->idSub()), params);
         }
 
     }
+    _scaleConflictScores(subHits,params);
     idx fileDim = fileList.dim();
     for( const char * flnm=filenames00; flnm; flnm=sString::next00(flnm) , ++iFile)
     {
@@ -870,40 +894,56 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
             continue;
         }
 
-        sBioseqAlignment::Al * hdr=(sBioseqAlignment::Al * )fl->ptr(), * hdre=sShift(hdr,fl->length());
-        sBioseqAlignment::Al * hdrQry = hdr;
-        idx bestSub = hdr->idSub();
-        for( iAl=0, iTot=0 ; hdr<hdre; hdr=sShift(hdr,hdr->sizeofFlat()) , ++iTot) {
+        sFil * samContentFile = NULL;
+        const char * lastSamPos = NULL;
+        idx lastSamBodyLine = 0;
+        if (samFilenames00) {
+            const char * curSamFilename = sString::next00(samFilenames00, iFile);
+            samContentFile = samContentFileList.add();
+            samContentFile->init(curSamFilename, sMex::fReadonly);
+
+            lastSamPos = samContentFile->ptr(0);
+            while (lastSamPos && *lastSamPos == '@') {
+                while (*lastSamPos && *lastSamPos != '\n') {
+                    ++lastSamPos;
+                }
+                if (*lastSamPos) {
+                    ++lastSamPos;
+                }
+            }
+        }
+
+        sBioseqAlignment::Al * hdr = 0;
+
+        sVec<sBioseqAlIter> iters;
+            sBioseqAlBundleAscIter::getIters(fl,iters);
+
+        sBioseqAlBundleAscIter it(iters);
+
+        while( it.valid() ) {
+            hdr = *it;
             idx q=hdr->idQry();
 
-            if( !(params.flags&sBioseqAlignment::fAlignIsPairedEndMode) && (params.flags&sBioseqAlignment::fAlignKeepMarkovnikovMatch) ) {
-                if( hdrQry <= hdr )  {
-                    bestSub = hdr->idSub();
-                    hdrQry = sShift(hdr,hdr->sizeofFlat());
-                    while ( hdrQry < hdre && hdrQry->idQry() == q ) {
-                        if( subHits[bestSub] < subHits[ hdrQry->idSub() ] ) {
-                            bestSub = hdrQry->idSub();
-                        }
-                        hdrQry=sShift(hdrQry,hdrQry->sizeofFlat());
-                    }
+            if( likely(!(params.flags & sBioseqAlignment::fAlignIsPairedEndMode)) ) {
+                if( unlikely(params.flags & sBioseqAlignment::resolveConflicts) ) {
+                    hdr = getConflictResolvedHDR(it, subHits, params);
+                } else {
+                    ++it;
                 }
-                if ( hdr->idSub() != bestSub ) {
+                if( (params.flags & sBioseqAlignment::fAlignKeepBestFirstMatch) && !((hdr->flags()) & (sBioseqAlignment::fSelectedAlignment)) ) {
+                    continue;
+                } else if( (params.flags & sBioseqAlignment::fAlignKeepFirstMatch) && (hitBits[q / 8] & (((char) 1) << (q % 8))) ) {
                     continue;
                 }
+            } else {
+                ++it;
             }
 
-            if( !(params.flags&sBioseqAlignment::fAlignIsPairedEndMode) && (params.flags & sBioseqAlignment::fAlignKeepBestFirstMatch) && !((hdr->flags()) & (sBioseqAlignment::fSelectedAlignment)) ) {
-                continue;
-            }
-
-            if( !(params.flags&sBioseqAlignment::fAlignIsPairedEndMode) && (params.flags & sBioseqAlignment::fAlignKeepFirstMatch) && (hitBits[q / 8] & (((char) 1) << (q % 8))) ) {
-                continue;
-            }
 
             idx * m=hdr->match();
 
             ALFact * al = alFactors->add();
-            al->pos=hdr->subStart()+m[0];
+            al->pos=hdr->getSubjectStart(m);
             al->sub=hdr->idSub();
             al->iFile=iFile;
             al->ofsFile=((const char *)hdr)-((const char * )fl->ptr());
@@ -911,12 +951,26 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
             udx pos=(((udx)(al->sub))<<32)|(((udx)al->pos));
             al->idQry=(q|(irand<<52));
             irand=(irand+1367)&0x7FF;
-            // this one has an alignment
-            //if(pos<sMinAl)sMinAl=pos;
-            //if(pos>sMaxAl)sMaxAl=pos;
             if(pos<prvPos)
                 ++outOfPlace;
             prvPos=pos;
+
+            if (samFilenames00) {
+                const char * end = samContentFile->last();
+                const idx destinationLine = it.cnt() - 1;
+                idx curLine = lastSamBodyLine;
+                const char * curPos = lastSamPos;
+                char c;
+                while ((c = *curPos) && curLine < destinationLine && curPos < end) {
+                    if (c == '\n') {
+                        ++curLine;
+                    }
+                    ++curPos;
+                }
+                al->ofsSam = curPos - samContentFile->ptr(0);
+                lastSamPos = curPos;
+                lastSamBodyLine = curLine;
+            }
 
 
             if(lenHistogram){
@@ -926,7 +980,7 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
                 (lenHistogram->set(&l,sizeof(l)))->cntSeq+=al->rpt;
                 l=hdr->lenAlign();
                 (lenHistogram->set(&l,sizeof(l)))->cntAl+=al->rpt;
-                l=hdr->qryStart()+m[1];
+                l=hdr->getQueryStart(m);
                 if(l>1)
                     (lenHistogram->set(&l,sizeof(l)))->cntLeft+=al->rpt;
 
@@ -941,18 +995,15 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
 
             hitBits[q/8]|=((char)1<<(q%8));
 
-            //al->idQry=hdr->idQry();
         }
-        //fl->destroy();
 
-        if((iAl%10000==0) &&  myCallbackFunction){
+        if((it.cnt()%10000==0) &&  myCallbackFunction){
             if( !myCallbackFunction(myCallbackParam,iFile,50*iFile/cntFiles,100) )
                 return 0;
         }
 
     }
 
-    //if(sMinAl!=sMaxAl) {
     sSort::sCallbackSorterSimple __sort_totalAlignmentSorter;
 
     switch(sortFlags){
@@ -972,7 +1023,6 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
 
     sSort::sortSimpleCallback<ALFact>(__sort_totalAlignmentSorter, 0, alFactors->dim(), alFactors->ptr());
 
-    //}
 
     idx failed=0, failedRpt=0;
 
@@ -1022,17 +1072,29 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
 
 
         idx ip, countToDo=params.countHiveAlPieces;
-        if(alFactors->dim()-(posCur+countToDo)<=params.countHiveAlPieces/4) {// the leftover chunk is less than fourth of the chunk - join those
+        if(alFactors->dim()-(posCur+countToDo)<=params.countHiveAlPieces/4) {
             countToDo=alFactors->dim()-posCur;
             params.countHiveAlPieces=countToDo;
         }
 
             for( ip=0; ip<countToDo && posCur+ip<alFactors->dim(); ++ip ){
-                if( (params.flags&sBioseqAlignment::fAlignIsPairedEndMode) && !alFactors->ptr(posCur+ip)->rpt ) {
+                if(!alFactors->ptr(posCur+ip)->rpt ) {
                     continue;
                 }
+
                 hdr=(sBioseqAlignment::Al * )fileList[alFactors->ptr(posCur+ip)->iFile].ptr( alFactors->ptr(posCur+ip)->ofsFile );
-                DigestFirstStage(&db, hdr, hdr+1, 0, stat, false , false, 0 ,alFactors->ptr(posCur+ip)->rpt);
+                DigestFirstStage(&db, hdr, hdr+1, Qry, stat, false , false, 0 ,alFactors->ptr(posCur+ip)->rpt);
+                if (samFilenames00) {
+                    const char * samLine = samContentFileList[alFactors->ptr(posCur+ip)->iFile].ptr(alFactors->ptr(posCur+ip)->ofsSam);
+                    const char * end = samContentFileList[alFactors->ptr(posCur+ip)->iFile].last();
+
+                    sStr samContentBuf;
+                    sString::copyUntil(&samContentBuf, samLine, end-samLine, "\r\n");
+                    samContentBuf.add0();
+                    samContentBuf.shrink00();
+                    db.AddRecordRelationshipCounter(eTypeAlignment, 0, 4);
+                    db.AddRecord(eTypeSAMContent, samContentBuf.ptr(0), samContentBuf.length() );
+                }
                 if( params.flags&sBioseqAlignment::fAlignIsPairedEndMode )
                     DigestFragmentStage( alFactors->ptr(posCur+ip), alFactors->ptr(posCur+ip)+1,stat.ptr(Sub->dim()+1), 0, 0,alFactors->ptr(posCur+ip)->rpt);
             }
@@ -1042,14 +1104,13 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
                 stat[Sub->dim()+1+iss].foundRpt/=2;
             }
         }
-        if(iChunk==0 ){ // && statFailed){
-            //stat[0]=*statFailed;
+        if(iChunk==0 ){
             stat[0].found=failed;
             stat[0].foundRpt=failedRpt;
         }
 
         db.AddRecord(eTypeStat,(const void *)stat, sizeof(Stat)*stat.dim());
-        db.AddRecordRelationshipCounter(eTypeStat, 1, 1); // 1 here means the relationship to Match : see relationshiplistQuery[1]
+        db.AddRecordRelationshipCounter(eTypeStat, 1, 1);
 
         db.AllocRelation();
 
@@ -1062,12 +1123,14 @@ idx sVioal::DigestCombineAlignmentsRaw(const char* outputfilename, const char * 
             ++ipCnt;
             hdr=(sBioseqAlignment::Al * )fileList[alFactors->ptr(posCur+ip)->iFile].ptr( alFactors->ptr(posCur+ip)->ofsFile );
             DigestSecondStage(&db, Qry, &iAlCnt, hdr,hdr+1 , false  , false, alFactors->ptr(posCur+ip)->rpt);
+            if (samFilenames00) {
+                db.AddRelation(eTypeAlignment, 4, iAlCnt, iAlCnt);
+            }
         }
 
-        db.AddRelation(eTypeStat, 1, 1, 1); // 1 here means the relationship to Match : see relationshiplistQuery[1]
+        db.AddRelation(eTypeStat, 1, 1, 1);
         setMode(db, Qry->getmode(), Sub->getmode());
         db.Finalize(params.combineFiles);
-        //sVioal::setMode(&db,mode);
 
         path.makeName(outputfilename,"%%flnmx.%" DEC ".vioal",iChunk);
         hiveAlBuf.printf("file://%s,%" DEC ",%" DEC "\n",path.ptr(0),(idx)0,ipCnt);

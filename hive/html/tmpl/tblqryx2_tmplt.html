@@ -53,6 +53,10 @@ lengthOfTqs=-1;
 
 function tblqryx2_init()
 {
+    vjDS.add("Classification Data", "dsRLDAtranslated", "static:// ");
+    vjDS.add("Classification Contributors", "dsRLDAcontributors", "static://");
+    vjDS.add("Classification Convergent", "dsRLDAconvergent", "static://");
+    
     vjDS.add("Student T-Test", "dsStatTest", "static:// ");
     vjDS.add("Student T-Test", "dsStatTestManhattan", "static:// ");
     vjDS.add("Bayesian Stat", "dsBStat", "static:// ");
@@ -316,6 +320,85 @@ function tblqryx2_init()
             ]
         });
 
+    rldaViewerToolbar=new vjPanelView({
+        data:['dsVoid', 'dsTblQryX2'],
+        iconSize:24,
+        formObject: document.forms[formName],
+        showTitles:true,
+        rows: [
+            {name:'datasourceNum', align:'left', order:-1 ,title: 'Choose the classifier' ,  type:'select', options: [[1,"1"]], value:0, showTitleForInputs: true},
+            {name:'downloadPic', align:'left', order:1 ,title: 'Download files', icon: 'save', showTitleForInputs: true, path: '/downloadPic'},
+            {name: 'contributors', align:'left', order:1 ,title: 'Download Contributors File',  showTitleForInputs: true, path: '/downloadPic/contributors', url: downloadContributors},
+            {name:'convergent', align:'left', order:2 ,title: 'Download Convergent File',  showTitleForInputs: true, path: '/downloadPic/convergent', url: downloadConvergent},
+            {name:'translated', align:'left', order:3 ,title: 'Download Translated File',  showTitleForInputs: true, path: '/downloadPic/translated', url: downloadTranslated},
+            {name:'vectors', align:'left', order:4 ,title: 'Download Vectors File',  showTitleForInputs: true, path: '/downloadPic/vectors', url: downloadVectors},
+            {name:'apply', align:'left', order:2 ,title: 'Update graphs',  icon:'recSet', url: tableRendered}
+            ]
+        });
+    
+    var myClassifiedScatterView= new vjGoogleGraphView({
+        data:"dsRLDAtranslated",
+        series:[
+                {col:1, title: "Factor 1"},
+                {col:2, title: "Factor 2",
+                    formatter: function(value, node, ic) {
+                        return node.cols[0];
+                    }
+                }
+                ],
+        options:{
+            width : 800,
+            height : 250,
+            chartArea : {
+                top : 20,
+                left : 80,
+                height : '80%',
+                width : '80%'
+            },
+            hAxis: {title: "most important classifier"},
+            vAxis : {title: "second classifier"},
+            annotation: { 0: {style: 'letter'}},
+            annotations: {
+                textStyle: {
+                    auraColor: '#ccc',
+                    bold: true,
+                    color: '#000',
+                    fontSize: 10,
+                    opacity: 0.3
+                }
+             },
+             displayAnnotations: true,
+             legend: 'none',
+             lineWidth: 0,
+             pointSize: 5
+        },
+        type:"line",
+        isok: true
+    });
+
+
+    var myClassifiedColumnView= new vjGoogleGraphView({
+        data:"dsRLDAtranslated",
+        series:[
+                {col:0, title: "Labels", label:'true'},
+                {col:1, title: "Measure"}
+                ],
+        options:{
+            width : 800,
+            height : 250,
+            aaachartArea : {
+                top : 20,
+                left : 80,
+                height : '80%',
+                width : '80%'
+            },
+            hAxis: {title: "Label"},
+            vAxis : {title: "Classifier"}
+        },
+        type:"column",
+        isok: true
+    });
+    
     var myKMView= new vjGoogleGraphView({
         data: 'dsKaplanMeier',
         series:[
@@ -335,6 +418,24 @@ function tblqryx2_init()
             vAxis : {title: "Survival"}
         },
         type: "line",
+        isok: true
+    });
+
+    var myClassifiedContributionsView=new vjTableView({
+        data: 'dsRLDAcontributors',
+        formObject: document.forms[formName],
+        //width: "100px",
+        cols:[
+              {name:"Column", hidden: false},
+              {col:"*", hidden: false, type:"graphEigen*100"}
+              ],
+        isok: true
+    });
+    
+    var myClassifiedConvergentView=new vjTableView({
+        data: 'dsRLDAconvergent',
+        formObject: document.forms[formName],
+        bgColors: ['#f2f2f2', '#ffffff'],
         isok: true
     });
 
@@ -468,6 +569,7 @@ function tblqryx2_init()
     
     vjDV["dvExternalCommandOutputs"].add("Heatmap", "graph", "tab", [myHeatmapViewer]);
     vjDV["dvExternalCommandOutputs"].add("Clustering Tree","tree","tab",[treeViewer]);
+    vjDV["dvExternalCommandOutputs"].add("Classification Methods","scatter","tab",[rldaViewerToolbar, myClassifiedScatterView,myClassifiedColumnView,myClassifiedContributionsView, myClassifiedConvergentView]);
     vjDV["dvExternalCommandOutputs"].add("Basic Graphs","pie","tab",[myGraphViewer]);
     vjDV["dvExternalCommandOutputs"].add("Self Organizing Map","scatter","tab",[mySomViewer]);
     vjDV["dvExternalCommandOutputs"].add("Student T-Test","scatter","tab",[statTestToolbar, myStatTestViewer, statTestManhattanPlot]);
@@ -686,6 +788,41 @@ function tableRendered (viewer,text)
             vjDS["dsExtTree"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=cluster1.tre", true);
             vjDV["dvExternalCommandOutputs"].onClickTabSelect("Clustering Tree", 1);
         }
+        if( viewer.tqsObj[i].op == "rlda" ) 
+        {
+            var val = rldaViewerToolbar.tree.findByName("datasourceNum").value;
+            var returned = viewer.findInTqs([["op","rlda"]]);
+            var opts = [];
+            
+            if (returned.length > 0 && returned[0].arg.categories.length > 0)
+            {
+                var sorted = returned[0].arg.categories;
+                for (var x = 0; x < sorted.length; x++)
+                    opts.push ([x, sorted[x]]);                    
+                
+                rldaViewerToolbar.rows[0].options = opts;
+                rldaViewerToolbar.rows[0].value = val;
+                rldaViewerToolbar.rebuildTree();
+                rldaViewerToolbar.redrawMenuView();
+            }
+
+            var ds=new vjDataSource();
+            var contributorsTQS = [
+                { op: "filter", arg: { col: 2, method: "formula", value: "abs((real)(($2).split('(')[1].split(')')[0]))>0.01" } }
+                ];            
+            var contrTQSEsc = ds.escapeQueryLanguage(JSON.stringify(contributorsTQS));
+            
+            var convergentTQS = [
+                { op: "filter", arg: { col: 3, method: "formula", value: "abs((real)(($3).split('%')[0]))>0.1"}}];            
+               var convTQSEsc = ds.escapeQueryLanguage(JSON.stringify(convergentTQS));
+                               
+               vjDS["dsRLDAcontributors"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=ContributorGraph-"+ (parseInt(val)+1) +".csv", true);
+            //vjDS["dsRLDAcontributors"].reload("qpbg_tblqryx4://ContributorGraph-"+ (parseInt(val)+1) +".csv//&dataID="+latestReqID+"&tqs="+contrTQSEsc, true);
+            vjDS["dsRLDAconvergent"].reload("qpbg_tblqryx4://Convergent-"+ (parseInt(val)+1) +".csv//&dataID="+latestReqID+"&tqs="+convTQSEsc, true);
+            vjDS["dsRLDAtranslated"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=Translated-"+ (parseInt(val)+1) +".csv", true);
+            
+            vjDV["dvExternalCommandOutputs"].onClickTabSelect("Classification", 2);
+        }
         if( viewer.tqsObj[i].op == "som" ) {
             vjDS["dsSom"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=color.csv", true);
             vjDS["dsRows"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=geom.csv", true);
@@ -727,6 +864,34 @@ function tableRendered (viewer,text)
     }
     
     constructLogViewerTable(commandLogViewer);
+}
+
+function downloadContributors(viewer)
+{
+    var val = rldaViewerToolbar.tree.findByName("datasourceNum").value;
+    var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=ContributorGraph-"+ (parseInt(val)+1) +".csv";
+    vjDS["dsRLDAtranslated"].reload(url,true,"download");
+}
+
+function downloadConvergent(viewer)
+{
+    var val = rldaViewerToolbar.tree.findByName("datasourceNum").value;
+    var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=Convergent-"+ (parseInt(val)+1) +".csv";
+    vjDS["dsRLDAtranslated"].reload(url,true,"download");
+}
+
+function downloadTranslated(viewer)
+{
+    var val = rldaViewerToolbar.tree.findByName("datasourceNum").value;
+    var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=Translated-"+ (parseInt(val)+1) +".csv";
+    vjDS["dsRLDAtranslated"].reload(url,true,"download");
+}
+
+function downloadVectors(viewer)
+{
+    var val = rldaViewerToolbar.tree.findByName("datasourceNum").value;
+    var url = "http://?cmd=-qpData&req="+latestReqID+"&dname=Vectors-"+ (parseInt(val)+1) +".csv";
+    vjDS["dsRLDAtranslated"].reload(url,true,"download");
 }
 
 function downloadStatTest(viewer)

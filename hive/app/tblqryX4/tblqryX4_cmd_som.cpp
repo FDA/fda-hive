@@ -32,7 +32,6 @@
 #include <slib/utils/som.hpp>
 #include "tblqryX4_cmd.hpp"
 #include <ssci/math.hpp>
-//#include <ssci/math/clust/clust2.hpp>
 
 
 
@@ -63,10 +62,6 @@ namespace slib {
 
 bool SomCommand::init(const char * op_name, sVariant * arg)
 {
-    /*idx totalLength = sizeof(arg->getDicElt("colSetImg")->asString())+
-                        sizeof(arg->getDicElt("colSetTree")->asString())+
-                        sizeof(arg->getDicElt("rowSet")->asString()) +
-                        sizeof("heatmap");*/
     if (sVariant * colSetVal = arg->getDicElt("colSet"))
     {
         if (colSetVal->isList())
@@ -123,8 +118,8 @@ bool SomCommand::compute(sTabular * tbl)
         uid.vadd(1,0);
 
 
-    idx rowCnt=(rowSet && rowSet.dim()) ? rowSet.dim() : tbl->rows(); //! the total number of rows to go through
-    idx colCnt=(colSetImg && colSetImg.dim()) ? colSetImg.dim() : tbl->cols()-1;//! the total number of columns to go through
+    idx rowCnt=(rowSet && rowSet.dim()) ? rowSet.dim() : tbl->rows();
+    idx colCnt=(colSetImg && colSetImg.dim()) ? colSetImg.dim() : tbl->cols()-1;
 
     if (mapSize == 0)
         mapSize = 50;

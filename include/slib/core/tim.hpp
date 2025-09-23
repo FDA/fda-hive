@@ -38,7 +38,6 @@
 #include <unistd.h>
 
 namespace slib {
-    //! Timestamps for logging and profiling
     class sTime
     {
         public:
@@ -47,10 +46,6 @@ namespace slib {
                 _lastValue = tm;
             }
 
-            //! Seconds of CPU time used by the program since the previous clock() call
-            /*! \param tmrel if non-0, measure CPU time used since the previous \a tmrel->clock() call 
-             *  \param[out] tm if non-0, retrieves current \ref sysclock "sTime::sysclock(wallclock)" value
-             *  \param wallclock if true, will measure wallclock difference instead of CPU time usage */
             double clock(sTime * tmrel = 0, idx * tm = 0, bool wallclock = false)
             {
                 idx curT;
@@ -68,10 +63,6 @@ namespace slib {
                 return elapsed_time / CLOCKS_PER_SEC;
             }
 
-            //! Seconds since the previous time() call
-            /*! \param tmrel if non-0, measure time used since the previous \a tmrel->time() call 
-             *  \param[out] tm if non-0, retrieves current sTime::systime() or sTime::systimeCoarse() value
-             *  \param coarse if true, measure time using coarse low-overhead timer */
             idx time(sTime * tmrel = 0, idx * tm = 0, bool coarse = false)
             {
                 idx curT;
@@ -100,8 +91,6 @@ namespace slib {
             }
 
         public:
-            //! Nanoseconds of total CPU time used by the program
-            /*! \param wallclock if true, return current wallclock value in nanoseconds (can wrap around if idx is 32-bit) */
             static inline idx sysclock(bool wallclock = false)
             {
                 if( !wallclock ) {
@@ -111,12 +100,10 @@ namespace slib {
                 gettimeofday(&tv, NULL);
                 return (idx) (CLOCKS_PER_SEC) * tv.tv_sec + tv.tv_usec;
             }
-            //! System time, i.e. seconds since Unix epoch
             static inline idx systime(void)
             {
                 return (idx) ::time(0);
             }
-            //! Coarse system time for low-overhead checks, updated once per second by a separate thread
             static inline idx systimeCoarse(void)
             {
                 if( unlikely(_timeCoarse == -sIdxMax) ) {
@@ -125,17 +112,13 @@ namespace slib {
                 return _timeCoarse;
             }
 
-            //! Manually update coarse system time
-            /*! \note Subsequent systimeCoarse() calls will not launch an updater thread (unless that thread is running already) */
             static inline void setSystimeCoarse(const idx time_secs = 0)
             {
                 _timeCoarse = time_secs ? time_secs : systime();
             }
 
-            //! Manually stop coarse system time updater thread; this is optional, the thread will stop automatically when the program stops.
             static bool cancelTimeCoarse(void);
 
-            //! Sleep for random interval (in microseconds) from useconds_min to useconds_max
             static inline void randomSleep(idx useconds_max = 500000, idx useconds_min = 0)
             {
                 usleep(useconds_min + (real) (rand()) / RAND_MAX * useconds_max);
@@ -143,23 +126,11 @@ namespace slib {
 
         private:
             idx _lastValue;
-            //! lightweight global time designed to be set by only one thread and read by many w/o locks/atomics/system calls, etc
             static idx _timeCoarse;
 
             static void initTimeCoarse(void);
     };
 }
 
-#endif // sLib_core_tim_h
-
-/*
- inline idx tclock(void) {
- struct timeval etv;
- struct timezone tz;
- gettimeofday(&etv, &tz);
- idx usec = (etv.tv_sec * 1000000 + etv.tv_usec);
- return usec;
- }
-
- */
+#endif 
 

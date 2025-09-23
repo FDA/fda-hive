@@ -42,13 +42,22 @@ BEGIN
     DECLARE p_limit_big BIGINT UNSIGNED;
 
     IF p_qpsvc IS NULL OR NOT p_qpsvc THEN
+        -- find type type id
+        SELECT domainID, objID FROM UPObj WHERE objTypeDomainID = domainID AND objTypeID = objID
+        INTO @tdid, @toid;
+
+        -- find type named 'qpsvc'
+        SELECT o.domainID, o.objID FROM UPObj o JOIN UPObjField f ON (f.domainID = o.domainID OR (f.domainID IS NULL AND o.domainID = 0)) AND o.objID = f.objID
+        WHERE o.objTypeDomainID = @tdid AND o.objTypeID = @toid AND f.name = 'name' AND f.value = 'qpsvc'
+        INTO @tdid_qpsvc, @toid_qpsvc;
+
+
         SET p_qpsvc = FALSE;
         CREATE TEMPORARY TABLE IF NOT EXISTS tempSpMiscPurge_qpsvc (svcID BIGINT, `name` VARCHAR(128), PRIMARY KEY (svcID), INDEX `name` (`name`));
         TRUNCATE TABLE tempSpMiscPurge_qpsvc;
-        INSERT IGNORE INTO tempSpMiscPurge_qpsvc SELECT o.objID AS svcID, f.`value` AS `name` FROM UPObj o
-            JOIN UPType t ON /* o.objTypeDomainID = <TODO> AND */ o.objTypeID = t.type_id
-            JOIN UPObjField f ON (f.domainID = o.domainID OR (f.domainID IS NULL AND o.domainID = 0)) AND o.objID = f.objID
-            WHERE t.`name` = "qpsvc" AND f.`name` = "name";
+        INSERT IGNORE INTO tempSpMiscPurge_qpsvc SELECT o.objID AS svcID, f.`value` AS `name`
+            FROM UPObj o JOIN UPObjField f ON (f.domainID = o.domainID OR (f.domainID IS NULL AND o.domainID = 0)) AND o.objID = f.objID
+            WHERE o.objTypeDomainID = @tdid_qpsvc AND o.objTypeID = @toid_qpsvc AND f.`name` = "name";
     END IF;
 
     IF p_limit IS NULL OR p_limit <= 0 THEN
@@ -125,13 +134,6 @@ BEGIN
     DELETE f FROM UPObjField f INNER JOIN tempSpMiscPurge_UPObj o
         ON (f.domainID = o.domainID OR (f.domainID IS NULL AND o.domainID = 0)) AND o.objID = f.objID;
     DROP TEMPORARY TABLE tempSpMiscPurge_UPObj;
-
-    -- fields of unknown types
-    CREATE TEMPORARY TABLE IF NOT EXISTS tempSpMiscPurge_UPType (type_id BIGINT UNSIGNED, PRIMARY KEY (type_id));
-    INSERT IGNORE INTO tempSpMiscPurge_UPType SELECT type_id FROM UPTypeField f LEFT JOIN UPType t USING (type_id) WHERE type_id IS NULL LIMIT p_limit;
-    SELECT "UPTypeField type_id", type_id FROM tempSpMiscPurge_UPType;
-    DELETE f FROM UPTypeField f INNER JOIN tempSpMiscPurge_UPType t USING (type_id);
-    DROP TEMPORARY TABLE tempSpMiscPurge_UPType;
 
     IF NOT p_qpsvc THEN
         DROP TEMPORARY TABLE IF EXISTS tempSpMiscPurge_qpsvc;

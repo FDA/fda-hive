@@ -39,7 +39,6 @@ void sIO::callback( char * cont)
     void * docut=0;
     if( !_funcAccumulator ) {
         if(_funcCallback==(callbackFun)::printf){
-            //fprintf((FILE * )_funcCallbackParam, "%s", cont);
             fwrite(cont,(idx)(last()-cont),1,_funcCallbackParam ? (FILE * )_funcCallbackParam : stdout );
             if(!(flags&fDualOutput))
                 cut(0);

@@ -34,7 +34,7 @@ javaScriptEngine.include("js/vjAlignmentView.js");
 vjHO.register('svc-velvet').Constructor = function() {
 
     if (this.objCls)
-        return; // stupid chrome loads from both cached file and the one coming
+        return;
 
     this.typeName = "svc-velvet";
     this.objCls = "obj-svc-velvet" + Math.random();
@@ -42,14 +42,13 @@ vjHO.register('svc-velvet').Constructor = function() {
     
     
     this.dsQPBG_digest = vjDS.add('preparing to archive', 'ds' + this.objCls
-            + '_QPBG_digest', 'static://', {
+            + '_QPBG_digest', 'static:
         func : this.onArchiveSubmit,
         obj : this
     });
 
-    // two public functions which must be supported
     this.fullview = function(node, dv) {
-        this.load(dv, node); // node.id
+        this.load(dv, node);
         if (this.onFullviewLoadCallback) {
             funcLink(this.onFullviewLoadCallback, this);
         }
@@ -93,14 +92,14 @@ vjHO.register('svc-velvet').Constructor = function() {
 
     this.urlSet = {
         'hitlist' : {
-            active_url : "http://?cmd=alCount&start=0&cnt=50"
+            active_url : "http:
                     + (this.subsetCount ? "&childProcessedList="
                             + this.subsetCount : ""),
             title : "Retrieving list of hits"
         },
         'histograms' : {
 
-            active_url : "qpbg_tblqryx4://histogram.csv//hdr=1&tqs="
+            active_url : "qpbg_tblqryx4:
                     + vjDS.escapeQueryLanguage(JSON.stringify([ {
                         op : "filter",
                         arg : {
@@ -113,37 +112,36 @@ vjHO.register('svc-velvet').Constructor = function() {
                         }
                     } ])) + "&resolution=" + this.graphResolution,
             title : "Building histogram"
-        // ?cmd=objFile&filename=histogram.csv"
         },
         'help_histograms': {
-            active_url: "http://help/hlp.view.alignment.histogram.html",
+            active_url: "http:
             doNotChangeMyUrl : true,
             title: "Alignment histogram help"
         },
         'alView' : {
-            active_url : "http://?cmd=alView&start=0&cnt=50&info=1&mySubID=1",
+            active_url : "http:
             title : "Preparing alignments",
             header : "Element #,#,Direction,Start,Alignment,End,Sequence,Repeats,Position,PosHigh,Motif Start,Motif End"
         },
         'alStack' : {
-            active_url : "http://?cmd=alStack&start=0&cnt=50&info=1&mySubID=1&alHigh=50",
+            active_url : "http:
             title : "Visualizing alignments in stack"
         },
         'alMatch' : {
-            active_url : "http://?cmd=alMatch&start=0&cnt=50&info=1&mySubID=1",
+            active_url : "http:
             title : "Fetching alignments"
         },
         'alMutBias' : {
-            active_url : "http://?cmd=alMutBias&start=0&cnt=50&mySubID=1&info=1",
+            active_url : "http:
             header : "Position,Count-A,Count-C,Count-G,Count-T",
             title : "Creating mutation bias diagram"
         },
         'downloads' : {
-            active_url : "static://",
+            active_url : "static:
             title : "infrastructure: Creating download menu"
         },
         'downloadAll' : {
-            active_url : "static://data,down,arch,operation,arguments,params\n"
+            active_url : "static:
                     + "Hit list,download,ico-file,hitlist,&qty=-1,\n"
                     + "Unaligned Reads,download,dnaold,alFasta,&backend=1,all\n"
                     + "Aligned Reads,download,dnaold,alFasta,&qty=-1,\n"
@@ -154,8 +152,8 @@ vjHO.register('svc-velvet').Constructor = function() {
             title : "infrastructure: Creating download menu"
         },
         'help' : {
-            active_url : "http://help/hlp.view.results.alignment.html",
-            inactive_url : "http://help/hlp.view.results.alignment.html",
+            active_url : "http:
+            inactive_url : "http:
             doNotChangeMyUrl : true,
             title : "Infrastructure: Creating help"
         }
@@ -166,7 +164,6 @@ vjHO.register('svc-velvet').Constructor = function() {
         if (!this.loaded || !this.current_dvORtab)
             return;
         this.constructed = true;
-        // var t_viewersArr=[];
 
         if (this.mode == 'mobileview') {
             var dv = this.current_dvORtab.obj;
@@ -266,7 +263,7 @@ vjHO.register('svc-velvet').Constructor = function() {
                             name : 'Density',
                             maxTxtLen : 15
                         } ],
-                        width : '100%',// height:'100%',
+                        width : '100%',
 
                         selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
                                 + this.objCls + "')",
@@ -352,9 +349,8 @@ vjHO.register('svc-velvet').Constructor = function() {
             this.dvname = this.current_dvORtab[0].name;
             this.dvinfo = this.current_dvORtab[1].name;
             
-            vjDS.add("Loading: ","dsIonAnnot","http://?cmd=objList&");
-            var getIonAnnotUrl = "http://?cmd=objQry&qry="+vjDS.escapeQueryLanguage("alloftype('u-ionAnnot').csv(['id','name'])");
-            //vjDS["dsIonAnnot"].reload(getIonAnnotUrl,true);
+            vjDS.add("Loading: ","dsIonAnnot","http:
+            var getIonAnnotUrl = "http:
             vjDS["dsIonAnnot"].clear_callbacks();
             vjDS["dsIonAnnot"].register_callback({
                 func: function(param, data) {
@@ -380,7 +376,6 @@ vjHO.register('svc-velvet').Constructor = function() {
                     panel.rows = panel.rows.concat (
                             {name:"Additional_Info/submit",title:"submit",type:"button",url:retrieve_additionalInfo ,order:999  }
                     );
-                    // ?cmd=tblqryx2&extendAnnot=1&objs=
                  }
             });
             vjDS["dsIonAnnot"].reload(getIonAnnotUrl,true);
@@ -486,9 +481,6 @@ vjHO.register('svc-velvet').Constructor = function() {
             if (!operDS)
                 return;
             url = operDS.url;
-            // var
-            // dsNameForThis="ds_"+this.dvinfo+"_"+this.typeName+"_"+this.loadedID+"_"+oper;
-            // url=vjDS[dsNameForThis].url;
             url = urlExchangeParameter(url, "cnt", '0');
             if (args)
                 url += args;
@@ -502,12 +494,10 @@ vjHO.register('svc-velvet').Constructor = function() {
             if (docLocValue("backend", 0, url)) {
                 var saveAs = "o" + this.loadedID + "-" + oper + "-"
                         + this.referenceID + ".fa";
-                this.dsQPBG.reload("qpbg_http://" + url, true, {
+                this.dsQPBG.reload("qpbg_http:
                     loadmode : "download",
                     saveas : saveAs
                 });
-                // vjQP.backgroundRetrieveBlob(url+"&check=1", callbackAjax ,
-                // "cgi_output", 0,0, "download",saveAs );
             } else {
                 document.location = url;
             }
@@ -524,10 +514,6 @@ vjHO.register('svc-velvet').Constructor = function() {
                 ext = "fasta";
                 dstName += ".fasta";
                 break;
-            case "ico-file":
-                ext = "txt";
-                dstName += "." + ext;
-                break;
             default:
                 ext = "-";
             }
@@ -537,7 +523,7 @@ vjHO.register('svc-velvet').Constructor = function() {
             if (url.indexOf("qpbg") == 0)
                 this.dsQPBG_digest.reload(url, true);
             else
-                this.dsQPBG_digest.reload("qpbg_http://" + url, true);
+                this.dsQPBG_digest.reload("qpbg_http:
         }
     };
 
@@ -549,12 +535,6 @@ vjHO.register('svc-velvet').Constructor = function() {
             return url;
         }
 
-        // var qtySamAligns = 0;
-        // // If we want all sam alignments from all refs, note here
-        // if (oper == "alSamAll") {
-        // oper = "alSam";
-        // qtySamAligns = -1;
-        // } else if (oper == "alSam") qtySamAligns = 0;
 
         var url = "?cmd=" + oper + "&objs=" + this.loadedID;
         if (this.reqID)
@@ -584,18 +564,18 @@ vjHO.register('svc-velvet').Constructor = function() {
         if (this.mode == 'preview') {
             if (!this.isUnalignedSelected(node)) {
                 this.getDS('alView').reload(
-                        "http://"
+                        "http:
                                 + this.makeReferenceOperationURL(viewer, node,
-                                        'alView') + "&cnt=20", false);// &alHigh=50
+                                        'alView') + "&cnt=20", false);
                 this.getDS('alStack').reload(
                         urlExchangeParameter(this.urlSet['alStack'].active_url,
                                 "objs", this.loadedID)
                                 + "&mySubID=" + this.referenceID + "&cnt=20",
-                        false); // &alHigh=50
+                        false);
                 this.getDS('histograms').reload(
                         urlExchangeParameter(
                                 this.urlSet['histograms'].active_url, "objs",
-                                this.loadedID), false); // &alHigh=50
+                                this.loadedID), false);
                 vjDV.locate(this.dvinfo + "._active.").load();
             }
         } else {
@@ -645,35 +625,33 @@ vjHO.register('svc-velvet').Constructor = function() {
                             t += "-Auxiliary information,,,,\n" + tAux;
                     }
                 }
-                // else{
-                // }
 
-                this.getDS('downloads').reload("static://" + t, true);
+                this.getDS('downloads').reload("static:
             }
             if (!this.isUnalignedSelected(node)) {
                 this.getDS('alView').reload(
-                        "http://"
+                        "http:
                                 + this.makeReferenceOperationURL(viewer, node,
-                                        'alView') + "&cnt=20", false);// &alHigh=50
+                                        'alView') + "&cnt=20", false);
                 this.getDS('alMatch').reload(
-                        "http://"
+                        "http:
                                 + this.makeReferenceOperationURL(viewer, node,
                                         'alMatch') + "&cnt=20", false);
                 this.getDS('alStack')
                         .reload(
-                                "http://"
+                                "http:
                                         + this.makeReferenceOperationURL(
                                                 viewer, node, 'alStack')
                                         + "&mySubID=" + this.referenceID
-                                        + "&cnt=20&alHigh=50", false); // &alHigh=50
+                                        + "&cnt=20&alHigh=50", false);
                 this.getDS('alMutBias').reload(
-                        "http://"
+                        "http:
                                 + this.makeReferenceOperationURL(viewer, node,
-                                        'alMutBias') + "&cnt=20", false); // &alHigh=50
+                                        'alMutBias') + "&cnt=20", false);
                 this.getDS('histograms').reload(
                         urlExchangeParameter(
                                 this.urlSet['histograms'].active_url, "objs",
-                                this.loadedID), false); // &alHigh=50
+                                this.loadedID), false);
                 vjDV.locate(this.dvinfo + "._active.").load();
                 vjDV.locate(this.dvname + "._active.").load();
             }
@@ -731,14 +709,14 @@ vjHO.register('svc-velvet').Constructor = function() {
         }
     };
 
-    this.reload = function(loadedID, reqid, autoClickedReference) // viewer,
+    this.reload = function(loadedID, reqid, autoClickedReference)
     {
         if (loadedID)
             this.loadedID = loadedID;
         if (!this.loadedID)
             return;
 
-        var url = "http://?cmd=alCount&objs=" + this.loadedID
+        var url = "http:
                 + "&start=0&cnt=50";
         if (this.profilerList)
             url += "&childProcessedList=" + this.subsetCount;
@@ -759,7 +737,6 @@ vjHO.register('svc-velvet').Constructor = function() {
         this.algoProc = proc;
         var checkedIDS = this.viewers["hitlist"].accumulate("node.checked",
                 "node.id");
-        // alert(isok(checkedIDS));
         return isok(checkedIDS) ? 1 : 0;
     };
 

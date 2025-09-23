@@ -36,16 +36,10 @@
 #include <ssci/bio/bioal.hpp>
 #include <ssci/math/rand/rand.hpp>
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Bioal information
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 idx sBioal::remap( sBioal * mutual, sVec<idx> &remappedHits, idx * alSortList ) {
 
     bool mutualMode = ( mutual->Qry->getmode() != Sub->getmode() )?true:false;
-    //static
     idx alCnt = 0 , iAl = 0, ii = 0, totAl = dimAl();
     sBioseqAlignment::Al *hdrTo, *hdr, *hdrN;
     idx * mTo, * m , dimAl,curofs, curAl, curSub;
@@ -76,12 +70,8 @@ idx sBioal::remap( sBioal * mutual, sVec<idx> &remappedHits, idx * alSortList ) 
 
             m=getMatch(curAl);
 
-            sVec < idx > uncompressMM;
-
             if(hdr->flags()&sBioseqAlignment::fAlignCompressed){
-                uncompressMM.resize(hdr->lenAlign()*2);
-                sBioseqAlignment::uncompressAlignment(hdr,m,uncompressMM.ptr());
-                m=uncompressMM.ptr();
+                m = sBioseqAlignment::uncompressAlignment(hdr,m);
             }
 
             sBioseqAlignment::remapAlignment(hdrN, hdrTo, m, mTo, 0, 0);
@@ -97,22 +87,129 @@ idx sBioal::remap( sBioal * mutual, sVec<idx> &remappedHits, idx * alSortList ) 
 
             remappedHits.cut(curofs + hdrN->sizeofFlat()/sizeof(idx) );
 
-            if(progress_CallbackFunction){
-                if( !progress_CallbackFunction(progress_CallbackParam,ii,100*(ii)/totAl,100) )
-                    return 0;
+            if( progress_CallbackFunction && progress_CallbackFunction(progress_CallbackParam, ii, 100 * (ii) / totAl, 100) == 0 ) {
+                return 0;
             }
         }
     }
     return remappedHits.dim();
 }
 
-idx sBioal::getConsensus(sStr &out, idx wrap /*= 0*/, idx mode /*= 0*/) {
+idx sBioal::stableRemap( sBioal * mutual, sVec<idx> &remappedHits, idx al_start, idx al_cnt, idx * alSortList, sBioseqAlignment * l_seqAl ) {
+    bool subjectInDifferentlMode = ( mutual->Qry->getmode() != Sub->getmode() )?true:false;
+    idx alCnt = 0 , iAl = 0, ii = 0, totAl = dimAl();
+    sBioseqAlignment::Al *hdrTo, *hdr, *hdrN;
+    idx * mTo, curSub, curAl;
+    sVec<idx *> sub_ms;
+    sVec<const char *> subs;
+    sBioseqAlignment seqAl, * p_seqAl;
+    if(l_seqAl)
+        p_seqAl = l_seqAl;
+    else {
+        idx seed = 11;
+        seqAl.costMatch=5;seqAl.costMismatch=-4;seqAl.costMismatchNext=-6;seqAl.costGapOpen=-12;seqAl.costGapNext=-4;
+        seqAl.computeDiagonalWidth=6*seed;
+        seqAl.considerGoodSubalignments=1;
+
+        seqAl.scoreFilter=0;
+        seqAl.trimLowScoreEnds=0;
+        seqAl.allowShorterEnds=seqAl.minMatchLen;
+        seqAl.maxExtensionGaps=0;
+        seqAl.hashStp=seed;
+        seqAl.bioHash.hashStp=1;
+
+        p_seqAl = &seqAl;
+    }
+    for(idx iSub = 0 ; iSub < mutual->Qry->dim() ; ++iSub ) {
+        hdrTo = mutual->getAl( iSub );
+        sub_ms.vadd(1,mutual->getMatch( iSub ));
+        subs.vadd(1,mutual->Qry->seq(hdrTo->idQry()));
+
+    }
+    idx substart = 0, subend = 0, sublen = 0, qrystart = 0, qryend = 0, qrylen = 0;
+    sVec < idx > uncompressMM;
+    sVec<idx> subjectsCovered(sMex::fSetZero|sMex::fExactSize);
+    idx subdim = Sub->dim();
+
+    if(!al_cnt)al_cnt=totAl;
+    if(subjectInDifferentlMode) {
+        subjectsCovered.resize(Sub->getlongCount());
+        subdim = subjectsCovered.dim();
+    }
+    for(idx iSub = 0 ; iSub < subdim ; ++iSub )
+    {
+        hdrTo = mutual->getAl( iSub );
+        mTo = mutual->getMatch( iSub );
+
+        if( subjectInDifferentlMode ) {
+            if( sBioseq::isBioModeLong(mutual->Qry->getmode()) ) {
+                curSub = mutual->Qry->long2short(hdrTo->idQry());
+                if( subjectsCovered[curSub] )
+                    continue;
+                ++subjectsCovered[curSub];
+            } else {
+                curSub = iSub;
+                idx imS = 0;
+                while( imS<mutual->dimAl() && mutual->getAl(imS)->idQry()!= Sub->long2short(iSub) )
+                    ++imS;
+                if(imS>=mutual->dimAl())return 0;
+                hdrTo = mutual->getAl(imS);
+                mTo = mutual->getMatch(imS);
+            }
+        } else {
+            hdrTo = mutual->getAl( iSub );
+            mTo = mutual->getMatch( iSub );
+            curSub = hdrTo->idQry();
+        }
+        iAl = listSubAlIndex( curSub, &alCnt);
+        if( !iAl ) {
+            continue;
+        }
+        if( ii + alCnt - 1 < al_start ) {
+            ii += alCnt;
+            continue;
+        }
+        else if( ii >= (al_start + al_cnt) )
+            break;
+
+        iAl -=1 ;
+        for(idx i = 0; i < alCnt; ++i,++iAl, ++ii) {
+            if(ii<al_start)
+                continue;
+            if( ii >= (al_start + al_cnt) )
+                break;
+            curAl = iAl;
+            if(alSortList) {
+                curAl = alSortList[iAl];
+            }
+            hdr=getAl(curAl);
+            idx * qry_m = getMatch(curAl);
+            substart = sBioseqAlignment::remapQueryPosition(hdrTo, mTo,hdr->getSubjectStart(qry_m),1);
+            subend = sBioseqAlignment::remapQueryPosition(hdrTo, mTo,hdr->getSubjectEnd(qry_m),1);
+            sublen = subend - substart + 1;
+            qrystart = hdr->getQueryStart(qry_m);
+            qryend = hdr->getQueryEnd(qry_m);
+            qrylen = qryend - qrystart + 1;
+            const char * qryseq = Qry->seq(hdr->idQry());
+            hdrN = p_seqAl->alignSWProfile(remappedHits, subs.ptr(),sub_ms.ptr(),substart,sublen,subs.dim(),&qryseq,0,Qry->len(hdr->idQry()),qrystart,qrylen,1,hdr->flags()|sBioseqAlignment::fAlignGlobal);
+            if(hdrN) {
+                hdrN->ids = hdr->ids;
+                hdrN->setFlags(hdr->flags());
+            }
+            if( progress_CallbackFunction && progress_CallbackFunction(progress_CallbackParam, ii - al_start, 100 * (ii - al_start) / al_cnt, 100) == 0 ) {
+                return 0;
+            }
+        }
+    }
+    return remappedHits.dim();
+}
+
+idx sBioal::getConsensus(sStr &out, idx wrap, idx mode) {
     idx iVis = 0;
     sVec <idx> resVec(sMex::fSetZero);
     ParamsAlignmentIterator params;
     params.userPointer = &resVec;
     params.navigatorFlags = mode;
-//    params.str = &out;
     idx res = iterateAlignments(&iVis,0,sIdxMax,-2,countAlignmentLetters,&params);
     idx max = 0, maxI = 4;
     iVis = 0;
@@ -145,24 +242,8 @@ idx sBioal::getConsensus(sStr &out, idx wrap /*= 0*/, idx mode /*= 0*/) {
     return iVis;
 }
 
-//binary search for alignment ranges. Returns the last Al having the startRange or if not such the next greater position
-//and the reverse for max. Needs the indexes of the sorted relations for alignments
-idx sBioal::bSearchAlignments(idx iAlPoint,idx iAlmin, idx iAlmax, idx sortIndFirst, idx isEnd){
-    while(iAlmax>=iAlmin){
-        idx iAlmid=iAlmin+((iAlmax-iAlmin)/2);
-        sBioseqAlignment::Al * hdrMid=getAl(sortIndFirst+iAlmid-1);
-        idx mAlmid=getMatch(sortIndFirst+iAlmid-1)[0];
-        if(!isEnd)mAlmid+=2*hdrMid->lenAlign();
-        if(hdrMid->subStart()+mAlmid < iAlPoint)
-            iAlmin=iAlmid+1;
-        else if(hdrMid->subStart()+mAlmid > iAlPoint)
-            iAlmax=iAlmid-1;
-        else if(!isEnd)
-            iAlmax=iAlmid-1;
-        else
-            iAlmin=iAlmid+1;
-    }
-    return (!isEnd?iAlmin-1:iAlmax+1);
+idx sBioal::bSearchAlignments(idx iAlPoint,idx iAlmin, idx iAlmax, sSort::sSearchHitType hitType){
+    return sSort::binarySearch((sSort::sCallbackSearchSimple)rngComparator,0,&iAlPoint,iAlmax,this,0,hitType,false,iAlmin);
 }
 
 
@@ -179,28 +260,23 @@ idx sBioal::iterUnAligned(idx * piVis,idx start,idx cnt,ParamsAlignmentIterator 
         qy=getAl(iAl)->idQry();
         QFaiBM[qy/8]|=((idx(1))<<((qy%8)));
     }
-    idx tot=0, rpts=0;
+    idx tot=0;
     bool isQ = (params->navigatorFlags&alPrintQualities);
-    sStr _rptbuf;
     idx tot_done = (cnt>qryDim)?qryDim:cnt;
+    bool printRepeats = !(params->navigatorFlags & alPrintCollapseRpt);
     for(idx iAl=0;iAl<qryDim && *piVis<start+cnt ;++iAl){
 
-        if(progress_CallbackFunction){
-            if( !progress_CallbackFunction(progress_CallbackParam,iAl,100*((cnt>qryDim)?iAl:*piVis)/tot_done,100) )
-                return 0;
+        if( progress_CallbackFunction && progress_CallbackFunction(progress_CallbackParam, iAl, 100 * ((cnt > qryDim) ? iAl : *piVis) / tot_done, 100) == 0 ) {
+            return 0;
         }
 
         if(!(QFaiBM[iAl/8]&(((idx)1)<<(iAl%8)))){
             ++*piVis;
             if(*piVis<start)continue;
 
-            Qry->printFastXRow(params->str, isQ, iAl, 0, 0, 0, true, false, 0, 0, 0, true, 0, false);
-            rpts = (!(params->navigatorFlags & alPrintCollapseRpt))?Qry->rpt(iAl):1;
-            for( idx r=1 ; r < rpts ; ++r ){
-                _rptbuf.printf(0, "%" DEC,r+1);
-                Qry->printFastXRow(params->str, isQ, iAl, 0, 0, 0, true, false, _rptbuf.ptr(), 0, 0, true, 0, false);
-            }
-            tot+=rpts;
+            Qry->printFastXRow(params->str, isQ, iAl, 0, 0, 0, true, false, 0, 0, sBioseq::eSeqForward, true, 0, true,false,printRepeats);
+
+            tot+= printRepeats?Qry->rpt(iAl):1;
         }
         if(params->outF){
             fwrite(params->str->ptr(),params->str->length(),1,params->outF);
@@ -225,7 +301,7 @@ bool sBioal::regexAlignmentSingle(sStr &compStr, sStr &out, idx start, idx end, 
                     out.printf(",%" DEC ",%" DEC, rgs + 1, rge);
                     loop = false;
                 } else {
-                    rg_ofs += rgs;
+                    rg_ofs += rgs + 1;
                 }
             } else {
                 loop = false;
@@ -239,14 +315,13 @@ bool sBioal::regexAlignmentSingle(sStr &compStr, sStr &out, idx start, idx end, 
     return matchS;
 }
 
-// filters logic
 idx isPrimeFilter( sBioal::ParamsAlignmentIterator * callbackParam )
 {
-    if(callbackParam->rangestart!=callbackParam->rangeend && !(callbackParam->navigatorFlags&sBioal::alPrintMultiple) ) //Range filter
+    if(callbackParam->rangestart!=callbackParam->rangeend && !(callbackParam->navigatorFlags&sBioal::alPrintMultiple) )
         return true;
-    if( callbackParam->navigatorFlags&sBioal::alPrintFilterTail ) //Tail filter
+    if( callbackParam->navigatorFlags&sBioal::alPrintFilterTail )
         return true;
-    if( !(callbackParam->navigatorFlags&sBioal::alPrintForward) != !(callbackParam->navigatorFlags&sBioal::alPrintReverse)) //Direction filter
+    if( !(callbackParam->navigatorFlags&sBioal::alPrintForward) != !(callbackParam->navigatorFlags&sBioal::alPrintReverse))
         return true;
     if(callbackParam->navigatorFlags&sBioal::alPrintRepeatsOnly)
         return true;
@@ -255,9 +330,8 @@ idx isPrimeFilter( sBioal::ParamsAlignmentIterator * callbackParam )
     return false;
 }
 
-idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCallbackIteratorFunction callbackFunc, ParamsAlignmentIterator * callbackParam /*= 0*/, typeCallbackIteratorFunction secondaryCallbackFunc /*= 0*/, ParamsAlignmentIterator * secondaryCallbackParam /*= 0*/, idx * sortArr /*= 0*/ )
+idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCallbackIteratorFunction callbackFunc, ParamsAlignmentIterator * callbackParam, typeCallbackIteratorFunction secondaryCallbackFunc, ParamsAlignmentIterator * secondaryCallbackParam, sVec<idx> * sortArr)
 {
-    //idx * alList=0;
     idx alListIndex=0;
     idx alCnt=0, iFound=0;
 
@@ -270,20 +344,23 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
 
     idx dif = 0;
     if (callbackParam->navigatorFlags&alPrintMultiple) {
-        dif = callbackParam->rangeend - callbackParam->rangestart;
+        dif = callbackParam->rangeend - callbackParam->rangestart + 1;
         start *=dimAl();
     }
 
     if ( !secondaryCallbackFunc && (callbackParam->navigatorFlags&alPrintReadsInFasta) ) {
-        secondaryCallbackFunc = printFastaSingle;
+        secondaryCallbackFunc = printFastXSingle;
     }
 
 
-    if( iSub==sNotIdx ) {iterUnAligned(piVis,start,cnt,callbackParam);return 1;}//alCnt=dimAl();
+    if( iSub==sNotIdx ) {iterUnAligned(piVis,start,cnt,callbackParam);return 1;}
     else if (iSub < 0) alCnt = dimAl();
-    else if(iSub<Sub->dim() ) alListIndex=listSubAlIndex(iSub, &alCnt);
+    else if(iSub<Sub->dim() ) {
+        alListIndex=listSubAlIndex(iSub, &alCnt)-1;
+        if( alListIndex < 0 )
+            alListIndex = 0;
+    }
     else return 0;
-
     idx res=0, buflenBefore;
 
     bool primaryFilters=isPrimeFilter(callbackParam);
@@ -293,23 +370,43 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
     if(primaryFilters && callbackParam->rangestart!=callbackParam->rangeend && alListIndex){
         idx iAlRangeStart=callbackParam->rangestart-(callbackParam->maxAlLen?callbackParam->maxAlLen:callbackParam->winSize);
         iAlRangeStart=iAlRangeStart<0?0:iAlRangeStart;
-        if(iAlRangeStart){
-            iAlStart=bSearchAlignments(iAlRangeStart,0,alCnt-1,alListIndex,1);
+        iAlStart = bSearchAlignments(iAlRangeStart, alListIndex, alListIndex + iAlEnd, sSort::eSearch_First);
+
+        bool hasFoundAlStart = true;
+        if( iAlStart < 0 ) {
+            idx window_step = (callbackParam->maxAlLen ? callbackParam->maxAlLen : callbackParam->winSize / 2);
+            idx moved_iAlRangeStart = iAlRangeStart + window_step;
+            while( iAlStart && moved_iAlRangeStart < callbackParam->rangeend ) {
+                iAlStart = bSearchAlignments(moved_iAlRangeStart, alListIndex, alListIndex + alCnt, sSort::eSearch_First);
+                moved_iAlRangeStart += window_step;
+            }
+            if( iAlStart < 0 ) {
+                iAlStart = 0;
+                hasFoundAlStart = false;
+            }
         }
-        if(callbackParam->rangeend<(getAl(alCnt-1)->subStart() + getMatch(alCnt-1)[0]))
-            iAlEnd=bSearchAlignments(callbackParam->rangeend,iAlStart,alCnt-1,alListIndex,1)+1;
+        if(callbackParam->rangeend<(getAl(alListIndex+iAlEnd-1)->getSubjectStart(getMatch(alListIndex+iAlEnd-1)))) {
+            iAlEnd=bSearchAlignments(callbackParam->rangeend,iAlStart,alListIndex+iAlEnd,sSort::eSearch_Last)+1;
+
+            if (iAlEnd == 0 && hasFoundAlStart) {
+                iAlEnd = iAlStart + 1;
+            }
+        }
+        alListIndex = 0;
     }
+
     if(!secondaryFilters && cnt!=sIdxMax)++cnt;
 
-    idx * randInds=sortArr;
+    idx * randInds=0;
     sVec<idx> randIndArr;
-
-    idx iAlStart2End = iAlEnd - iAlStart;
-    if( !randInds && !(callbackParam->navigatorFlags & alPrintMultiple) && ((callbackParam->navigatorFlags & (alPrintInRandom)) || !(callbackParam->navigatorFlags & alPrintCollapseRpt)) ) {
+    if(sortArr) {
+        randInds = sortArr->ptr();
+        iAlEnd = iAlStart + sortArr->dim();
+    } else if( !randInds && !(callbackParam->navigatorFlags & alPrintMultiple) && ((callbackParam->navigatorFlags & (alPrintInRandom)) || !(callbackParam->navigatorFlags & alPrintCollapseRpt)) ) {
         idx t_ia = 0, t_rpts = 0, i_add = 0;
-        randIndArr.resize(iAlStart2End);
+        randIndArr.resize(iAlEnd - iAlStart);
         for(; iAlStart < iAlEnd; ++iAlStart) {
-            t_ia = alListIndex ? alListIndex + iAlStart - 1 : iAlStart;
+            t_ia = alListIndex ? alListIndex + iAlStart : iAlStart;
             sBioseqAlignment::Al * hdr = getAl(t_ia);
             idx * m = getMatch(t_ia);
             idx alStart=hdr->getSubjectStart(m), alEnd=hdr->getSubjectEnd(m);
@@ -336,8 +433,7 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
             iAlStart=0;iAlEnd=randIndArr.dim();
         }
     }
-    idx ia=iAlStart;
-    iAlEnd = iAlStart + randIndArr.dim();
+    idx ia=iAlStart, iAlStart2End = iAlEnd - iAlStart;
     for (idx iAlCnt = 0 ; ia<iAlEnd; ++ia, ++iAlCnt) {
         idx iAl=0;
         if(randInds){
@@ -352,15 +448,13 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
             }
         }
         else{
-            iAl=alListIndex ? alListIndex+ia-1 : ia ;///alList ? alList[ia]-1 : ia;
+            iAl=alListIndex ? alListIndex+ia : ia ;
         }
         sBioseqAlignment::Al *  hdr=getAl(iAl);
         idx * m=getMatch(iAl);
 
 
-        // filters which do not need an output to be generated
         bool isok=true;
-        // we might need this to roll back additions to the buffer
         buflenBefore=callbackParam->str ? callbackParam->str->length() : 0 ;
         if(primaryFilters){
             idx alStart=hdr->getSubjectStart(m), alEnd=hdr->getSubjectEnd(m);
@@ -384,24 +478,23 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
             if(callbackParam->navigatorFlags&sBioal::alPrintFilterTail){
                 idx qs=hdr->getQueryStart(m);
                 idx qe=hdr->getQueryEnd(m);
-                if( qs<callbackParam->leftTailPrint && ( (Qry->len(hdr->idQry()) - qe < callbackParam->rightTailPrint)  || (alEnd>=callbackParam->rangeend) ) ) // ||
+                if( qs<callbackParam->leftTailPrint && (Qry->len(hdr->idQry()) -1 - qe < callbackParam->rightTailPrint) )
                     isok=false;
             }
 
             if((callbackParam->navigatorFlags&alPrintTouchingOnly) && callbackParam->High >= 0 && (alStart>callbackParam->High || alEnd<callbackParam->High))
                 isok=false;
             if( !(callbackParam->navigatorFlags&sBioal::alPrintForward) != !(callbackParam->navigatorFlags&sBioal::alPrintReverse) ){
-                if( ( (callbackParam->navigatorFlags&sBioal::alPrintForward) && hdr->isBackwardComplement() ) || ((callbackParam->navigatorFlags&sBioal::alPrintReverse) && hdr->isForward()) ){
+                if( ( (callbackParam->navigatorFlags&sBioal::alPrintForward) && hdr->isReverseComplement() ) || ((callbackParam->navigatorFlags&sBioal::alPrintReverse) && hdr->isForward()) ){
                     isok=false;
                 }
             }
         }
 
-        if( isok && secondaryFilters ) { // call the function only if it has passed preliminary filters and needs a secondary filter
+        if( isok && secondaryFilters ) {
             res=callbackFunc(this,callbackParam, hdr, m ,iAlCnt-iAlStart, iAl);
             if(!res)isok=false;
 
-            //secondary filters which needed an output content to filter with
             if(callbackParam->regp && isok && callbackParam->str)
             {
                 sStr thdl,hdl1,hdl2,hdl3;
@@ -450,12 +543,11 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
             }
 
         }
-        // now consider if we need to really output this or not
         if( isok ) {
             if(piVis){
                 ++(*piVis);
                 if(*piVis<= start){
-                    isok=false; // after this point isok is only used as a marker for cutting the str back
+                    isok=false;
                 }
                 if(*piVis>=start+cnt){
                     break;
@@ -465,10 +557,9 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
 
         if( isok && !secondaryFilters ) {
 
-            res=callbackFunc(this,callbackParam, hdr, m , callbackParam->navigatorFlags&alPrintMultiple?(iFound/dimAl()):(ia-iAlStart), iAl);// iAl);
-            // this function has not yet been called if secondary filters were not defined
+            res=callbackFunc(this,callbackParam, hdr, m, callbackParam->navigatorFlags&alPrintMultiple?(iFound/dimAl()):(ia-iAlStart), iAl);
         }
-        else { // cut out the last additions, those have not passed the filter
+        else {
             if(callbackParam->str && !isok)
                 callbackParam->str->cut(buflenBefore);
         }
@@ -491,12 +582,8 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
             callbackParam->str->printf("\n");
         }
 
-        //
-        // Report progress in order to prevent timeout with large data files
-        //
-        if ( iAlCnt % 100000 == 0 && callbackParam->reqProgressFunction ) {
-            int percDone = (iAlCnt / iAlEnd * 80) + 12;
-            callbackParam->reqProgressFunction(callbackParam->reqProgressParam, iAlCnt, percDone, 100);
+        if ( progress_CallbackFunction && iAlCnt % 1000 == 0 && progress_CallbackFunction(progress_CallbackParam, iAlCnt, (100* iAlCnt ) / iAlEnd, 100) == 0 ) {
+            return 0;
         }
     }
 
@@ -505,59 +592,75 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
 }
 
 
-idx sBioal::printAlignmentSummaryBySubject(sVec < sBioal::Stat > & statistics, sStr * str, ParamsAlignmentIterator * params,bool reportZeroHits, bool reportTotals, bool reportFailed,idx start ,idx cnt,sVec<idx> * processedSubs, sVec<idx> * coverage, sBioal::HitListExtensionCallback callBackExtension,  void * param)
+idx sBioal::printAlignmentSummaryBySubject(slib::sVec < sBioal::Stat > & statistics, slib::sStr * str, sBioal::ParamsAlignmentSummary * sumParams)
 {
-    sStr hdr, tmpBody;
+    sStr hdr, tmpBody, taxid;
+    const char * taxInfo = 0;
+
     hdr.printf(0,"id,Reference,Hits,Hits Unique,Length");
-    if(coverage){
-        hdr.printf(",RPKM,Density");
+    if(sumParams->coverage){
+        hdr.printf(",RPKM,CPM,Percentage,Density");
     }
 
     bool isPE = isPairedEnd();
     if( isPE ) {
         hdr.printf(",FPKM");
     }
+    bool taxonomyInfo = sumParams->taxion ? true : false;
+    if (taxonomyInfo){
+        hdr.printf(",taxID,taxNAME");
+    }
 
     sDic <idx> ionHdrDic;
-    if(!callBackExtension){
+    if(!sumParams->callBackExtension){
         hdr.printf("\n");
+    }
+
+    if (sumParams->cnt > Sub->dim()) {
+        sumParams->reportTotals=true;
     }
     sIO buf;
 
-    idx tot=0,totRpt=0,len=0,iVis=0,buflenBefore=0,showTot=0,showTotRpt=0,showLen=0,tot_coverage = 0,show_coverage = 0;
+    idx tot=0,totRpt=0, total_unique_aligned_reads = 0, len=0,iVis=0,buflenBefore=0,showTot=0,showTotRpt=0,showLen=0,tot_coverage = 0,show_coverage = 0;
     real curRPKM = 0, curFPKM = 0;
-    sStr tmp;bool printOther=false;
-    if(reportFailed ){
-        ++iVis;
-        tmpBody.printf("%" DEC ",\"%s\",%" DEC ",%" DEC ",",(idx)0,"Unaligned", statistics[0].foundRpt , statistics[0].found );
-        if(coverage){
-            tmpBody.printf(",-,-");
-        }
-        tmpBody.printf("\n");
-        --cnt;
-    }
+    sStr tmp, escapeCSV_buf;bool printOther=false;
 
-    if(reportTotals)--cnt;
     sVec<idx> statHits,sortedInd;
     statHits.resize(Sub->dim());sortedInd.add(Sub->dim());
     for(idx is=0; is<Sub->dim(); ++is ) {
         statHits[is]=statistics[is+1].foundRpt;
         totRpt += statHits[is];
+        total_unique_aligned_reads += statistics[is+1].found;
     }
+    idx total_unique_reads = total_unique_aligned_reads + statistics[0].found;
     sSort::sort(statHits.dim(), statHits.ptr(), sortedInd.ptr());
 
+    if(sumParams->reportFailed ){
+        ++iVis;
+        tmpBody.printf("%" DEC ",\"%s\",%" DEC ",%" DEC ",",(idx)0,"Unaligned", statistics[0].foundRpt , statistics[0].found );
+        if(sumParams->coverage){
+            tmpBody.printf(",-,-,%.2f,-", 100*(float)statistics[0].found/total_unique_reads);
+        }
+        if (taxonomyInfo){
+            tmpBody.printf(",-,-");
+        }
+        tmpBody.printf("\n");
+        --sumParams->cnt;
+    }
+
+    if(sumParams->reportTotals)--sumParams->cnt;
 
     for(idx is=Sub->dim()-1; is>=0; --is ) {
         idx srtID=sortedInd[is];
 
-        if(!reportZeroHits && !statistics[srtID+1].found){
+        if(!sumParams->reportZeroHits && !statistics[srtID+1].found){
             continue;
         }
-       if(callBackExtension ) {
+       if(sumParams->callBackExtension ) {
              buf.cut(0);
              sDic <sStr > dic;
              sStr tmpHdrForIon;
-             callBackExtension(param, &buf,0, &dic,Sub->id(srtID),1,0,1,0, &tmpHdrForIon);
+             sumParams->callBackExtension(sumParams->param, &buf,0, &dic,Sub->id(srtID),1,0,1,0, &tmpHdrForIon);
              if (dic.dim()) {
                  idx lenkey = 0;
                  for (idx iik=0; iik < dic.dim(); ++ iik) {
@@ -572,8 +675,8 @@ idx sBioal::printAlignmentSummaryBySubject(sVec < sBioal::Stat > & statistics, s
 
         len+=Sub->len(srtID);
         idx * cur_cov = 0;
-        if( coverage && coverage->dim() > srtID) {
-            cur_cov = coverage->ptr(srtID);
+        if( sumParams->coverage && sumParams->coverage->dim() > srtID) {
+            cur_cov = sumParams->coverage->ptr(srtID);
             if(cur_cov){
                 tot_coverage += *cur_cov;
             }
@@ -585,13 +688,26 @@ idx sBioal::printAlignmentSummaryBySubject(sVec < sBioal::Stat > & statistics, s
             curFPKM = (statistics[Sub->dim()+srtID+1].foundRpt*1000000000.)/Sub->len(srtID)/totRpt;
         }
 
-        if(processedSubs){
-            idx imax=processedSubs->dim(),imin=0,isThere=0;
+        if (taxonomyInfo){
+            taxid.cut(0);
+            taxInfo = sumParams->taxion->extractTaxIDfromSeqID(&taxid, 0, 0, Sub->id(srtID), 0, "NO_INFO");
+            if (strncmp(taxInfo,"NO_INFO", 7) != 0){
+                const char *buf = sumParams->taxion->getTaxIdInfo(taxid.ptr(0), taxid.length(), _);
+                taxid.add(",",1);
+                sString::escapeForCSV(taxid, sString::next00(buf,3));
+            }
+            else {
+                taxid.addString(",NO_INFO");
+            }
+
+        }
+        if(sumParams->processedSubs->dim() != 0){
+            idx imax=sumParams->processedSubs->dim(),imin=0,isThere=0;
             while( imax >= imin ) {
                 idx imid =  imin + (imax -imin) /2;
-                if( *processedSubs->ptr(imid) < srtID+1 )
+                if( *sumParams->processedSubs->ptr(imid) < srtID+1 )
                     imin = imid + 1;
-                else if( *processedSubs->ptr(imid) > srtID+1 )
+                else if( *sumParams->processedSubs->ptr(imid) > srtID+1 )
                     imax = imid - 1;
                 else{
                     isThere=1;break;
@@ -601,26 +717,39 @@ idx sBioal::printAlignmentSummaryBySubject(sVec < sBioal::Stat > & statistics, s
         }
 
         ++iVis;
-        if(iVis<=start && cnt>0){printOther=true;continue;}
-        if(iVis>start+cnt && cnt>0){printOther=true;continue;}
+        if(iVis<=sumParams->start && sumParams->cnt>0){printOther=true;continue;}
+        if(iVis>sumParams->start+sumParams->cnt && sumParams->cnt>0){
+            printOther=true;
+            if (sumParams->reportTotals) {
+                continue;
+            }
+            else {
+                break;
+            }
+        }
         buflenBefore = tmpBody.length();
         regmatch_t pmatch1[1];
-        if(iVis<=start+cnt || cnt<=0){
-            tmp.printf(0,"%" DEC ",\"%s\",%" DEC ",%" DEC ",%" DEC,srtID+1, Sub->id(srtID) ,statistics[srtID+1].foundRpt,statistics[srtID+1].found,Sub->len(srtID));
+        if(iVis<=sumParams->start+sumParams->cnt || sumParams->cnt<=0){
+            escapeCSV_buf.cut0cut();
+            sString::escapeForCSV(escapeCSV_buf, Sub->id(srtID));
+            tmp.printf(0,"%" DEC ",%s,%" DEC ",%" DEC ",%" DEC,srtID+1, escapeCSV_buf.ptr() ,statistics[srtID+1].foundRpt,statistics[srtID+1].found,Sub->len(srtID));
             if(cur_cov){
-                tmp.printf(",%.1f,%.1f",curRPKM,(real)(*cur_cov)/Sub->len(srtID) );
+                tmp.printf(",%.1f,%.1f,%.2f,%.1f",curRPKM,1000000*(float)statistics[srtID+1].found/total_unique_aligned_reads,100*(float)statistics[srtID+1].found/total_unique_reads,(real)(*cur_cov)/Sub->len(srtID) );
             }
             if(isPE) {
                 tmp.printf(",%.1f",curFPKM );
             }
-            if(callBackExtension && buf.length()){
+            if (taxonomyInfo){
+                tmp.printf(",%s", taxInfo );
+            }
+            if(sumParams->callBackExtension && buf.length()){
                 tmp.add(",",1);
                 tmp.add(buf.ptr(),buf.length());
             }
             else tmp.printf("\n");
         }
-        if(params->regp && iVis<=start+cnt && cnt>0)
-            if(!(regexec(params->regp, tmp, 1, pmatch1, 0)==0)){--iVis;printOther=true;continue;}
+        if(sumParams->regp && iVis<=sumParams->start+sumParams->cnt && sumParams->cnt>0)
+            if(!(regexec(sumParams->regp, tmp, 1, pmatch1, 0)==0)){--iVis;printOther=true;continue;}
 
         tmpBody.add(tmp.ptr(),tmp.length());
         showLen+=Sub->len(srtID);
@@ -635,24 +764,30 @@ idx sBioal::printAlignmentSummaryBySubject(sVec < sBioal::Stat > & statistics, s
         return 0;
     }
     if(!iVis){
-        str->cut(0);reportTotals=false;
+        str->cut(0);sumParams->reportTotals=false;
     }
-    if(reportTotals){
-        if( (printOther || processedSubs) && (len-showLen) && showLen ){
+    if(sumParams->reportTotals){
+        if( (printOther || sumParams->processedSubs) && (len-showLen) && showLen ){
             tmpBody.printf("+,\"%s\",%" DEC ",%" DEC ",%" DEC,"other",totRpt-showTotRpt,tot-showTot,len-showLen);
-            if(coverage){
-                tmpBody.printf(",-,%" DEC,tot_coverage-show_coverage/(len-showLen));
+            if(sumParams->coverage){
+                tmpBody.printf(",-,%.1f,%.2f,%" DEC,1000000*(float)(total_unique_aligned_reads-showTot)/total_unique_aligned_reads,100*(float)(total_unique_reads-showTot)/total_unique_reads, (tot_coverage-show_coverage)/(len-showLen));
+            }
+            if (taxonomyInfo){
+                tmpBody.printf(",-,-");
             }
             tmpBody.printf("\n");
         }
         tmpBody.printf("+,\"%s\",%" DEC ",%" DEC ",%" DEC "", "total" ,totRpt,tot, len);
-        if(coverage){
-            tmpBody.printf(",-,%" DEC,tot_coverage/len);
+        if(sumParams->coverage){
+            tmpBody.printf(",-,%" DEC ",%" DEC ",%.1f",(idx)1000000,(idx)100,(real)tot_coverage/len);
+        }
+        if (taxonomyInfo){
+            tmpBody.printf(",-,-");
         }
         tmpBody.printf("\n");
     }
 
-    if (callBackExtension) {
+    if (sumParams->callBackExtension) {
         if (ionHdrDic.dim()) {
             idx lenkey=0;
             for (idx iik=0; iik<ionHdrDic.dim(); ++iik) {
@@ -693,7 +828,6 @@ idx sBioal::printAlignmentHistogram(sStr * out , sDic < sBioal::LenHistogram > *
     sVec <idx >idxArr; idxArr.add(lenHistogram->dim());
     sSort::sortSimpleCallback<sBioal::LenHistogram>((sSort::sCallbackSorterSimple)__sort_LenHistogramSorter, lenHistogram, lenHistogram->dim(), lenHistogram->ptr(), idxArr.ptr() );
 
-    //struct LenHistogram {idx cntSeq, cntAl, cntLeft, cntRight; LenHistogram(){sSet(this,0);} };
     out->printf("position,All Reads,Aligned Reads,Unaligned Reads,Alignments,Left Incomplete Alignments,Right Incomplete Alignments\n");
     for( idx ihH=0; ihH<lenHistogram->dim(); ++ihH ){
         idx ih=idxArr[ihH];
@@ -716,8 +850,7 @@ idx sBioal::countAlignmentSummaryBySubject(sVec < Stat >  & statistics)
         Stat * pS=getStat(it,0,&size);
         statistics.resize(size);
         cnt+=size;
-        for(idx is=0; is<size; ++is ) { //Sub->dim()+1
-            //listSubAl(is,&cnt);
+        for(idx is=0; is<size; ++is ) {
             statistics[is].found+=pS[is].found;
             statistics[is].foundRpt+=pS[is].foundRpt;
         }
@@ -725,13 +858,39 @@ idx sBioal::countAlignmentSummaryBySubject(sVec < Stat >  & statistics)
     return cnt;
 }
 
+sBioal::Stat sBioal::getTotalAlignmentStats()
+{
+    Stat statistics;
+    idx size;
+
+    for( idx it=0, ct=dimStat(); it<ct; ++it ){
+        Stat * pS=getStat(it,0,&size);
+        for(idx is=1; is<size; ++is ) {
+            statistics.found+=pS[is].found;
+            statistics.foundRpt+=pS[is].foundRpt;
+        }
+    }
+    return statistics;
+}
+
+sBioal::Stat sBioal::getSubjectAlignmentStats(idx iSub)
+{
+    Stat statistics, * pS;
+
+    for( idx it=0, ct=dimStat(); it<ct; ++it ){
+        pS=getStat(it,iSub);
+        statistics.found+=pS->found;
+        statistics.foundRpt+=pS->foundRpt;
+    }
+    return statistics;
+}
+
 idx sBioal::countAlignmentLetters(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAl)
 {
     sVec<idx> * vec = (sVec<idx> *)params->userPointer;
-    idx ind = 0, is = 0, iq = 0, iqx, alphabetSize = 5;
+    idx ind = 0, is = 0, iqx =0, alphabetSize = 5;
 
-    idx qrybuflen=bioal->Qry->len(al->idQry()), sStart=al->subStart()+m[0], qStart=al->qryStart(), flags=al->flags();
-    idx nonCompFlags=(flags)&(~(sBioseqAlignment::fAlignBackwardComplement|sBioseqAlignment::fAlignForwardComplement));
+    idx qrybuflen=bioal->Qry->len(al->idQry()), sStart=al->getSubjectStart(m);
 
     while(is < sStart) {
         ++ind;
@@ -739,39 +898,34 @@ idx sBioal::countAlignmentLetters(sBioal * bioal, ParamsAlignmentIterator * para
         (*(vec->ptr((is-1)*alphabetSize+4)))++;
     }
 
-    sVec < idx > uncompressMM;uncompressMM.resize(2*al->lenAlign());
-    sBioseqAlignment::uncompressAlignment(al,m,uncompressMM.ptr());
+    m = sBioseqAlignment::uncompressAlignment(al,m);
     const char * qry=bioal->Qry->seq(al->idQry());
-    for( idx i=0 ; i<2*al->lenAlign(); i+=2) {
-        is = m[i];
+    for( idx i=0 ; i<al->lenAlign(); i++) {
+        is = al->getSubjectPosition(m, i);
         if (is >= 0) {
             ++ind;
-            is += sStart;
             vec->resize((is+1)*alphabetSize);
         }
         else {
             continue;
         }
-        iq = m[i+1];
-
-        iqx = ( flags&sBioseqAlignment::fAlignBackward ) ? (qrybuflen-1-(qStart+iq)): (qStart+iq);
-        if( iq==-1 ) {
+        iqx = al->getQueryPosition(m, i, qrybuflen);
+        if( iqx==-1 ) {
             (*(vec->ptr(is*alphabetSize+4)))++;
         }
         else {
-            (*(vec->ptr(is*alphabetSize+((idx)sBioseqAlignment::_seqBits(qry, iqx, nonCompFlags)))))++;
+            (*(vec->ptr(is*alphabetSize+al->getQueryLetterByPosition(iqx,qry))))++;
         }
     }
     return ind;
 }
 
-//static
 idx sBioal::getSaturation(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * hdr, idx * m, idx iNum, idx iAlInd) {
 
     sDic<idx> * dicSubHits = (sDic<idx> *)params->userPointer;
 
     if( params->currentChunk > 0 ) {
-        Stat * c_stat = bioal->getStat(0,hdr->idSub() + 1 ); //ZEROth is all
+        Stat * c_stat = bioal->getStat(0,hdr->idSub() + 1 );
         if( c_stat && (((params->navigatorFlags&alPrintCollapseRpt) && c_stat->found < params->currentChunk) || (!(params->navigatorFlags&alPrintCollapseRpt) && c_stat->foundRpt < params->currentChunk)) ) {
             return 0;
         }
@@ -805,7 +959,6 @@ idx sBioal::getSaturation(sBioal * bioal, ParamsAlignmentIterator * params, sBio
     return 1;
 }
 
-//static
 idx sBioal::printSubSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAlInd) {
     sStr tSub;
     sString::searchAndReplaceSymbols(&tSub, bioal->Sub->id(al->idSub()), 0, ","," ",0,true,true,false,false);
@@ -817,78 +970,45 @@ idx sBioal::printSubSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBi
     return 1;
 }
 
-//static
 idx sBioal::printMatchSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAlInd)
 {
     sStr tSub,tQry;
     sString::searchAndReplaceSymbols(&tSub, bioal->Sub->id(al->idSub()), 0, ","," ",0,true,true,false,false);
     sString::searchAndReplaceSymbols(&tQry, bioal->Qry->id(al->idQry()), 0, ","," ",0,true,true,false,false);
-    sVec < idx > uncompressMM;uncompressMM.resize(2*al->lenAlign());
-    sBioseqAlignment::uncompressAlignment(al,m,uncompressMM.ptr());
-    m=uncompressMM.ptr();
+    m = sBioseqAlignment::uncompressAlignment(al, m);
     params->str->printf(
         "%" DEC ","
         "%" DEC ",\"%s\",%" DEC ",\"%s\","
+        "%" DEC ",%" DEC ","
         "%" DEC ",%" DEC ",%" DEC ","
-        "%" DEC ",%" DEC ",%" DEC ",%" DEC "\n"
+        "%" DEC ",%" DEC ",%" DEC ",%" DEC ","
+        "%.2f,"
+        "%.2lf\n"
 
         ,iNum+1
         ,al->idSub()+1,tSub.ptr(),al->idQry()+1, tQry.ptr()
+        ,bioal->Qry->len(al->idQry()),bioal->Sub->len(al->idSub())
         ,al->score(),(al->flags()&(sBioseqAlignment::fAlignBackward) ) ? (idx)(-1) : (idx)(1), al->lenAlign()
 
-        ,al->subStart()+m[0]+1,al->subStart()+m[(al->lenAlign()-1)*2]+1
-        ,al->qryStart()+m[1]+1,al->qryStart()+m[(al->lenAlign()-1)*2+1]+1
+        ,al->getSubjectStart(m)+1,al->getSubjectEnd_uncompressed(m)+1,al->getQueryStart(m)+1,al->getQueryEnd_uncompressed(m)+1
+        ,al->percentIdentity(m,bioal->Qry->len(al->idQry()),bioal->Qry->seq(al->idQry()),bioal->Sub->seq(al->idSub()),bioal->Qry->qua(al->idQry()),bioal->Qry->getQuaBit(al->idQry()))
+        ,(real)(100*al->countMatches(m,bioal->Qry->len(al->idQry()),bioal->Qry->seq(al->idQry()),bioal->Sub->seq(al->idSub()),bioal->Qry->qua(al->idQry()),bioal->Qry->getQuaBit(al->idQry())))/bioal->Sub->len(al->idSub())
         );
 
     return 1;
 }
 
-//static
 idx sBioal::printBEDSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAlInd)
 {
     sStr tSub,tQry;
     sString::searchAndReplaceSymbols(&tSub, bioal->Sub->id(al->idSub()), 0, ","," ",0,true,true,false,false);
     sString::searchAndReplaceSymbols(&tQry, bioal->Qry->id(al->idQry()), 0, ","," ",0,true,true,false,false);
-    sVec < idx > uncompressMM;uncompressMM.resize(2*al->lenAlign());
-    sBioseqAlignment::uncompressAlignment(al,m,uncompressMM.ptr());
-    m=uncompressMM.ptr();
-
-   params->str->printf(
-        "\"%s\",%" DEC ",%" DEC ",U0,0,%s\n"
-        ,tSub.ptr()
-        ,al->qryStart()+m[1]+1, al->qryStart()+m[(al->lenAlign()-1)*2+1]+1
-        ,(al->flags()&(sBioseqAlignment::fAlignBackward) ) ? ("-") : ("+")
-        );
-
-    return 1;
-}
-
-//static
-idx sBioal::printFastaSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAlInd)
-{
-    idx iseq=al->idQry();
-
-    const char * id = bioal->Qry->id(iseq);
-    if(*id=='>')++id;
-
     params->str->printf(
-        ">%s %" DEC "\n"
-        ,id,(params->navigatorFlags & alPrintCollapseRpt)?bioal->getRpt(iAlInd):1);
-
-    if(params->navigatorFlags&alPrintMultiple) {
-        params->rangeend = al->lenAlign();
-        printAlignmentSingle(bioal, params, al, m, iNum, iAlInd);
-    }
-    else {
-        sStr t;
-        sBioseq::uncompressATGC(&t,bioal->Qry->seq(iseq), 0, bioal->Qry->len(iseq),true,params->wrap);
-        params->str->printf("%s\n",t.ptr());
-    }
+        "\"%s\",%" DEC ",%" DEC ",U0,0,%s\n", tSub.ptr(), al->getQueryStart(m) + 1, al->getQueryEnd(m) + 1, (al->flags() & (sBioseqAlignment::fAlignBackward)) ? ("-") : ("+"));
 
     return 1;
 }
 
-//static
 idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAlInd)
 {
     idx iq = al->idQry();
@@ -898,8 +1018,7 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
         papID = &appendID[0];
     }
 
-    return bioal->Qry->printFastXRow(params->str, (params->navigatorFlags&alPrintQualities), iq, 0, 0, 0, true, false,
-        papID, 0, al->isBackwardComplement()?3:0, (params->navigatorFlags&alPrintNs), 0, (params->navigatorFlags & alPrintCollapseRpt), false);
+    return bioal->Qry->printFastXRow(params->str, (params->navigatorFlags&alPrintQualities), iq, 0, 0, 0, true, false, papID, 0, al->getDirectionality(), (params->navigatorFlags&alPrintNs), 0, (params->navigatorFlags & alPrintCollapseRpt), false, (params->navigatorFlags & alPrintCollapseRpt));
 }
 
 #define isSameBase(baseS,baseQ) (baseS!='N'&&baseQ!='N'&&baseS==baseQ)
@@ -922,10 +1041,8 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
            hdl2.printf(","); \
         } \
         if( (outwhat&alPrintQuery) && !(outwhat&alPrintSequenceOnly) ) { \
-            iqnn=isQ; \
-            if ( (flags&sBioseqAlignment::fAlignBackward) && ((flags)&sBioseqAlignment::fAlignReverseEngine)==0 ) \
-                iqnn = qrybuflen-1-iqnn; \
-            if(iqx>=0 && (outwhat&alPrintNonFlippedPosforRev))iqnn=isQ; \
+            iqnn=al->getQueryPosition(m,i,qrybuflen); \
+            if(!sBioseqAlignment::Al::isDeletion(m,i) && (outwhat&alPrintNonFlippedPosforRev))iqnn=al->getQueryPositionRaw(m,i); \
             hdl3.printf("%" DEC ",%5" DEC ", (%c) ,",iNum|curChunk , idQry+1,( flags&sBioseqAlignment::fAlignBackward ) ? '-' : '+'); \
             hdl3.printf("%5" DEC "",iqnn+1 ); \
         } \
@@ -933,7 +1050,7 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
 }
 #define printAlignmnetSinglePaddingAndLeftTail \
 {\
-    idx offs=0, leftTail = qStart+m[1], iqLeft = 0; \
+    idx offs=0, leftTail = al->getQueryStart(m), iqLeft = 0; \
     if( (outwhat&alPrintBasedOnRange) || highlightposition>=0 ) offs = sStart-rangestart; \
     else if(params->leftTailPrint && leftTail && (outwhat&alPrintTailDisplayTail)) offs = leftTail; \
     if ( offs>0 ){ \
@@ -957,12 +1074,10 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
         if( !((outwhat&alPrintTailDisplayTail) && !(outwhat&alPrintTailDisplayAlignment) ) ) \
             leftTail = 0; \
     } \
-    if(params->leftTailPrint && leftTail > params->leftTailPrint && (outwhat&alPrintTailDisplayTail) ){ \
-        for(; iqLeft< leftTail ; ++iqLeft ) { \
-            iqx=( (flags&sBioseqAlignment::fAlignBackward) && ((flags)&sBioseqAlignment::fAlignReverseEngine)==0 ) ? (qrybuflen-1-(qStart+iqLeft)) : (qStart+iqLeft); \
-            char chQf=sBioseq::mapRevATGC[(idx)sBioseqAlignment::_seqBits(qry, iqx, nonCompFlags)]; \
-            char chQr=sBioseq::mapRevATGC[sBioseq::mapComplementATGC[(idx)sBioseqAlignment::_seqBits(qry, iqx, nonCompFlags)]]; \
-            char chQ=( (flags&sBioseqAlignment::fAlignBackward) && ((flags)&sBioseqAlignment::fAlignReverseEngine)==0 ) ? chQr : chQf ; \
+    if(params->leftTailPrint && leftTail >= params->leftTailPrint && (outwhat&alPrintTailDisplayTail) ){ \
+        for(; iqLeft < leftTail ; ++iqLeft ) { \
+            iqx = al->getQueryPosition(iqLeft - qStart,qrybuflen); \
+            char chQ=al->getQueryCharByPosition(iqx,qry); \
             if( (outwhat&alPrintNs) && seqQryQua && !sBioseq::Qua(seqQryQua ,iqx ,isQryQuaBit) ) { \
                 chQ = 'N'; \
             } \
@@ -978,7 +1093,6 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
 { \
     idx rightTail = qrybuflen - al->getQueryEnd_uncompressed(m); \
     if(params->rightTailPrint && rightTail >= params->rightTailPrint && (outwhat&alPrintTailDisplayTail) ){ \
-        iqx = ( flags&sBioseqAlignment::fAlignBackward ) ? (qrybuflen-1-(qStart+iq)): (qStart+iq); \
         if(!(outwhat&alPrintTailDisplayAlignment) ) \
             l3.printf("..."); \
         iqRight = al->getQueryEnd_uncompressed(m)+1; \
@@ -987,10 +1101,7 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
                 if( rangeend && isRight>=rangeend ) \
                     break; \
             } \
-            iqx=( (flags&sBioseqAlignment::fAlignBackward) && ((flags)&sBioseqAlignment::fAlignReverseEngine)==0 ) ? (qrybuflen-1-(qStart+iqRight)) : (qStart+iqRight); \
-            char chQf=sBioseq::mapRevATGC[(idx)sBioseqAlignment::_seqBits(qry, iqx, nonCompFlags)];\
-            char chQr=sBioseq::mapRevATGC[sBioseq::mapComplementATGC[(idx)sBioseqAlignment::_seqBits(qry, iqx, nonCompFlags)]]; \
-            char chQ=( (flags&sBioseqAlignment::fAlignBackward) && ((flags)&sBioseqAlignment::fAlignReverseEngine)==0 ) ? chQr : chQf ; \
+            char chQ=al->getQueryCharByPosition(iqRight,qry); \
             l3.printf("%c",(outwhat&alPrintUpperCaseOnly) ? toupper(chQ) : tolower(chQ));\
             ++prtChars; \
         } \
@@ -1018,7 +1129,6 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
 }
 #define printAlignmnetSingleAssertRange \
 {\
-    idx  sEnd=al->subStart()+m[2*(al->lenAlign()-1)] ; \
     if((outwhat&alPrintMode) &&( (highlightposition!=sNotIdx || (outwhat&alPrintBasedOnRange) ) && (rangeend<sStart || rangestart>=sEnd))) return 0; \
     if (outwhat & alPrintTouchingOnly) { \
         if( highlightposition == sNotIdx ) { \
@@ -1045,12 +1155,12 @@ idx sBioal::printFastXSingle(sBioal * bioal, ParamsAlignmentIterator * params, s
     if((outwhat&alPrintVariationOnly) && !isNotSide)return 0; \
     if((outwhat&alPrintNonPerfectOnly) && !isNonPerfect)return 0; \
 }
-//static
 idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * params, sBioseqAlignment::Al * al, idx * m, idx iNum, idx iAlInd)
 {
-    idx qrybuflen=bioal->Qry->len(al->idQry()), idSub=al->idSub(), idQry=al->idQry(), sStart=al->subStart()+m[0], qStart=al->qryStart(), flags=al->flags() , rangeend=params->rangeend,rangestart=params->rangestart,
-        highlightposition=params->High, outwhat=params->navigatorFlags, curChunk=(params->currentChunk<<32)&0xFFFFFFFF, nonCompFlags=(flags)&(~(sBioseqAlignment::fAlignBackwardComplement|sBioseqAlignment::fAlignForwardComplement));
-    sStr tSub,tQry,l1, hdl1, l1comp, hdl1comp, l2, hdl2, l3, hdl3, l3comp, hdl3comp,* out=params->str, l4,hdl4,l5,hdl5,l6,l7; // for qualities
+    idx qrybuflen = bioal->Qry->len(al->idQry()), idSub = al->idSub(), idQry = al->idQry(), qStart = al->qryStart(), flags = al->flags(),
+        rangeend = params->rangeend, rangestart = params->rangestart,
+        highlightposition = params->High, outwhat = params->navigatorFlags, curChunk = (params->currentChunk << 32) & 0xFFFFFFFF;
+    sStr tSub,tQry,l1, hdl1, l1comp, hdl1comp, l2, hdl2, l3, hdl3, l3comp, hdl3comp,* out=params->str, l4,hdl4,l5,hdl5,l6,l7;
     sVec < idx > uncompressMM, * entr=(sVec < idx > *)params->userPointer;
     idx prtChars=0, pstChars = 0;
 
@@ -1063,34 +1173,32 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
     bool isSubQuaBit = idSub>=0?bioal->Sub->getQuaBit(idSub):0;
     bool isQryQuaBit = bioal->Qry->getQuaBit(idQry);
 
-    if(flags&sBioseqAlignment::fAlignCompressed){ // deal with compressed alignments
-        uncompressMM.resize(2*al->lenAlign());
-        sBioseqAlignment::uncompressAlignment(al,m,uncompressMM.ptr());
-        m=uncompressMM.ptr();
+    if((flags&sBioseqAlignment::fAlignCompressed) || (outwhat&alPrintMultiple)){
+        m = sBioseqAlignment::uncompressAlignment(al, m);
     }
+    idx sStart=al->getSubjectStart(m), sEnd=al->getSubjectEnd_uncompressed(m);
 
     printAlignmnetSingleAssertRange
     params->indels=0;
 
-    //check size of sVec holding the entropy of highlighted position.
     if(!(outwhat&alPrintSubject) && (outwhat&alPrintMutBiasOnly)){
-        entr->resize(4*(qrybuflen+1));
+        entr->resize(4*(rangeend-rangestart+1));
     }
     if(params->id){
         out->printf("%s[%" DEC "]<->Query[%" DEC "] : score=%" DEC "\n",
             params->id , idSub,idQry,al->score());
     }
-    idx isx=0, iqx=0,i=0, is=0,isS=0,isL=0,isQ=-1,iq=0, iqnn=0, isnn=0,iqHigh=-1, isNotSide=0, isRightSide=0, isNonPerfect=0,stringHigh=0,intermHigh=0,callLetterHigh=0,iqRight=0,isRight=0;
+    idx isx=0, iqx=0,i=0, isS=0,isL=0,isQ=-1,iqnn=0, isnn=0,iqHigh=-1, isNotSide=0, isRightSide=0, isNonPerfect=0,stringHigh=0,intermHigh=0,callLetterHigh=0,iqRight=0,isRight=0;
 
     char chS='N',chQ='N';
-    for( i=0 ; i<2*al->lenAlign(); i+=2) {
-        isx=(al->subStart()+m[i]);
-        iqx = al->qryStart() + m[i+1];
-        if(iqx>isQ)isQ = iqx;
-        if(m[i]>=0){isL=isx;}
-        else if ( outwhat&alPrintSequenceOnly ) {++isL;}
+    for( i=0 ; i<al->lenAlign(); i++) {
+        isx = al->getSubjectPosition(m,i);
+        iqx = sBioseqAlignment::Al::getQueryIndex(m,i);
+        if(!sBioseqAlignment::Al::isDeletion(m,i))isQ = al->getQueryPositionRaw(m,i);
+        if(!sBioseqAlignment::Al::isInsertion(m,i))isL=al->getSubjectPosition(m,i);
+        else if ( outwhat&alPrintSequenceOnly ) ++isL;
 
-        if(!((highlightposition>=0 || (outwhat&alPrintBasedOnRange) || (outwhat&alPrintMultiple)) && (isL<rangestart || (!(outwhat&alPrintSubject) && m[i]<0 && (!(outwhat&alPrintSequenceOnly)) ))))
+        if(!((highlightposition>=0 || (outwhat&alPrintBasedOnRange) || (outwhat&alPrintMultiple)) && (isL<rangestart || (!(outwhat&alPrintSubject) && sBioseqAlignment::Al::isInsertion(m,i) && (!(outwhat&alPrintSequenceOnly)) ))))
             break;
     }
     params->subRealS=isS=isx;
@@ -1105,40 +1213,36 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
     if( (outwhat&alPrintQuery) && !((outwhat&alPrintFilterTail) && !(outwhat&alPrintTailDisplayAlignment) ) ) {
         isPrintQry = true;
     }
-    for( ;i<2*al->lenAlign(); i+=2 ) {
-        is=m[i];
-        iq=m[i+1];
-        if(iq>0)iqRight=iq;
-        isx=(al->subStart()+is);
+    bool isInsertion = false, isDeletion = false;
+    for( ;i<al->lenAlign(); i++ ) {
+        iqx=al->getQueryPosition(m,i,qrybuflen);
+        isx=al->getSubjectPosition(m,i);
+        isInsertion=sBioseqAlignment::Al::isInsertion(m,i);
+        isDeletion=sBioseqAlignment::Al::isDeletion(m,i);
 
-        if(is>=0){isL=isx; isRight=isx;}
+        if(!isDeletion)iqRight=sBioseqAlignment::Al::getQueryIndex(m,i);
+        if(!isInsertion){isL=isx; isRight=isx;}
         else if ( outwhat&alPrintSequenceOnly ) {++isL;}
 
         printAlignmnetSingleAssertPosition
-        if(isx>=0)isnn=isx;
+        if(!isInsertion)isnn=isx;
 
         if( !(outwhat&alPrintMultiple) ){
-            chS=( (flags&sBioseqAlignment::fAlignBackward) && ((flags)&sBioseqAlignment::fAlignReverseEngine) ) ? sBioseq::mapRevATGC[sBioseq::mapComplementATGC[(idx)sBioseqAlignment::_seqBits(sub, isx, nonCompFlags)]] : sBioseq::mapRevATGC[(idx)sBioseqAlignment::_seqBits(sub, isx,nonCompFlags)] ;
+            chS=al->getSubjectCharByPosition(isx,sub);
             if( (outwhat&alPrintNs) && seqSubQua && !sBioseq::Qua(seqSubQua ,isx ,isSubQuaBit) )
                 chS = 'N';
         }
 
-        if( iq <0 ) {
+        if( isDeletion ) {
             chQ='-';
         } else {
-            if ( (flags&sBioseqAlignment::fAlignBackward) && ((flags)&sBioseqAlignment::fAlignReverseEngine)==0 ) {
-                iqx = qrybuflen-1-qStart-iq;
-                chQ = sBioseq::mapRevATGC[sBioseq::mapComplementATGC[(idx)sBioseqAlignment::_seqBits(qry, iqx, nonCompFlags)]];
-            } else {
-                iqx = qStart+iq;
-                chQ = sBioseq::mapRevATGC[(idx)sBioseqAlignment::_seqBits(qry, iqx, nonCompFlags)];
-            }
+            chQ = al->getQueryCharByPosition(iqx, qry);
             if(isQ<0) isQ = iqx;
             if( (outwhat&alPrintNs) && seqQryQua && !sBioseq::Qua(seqQryQua ,iqx ,isQryQuaBit) )
                 chQ = 'N';
         }
 
-        if(iqx>=0 && (outwhat&alPrintNonFlippedPosforRev))iqnn=qStart+iq;
+        if(!isDeletion && (outwhat&alPrintNonFlippedPosforRev))iqnn=al->getQueryPositionRaw(m,i);
         else iqnn=iqx;
 
         if(highlightposition!=sNotIdx && highlightposition==isx){
@@ -1147,14 +1251,14 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
         }
 
         if( outwhat&alPrintSubject ){
-            if( !(is<0 && (outwhat&alPrintExcludeInsertions) ) ){
-                if(is<0){
+            if( !(isInsertion && (outwhat&alPrintExcludeInsertions) ) ){
+                if(isInsertion){
                     l1.printf("-");
                     if(highlightposition!=sNotIdx && (isL + 1) <=highlightposition)
-                        ++params->indels;//Accumulate subject insertions
+                        ++params->indels;
                 }
                 else if(!(outwhat&alPrintIgnoreCaseMissmatches))
-                    l1.printf("%c",(iq<0 || (!isSameBase(chS,chQ) && chS!='N') ) ? tolower(chS) : toupper(chS) ) ;
+                    l1.printf("%c",(isDeletion || (!isSameBase(chS,chQ) && chS!='N') ) ? tolower(chS) : toupper(chS) ) ;
                 else
                     l1.printf("%c", toupper(chS) );
                 ++pstChars;
@@ -1162,9 +1266,9 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
         }
         if( ((outwhat&(alPrintUpperInterm|alPrintLowerInterm)) ) && !(outwhat&alPrintDotsFormat) )
         {
-            if( !( (iq<0 && (outwhat&alPrintExcludeDeletions) ) || (is<0 && (outwhat&alPrintExcludeInsertions) ) ) ) {
-                if(is<0)l2.printf("-");
-                else if(iq<0) l2.printf(".");
+            if( !( (isDeletion && (outwhat&alPrintExcludeDeletions) ) || (isInsertion && (outwhat&alPrintExcludeInsertions) ) ) ) {
+                if(isInsertion)l2.printf("-");
+                else if(isDeletion) l2.printf(".");
                 else if( isSameBase(chS,chQ) ) {
                     if( params->alignmentStickDirectional==1 ) {
                         if( flags&sBioseqAlignment::fAlignBackward )
@@ -1180,13 +1284,13 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
         }
 
         if( isPrintQry ){
-            if( !(iq<0 && (outwhat&alPrintExcludeDeletions) ) ) {
+            if( !(isDeletion && (outwhat&alPrintExcludeDeletions) ) ) {
                 if(outwhat&alPrintDotsFormat)
-                    l3.printf("%c",iq>=0 ? ( (is<0 || !isSameBase(chS,chQ)) ? toupper(chQ) : '.') : '-' );
+                    l3.printf("%c",!isDeletion ? ( (isInsertion || !isSameBase(chS,chQ)) ? toupper(chQ) : '.') : '-' );
                 else if(!(outwhat&alPrintIgnoreCaseMissmatches))
-                    l3.printf("%c",iq>=0 ? ( ( !(outwhat&alPrintMultiple) && (is<0 || ( !isSameBase(chS,chQ) && chQ!='N') ) ) ? tolower(chQ) : toupper(chQ) ) : '-' );
+                    l3.printf("%c",!isDeletion ? ( ( !(outwhat&alPrintMultiple) && (isInsertion || ( !isSameBase(chS,chQ) && chQ!='N') ) ) ? tolower(chQ) : toupper(chQ) ) : '-' );
                 else
-                    l3.printf("%c",iq>=0 ? ( toupper(chQ) )  : '-' );
+                    l3.printf("%c",!isDeletion ? ( toupper(chQ) )  : '-' );
                 ++prtChars;
                 if(params->wrap && !(prtChars%params->wrap)) {
                     l3.printf("\n");
@@ -1196,13 +1300,17 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
 
         if(highlightposition!=sNotIdx && highlightposition==isx){
             if(outwhat&alPrintVariationOnly){if( isSameBase(chS,chQ) ) return 0;}
-            if(iqx>=0 && (outwhat&alPrintNonFlippedPosforRev))iqHigh=qStart+iq;
+            if(!isDeletion && (outwhat&alPrintNonFlippedPosforRev))iqHigh=al->getQueryPositionRaw(m,i);
             else iqHigh=iqx;
             ++isNotSide;
         }
 
-        if( (is<0 || iq<0 || !isSameBase(chS,chQ)) && !isNonPerfect)
+        if( (isInsertion || isDeletion || !isSameBase(chS,chQ)) && !isNonPerfect)
             ++isNonPerfect;
+        if( (isInsertion || isDeletion || !isSameBase(chS,chQ)) && entr){
+            (*entr->ptr(4*(isx-rangestart)+(idx)sBioseq::mapATGC[(idx)chQ]))+=(outwhat & alPrintCollapseRpt)?bioal->getRpt(iAlInd):1;
+        }
+
     }
 
     if((outwhat&alPrintFilterTail) && !(outwhat&alPrintTailDisplayAlignment) ) {
@@ -1230,7 +1338,7 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
     }
     if((outwhat&alPrintUpperInterm) && !(outwhat&alPrintDotsFormat) && l2 ) {
         if(!(outwhat&alPrintSequenceOnly) ) {
-            hdl2.printf(",%s,%" DEC,l2.ptr(params->indels),i/2);
+            hdl2.printf(",%s,%" DEC,l2.ptr(params->indels),i);
         }
         else {
             hdl2.printf("%s",l2.ptr(params->indels));
@@ -1280,10 +1388,11 @@ idx sBioal::printAlignmentSingle(sBioal * bioal, ParamsAlignmentIterator * param
         if(iqHigh+1){
             if((outwhat&alPrintMirroredPos) && iqHigh>qrybuflen/2)
                 iqHigh=qrybuflen-iqHigh;
-            if(entr)
-                (*entr->ptr(4*iqHigh+sBioseq::mapATGC[callLetterHigh]))+=(outwhat & alPrintCollapseRpt)?bioal->getRpt(iAlInd):1;
         }
     }
+
+    UNUSED_VAR(callLetterHigh);
+
     return 1;
 }
 
@@ -1291,7 +1400,6 @@ idx sBioal::BioseqAlignmentComparator(void * parameters, void * A, void * B,void
 {
     ParamsAlignmentSorter * param = (ParamsAlignmentSorter *)parameters;
     if(param->extComparator){
-//        sSort::sCallbackSorterSimple compare=(sSort::sCallbackSorterSimple*)param->extComparator;
         return param->extComparator(param->extCompParams, A,  B, objSrc, i1, i2);
     }
     sBioseqAlignment::Al * hdrA= (sBioseqAlignment::Al * )A; sBioseqAlignment::Al * hdrB=(sBioseqAlignment::Al * )B;
@@ -1302,15 +1410,14 @@ idx sBioal::BioseqAlignmentComparator(void * parameters, void * A, void * B,void
 
     if(param->flags&sBioal::alSortByPosStart)
     {
-        compVal1=hdrA->subStart()+ m1[0];
-        compVal2=hdrB->subStart()+ m2[0];
-        //if(!(param->flags^sBioal::alSortByPosStart))
+        compVal1=hdrA->getSubjectStart(m1);
+        compVal2=hdrB->getSubjectStart(m2);
         if(!(param->flags^sBioal::alSortByPosStart))
             return (compVal1 != compVal2)? ( (compVal1 > compVal2) ? 1 : -1)  : 0 ;
     }
     else if(param->flags&sBioal::alSortByPosEnd){
-        compVal1=hdrA->subStart()+m1[0]+1+hdrA->lenAlign();
-        compVal1=hdrB->subStart()+m2[0]+1+hdrB->lenAlign();
+        compVal1=hdrA->getSubjectEnd(m1)+1;
+        compVal1=hdrB->getSubjectEnd(m2)+1;
         if(!(param->flags^sBioal::alSortByPosEnd))
             return (compVal1 != compVal2)? ( (compVal1 > compVal2) ? 1 : -1)  : 0 ;
     }

@@ -38,4 +38,4 @@ namespace sviolin {
     bool getObjFilePathname00(const sUsr * user, const char * objId, sStr & buf, const char* key00);
 }
 
-#endif // sViolin_common_hpp
+#endif 

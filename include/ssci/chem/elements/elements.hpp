@@ -49,7 +49,6 @@ struct sChem{
         isotop(){}
         ~isotop (){}
         
-        // for sorting operations 
         bool operator > (isotop &cP)  { return (rMass> cP.rMass);  }   
         bool operator < (isotop &cP)  { return (rMass< cP.rMass);  }   
         bool operator >= (isotop &cP)  { return (rMass>= cP.rMass);  }   
@@ -70,7 +69,6 @@ struct sChem{
         idx    ofsIsotops;
         idx cntIsotops;
 
-        // peodic table 
     public:
         const static idx cntElements=120;
     private:
@@ -81,7 +79,6 @@ struct sChem{
         static element * ptr(idx elem){return chemTable+elem;}
         static idx makeIsotopicElement( idx element, idx isotop){return (element)|(isotop<<16);}
 
-        // isoopic table
     private:
         static const char * isotopTableRaw;
         
@@ -95,7 +92,7 @@ struct sChem{
 
 
     struct atomcount {
-        idx element; // lower 16 bits are the element num and the higher bits are the isotopiic number
+        idx element;
         idx count;
         atomcount(idx lelement=0, idx lcount=0){element=lelement; count=lcount;} 
         ~atomcount(){}
@@ -112,7 +109,6 @@ struct sChem{
         enum eIsotopicMass { eIsotopicExact=1000, eIsotopicAbundant, eIsotopicRare, eIsotopicLightest, eIsotopicHeaviest } ;
         real mass(idx type=eIsotopicAbundant, bool integralonly=false);
 
-        //static real isotopicMass(sChemFormula * frml, idx type=eIsotopicAbundant, bool integralonly=false);
         idx isotopicList(formula * dst, idx totIsoStart, idx totIsoEnd);
         idx isotopicDistr(sVec < formula > * dst, real cutoff,real finalcutoff);
 
@@ -125,8 +121,7 @@ struct sChem{
 
 
 
-#endif // sChem_elements_hpp
+#endif 
 
 
-
-} // namespace slib
+}

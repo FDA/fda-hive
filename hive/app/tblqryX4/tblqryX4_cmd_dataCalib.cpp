@@ -310,7 +310,6 @@ bool DataCalibCommand::compute(sTabular * tbl)
             const char * header = static_cast <const char *> (mappingRowsCols.id(i));
             sVec <idx> curVec = mappingRowsCols[header];
 
-            //if going over the average over the multiple rows
             for (idx r = -1; r < rowLength; r++)
             {
 
@@ -414,7 +413,6 @@ bool DataCalibCommand::compute(sTabular * tbl)
 
                         val = variant.asReal();
 
-                        //make sure the sign here is correct
                         if (abs(val - average) >= abs(sigma))
                         {
                             if (redundencyWay == 1)
@@ -460,12 +458,28 @@ bool DataCalibCommand::compute(sTabular * tbl)
                 {
                     sVariant tmp;
 
-                    if (translate)
-                    {
-                        tbl->val(tmp, curVec[x], r+1,1);
+                    if (translate) {
+                        if(curVec[x]+1 == 0){
+                            sStr cell;
+                            tbl->printCell(cell, curVec[x], r+1);
 
+                            tmp.setString(cell);
+                            outTabular->setVal (r, curVec[x]+1, tmp);
+                            continue;
+                        }
+                        else if(r == -1){
+                            sStr cell;
+                            tbl->printCell(cell, curVec[x], r+1);
+
+                            tmp.setString(cell);
+                            outTabular->setVal (r, curVec[x]+1, tmp);
+                            continue;
+                        }
+
+
+                        tbl->val(tmp, curVec[x], r+1,1);
                         idx colType = tbl->coltype(r+1);
-                        if ((colType != sVariant::value_INT && colType != sVariant::value_REAL && colType != sVariant::value_UINT))
+                        if ((colType != sVariant::value_INT && colType != sVariant::value_REAL && colType != sVariant::value_UINT) && r >= 0)
                         {
                             real possibleVal;
 
@@ -473,7 +487,7 @@ bool DataCalibCommand::compute(sTabular * tbl)
                                 possibleVal= atof(tmp.asString()+1)*-1;
                             else
                                 possibleVal = atof(tmp.asString());
-                            if (possibleVal != 0.0)
+                            if (possibleVal != 0.0 && !isnan(possibleVal))
                                 tmp.setReal(possibleVal);
                         }
 

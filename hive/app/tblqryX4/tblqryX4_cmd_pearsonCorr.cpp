@@ -41,10 +41,10 @@ namespace slib {
         {
             private:
                 sVec <idx> colSet1, colSet2;
-                bool doTranspose; // transpose rows and columns of original table
+                bool doTranspose;
                 bool cellHasStdev;
-                bool zeroForColSet1; // impute Zero For Empty Cell in colSet1
-                bool zeroForColSet2; // impute Zero For Empty Cell in colSet2
+                bool zeroForColSet1;
+                bool zeroForColSet2;
 
             public:
                 PearsonCorrCommand(ExecContext & ctx) : Command(ctx)
@@ -73,7 +73,7 @@ struct matchInfo
         real intercept;
         matchInfo() {
             intercept = slope = coef_confidence = 0;
-            xCol = yCol = -2; // -2 by default because, the sTxtTbl considers -1 as the column header
+            xCol = yCol = -2;
             value = 0;
         }
 };
@@ -109,22 +109,18 @@ bool PearsonCorrCommand::init(const char * op_name, sVariant * arg)
             sString::scanRangeSet(p,0,&(colSet2),0ll,0ll,0ll);
         }
     }
-    // doTranspose
     if (arg->getDicElt("doTranspose") != 0){
          doTranspose =  arg->getDicElt("doTranspose")->asBool();
     }
 
-    //cellHasStdev
     if (arg->getDicElt("cellHasStdev") != 0){
          cellHasStdev =  arg->getDicElt("cellHasStdev")->asBool();
     }
 
-    // impute zero for the empty cell from colSet1
     if (arg->getDicElt("imputeZeroForEmptyCellColSet1") != 0){
          zeroForColSet1 =  arg->getDicElt("imputeZeroForEmptyCellColSet1")->asBool();
     }
 
-    // impute zero for the empty cell from colSet2
     if (arg->getDicElt("imputeZeroForEmptyCellColSet2") != 0){
          zeroForColSet2 =  arg->getDicElt("imputeZeroForEmptyCellColSet2")->asBool();
     }
@@ -133,14 +129,13 @@ bool PearsonCorrCommand::init(const char * op_name, sVariant * arg)
     return true;
 }
 
-//
 static real getValue(sStr & cell, bool stdev=false) {
     real rval;
     if (!cell.length()) {
         return sNotIdx;
     }
     if (stdev) {
-        const char * nxt=strpbrk(cell.ptr(0),"+/-"); // find the separator
+        const char * nxt=strpbrk(cell.ptr(0),"+/-");
         if(!nxt || *nxt==' '){
             return sNotIdx;
         }
@@ -162,8 +157,6 @@ static void calculateArrayOfAverage(sReorderedTabular & reordered_table, sVec <i
         real total = 0;
 
         idx rCount=0;
-        // looping through each row from 1 column
-        // => calculate the total value
         for (idx r = 0; r < reordered_table.rows(); r++) {
             if(reordered_table.missing(r, col)){
                 if (imputeZero) {
@@ -174,23 +167,17 @@ static void calculateArrayOfAverage(sReorderedTabular & reordered_table, sVec <i
             cellValue.cut(0);
             reordered_table.printCell(cellValue,r,col);
             real val = getValue(cellValue);
-            //total += reordered_table.rval(r,col);
             total += val;
 
-            ++rCount; // increment each count if has value
+            ++rCount;
         }
-        averages [c] = rCount ? total/rCount : 0 ; // calculate average based on the total and number of count
+        averages [c] = rCount ? total/rCount : 0 ;
     }
 }
 
 
 static void getListOfColumns(sVec < idx > & colSet, sReorderedTabular & reordered_table) {
-    // get the list of columns for a colSet
 
-    /// commented by VSim
-    ///char p [16];
-    ///sprintf (p, "0-%" DEC, tbl->cols()-1);
-    ///sString::scanRangeSet(p,0,&(colSet1),0ll,0ll,0ll);
     idx * ip = colSet.add(reordered_table.cols()-1);
     for(idx ic=1; ic<reordered_table.cols(); ++ic){
         ip[ic-1]=ic;
@@ -202,7 +189,6 @@ static void performPearsonCorrCalculation (sReorderedTabular & reordered_table, 
     sStr tmp, cellValue;
     for (idx x = 0; x < colSet1.dim(); x++)
        {
-           //idx maxCol = -1;
            real maxVal = -sIdxMax;
            idx xCol = colSet1[x];
 
@@ -216,7 +202,6 @@ static void performPearsonCorrCalculation (sReorderedTabular & reordered_table, 
                if (xCol == yCol)
                {
                    finalMatrix.printf(",1");
-                   //matrixTbl->setVal(x, y, "");
                    continue;
                }
 
@@ -230,20 +215,18 @@ static void performPearsonCorrCalculation (sReorderedTabular & reordered_table, 
                    if ( reordered_table.missing(r, xCol) || reordered_table.missing(r, yCol) )
                        continue;
 
-                   //real xLocal =  reordered_table.rval(r, xCol);
                    cellValue.cut(0);
                    reordered_table.printCell(cellValue,r,xCol);
                    real xLocal = getValue(cellValue);
 
-                   //real yLocal = reordered_table.rval(r, yCol);
                    cellValue.cut(0);
                    reordered_table.printCell(cellValue,r,yCol);
                    real yLocal = getValue(cellValue);
                    real stdevY = (hasStdev) ? ( getValue(cellValue,true) ) : ( sNotIdx );
 
-                   totalSum += ( xLocal - averages1[x] ) * ( yLocal - averages2[y]); // Sum[ (Xi - meanX)*(Yi-meanY) ]
-                   totalXSum += ( xLocal - averages1[x] ) * ( xLocal - averages1[x] ); // Sum[(Xi-meanX)^2]
-                   totalYSum += ( yLocal - averages2[y] ) * ( yLocal - averages2[y] ); // Sum[(Yi-meanY)^2]
+                   totalSum += ( xLocal - averages1[x] ) * ( yLocal - averages2[y]);
+                   totalXSum += ( xLocal - averages1[x] ) * ( xLocal - averages1[x] );
+                   totalYSum += ( yLocal - averages2[y] ) * ( yLocal - averages2[y] );
 
                    if (xLocal < xMinLocal) {
                        xMinLocal = xLocal;
@@ -259,28 +242,20 @@ static void performPearsonCorrCalculation (sReorderedTabular & reordered_table, 
                real pearsonCorrCoef;
 
                if (totalXSum != 0 && totalYSum != 0){
-                   pearsonCorrCoef = totalSum / ( sqrt(totalXSum) * sqrt(totalYSum) ); // pearsonCorr = Sum[ (Xi - meanX)*(Yi-meanY) ] / ( sqrt(Sum[(Xi-meanX)^2]) * sqrt(Sum[(Yi-meanY)^2]))
+                   pearsonCorrCoef = totalSum / ( sqrt(totalXSum) * sqrt(totalYSum) );
                }else
-                   pearsonCorrCoef = 0; // meaning no Correlation
+                   pearsonCorrCoef = 0;
 
                if (pearsonCorrCoef > maxVal)
                {
                    maxVal = pearsonCorrCoef;
-                   //maxCol = yCol;
                }
 
                finalMatrix.printf (",%g", pearsonCorrCoef);
                sVariant toPutVar;
                toPutVar.setReal(pearsonCorrCoef);
                matrixTbl->addCell(toPutVar);
-               //matrixTbl->setVal(x, y, toPut);
 
-               // --------------------------------------------------------------------
-               // regression line: y = slope * x + intercept
-               // slope = Sum[ (Xi - meanX)*(Yi-meanY) ] / Sum[(Xi-meanX)^2]
-               // intercept = meanY - slope * meanX
-               // coefficient confidence = (predicted Y at max X - predicted Y at min X) / 2 (sigma of Y at min X + sigma of Y  at max X)
-               // --------------------------------------------------------------------
                real slope =  totalXSum ? ( totalSum/totalXSum ) : 0 ;
                real intercept = averages2[y] - slope * averages1[x];
 
@@ -310,15 +285,7 @@ static void performPearsonCorrCalculation (sReorderedTabular & reordered_table, 
        }
 }
 
-// Main Function
 
-// Plugin: Calculate the pearson correlation between 2 set of columns
-// is a measure of the linear correlation between two variables X and Y
-// giving a value between +1 and −1 inclusive, where 1 is total positive correlation, 0 is no correlation, and −1 is total negative correlation
-// ==> Outputs:
-//          - Matrix of top header is the list of column header from set 1 and left header is the list of column header from set 2
-//          - Table of correlation values sorted from Highest absolute value
-//          - Heatmap table
 
 bool PearsonCorrCommand::compute(sTabular * tbl)
 {
@@ -327,32 +294,26 @@ bool PearsonCorrCommand::compute(sTabular * tbl)
     }
     sReorderedTabular reordered_table (tbl, false);
     if (doTranspose){
-        //reordered_table.setTransposed(true);
-        reordered_table.setTransposed(true,1,1); // when transposed, top header =1 and left header =1
+        reordered_table.setTransposed(true,1,1);
     }
 
-    // When user doesn't specify any columns
-    // => take all columns
-    // get the list of columns for 1st set
     if (!colSet1 && colSet1.dim() < 1)
     {
         getListOfColumns(colSet1, reordered_table);
     }
 
-    // get the list of columns for 2nd set
     if (!colSet2 && colSet2.dim() < 1)
     {
         getListOfColumns(colSet2, reordered_table);
     }
 
-    // setting one of the output result file to the request id
     sStr outputPath;
     _ctx.qproc().reqSetData(_ctx.outReqID(), "file://matrix.csv",0,0);
-    _ctx.qproc().reqDataPath(_ctx.outReqID(), "matrix.csv",&outputPath); // getting the path
+    _ctx.qproc().reqDataPath(_ctx.outReqID(), "matrix.csv",&outputPath);
 
-    sFile::remove(outputPath); // if for some reasons the file existed, remove it
+    sFile::remove(outputPath);
 
-    sFil finalMatrix(outputPath); // open the file to write
+    sFil finalMatrix(outputPath);
     finalMatrix.printf(",");
 
     sTxtTbl * matrixTbl = new sTxtTbl();
@@ -360,14 +321,12 @@ bool PearsonCorrCommand::compute(sTabular * tbl)
 
     sVec <idx> heatmapColSet, heatmapRowSet;
 
-    // preparing the dimension of the heatmap: width, height
-    char p [16], r [16];
-    sprintf (p, "0-%" DEC, colSet1.dim()-1);
-    sString::scanRangeSet(p,0,&(heatmapColSet),0ll,0ll,0ll);
-    sprintf (r, "0-%" DEC, colSet2.dim()-1);
-    sString::scanRangeSet(r,0,&(heatmapRowSet),0ll,0ll,0ll);
+    char p[24], r[24];
+    sprintf(p, "0-%" DEC, colSet1.dim() - 1);
+    sString::scanRangeSet(p, 0, &(heatmapColSet), 0ll, 0ll, 0ll);
+    sprintf(r, "0-%" DEC, colSet2.dim() - 1);
+    sString::scanRangeSet(r, 0, &(heatmapRowSet), 0ll, 0ll, 0ll);
 
-    // Setting another output result file to the request id
     outputPath.cut(0);
     _ctx.qproc().reqSetData(_ctx.outReqID(),"file://bestMatch.csv",0,0);
     _ctx.qproc().reqDataPath(_ctx.outReqID(), "bestMatch.csv",&outputPath);
@@ -378,25 +337,19 @@ bool PearsonCorrCommand::compute(sTabular * tbl)
     averages1.add(colSet1.dim());
     averages2.add(colSet2.dim());
 
-    sVec <matchInfo> allPairs; // use for sorting
+    sVec <matchInfo> allPairs;
 
 
 
-    // Looping through each column from 1st column set
-    // Goal: calculate the total and average values for each column
     sStr cellValue, tmp;
 
     calculateArrayOfAverage(reordered_table, colSet1, averages1, zeroForColSet1);
 
-    // Looping through each column from 2nd column set
-    // Goal: calculate the total and average values for each column
     for (idx c = 0; c < colSet2.dim(); c++)
     {
         idx col = colSet2[c];
         real total = 0;
         idx rCount=0;
-        // looping through each row from 1 column
-        // => calculate the total value
         for (idx r = 0; r < reordered_table.rows(); r++) {
             if(reordered_table.missing(r, col))
                 continue;
@@ -404,7 +357,6 @@ bool PearsonCorrCommand::compute(sTabular * tbl)
             reordered_table.printCell(cellValue,r,col);
             real val = getValue(cellValue);
             total += val;
-//            total += reordered_table.rval(r,col);
             ++rCount;
         }
         tmp.cut(0);
@@ -412,32 +364,23 @@ bool PearsonCorrCommand::compute(sTabular * tbl)
         if (c)finalMatrix.printf (",");
         finalMatrix.printf ("\"%s\"",tmp.ptr(0));
 
-        //averages2 [c] = total/tbl->rows();
         averages2 [c] = rCount ? total/rCount : 0 ;
     }
     finalMatrix.printf("\n");
 
-    /************
-     *  Actual calculate the Pearson correlation
-     */
 
     performPearsonCorrCalculation (reordered_table, colSet1, colSet2, averages1, averages2, allPairs, matrixTbl, finalMatrix, cellHasStdev);
 
 
-    /************
-     *  sorting absolute correlation value in Descending Order the table
-     */
     sVec <idx> indexes;
     indexes.add(allPairs.dim());
     sSort::sortSimpleCallback(mySortCallback, 0, allPairs.dim(), allPairs.ptr(), indexes.ptr());
-    //sSort::sort(vals.dim(), vals.ptr(), indexes.ptr());
 
     sFil bestMatch(outputPath);
-    //bestMatch.printf ("Measurement 1,Measurement 2,Correlation,Correlation Confidence\n"); // header
     if (cellHasStdev) {
-        bestMatch.printf ("Measurement 1,Measurement 2,Correlation,Slope,Intercept,Correlation Confidence\n"); // header
+        bestMatch.printf ("Measurement 1,Measurement 2,Correlation,Slope,Intercept,Correlation Confidence\n");
     }
-    else bestMatch.printf ("Measurement 1,Measurement 2,Correlation,Slope,Intercept\n"); // header
+    else bestMatch.printf ("Measurement 1,Measurement 2,Correlation,Slope,Intercept\n");
 
     for (idx i = 0; i < indexes.dim(); i++)
     {
@@ -451,9 +394,6 @@ bool PearsonCorrCommand::compute(sTabular * tbl)
         else bestMatch.printf ("\"%s\",\"%s\",%.3lf,%.3lf,%.3lf\n", col1.ptr(), col2.ptr(), info.value, info.slope, info.intercept);
     }
 
-    /************
-     *  Generating HeatMap
-     */
     sVec < sVec< real > > vals;
     sHeatmap::generateRangeMap( &vals, matrixTbl, &heatmapRowSet, &heatmapColSet, 0);
 

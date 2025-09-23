@@ -31,7 +31,7 @@
 function vjGraphPackingView( viewer )
 {
 
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
     this.delayedEventHandler=1;
 
 
@@ -45,8 +45,6 @@ function vjGraphPackingView( viewer )
 
         var tblArr=new vjTable(content, 0, vjTable_propCSV);
 
-       /* this.collapsedArr=...  collapsing logic here from tblArr
-        ... another logic determines the y1 coordinates*/
 
         this.collapsedArr= function(locuscols,startcols,endcols){
 
@@ -54,8 +52,6 @@ function vjGraphPackingView( viewer )
             for (var ir=0;ir<tblArr.length;ir++){
 
                 var locustag=tblArr.cols[locuscols];
-//                var start=tblArr.cols[startcols];
-//                var end=tblArr.cols[endcols];
 
                 if (!locusObject[locustag]){
                     locusObject[locustag]={x1: valuex1, x2: valuex2};
@@ -69,19 +65,9 @@ function vjGraphPackingView( viewer )
 
     this.refresh = function ()
     {
-        // determine which columns are to be shown
        this.graphData = new google.visualization.DataTable();
 
 
-     /*  use this.collapsedArr to contruct graphData: now we have your x1, x2 and y1 coordinates
-
-       remember: google colummns for us are  collapsedArr rows
-       google rows are your two values x1 and x2
-
-
-       ..................... */
-//        var fndCols=new Array();
-//        var colSeries=new Array();
 
 
         for ( var ic=0; ic< this.series.length; ++ic ) {
@@ -91,7 +77,6 @@ function vjGraphPackingView( viewer )
 
         for ( var ir=0; ir< this.tblArr.rows.length; ++ir ) {
 
-            //alerJ(ir, this.tblArr.rows[ir])
             this.graphData.addRows(1);
 
             var totSum=0;
@@ -128,12 +113,11 @@ function vjGraphPackingView( viewer )
 
         this.obj  = new google.visualization.AreaChart(this.div);
 
-    /*    .............................*/
 
         this.obj.draw(this.graphData, this.options);
 
         var funcname=vjObjEventGlobalFuncName("onSelectHandler",this.objCls);
-        window[funcname]= eval(vjObjEventGlobalFuncBody("onSelectHandler",this.objCls, this.delayedHandler )); // vjObjEvent(a[0],a[1]);
+        window[funcname]= eval(vjObjEventGlobalFuncBody("onSelectHandler",this.objCls, this.delayedHandler ));
         google.visualization.events.addListener( this.obj , 'select', eval(funcname));
 
         return;
@@ -165,4 +149,3 @@ function vjGraphPackingView( viewer )
 
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjGraphPackingView.js"

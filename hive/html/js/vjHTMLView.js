@@ -31,21 +31,29 @@
 function vjHTMLView ( viewer )
 {
 
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
 
-
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ HTML viewer constructors
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-
-    /*this.composerFunction=function( viewer , content)
+    this.composerFunction=function( viewer , content)
     {
-    }*/
+        if(this.composerFunctionCallback){
+            this.txt = this.composerFunctionCallback(content);
+        }else{
+            this.txt = content;
+        }
+        this.refresh();
+    };
 
 
+    this.refresh = function ()
+    {
+        if(typeof this.txt === 'string'){
+            this.div.innerHTML = this.txt;
+        } else if( this.txt instanceof HTMLElement ) {
+            this.div.innerHTML = '';
+            this.div.appendChild(this.txt);
+        }
+        
+    };
 
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjHTMLView.js"

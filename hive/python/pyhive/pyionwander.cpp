@@ -40,6 +40,7 @@ static PyObject * IonWander_new(PyTypeObject *type, PyObject *args, PyObject *kw
     self->wander = 0;
     self->ions = 0;
     self->result = 0;
+    self->bigD = 0;
     return (PyObject*)self;
 }
 
@@ -48,21 +49,23 @@ static void IonWander_dealloc(pyhive::IonWander *self)
     delete self->wander;
     Py_XDECREF(self->ions);
     Py_XDECREF(self->result);
-    self->ob_type->tp_free((PyObject*)self);
+    self->query.destroy();
+    delete self->bigD;
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int IonWander_init(pyhive::IonWander *self, PyObject * args, PyObject * kwds);
 
 static PyObject * IonWander_repr(pyhive::IonWander * self)
 {
-    sStr buf("<%s ", self->ob_type->tp_name);
+    sStr buf("<%s ", Py_TYPE(self)->tp_name);
     if( self->query.length() ) {
         buf.addString("\"");
         buf.addString(self->query.ptr(), self->query.length());
         buf.addString("\" ");
     }
     buf.printf("at %p>", self);
-    return PyString_FromString(buf.ptr());
+    return PyUnicode_FromString(buf.ptr());
 }
 
 static PyObject * IonWander_get_ions(pyhive::IonWander * self, void * closure)
@@ -74,7 +77,7 @@ static PyObject * IonWander_get_ions(pyhive::IonWander * self, void * closure)
 static PyObject * IonWander_get_query(pyhive::IonWander * self, void * closure)
 {
     if( self->query.ptr() ) {
-        return PyString_FromString(self->query.ptr());
+        return PyUnicode_FromString(self->query.ptr());
     } else {
         Py_RETURN_NONE;
     }
@@ -109,12 +112,15 @@ static PyObject * IonWander_set_search_template_variable(pyhive::IonWander * sel
 static PyObject * IonWander_reset_result_buf(pyhive::IonWander * self, PyObject * args, PyObject * kwds)
 {
     self->wander->resetResultBuf();
+    self->wander->bigDicCumulator->empty();
     Py_RETURN_TRUE;
 }
 
 static PyObject * IonWander_traverse(pyhive::IonWander * self, PyObject * args, PyObject * kwds)
 {
     self->wander->traverse();
+    self->wander->traverseViewBigDic2D();
+    self->wander->bigDicCumulator->empty();
     Py_RETURN_TRUE;
 }
 
@@ -144,27 +150,26 @@ static PyMethodDef TaxIon_methods[] = {
 };
 
 PyTypeObject IonWanderType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.IonWander",        // tp_name
-    sizeof(pyhive::IonWander), // tp_basicsize
-    0,                         // tp_itemsize
-    (destructor)IonWander_dealloc, // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    (reprfunc)IonWander_repr,  // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    0,                         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.IonWander",
+    sizeof(pyhive::IonWander),
+    0,
+    (destructor)IonWander_dealloc,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)IonWander_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     "ION Wander low-level query interface\n\n"\
     "Initialized from a pyhive.Ion (or list of ions) and query string:\n"\
     "    >>> tax_ion = pyhive.TaxIon()\n"\
@@ -182,24 +187,24 @@ PyTypeObject IonWanderType = {
     "    >>> print(wander.result)\n"\
     "    9606,Homo sapiens\n"\
     "    9605,Homo\n\n"\
-    "Constructor will raise `ValueError` if query string or ION handle is invalid.\n",   // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    TaxIon_methods,            // tp_methods
-    0,                         // tp_members
-    IonWander_getsetters,      // tp_getset
-    0,                         // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    (initproc)IonWander_init,  // tp_init
-    0,                         // tp_alloc
-    IonWander_new,             // tp_new
+    "Constructor will raise `ValueError` if query string or ION handle is invalid.\n",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    TaxIon_methods,
+    0,
+    IonWander_getsetters,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (initproc)IonWander_init,
+    0,
+    IonWander_new,
 };
 
 static int IonWander_init(pyhive::IonWander *self, PyObject * args, PyObject * kwds)
@@ -257,13 +262,13 @@ static int IonWander_init(pyhive::IonWander *self, PyObject * args, PyObject * k
 
     self->result = pyhive::Mex::create();
     wander->pTraverseBuf = &self->result->str;
+    wander->bigDicCumulator = self->bigD = new sDic <sMex::Pos>;
 
     self->wander = wander;
 
     return 0;
 }
 
-//static
 bool pyhive::IonWander::typeinit(PyObject * mod)
 {
     if( PyType_Ready(&IonWanderType) < 0 ) {

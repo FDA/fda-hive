@@ -41,7 +41,7 @@ namespace sviolin
             sStr bioalSourceNames;
             struct Bioal{
                 sBioal* bioal;
-                bool selfManaged; // need to delete
+                bool selfManaged;
                 idx ofsFileName;
             };
 
@@ -86,4 +86,4 @@ namespace sviolin
 
 }
 
-#endif // sHiveSeq_hpp
+#endif 

@@ -28,19 +28,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*
- *  Copyright (c) 2005 Dr. Vahan Simonyan and Dr. Raja Mazumder.
- * This software is protected by U.S. Copyright Law and International
- * Treaties. Unauthorized use, duplication, reverse engineering, any
- * form of redistribution, use in part or as a whole, other than by
- * prior, express, written and signed agreement is subject to penalties.
- * If you have received this file in error, please notify copyright
- * holder and destroy this and any other copies. All rights reserved.
- */
 
 if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
 javaScriptEngine.include("js/vjTaxonomyView.js");
-//javaScriptEngine.include("d3js/sunburst_hierarchy.js");
 
 google.load("visualization", "1", {packages:["corechart"]});
 
@@ -95,44 +85,42 @@ vjHO.register('svc-dna-screening').Constructor=function ()
     this.idNulldsName="default";
     this.viewers.length=0;
     this.defaultShowNode = 50;
-//    if(this.params.node.showInFullView)    this.defaultShowNode = 150;
 
     this.urlSet ={
             'taxTreeBrower' : {
-                active_url:"static://",
+                active_url:"static:
                 isSeries:true,
                 title:'Retrieving data for taxTreeBower',
                 objs:"whatever"
                 },
             'referenceSet' : {
-                //active_url:"http://taxTree2.cgi?whatToPrint=taxid|path|allname|num|min|max|mean|stddev|intval&cnt="+this.defaultShowNode+"&cmd=ncbiTaxBrowseCurrent&rankfilters=no rank,species,phylum,family,order,genus,class,genera,kingdom&screenId=0",//no rank was deleted
-                active_url:"http://dna.cgi?cnt="+this.defaultShowNode+"&cmd=ionncbiTax&screenId=0",//no rank was deleted
+                active_url:"http:
                 isSeries:true,
                 title:'Retrieving data for referenceSet',
                 objs:"screenId"
                 },
             'blastNTset': {
-                active_url:"http://dna.cgi?cnt="+this.defaultShowNode+"&cmd=ionncbiTax&percentage=1&screenType=dna-alignx_screenResult.csv&screenId=0",
+                active_url:"http:
                 isSeries:true,
                 title:'Retrieving data for blastNTset',
                 objs:"screenId"
                 },
             'blastNTdownloadGI': {
-                active_url:"http://dna.cgi?cnt="+this.defaultShowNode+"&cmd=ionncbiTax&screenType=dna-alignx_acclist.csv&ginumber=1&screenId=0",
+                active_url:"http:
                 isSeries:true,
                 title:'Retrieving GI data',
                 objs:"screenId"
             },
             'taxDetails': {
                 title:'Retrieving data for taxDetails',
-                active_url:"static://"
+                active_url:"static:
             },
             'shannonEntropy': {
                 title:'Retrieving data for Shannon Entropy graph',
-                active_url:"static://"
+                active_url:"static:
             },
             'dsTaxonomyViewerSpec': {
-                active_url: "static://type_id,name,title,type,parent,role,is_key_fg,is_readonly_fg,is_optional_fg,is_multi_fg,is_hidden_fg,is_brief_fg,is_summary_fg,order,default_value,constraint,constraint_data,description\n"
+                active_url: "static:
                     +"taxonomy,name_list,Names,list,,,0,1,0,0,0,0,0,,,,,\n"
                     +"taxonomy,taxName,Tax-name,string,name_list,,0,1,1,1,0,0,0,,,,,\n"
                     +"taxonomy,taxid,Taxonomy ID,integer,,,0,1,0,0,0,0,0,,,,,\n"
@@ -146,7 +134,7 @@ vjHO.register('svc-dna-screening').Constructor=function ()
             'HelpInfo': {
                 doNotChangeMyUrl:true,
                 title:'Retrieving data for HelpInfo',
-                active_url:"http://help/hlp.page.view.taxonomy.html"
+                active_url:"http:
             },
            
     };
@@ -156,7 +144,6 @@ vjHO.register('svc-dna-screening').Constructor=function ()
         this.load(dvORtab,id, geometry, formName);
 
 
-//        alert("second create");
     };
 
     this.load = function(dvORtab, id, geometry,formName)
@@ -170,7 +157,7 @@ vjHO.register('svc-dna-screening').Constructor=function ()
         return ;
     };
 
-    this.realload = function(parameters, content )//(dvORtab, id, geometry,formName)
+    this.realload = function(parameters, content )
     {
 
         dvORtab=parameters.dvORtab;
@@ -194,7 +181,7 @@ vjHO.register('svc-dna-screening').Constructor=function ()
         this.viewersToAdd=[];
         this.loaded=true;
 
-        vjDS.add("loading Fake Data for pie Chart","dsShannonChart","http://?cmd=objFile&filename=dna-alignx_screenShannon.csv&ids="+id+"&raw=1&bust=1412200888504");
+        vjDS.add("loading Fake Data for pie Chart","dsShannonChart","http:
         
         var shannonChart = new vjGoogleGraphView({
             data: "dsShannonChart",
@@ -210,9 +197,7 @@ vjHO.register('svc-dna-screening').Constructor=function ()
                      {name: 'kingdom'},
                    ],
             options: { title:'Shannon Entropy Timeline',
-                //legend: 'none',
                 lineWidth: 4,
-//                lineDashStyle: [4,1],
                 lineDashStyle: [2,2,20,2,20,2],
                 focusTarget:'category', 
                 width: 600, 
@@ -221,16 +206,6 @@ vjHO.register('svc-dna-screening').Constructor=function ()
                 hAxis: {title: 'Iteration', gridlines: {number: 5}, minValue:0 },
                 
             },
-//               cols:[{ name: 'leaf', order:1, title: 'Leaf', hidden: false }
-//               ,{ name: 'species', order:2,  title: 'Species', hidden: false }
-//               ,{ name: 'genus', order:3, title: 'Genus', hidden: false }
-//               ,{ name: 'family', order:4, title: 'Family', hidden: false }
-//               ,{ name: 'order', order:5, title: 'Order', hidden: false }
-//               ,{ name: 'class', order:6, title: 'Class', hidden: false }
-//               ,{ name: 'phylum', order:7, title: 'Phylum', hidden: false }
-//               ,{ name: 'kingdom', order:8, title: 'Kingdom', hidden: false }
-//               ,{ name: 'weighted_sum', hidden: true}
-//               ]
         });
 
         this.formNames='';
@@ -256,7 +231,6 @@ vjHO.register('svc-dna-screening').Constructor=function ()
         else if(this.node.whichTab==1){
             this.addviewer('blastPanel,blastNTset,blastList,blastTreeText', new vjTaxonomicControl ({
                 data: 'blastNTset',
-//                downloadGIdata: this.makeDS("blastNTdownloadGI").name,
                 icon:'img-algo/ncbi-blast.jpeg',
                 updateURL:id,
                 callbackFun :this.taxonomyElementSelected,
@@ -285,7 +259,6 @@ vjHO.register('svc-dna-screening').Constructor=function ()
                 data:'taxTreeBrower',
                 icon:'tree',
                 rows: [
-                       //{ name: 'search', align: 'right', type: 'search', isSubmitable: true, url: '' }]
                        { name: 'search', isRgxpControl: true, rgxpOff: true, align: 'right', type: ' search', isSubmitable: true, title: 'Search', description: 'Search someting', url: '' },
                         { name: 'pager', icon: 'page', title: 'per page', description: 'page up/down or show selected number of objects in the control', type: 'pager', counters: [20,50, 100, 1000, 'all'], align: 'left' },
                         { name: 'searchon', showTitle: true, icon:'next',path:'/Search On', title: 'Search On', align: 'right', order: '5', description: 'Search on the following fields' },
@@ -295,7 +268,7 @@ vjHO.register('svc-dna-screening').Constructor=function ()
                        { name: 'searchName', path:'/Search On/searchName',title: 'name', type: 'checkbox', isSubmitable: true, value: false, align: 'left', order: '6', description: 'Search the Taxnonmy Tree by speicies name' }]
 
                 ,updateURL:id,
-                cmdUpdateURL : "http://dna.cgi?cmd=ionncbiTax&cnt=50",
+                cmdUpdateURL : "http:
                 taxTreeOnly:true,
                 callbackFun :this.taxonomyElementSelected,
                 taxTreeSelected: "function:vjObjFunc('taxonomyElementSelected','" + this.objCls + "')",
@@ -323,16 +296,14 @@ vjHO.register('svc-dna-screening').Constructor=function ()
 
         this.constructed=true;
         
-        //this.viewers['sunburstPanel'].data=['sunburst_test'];
 
         var tb;
-        if(this.dvs[0].tabs){ //alert("start of construct");
+        if(this.dvs[0].tabs){
             var v2add;
 
             if(this.node.whichTab==1) {
                 v2add=[this.viewers['blastPanel'],this.viewers['blastNTset'],this.viewers['blastList'],this.viewers['blastTreeText']];
 
-//                v2add=[this.viewers['sunburstPanel'],this.viewers['blastPanel'],this.viewers['blastNTset'],this.viewers['blastList'],this.viewers['blastTreeText']];
                 
                 if(this.dvs.length==1)
                     v2add.push(this.viewers['taxDetailViewer']);
@@ -347,18 +318,17 @@ vjHO.register('svc-dna-screening').Constructor=function ()
             if(this.mode=='mobileview') {
                  v2add=[this.viewers['blastPanel'],this.viewers['blastTreeText']];
                  if(this.dvs.length==1)
-                //     v2add.push(this.viewers['taxDetailViewer']);
                  tb=this.dvs[0].addTab("taxonomy NT","img/scope.png",v2add);
                  tb.viewtoggles=-1;
             }
-            else if(this.node.whichTab==0){ // if(this.node.whichTab&02){
+            else if(this.node.whichTab==0){
                 v2add=[this.viewers['refPanel'],this.viewers['referenceSet'],this.viewers['referenceList'],this.viewers['referenceTreeText']];
                 if(this.dvs.length==1)
                     v2add.push(this.viewers['taxDetailViewer']);
                 tb=this.dvs[0].addTab("taxonomy HIVE","bee",v2add);
                 tb.viewtoggles=-1;
             }
-            else if(this.node.whichTab==2){ // if(this.node.whichTab&02){
+            else if(this.node.whichTab==2){
                 v2add=[this.viewers['TaxPanel'],this.viewers['TaxSet'],this.viewers['TaxList'],this.viewers['TaxTreeText']];
                 if(this.dvs.length==1)
                     v2add.push(this.viewers['taxDetailViewer']);
@@ -408,9 +378,9 @@ vjHO.register('svc-dna-screening').Constructor=function ()
     {
         if(!node.taxid) node = viewer;
         var hdr = "id,name,path,value\n";
-        var newUrl="static://";
+        var newUrl="static:
         if(node.taxid){
-            newUrl = "http://dna.cgi?taxid="+node.taxid+"&depth=1&cmd=ionTaxInfo";
+            newUrl = "http:
         }
 
         vjDS[this.viewers['taxDetailViewer'].data[1]].reload(newUrl, true);

@@ -57,7 +57,7 @@ const char * sVarSet::printPropUrl(sStr & dst, idx col_id, idx col_name, idx col
     return dst.ptr(start);
 }
 
-idx sVarSet::reorderRows(idx * new_order, idx irow_start/* = 0 */, idx cnt/* = sIdxMax */, bool extract /* = false */)
+idx sVarSet::reorderRows(idx * new_order, idx irow_start, idx cnt, bool extract)
 {
     if( irow_start < 0 || irow_start > rows ) {
         return 0;

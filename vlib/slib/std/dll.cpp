@@ -39,13 +39,13 @@ sDll::Proc sDll::loadProc (const char * dll, const char * proc)
     
     if( !phDll) { 
         phDll=dynaLibs.set(dll);
-        if( !phDll) return 0; // get a cell in dictionary for this dll handle 
+        if( !phDll) return 0;
         *phDll=0;
     }
     if( !*phDll ) {
-        if( (*phDll = dllopen(dll))==0 ){ // try the name as it comes 
-            sFilePath dlnam(dll,"%%pathx" sDll_FlnmExtension);// then try fully qualified name 
-            *phDll = dllopen(dlnam); // load this library 
+        if( (*phDll = dllopen(dll))==0 ){
+            sFilePath dlnam(dll,"%%pathx" sDll_FlnmExtension);
+            *phDll = dllopen(dlnam);
         } 
         if( !*phDll)return 0; 
     }

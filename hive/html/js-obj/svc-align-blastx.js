@@ -34,16 +34,13 @@ if (!javaScriptEngine)
 vjHO.register('svc-align-blastx').Constructor = function() {
 
     if (this.objCls)
-        return; // stupid chrome loads from both cached file and the one coming
-                // from server.
-    //var _that=this.inheritType('svc-align');
+        return;
     this.typeName = "svc-align-blastx";
     
     this.objCls = this.typeName + Math.random();
     vjObj.register(this.objCls, this);
-    // two public functions which must be supported
     this.fullview = function(node, dv) {
-        this.load(dv, node); // node.id
+        this.load(dv, node);
         if (this.onFullviewLoadCallback) {
             funcLink(this.onFullviewLoadCallback, this);
         }
@@ -87,16 +84,16 @@ vjHO.register('svc-align-blastx').Constructor = function() {
 
     this.urlSet = {
         'dsDownloadType' : {
-            active_url : "static://",
+            active_url : "static:
             title : "Loading output file list"
         },
         'dsArchive' : {
-            active_url : "static://",
+            active_url : "static:
             title : "Loading output file list"
         },
         'help' : {
-            active_url : "http://help/hlp.view.results.alignment.html",
-            inactive_url : "http://help/hlp.view.results.alignment.html",
+            active_url : "http:
+            inactive_url : "http:
             doNotChangeMyUrl : true,
             title : "Infrastructure: Creating help"
         }
@@ -107,7 +104,6 @@ vjHO.register('svc-align-blastx').Constructor = function() {
         if (!this.loaded || !this.current_dvORtab)
             return;
         this.constructed = true;
-        // var t_viewersArr=[];
 
         if (this.mode == 'mobileview') {
           
@@ -148,23 +144,20 @@ vjHO.register('svc-align-blastx').Constructor = function() {
             this.current_dvORtab = dvORtab.obj;
 
             this.dvname = this.current_dvORtab.name;
-         //   this.dvinfo = this.current_dvORtab[1].name;
 
             var outputType = algoProcess.getValue("output_fmt");
-            // Check which type of files should be retrieved depending on the user settings.
             if (outputType=="blast_out") {
-               this.urlSet['dsDownloadType'].active_url = "http://?cmd=propget&ids=" + this.loadedID + "&files=All_Blast_Output.{zip}&mode=csv";
+               this.urlSet['dsDownloadType'].active_url = "http:
             } else if (outputType=="tsv") {
-                this.urlSet['dsDownloadType'].active_url = "http://?cmd=propget&ids=" + this.loadedID + "&files=*blast*.{tsv}&mode=csv";
+                this.urlSet['dsDownloadType'].active_url = "http:
             } else {
-                this.urlSet['dsDownloadType'].active_url = "http://?cmd=propget&ids=" + this.loadedID + "&files=*.{blast_out,tsv}&mode=csv";
+                this.urlSet['dsDownloadType'].active_url = "http:
             }
             
             this.addviewer('downloadList', 
                     new vjTableView({
                         data: "dsDownloadType"
                                ,formObject: document.forms["form-process"]
-                               //,selectCallback: ingestSomethingLikeThat
                                ,cols:[
                                       {name:"archive file", url: "function:vjObjFunc('ingestSomethingLikeThat','"+ this.objCls + "')"}
                                       ,{name:"results files"}
@@ -195,8 +188,7 @@ vjHO.register('svc-align-blastx').Constructor = function() {
     this.ingestSomethingLikeThat = function (table,row,col){
         if (table.ingestedRow.indexOf(row.irow) !=-1) return;
         var url = "?cmd=objFile&arch=1&ids=" + this.loadedID + "&filename=" + row.cols[0] + "&arch_dstname="+ row.cols[0]+"&backend=1";
-        //alert("ingesting ..." + url)
-        this.getDS("dsArchive").reload("qpbg_http://" +url,true);
+        this.getDS("dsArchive").reload("qpbg_http:
         alert ("Your selected item is being ingested. You can monitor the progress from within data loading tab");
         row.download = "<img src='img/done.gif' width=12 height=12 />";
         table.ingestedRow.push(row.irow);
@@ -206,7 +198,7 @@ vjHO.register('svc-align-blastx').Constructor = function() {
 
 
     this.downloadResultsFile = function(table,row,col){
-        var url = "http://?cmd=objFile&ids=" + this.loadedID + "&filename=" + row.cols[0];
+        var url = "http:
         this.getDS("dsArchive").reload(url,true,"download");
     }
 

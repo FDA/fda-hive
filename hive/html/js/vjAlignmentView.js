@@ -28,11 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*********************
- *
- *      VIEWS
- *
- **********************/
 
 
 
@@ -42,7 +37,8 @@ function vjAlignmentGenericPanelView(viewer)
     this.iconSize=24;
     this.icons={expand:null};
     this.LastIndexCol=0;
-//    this.showTitles=true;
+    this.downloadfastaname="downloadfasta";
+    this.downloadreadsname="downloadreads";
         this.rows = verarr(this.rows)
             .concat(
                     [
@@ -76,7 +72,7 @@ function vjAlignmentGenericPanelView(viewer)
                                 url : "javascript:var url='$(dataurl)';if(url.indexOf('?cmd')==-1)alert('nothing to download'); else funcLink(urlExchangeParameter(url,'down','1'))"
                             },
                             {
-                                name : 'downloadfasta',
+                                name : this.downloadfastaname,
                                 title : 'Fasta',
                                 icon : 'download',
                                 showTitle : true,
@@ -105,7 +101,7 @@ function vjAlignmentGenericPanelView(viewer)
                                 url : "javascript:var url='$(dataurl)';if(url.indexOf('?cmd')==-1)alert('nothing to download'); else funcLink(urlExchangeParameter(urlExchangeParameter(urlExchangeParameter(urlExchangeParameter(url,'queryAsFasta','1'),'start','-'),'cnt','-'),'down','1'))"
                             },
                             {
-                                name : 'downloadreads',
+                                name : this.downloadreadsname,
                                 title : 'Reads',
                                 icon : 'download',
                                 showTitle : true,
@@ -195,7 +191,7 @@ function vjAlignmentGenericPanelView(viewer)
                             },
                             {
                                 name : 'alTouch',
-                                path : '/alHigh/touching',
+                                path : '/alHigh/alTouch',
                                 title : 'Show alignments touching specified position',
                                 type : 'checkbox',
                                 isSubmitable : true,
@@ -352,7 +348,7 @@ function vjAlignmentView(viewer)
         { name: "Element #", hidden: true },
         { name: "Direction", hidden: true },
         { name: "#", hidden: true },
-        // { name: "Sequence", maxTxtLen : 32 , hidden: true },
+         { name: "Sequence", maxTxtLen : 32 ,type:'pre', hidden: false},
         { name: "Alignment", type: 'alignment', isNmatchCol: false },
         { name: new RegExp(/Position.*/), hidden: true },
         { name: new RegExp(/Motif.*/), hidden: true}
@@ -364,7 +360,7 @@ function vjAlignmentView(viewer)
                     "if(docLocValue('printTailsOnly', 0, vjDS[params.data[0]].url)==2) params.rowSpan=1; else params.rowSpan=3;";
     this.matchColor='#FF9900';
     this.maxTxtLen=4096;
-
+    
     vjTableView.call(this, viewer);
 }
 
@@ -432,13 +428,10 @@ function vjAlignmentMultipleStackView(viewer)
     this.dataTypeAppliesToHeaders=true;
     this.cols=verarr(this.cols).concat([
             { name: new RegExp(/.*/), type: 'alignment', hidden: true, isNmatchCol: true }
-//           ,{ name: new RegExp(/\S/), hidden: false, isNmatchCol: true  }
-//           ,{ name: 'Element #', hidden: false ,order:0}
            ,{ name: 'Alignment', isNmatchCol: false, hidden: false ,order:3}
            ,{ name: 'Subject$', hidden: false, order:1 }
            ,{ name: 'End', hidden: false,order:4 }
            ,{ name: 'Start', hidden: false,order:2 }
-//           ,{ col: 4, isNmatchCol: false}
            ]);
     this.maxTxtLen=4096;
 
@@ -449,6 +442,8 @@ function vjAlignmentMultipleStackView(viewer)
 function vjAlignmentStackMultiplePanelView(viewer)
 {
     vjAlignmentGenericPanelView.call(this, viewer);
+    var that = this;
+    this.rows.forEach(function(node){if(node.name==that.downloadfastaname || node.name==that.downloadreadsname)node.hidden=true;});
     this.excludedDataRefresh.push(2);
 }
 
@@ -604,10 +599,6 @@ function vjAlignmentHistogramControl(viewer)
         width : this.width ? this.width : 700,
         height : this.height ? this.height : 300,
         changeHeight: false,
-        /*chartArea : {
-            height : '95%',
-            width : '95%'
-        },*/
         vAxis:{title:'count'},
         hAxis:{title:'length'},
         legend : 'bottom',
@@ -621,7 +612,6 @@ function vjAlignmentHistogramControl(viewer)
     };
     viewer.logGraph=true;
     viewer.series = [ {
-        //label : true,
         name : 'position'
     },{
         name : 'Unaligned Reads'
@@ -631,15 +621,6 @@ function vjAlignmentHistogramControl(viewer)
         name : 'Alignments'
     } ];
     viewer.type = 'area';
-/*
- *   {
-        name : 'All Reads'
-    } , {
-        name : 'Left Incomplete Alignments'
-    } , {
-        name : 'Right Incomplete Alignments'
-    }
- */
     return vjGoogleGraphControl.call(this, viewer);
 }
 
@@ -688,11 +669,6 @@ function vjAlignmentDownloadsView(viewer)
 }
 
 
-/*********************
- *
- *      CONTROLS
- *
- **********************/
 
 function vjAlignmentControl(viewer)
 {
@@ -859,7 +835,7 @@ function vjAlignmentHitListControl(viewer){
         data: this.data,
         formObject: this.formObject,
         width:this.width,
-        checkable: viewer.checkable, //  ? true:false,
+        checkable: viewer.checkable,
         selectCallback:this.selectCallback,
         checkCallback:this.checkCallback,
         dbClickCallback: this.dbClickCallback
@@ -873,7 +849,8 @@ function retrieve_additionalInfo(panel,row,node){
     var url = "?cmd=tblqry-new&extendAnnot=1&cnt=50&objs=" + this.loadedID;
     var isChange = 0;
     var profilerIDButton = panel.tree.findByPath("/ionObjs/profilerID");
-    if (profilerIDButton && profilerIDButton.profilerID && profilerIDButton.value) {
+    var profilerCheck = ( profilerIDButton && profilerIDButton.profilerID && profilerIDButton.value) ? true : false;
+    if (profilerCheck) {
         url=urlExchangeParameter(url,"profilerID",profilerIDButton.profilerID);
         isChange =1;
     }
@@ -882,7 +859,10 @@ function retrieve_additionalInfo(panel,row,node){
         isChange =1;
     }
     if (isChange) {
-        linkSelf(url,true);
+        if (profilerCheck && (algoProcess.getValue("generateIon")==undefined || algoProcess.getValue("generateIon")!="1")) {
+            alertI("This current computation did not generate the annotation for the profiler.\nPlease rerun the computation with the flag \"Generate annotation file\" on to include profiler information !");
+        }
+        else linkSelf(url,true);
     }
 }
 
@@ -912,7 +892,7 @@ function vjAlignmentHitListControlMobile(viewer){
         formObject: this.formObject,
         width:this.width,
         columnToDisplay:viewer.columnToDisplay,
-        checkable: viewer.checkable, //  ? true:false,
+        checkable: viewer.checkable,
         selectCallback:this.selectCallback,
         checkCallback:this.checkCallback
     });
@@ -1053,4 +1033,3 @@ function vjAlignmentSaturationControl(viewer){
     return viewers;
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjAlignmentView.js"

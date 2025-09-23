@@ -40,14 +40,8 @@ class DnaProfXProc : public sQPrideProc {
 
 idx DnaProfXProc::OnExecute(idx req)
 {
-    if (!isLastInGroup()){ //if multiple requests are submitted for profiler, only one has to be processed
-        reqProgress(0, 100, 100);
-        reqSetStatus(req, eQPReqStatus_Done);
-        return 0;
-    }
-
     const char * algorithm = formValue("profSelector");
-    std::auto_ptr<DnaProfX> profx;
+    std::unique_ptr<DnaProfX> profx;
 
     if( algorithm && strcmp(algorithm, "svc-profx-samtools") == 0 ) {
         profx.reset(new DnaProfXsamtools());
@@ -63,22 +57,14 @@ idx DnaProfXProc::OnExecute(idx req)
         reqSetInfo(req,eQPInfoLevel_Error,"Unknown algorithm %s", algorithm ? algorithm : "unspecified");
         profx->qp->reqSetInfo(profx->qp->reqId, profx->qp->eQPInfoLevel_Error, "request %" DEC " was submitted with unknown algorithm %s", profx->qp->reqId, algorithm ? algorithm : "unspecified");
         reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0; // error
+        return 0;
     }
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ initialize the parameters
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     profx->qp = this;
-    //profx->scoreFilter = formIValue("scoreFilter", 0);
     sIO log((idx) 0, (sIO::callbackFun) ::printf);
 
-    // Determine the temporary directory assigned by the system
     cfgStr(&(profx->workDir), 0, "qm.tempDirectory");
 
-    // Determine the system type (i.e. Linux)
     cfgStr(&profx->resourceRoot, 0, "qm.resourceRoot");
 
     profx->workDir.printf("profx-%" DEC, reqId);;
@@ -95,13 +81,7 @@ idx DnaProfXProc::OnExecute(idx req)
         return 0;
     }
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ load the alignment object
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     const char * alignerID=formValue("parent_proc_ids");
-    //sUsrObj profile(*sQPride::user, alignerID);
 
     sStr errMsg;
     idx retn = profx->PrepareData(*user, alignerID , (const char*)(profx->workDir.ptr()), errMsg);
@@ -113,11 +93,6 @@ idx DnaProfXProc::OnExecute(idx req)
     reqProgress(1, 10, 100);
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ profiling
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     if(log)logOut(eQPLogType_Info,"RUNNING alignment: %s\n",log.ptr());
     sStr outputFile;
@@ -141,7 +116,7 @@ idx DnaProfXProc::OnExecute(idx req)
 #endif
 
     reqProgress(outputFile.length(), 100, 100);
-    reqSetStatus(req, eQPReqStatus_Done);// change the status
+    reqSetStatus(req, eQPReqStatus_Done);
     return 0;
 }
 
@@ -151,7 +126,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     DnaProfXProc backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-profx",argv[0]));
     return (int)backend.run(argc,argv);

@@ -50,21 +50,13 @@ namespace slib {
 
                 virtual const char * getName() = 0;
 
-                // override these in child classes to change operation behavior
-                //! does this command have compute() that is non-trivial and needs to be reported in overall request progress?
                 virtual bool hasProgress() { return true; }
-                //! does this command produce an output table in compute()?
                 virtual bool computesOutTable() { return true; }
-                //! does compute() require an input table where strings are reinterpreted as numbers?
                 virtual bool needsInTableReinterpret() { return false; }
-                //! does _out_table wrap in_table, so that in_table cannot be simply deleted after compute()?
                 virtual bool wrapsInTable() { return false; }
 
-                //! define in child class: parse and check parameters from tqs operation and argument, return true on success
                 virtual bool init(const char * op_name, sVariant * tqs_arg) = 0;
-                //! define in child class: run the computation, return true on success
                 virtual bool compute(sTabular * in_table) = 0;
-                //! define in child class if needed: clean up after compute(), whether or not it succeeded
                 virtual void postcompute() {}
 
                 sTabular * getOutTable() { return _out_table; }

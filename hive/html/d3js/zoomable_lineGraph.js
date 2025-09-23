@@ -27,40 +27,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-
-/*
- var line = new vjD3JS_lineGraph({
-      data: ["dsTest","dsTest1","dsTest2"],
-      line_set: [
-             {"dsTest": {x:"column_name", y: "column_name", hidden: false, labels:["column name","column name"]}},
-             {"dsTest1": {x:"column_name", y: "column_name", hidden: false, labels:["column name","column name"]}}
-      ],
-      //column_set: [  // optinal
-      ],
-      csvTbl:false,
-    //colors:["blue","green"]      
-      graphOptions: {
-          x: {title: "column header"},
-          y: {title: "column header"}
-        //zoomStatic: true / false  
-       // title: " graph title"
-          //showGrid: true
-      }
-     // ,height:450
-     // ,width: 800
-  });
-
-*/
-
-
 function vjD3JS_lineGraph ( viewer )
 {
     loadCSS("d3js/css/zoomable_lineGraph.css");
-    vjD3CategoryView.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjD3CategoryView.call(this,viewer);
     var divElement;
     var that = this;
     
-    //this.margin={top: 40, right: 10, bottom: 20, left: 10};
     if (this.margin == undefined || !this.margin) {this.margin = 100;}
     if (this.showTicks == undefined) {this.showTicks=0;}
     if (this.showLabels == undefined) {this.showLabels=0;}
@@ -79,7 +52,6 @@ function vjD3JS_lineGraph ( viewer )
             if (!this.width) this.width=800;
         }
 
-    // graphOptions
         if (!this.graphOptions || this.graphOptions == undefined) this.graphOptions = {};
         if (!this.graphOptions.x || this.graphOptions.x == undefined) this.graphOptions.x = {};
         if (!this.graphOptions.x.title || this.graphOptions.x.title == undefined) this.graphOptions.x.title = "";
@@ -91,7 +63,6 @@ function vjD3JS_lineGraph ( viewer )
         
         if (this.graphOptions.zoomStatic == undefined) this.graphOptions.zoomStatic= true;
         
-    // Default
         var xCol = this.columnDefinition.x, yCol = this.columnDefinition.y;
         if (!this.line_set || this.line_set == undefined) {
             this.line_set = [];
@@ -102,7 +73,6 @@ function vjD3JS_lineGraph ( viewer )
                 this.line_set[dsname] = {x : xCol , y: yCol , hidden: false, labels: [xCol,yCol]};
             }
         } 
-    // 
         var bandPos = [-1, -1];
         var pos;
         var xdomain, ydomain;
@@ -122,14 +92,12 @@ function vjD3JS_lineGraph ( viewer )
 
         var xMin=Number.MAX_VALUE, xMax=Number.MIN_VALUE, yMin=Number.MAX_VALUE, yMax=Number.MIN_VALUE;
         
-        // preparing data for line graph
         var d1 = [];
-        this.data_info=[]; // info about the datasource show or hide
+        this.data_info=[];
         this.className_info ={};
         if (!data.length){
             xMin=0, xMax=10, yMin=0, yMax=10;
         }
-        // data return is always the first data source in the list
         var first_dataSource_x = this.line_set[this.data[0]].x || xCol;
         var first_dataSource_y = this.line_set[this.data[0]].y || yCol;
         this.data_info.push({
@@ -151,16 +119,14 @@ function vjD3JS_lineGraph ( viewer )
         data.push(d1);
         
         var line_DS_list = Object.keys(this.line_set);
-        line_DS_list.splice(line_DS_list.indexOf(this.data[0]),1); // remove the first item in this.data
+        line_DS_list.splice(line_DS_list.indexOf(this.data[0]),1);
         
         for (var is=0; is< line_DS_list.length; ++is) {
              d1=[];
              var dsname = line_DS_list[is];
              var hidden = ( this.line_set[dsname].hidden!=undefined ) ? this.line_set[dsname].hidden : true;
              this.data_info.push({hidden: hidden, dsname: dsname});
-             /*if (this.line_set[dsname].hidden) {
-                 continue;
-             }*/
+             
                   var idxFromDataList = this.data.indexOf(dsname);
              var line_data = this.csvParserFunction(this.getData(idxFromDataList).data);
              var x_col = this.line_set[dsname].x;
@@ -191,14 +157,12 @@ function vjD3JS_lineGraph ( viewer )
               }
         };
         
-     // append the svg area
         svg.attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom);
         
        var gg = svg.append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        // setting up scale function for x axis 
         var x = d3.scale.linear()
           .range([0, width])
           .domain([xMin, xdomain]);
@@ -207,7 +171,6 @@ function vjD3JS_lineGraph ( viewer )
           .scale(x)
           .orient("bottom");
         
-        // setting up scale function for y axis 
         var y = d3.scale.linear()
           .range([height, 0])
           .domain([yMin, ydomain]);
@@ -216,7 +179,6 @@ function vjD3JS_lineGraph ( viewer )
           .scale(y)
           .orient("left");
 
-        // show or hide Grid in graph area
         if (this.graphOptions.showGrid) {
             xAxis.innerTickSize(-height)
                 .outerTickSize(0);
@@ -224,9 +186,7 @@ function vjD3JS_lineGraph ( viewer )
                  .outerTickSize(0);
         }
 
-        // define function to draw line
         var line = d3.svg.line()
-          //.interpolate("basis")
           .x(function(d) {
             return x(d[0]);
           })
@@ -234,7 +194,6 @@ function vjD3JS_lineGraph ( viewer )
             return y(d[1]);
           });
       
-       // call tooltip function
        var tip_id= "d3-tip-lineGraph";
        if (this.graphId) {
            tip_id+= "_" + this.graphId;
@@ -275,7 +234,6 @@ function vjD3JS_lineGraph ( viewer )
           .attr("y", 0)
           .attr("class", band_class);
 
-    // Draw x axis
        gg.append("g")
           .attr("class", "x axis")
           .call(xAxis)
@@ -287,8 +245,7 @@ function vjD3JS_lineGraph ( viewer )
             .attr("y", margin.bottom/2)
             .attr("dy", ".71em")
             .style("text-anchor", "middle")
-            .text( this.graphOptions.x.title);  // "X AXIS TITLE"
-            //.text( "ZXXXX");  // "X AXIS TITLE"
+            .text( this.graphOptions.x.title);
           
        if (this.graphOptions.title) 
        {       
@@ -302,7 +259,6 @@ function vjD3JS_lineGraph ( viewer )
            .text(this.graphOptions.title);
        }
 
-     // draw Y axis
         gg.append("g")
           .attr("class", "y axis")
           .call(yAxis)
@@ -312,7 +268,7 @@ function vjD3JS_lineGraph ( viewer )
             .attr("y", 0 - (margin.left *0.8))
             .attr("dy", ".71em")
             .style("text-anchor", "middle")
-            .text(this.graphOptions.y.title); // 
+            .text(this.graphOptions.y.title);
 
         gg.append("clipPath")
           .attr("id", "clip")
@@ -320,15 +276,15 @@ function vjD3JS_lineGraph ( viewer )
           .attr("width", width)
           .attr("height", height);
 
-        for (idx in data) {
-             var _color = this.data_info[idx].hidden ? "None" : colors[idx];
-             var className = "line " + this.data_info[idx].dsname;
-             this.className_info[this.data_info[idx].dsname] = {type: {line:{className: className}}};
-             this.className_info[this.data_info[idx].dsname]["type"]["line"]["attribute"] = "stroke";
-             this.className_info[this.data_info[idx].dsname]["type"]["line"]["stroke"] = colors[idx];
-             this.className_info[this.data_info[idx].dsname]["type"]["line"]["default"] = "None";
+        for (var iidx=0; iidx < data.length; ++iidx) {
+             var _color = this.data_info[iidx].hidden ? "None" : colors[iidx];
+             var className = "line " + this.data_info[iidx].dsname;
+             this.className_info[this.data_info[iidx].dsname] = {type: {line:{className: className}}};
+             this.className_info[this.data_info[iidx].dsname]["type"]["line"]["attribute"] = "stroke";
+             this.className_info[this.data_info[iidx].dsname]["type"]["line"]["stroke"] = colors[iidx];
+             this.className_info[this.data_info[iidx].dsname]["type"]["line"]["default"] = "None";
               gg.append("path")
-                .datum(data[idx])
+                .datum(data[iidx])
                 .attr("class", className)
                 .attr("clip-path", "url(#clip)")
                 .style("stroke", _color)
@@ -342,7 +298,6 @@ function vjD3JS_lineGraph ( viewer )
           .attr("class", "zoomOverlay")
           .call(drag);
 
-        // zoomout box
         var zoomout = gg.append("g");
         zoomout.append("rect")
           .attr("class", "zoomOut")
@@ -370,7 +325,6 @@ function vjD3JS_lineGraph ( viewer )
           .attr("y", height + (margin.bottom - 5))
           .text("Zoom Out");
 
-        // zoom in box
         var zoomIn = gg.append("g");
             zoomIn.append("rect")
                 .attr("class", "zoomOut")
@@ -395,7 +349,6 @@ function vjD3JS_lineGraph ( viewer )
             .attr("y", height + (margin.bottom - 5))
             .text("Zoom In");
 
-      //  zoom();
 
         drag.on("dragend", function() {
           var pos = d3.mouse(this);
@@ -436,10 +389,9 @@ function vjD3JS_lineGraph ( viewer )
           zoom();
         });
 
-    // Add the scatterplot
       
         
-      for (idx in data) {
+      for (var idx=0; idx <data.length; ++idx) {
           var size = this.data_info[idx].hidden ? 0 : 3;
           var className = "dot " + this.data_info[idx].dsname; 
           this.className_info[this.data_info[idx].dsname]["type"]["dot"]={className: className};
@@ -468,13 +420,9 @@ function vjD3JS_lineGraph ( viewer )
       }
       
       
-       // add histogram if exist => assuming the second data source is used for histogram
        
        if (this.data.length && this.data.length >1 && this.column_set){
-           //!this.column_set[this.data[1]].hidden
-           // get list of datasource for column
            var column_DS_list = Object.keys(this.column_set);
-           // loop in through column list
            for (var ic=0; ic< column_DS_list.length; ++ic) {
                var dsname = column_DS_list[ic];
                var idxFromDataList = this.data.indexOf(dsname);
@@ -483,7 +431,6 @@ function vjD3JS_lineGraph ( viewer )
                zoomArea.histoYCol = this.column_set[this.data[idxFromDataList]].y;
                zoomArea.histoLabels = this.column_set[this.data[idxFromDataList]].labels;
                var size = this.column_set[this.data[idxFromDataList]].hidden ? 0 : 1.8;
-            // Add the histogram
                var className = "histo " + dsname;
                this.className_info[dsname]={type: {histo: {className: className}}};
                this.className_info[dsname]["type"]["histo"]["attribute"]="width";
@@ -527,15 +474,12 @@ function vjD3JS_lineGraph ( viewer )
                     .append("text")
                         .attr("class",peak_className)
                         .attr("x",function(d){
-                            //return  (d[zoomArea.histoXCol]<xMin || d[zoomArea.histoXCol]>xMax) ? -1000 : (x(d[zoomArea.histoXCol]) - x(d[zoomArea.histoXCol])*0.06);
                             return  (d[zoomArea.histoXCol]<xMin || d[zoomArea.histoXCol]>xMax) ? -1000 : (x(d[zoomArea.histoXCol]));
                         })
                         .attr("y",function(d,i) {
                             if (i%2!=0) {
-                                //return y(d[zoomArea.histoYCol]) - y(d[zoomArea.histoYCol])*0.1;
                                 return y(d[zoomArea.histoYCol]);
                             }
-                            //return y(d[zoomArea.histoYCol]) - y(d[zoomArea.histoYCol])*0.05;
                             return y(d[zoomArea.histoYCol]);
                         })
                         .attr("font-size",function(d){
@@ -545,14 +489,14 @@ function vjD3JS_lineGraph ( viewer )
                         .attr("font-weight","bold")
                         .attr("fill","red")
                         .attr("text-decoration","underline")
-                        .attr("transform",function (d,i){  // note: have to translate to where the text is getting drawn for any transformation
+                        .attr("transform",function (d,i){
                             var trans = "rotate(270 ";
                             if (zoomArea.graph_config.that.graphOptions.peakInfo && zoomArea.graph_config.that.graphOptions.peakInfo.horizontal) {
                                 trans="translate(-"+ ( ( d[zoomArea.histoLabels[0]]).length *1.2)  +",-10)";
                             }
                             else {
                                 trans+= "" + x(d[zoomArea.histoXCol]) + "," + (y(d[zoomArea.histoYCol]))+ ")";
-                                trans+= "translate("+ ((d[zoomArea.histoLabels[0]]).length + (d[zoomArea.histoLabels[0]]).length * 0.1) +",0)" ;  // (d[zoomArea.histoLabels[0]]).length}
+                                trans+= "translate("+ ((d[zoomArea.histoLabels[0]]).length + (d[zoomArea.histoLabels[0]]).length * 0.1) +",0)" ;
                             }
                             return trans;
                         })
@@ -577,22 +521,17 @@ function vjD3JS_lineGraph ( viewer )
             attr("transform", "translate(" + (pos[0]) + "," + bandPos[1] + ")");
           }
           if (pos[1] < bandPos[1]) {
-            //d3.select(".band").
             selector.attr("transform", "translate(" + (pos[0]) + "," + pos[1] + ")");
           }
           if (pos[1] < bandPos[1] && pos[0] > bandPos[0]) {
-            //d3.select(".band").
             selector.attr("transform", "translate(" + (bandPos[0]) + "," + pos[1] + ")");
           }
 
-          //set new position of band when user initializes drag
           if (bandPos[0] == -1) {
             bandPos = pos;
-            //d3.select(".band").attr("transform", "translate(" + bandPos[0] + "," + bandPos[1] + ")");
             selector.attr("transform", "translate(" + bandPos[0] + "," + bandPos[1] + ")");
           }
 
-          //d3.select(".band").transition().duration(1)
           selector.transition().duration(1)
             .attr("width", Math.abs(bandPos[0] - pos[0]))
             .attr("height", Math.abs(bandPos[1] - pos[1]));
@@ -600,7 +539,6 @@ function vjD3JS_lineGraph ( viewer )
         
         var tmpXmin, tmpXmax; 
         function zoom() {
-          //recalculate domains
 
           if (zoomArea.x1 > zoomArea.x2) {
             x.domain([zoomArea.x2, zoomArea.x1]);
@@ -618,7 +556,6 @@ function vjD3JS_lineGraph ( viewer )
             y.domain([zoomArea.y1, zoomArea.y2]);
           }
 
-          //update axis and redraw lines
           
           if (zoomArea.graph_config.that.graphOptions.zoomStatic) {
               var t = svg.transition().duration(750);
@@ -628,11 +565,9 @@ function vjD3JS_lineGraph ( viewer )
               t.selectAll(".line").attr("d", line);
               t.selectAll(".dot").attr("cx", function(d){
                                       return ( d[0]>=tmpXmin && d[0]<=tmpXmax) ? x(d[0]) : -100 ;
-                                      //return x(d[0]);
                                   })
                                  .attr("cy",function(d){
                                      return ( d[1]>=yMin && d[1]<=yMax) ? y(d[1]) : -100 ;
-                                   //return y(d[1]);}
                                  });
               t.selectAll(".histo").attr("x", function(d){
                                               var retVal = ( d[zoomArea.histoXCol]>=tmpXmin && d[zoomArea.histoXCol]<=tmpXmax) ? x(d[zoomArea.histoXCol]) : -100 ;
@@ -647,7 +582,6 @@ function vjD3JS_lineGraph ( viewer )
                                    });
           }
           else {
-              // Dynamically zoom ==> refresh the url with new min max value on X
             var line_data = Object.keys(zoomArea.graph_config.that.line_set);
             for (var il=0; il < line_data.length; ++il) {
                 var col = 0;
@@ -680,7 +614,6 @@ function vjD3JS_lineGraph ( viewer )
                                    });
             }
             else {
-                 // Dynamically zoom out ==> refresh the url without min max Value
                 var line_data = Object.keys(zoomArea.graph_config.that.line_set);
                 for (var il=0; il < line_data.length; ++il) {
                     var cur_ds = vjDS[line_data[il]]; 

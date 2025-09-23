@@ -39,7 +39,6 @@ namespace slib {
     {
 
         public:
-            // constructor
             static sCmdLine::exeCommand cmdExes[];
             sQPrideClient(const char * defline00 = 0, const char * service = "qm")
                 : sQPride(defline00, service)
@@ -57,7 +56,7 @@ namespace slib {
 
         public:
             virtual void printf(const char * formatDescription, ...) __attribute__((format(printf, 2, 3)));
-            virtual idx CmdForm(const char * cmd, sVar * pForm); // to execute a single command based on a form : this implementation is used by QPrideCGI
+            virtual idx CmdForm(const char * cmd, sVar * pForm);
 
             static idx reqProgressFSStatic(void * param, idx items)
             {
@@ -75,5 +74,4 @@ namespace slib {
     };
 }
 
-#endif // _QPrideClient_qLib_hpp
-
+#endif 

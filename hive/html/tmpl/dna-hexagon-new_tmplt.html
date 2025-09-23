@@ -1,6 +1,3 @@
-<!--
- $Id: dna-hexagon-new_tmplt.html 9104 2015-05-07 22:29:30Z kate $
--->
 <script>
     $.loadLayoutManager();
     $.loadCSS('css/look_and_feel/velvet.css');
@@ -9,17 +6,16 @@
     $.loadCSS('css/tabs.css');
 </script>
 
-<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" id="jumpNewPage">
-    <a href = "#">
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;visibility:hidden;"
+    id="jumpNewPage">
+    <a href="#">
         Click to go to old Aligner webpage
     </a>
 </div>
 
-<div>
-<script> 
+<script>
     document.write(algoViewHTMLSetUp(false));
 </script>
-</div>
 
 <script src="js-obj-new/svc-alignment.js"></script>
 <script src="js-obj-new/svc-alignment-multiple.js"></script>
@@ -27,285 +23,388 @@
 
 
 <script type="application/javascript">
-setLocationTitle("Hexagon Aligner: HIVE");
+    setLocationTitle("Hexagon Aligner: HIVE");
 
-google.load("visualization", "1", { packages : [ "corechart" ] });
+    google.load("visualization", "1", { packages: ["corechart"] });
 
-var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
-var process_svc="svc-align-hexagon2";
-var process_qpsvc="dna-hexagon";
-var thisQuery=docLocValue("query");
-
-var algoProcess=new valgoProcess(thisProcessID,  process_qpsvc, process_svc, "svc-align-hexagon");
-
-algoProcess.visibleParameters=["name", /* "batch_svc", */ "alignSelector","query","subject",  "minMatchLen", "keepAllMatches", "mismatches"];
-algoProcess.submitButtonName="ALIGN";
-algoProcess.docLocsToBorrow=["id", "query"];
-
-/*Can do this if need to special customize different areas (can add with this)
-vjDS.add("", "dsHelpAdvanced", "http://help/hlp.obj.svc-align-hexagon.advanced.html");
-algoProcess.tabsToAdd = [{whereToAdd: "right", whatToAdd: {
-    tabId: 'advHelp',
-    tabName: "Advanced Parameters Help",
-    inactive: true,
-    position: {posId: 'layout_inputs', top:'0', bottom:'50%', left:'20%', right:'75%'},
-    viewerConstructor: {
-        dataViewer: 'vjHelpView',
-        dataViewerOptions: {
-            data: "dsHelpAdvanced"
+    var valgoToolbarDoneList = [
+        {
+            type: '',
+            align: 'right',
+            order: '2',
+            name: 'tools',
+            title: 'Profiling Tools',
+            icon: 'img-algo/dna-tools.gif',
+            path: '/profiler',
+            url: '',
+            description: 'Reference based assembly and profiling analysis'
+        },
+        {
+            type: '',
+            align: 'right',
+            order: '2',
+            name: 'profiler',
+            title: 'Sequence Profiling',
+            icon: 'img-algo/svc-profiler.gif',
+            path: '/profiler/profiler',
+            url: '?cmd=dna-heptagon&parent_proc_ids=$(::thisProcessID)',
+            description: 'Proceed to sequence profiling analysis: basecalling, SNP computations, etc...'
+        },
+        {
+            type: '',
+            align: 'right',
+            order: '3',
+            name: 'recombinant',
+            title: 'Reference Recombination',
+            icon: 'img-algo/svc-recomb.gif',
+            path: '/profiler/recombinant',
+            url: '?cmd=dna-recomb&parent_proc_ids=$(::thisProcessID)',
+            description: 'Proceed to sequence recombination discovery analysis'
+        },
+        {
+            type: '',
+            align: 'right',
+            order: '3.5',
+            name: 'diprofiler',
+            title: 'DVG Profiling',
+            icon: 'img-algo/svc-diprofiler.gif',
+            path: '/profiler/diprofiler',
+            url: '?cmd=dna-diprofiler&parent_proc_ids=$(::thisProcessID)',
+            description: 'Proceed to Defective Viral Genomes detection'
+        },
+        {
+            type: '',
+            align: 'right',
+            order: '4',
+            name: 'populator',
+            title: 'Population Analysis',
+            icon: 'img-algo/hive-population.gif',
+            path: '/profiler/population',
+            url: '?cmd=dna-popul&parent_proc_ids=$(::thisProcessID)',
+            description: 'Proceed to population analysis computations'
+        },
+        // {
+        //     type: '',
+        //     align: 'right',
+        //     order: '5',
+        //     name: 'samtools',
+        //     title: 'Samtools SNP Calling',
+        //     icon: 'img-algo/svc-profx-samtools.gif',
+        //     path: '/profiler/profx',
+        //     url: '?cmd=dna-profiler&cmdMode=profx&svc-profx-samtools=1&parent_proc_ids=$(::thisProcessID)',
+        //     description: 'Proceed to samtools sequence profiling analysis: basecalling, SNP computations, etc...'
+        // },
+        {
+            type: '',
+            align: 'right',
+            order: '6',
+            name: 'dnatargetQC',
+            title: 'Targeted Alignment QC',
+            icon: 'img-algo/svc-diprofiler.gif',
+            path: '/profiler/diprofiler',
+            url: '?cmd=dna-targetQC&parent_proc_ids=$(::thisProcessID)',
+            description: 'Proceed to Targeted Alignment QC'
         }
-    },
-    autoOpen: ["preSubmit"]
-}}]; */
+    ]
 
-algoProcess.help.push({name:"Advanced Parameters Help", url:"http://help/hlp.obj.svc-align-hexagon.advanced.html"});
+    var thisProcessID = docLocValue("id"); if (!thisProcessID) thisProcessID = 0;
+    var process_svc = "svc-align-hexagon2";
+    var process_qpsvc = "dna-hexagon";
+    var thisQuery = docLocValue("query");
 
-valgoToolbarDoneList= //<!-- type,align,order,name,title,icon,path,url,description // -->
-    ",right,2,tools,Profiling Tools,img-algo/dna-tools.gif,/profiler,,Reference based assembly and profiling analysis\n"+
-    ",right,2,profiler,Sequence Profiling,img-algo/svc-profiler.gif,/profiler/profiler,?cmd=dna-heptagon-new&parent_proc_ids=$(::thisProcessID),Proceed to sequence profiling analysis: basecalling, SNP computations, etc...\n"+
-    ",right,3,recombinant,Reference Recombination,img-algo/svc-recomb.gif,/profiler/recombinant,?cmd=dna-recomb&parent_proc_ids=$(::thisProcessID),'Proceed to sequence recombination discovery analysis'\n"+
-    ",right,4,populator,Population Analysis,img-algo/hive-population.gif,/profiler/population,?cmd=dna-popul&parent_proc_ids=$(::thisProcessID),'Proceed to population analysis computations'\n"+
-    ",right,5,samtools,Samtools SNP Calling,img-algo/svc-profx-samtools.gif,/profiler/profx,?cmd=dna-profiler&cmdMode=profx&svc-profx-samtools=1&parent_proc_ids=$(::thisProcessID),'Proceed to samtools sequence profiling analysis: basecalling, SNP computations, etc...'\n"+
-    ",right,6,cuffdiff,Cuffdiff Differential Expression,img-algo/svc-profx-cuffdiff.gif,/profiler/cuffdiff,?cmd=dna-profiler&cmdMode=profx&svc-profx-cuffdiff=1&parent_proc_ids=$(::thisProcessID),'Proceed to differential expression analysis'\n"
-    ;
+    var algoProcess = new valgoProcess(thisProcessID, process_qpsvc, process_svc, "svc-align-hexagon");
 
-algoProcess.cmdModeLst.alignSelector=["hexagon","bowtie2","bowtie","blast","bwa","tophat","magic","clustal","mafft","blat"] ;
-algoProcess.initialPresets = {};        
+    algoProcess.visibleParameters = ["name", "alignSelector", "query", "query_paired", "subject", "minMatch", "keepAllMatches", "mismatches"];
+    algoProcess.submitButtonName = "ALIGN";
+    algoProcess.docLocsToBorrow = ["id", "query"];
 
-var isMultipleAlignment=false;
-var isBatch=false;
-var algoTitle = "Hexagon Aligner";
+    algoProcess.help.push({ name: "Advanced Parameters Help", url: "http://help/hlp.obj.svc-align-hexagon.advanced.html" });
 
-if(algoProcess.isMode("hexagon")) {
-    algoProcess.initialPresets.alignSelector="svc-align-hexagon";
-} else if(algoProcess.isMode("test")) {
-    algoProcess.initialPresets.alignSelector="svc-align-hexagon";
-    algoProcess.qpsvc="dna-hexagon~test";
-} else if(algoProcess.isMode("blast")) {
-    //variables generic for any BLAST program
-    algoProcess.qpSvc="dna-alignx";
-    algoProcess.initialPresets.slice=4000;
-    
-    if (algoProcess.isMode("blastx")) {
-        algoProcess.initialPresets.alignSelector="svc-align-blastx";
-        algoProcess.svcRecViewer = "svc-align-blastx";
-        algoProcess.initialPresets.cmdLine="-task blastx-fast -num_threads 1";
-        algoProcess.initialPresets.slice="2000";
-        algoProcess.initialPresets.minMatchLen="15";
-        algoProcess.svcProcType="svc-align-blastx2";
-    } else {
-        algoProcess.initialPresets.alignSelector="svc-align-blast";
-        algoProcess.svcProcType="svc-align-blast2";
-        algoProcess.svcRecViewer = "svc-align-blast";
+    algoProcess.cmdModeLst.alignSelector = ["hexagon", "bowtie2", "bowtie", "blast", "blastx", "tblastx", "bwa", "tophat", "magic", "hisat2", "clustal", "mafft", "blat"];
+    algoProcess.initialPresets = {};
+
+    var isMultipleAlignment = false;
+    var isBatch = false;
+    var algoTitle = "Hexagon Aligner v2.1";
+
+    if (algoProcess.isMode("hexagon") && algoProcess.cmdMode) {
+        algoProcess.visibleParameters.push("maxMissQueryPercent");
+    } else if (algoProcess.isMode("hexagon") || !algoProcess.cmdMode) {
+        algoProcess.initialPresets.alignSelector = "svc-align-hexagon";
+    } else if (algoProcess.isMode("blast")) {
+        algoTitle = "Blast Aligner";
+        algoProcess.qpSvc = "dna-alignx-blast";
+        algoProcess.visibleParameters = ["name", "alignSelector", "query", "subject", "minMatchLen", "keepAllMatches"];
+        if (algoProcess.isMode("blastx")) {
+            algoProcess.svcProcType = "svc-align-blastx2";
+            algoProcess.qpSvc = "dna-alignx-blastx";
+            algoProcess.svcRecViewer = "svc-align-blastx";
+        }
+        else {
+            algoProcess.svcProcType = "svc-align-blast2";
+            algoProcess.svcRecViewer = "svc-align-blast";
+            algoProcess.qpSvc = "dna-alignx-blast";
+        }
+    } else if (algoProcess.isMode("tblastx")) {
+        algoTitle = "TBlastX Aligner";
+        algoProcess.visibleParameters = ["name", "alignSelector", "query", "subject", "evalueFilter", "output_fmt", "maxHitsPerRead", "wordSize", "max_intron_length"];
+        algoProcess.svcProcType = "svc-align-blastx-2";
+        algoProcess.svcRecViewer = "svc-align-tblastx";
+        algoProcess.qpSvc = "dna-alignx-tblastx";
+    } else if (algoProcess.isMode("blat")) {
+        algoTitle = "Blat Aligner";
+        algoProcess.visibleParameters = ["name", "alignSelector", "query", "subject", "seedSize", "minMatchLen", "maxMissQueryPercent"];
+        algoProcess.svcProcType = "svc-align-blat-2";
+        algoProcess.svcRecViewer = "svc-align-blat";
+        algoProcess.qpSvc = "dna-alignx-blat";
+    } else if (algoProcess.isMode("bwa")) {
+        algoTitle = "BWA Aligner";
+        algoProcess.visibleParameters = ["name", "alignSelector", "query", "subject", "seedSize", "minMatchLen", "maxMissQueryPercent"];
+        algoProcess.svcRecViewer = "svc-align-bwa";
+        algoProcess.svcProcType = "svc-align-bwa2";
+        algoProcess.qpSvc = "dna-alignx-bwa";
+    } else if (algoProcess.isMode("bowtie2")) {
+        algoTitle = "Bowtie2 Aligner";
+        algoProcess.svcProcType = "svc-align-bowtie-2";
+        algoProcess.svcRecViewer = "svc-align-bowtie2";
+        algoProcess.qpSvc = "dna-alignx-bowtie2";
+    } else if (algoProcess.isMode("bowtie")) {
+        algoTitle = "Bowtie Aligner";
+        algoProcess.svcProcType = "svc-align-bowtie1";
+        algoProcess.svcRecViewer = "svc-align-bowtie";
+        algoProcess.qpSvc = "dna-alignx-bowtie";
+    } else if (algoProcess.isMode("tophat")) {
+        algoTitle = "Tophat Aligner";
+        algoProcess.svcProcType = "svc-align-tophat-2";
+        algoProcess.svcRecViewer = "svc-align-tophat";
+        algoProcess.qpSvc = "dna-alignx-tophat";
+        algoProcess.visibleParameters = ["name", "alignSelector", "query", "subject", "GTFfile", "minMatchLen", "keepAllMatches", "maxMissQueryPercent", "GTFfile"];
+        let hascuffdiff = false
+        let i
+        while (valgoToolbarDoneList[i] && !hascuffdiff) {
+            if (valgoToolbarDoneList[i].name === 'cuffdiff') hascuffdiff = true;
+            i++
+        }
+        if (!hascuffdiff) {
+            var tmp = [
+                {
+                    type: '',
+                    align: 'right',
+                    order: '6',
+                    name: 'cuffdiff',
+                    title: 'Cuffdiff Differential Expression',
+                    icon: 'img-algo/svc-profx-cuffdiff.gif',
+                    path: '/profiler/cuffdiff',
+                    url: '?cmd=dna-cuffDiff&parent_proc_ids=$(::thisProcessID)',
+                    description: 'Proceed to differential expression analysis'
+                }
+            ]
+            valgoToolbarDoneList.concat(tmp)
+        }
+    } else if (algoProcess.isMode("hisat2")) {
+        algoTitle = "HISAT2 Aligner";
+        algoProcess.svcProcType = "svc-align-hisat-2";
+        algoProcess.svcRecViewer = "svc-align-hisat2";
+        algoProcess.qpSvc = "dna-alignx-hisat";
+        algoProcess.visibleParameters = ["name", "alignSelector", "query", "query_paired", "subject", "gtf_params", "minMatch", "keepAllMatches", "maxMissQueryPercent"];
+    } else if (algoProcess.isMode("magic")) {
+        algoTitle = "Magic Aligner";
+        algoProcess.svcProcType = "svc-align-magic-2";
+        algoProcess.svcRecViewer = "svc-align-magic";
+        algoProcess.qpSvc = "dna-alignx-magic";
     }
-    
-    algoTitle = "Blast Aligner";
-} else if (algoProcess.isMode("tblastx")) {
-    // Remove the mismatches since tblastx doesn't suppor this parameter
-    algoProcess.visibleParameters=["name","alignSelector","query","subject","minMatchLen","keepAllMatches"];
-    
-    // Hide mismatches from the interface
-    algoProcess.initialPresets.alignSelector="svc-align-tblastx";
-    algoProcess.initialPresets.cmdLine="-num_threads 1";
-    algoProcess.svcProcType="svc-align-blastx2";
-    algoProcess.svcRecViewer = "svc-align-blastx";
-    
-    // Variables generic for any BLAST program
-    //algoProcess.qpsvc="dna-alignx";
-    algoProcess.qpSvc="dna-alignx";
-    algoProcess.initialPresets.slice="4000";
-    algoProcess.initialPresets.minMatchLen="15";
-    algoTitle = "TBlastX Aligner";
-} else if(algoProcess.isMode("blat")) {
-    algoProcess.initialPresets.alignSelector="svc-align-blat";
-    algoProcess.svcProcType="svc-align-blat2";
-    algoProcess.svcRecViewer = "svc-align-blat";
-    algoProcess.qpSvc="dna-alignx";
-    algoTitle = "Blat Aligner";
-} else if(algoProcess.isMode("bwa")) {
-    algoProcess.visibleParameters=["name","alignSelector","query","subject","seedSize", "minMatchLen"];
-    algoProcess.initialPresets.alignSelector="svc-align-bwa";
-    algoProcess.svcRecViewer = "svc-align-bwa";
-    algoProcess.svcProcType="svc-align-bwa2";
-    algoProcess.qpSvc="dna-alignx";
-    algoTitle = "BWA Aligner";
-} else if(algoProcess.isMode("bowtie2")) {
-    algoProcess.initialPresets.alignSelector="svc-align-bowtie2";
-    algoProcess.svcProcType="svc-align-bowtie2";
-    algoProcess.svcRecViewer = "svc-align-bowtie2";
-    algoProcess.qpSvc="dna-alignx";
-    algoTitle = "Bowtie2 Aligner";
-} else if(algoProcess.isMode("bowtie")) {
-    algoProcess.initialPresets.alignSelector="svc-align-bowtie";
-    algoProcess.svcProcType="svc-align-bowtie1";
-    algoProcess.svcRecViewer = "svc-align-bowtie";
-    algoProcess.qpSvc="dna-alignx";
-    algoTitle = "Bowtie Aligner";
-} else if(algoProcess.isMode("tophat")) {
-    algoProcess.initialPresets.alignSelector="svc-align-tophat";
-    algoProcess.svcProcType="svc-align-tophat2";
-    algoProcess.svcRecViewer = "svc-align-tophat";
-    algoProcess.qpSvc="dna-alignx";
-    algoProcess.visibleParameters=["name", "alignSelector","query","subject", "GTFfile","minMatchLen", "keepAllMatches", "maxMissQueryPercent","GTFfile"];
-    algoTitle = "Tophat Aligner";
-} else if(algoProcess.isMode("magic")) {
-    algoProcess.initialPresets.alignSelector="svc-align-magic";
-    algoProcess.svcProcType="svc-align-magic2";
-    algoProcess.svcRecViewer = "svc-align-magic";
-    algoProcess.qpSvc="dna-alignx";
-    algoTitle = "Magic Aligner";
-} else if(algoProcess.isMode("clustal")) {
-    algoProcess.initialPresets.alignSelector="svc-align-clustal";
-    algoProcess.svcProcType="svc-align-clustal2";
-    algoProcess.svcRecViewer = "svc-align-clustal";
-    algoProcess.qpSvc="dna-alignx";
-    algoProcess.field_visibility={query:'hidden'};
-    isMultipleAlignment=true;
-    algoTitle = "Clustal Aligner";
-} else if(algoProcess.isMode("mafft")) {
-    algoProcess.initialPresets.alignSelector="svc-align-mafft";
-    algoProcess.svcProcType="svc-align-mafft2";
-    algoProcess.qpSvc="dna-alignx";
-    isMultipleAlignment=true;
-    algoTitle = "MAFFT Aligner";
-    algoProcess.svcRecViewer = "svc-align-mafft";
-}
-
-if (algoProcess.isMode("batch") || algoProcess.isResultsMode("batch")) {
-    isBatch=true;
-}
-
-if(isMultipleAlignment) {
-    algoProcess.fields ={query:{is_hidden_fg:1}};
-    algoProcess.visibleParameters=["parsed","name", "alignSelector","subject"];
-
-}
- 
-algoProcess.initialPresets.name = ""; 
-if(algoProcess.isMode("virus")) {
-    algoProcess.help.push({name:"Viral Genome", url:"http://help/hlp.page.dna-hexagon.virus.html"});
-    algoProcess.visualImage="img-subject/viruses-original.jpg";
-
-    algoProcess.initialPresets.name+=" Virus";
-    algoProcess.initialPresets.seed=11;
-}
-else if(algoProcess.isMode("bacteria")) {
-    algoProcess.help.push({name:"Bacteria", url:"http://help/hlp.page.dna-hexagon.bacteria.html"});
-    algoProcess.visualImage="img-subject/bacteria.png";
-    
-    algoProcess.initialPresets.name+=" Bacteria";
-    algoProcess.initialPresets.seed=12;
-    
-    algoProcess.visibleParameters.push("searchRepeatsAndTrans");
-}
-else if(algoProcess.isMode("human")) {
-    algoProcess.help.push({name:"Human Subject", url:"http://help/hlp.page.dna-hexagon.HumanWGS.html"});
-    algoProcess.visualImage="img-subject/HumanWGS.jpg";
-    
-    algoProcess.initialPresets.name+=" Homo sapiens";
-    algoProcess.initialPresets.seed=14;
-    algoProcess.initialPresets.looseExtenderMismatchesPercent=15;
-    algoProcess.initialPresets.hashCompileStp=2;
-    algoProcess.initialPresets.maxMissQueryPercent=3;
-    algoProcess.initialPresets.maxHitsPerRead=50;
- 
-    if(algoProcess.isMode("wgs")) {
-       algoProcess.initialPresets.maxHashBin=50;
-    }     
-}
-else if(algoProcess.isMode("related")) {
-    algoProcess.visualImage="img-subject/viruses-original.jpg";
-
-    algoProcess.initialPresets.name+=" Distant Relative";
-    algoProcess.initialPresets.seed=8;
-    algoProcess.initialPresets.selfQueryPosJumpInNonPerfectAlignment=0;
-    algoProcess.initialPresets.maxExtensionGaps=2;
-    algoProcess.initialPresets.looseExtenderMismatchesPercent=23;
-    algoProcess.initialPresets.maxMissQueryPercent=20;
-    algoProcess.initialPresets.minMatchLen=36;
-}
-
-if(algoProcess.isMode("wgs")){
-    algoProcess.help.push({name:"Whole Genome Sequencing", url:"http://help/hlp.page.hive-hexagon.WGS.html", icon: "dna"});
-    
-    algoProcess.initialPresets.subject="query:alloftype(\"genome\",{taxonomy:\"human-genome\"})";
-    algoProcess.initialPresets.name+=" Whole Genome Sequencing";
-    algoProcess.initialPresets.alignmentEngine=0;
-    algoProcess.initialPresets.keepAllMatches=0;
-} if(algoProcess.isMode("exome")) {
-    algoProcess.help.push({name:"Exome", url:"http://help/hlp.page.dna-hexagon.exome.html"});
-     
-    algoProcess.initialPresets.name+=" Exome Sequencing";
-    algoProcess.initialPresets.subject="query:alloftype(\"genome\",{taxonomy:\"human-exome\"})";
-}  
-if(algoProcess.isMode("transcriptome")){
-    algoProcess.help.push({name:"Transcriptome", url:"http://help/hlp.page.dna-hexagon.transcriptome.html"});
-    
-    algoProcess.initialPresets.name=" Transcriptome Sequencing";
-    algoProcess.initialPresets.subject="query:alloftype(\"genome\",{taxonomy:\"human-transcriptome\"})";
-}
-
-algoProcess.inputLoaded = function (viewer, elem){
-    algoProcess.readFromDocLoc(["query","subject","referenceAnnot","keepAllMatches","doubleStagePerfect"]);
-    var qry = algoProcess.getValue("query");
-    var sub = algoProcess.getValue("subject");
-
-
-    var okToSubmit = isok(qry) && isok(sub) && algoProcess.modeActive;
-    if(isMultipleAlignment)
-        okToSubmit = isok(sub) && algoProcess.modeActive;
-    algoProcess.activateSubmitButton(okToSubmit);
-}
-
-algoProcess.inputChanged=function(viewer,elem)
-{
-    // toggle automatic naming capability based on current typed name
-    var isAllowNameChange = true;
-    if( elem.name.indexOf(".name")>0 ) {
-        isAllowNameChange = algoProcess.getValue("name") ? false : true;
+    else if (algoProcess.isMode("clustal")) {
+        algoTitle = "Clustal Aligner";
+        algoProcess.svcProcType = "svc-align-clustal-2";
+        algoProcess.svcRecViewer = "svc-align-clustal";
+        algoProcess.qpSvc = "dna-alignx-clustal";
+        algoProcess.field_visibility = { query: 'hidden' };
+        isMultipleAlignment = true;
+    }
+    else if (algoProcess.isMode("mafft")) {
+        algoTitle = "MAFFT Aligner";
+        algoProcess.svcProcType = "svc-align-mafft-2";
+        algoProcess.qpSvc = "dna-alignx-mafft";
+        isMultipleAlignment = true;
+        algoProcess.svcRecViewer = "svc-align-mafft";
     }
 
-    var qry=algoProcess.getValue("query", "join");
-    var sub=algoProcess.getValue("subject","join");
 
-    if( isAllowNameChange && (elem.name.indexOf(".subject")>0) || (elem.name.indexOf(".query")>0) ) {
-        if(isMultipleAlignment && isok(sub))
-            algoProcess.setValueList({name: "query:s=["+sub+"] as objlist; cnt=((int)s)-1; a=s[0].name; if(cnt>0){ a=cat( a,\" and \", cnt, \" more\");} return a;"});
-        else if( (isok(qry) && isok(sub)) ) {
-            algoProcess.setValueList({name: "query:q=["+qry+"] as objlist;s=["+sub+"] as objlist; cnt=((int)s)-1; a=q[0].name; if(cnt>0){ a=cat(a,\" and \", cnt, \" more\");}  return cat(a, \" versus \", s[0].name);"});
+    if (!(thisProcessID + "").indexOf("-") == 0) {
+        if (algoProcess.isMode("blast")) {
+            algoProcess.initialPresets.slice = 4000;
+            if (algoProcess.isMode("blastx")) {
+                algoProcess.initialPresets.alignSelector = "svc-align-blastx";
+                algoProcess.initialPresets.cmdLine = "-task blastx-fast -num_threads 1";
+                algoProcess.initialPresets.slice = "2000";
+            } else {
+                algoProcess.initialPresets.alignSelector = "svc-align-blast";
+            }
+        } else if (algoProcess.isMode("tblastx")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-tblastx";
+            algoProcess.initialPresets.cmdLine = "-num_threads 1";
+            algoProcess.initialPresets.slice = "4000";
+            algoProcess.initialPresets.minMatchLen = "15";
+        } else if (algoProcess.isMode("blat")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-blat";
+        } else if (algoProcess.isMode("bwa")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-bwa";
+        } else if (algoProcess.isMode("bowtie2")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-bowtie2";
+        } else if (algoProcess.isMode("bowtie")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-bowtie";
+        } else if (algoProcess.isMode("tophat")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-tophat";
+        } else if (algoProcess.isMode("hisat2")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-hisat2";
+        } else if (algoProcess.isMode("magic")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-magic";
+        } else if (algoProcess.isMode("clustal")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-clustal";
+        } else if (algoProcess.isMode("mafft")) {
+            algoProcess.initialPresets.alignSelector = "svc-align-mafft";
+        }
+
+        if (algoProcess.isMode("batch") || algoProcess.isResultsMode("batch")) {
+            isBatch = true;
+        }
+
+        if (isMultipleAlignment) {
+            algoProcess.fields = { query: { is_hidden_fg: 1 } };
+            algoProcess.visibleParameters = ["parsed", "name", "alignSelector", "subject"];
+
+        }
+
+        algoProcess.initialPresets.name = "";
+        if (algoProcess.isMode("virus")) {
+            algoProcess.help.push({ name: "Viral Genome", url: "http://help/hlp.page.dna-hexagon.virus.html" });
+            algoProcess.visualImage = "img-subject/viruses-original.jpg";
+
+            algoProcess.initialPresets.name += " Virus";
+            algoProcess.initialPresets.seed = 11;
+        }
+        else if (algoProcess.isMode("bacteria")) {
+            algoProcess.help.push({ name: "Bacteria", url: "http://help/hlp.page.dna-hexagon.bacteria.html" });
+            algoProcess.visualImage = "img-subject/bacteria.png";
+
+            algoProcess.initialPresets.name += " Bacteria";
+            algoProcess.initialPresets.seed = 12;
+
+            algoProcess.visibleParameters.push("searchRepeatsAndTrans");
+        }
+        else if (algoProcess.isMode("human")) {
+            algoProcess.help.push({ name: "Human Subject", url: "http://help/hlp.page.dna-hexagon.HumanWGS.html" });
+            algoProcess.visualImage = "img-subject/HumanWGS.jpg";
+
+            algoProcess.initialPresets.name += " Homo sapiens";
+            algoProcess.initialPresets.seed = 14;
+            algoProcess.initialPresets.looseExtenderMismatchesPercent = 15;
+            algoProcess.initialPresets.hashCompileStp = 2;
+            algoProcess.initialPresets.maxMissQueryPercent = 3;
+            algoProcess.initialPresets.maxHitsPerRead = 50;
+
+            if (algoProcess.isMode("wgs")) {
+                algoProcess.initialPresets.maxHashBin = 50;
+            }
+        }
+        else if (algoProcess.isMode("related")) {
+            algoProcess.visualImage = "img-subject/viruses-original.jpg";
+
+            algoProcess.initialPresets.name += " Distant Relative";
+            algoProcess.initialPresets.seed = 8;
+            algoProcess.initialPresets.selfQueryPosJumpInNonPerfectAlignment = 0;
+            algoProcess.initialPresets.maxExtensionGaps = 2;
+            algoProcess.initialPresets.looseExtenderMismatchesPercent = 23;
+            algoProcess.initialPresets.maxMissQueryPercent = 20;
+            algoProcess.initialPresets.minMatchLen = 36;
+        }
+
+        if (algoProcess.isMode("wgs")) {
+            algoProcess.help.push({ name: "Whole Genome Sequencing", url: "http://help/hlp.page.hive-hexagon.WGS.html", icon: "dna" });
+
+            algoProcess.initialPresets.subject = "query:alloftype(\"genome\",{taxonomy:\"human-genome\"})";
+            algoProcess.initialPresets.name += " Whole Genome Sequencing";
+            algoProcess.initialPresets.alignmentEngine = 0;
+            algoProcess.initialPresets.keepAllMatches = 0;
+        } if (algoProcess.isMode("exome")) {
+            algoProcess.help.push({ name: "Exome", url: "http://help/hlp.page.dna-hexagon.exome.html" });
+
+            algoProcess.initialPresets.name += " Exome Sequencing";
+            algoProcess.initialPresets.subject = "query:alloftype(\"genome\",{taxonomy:\"human-exome\"})";
+        }
+        if (algoProcess.isMode("transcriptome")) {
+            algoProcess.help.push({ name: "Transcriptome", url: "http://help/hlp.page.dna-hexagon.transcriptome.html" });
+
+            algoProcess.initialPresets.name = " Transcriptome Sequencing";
+            algoProcess.initialPresets.subject = "query:alloftype(\"genome\",{taxonomy:\"human-transcriptome\"})";
         }
     }
-    if( elem.name.indexOf(".referenceAnnot")>0) {
-        var annots=algoProcess.getValue("referenceAnnot","join");
-        algoProcess.setValueList({referenceAnnotTypes: "ajax:ionAnnotTypes&fromComputation=0&ionObjs="+annots, change: 'constraint' });        
-        
-    }
-    
-    algoProcess.inputLoaded(viewer, elem);
-}
 
-$(document).ready(function() 
-{
-    var topVal = $("#header").height() + 45;
-    $(".content").attr("style", "top: "+ topVal +"px; ");
-    
-    globalAlgo = $('#mainAlgoArea').algoview({
-        algoObj: algoProcess,
-        svcType: !isMultipleAlignment ? 'svc-align2' : 'svc-align-multiple2',
-        algoTitle: algoTitle
-    });
-    
-   $("#jumpNewPage").on("click", function (eventData){
-        var url = window.location.href;
-        setCookie("jumpNewPageHexagon", "false", 7);
-        
-        if (url.indexOf("&") >= 0)
-            linkURL("?cmd=dna-hexagon" + url.substring(url.indexOf("&")));
-        else
-            linkURL("?cmd=dna-hexagon");
-        
-        eventData.preventDefault();
-    });
-});
+    algoProcess.inputLoaded = function (viewer, elem) {
+        algoProcess.readFromDocLoc(["query", "subject", "referenceAnnot", "keepAllMatches", "doubleStagePerfect"]);
+        var qry = algoProcess.getValue("query");
+        var sub = algoProcess.getValue("subject");
+
+
+        var okToSubmit = isok(qry) && isok(sub) && algoProcess.modeActive;
+        if (isMultipleAlignment)
+            okToSubmit = isok(sub) && algoProcess.modeActive;
+        algoProcess.activateSubmitButton(okToSubmit);
+
+        if (thisProcessID && thisProcessID.indexOf("-") == 0)
+            $("[title='Alignment engine selector']").find("button").remove();
+    }
+
+    algoProcess.inputChanged = function (viewer, elem) {
+        // toggle automatic naming capability based on current typed name
+        var isAllowNameChange = true;
+        if (elem.name.indexOf(".name") > 0) {
+            isAllowNameChange = algoProcess.getValue("name") ? false : true;
+        }
+
+        var qry = algoProcess.getValue("query", "join");
+        var sub = algoProcess.getValue("subject", "join");
+
+        if (isAllowNameChange && (elem.name.indexOf(".subject") > 0) || (elem.name.indexOf(".query") > 0)) {
+            if (isMultipleAlignment && isok(sub)) {
+                let sub1 = '"' + sub.replace(/,/g, '","') + '"';
+                algoProcess.setValueList({ name: "query:s=[" + sub1 + "] as objlist; cnt=((int)s)-1; a=s[0].name; if(cnt>0){ a=cat( a,\" and \", cnt, \" more\");} return a;" });
+            } else if ((isok(qry) && isok(sub))) {
+                let sub1 = '"' + sub.replace(/,/g, '","') + '"';
+                let qry1 = '"' + qry.replace(/,/g, '","') + '"';
+                algoProcess.setValueList({ name: "query:q=[" + qry1 + "] as objlist;s=[" + sub1 + "] as objlist; cnt=((int)s)-1; a=q[0].name; if(cnt>0){ a=cat(a,\" and \", cnt, \" more\");}  return cat(a, \" versus \", s[0].name);" });
+            }
+        }
+        if (elem.name.indexOf(".referenceAnnot") > 0) {
+            var annots = algoProcess.getValue("referenceAnnot", "join");
+            algoProcess.setValueList({ referenceAnnotTypes: "ajax:ionAnnotTypes&fromComputation=0&ionObjs=" + annots, change: 'constraint' });
+
+        }
+
+        algoProcess.inputLoaded(viewer, elem);
+    }
+
+    gInitList += "hexagonInit();";
+    function hexagonInit() {
+        var topVal = $("#header").height() + 45;
+        //$(".content").attr("style", "top: "+ topVal +"px; ");
+
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: !isMultipleAlignment ? 'svc-align2' : 'svc-align-multiple2',
+            algoTitle: algoTitle
+        });
+
+        $("#jumpNewPage").on("click", function (eventData) {
+            var url = window.location.href;
+            setCookie("jumpNewPageHexagon", "false", 7);
+
+            if (url.indexOf("&") >= 0)
+                linkURL("?cmd=dna-hexagon" + url.substring(url.indexOf("&")));
+            else
+                linkURL("?cmd=dna-hexagon");
+
+            eventData.preventDefault();
+        });
+    };
 </script>
-

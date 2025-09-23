@@ -33,11 +33,10 @@
 
 #include <slib/std/cgi.hpp>
 #include <ulib/usr.hpp>
+#include <ulib/uquery.hpp>
 
 namespace slib {
-    namespace qlang {
-        class sUsrEngine;
-    };
+
     class sUsrCGI: public sCGI
     {
             typedef sCGI TParent;
@@ -56,18 +55,24 @@ namespace slib {
 
             virtual idx Cmd(const char * cmd);
             virtual bool OnCGIInit(void);
-            virtual qlang::sUsrEngine * queryEngineFactory(idx flags = 0);
+
+            virtual const char* selfURL(sStr& url);
 
             void logout(void);
             void login(void);
+            void SSO(void);
+            void loginInfo(void);
             void batch(void);
             void passwordReset(void);
+            void passwordEdit(void);
             void passwordChange(void);
             void userSet(bool show);
             void userReg(void);
             void userList(void);
+            void userInfo(void);
             void groupList(void);
             void groupAdd(void);
+            void file2(void);
             void file(void);
             void dropboxList(void);
             void dropboxLoad(void);
@@ -76,22 +81,22 @@ namespace slib {
             void userResendAccountActivate();
             void userAccountActivate();
             void userGroupActivate();
-            void userEmailAuth();
             void userForgot();
             void inactList();
             void userMgr();
-            void contact();
+            void sendmail();
 
             void typeTree(void);
             void objs();
             void objQry(sVariant * dst = 0, const char * qry_text = 0);
             void objDel(void);
             void objRemove(void);
-//            void objCopy(void);
-//            void objCut(void);
+            void objCount(void);
             void objMove(bool isCopy = false);
             void folderCreate(void);
             void propSpec(const char* type_name = 0, const char* view_name = 0, const char* props = 0);
+            void propSpec2(const char* type_name = 0, const char* view_name = 0, const char* props = 0);
+            void propSpec3(const char* types = 0);
             void propGet(sUsrObjRes * res = 0, const char* view_name = 0, const char* props = 0, sJSONPrinter * json_printer = 0);
             void propSet(sVar* form = 0);
             void propSet2(sVar* form = 0);
@@ -103,19 +108,42 @@ namespace slib {
             void permSet(void);
             void permCopy(void);
 
+            void timelogAddEntry(void);
 
             void ionObjList(void);
             void ionPropGet(void);
 
+            void genToken(void);
+            void loginToken(void);
+
+            void availableProjects(void);
+            void projectMembers(void);
+            void addToProject(void);
+            void removeFromProject(void);
+            
+            void moveCheck(void);
+            void moveToProject(void);
+            void moveToHome(void);
+            void CBERConnect(void);
+            void createProject(void);
+
+            virtual sUsrQueryEngine* queryEngineFactory(idx flags);
+
         public:
             sUsr m_User;
             udx m_apiVersion;
+        protected:
+            virtual bool resolveFile(const char * filename);
 
         private:
+
+            void loginCommon(const sUsr::ELoginResult eres, const char * email, const idx logCount);
+            bool loadAppPage(const char * app);
+
             sStr m_SID;
     };
 
 }
 ;
 
-#endif // sLib_qusql_h
+#endif 

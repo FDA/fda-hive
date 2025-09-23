@@ -43,19 +43,19 @@ BEGIN
     IF p_req IS NOT NULL AND p_req != 0 THEN
         IF p_isGrp THEN
             SELECT l.reqID, l.jobID, l.level, UNIX_TIMESTAMP(l.cdate), l.txt
-                FROM QPLog l JOIN QPGrp g USING (reqID) WHERE (g.grpID = p_req OR g.masterGrpId = p_req OR g.reqID = p_req) AND level >= p_level;
+                FROM QPLog l JOIN QPGrp g USING (reqID) WHERE (g.grpID = p_req OR g.masterGrpId = p_req OR g.reqID = p_req) AND level >= p_level ORDER BY l.cdate DESC;
             IF FOUND_ROWS() = 0 THEN
-                SELECT reqId, jobID, level, UNIX_TIMESTAMP(cdate), txt FROM QPLog WHERE reqID = p_req AND level >= p_level;
+                SELECT reqId, jobID, level, UNIX_TIMESTAMP(cdate), txt FROM QPLog WHERE reqID = p_req AND level >= p_level ORDER BY cdate DESC;
             END IF;
         ELSE
             IF p_job IS NOT NULL AND p_job != 0 THEN
-                SELECT reqID, jobID, level, UNIX_TIMESTAMP(cdate), txt FROM QPLog WHERE reqID = p_req AND jobID = p_job AND level >= p_level;
+                SELECT reqID, jobID, level, UNIX_TIMESTAMP(cdate), txt FROM QPLog WHERE reqID = p_req AND jobID = p_job AND level >= p_level ORDER BY cdate DESC;
             ELSE
-                SELECT reqID, jobID, level, UNIX_TIMESTAMP(cdate), txt FROM QPLog WHERE reqID = p_req AND level >= p_level;
+                SELECT reqID, jobID, level, UNIX_TIMESTAMP(cdate), txt FROM QPLog WHERE reqID = p_req AND level >= p_level ORDER BY cdate DESC;
             END IF;
         END IF;
     ELSEIF p_job IS NOT NULL AND p_job != 0 THEN
-        SELECT reqID, jobID, level, UNIX_TIMESTAMP(cdate), txt FROM QPLog WHERE jobID = p_job AND level >= p_level;
+        SELECT reqID, jobID, level, UNIX_TIMESTAMP(cdate), txt FROM QPLog WHERE jobID = p_job AND level >= p_level ORDER BY cdate DESC;
     END IF;
 
 END //

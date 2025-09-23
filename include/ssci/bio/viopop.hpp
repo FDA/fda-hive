@@ -35,9 +35,10 @@
 #include <slib/std.hpp>
 #include <slib/utils.hpp>
 #include <slib/utils.hpp>
-#include <ssci/math/rand/rand.hpp>
+#include <ssci/math.hpp>
 
 #include <ssci/bio/bioseqpopul.hpp>
+#include <ssci/bio/bioseq.hpp>
 
 class sViopop
 {
@@ -47,7 +48,6 @@ class sViopop
         enum eVioPopTypes {
             eTypeClone=1,
             eTypeSeqCov,
-//            eTypeSeqSimil,
             eTypeStats,
             eTypeSummary,
             eTypeSortArr
@@ -58,7 +58,6 @@ class sViopop
             eClone2MergeClone,
             eClone2Clone,
             eClone2SeqCov,
-//            eClone2SeqSimil,
             eClone2Stats,
             eClone2Summary,
             eClone2SortArr
@@ -66,26 +65,19 @@ class sViopop
         enum eSeqCovRlts
         {
             eSeqCov2Clone =1,
-//            eSeqCov2SeqSimil
         };
 
-//        enum eSeqSimilRlts
-//        {
-//
-//            eSeqSimil2Clone =1,
-//            eSeqSimil2SeqCov
-//        };
 
     public:
 
         struct cloneRegion{
-            idx contigInd, start, end; //start inclusive, end NON inclusive so last should be +1
+            idx contigInd, start, end;
             real freq;
             cloneRegion(){sSet(this,0);freq=1;}
         };
 
         struct cloneProfPos{
-                idx pos[8];  //A C G T Del Ins Gap(mutual alignment) N
+                idx pos[8];
                 idx maxI() {
                     idx s_max = 0, i_max = 0;
                     for(idx i = 0 ; i < sDim(pos) ; ++i){
@@ -99,23 +91,14 @@ class sViopop
                 bool isMultiGap() {
                     return (maxI()==sBioseqpopul::baseGap);
                 }
-                bool isSupportedGap() {
+                bool isDeletion() {
                     return (maxI()==sBioseqpopul::baseDel);
                 }
                 bool isN() {
                     return maxI() == sBioseqpopul::baseN;
                 }
-//                bool isMultiGap() {
-//                    return (maxI()==6);
-//                }
-//                bool isSupportedGap() {
-//                    return (maxI()==4);
-//                }
-//                bool isN() {
-//                    return maxI() == 7;
-//                }
                 bool isAnyGap() {
-                    return isSupportedGap() || isMultiGap();
+                    return isDeletion() || isMultiGap();
                 }
                 idx sum() {
                     return pos[sBioseqpopul::baseA] + pos[sBioseqpopul::baseC] + pos[sBioseqpopul::baseG] + pos[sBioseqpopul::baseT] + pos[sBioseqpopul::baseDel] + pos[sBioseqpopul::baseN];
@@ -125,7 +108,7 @@ class sViopop
 
         struct contigComp{
             sVec< idx > contigInds;
-            idx start, end; //start inclusive, end NON inclusive so last should be +1
+            idx start, end;
             contigComp(){start = 0; end = 0;}
         };
 
@@ -136,7 +119,8 @@ class sViopop
             ePrintContigCov=                      0x00000008,
             ePrintContigBreakpoints=              0x00000010,
             ePrintContigSummary=                  0x00000020,
-            ePrintContigPrevalence=               0x00000040
+            ePrintContigPrevalence=               0x00000040,
+            ePrintContigDiversityMeasures=        0x00000080
         };
 
         sDic<idx> * simil, lsimil;
@@ -215,9 +199,6 @@ class sViopop
         idx dimSeqCov(){
             return vioDB.GetRecordCnt(eTypeSeqCov);
         }
-//        idx dimSeq() {
-//            return vioDB.GetRecordCnt(eTypeSequence);
-//        }
 
         void setMode(idx mode)
         {
@@ -245,8 +226,6 @@ class sViopop
             cov.add(bodysize);
             for(idx i=0;i<(bodysize);++i){
                 cov[i]=seqcov[i].coverage();
-//                if(cov[i]>1000000)
-//                    ::printf("Alert");
             }
         }
         void getSeq (idx iAlIndex,sVec<idx> & seq,idx * sortArr=0) {
@@ -272,16 +251,6 @@ class sViopop
             }
             return seqcov;
         }
-//        idx * getSimil (idx iAlIndex,idx * bodysize,idx * sortArr=0) {
-//            if( simil ) {
-//
-//            }
-//            idx * seqSimil=0;
-//            idx * pMatch=(idx*)vioDB.GetRelationPtr(eTypeClone, (idx)iAlIndex+1, eClone2SeqSimil, 0,0 );
-//            if(pMatch)
-//                seqSimil=(idx *)vioDB.Getbody (eTypeSeqSimil, *pMatch, bodysize);
-//            return seqSimil;
-//        }
 
         idx getPositionSimil (idx cl, idx pos, idx refCnt, real * res, bool percentage = false, sVec < contigComp > * comp = 0) {
             if(!simil){
@@ -389,7 +358,6 @@ class sViopop
             return res;
         }
 
-        //contig based numbering [0 based] //-2 : some error -1 skipped position
         idx getGap2SkipContigPos ( sBioseqpopul::cloneSummary *cl , idx pos, sVec<idx> * contigMap = 0, bool forceValid = false) {
             idx res = 0;
             if( contigMap && contigMap->dim()) {
@@ -435,7 +403,6 @@ class sViopop
             return res;
         }
 
-        //contig based numbering [0 based]
         idx getSkip2GapContigPos( sBioseqpopul::cloneSummary *cl , idx pos, sVec<idx> * contigMap = 0) {
             if( contigMap && contigMap->dim()) {
                 return *contigMap->ptr(pos);
@@ -470,11 +437,8 @@ class sViopop
                 return *contigMap->ptr(pos) == -1;
             }
             else {
-//                if(!gap2skipMap || cl->clID > gap2skipMap->dim() ) {
                     seqCovPosition * p = getSeqCov(cl->clID,0);
                     return p[pos].isMultiGap();
-//                }
-//                return ( *gap2skipMap->ptr(pos+ *gap2skipMap->ptr(cl->clID) ) == -1);
             }
         }
 
@@ -483,11 +447,8 @@ class sViopop
                 return *contigMap->ptr(pos) == -2;
             }
             else {
-//                if(!gap2skipMap || cl->clID > gap2skipMap->dim() ) {
                     seqCovPosition * p = getSeqCov(cl->clID,0);
                     return p[pos].isSupportedGap();
-//                }
-//                return ( *gap2skipMap->ptr(pos+ *gap2skipMap->ptr(cl->clID) ) == -2);
             }
         }
 
@@ -496,19 +457,10 @@ class sViopop
                 return *contigMap->ptr(pos) == -2;
             }
             else {
-//                if(!gap2skipMap || cl->clID > gap2skipMap->dim() ) {
                     seqCovPosition * p = getSeqCov(cl->clID,0);
                     return p[pos].isAnyGap();
-//                }
-//                return ( *gap2skipMap->ptr(pos+ *gap2skipMap->ptr(cl->clID) ) == -2);
             }
         }
-//
-//        bool isMultiGap ( sVec< idx > clIDs, idx pos );
-//
-//        bool isSupportedGap ( sVec< idx > clIDs, idx pos );
-//
-//        bool isAnyGap ( sVec< idx > clIDs, idx pos );
 
         sBioseqpopul::cloneStats * getStats (idx iAlIndex,idx * sortArr=0) {
             idx * pMatch=(idx*)vioDB.GetRelationPtr(eTypeClone, (idx)iAlIndex+1, eClone2Stats, 0,0 );
@@ -552,18 +504,18 @@ class sViopop
             clPrintRegionsConsensus     =0x0010,
             clPrintStats                =0x0020,
             clPrintTree                 =0x0040,
-            clPrintContigsInMutualFrame =0x0080, //print clone range in mututal frame contig frame
+            clPrintContigsInMutualFrame =0x0080,
             clPrintNoGapsFrame          =0x0100,
             clSkipSupportedDeletions    =0x0200,
             clPrintLowDiversityBreaks   =0x0400,
             clPrintFastaTitleComposition=0x0800,
             clPrintFastaTitleSimple     =0x1000,
-            clPrintFastaTitleNumbersOnly=0x2000
+            clPrintFastaTitleNumbersOnly=0x2000,
+            clPrintGlobal               =0x4000
 
         } ;
         struct ParamCloneIterator{
             idx flags,iCln,step,resolution,minCov,minLen,minSup,* normCov,mergeHidden,showSimil,sStart,sEnd,wrap,breaksminLen,covThrs,mc_iters;
-//            const char * hideClones;
             const char * hiddenClones;
             bool isNormCov,minDiv,collapse;
             void * userPointer;
@@ -607,6 +559,8 @@ class sViopop
         void printTitleFreq(sStr & title, ParamCloneIterator * param, idx contgId) { if(param && param->frequencies)title.printf(" Freq=%lf",param->frequencies[contgId]);};
 
         idx printContigsPrevalence(sVec< sVec< sViopop::cloneRegion > > & composition, sVec<idx> & clIds, sStr & out, ParamCloneIterator * params);
+        void getDiversityMeasureUnits(sVec< sVec< sViopop::cloneRegion > > & compositions, ParamCloneIterator * param, sVec<real> & avCovs, sVec<sVec<seqCovPosition> > & all_seqs);
+        void printContigsDiversityMeasurements(sVec< sVec< sViopop::cloneRegion > > & composition, sVec<idx> & clIds, sStr & out, ParamCloneIterator * params);
 
         idx printContig( sVec< sVec< sViopop::cloneRegion > > & compositions, sVec<idx> & clIds, sStr & out, ParamCloneIterator * params, idx print_type );
         idx printContigSequences( sVec< sViopop::cloneRegion > & composition, sStr & out, ParamCloneIterator * params, idx curclID, idx offset = 0 );
@@ -646,8 +600,10 @@ class sViopop
             }
         }
 
-        idx getValidCloneID( idx iCl );
-        sBioseqpopul::cloneSummary * getValidCloneSummary( idx iCl);
+        idx getValidCloneID( idx iCl, bool followOnNonMergedContigs = false);
+        sBioseqpopul::cloneSummary * getValidCloneSummary( idx iCl, bool followOnNonMergedContigs = false);
+        sBioseqpopul::cloneSummary * getValidParentSummary(sBioseqpopul::cloneSummary * cl);
+        sBioseqpopul::cloneSummary * getValidMergingSummary(sBioseqpopul::cloneSummary * cl);
         bool getValidCloneComposition(sBioseqpopul::cloneSummary * cl, sVec < contigComp > & c_comp );
         bool mergeClone(sBioseqpopul::cloneSummary * cl, sBioseqpopul::cloneSummary &resCl, sVec < contigComp > & comp, ParamCloneIterator * params = 0, sVec< seqCovPosition > * seqCov =0 , sVec<idx> * gap2skpMap= 0 , sVec<idx> * skp2gapMap = 0);
 
@@ -680,9 +636,8 @@ class popGraph {
                 idx length() {return end - start;}
                 real getSim(real ref_cov) {
                     if(!ref_cov) return cov;
-                    if(ref_cov == cov) return REAL_MAX/100; //assume worst case scenario is having 100 contigs overlapping and all having identical frequency and equal to the ref_cov
+                    if(ref_cov == cov) return REAL_MAX/100;
                     return (cov/sAbs(cov - ref_cov));
-//                    return ref_cov<=cov?1/(ref_cov - cov):0;
                 }
                 node(){irng_s = irng_e = start = end = cov = 0;sSet(&clone,0);}
         };
@@ -719,7 +674,7 @@ class popGraph {
             node * nd = 0;
             for( idx i = 0 ; i < _nodes.dim() ; ++i ) {
                 nd = _nodes.ptr(i);
-                if( nd->clone.hasMerged() && nd->clone.end == end && nd->clone.mergeclID == clone->clID ) {
+                if( nd->clone.hasMerged() && nd->clone.end == end && nd->end == end && nd->clone.mergeclID == clone->clID ) {
                     res.vadd(1, i);
                 }
             }
@@ -770,18 +725,9 @@ class popGraph {
                     return i;
                 }
             }
-            return 0;
+            return -1;
         }
         idx getSeed(bool min_div) {
-//            if(min_div) {
-//                real cml= 0, rand_v = _max_sum * sRand::random1() ;
-//                for(idx i = 0 ; i < _max_contigs_freqs.dim() ; ++i ) {
-//                    cml += _max_contigs_freqs[i];
-//                    if (cml > rand_v) {
-//                        return _max_contigs[i];
-//                    }
-//                }
-//            } else {
                 real cml= 0, rand_v = _tot_sum * sRand::random1();
                 for(idx i = 0 ; i < _nodes.dim() ; ++i ) {
                     cml += _nodes[i].cov*_nodes[i].length() ;
@@ -789,7 +735,6 @@ class popGraph {
                         return i;
                     }
                 }
-//            }
             return -1;
         }
         node * getNextNode(node * n, real freq) {

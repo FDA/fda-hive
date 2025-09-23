@@ -43,8 +43,8 @@ vjHO.register('svc-dna-screening').Constructor=function ()
     this.fullview=function(node,dv)
     {
         var id= node.id;
-        vjDS.add("","dsShannonChart","http://?cmd=objFile&filename=dna-alignx_screenShannon.csv&ids="+id+"&raw=1");
-        vjDS.add("","dsTaxonomyViewerSpec","static://type_id,name,title,type,parent,role,is_key_fg,is_readonly_fg,is_optional_fg,is_multi_fg,is_hidden_fg,is_brief_fg,is_summary_fg,order,default_value,constraint,constraint_data,description\n"
+        vjDS.add("","dsShannonChart","http:
+        vjDS.add("","dsTaxonomyViewerSpec","static:
                                             +"taxonomy,name_list,Names,list,,,0,1,0,0,0,0,0,,,,,\n"
                                             +"taxonomy,taxName,Tax-name,string,name_list,,0,1,1,1,0,0,0,,,,,\n"
                                             +"taxonomy,taxid,Taxonomy ID,integer,,,0,1,0,0,0,0,0,,,,,\n"
@@ -52,18 +52,17 @@ vjHO.register('svc-dna-screening').Constructor=function ()
                                             +"taxonomy,path,Ancestry,string,,,0,1,0,0,0,0,0,,,,,\n"
                                             +"taxonomy,rank,Rank,string,,,0,1,0,0,0,0,0,,,,,\n"
                                             +"taxonomy,bioprojectID,BioProjectID,integer,,,0,1,0,0,0,0,0,,,,,\n");
-        vjDS.add("","HelpInfo","http://help/hlp.page.view.taxonomy.html");
-        vjDS.add("","taxDetails","static://");
-        vjDS.add("Retrieving data for blastNTset", "blastNTset", "http://dna.cgi?cnt="+this.defaultShowNode+"&cmd=ionncbiTax&percentage=1&screenType=dna-alignx_screenResult.csv&screenId="+id);
-        vjDS.add("","taxTreeBrower","static://");
-        vjDS.add("","referenceSet","http://dna.cgi?cnt="+this.defaultShowNode+"&cmd=ionncbiTax&screenId=0");
-        vjDS.add("","blastNTdownloadGI","http://dna.cgi?cnt="+this.defaultShowNode+"&cmd=ionncbiTax&screenType=dna-alignx_acclist.csv&ginumber=1&screenId=0");
-        vjDS.add("","shannonEntropy","static://");
+        vjDS.add("","HelpInfo","http:
+        vjDS.add("","taxDetails","static:
+        vjDS.add("Retrieving data for blastNTset", "blastNTset", "http:
+        vjDS.add("","taxTreeBrower","static:
+        vjDS.add("","referenceSet","http:
+        vjDS.add("","blastNTdownloadGI","http:
+        vjDS.add("","shannonEntropy","static:
 
         this.node = node;
         this.node.cntNode = 30;
         this.mode='fullview';
-        //this.create(dv,node.id);
 
         var filesStructureToAdd = [
                {
@@ -179,6 +178,7 @@ vjHO.register('svc-dna-screening').Constructor=function ()
                     dataViewer: 'vjD3JS_SunburstHierarchy',
                     dataViewerOptions: {
                         data:'blastNTset',
+                        downloadSvg: true,
                         funclick: "function:vjObjFunc('taxonomyElementSelected','" + this.objCls + "')",
                         formName:formName,
                         colorCol: "taxid"
@@ -189,7 +189,6 @@ vjHO.register('svc-dna-screening').Constructor=function ()
         ];
         
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
-        //algoWidgetObj.moveTab("next", {top:"0", bottom: "10%", left: "20%", right: "75%"}, 0);
     };
     
     this.typeName="svc-dna-screening";
@@ -211,14 +210,13 @@ vjHO.register('svc-dna-screening').Constructor=function ()
     {
         if(!node) node = viewer;
         var hdr = "id,name,path,value\n";
-        var newUrl="static://";
+        var newUrl="static:
         if(node.taxid){
-            newUrl = "http://dna.cgi?taxid="+node.taxid+"&depth=1&cmd=ionTaxInfo";
+            newUrl = "http:
         }
 
         vjDS["taxDetails"].reload(newUrl, true);
         
-        //here, we will open the details tab if its not open
         algoWidgetObj.openTab (algoWidgetObj.optionsForPage.subTabs.results.pageTabChildren[1]);
         algoWidgetObj.openTab (algoWidgetObj.optionsForPage.subTabs.results.pageTabChildren[0]);
 

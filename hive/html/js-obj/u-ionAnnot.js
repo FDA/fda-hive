@@ -31,7 +31,6 @@
 vjHO.register('u-ionAnnot').Constructor=function ()
 {
 
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.mode = 'fullview';
@@ -51,7 +50,6 @@ vjHO.register('u-ionAnnot').Constructor=function ()
     this.load = function(dvORtab,node){
         this.loaded = true;
         this.loadedID = node.id;
-        //var dv_obj = dv.obj.length ? dv.obj[0] : dv.obj;
         this.current_dvORtab=dvORtab;
         this.dvname = this.current_dvORtab.obj.name;
         var formObject = gAncestorByTag(gObject(this.dvname), "form");
@@ -96,7 +94,7 @@ vjHO.register('u-ionAnnot').Constructor=function ()
     this.addUrlSet({
         "annot_preview": {
             title: "Retrieving file preview",
-            active_url:"http://?cmd=ionAnnotTypes&fromComputation=0&recordTypes=seqID" ,
+            active_url:"http:
             objs: "ionObjs"
         }
     });

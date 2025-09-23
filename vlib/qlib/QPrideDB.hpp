@@ -45,7 +45,7 @@ namespace slib
         private:
             sSql * db, * dbdel;
 
-        public: // constructors
+        public:
 
             sQPrideDB(sSql * lsql);
             sQPrideDB(const char *defline);
@@ -53,39 +53,38 @@ namespace slib
 
             sSql * sql(void){return db;}
 
-        public://utilities
+        public:
             static char * _QP_whereChoice(sSql * db, sStr * str, const char * choice00, bool single=true, bool quoted=true, const char * wherepar="par");
             static idx _QP_GetIdxVar(sSql * db, idx req, const char * tblname,const char * idxname, const char * vname);
             static idx _QP_SetIdxVar(sSql * db, idx req, idx val, const char * tblname, const char * idxname, const char * vname, const char * extraset=0);
             static idx _QP_SetIdxVar(sSql * db, sVec < idx > * reqs, idx val, const char * tblname, const char * idxname, const char * vname, const char * extraset=0 );
             static idx _QP_GetIdxVar(sSql * db, sVec < idx > * reqs, sVec < idx > * vals, const char * tblname, const char * idxname, const char * vname );
 
-            ///idx _QP_sysGetIndexList(sVec < idx > * jobs, const char * sqlStart, const char * colInName=0, sVec < idx > * colInIDs=0, const char * sqlTail=0);
 
-        public: // configuration
+        public:
             void QP_flushCache();
             char * QP_configGet( sStr * vals00, const char * pars00, bool single=true);
             bool QP_configSet(const char * par, const char * val);
 
-        public: //     requests
+        public:
             idx QP_reqSubmit( const char * serviceName, idx subip , idx priority,  idx usrid );
             idx QP_reqReSubmit(idx * req, idx cnt, idx delaySeconds = 0);
-            idx QP_requestGet(idx req , void * r, bool isGrp=0, const char * serviceName=0) ; // r is of sQPrideBase::Request type
+            idx QP_requestGet(idx req , void * r, bool isGrp=0, const char * serviceName=0) ;
             idx QP_requestGetForGrp(idx grp , void * RList , const char * serviceName=0);
-            char * QP_requestGetPar(idx req, idx type, sStr * val);
+            idx QP_requestGetForGrp2(idx grp , sVec<sQPrideBase::Request> * RList , const char * serviceName=0);
+            char * QP_requestGetPar(idx req, idx type, sStr * va, const bool req_onlyl);
             idx QP_reqGrab(const char * service, idx job, idx inBundle,idx status, idx action);
 
-        public: //     groups
+        public:
             idx QP_grpSubmit(const char * serviceName, idx subip, idx priority, idx numSubReqs,idx usrid,idx previousGrpSubmitCounter);
+            idx QP_grpSubmit2(const char * serviceName, idx subip, const sQPrideBase::PriorityCnt * priority_cnts, idx num_priority_cnts, idx num_subreqs, idx user_id, idx prev_num_subreqs, idx grp_id);
             idx QP_grp2Req(idx grp, sVec< idx > * reqs, const char * svc=0, idx masterGroup=0) ;
             idx QP_grpAssignReqID(idx req, idx grp, idx jobIDSerial);
             idx QP_req2Grp(idx req, sVec < idx  > * grp, bool isMaster=false);
             idx QP_req2GrpSerial(idx req, idx grp, idx * pcnt, idx svc);
             idx QP_grpGetProgress(idx grp, idx * progress, idx * progress100);
-            //idx QP_grpSetCollector(idx grp, idx jobID);
-            //idx QP_grpGetCollector(idx grp);
 
-        public: //     data
+        public:
             bool QP_reqSetPar(idx req, idx type, const char * value,bool isOverwrite);
             char * QP_reqDataGet(idx req, const char * dataName, sMex * data, idx * timestamp=0);
             idx QP_reqDataGetTimestamp(idx req, const char * dataName);
@@ -93,7 +92,7 @@ namespace slib
             idx QP_reqDataGetAll(idx req, sVec < sStr > * dataVec, sStr * infos00, sVec < idx > * timestampVec=0 );
             void QP_reqCleanTbl(sVec <sStr> *tblfiles, idx req, const char *dataname);
 
-        public: // jobs
+        public:
             void QP_jobRegisterAlive(idx job);
             idx QP_jobSetStatus(idx job, idx jobstat);
             idx QP_jobSetStatus(sVec < idx > * jobs, idx jobstat);
@@ -105,11 +104,11 @@ namespace slib
             idx QP_jobGet(idx jobID, sQPrideBase::Job * jobs, idx jobCnt, const char * _reserved=0);
             idx QP_jobSetReq(idx job, idx req);
 
-        public: //     services
-            idx QP_serviceID(const char * serviceName); // make it lazy
+        public:
+            idx QP_serviceID(const char * serviceName);
             idx QP_serviceGet( void * Svc, const char * serviceName=0, idx svcId=0);
             idx QP_serviceUp(const char * svc, idx isUpMask);
-            idx QP_serviceList(sStr * lst00, void * svcVecList);  // void * is sVec < Service >*
+            idx QP_serviceList(sStr * lst00, void * svcVecList);
             void QP_servicePurgeOld(sVec < idx > * reqList, const char * service=0, idx limit = -1, bool no_delete = false);
             void QP_servicePath2Clean(sVarSet & res);
             void QP_registerHostIP(const char * sys);
@@ -118,28 +117,25 @@ namespace slib
             idx QP_workRegisterTime(const char * svc="", const char * params="", idx amount=0, idx time=0);
             idx QP_workEstimateTime(const char * svc="", const char * params="", idx amount=0);
 
-        public: // db
+        public:
             idx QP_dbHasLiveConnection(void);
             void QP_dbDisconnect(void);
             idx QP_dbReconnect(void);
 
-        public: //     ips
+        public:
             idx QP_reqSetCgiIP(idx req, idx val);
             idx QP_reqSetSubIP(idx req, idx val);
 
-            //idx QP_GetIPStat(idx ip, idx svcId, idx * stat);
 
-        public: //     status, action and progress
+        public:
             idx QP_reqSetAction(idx req, idx val);
             idx QP_reqSetAction(sVec < idx > * reqs, idx val);
             idx QP_reqGetAction(idx req) ;
             idx QP_reqGetAction(sVec < idx > * reqs, sVec <idx > * vals);
 
             idx QP_reqGetUser(idx req);
+            idx QP_reqSetUser(idx req, idx val);
             void QP_reqRegisterAlive(idx reqID);
-            /*idx QP_reqGetObject(idx req);
-            idx QP_reqSetObject(idx req, idx obj);
-            */
 
             idx QP_reqSetUserKey(idx req, idx val);
             idx QP_reqSetUserKey(sVec < idx > * reqs, idx val);
@@ -155,21 +151,22 @@ namespace slib
 
             bool QP_setLog(idx req, idx job, idx level, const char * txt);
             idx QP_getLog(idx req, bool isGrp, idx job, idx level, sVarSet & log);
+            idx QP_getLogGrp(idx grpReq, idx level, sVarSet & log);
 
             idx QP_purgeReq(sVec<idx> * recVec, idx stat);
 
-        public: // locking
+        public:
             bool QP_reqLock(idx req, const char * key, idx * req_locked_by, idx max_lifetime, bool force);
             bool QP_reqUnlock(idx req, const char * key, bool force);
             idx QP_reqCheckLock(const char * key);
 
-        public:// resources
+        public:
             char * QP_resourceGet(const char * service, const char * resName,    sMex * data, idx * timestamp);
             bool QP_resourceSet(const char * service, const char * resName, idx ressize , const void * data);
             idx QP_resourceGetAll(const char * service,  sStr * infos00 , sVec < sStr > * dataVec, sVec < idx > * timestamps );
             bool QP_resourceDel(const char * service, const char * dataName = 0);
 
-        public: // system operations
+        public:
 
             idx QP_sysPeekOnHost(void * srvl,  const char * hostname );
             idx QP_sysPeekReqOrder(idx req, const char * srv=0 , idx * pRunning=0);
@@ -184,6 +181,5 @@ namespace slib
 
 }
 
-#endif // #ifndef _QPrideDB_qLib_hpp
-
+#endif 
 

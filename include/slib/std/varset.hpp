@@ -42,7 +42,7 @@ namespace slib
     class sVarSet {
 
         sVar* m_cur_row;
-        sDic< idx > m_names; // column names => col id - duplicate column names not supported!
+        sDic< idx > m_names;
 
     public:
         sDic< sVar > tbl;
@@ -111,7 +111,6 @@ namespace slib
             idvalue.print(buf);
             return addCol(buf.ptr(), buf.length());
         }
-        //! warning: each updateVal() call will usually grow sVarSet's memory use!
         bool updateVal(idx irow, idx icol, const char* p, idx size = 0)
         {
             if(irow < 0 || irow >= tbl.dim())
@@ -241,8 +240,6 @@ namespace slib
             buf.empty();
             rows = cols = start = 0;
         }
-        // cntColNames < 0 - use own header
-        // cntColNames == 0 - no header
         void printCSV(sStr& dst, idx cntColNames = -1, const char* colNames[] = 0) const
         {
             if( cntColNames > 0 ) {
@@ -304,8 +301,6 @@ namespace slib
 #define NL ""
 #define INDENT ""
 #endif
-        // cntColNames < 0 - use own header
-        // cntColNames == 0 - no header
         void printJSON(sStr& dst, bool force_array = false, idx cntColNames = -1, const char* colNames[] = 0) const
         {
             dst.printf("%s", (force_array || rows > 1) ? "[" : "");
@@ -360,15 +355,6 @@ namespace slib
                 }
             }
         }
-        //! Print as "&prop.id.foo.1=hello&prop.id.bar.2=bye" etc. string, with names/values encoded for use in a url
-        /*! \param dst where to print
-         *  \param col_id column with hive ids
-         *  \param col_name column with prop names
-         *  \param col_row column with prop paths
-         *  \param col_val column with prop values
-         *  \param overloadObjID use this as id instead of col_id's value
-         *  \paran excludeCols00 0-delimeted, 00-terminated list of prop names to ignore; or 0 to print everything
-         *  \returns pointer to start of printed string in dst */
         const char * printPropUrl(sStr & dst, idx col_id = 0, idx col_name = 1, idx col_row = 2, idx col_val = 3, const char * overloadObjID = 0, const char * excludeCols00 = 0) const;
         idx reorderRows(idx * new_order, idx irow_start = 0, idx cnt = sIdxMax, bool extract = false);
     };

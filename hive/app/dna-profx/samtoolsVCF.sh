@@ -39,17 +39,32 @@ if [ "$QPRIDE_BIN" = "" ]; then
     QPRIDE_BIN='.'
 fi
 
+
+for tool in `echo -n 'samtools-0.1.18/'`; do
+    PATH=$QPRIDE_BIN/$tool:$QPRIDE_BIN/samtools-0.1.18/bcftools:$PATH
+done
+echo "PATH '$PATH'"
+
+
 cd "$workDir" || exit 10;
 echo "cd $workDir"
+
 
 echo "samtools view -bS alignment.sam > alignment.bam"
 samtools view -bS alignment.sam > alignment.bam
 
+
 echo "samtools sort alignment.bam alignment_sorted"
 samtools sort alignment.bam alignment_sorted 
 
+
 echo "samtools index alignment_sorted.bam"
 samtools index alignment_sorted.bam
+#samtools tview testSamFromBowtieHIVE_sorted.bam
+
+
+#echo "samtools mpileup -ugf $subjectFastaFile alignment_sorted.bam | bcftools view -bvcg - > SNP.bcf"
+#samtools mpileup -ugf $subjectFastaFile alignment_sorted.bam | bcftools view -bvcg - > SNP.bcf
 
 # Default (BAQ is on) does not output SNPs for .sam files without quality bytes, such as in .bwa output  
 # -E in pileup command make samtools use less restrictive Base alignment quality (BAQ) computation which is turned on by default.
@@ -57,3 +72,8 @@ samtools index alignment_sorted.bam
 #
 echo "samtools mpileup -Eugf $subjectFastaFile alignment_sorted.bam | bcftools view -vcg - > SNP.vcf"
 samtools mpileup -Eugf $subjectFastaFile alignment_sorted.bam | bcftools view -vcg - > SNP.vcf
+
+#additionalCommandLineParameters = 80;
+
+#echo "bcftools view SNP.bcf | vcfutils.pl varFilter -D 80 > SNP.vcf"
+#bcftools view SNP.bcf | vcfutils.pl varFilter -D 80 > SNP.vcf

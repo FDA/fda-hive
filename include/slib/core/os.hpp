@@ -31,7 +31,6 @@
 #ifndef sLib_core_os_h
 #define sLib_core_os_h
 
-// compiler feature macros for clang compatibility
 #ifndef __has_feature
 #define __has_feature(x) 0
 #endif
@@ -41,32 +40,26 @@
 
 #ifdef WIN32
 
-        // pipes
         #define popen _popen
         #define pclose _pclose
 
-        // files
         #define chsize    _chsize
         #define open    _open
         #define lseek    _lseek
         #define    close    _close
-       // #define    write    _write
         #define    read    _read
         #define    rmdir    _rmdir
 
         #include <conio.h>
         #define    getch    _getch
 
-        // directories
         #define    mkdir    _mkdir
         #define    getcwd    _getcwd
 
-        // processes
         #include <process.h>
         #define getpid _getpid
         #define gettid _gettid
 
-        // string libs
         #define strcasecmp stricmp
         #define strncasecmp strnicmp
 
@@ -87,18 +80,14 @@
         #define S_IROTH S_IREAD
         #define S_IWOTH S_IWRITE
         #define S_IXOTH 0
-        //#define utime(_v_flnm, _v_dt) {struct _ut}
     #else
-        //#ifndef  S_IREAD
         #undef S_IREAD
         #undef S_IWRITE
         #undef S_IEXEC
             #define S_IREAD    (S_IRUSR|S_IRGRP|S_IROTH)
             #define S_IWRITE (S_IWUSR|S_IWGRP)
             #define S_IEXEC (S_IXUSR|S_IXGRP|S_IXOTH)
-        //#endif
 
-        // files
         #define chsize ftruncate
 
         #define ioControl(v_var1,v_var2,v_var3)        ioctl((v_var1),(v_var2),(v_var3))
@@ -141,7 +130,6 @@
 
 namespace slib
 {
-    // variable arguments
     #ifndef va_copy
         #define va_copy(dest, src) (dest) = (src)
     #endif
@@ -150,13 +138,10 @@ namespace slib
     #define sSizeBlock          (512)
 
 }
-#endif // sLib_core_os_h
+#endif 
 
-
-    // number format definitions
     #ifdef WIN32
         #ifdef SLIB64
-            //#define fseek    fseeki64
         #endif
     #else
     #endif

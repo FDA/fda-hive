@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.record.choice.js
 
 $(function () {
     $.widget("recordviewer.record_choice", $.recordviewer.record_base, {
@@ -40,98 +39,96 @@ $(function () {
         },
 
         _prepareData: function(callback) {
-            this.items = [];
-            
-            if(this.isStatic()) {
-                this._parseStaticContent();
+                this.items = [];
                 
-                if(callback != null)
-                    callback();
-            }
-            else if(this.isDynamic()){
-                this._parseDynamicContent(function() {
+                if(this.isStatic()) {
+                    this._parseStaticContent();
+                    
                     if(callback != null)
                         callback();
-                });
-            }
+                }
+                else if(this.isDynamic()){
+                    this._parseDynamicContent(function() {
+                        if(callback != null)
+                            callback();
+                    });
+                }
         },
 
         _parseStaticContent: function() {
-            var oThis = this;
-
-            $(this.options.spec.constraint_data.split('|')).each(function(index, option) {
-                var vals = option.split('///');
+                var oThis = this;
+    
+                $(this.options.spec.constraint_data.split('|')).each(function(index, option) {
+                var vals = option.split('
 
                 oThis.items.push({
                     id: vals[0],
                     name: vals[1] || vals[0]
-                })
+                });
             });
         },
 
         _parseDynamicContent: function(callback) {
-            var oThis = this;
-
-            var config = this.options.spec.constraint_data.toJsObject();
-
-            Papa.parse(config.url.replace('http://', 'dna.cgi'), {
-                download: true,
-                header: true,
-                complete: function(data) {
-                    $(data.data).each(function(index, item) {
-                        oThis.items.push({
-                            id: item.id,
-                            name: item.name
-                        })
-                    });
-
-                    if(callback != null)
-                        callback();
-                }
-            })
-            
-            console.log(config)
+                var oThis = this;
+    
+                var config = this.options.spec.constraint_data.toJsObject();
+    
+                Papa.parse(config.url.replace('http:
+                    download: true,
+                    header: true,
+                    complete: function(data) {
+                        $(data.data).each(function(index, item) {
+                            oThis.items.push({
+                                id: item.id,
+                                name: item.name
+                            })
+                        });
+    
+                        if(callback != null)
+                            callback();
+                    }
+                });
+                
+                console.log(config);
         },
 
         generateField: function() {
-            var oThis = this;
-            
+                var oThis = this;
+                
             this.titleField = $(document.createElement('input')).attr({ type: 'text', readonly: 'readonly' });
-
             this.valueField = $(document.createElement('input')).attr({ type: 'hidden' });
 
-            this.field = $(document.createElement('div'))
-                            .addClass('field choice')
-                            .addClass(this.options.spec.type)
-                            .attr({
-                                id: this.options.name,
-                                name: this.options.name
-                            })
-                            .append( this.valueField )
-                            .append( this.titleField )
-                            .append(
-                                $(document.createElement('span')).addClass("caret")
-                            );
-
-            if(!this.isReadonly()) {
-                var popup = this._generatePopup();
-
-                this.field.append(popup)
-                    .click(function() {
-                        //    close all previously opened...
-                        $(".record-viewer div.choice.open").each(function() {
-                            if(this != oThis.field.get(0))
-                                $(this).removeClass('open');
+                this.field = $(document.createElement('div'))
+                                .addClass('field choice')
+                                .addClass(this.options.spec.type)
+                                .attr({
+                                    id: this.options.name,
+                                    name: this.options.name
+                                })
+                                .append( this.valueField )
+                                .append( this.titleField )
+                                .append(
+                                    $(document.createElement('span')).addClass("caret")
+                                );
+    
+                if(!this.isReadonly()) {
+                    var popup = this._generatePopup();
+    
+                    this.field.append(popup)
+                        .click(function() {
+                            $(".record-viewer div.choice.open").each(function() {
+                                if(this != oThis.field.get(0))
+                                    $(this).removeClass('open');
+                            });
+    
+                            $(this).toggleClass('open');
+                            $(this).trigger('focus');
+    
+                            return false;
                         });
-
-                        $(this).toggleClass('open');
-                        $(this).trigger('focus');
-
-                        return false;
-                    });
-            }
-
-            return this.field;
+                }
+    
+                return this.field;
         },
 
         getValue: function(val) {
@@ -202,8 +199,8 @@ $(function () {
 $(document).click(function (e) {
     var container = $(".record-viewer div.choice.open");
 
-    if (!container.is(e.target) // if the target of the click isn't the container...
-        && container.has(e.target).length === 0) // ... nor a descendant of the container
+    if (!container.is(e.target)
+        && container.has(e.target).length === 0)
     {
         container.removeClass('open');
     }

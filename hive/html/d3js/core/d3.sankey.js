@@ -105,8 +105,6 @@ d3.sankey = function() {
     return link;
   };
  
-  // Populate the sourceLinks and targetLinks for each node.
-  // Also, if the source and target are not objects, assume they are indices.
   function computeNodeLinks() {
     nodes.forEach(function(node) {
       node.sourceLinks = [];
@@ -122,7 +120,6 @@ d3.sankey = function() {
     });
   }
  
-  // Compute the value (size) of each node by summing the associated links.
   function computeNodeValues() {
     nodes.forEach(function(node) {
       node.value = Math.max(
@@ -132,10 +129,6 @@ d3.sankey = function() {
     });
   }
  
-  // Iteratively assign the breadth (x-position) for each node.
-  // Nodes are assigned the maximum breadth of incoming neighbors plus one;
-  // nodes with no incoming links are assigned breadth zero, while
-  // nodes with no outgoing links are assigned the maximum breadth.
   function computeNodeBreadths() {
     var remainingNodes = nodes,
         nextNodes,
@@ -154,7 +147,6 @@ d3.sankey = function() {
       ++x;
     }
  
-    //
     moveSinksRight(x);
     scaleNodeBreadths((size[0] - nodeWidth) / (x - 1));
   }
@@ -188,7 +180,6 @@ d3.sankey = function() {
         .entries(nodes)
         .map(function(d) { return d.values; });
  
-    //
     initializeNodeDepth();
     resolveCollisions();
     for (var alpha = 1; iterations > 0; --iterations) {
@@ -253,7 +244,6 @@ d3.sankey = function() {
             n = nodes.length,
             i;
  
-        // Push any overlapping nodes down.
         nodes.sort(ascendingDepth);
         for (i = 0; i < n; ++i) {
           node = nodes[i];
@@ -262,12 +252,10 @@ d3.sankey = function() {
           y0 = node.y + node.dy + nodePadding;
         }
  
-        // If the bottommost node goes outside the bounds, push it back up.
         dy = y0 - nodePadding - size[1];
         if (dy > 0) {
           y0 = node.y -= dy;
  
-          // Push any overlapping nodes back up.
           for (i = n - 2; i >= 0; --i) {
             node = nodes[i];
             dy = node.y + node.dy + nodePadding - y0;

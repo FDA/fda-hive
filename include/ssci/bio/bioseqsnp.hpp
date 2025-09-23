@@ -31,8 +31,6 @@
 #ifndef sBio_seqsnp_hpp
 #define sBio_seqsnp_hpp
 
-#include <slib/core/vec.hpp>
-#include <slib/core/iter.hpp>
 #include <ssci/bio/bioseqalign.hpp>
 #include <ssci/bio/bioal.hpp>
 #include <ssci/bio/ion-bio.hpp>
@@ -45,16 +43,7 @@ namespace slib
 
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Sequence Collection Hashing class
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    //! Sequence Collection Hashing class.
-    /*!
-     *
-     */
     class sBioseqSNP {
 
 
@@ -82,28 +71,56 @@ namespace slib
             real noiseProfileResolution,freqProfileResolution, histProfileResolution,noiseProfileMax;
             idx filterZeros;
 
-            bool countAAs, computeAAs, directionalityInfo, supportedDeletions;
+            bool countAAs, computeAAs, directionalityInfo, supportedDeletions, collapseRpts;
 
             SNPParams (){
                 sSet(this,0);
             }
 
+            SNPParams operator= (const SNPParams& x){
+                maxRptIns = x.maxRptIns;
+                cutEnds = x.cutEnds;
+                lenPercCutoff = x.lenPercCutoff;
+
+                disbalanceFR = x.disbalanceFR;
+                minCover = x.minCover;
+                minFreqPercent = x.minFreqPercent;
+                minFreqIgnoreSNP = x.minFreqIgnoreSNP;
+                snpCompare = x.snpCompare;
+                maxLowQua = x.maxLowQua;
+                useQuaFilter = x.useQuaFilter;
+                rangeSize = x.rangeSize;
+                minImportantEntropy = x.minImportantEntropy;
+                maxMissmatchPercCutoff = x.maxMissmatchPercCutoff;
+
+                entrCutoff = x.entrCutoff;
+                
+                memcpy(noiseCutoffs, x.noiseCutoffs, sizeof(noiseCutoffs)*sizeof(real));
+
+                noiseProfileResolution = x.noiseProfileResolution;
+                freqProfileResolution = x.freqProfileResolution;
+                histProfileResolution = x.histProfileResolution;
+                noiseProfileMax = x.noiseProfileMax;
+                filterZeros = x.filterZeros;
+
+                countAAs = x.countAAs;
+                computeAAs = x.computeAAs;
+                directionalityInfo = x.directionalityInfo;
+                supportedDeletions = x.supportedDeletions;
+                collapseRpts = x.collapseRpts;
+                
+                return *this;
+            }
+
         };
-        /*
-        enum eProblems {
-            eSNPNotEnoughCoverage=    0x00000001,
-            eSNPImbalance=            0x0000FF00, // 8 bits used for imbalance
-            eSNPEntrLow=            0x00010000,
-            eSNPHasCoverage=        0x00020000
-        };*/
 
         enum SNPParamsDefaults {
             snpCompare_DEFAULT = 1,
             noiseCutoffThresholds_NUM = 6,
-            noiseCutoffThresholdsIdx_DEFAULT = 4, //!< noiseCutoffThresholds[noiseCutoffThresholdsIdx_DEFAULT] == 0.95
+            noiseCutoffThresholdsIdx_DEFAULT = 4,
         };
 
-        static const real noiseCutoffThresholds[noiseCutoffThresholds_NUM]; //!< = {0.5,0.75,0.85,0.9,0.95,0.99};
+        static const real noiseCutoffThresholds[noiseCutoffThresholds_NUM];
         static const real freqProfileResolution;
         static const real histCoverResolution;
         static const real noiseProfileResolution;
@@ -118,23 +135,236 @@ namespace slib
                     }
             };
 
+            class PosInDel
+            {
+                public:
+                    struct info
+                    {
+                            int fwd, rev, vquafwd, vquarev;
+                            info()
+                            {
+                                sSet(this);
+                            }
+                            void add(info & t_info)
+                            {
+                                if( t_info.fwd ) {
+                                    vquafwd += (vquarev * fwd + t_info.vquafwd * t_info.fwd) / (fwd + t_info.fwd);
+                                    fwd += t_info.fwd;
+                                }
+                                if( t_info.rev ) {
+                                    vquarev += (vquarev * rev + t_info.vquarev * t_info.rev) / (rev + t_info.rev);
+                                    rev += t_info.rev;
+                                }
+                            }
+                            idx cnt() {
+                                return fwd + rev;
+                            }
+                            real freq(idx cov) {
+                                return (real)cnt()/cov;
+                            }
+                    };
+
+                    sDic<info> insertions;
+                    sDic<info> deletions;
+                    PosInDel()
+                        : insertions(), deletions()
+                    {
+                    }
+
+                    info * addInsertion(const char * seq, const idx length)
+                    {
+                        return insertions.setString(seq, length);
+                    }
+
+                    info * addInsertion(sStr &seq)
+                    {
+                        seq.shrink00();
+                        return addInsertion(seq.ptr(), seq.length());
+                    }
+
+                    info * addDeletion(idx cnt)
+                    {
+                        return deletions.set((const void *) &cnt, (idx) sizeof(cnt));
+                    }
+
+                    idx getDeletionAllele(idx index)
+                    {
+                        return *(idx*) deletions.id(index);
+                    }
+                    info * getDeletionInfo(idx index)
+                    {
+                        return deletions.ptr(index);
+                    }
+
+                    const char * getInsertionAllele(idx index)
+                    {
+                        return (const char *) insertions.id(index);
+                    }
+                    info * getInsertionInfo(idx index)
+                    {
+                        return insertions.ptr(index);
+                    }
+                    const char * serialIn(const char * data)
+                    {
+                        const char * buf = (const char *) data;
+                        const idx sizeofIns = *((const idx *) buf);
+                        buf += sizeof(sizeofIns);
+                        insertions.serialIn(buf, sizeofIns);
+                        buf += sizeofIns;
+                        const idx sizeofDel = *((const idx *) buf);
+                        buf += sizeof(sizeofDel);
+                        deletions.serialIn(buf, sizeofDel);
+                        return buf + sizeofDel;
+                    }
+
+                    idx serialOut(sMex &buf)
+                    {
+                        sStr tmp;
+                        idx size = insertions.serialOut(tmp);
+                        buf.add((const char *) &size, (idx) sizeof(size));
+                        buf.add(tmp.ptr(), size);
+
+                        tmp.cut0cut();
+
+                        size = deletions.serialOut(tmp);
+                        buf.add((const char *) &size, (idx) sizeof(size));
+                        buf.add(tmp.ptr(), size);
+                        return buf.pos();
+                    }
+
+                    void merge(PosInDel & t_posindel)
+                    {
+                        idx pLen = 0;
+                        for(idx i = 0; i < t_posindel.insertions.dim(); ++i) {
+                            const char * key = (const char *) t_posindel.insertions.id(i, &pLen);
+                            addInsertion(key, pLen)->add(t_posindel.insertions[i]);
+                        }
+                        for(idx i = 0; i < t_posindel.deletions.dim(); ++i) {
+                            idx * ikey = (idx*) t_posindel.deletions.id(i);
+                            addDeletion(*ikey)->add(t_posindel.deletions[i]);
+                        }
+                    }
+                    idx dim()
+                    {
+                        return insertions.dim() + deletions.dim();
+                    }
+            };
+
+            class InDels
+            {
+                private:
+                    sDic<PosInDel> _pos;
+                    idx _sub_pos[2];
+
+                public:
+                    InDels()
+                        : _pos()
+                    {
+                    }
+
+                    idx serialIn(const void * data, idx lenmax)
+                    {
+                        const char * buf = (const char *) data;
+                        idx key_size = 2*sizeof(idx);
+                        PosInDel * p = 0;
+                        const char * const end = buf + lenmax;
+                        while( buf && buf < end ) {
+                            p = _pos.set(buf, key_size);
+
+                            if( !p ) {
+                                return -1;
+                            }
+                            buf += key_size;
+
+                            buf = p->serialIn(buf);
+                        }
+                        return dim();
+                    }
+
+                    idx serialOut(sMex &buf)
+                    {
+                        idx size = 0;
+                        for(idx i = 0; i < dim(); ++i) {
+                            const void * key = _pos.id(i, &size);
+                            buf.add((const char *) key, size);
+                            _pos.ptr(i)->serialOut(buf);
+                        }
+                        return buf.pos();
+                    }
+
+                    PosInDel::info * addInsertion(idx i_sub, idx pos, sStr &seq)
+                    {
+                        seq.shrink00();
+                        return addInsertion(i_sub, pos, seq.ptr(), seq.length());
+                    }
+
+                    PosInDel::info * addInsertion(idx i_sub, idx i_pos, const char * seq, idx length)
+                    {
+                        return setInDel(i_sub, i_pos)->addInsertion(seq, length);
+                    }
+                    PosInDel::info * addDeletion(idx i_sub, idx i_pos, idx cnt)
+                    {
+                        return setInDel(i_sub, i_pos)->addDeletion(cnt);
+                    }
+
+                    PosInDel * setInDel(idx i_sub, idx i_pos)
+                    {
+                        _sub_pos[0] = i_sub;
+                        _sub_pos[1] = i_pos;
+                        return _pos.set((const void *) &_sub_pos, (idx) sizeof(_sub_pos));
+                    }
+
+                    PosInDel * getInDel(idx i_sub, idx i_pos)
+                    {
+                        _sub_pos[0] = i_sub;
+                        _sub_pos[1] = i_pos;
+                        return _pos.get((const void *) &_sub_pos, (idx) sizeof(_sub_pos));
+                    }
+
+                    sDic<PosInDel::info> * getInsertions(idx i_sub, idx i_pos)
+                    {
+                        PosInDel * my_indels = getInDel(i_sub, i_pos);
+                        return my_indels ? &my_indels->insertions : 0;
+                    }
+
+                    sDic<PosInDel::info> * getDeletions(idx i_sub, idx i_pos)
+                    {
+                        PosInDel * my_indels = getInDel(i_sub, i_pos);
+                        return my_indels ? &my_indels->deletions : 0;
+                    }
+                    idx dim()
+                    {
+                        return _pos.dim();
+                    }
+
+                    void merge(InDels & t_indels)
+                    {
+                        idx * pos = 0;
+                        for(idx i = 0; i < t_indels.dim(); ++i) {
+                            pos = (idx*) t_indels._pos.id(i);
+                            setInDel(*pos, *(pos + 1))->merge(t_indels._pos[i]);
+                        }
+                    }
+
+            };
+
         struct SNPFreq{
                 int atgcFwd[6], atgcRev[6];
                 int ventr,vsnpentr,vquafwd, vquarev;
 
                 enum {ENTRMAX=255};
-                inline idx entr(idx inu){return (ventr>>(8*inu))&0xFF;}//getQuaEntr(0); };
-                inline idx snpentr(idx inu){return (vsnpentr>>(8*inu))&0xFF;}//getQuaEntr(1); }
-                inline idx quaFwd(){return vquafwd;}//getQuaEntr(2); }
-                inline idx quaRev(){return vquarev;}//getQuaEntr(3); }
+                inline idx entr(idx inu){return (ventr>>(8*inu))&0xFF;}
+                inline idx snpentr(idx inu){return (vsnpentr>>(8*inu))&0xFF;}
+                inline idx quaFwd(){return vquafwd;}
+                inline idx quaRev(){return vquarev;}
                 idx quaTot(){return quaRev() + quaFwd();}
 
                 idx getAvQua(){return acgtCoverage()?(quaTot())/acgtCoverage():0;}
 
-                void setEntr(idx val, idx inu){ventr&=~(0xFF<<(8*inu)); ventr|=(val&0xFF)<<(8*inu);}//setQuaEntr(val,0); };
-                void setSnpentr(idx val, idx inu){vsnpentr&=~(0xFF<<(8*inu)); vsnpentr|=(val&0xFF)<<(8*inu);}//setQuaEntr(val,1); }
-                void setQuaFwd(idx val){ vquafwd=val;}//setQuaEntr(val,2); }
-                void setQuaRev(idx val){ vquarev=val;}//setQuaEntr(val,3); }
+                void setEntr(idx val, idx inu){ventr&=~(0xFF<<(8*inu)); ventr|=(val&0xFF)<<(8*inu);}
+                void setSnpentr(idx val, idx inu){vsnpentr&=~(0xFF<<(8*inu)); vsnpentr|=(val&0xFF)<<(8*inu);}
+                void setQuaFwd(idx val){ vquafwd=val;}
+                void setQuaRev(idx val){ vquarev=val;}
 
                 idx coverage()
                 {
@@ -189,7 +419,7 @@ namespace slib
                 }
 
 
-                void add(SNPFreq * other){//,idx chunkCnt) {
+                void add(SNPFreq * other){
                     idx totIn=0,totNew=0;
                     for(idx i=0; i<sDim(atgcFwd);++i){totIn+=atgcFwd[i];totNew+=other->atgcFwd[i];atgcFwd[i]+=other->atgcFwd[i];}
                     for(idx i=0; i<sDim(atgcRev);++i){totIn+=atgcRev[i];totNew+=other->atgcRev[i];atgcRev[i]+=other->atgcRev[i];}
@@ -204,14 +434,13 @@ namespace slib
                         }
                     }
                 }
-        }; // entr is scaled to a 1000
+        };
 
         struct ProfilePosInfo{
                 sBioal::LenHistogram lenHistogram;
                 int quaFwdATGC[4],quaRevATGC[4];
                 idx score;
 
-                //int reserv[2];
 
                 void sum(ProfilePosInfo * other){
                     lenHistogram.cntAl+=other->lenHistogram.cntAl;
@@ -255,17 +484,13 @@ namespace slib
         };
 
         struct ProfileExtraInfo {
-            //struct AAs { int aa[24]; };
             sVec < sDic < sBioseqSNP::ATGCcount > > EntroMap;
-            //sVec < AAs > AAMap;
-            //sVec < sDic < sBioal::LenHistogram > > HistogramMap;
         };
 
         struct SNPminmax {
                 idx bucket_size, last_valid_bucket, max_pos, min_pos, isub, * multAlPosMatch,num_of_points,tot_length;
                 real maxFreq[4], minFreq[4], * curFreq;
 
-//                idx minRelative,maxRelative;
                 SNPFreq freqMin,freqMax;
                 ProfilePosInfo outInfoMin,outInfoMax;
                 struct posTot{
@@ -435,20 +660,20 @@ namespace slib
                 }
                 inline void updateMinMaxInDels(SNPFreq * line) {
                     if( freqMax.insertions() < line->insertions() ) {
-                        freqMax.atgcFwd[5] = line->inFwd();
-                        freqMax.atgcRev[5] = line->inRev();
+                        freqMax.atgcFwd[4] = line->inFwd();
+                        freqMax.atgcRev[4] = line->inRev();
                     }
                     if( freqMax.deletions() < line->deletions() ) {
-                        freqMax.atgcFwd[4] = line->delFwd();
-                        freqMax.atgcRev[4] = line->delRev();
+                        freqMax.atgcFwd[5] = line->delFwd();
+                        freqMax.atgcRev[5] = line->delRev();
                     }
                     if( freqMin.insertions() > line->insertions() ) {
-                        freqMin.atgcFwd[5] = line->inFwd();
-                        freqMin.atgcRev[5] = line->inRev();
+                        freqMin.atgcFwd[4] = line->inFwd();
+                        freqMin.atgcRev[4] = line->inRev();
                     }
                     if( freqMin.deletions() > line->deletions() ) {
-                        freqMin.atgcFwd[4] = line->delFwd();
-                        freqMin.atgcRev[4] = line->delRev();
+                        freqMin.atgcFwd[5] = line->delFwd();
+                        freqMin.atgcRev[5] = line->delRev();
                     }
                 }
                 void updateMinMax(SNPFreq * line, idx cur_pos, idx relativeLetter, idx tot, idx withIndels_tot,idx totF,idx totR) {
@@ -470,7 +695,7 @@ namespace slib
                         }
                     }
 
-                    updateMinMaxQua(line); //Quality update need to be after freqMin/freqMax update in order to scale to the updated coverage
+                    updateMinMaxQua(line);
                     updateMinMaxTotals(tot,withIndels_tot,totF,totR);
                     updateMinMaxACGTFreq(line,relativeLetter,tot);
                     updateMinMaxInDels(line);
@@ -531,35 +756,37 @@ namespace slib
                 }
         };
 
-        /*
-        struct EntrPos {
-            real atgc[4];
-            real tot,ref;
-            real cutoff;
-        };
-         */
 
-        //! A record containing one line of a SNPprofile-*.csv file.
-        /*
-         * Contains, for a single position on a reference sequence, the reference nucleotide, the consensus nucleotide generated from
-         * the reads, the number of ATGCs, deletes, and inserts generated from the read data, and other data related to SNPs.
-         */
         struct SNPRecord {
-            idx iSub; //!< The reference sequence beginning at 1. Applicable only in concatenated profile files. 0 otherwise
-            udx position; //!< The position of the nucleotide in the reference sequence beginning at 1.
-            char letter; //!< This is the nucleotide of the reference sequence at this position.
-            char consensus; //!< This is the consensus nucleotide for the position as determined by the reads.
-            idx atgc[4]; //!< Array with number of reads at each position in this order: [0]=A,[1]=C,[2]=G,[3]=T
-            idx indel[2]; //!< Array with number of reads at each position in this order: [0]=insert,[1]=delete
-            idx countFwd; //!< The number of forward reads.
-            idx countRev; //!< The number of backwards reads.
-            idx qua; //!< The quality of the reads at this position.
-            real entrScaled; //!< 0.001 * SNPFreq::entr()
-            real snpentrScaled; //!< 0.001 * SNPReq::snpentr()
+            idx iSub;
+            udx position;
+            char letter;
+            char consensus;
+            idx atgc[4];
+            idx indel[2];
+            idx countFwd;
+            idx countRev;
+            idx qua;
+            real entrScaled;
+            real snpentrScaled;
+
+            enum {
+                symbol_First = 0,
+                symbol_FirstBase = symbol_First,
+                symbol_A = symbol_FirstBase,
+                symbol_C,
+                symbol_G,
+                symbol_T,
+                symbol_LastBase = symbol_T,
+                symbol_Ins,
+                symbol_Del,
+                symbol_Last = symbol_Del,
+                symbol_Dim
+            } eAlphabet;
 
              SNPRecord()
              {
-                 sSet(this);  //initiate SNPRecord with zeros
+                 sSet(this);
              }
 
              void reset()
@@ -567,23 +794,13 @@ namespace slib
                  sSet(this);
              }
 
-            /*! \return The total number of reads (forward and backwards). */
+            inline bool isMatch() const {return coverage() && letter==consensus;};
             inline idx coverage() const {return countFwd+countRev;}
 
-            /*! \return The total number of reads (forward and backwards) plus deletions. */
-            inline idx positionalCoverage() const {return countFwd+countRev+indel[0];}
-
-            /*! \returns Relative nucleotide abbreviation (A, C, G, T) */
             inline char relativeLetterChar(idx snpCompare) const {return snpCompare == 0 ? consensus : letter;}
 
-            /*! \param snpCompare is a comparison of the SNPs.  A value of 0 will return the consensus nucleotide from the reads, while a value not equal
-             *  to 0 will return the reference nucleotide.
-             *  \returns Index of the relative letter A, T, G, C as (1..4) respectively. */
             inline idx relativeLetterIndex(idx snpCompare) const {return sBioseq::mapATGC[(idx)relativeLetterChar(snpCompare)];}
 
-            /*! \return The frequency of the nucleotide (A, C, G, T, insert, delete) value passed in.
-             * \param i is a value from 0..6, corresponding to A, C, G, T, insert, delete
-             * \returns the real frequency of the passed in nucleotide value. */
             inline real freq(idx i, idx snpCompare=snpCompare_DEFAULT) const
             {
                 return (i == relativeLetterIndex(snpCompare)) ? 0 : freqRaw(i);
@@ -591,35 +808,55 @@ namespace slib
 
             inline real freqRaw(idx i) const
             {
-                assert (i >= 0 && i < 6);
+                assert (i >= 0 && i < alphabetSize() );
 
-                if (i >= 0 && i < 4)
-                    return ((real)atgc[i]) / (positionalCoverage() ? positionalCoverage() : 1);
+                switch( i ) {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                        return ((real)atgc[i]) / (coverage() ? coverage() : 1);
+                    case 4:
+                    case 5:
+                        return ((real)indel[i-4]) / (coverage() ? coverage() : 1);
+                }
 
-                return ((real)indel[i-4]) / (positionalCoverage() ? positionalCoverage() : 1);
+                return 0;
             }
 
-            /*! Prints out a CSV formatted version of the data held in this SNPRecord object to a provided sStr.
-             * \params s is the stream to print to while \a snpCompare is an optional argument for the comparison of SNPs (defaults to true). */
+            static inline  idx alphabetSize() { return symbol_Dim; }
+
+            static inline  bool isIndexABase(idx i) { return i<=symbol_LastBase && i>=symbol_FirstBase; }
+
+            static inline  bool isIndexAnIndel(idx i) { return i==symbol_Ins || i>=symbol_Del; }
+
+            inline idx getMutations(real thrsld, sVec<idx> * letter_res = 0, sVec<real> * freq_res = 0, idx snpCompare=snpCompare_DEFAULT) const
+            {
+                idx cnt = 0;
+                real c_freq = 0;
+                for (idx i = 0 ; i < alphabetSize() ; ++i)
+                {
+                    c_freq = freq(i,snpCompare);
+                    if( c_freq >= thrsld ) {
+                        ++cnt;
+                        if( letter_res )
+                            letter_res->vadd(1,i);
+                        if( freq_res )
+                            freq_res->vadd(1,c_freq);
+                    }
+                }
+                return cnt;
+            }
+
             void printCSV(sStr &s, idx snpCompare=snpCompare_DEFAULT) const;
 
 
-            /*! Prints out a CSV formatted version of the data held in this SNPRecord object to a provided sStr.
-             * \Outputs index of references for concatenated format where all profiles are printed into a single file.
-             * \params is the stream to print to while \a snpCompare is an optional argument for the comparison of SNPs (defaults to true). */
             void printCSV_withSubject(sStr &s, idx snpCompare=snpCompare_DEFAULT) const;
 
-            /*! Fills an SNPRecord by scanning a SNPprofile-*.csv line
-             * \param bufend points 1 element past end of \a buf (e.g. to the terminal 0 in a 0-terminated string);
-             *        if \a bufend equals NULL, \a buf will be assumed to be 0-terminated. */
             bool parseCSV(const char *buf, const char *bufend, idx icolMax=0, bool withSub = false);
 
-            /*! Fills an SNPRecord by scanning a  line of a concatenated SNPprofile.csv(with multiple references)
-             * \param bufend points 1 element past end of \a buf (e.g. to the terminal 0 in a 0-terminated string);
-             *        if \a bufend equals NULL, \a buf will be assumed to be 0-terminated. */
             bool parseCSV_withSubject(const char *buf, const char *bufend, idx icolMax=0);
         };
-        //      ionAnnot
         struct startEndAnnot {
                 idx start, end;
                 startEndAnnot(){start=end=-1;};
@@ -645,12 +882,11 @@ namespace slib
                 sSet(this,0);
             }
         };
-        static idx snpCountSingleSeq(SNPFreq * freq, ProfilePosInfo * pinf, ProfileAAInfo * ainf, idx substart, idx sublen,  const char * sub,
+        static idx snpCountSingleSeq(SNPFreq * freq, ProfilePosInfo * pinf, ProfileAAInfo * ainf, idx substart, idx sublen,  const char * sub, InDels  & my_indels,
             idx subbuflen, const char * qry, idx qrylen,const char * qua,
             bool quabit, sBioseqAlignment::Al * hdr, idx * m, SNPParams * SP, idx qrpt, ProfileExtraInfo * extraInf,
             idx idQry=0, sBioseqSNP::ionRange * range=0);
         static idx snpCountPosInfo(SNPFreq * freq, ProfilePosInfo * pinf, const char * subseq, idx substart, idx sublen, SNPParams * SP, ProfileExtraInfo * extraInf );
-        static idx snpCountMatches(const char * sub, idx sublen, const char * qry, idx qrylen,sBioseqAlignment::Al * hdr, idx * m);
         static idx * tryAlternativeWay(sIonWander * myWander, const char * orignal_id, idx * recDim);
         static idx snpCleanTable( SNPFreq * freq, const char * subseq, idx substart, idx sublen, SNPParams * SP) ;
         static idx snpOutTable(sStr * out, sStr * xinf, sStr * aainf, sStr * cons, idx isub, const char * subseq, SNPFreq * freq, ProfilePosInfo * pinf, ProfileAAInfo * ainf, idx substart, idx sublen, SNPParams * SP , idx * multAlPosMatch, SNPminmax * MinMaxParams = 0 , sIonAnnot * ionAnnot=0);
@@ -660,7 +896,6 @@ namespace slib
         static idx snpComputeNoiseThresholds(real noiseProfileResolution, sDic < sVec < idx > > * noiseProfile, real * ctof, idx lenct, sVec<sVec<real> > * pct);
 
 
-       //static idx snpCountNoise(SNPFreq * freq, const char * subseq,  idx substart, idx sublen,  sDic < sVec < idx > > * noiseProfile, real noiseProfileResolution, real noiseProfileMax);
         struct HistogHistog { sDic <idx > countForCoverage[4]; };
         static idx snpOutHistog(sVec <HistogHistog> & histogramCoverage, real step, sFil & histProf,idx iSub=0, bool printHeader = true );
         static idx snpCountNoise(SNPFreq * freq, const char * subseq,  idx substart, idx sublen,  sDic < sVec < idx > > * noiseProfile, real noiseProfileResolution, real noiseProfileMax, sVec < HistogHistog > * histogramCoverage = 0, idx minCoverage = 0);
@@ -695,22 +930,18 @@ namespace slib
         static bool createAnnotationSearchIonRangeQueries(sStr & qry1 , sStr & qry2, const char * seqID, const char * start="start", const char * end="$end" );
         static idx launchIonAnnot(sIonWander * wander, sIonWander * wander2, sVec < ionRange > * rangeDic, idx position, const char * sequenceIdFromProfiler);
 
-        /*! Create a ProfileStat structure.  This structure contains the statistics for a profile.  This is the information returned in the summary
-         *  portion of the profile interface.
-         */
         struct ProfileStat {
-                idx reflen; //!< The length of the reference sequence for this profile
-                idx totalGapLength; //!< Total length of the unmapped regions in this profile
-                idx totalContigLength; //!< Total length of the contigs in this profile
-                idx averageContigCoverage; //!< The average coverage on the reference of the parts represented by contigs in the profile
-                idx averageGapCoverage; //!< The average coverage on the reference of the parts represented by gaps in the profile
-                idx totalGapsNumber; //!< Total number of gaps in the profile
-                idx totalContigsNumber; //!< Total number of contigs in the profile
-                float gapsPart; //!< The percentage of the unmapped regions on the reference for this profile
-                float contigsPart; //!< The percentage of the mapped regions on the reference for this profile
+                idx reflen;
+                idx totalGapLength;
+                idx totalContigLength;
+                real averageContigCoverage;
+                real averageGapCoverage;
+                idx totalGapsNumber;
+                idx totalContigsNumber;
+                idx totalMatches;
+                float gapsPart;
+                float contigsPart;
 
-                /*! Set all of the member variables to 0
-                 */
                 void initilize () {
                     reflen = 0;
                     totalGapLength= 0;
@@ -724,23 +955,22 @@ namespace slib
                 }
         };
         struct ProfileGap{ bool hasCoverage; idx start , end , averageCoverage, length;};
-        /*!
-           Generate a ProfileStat based on the profile sent in.
-         */
-        static idx snpDetectGaps(ProfileStat * ps, sVec < ProfileGap > * pg, sFil * prof, idx sublen, idx gapWindowSize, idx gapThreshold, idx minGapLength,idx iSub=0 );
+        static idx snpDetectGaps(ProfileStat * ps, sVec < ProfileGap > * pg, sFil * prof, idx sublen, idx gapWindowSize, idx gapThreshold, idx minGapLength,idx iSub=0);
 
         static idx protSeqGeneration(const char * subseq, const char * subName,idx sublen,sStr * seqOut);
 
-        enum eProfileIterator {
-                    ePIskipGaps    =    1,
-                    ePIreplaceGaps =    2,
-                    ePIsplitOnGaps =    3,
+        enum eProfileIteratorFlags {
+                    ePIskipGaps    =    0x01,
+                    ePIreplaceGaps =    0x02,
+                    ePIsplitOnGaps =    0x03,
+                    eCollapseConsecutiveDeletions = 0x04
                 };
 
 
         struct ParamsProfileIterator{
             sStr * str;
-            idx iter_flags;
+            idx flags;
+            SNPRecord prev_rec;
             regex_t * regp;
             idx isCoverageThrs,coverageThrs,pageRevDir;
             idx alCol;
@@ -751,91 +981,45 @@ namespace slib
             sStr chrName;
             const char * seq;
 
-            idx wrap,iSub; //1 based subject
+            idx wrap,iSub;
+            const char * current_row, * end_row;
 
             void * userPointer;
             idx userIndex;
 
             ParamsProfileIterator(sStr * lstr=0){
-                sSet(this,0); // fill with zeros
+                sSet(this,0);
                 str=lstr;
                 chrName.cut(0);
-//                regp=0;
+            }
+            idx get_gap_flags() {
+                return flags&3;
+            }
+            void set_gap_flags(idx t_flg) {
+                flags = (flags&(~(idx)3))|(t_flg&3);
             }
         };
 
         static idx snpOutConsensus(SNPRecord  * rec,ParamsProfileIterator * params,idx iNum);
+        static idx getNextRecord(ParamsProfileIterator * param, SNPRecord & rec, idx i_pos, idx i_last_valid);
         typedef idx (*typeCallbackIteratorFunction)(SNPRecord *rec, ParamsProfileIterator * param, idx iNum);
-        static idx iterateProfile(sFil * profile,idx subLen,idx * piVis, idx start, idx cnt, sBioseqSNP::typeCallbackIteratorFunction callbackFunc,ParamsProfileIterator * callbackParam);
-        /*! Find a reference in SNPprofile.csv buffer
-         * \param buf start of SNPprofile.csv bffer
-         * \param bufend points 1 byte past end of \a buf (e.g. to the terminal 0 in a 0-terminated string)
-         * \param iSub reference to search for
-         * \param wantEnd whether to find end of last record with reference (instead of start of first record)
-         * \returns pointer to first record with reference iSub (if wantEnd is false),
-         *          or pointer to 1 byte past last record with reference iSub (if wantEnd is true),
-         *          or 0 on failure */
+        static idx iterateProfile(sFil * profile,idx subLen,idx * piVis, idx start, idx cnt, sBioseqSNP::typeCallbackIteratorFunction callbackFunc,ParamsProfileIterator * callbackParam, bool isProfVCF = false);
         static const char * binarySearchReference(const char * buf, const char * bufend, idx iSub, bool wantEnd = false);
-        static const char * binarySearchReferenceNoise(const char * buf, const char * bufend, idx iSub,bool wantEnd /*= false */);
+        static const char * binarySearchReferenceNoise(const char * buf, const char * bufend, idx iSub,bool wantEnd);
 
         static idx printCSV(sBioseqSNP::SNPRecord * snpRecord, sBioseqSNP::ParamsProfileIterator * params, idx iNum = 0);
 
-        /*! Extracts an amino acide codon from a specific genomic position given an ORF
-         * \param seq is the compress genonmic sequence
-         * \param position is the position of genomic sequence of which we want to extract the codon.
-         * \param ranges is an ionRange structure that describes the ORF we will use to infer the codon
-         *        if ranges is 0 then seq itself is considered and ORF
-         * \param AA holds the resulted amino acid codon.
-         * \param threeCodeOffset holds the index of the position inside the codon.
-         * \returns the index of the amino acid.
-         */
         static idx aminoacidDecode( const char * seq, idx position, ionRange * ranges,char * AA, idx * threeCodeOffset=0) ;
 
-        /*! Extracts an amino acide codon from a specific sequence position given an ORF
-         * \param base is the base to be placed in the right frame
-         * \param position is the position of genomic sequence of which we want to extract the codon.
-         * \param ranges is an ionRange structure that describes the ORF we will use to infer the codon
-         *        if ranges is 0 then seq itself is considered and ORF
-         * \param AA holds the resulted amino acid codon.
-         * \param threeCodeOffset holds the index of the position inside the codon.
-         * \returns the index of the amino acid.
-         */
         static idx baseFrameDecode( idx &base, idx position, ionRange * ranges,idx & AA, idx * threeCodeOffset=0);
 
-        /*! Extract a SNPRecord from a buffer containing a SNPprofile-*.csv file
-         * \param bufend points 1 element past end of \a buf (e.g. to the terminal 0 in a 0-terminated string);
-         *        if \a bufend equals NULL, \a buf will be assumed to be 0-terminated.
-         * \returns Pointer to next line in \a buf on success, NULL on failure
-         */
         static const char * SNPRecordNext(const char *buf, SNPRecord *rec, const char *bufend);
-        /*! Extract a SNPRecord from a buffer containing a SNPprofile-*.csv file
-         * \param bufend points 1 element past end of \a buf (e.g. to the terminal 0 in a 0-terminated string);
-         *        if \a bufend equals NULL, \a buf will be assumed to be 0-terminated.
-         * \returns Pointer to previous line in \a buf on success, NULL on failure
-         */
         static const char * SNPRecordPrevious(const char *buf, SNPRecord *rec, const char *bufstart);
 
-        /*! Extract a SNPRecord from a buffer containing a SNPprofile.csv file while in iSub reference range
-         * \param bufend points 1 element past end of \a buf (e.g. to the terminal 0 in a 0-terminated string);
-         *        if \a bufend equals NULL, \a buf will be assumed to be 0-terminated.
-         * \returns Pointer to next line in \a buf on success, NULL on failure
-         */
         static const char * SNPConcatenatedRecordNext(const char *buf, SNPRecord *rec, const char *bufend,idx iSub = 0 , idx icolMax=0);
-        /*! Extract a SNPRecord from a buffer containing a SNPprofile.csv file while in iSub reference range
-         * \param bufend points 1 element past end of \a buf (e.g. to the terminal 0 in a 0-terminated string);
-         *        if \a bufend equals NULL, \a buf will be assumed to be 0-terminated.
-         * \returns Pointer to previous line in \a buf on success, NULL on failure
-         */
         static const char * SNPConcatenatedRecordPrevious(const char *buf, SNPRecord *rec, const char *bufstart,idx iSub = 0, idx icolMax=0);
 
 
-        /* Fill a 6x6 \a noiseCutoffs array from a NoiseIntegral CSV file
-         * \param buf buffer with contents of NoiseIntegral CSV file
-         * \param bufend points 1 element past end of \a buf; if \a \bufend == NULL, \a buf is assumed to be 0-terminated.
-         * \param[out] noiseCutoffs A pre-allocated 6x6 array which will be filled from parsed data
-         * \param thresholdIdx index into \ref noiseCutoffThresholds
-         * \returns true on success, false on failure
-         */
         static bool snpNoiseCutoffsFromIntegralCSV(const char *buf, const char *bufend, real noiseCutoffs[6][6], idx thresholdIdx=noiseCutoffThresholdsIdx_DEFAULT);
         static const char * snpConcatenatedNoiseCutoffsFromIntegralCSV(const char *buf, const char *bufend, real noiseCutoffs[6][6], idx iSub = 0, idx thresholdIdx=noiseCutoffThresholdsIdx_DEFAULT, idx * piSub = 0);
         static idx noiseProfileFromCSV(const char *buf, const char *bufend, sDic< sVec<idx> > * noiseProfile, real noiseProfileResolution);
@@ -864,7 +1048,6 @@ namespace slib
             if( isEof() ) {
                 _validRec = false;
             } else {
-                // after _rec.reset(), _rec.iSub is zero - which means ignored
                 _buf = _buf_concatenated ? sBioseqSNP::SNPConcatenatedRecordNext(_buf, &_rec, _bufend, _rec.iSub) : sBioseqSNP::SNPRecordNext(_buf, &_rec, _bufend);
                 if( unlikely(!_buf) ) {
                     _validRec = false;
@@ -911,10 +1094,8 @@ namespace slib
 
     struct sSNPCSVFreqIterParams
     {
-        /*! for _snpparams.noiseCutoffs, first index is of SNPRecord::atgc, second equals SNPRecord::relativeLetterIndex() */
         sBioseqSNP::SNPParams _snpparams;
 
-        /* parameters for additional filtering */
         real _maxThreshold;
         idx _thresholdAutoTarget;
 
@@ -922,7 +1103,7 @@ namespace slib
         {
             if (snpparams) {
                 if (snpparams != &_snpparams)
-                    memcpy(&_snpparams, snpparams, sizeof(_snpparams));
+                    _snpparams = *snpparams;
             } else {
                 _snpparams.snpCompare = sBioseqSNP::snpCompare_DEFAULT;
                 _snpparams.noiseCutoffs[0][0] = -1;
@@ -934,13 +1115,19 @@ namespace slib
         sSNPCSVFreqIterParams(const sBioseqSNP::SNPParams * snpparams = NULL) { init(snpparams); }
         sSNPCSVFreqIterParams(const sSNPCSVFreqIterParams &rhs)
         {
-            if (this != &rhs)
-                memcpy(this, &rhs, sizeof(sSNPCSVFreqIterParams));
+            if (this != &rhs) {
+                _snpparams = rhs._snpparams;
+                _maxThreshold = rhs._maxThreshold;
+                _thresholdAutoTarget = rhs._thresholdAutoTarget;
+            }
         }
         sSNPCSVFreqIterParams& operator= (const sSNPCSVFreqIterParams &rhs)
         {
-            if (this != &rhs)
-                memcpy(this, &rhs, sizeof(sSNPCSVFreqIterParams));
+            if (this != &rhs) {
+                _snpparams = rhs._snpparams;
+                _maxThreshold = rhs._maxThreshold;
+                _thresholdAutoTarget = rhs._thresholdAutoTarget;
+            }
             return *this;
         }
 
@@ -953,7 +1140,6 @@ namespace slib
         inline real getMinThreshold() const { return _snpparams.minFreqPercent / 100; }
         inline void setMinThreshold(real f) { if (f >= 0 && f <= 1) _snpparams.minFreqPercent = f * 100; }
         inline real getMaxThreshold() const { return _maxThreshold; }
-        /* Note: assume that a max threshold of 0 is a user error */
         inline void setMaxThreshold(real f) { if (f > 0 && f <= 1) _maxThreshold = f; }
         inline idx getMinCoverage() const { return _snpparams.minCover; }
         inline void setMinCoverage(idx c) { _snpparams.minCover = c; }
@@ -965,9 +1151,10 @@ namespace slib
     protected:
         const char *_buf, *_bufend;
         bool _buf_concatenated;
-        idx _i, _j; // _i indexes SNPRecords in _buf, and _j indexes inside _rec.atgc
+        idx _i, _j;
         sBioseqSNP::SNPRecord _rec;
         real _totalFreq;
+        real _maxFreq;
         bool _validRec;
         sSNPCSVFreqIterParams _params;
 
@@ -977,11 +1164,10 @@ namespace slib
         inline void readRec_default()
         {
             _validRec = true;
-            _totalFreq = 0;
+            _totalFreq = _maxFreq = 0;
             if( isEof() ) {
                 _validRec = false;
             } else {
-                // after _rec.reset(), _rec.iSub is zero - which means ignored
                 _buf = _buf_concatenated ? sBioseqSNP::SNPConcatenatedRecordNext(_buf, &_rec, _bufend, _rec.iSub) : sBioseqSNP::SNPRecordNext(_buf, &_rec, _bufend);
                 if( !_buf ) {
                     _validRec = false;
@@ -990,6 +1176,7 @@ namespace slib
             if( _validRec ) {
                 for (idx j=0; j<6; j++) {
                     _totalFreq += getDenoisedFreq(j);
+                    _maxFreq = sMax(_maxFreq, getDenoisedFreq(j));
                 }
             }
         }
@@ -1003,7 +1190,7 @@ namespace slib
             _j = rhs._j;
             _rec = rhs._rec;
             _validRec = rhs._validRec;
-            memcpy(&_params, &(rhs._params), sizeof(_params));
+            _params = rhs._params;
         }
 
         void init(const char *buf, const char *bufend, bool concatenated, const sSNPCSVFreqIterParams * params)
@@ -1018,8 +1205,6 @@ namespace slib
             } else {
                 _params.init();
             }
-            // init() is called from the constructor; at this point, the derived class's readRec_impl()
-            // may not be available, so we can't use readRec()
             readRec_default();
         }
         inline bool validIndices() const { return _j >= 0 && _j < 6; }
@@ -1077,7 +1262,6 @@ namespace slib
             if (j < 0 || j >= 6) j = _j;
 
             real f = _rec.freq(j, _params._snpparams.snpCompare);
-            // Ignore noise cutoffs if negative
             if (_params.hasNoiseCutoffs())
                 f = sMax<real>(0., f - _params.getNoiseCutoff(&_rec, j));
 
@@ -1089,7 +1273,7 @@ namespace slib
         real dereference_impl() const
         {
             real f = getDenoisedFreq();
-            if (!meetsThreshold(_totalFreq) || !meetsCoverage())
+            if (!meetsThreshold(_maxFreq) || !meetsCoverage())
                 return 0;
 
             return f;
@@ -1107,7 +1291,6 @@ namespace slib
     template<> inline sSNPCSVFreqIter<void>* sSNPCSVFreqIter<void>::clone_impl() const { return new sSNPCSVFreqIter(*this); }
     template<> inline sSNPCSVFreqIter<void>& sSNPCSVFreqIter<void>::increment_impl() { return increment_default(); }
 
-} // namespace
+}
 
-#endif // sBio_seqsnp_hpp
-
+#endif 

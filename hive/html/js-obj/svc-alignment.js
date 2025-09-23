@@ -27,7 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-var blockedByVahan=0;
+var blockedByVahan = 0;
 if (!javaScriptEngine)
     var javaScriptEngine = vjJS["undefined"];
 javaScriptEngine.include("js/vjAlignmentView.js");
@@ -35,15 +35,14 @@ javaScriptEngine.include("js/vjAlignmentView.js");
 vjHO.register('svc-alignment').Constructor = function() {
 
     if (this.objCls)
-        return; // stupid chrome loads from both cached file and the one coming
-                // from server.
+        return;
 
     this.typeName = "svc-alignment";
     this.autoClickedReference = 1;
     this.objCls = "obj-svc-alignment" + Math.random();
     vjObj.register(this.objCls, this);
     this.dsQPBG = vjDS
-            .add("preparing download", "dsQpbgAlignment", "static://");
+            .add("preparing download", "dsQpbgAlignment", "static:
     this.idNulldsName = "default";
     this.onArchiveSubmit = function(viewer, content) {
         var icon;
@@ -65,14 +64,13 @@ vjHO.register('svc-alignment').Constructor = function() {
         });
     };
     this.dsQPBG_digest = vjDS.add('preparing to archive', 'ds' + this.objCls
-            + '_QPBG_digest', 'static://', {
+            + '_QPBG_digest', 'static:
         func : this.onArchiveSubmit,
         obj : this
     });
 
-    // two public functions which must be supported
     this.fullview = function(node, dv) {
-        this.load(dv, node); // node.id
+        this.load(dv, node);
         if (this.onFullviewLoadCallback) {
             funcLink(this.onFullviewLoadCallback, this);
         }
@@ -113,27 +111,27 @@ vjHO.register('svc-alignment').Constructor = function() {
         }
         return this;
     };
-    
+
     this.printUnalignedParameter = function() {
         return quoteForCSV(JSON.stringify({
             referenceID : 0,
             isUnaligned : true
         }))
     }
-    
-    this.isUnalignedParameter = function(params){
+
+    this.isUnalignedParameter = function(params) {
         return (params && params.isUnaligned);
     }
 
     this.urlSet = {
         'hitlist' : {
-            active_url : "http://?cmd=alCount&start=0&cnt=50"
+            active_url : "http:
                     + (this.subsetCount ? "&childProcessedList="
                             + this.subsetCount : ""),
             title : "Retrieving list of hits"
         },
         'histograms' : {
-            active_url : "qpbg_tblqryx4://histogram.csv//hdr=1&tqs="
+            active_url : "qpbg_tblqryx4:
                     + vjDS.escapeQueryLanguage(JSON.stringify([ {
                         op : "filter",
                         arg : {
@@ -146,42 +144,46 @@ vjHO.register('svc-alignment').Constructor = function() {
                     } ])) + "&resolution=" + this.graphResolution,
             title : "Building histogram"
         },
-        'help_histograms': {
-            active_url: "http://help/hlp.view.alignment.histogram.html",
+        'help_histograms' : {
+            active_url : "http:
             doNotChangeMyUrl : true,
-            title: "Alignment histogram help"
+            title : "Alignment histogram help"
         },
         'alView' : {
-            active_url : "http://?cmd=alView&start=0&cnt=50&info=1&mySubID=1&printNs=1",
+            active_url : "http:
             title : "Preparing alignments",
             header : "Element #,#,Direction,Start,Alignment,End,Sequence,Repeats,Position,PosHigh,Motif Start,Motif End"
         },
         'alStack' : {
-            active_url : "http://?cmd=alStack&start=0&cnt=50&info=1&mySubID=1&alHigh=50&printNs=1",
+            active_url : "http:
             title : "Visualizing alignments in stack"
         },
         'alMatch' : {
-            active_url : "http://?cmd=alMatch&start=0&cnt=50&info=1&mySubID=1",
+            active_url : "http:
             title : "Fetching alignments"
         },
         'alMutBias' : {
-            active_url : "http://?cmd=alMutBias&start=0&cnt=50&mySubID=1&info=1",
+            active_url : "http:
             header : "Position,Count-A,Count-C,Count-G,Count-T",
             title : "Creating mutation bias diagram"
         },
         'alSaturation' : {
-            active_url : "http://?cmd=alSaturation&wrap=50000&start=0",
+            active_url : "http:
             title : "Building saturation graph"
         },
         'downloads' : {
-            active_url : "static://",
+            active_url : "static:
             title : "infrastructure: Creating download menu"
         },
         'downloadAll' : {
-            active_url : "static://data,down,arch,operation,arguments,params\n"
+            active_url : "static:
                     + "Hit list,download,ico-file,hitlist,&qty=-1,\n"
-                    + "Unaligned Reads,download,dnaold,alFasta,&backend=1,"+this.printUnalignedParameter()+"\n"
-                    + "Unaligned Reads (FASTQ),download,dnaold,alFastq,&backend=1,"+this.printUnalignedParameter()+"\n"
+                    + "Unaligned Reads,download,dnaold,alFasta,&backend=1,"
+                    + this.printUnalignedParameter()
+                    + "\n"
+                    + "Unaligned Reads (FASTQ),download,dnaold,alFastq,&backend=1,"
+                    + this.printUnalignedParameter()
+                    + "\n"
                     + "Aligned Reads,download,dnaold,alFasta,&qty=-1,\n"
                     + "Alignments,download,ico-file,alView,&qty=-1,\n"
                     + "Alignments in SAM format with original identifiers,download,ico-file,alSam,&qty=-1&useOriginalID=1,\n"
@@ -191,8 +193,8 @@ vjHO.register('svc-alignment').Constructor = function() {
             title : "infrastructure: Creating download menu"
         },
         'help' : {
-            active_url : "http://help/hlp.view.results.alignment.html",
-            inactive_url : "http://help/hlp.view.results.alignment.html",
+            active_url : "http:
+            inactive_url : "http:
             doNotChangeMyUrl : true,
             title : "Infrastructure: Creating help"
         }
@@ -203,7 +205,6 @@ vjHO.register('svc-alignment').Constructor = function() {
         if (!this.loaded || !this.current_dvORtab)
             return;
         this.constructed = true;
-        // var t_viewersArr=[];
 
         if (this.mode == 'mobileview') {
             var dv = this.current_dvORtab.obj;
@@ -224,11 +225,9 @@ vjHO.register('svc-alignment').Constructor = function() {
             var origNumofTabs = dv.tabs.length;
             this.dvname = dv.name;
             this.dvinfo = dv.name;
-            dv.addTab("stack", "list", [ this.viewers['hitlist_panel'],
-                    this.viewers['stack_panel'], this.viewers['hitlist'],
-                    this.viewers['stack'] ]).columns = 2;
-//            dv.addTab("histogram", "area", [ this.viewers['histograms_panel'],
-//                    this.viewers['histograms'] ]);
+            dv.addTab("histogram", "list", [ this.viewers['hitlist_panel'],
+                    this.viewers['histograms_panel'], this.viewers['hitlist'],
+                    this.viewers['histograms'] ]).columns = 2;
             dv.render();
             dv.load('rerender');
         } else {
@@ -240,8 +239,8 @@ vjHO.register('svc-alignment').Constructor = function() {
             this.current_dvORtab[0].addTab("list", "list", [
                     this.viewers['hitlist_panel'], this.viewers['hitlist'] ]);
             this.current_dvORtab[0].addTab("histogram", "area", [
-                this.viewers['histograms_panel'],
-                this.viewers['histograms'] ]);
+                    this.viewers['histograms_panel'],
+                    this.viewers['histograms'] ]);
             this.current_dvORtab[0].addTab("saturation", "graph", [
                     this.viewers['saturation_panel'],
                     this.viewers['saturation'] ]);
@@ -261,7 +260,7 @@ vjHO.register('svc-alignment').Constructor = function() {
                     [ this.viewers['downloads'] ]);
             this.current_dvORtab[1].addTab("help", "help",
                     [ this.viewers['help'] ]);
-            
+
             this.current_dvORtab[0].selected = 1;
             this.current_dvORtab[0].render();
             this.current_dvORtab[1].render();
@@ -288,42 +287,44 @@ vjHO.register('svc-alignment').Constructor = function() {
             this.dvname = this.current_dvORtab.obj.name;
             this.dvinfo = this.current_dvORtab.obj.name;
 
-            this.addviewer('hitlist_panel,hitlist',
-                    new vjAlignmentHitListControlMobile({
-                        data : 'hitlist',
-                        formName : this.formName,
-                        columnToDisplay : [
+            this
+                    .addviewer(
+                            'hitlist_panel,hitlist',
+                            new vjAlignmentHitListControlMobile(
+                                    {
+                                        data : 'hitlist',
+                                        formName : this.formName,
+                                        columnToDisplay : [
 
-                        {
-                            name : new RegExp(/^Hits$/),
-                            type : 'largenumber',
-                            hidden : false
+                                        {
+                                            name : new RegExp(/^Hits$/),
+                                            type : 'largenumber',
+                                            hidden : false
 
-                        }, {
-                            name : 'Reference',
-                            maxTxtLen : 15
-                        }, {
-                            name : 'Density',
-                            maxTxtLen : 15
-                        } ],
-                        width : '100%',// height:'100%',
+                                        }, {
+                                            name : 'Reference',
+                                            maxTxtLen : 15
+                                        }, {
+                                            name : 'Density',
+                                            maxTxtLen : 15
+                                        } ],
+                                        width : '100%',
 
-                        selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
-                                + this.objCls + "')",
-                        isok : true
-                    }));
+                                        selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
+                                                + this.objCls + "')",
+                                        isok : true
+                                    }));
 
-            this.addviewer('hitpie', 
-                    new vjAlignmentHitPieView({
-                        data : 'hitlist',
-                        formName : this.formName[0],
-                        selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
-                                + this.objCls + "')",
-                        isok : true
-                    }));
+            this.addviewer('hitpie', new vjAlignmentHitPieView({
+                data : 'hitlist',
+                formName : this.formName[0],
+                selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
+                        + this.objCls + "')",
+                isok : true
+            }));
 
-            this.addviewer('alignment_panel,alignment', 
-                    new vjAlignmentControl({
+            this.addviewer('alignment_panel,alignment', new vjAlignmentControl(
+                    {
                         data : 'alView',
                         formName : this.formName[1],
                         isok : true
@@ -332,7 +333,7 @@ vjHO.register('svc-alignment').Constructor = function() {
 
         else if (this.mode == 'preview') {
 
-            this.loadedID = id;
+            this.loadedID = node;
             this.formName = '';
             var formNode = gAncestorByTag(gObject(dvORtab.obj.name), "form");
             if (formNode)
@@ -345,31 +346,22 @@ vjHO.register('svc-alignment').Constructor = function() {
             this.dvname = this.current_dvORtab.obj.name;
             this.dvinfo = this.current_dvORtab.obj.name;
 
-            this.addviewer('hitlist_panel,hitlist',
-                    new vjAlignmentHitListControl({
-                            data : 'hitlist',
-                            formName : this.formName,
-                            width : '20%',
-                            selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
-                                    + this.objCls + "')",
-                            isok : true
-                        }));
-
-            this.addviewer('stack_panel,stack_mutation_bias,stack',
-                    new vjAlignmentStackControl({
-                        data : {
-                            stack : 'alStack',
-                            basecallBias : 'dsVoid'
-                        },
-                        formName : this.formName,
-                        width : "100%",
-                        isok : true
-                    }));
+            this
+                    .addviewer(
+                            'hitlist_panel,hitlist',
+                            new vjAlignmentHitListControl(
+                                    {
+                                        data : 'hitlist',
+                                        formName : this.formName,
+                                        selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
+                                                + this.objCls + "')",
+                                        isok : true
+                                    }));
 
             this.addviewer('histograms_panel,histograms',
                     new vjAlignmentHistogramControl({
                         data : 'histograms',
-                        dataHelp: 'help_histograms',
+                        dataHelp : 'help_histograms',
                         formName : this.formName,
                         isok : true
                     }));
@@ -391,56 +383,61 @@ vjHO.register('svc-alignment').Constructor = function() {
 
             this.dvname = this.current_dvORtab[0].name;
             this.dvinfo = this.current_dvORtab[1].name;
-            
-            this.addviewer('hitpie', 
-                    new vjAlignmentHitPieView({
-                            data : 'hitlist',
-                            formName : this.formName[0],
-                            selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
-                                    + this.objCls + "')",
-                            isok : true
-                        }));
 
-            this.addviewer('hitlist_panel,hitlist',
-                    new vjAlignmentHitListControl({
-                        data : 'hitlist',
-                        loadedID: this.loadedID,
-                        formName : this.formName[0],
-                        isPartOfProfiler: node.profiler,
-                        checkable : this.checkable,
-                        selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
-                                + this.objCls + "')",
-                        checkCallback : "function:vjObjFunc('onCheckReferenceGenomes','"
-                                + this.objCls + "')",
-                        isok : true
-                    }));
+            this.addviewer('hitpie', new vjAlignmentHitPieView({
+                data : 'hitlist',
+                formName : this.formName[0],
+                selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
+                        + this.objCls + "')",
+                isok : true
+            }));
 
-            this.addviewer('downloadAll',
-                    new vjAlignmentDownloadsView({
-                        data : 'downloadAll',
-                        formName : this.formName[0],
-                        geometry : 0,
-                        selectCallback : "function:vjObjFunc('onPerformReferenceOperation','"
-                                + this.objCls + "')",
-                        isok : true
-                    }));
+            this
+                    .addviewer(
+                            'hitlist_panel,hitlist',
+                            new vjAlignmentHitListControl(
+                                    {
+                                        data : 'hitlist',
+                                        loadedID : this.loadedID,
+                                        formName : this.formName[0],
+                                        isPartOfProfiler : node.profiler,
+                                        checkable : this.checkable,
+                                        selectCallback : "function:vjObjFunc('onSelectedHitListItem','"
+                                                + this.objCls + "')",
+                                        checkCallback : "function:vjObjFunc('onCheckReferenceGenomes','"
+                                                + this.objCls + "')",
+                                        isok : true
+                                    }));
+
+            this
+                    .addviewer(
+                            'downloadAll',
+                            new vjAlignmentDownloadsView(
+                                    {
+                                        data : 'downloadAll',
+                                        formName : this.formName[0],
+                                        geometry : 0,
+                                        selectCallback : "function:vjObjFunc('onPerformReferenceOperation','"
+                                                + this.objCls + "')",
+                                        isok : true
+                                    }));
 
             this.addviewer('histograms_panel,histograms',
                     new vjAlignmentHistogramControl({
                         data : 'histograms',
-                        dataHelp: 'help_histograms',
+                        dataHelp : 'help_histograms',
                         formName : this.formName[1],
                         isok : true
                     }));
 
-            this.addviewer('alignment_panel,alignment', 
-                    new vjAlignmentControl({
+            this.addviewer('alignment_panel,alignment', new vjAlignmentControl(
+                    {
                         data : 'alView',
                         formName : this.formName[1],
                         isok : true
                     }));
-            
-            this.addviewer('saturation_panel,saturation', 
+
+            this.addviewer('saturation_panel,saturation',
                     new vjAlignmentSaturationControl({
                         data : 'alSaturation',
                         formName : this.formName[1],
@@ -464,21 +461,24 @@ vjHO.register('svc-alignment').Constructor = function() {
                         isok : true
                     }));
 
-            this.addviewer('downloads',
-                    new vjAlignmentDownloadsView({
-                        data : 'downloads',
-                        formName : this.formName[1],
-                        maxTxtLen : 50,
-                        selectCallback : "function:vjObjFunc('onPerformReferenceOperation','"+ this.objCls + "')",
-                        isok : true
-                    }));
+            this
+                    .addviewer(
+                            'downloads',
+                            new vjAlignmentDownloadsView(
+                                    {
+                                        data : 'downloads',
+                                        formName : this.formName[1],
+                                        maxTxtLen : 50,
+                                        selectCallback : "function:vjObjFunc('onPerformReferenceOperation','"
+                                                + this.objCls + "')",
+                                        isok : true
+                                    }));
 
             this.addviewer('help', new vjHelpView({
                 data : 'help',
                 formName : this.formName[1],
                 isok : true
             }));
-            
 
         }
     };
@@ -501,9 +501,6 @@ vjHO.register('svc-alignment').Constructor = function() {
             if (!operDS)
                 return;
             url = operDS.url;
-            // var
-            // dsNameForThis="ds_"+this.dvinfo+"_"+this.typeName+"_"+this.loadedID+"_"+oper;
-            // url=vjDS[dsNameForThis].url;
             url = urlExchangeParameter(url, "cnt", '0');
             if (args)
                 url += args;
@@ -511,23 +508,22 @@ vjHO.register('svc-alignment').Constructor = function() {
         } else
             url = this.makeReferenceOperationURL(viewer, node, node.operation,
                     node.arguments, params);
+
         url = urlExchangeParameter(url, "down", '1');
 
         var backendCmd = docLocValue("cmd", 0, url);
-        var extension ="fasta";
-        if (backendCmd=="alFastq"){
+        var extension = "fasta";
+        if (backendCmd == "alFastq") {
             extension = "fastq";
         }
         if (isDown) {
             if (docLocValue("backend", 0, url)) {
                 var saveAs = "o" + this.loadedID + "-" + oper + "-"
                         + this.referenceID + "." + extension;
-                this.dsQPBG.reload("qpbg_http://" + url, true, {
+                this.dsQPBG.reload("qpbg_http:
                     loadmode : "download",
                     saveas : saveAs
                 });
-                // vjQP.backgroundRetrieveBlob(url+"&check=1", callbackAjax ,
-                // "cgi_output", 0,0, "download",saveAs );
             } else {
                 document.location = url;
             }
@@ -544,10 +540,6 @@ vjHO.register('svc-alignment').Constructor = function() {
                 ext = extension;
                 dstName += "." + extension;
                 break;
-            case "ico-file":
-                ext = "txt";
-                dstName += "." + ext;
-                break;
             default:
                 ext = "-";
             }
@@ -558,7 +550,7 @@ vjHO.register('svc-alignment').Constructor = function() {
             if (url.indexOf("qpbg") == 0)
                 this.dsQPBG_digest.reload(url, true);
             else
-                this.dsQPBG_digest.reload("qpbg_http://" + url, true);
+                this.dsQPBG_digest.reload("qpbg_http:
         }
     };
 
@@ -570,41 +562,34 @@ vjHO.register('svc-alignment').Constructor = function() {
             return url;
         }
 
-        // var qtySamAligns = 0;
-        // // If we want all sam alignments from all refs, note here
-        // if (oper == "alSamAll") {
-        // oper = "alSam";
-        // qtySamAligns = -1;
-        // } else if (oper == "alSam") qtySamAligns = 0;
 
-        var url = "?cmd=" + oper ;
-
+        var url = "?cmd=" + oper;
 
         var referenceID = params && params.referenceID != undefined ? params.referenceID
                 : this.referenceID;
-        
-        url = this.urlReferenceUpdate(url,referenceID);
-        
+
+        url = this.urlReferenceUpdate(url, referenceID);
+
         url += args;
         return url;
     };
-    
-    this.urlReferenceUpdate = function (url,referenceID) {
-        url = urlExchangeParameter(url,"objs",this.loadedID);
-        
-        if (this.reqID){
-            url = urlExchangeParameter(url,"req",this.reqID);
+
+    this.urlReferenceUpdate = function(url, referenceID) {
+        url = urlExchangeParameter(url, "objs", this.loadedID);
+
+        if (this.reqID) {
+            url = urlExchangeParameter(url, "req", this.reqID);
         }
-        
+
         if (parseInt(referenceID) == 0) {
-            url = urlExchangeParameter(url,"found",0);
+            url = urlExchangeParameter(url, "found", 0);
         } else {
-            if (referenceID != '+'){
-                url = urlExchangeParameter(url,"mySubID",referenceID);
+            if (referenceID != '+') {
+                url = urlExchangeParameter(url, "mySubID", referenceID);
             }
-            url = urlExchangeParameter(url,"found",1);
+            url = urlExchangeParameter(url, "found", 1);
         }
-        
+
         return url;
     };
 
@@ -617,18 +602,18 @@ vjHO.register('svc-alignment').Constructor = function() {
         if (this.mode == 'preview') {
             if (!this.isUnalignedSelected(node)) {
                 this.getDS('alView').reload(
-                        "http://"
+                        "http:
                                 + this.makeReferenceOperationURL(viewer, node,
-                                        'alView') + "&cnt=20", false);// &alHigh=50
+                                        'alView') + "&cnt=20", false);
                 this.getDS('alStack').reload(
                         urlExchangeParameter(this.urlSet['alStack'].active_url,
                                 "objs", this.loadedID)
                                 + "&mySubID=" + this.referenceID + "&cnt=20",
-                        false); // &alHigh=50
+                        false);
                 this.getDS('histograms').reload(
                         urlExchangeParameter(
                                 this.urlSet['histograms'].active_url, "objs",
-                                this.loadedID), false); // &alHigh=50
+                                this.loadedID), false);
                 vjDV.locate(this.dvinfo + "._active.").load();
             }
         } else {
@@ -676,19 +661,33 @@ vjHO.register('svc-alignment').Constructor = function() {
                             t += "-Auxiliary information,,,,\n" + tAux;
                     }
                 }
-                // else{
-                // }
 
-                this.getDS('downloads').reload("static://" + t, true);
+                this.getDS('downloads').reload("static:
             }
             if (!this.isUnalignedSelected(node)) {
-                this.getDS('alView').reload(urlExchangeParameter(this.urlReferenceUpdate( this.urlSet['alView'].active_url,this.referenceID),"cnt",20));
-                this.getDS('alMatch').reload(urlExchangeParameter(this.urlReferenceUpdate( this.urlSet['alMatch'].active_url,this.referenceID),"cnt",20));
-                this.getDS('alStack').reload(urlExchangeParameter(urlExchangeParameter(this.urlReferenceUpdate( this.urlSet['alStack'].active_url,this.referenceID),"cnt",20),"alHigh",50));
-                this.getDS('alMutBias').reload(urlExchangeParameter(this.urlReferenceUpdate( this.urlSet['alMutBias'].active_url,this.referenceID),"cnt",20)); 
-                this.getDS('histograms').reload(this.urlReferenceUpdate( this.urlSet['histograms'].active_url,this.referenceID));
-              
-                
+                this.getDS('alView').reload(
+                        urlExchangeParameter(this.urlReferenceUpdate(
+                                this.urlSet['alView'].active_url,
+                                this.referenceID), "cnt", 20));
+                this.getDS('alMatch').reload(
+                        urlExchangeParameter(this.urlReferenceUpdate(
+                                this.urlSet['alMatch'].active_url,
+                                this.referenceID), "cnt", 20));
+                this.getDS('alStack').reload(
+                        urlExchangeParameter(urlExchangeParameter(this
+                                .urlReferenceUpdate(
+                                        this.urlSet['alStack'].active_url,
+                                        this.referenceID), "cnt", 20),
+                                "alHigh", 50));
+                this.getDS('alMutBias').reload(
+                        urlExchangeParameter(this.urlReferenceUpdate(
+                                this.urlSet['alMutBias'].active_url,
+                                this.referenceID), "cnt", 20));
+                this.getDS('histograms').reload(
+                        this.urlReferenceUpdate(
+                                this.urlSet['histograms'].active_url,
+                                this.referenceID));
+
                 vjDV.locate(this.dvinfo + "._active.").load();
                 vjDV.locate(this.dvname + "._active.").load();
             }
@@ -741,16 +740,17 @@ vjHO.register('svc-alignment').Constructor = function() {
             if (!rows.length) {
                 this.autoClickedReference = undefined;
             } else {
-                var nodeID = rows[this.autoClickedReference] ? rows[this.autoClickedReference].id : undefined;
+                var nodeID = rows[this.autoClickedReference] ? rows[this.autoClickedReference].id
+                        : undefined;
                 if (!isNumber(nodeID))
                     this.autoClickedReference = 0;
-                this.viewers["hitlist"]
-                    .mimicClickCell(this.autoClickedReference, 0);
+                this.viewers["hitlist"].mimicClickCell(
+                        this.autoClickedReference, 0);
             }
         }
     };
 
-    this.reload = function(loadedID, reqid, autoClickedReference) // viewer,
+    this.reload = function(loadedID, reqid, autoClickedReference)
     {
         if (loadedID)
             this.loadedID = loadedID;
@@ -758,14 +758,15 @@ vjHO.register('svc-alignment').Constructor = function() {
             return;
         var url = this.urlSet['hitlist'].active_url;
 
-        url = urlExchangeParameter(url, "objs",  this.loadedID);
-        var url =  "http://?cmd=alCount&objs=" + this.loadedID
+        url = urlExchangeParameter(url, "objs", this.loadedID);
+        var url = "http:
                 + "&start=0&cnt=50";
         if (this.profilerList)
-            url = urlExchangeParameter(url, "childProcessedList",  this.subsetCount);
+            url = urlExchangeParameter(url, "childProcessedList",
+                    this.subsetCount);
         if (reqid) {
             this.reqID = reqid;
-            url = urlExchangeParameter(url, "req",  this.reqID);
+            url = urlExchangeParameter(url, "req", this.reqID);
         }
         if (autoClickedReference) {
             this.autoClickedReference = autoClickedReference;
@@ -780,12 +781,11 @@ vjHO.register('svc-alignment').Constructor = function() {
         this.algoProc = proc;
         var checkedIDS = this.viewers["hitlist"].accumulate("node.checked",
                 "node.id");
-        // alert(isok(checkedIDS));
         return isok(checkedIDS) ? 1 : 0;
     };
 
     if (this.onObjectContructionCallback) {
         funcLink(this.onObjectContructionCallback, this);
     }
-    
+
 };

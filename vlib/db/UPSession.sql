@@ -38,6 +38,7 @@ CREATE TABLE `UPSession` (
   `started` datetime NOT NULL,
   `accessed` datetime NOT NULL,
   `ended` datetime DEFAULT NULL,
-  `persistent` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`session_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `persistent` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`session_id`),
+  KEY `user_idx` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

@@ -38,4 +38,4 @@ idx sPerf::gDebugStart=-1;
 idx sPerf::gDebugEnd=-1;
 idx sPerf::gDebugCurrent=-2;
 bool sPerf::gPerfWallClock=false;
-idx sTim_Global; // global time set by any of the willing participants
+idx sTim_Global;

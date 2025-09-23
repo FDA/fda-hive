@@ -32,11 +32,6 @@ $(function () {
     $.widget("layout.infoboxtabs", $.layout.infobox, {
 
         options: {
-            //droppable: {
-                //accept: function (ui) {
-                //    return $(ui.context).is('.layout-area:has(div.layout-infobox-tabs), .layout-infobox-tabs .nav-tabs > li');
-                //}
-            //}
         },
 
         onInfoboxInit: function () {
@@ -65,14 +60,11 @@ $(function () {
                     }
 
                     $(tabPane).on('area-resize-move', function (event) {
-                        //    if tab pane contains layout manager inside and if the areas inside 
-                        //    are resized we must stop event propagation here
                         event.stopPropagation();
                     });
                 });
             }
 
-            //    in case if any layout manager placed inside the tab(s) we have to notify it about area resize...
             oThis.element.on('area-resize', function (event, params) {
                 $.log('jquery.layout.tabs.js: area-resize');
                 
@@ -102,7 +94,6 @@ $(function () {
                 });
             });
 
-            //    tabs infobox is initialized and we have to check if it has another layout manager inside...
             if (!this.element.is('div[data-layout~="manager"]')) {
                 $('div[data-layout~="manager"]', this.element).each(function (index, manager) {
                     var options = parseAreaOptions(this);
@@ -114,14 +105,6 @@ $(function () {
                 });
             }
 
-            /*$(this.element).on('shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
-                oThis.sendEvent('state-changed');
-                oThis.sendEvent('tab-shown', {
-                    index: $(e.target).parent().index(),
-                    tab: $(e.target).parent(),
-                    tabs: oThis.getTabsInfo().tabs
-                });
-            });*/
 
             this.element.on('init-widgets', function () {
                 oThis.adjustHeight();
@@ -129,14 +112,12 @@ $(function () {
             });
 
             this.element.on('tab-close', function () {
-                //    if we close active tab...
                 if ($('li.active', this).length == 0) {
                     if ($('li', this).length > 0)
                         $('li', this).first().find('a').click();
                 }
             })
             .on('tab-hide', function() {
-                //    if we hide active tab...
                 if ($('li.active:visible', this).length == 0) {
                     if ($('li', this).length > 0)
                         $('li:visible', this).first().find('a').click();
@@ -153,11 +134,7 @@ $(function () {
                 oThis.adjustHeight();
             });
 
-            //this.element.on('maximize', function (event, params) {
-            //});
 
-            //this.element.on('minimize', function (event, params) {
-            //});
 
             $('.nav-tabs > li.active', this.element).livequery(function() {
                 oThis.sendEvent('state-changed');
@@ -195,7 +172,7 @@ $(function () {
         _initTabDraggable: function(li) {
             var oThis = this;
 
-            if (this.element.draggable) {
+            if (this.element.draggable && this.options.dragTab !== false) {
                 $(li).draggable({
                     revert: true,
                     distance: 10,
@@ -203,15 +180,12 @@ $(function () {
                         oThis.area.setFocus();
                     },
                     stop: function (event, ui) {
-                        //console.log('drag stops...')
                         oThis._hideSplitAreas();
                     }
                 });
             }
         },
         
-        // events bound via _bind are removed automatically
-        // revert other modifications here
         _destroy: function () {
         },
 
@@ -232,7 +206,6 @@ $(function () {
                 $(this.element).trigger('tab-inactive', params);
             }
             else {
-                // Invoke the parent widget's sendEvent().
                 this._super(name, params);
             }
         },
@@ -268,7 +241,6 @@ $(function () {
             $('div.panel-body', this.element).append(panel);
 
             if ($(tab).hasClass('active')) {
-                //  need to deactivate previously active tab...
                 $('.nav-tabs > li', this.element).removeClass('active');
                 $(tab).addClass('active');
 
@@ -277,19 +249,11 @@ $(function () {
             }
 
             if ($('.nav-tabs > li.active', fromInfobox).length == 0) {
-                //  source infobox doesn't have any active tab anymore...
-                //  we have to activate one... let's say first one
                 $('.nav-tabs > li:first', fromInfobox).addClass('active');
                 $('.panel-body > div.tab-pane:first', fromInfobox).addClass('active');
 
-                /*oThis.sendEvent('tab-shown', {
-                    index: 0,
-                    tab: $('.nav-tabs > li:first', fromInfobox).first(),
-                    tabs: fromInfobox.parent().infoboxtabs('getTabsInfo').tabs
-                });*/
             }
 
-            //  if infobox does't have any tabs we probably have to close it...
             if ($('ul.nav-tabs > li', fromInfobox).length == 0) {
                 if (fromInfobox.parent().is('.layout-area'))
                     fromInfobox.parent().remove();
@@ -299,11 +263,6 @@ $(function () {
                 $('.nav-tabs > li', this.element).addClass('active');
                 $('.panel-body > div.tab-pane', this.element).addClass('active');
 
-                /*oThis.sendEvent('tab-shown', {
-                    index: 0,
-                    tab: $('.nav-tabs > li:first', this.element).first(),
-                    tabs: oThis.getTabsInfo().tabs
-                });*/
             }
 
             this.adjustHeight();
@@ -325,7 +284,6 @@ $(function () {
 
             this.adjustHeight();
         },
-        //    Save config information in order to reproduse the same Tabs infobos later on the fly
         save: function () {
             var oThis = this;
 
@@ -351,7 +309,6 @@ $(function () {
                 };
 
                 if (pane.children().length == 1 && pane.children().first().is('div.layout-manager')) {
-                    //  layout manager inside panel...
                     $.extend(tabConfig, pane.children().first().layoutmanager('save'));
                 }
                 else {
@@ -416,7 +373,6 @@ $(function () {
                 });
 
                 if (pane.children().length == 1 && pane.children().first().is('div.layout-manager')) {
-                    //  layout manager inside panel...
                     $.extend(config, pane.children().first().layoutmanager('save'));
                 }
                 else {

@@ -32,7 +32,7 @@
 
 #include <ssci/chem/spectr/spectraFile.hpp>
 
-void actMatOut(sStr * out, outPar * op, real * pVal, idx row, idx col)//param pVal
+void actMatOut(sStr * out, outPar * op, real * pVal, idx row, idx col)
 {
 
     if(row==-1 && col==-1) out->printf("peaks");
@@ -42,7 +42,6 @@ void actMatOut(sStr * out, outPar * op, real * pVal, idx row, idx col)//param pV
         sSpctr::rMassPrf * rmp=(sSpctr::rMassPrf*)op->peaks->id(col);
         out->printf("%s%lf-%s",  (char*)(&(rmp->rPrfx)),rmp->rMass, op->peaks->mex()->ptr((*(op->peaks))[col]) );
     }
-    //else out->printf("%lf",*pVal);
     return ;
 }
 
@@ -56,7 +55,6 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
     gLog->printf("_/\n");
     gLog->printf("_/_/_/_/_/_/_/_/_/_/_/_/_/\n");
     gLog->printf("\n");
-    //sDir::makeDir(SRC_FILES_PATH""ACT_WORKDIR);
     sStr actWork("%s/act_work",path);
     sDir::makeDir(actWork);
 
@@ -124,11 +122,9 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
         sDir::chDir(curd);
         if(*path)sDir::chDir(dirini);
         dir.cut(0);
-        dir.list(sFlag(sDir::bitFiles)|sFlag(sDir::bitNamesOnly), ".", fmt);//"*.txt");
-        //dir.find(sFlag(sDir::bitFiles)|sFlag(sDir::bitRecursive), ".", fmt);//"*.txt");
+        dir.list(sFlag(sDir::bitFiles)|sFlag(sDir::bitNamesOnly), ".", fmt);
 
 
-        // read all the peaklist files
         for(p=dir.ptr(), ifile=0; p ; p=sString::next00(p) , ++ifile ) {
             gLog->printf("\n\nReading file %d named %s",  ifile+1, p);
             if(*prfx)gLog->printf("from a dir %s prefixed %s",dirini,prfx);
@@ -153,15 +149,12 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
             gLog->printf("\n");
 
 
-            /// compose a sample filename for sample dictionary
             char flnmbuf[4096];
             strcpy(flnmbuf,p);
-            if(gSet.collect.join) { // if join is requested - the samplee name discards after underscore in filename_number
+            if(gSet.collect.join) {
                 char * last_=strrchr(p,'_'), * dig;
                 if(last_ && isdigit(last_[1]) ){
-                    //for( dig=last_+1; isdigit(*dig);++dig);
                     for( dig=last_+1; *dig!=gSet.files[0];++dig);
-                    //if(*dig=='.'){
                     if(*dig==gSet.files[0]){
                         memcpy(flnmbuf,p,(idx)(last_-p));
                         strcpy(flnmbuf+(idx)(last_-p),dig);
@@ -169,13 +162,12 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
                 }
             }
 
-            // now we look if this sample has already been registered in our files dictionary
             clsFile * f=0;
             sVec < clsPeak  >  * cpList=0;
-            if((f=flnms.get(flnmbuf))!=0) { // if it has been registered before - we just increase repeat count
+            if((f=flnms.get(flnmbuf))!=0) {
                 cpList=cpListList.ptr(f->cplistIdx);
                 ++f->Rpt;
-            }else {  // otherwise we register it and remember the index of the first copy
+            }else {
                 f=flnms.set(flnmbuf);
                 f->cplistIdx=cpListList.dim();
                 f->Rpt=1;
@@ -199,22 +191,20 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
                         else strcat(name,namshft);
                     }
 
-                    // now se if this peak has been detected before for another sample
                     idx iFound,iClosest=0;
                     double diffClosest=1.e+13;
                     rMassPrf * rmp=0;
                     for(iFound=0; iFound<peaks.dim() ; ++iFound) {
                         rmp=(rMassPrf*)peaks.id(iFound);
-                        if( cp.rmp.rPrfx!=rmp->rPrfx) // we do not detect a match if this has a different prefix
+                        if( cp.rmp.rPrfx!=rmp->rPrfx)
                             continue;
                         diff=sAbs(cp.rmp.rMass-rmp->rMass);
                         if(diff<diffClosest){iClosest=iFound;diffClosest=diff;}
                         if(diff<=gSet.collect.wobble) break;
                     }
 
-                    real massToCompare= (iFound>=peaks.dim() ) ? cp.rmp.rMass :  rmp->rMass; // if the wobbling will put join this with some other ... see if that other is filtere out.
+                    real massToCompare= (iFound>=peaks.dim() ) ? cp.rmp.rMass :  rmp->rMass;
 
-                    // if this peak is to be filtered out ...
                     for(ie=0; ie<excl.dim() ; ++ie) {
                         diff=sAbs(massToCompare-excl[ie]);
                         if(diff<=gSet.collect.wobbleExcl) break;
@@ -224,11 +214,11 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
                         if(diff<=gSet.collect.wobbleExcl) break;
                     }
 
-                    if( ie==excl.dim()  ) { // this one is not in exclusion list
-                        if( incl.dim()==0 || ii!=incl.dim()  ) { // this one is in inclusion list
+                    if( ie==excl.dim()  ) {
+                        if( incl.dim()==0 || ii!=incl.dim()  ) {
                             cp.intensity=intst[gSet.collect.column-1];
 
-                            if(iFound>=peaks.dim()){// if(cp.iNum>=prvcnt){
+                            if(iFound>=peaks.dim()){
                                 *peaks.set((const void *)&cp.rmp, sizeof(cp.rmp), &cp.iNum)=peaks.mex()->add((const char *)name,sLen(name)+1);
                                 gLog->printf("added as a new peak number %d ",   cp.iNum+1 );
                                 rmp=(rMassPrf *)peaks.id(iClosest);
@@ -245,7 +235,7 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
                             if(gSet.collect.join) {
                                 idx rpt;
                                 for(rpt=0; rpt<cpList->dim() && (cpList->ptr(rpt)->rmp.rMass!=cp.rmp.rMass || cpList->ptr(rpt)->rmp.rPrfx!=cp.rmp.rPrfx); ++rpt);
-                                if( rpt<cpList->dim() ) {// this peak has been found in another sample
+                                if( rpt<cpList->dim() ) {
                                     cpList->ptr(rpt)->intensity+=cp.intensity;
                                 }
                                 else cpList->vadd(1,cp);
@@ -262,7 +252,6 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
                 s=sString::skipWords(s,rest, 1,sString_symbolsEndline);
             }
             gLog->printf("%d peaks detected in %s (maxes at %lf to %lf) \n",  cpList->dim(), p,massMax, ampMax);
-    //      printf("%d peaks detected in %s\n",  cpList->dim(), p);
         }
     }
 
@@ -291,19 +280,15 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
         for( idx ic=0; ic<cpList->dim(); ++ic) {
             clsPeak * cp=cpList->ptr(ic);
             real val=cp->intensity*1000/f->Rpt;
-            //real val=sqrt(cp->intensity/f->Rpt);
-            //val=sqrt(val);
             ori(ir,cp->iNum)=val;
             if(gSet.allMax<val)gSet.allMax=val;
             if(val>0)++nonzero;
-            //acttran[cp->iNum*rowcnt+ir]=ori(ir,ic);
         }
         if(nonzero==0)
             ++nonzero;
     }
     ori.copy(trn, true);
 
-    // normalize rows
     if(gSet.collect.renormalize){
         for(idx ir=0; ir<ori.rows(); ++ir) {
             real sum=0;
@@ -316,7 +301,6 @@ idx sSpctr::prepareAMat(const char * path, const char * fls)
             }
         }
     }
-    // output the activity matrix
     sFil out(SRC_FILES_PATH""ACT_WORKDIR"/amat.csv");out.cut(0);
     sFil ouT(SRC_FILES_PATH""ACT_WORKDIR"/atrn.csv");ouT.cut(0);
 
@@ -377,8 +361,8 @@ idx sSpctr::filterAMat(idx iCat, sDic < sDic < sVec < idx > > > * catSet ,sStr *
         Stats.resize(colset->dim()*2,ori.cols());
 
         for(idx il=0; il<colset->dim(); ++il) {
-            sMatrix grpmat;ori.extractRowset(grpmat, (*colset)[il]); // extract the group matrix
-            grpmat.computeRowStat(Stats.ptr(il,0),Stats.ptr(colset->dim()+il,0),0); // compute the mean and the statistics
+            sMatrix grpmat;ori.extractRowset(grpmat, (*colset)[il]);
+            grpmat.computeRowStat(Stats.ptr(il,0),Stats.ptr(colset->dim()+il,0),0);
         }
         stat=&Stats;
     }else {
@@ -395,7 +379,7 @@ idx sSpctr::filterAMat(idx iCat, sDic < sDic < sVec < idx > > > * catSet ,sStr *
             for ( idx il=0; il<colset->dim() ; ++il) flt.printf(",SD grp_%d",il+1);
         }
         flt.printf(",");
-        for ( idx il1=0; il1<colset->dim()-1; ++il1) {  // we pick colset pairs one by one
+        for ( idx il1=0; il1<colset->dim()-1; ++il1) {
             for ( idx il2=il1+1; il2<colset->dim(); ++il2) {
                 flt.printf(",T %d<>%d",il1+1,il2+1);
             }
@@ -411,7 +395,6 @@ idx sSpctr::filterAMat(idx iCat, sDic < sDic < sVec < idx > > > * catSet ,sStr *
 
     for( idx ic=0; ic<cols; ++ic) {
 
-        // find the statistics of this peak across all samples and acroos samples where this peak is not zero
         idx cntnonzero=0,cntall=0;
         real rmax=-REAL_MAX, rmin=REAL_MAX, rave=0, zmax=-REAL_MAX, zmin=REAL_MAX, zave=0, rsigma=0, zsigma=0;
         for(idx ir=0;ir<rows; ++ir) {
@@ -467,24 +450,20 @@ idx sSpctr::filterAMat(idx iCat, sDic < sDic < sVec < idx > > > * catSet ,sStr *
         sVec<real> probvals, tvals;
 
         if(colset){
-            if(stat) { // check if this passes covariance tests
-                for ( idx il=0; il<colset->dim() ; ++il) { // check if standard deviations of this peaks intensity are zero in all groups
+            if(stat) {
+                for ( idx il=0; il<colset->dim() ; ++il) {
                     if( stat->val(colset->dim()+il,ic)==0) excluded|=(((idx)1)<<il);
                 }
             }
 
-            // check if this peak generates enough separability in t-test
-            //idx t_filter=0;
-            for ( idx il1=0,ik=0; il1<colset->dim()-1; ++il1) {  // we pick colset pairs one by one
+            for ( idx il1=0,ik=0; il1<colset->dim()-1; ++il1) {
                 for ( idx il2=il1+1; il2<colset->dim(); ++il2) {
-                    // make a a pairset out of colset
 
                     sVec < sVec < idx > > pairset;pairset.add(2);
                     for(idx ii=0; ii<(*colset)[il1].dim(); ++ii)  pairset[0].vadd(1,(*colset)[il1][ii]);
                     for(idx ii=0; ii<(*colset)[il2].dim(); ++ii)  pairset[1].vadd(1,(*colset)[il2][ii]);
 
                     real tval, probval;
-                    // compute t-test between sets
                     sStat::statTest(trn.ptr(ic,0), 1,trn.cols(), &pairset, &probval, &tval);
                     if(probval<gSet.filter.filterTProb)
                         excluded|=(((idx)1)<<(16+ik));
@@ -492,21 +471,21 @@ idx sSpctr::filterAMat(idx iCat, sDic < sDic < sVec < idx > > > * catSet ,sStr *
                     tvals.vadd(1,tval);
                 }
             }
-        } // if ( colset)
+        }
 
         if(recommended&1)flt.printf("ok,");else flt.printf("-,");
         if(recommended&2)flt.printf("ok,");else flt.printf("-,");
         if(colset) {
             if(stat){
                 for ( idx il=0; il<colset->dim() ; ++il) {
-                    if(!(excluded&(((idx)1)<<il)))flt.printf(",var");  // check if standard deviations of this peaks intensity are zero in all groups
+                    if(!(excluded&(((idx)1)<<il)))flt.printf(",var");
                     else flt.printf(",-");
                 }
             }
             flt.printf(",");
-            for ( idx il1=0,ik=0; il1<colset->dim()-1; ++il1) {  // we pick colset pairs one by one
+            for ( idx il1=0,ik=0; il1<colset->dim()-1; ++il1) {
                 for ( idx il2=il1+1; il2<colset->dim(); ++il2) {
-                    if(!(excluded&(((idx)1)<<(16+ik))))flt.printf(",T%.1lf",100.*probvals[ik]);  // check if t-test from this peak is producing enough difference
+                    if(!(excluded&(((idx)1)<<(16+ik))))flt.printf(",T%.1lf",100.*probvals[ik]);
                     else flt.printf(",%.1lf",100.*probvals[ik]);
                     ++ik;
                 }
@@ -518,15 +497,14 @@ idx sSpctr::filterAMat(idx iCat, sDic < sDic < sVec < idx > > > * catSet ,sStr *
         if(excluded)recommended=0;
 
 
-        // see if this peak should always be reported
         idx fnd=0;
         for ( fnd=0; fnd<alwaysDetect.dim(); ++fnd) {
             real dif=(alwaysDetect)[fnd]-rmp->rMass; if(dif<0)dif=-dif;
             if(dif<gSet.collect.wobbleAlwaysDetect)
-                break; // match
+                break;
         }
-        if(fnd!=alwaysDetect.dim()) // this is not one of always detect peaks
-            recommended=1; // we do not need to look further if we cannot find more major peak
+        if(fnd!=alwaysDetect.dim())
+            recommended=1;
 
 
 
@@ -558,7 +536,6 @@ idx sSpctr::filterAMat(idx iCat, sDic < sDic < sVec < idx > > > * catSet ,sStr *
     sMatrix oflt(SRC_FILES_PATH""ACT_WORKDIR"/amatflt.bin");oflt.empty();
     ori.extractColset(oflt, colsin);
 
-    // output the activity matrix after filtering
     sFil out(SRC_FILES_PATH""ACT_WORKDIR"/amatflt.csv");out.cut(0);
     sFil ouT(SRC_FILES_PATH""ACT_WORKDIR"/atrnflt.csv");ouT.cut(0);
     outPar op(this);op.peaks=&peaks;op.flnms=&flnms;op.colset=&colsin;
@@ -570,7 +547,6 @@ idx sSpctr::filterAMat(idx iCat, sDic < sDic < sVec < idx > > > * catSet ,sStr *
         rMassPrf * rmp=(rMassPrf *)peaks.id(colsin[i]);
         const char *name=(const char *)peaks.mex()->ptr(peaks[colsin[i]]);
         mpks.printf("%s_%s%lf",  name,(char *)(&rmp->rPrfx),rmp->rMass);mpks.add0();
-        //mpks.add0(2);
     }
 
     if(rexcl)rexcl->printf("%s",excl.ptr());
@@ -582,9 +558,51 @@ idx sSpctr::filterAMat(idx iCat, sDic < sDic < sVec < idx > > > * catSet ,sStr *
 
 
 
+idx sSpctr::rlda(idx iCat, sDic < sDic < sVec < idx > > > * catSet, sDic < sDic < sVec < idx > > > * checkSet )
+{
+    gLog->printf("\n");
+    gLog->printf("_/_/_/_/_/_/_/_/_/_/_/_/_/\n");
+    gLog->printf("_/\n");
+    gLog->printf("_/ Regularized Linear Discriminant Analysis \n");
+    gLog->printf("_/\n");
+    gLog->printf("_/_/_/_/_/_/_/_/_/_/_/_/_/\n");
+    gLog->printf("\n");
+
+    sDic<idx> rids; rids.parseFile00(SRC_FILES_PATH""ACT_WORKDIR"/files.bin");
+    sDic<idx> cids;
+
+    sMatrix ori(SRC_FILES_PATH""ACT_WORKDIR"/amatflt.bin");
+    if(!ori.rows()){
+        ori.destroy();
+        ori.init(SRC_FILES_PATH""ACT_WORKDIR"/amat.bin");
+        cids.parseFile00(SRC_FILES_PATH""ACT_WORKDIR"/peaks.bin");
+    }
+    else {cids.parseFile00(SRC_FILES_PATH""ACT_WORKDIR"/fltpeaks.bin");}
+    if(!ori.rows()){ gLog->printf("Run collection and/or filtering steps before trying to Cluster.\n");return -1;}
+
+    sDic < sVec < idx > > & grpset=(*catSet)[iCat];
+
+    sRlda rlda;
+    rlda.compute(ori,grpset);
+
+    sMatrix trsMat(SRC_FILES_PATH""ACT_WORKDIR"/ldamat.bin");
+    rlda.remap(trsMat, ori);
+    trsMat.out(SRC_FILES_PATH""ACT_WORKDIR"/ldamat.csv");
+
+
+    sFile::remove(SRC_FILES_PATH""ACT_WORKDIR"/rlda.csv");sFil rldacsv(SRC_FILES_PATH""ACT_WORKDIR"/rlda.csv");
+
+    idx randSeed=12345;
+    sRlda rl;
+    rl.bootstrap(ori, gSet.lda.maxIter, gSet.lda.bootSpace, 0.1, randSeed, (*catSet)[iCat], checkSet ? (*checkSet)[iCat] : (*catSet)[iCat], gLog, (sStr *)gLog, (sStr *)gLog,&rldacsv,&rids, &cids);
+
+
+
+    return trsMat.rows();
+}
+
 idx sSpctr::computGeneralPCA(idx iCat, sDic < sDic < sVec < idx > > > * catSet )
 {
-    // open filtered (and if doesn't exist unfiltered) activity matrix
     sDic<idx> cids;
     sMatrix ori(SRC_FILES_PATH""ACT_WORKDIR"/amatflt.bin");
     if(!ori.rows()){
@@ -601,22 +619,17 @@ idx sSpctr::computGeneralPCA(idx iCat, sDic < sDic < sVec < idx > > > * catSet )
     sFilePath nm;
     sMatrix::MatrixDicHeaders hdrs;
 
-    sMatrix Stats;Stats.resize(2,ori.cols()); // first come the means of the groups then then all stdeviations
+    sMatrix Stats;Stats.resize(2,ori.cols());
     real * stat=Stats.ptr(0,0);
     real * stdev=Stats.ptr(1,0);
 
-//  hdrs->colset=0;
-    // for each group we compute statistics
     idx temp = grpset.dim();
     for ( idx il=0; il<temp; ++il) {
         sFil fp(nm.makeName("",SRC_FILES_PATH""ACT_WORKDIR"/grp_%d.csv",il+1));fp.cut(0);
 
-        // extract the group elements into a separate matrix
         sMatrix grpmat;ori.extractRowset(grpmat, grpset[il]);
-        grpmat.computeRowStat(stat,stdev); // comupte the mean and the statistics
+        grpmat.computeRowStat(stat,stdev);
 
-        // output the results
-//      hdrs->rowset=&grpset[il];
         hdrs.rows=&rids;
         hdrs.cols=&cids;
         grpmat.out(&fp,&hdrs,false, true);
@@ -624,30 +637,24 @@ idx sSpctr::computGeneralPCA(idx iCat, sDic < sDic < sVec < idx > > > * catSet )
         fp.printf("stddev");for(idx ic=0; ic<grpmat.cols(); ++ic) fp.printf(",%lf",stdev[ic]);fp.printf("\n");
 
 
-        // now compute the covariance matrix for this group for group PCA
-        grpmat.shiftRows(Stats.ptr(il,0)); // center the data by shifting the center amount
+        grpmat.shiftRows(Stats.ptr(il,0));
         sMatrix covar,evc; grpmat.covariance(covar);
 
         sVec <real> evl;evl.resize(covar.cols());
-        covar.diagJacoby(evl,&evc); // diagonalize the covariance matrix
+        covar.diagJacoby(evl,&evc);
 
         for(idx ie=0; ie<evl.dim(); ++ie) evl[ie]=sqrt(sAbs(evl[ie])/(evl.dim()-1));
         fp.printf("\n\nPeak contributions in order of importance\n");
         fp.printf("#PCA, StdDev, StdDev%%, Contributions (%%weight, peak, ... )\n");
         for(idx ic=0; ic<evc.cols(); ++ic) evc.outSingleEvecSrt(&fp, evl,ic, hdrs.cols);
         fp.printf("\n\nEigenvalues and eigenvectors of covariance matrix\n");
-//      sDic < idx > * rw=hdrs->rows;hdrs->rows=hdrs->cols;
-//      hdrs->rowset=0;
         hdrs.rows=&cids;
         hdrs.cols=&cids;
         evc.out(&fp,&hdrs,false, true);
-//      hdrs->rows=rw;
     }
 
     sFil fp(SRC_FILES_PATH""ACT_WORKDIR"/grp_all.csv");fp.cut(0);
 
-    // and get the statistics for the whole dataset
-//  hdrs->rowset=0;
     hdrs.rows=&rids;
     hdrs.cols=&cids;
     ori.out(&fp,&hdrs,false,true);
@@ -656,28 +663,21 @@ idx sSpctr::computGeneralPCA(idx iCat, sDic < sDic < sVec < idx > > > * catSet )
     fp.printf("stddev");for(idx ic=0; ic<Stats.cols(); ++ic) fp.printf(",%lf",stdev[ic]);fp.printf("\n");
 
 
-    // perform PCA
     sMatrix mat,evecs; ori.copy(mat);
     sVec <real > evals;
     mat.pca(evals,evecs);
 
-    // output sorted significant vectors
     for(idx ie=0; ie<evals.dim(); ++ie) evals[ie]=sqrt(sAbs(evals[ie])/(evals.dim()-1));
-//  sVec < real > topPeaks;
     fp.printf("#PCA, StdDev, StdDev%%, Contributions (%%weight, peak, ... )\n");
     for(idx ic=0; ic<evecs.cols(); ++ic) {evecs.outSingleEvecSrt(&fp, evals,ic,hdrs.cols);}
 
-    // output eignevectors
     fp.printf("\n\nEigenvalues and eigenvectors of covariance matrix\n");
-//  sDic < idx > * rws=hdrs.rows;hdrs.rows=hdrs.cols;
     hdrs.rows=&cids;
     hdrs.cols=&cids;
     evecs.out(&fp,&hdrs,false, true);
-//  hdrs.rows=rws;
 
-    // output the transormed coordinates
     fp.printf("\n\nMatrix after rotation to PCA directions \n");
-    sMatrix trs;trs.resize(ori.rows(),ori.cols()); // this matrix is to hold the Original amat in LDA coordinates
+    sMatrix trs;trs.resize(ori.rows(),ori.cols());
     sAlgebra::matrix::pcaReMap(trs.ptr(0,0),ori.ptr(0,0), ori.cols(), ori.rows(), evecs.ptr(0,0));
 
     hdrs.rows=&rids;

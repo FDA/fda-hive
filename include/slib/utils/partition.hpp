@@ -39,8 +39,6 @@ namespace slib {
         {
 
             public:
-                //assembly alike arithmetic operations
-                //i1 = i1 <operator> i2
             typedef enum eOperator_enum {
                 eMOV = 0,
                 eEQU,
@@ -54,7 +52,7 @@ namespace slib {
                 eDIV
             } sOperation;
 
-            typedef idx (* sCallbackALO)(void * param, void * i1, void * i2, sOperation oper); //arithmetic logic operator
+            typedef idx (* sCallbackALO)(void * param, void * i1, void * i2, sOperation oper);
 
         private:
             static void reconstruct_partition(sVec<idx> &D, idx w, idx n, idx k_ways, idx *res ) {

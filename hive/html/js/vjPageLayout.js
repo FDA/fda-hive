@@ -28,49 +28,105 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * This function laysout a VJPAGE
- */
 function vjPageLayout()
 {
-    this.objCls="vjPageLayout";//+Math.random();
+    this.objCls="vjPageLayout";
     vjObj.register(this.objCls,this);
 
+    $.loadScript('jsx/widgets/jquery/components/project_list_dialog.js');
 
     this.ok=true;
     this.maxTxtLen=32;
     this.DownloaderReqID=0;
     this.register
-
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Menu and Toolbars
-    // _/
+    
+ 
+    
 
     this.initMenu=function( datasourceURL, formname,wheretogo)
     {
-        vjDS.add("infrastructure: Constructing Menu", "dsMenu" , "http://?cmd=objList&type=menuitem&mode=csv" );
+        vjDS.add("infrastructure: Constructing Menu", "dsMenu" , "http:
+        
+        function predraw (root){
+            if(!root.url){
+                root.url = document.URL;
+                root.url = root.url.substring(0, root.url.indexOf("?")+1);
+                root.url += "cmd=menu"
+                var path = root.path;
+                var index = path.substring(1).indexOf("/");
+                var firstElem;
+                if(index > 0)
+                    firstElem = path.substring(1, index+1);
+                else firstElem = path.substring(1);
+                root.url = urlExchangeParameter(root.url, "root", firstElem);
+                if(index > 0 && index != path.length - 2){
+                    if(path[path.length - 1] == "/")
+                        root.url = urlExchangeParameter(root.url, "selected", path.substring(index+2, path.length-1));
+                    else
+                        root.url = urlExchangeParameter(root.url, "selected", path.substring(index+2, path.length));
+                }
+                else
+                    root.url = urlExchangeParameter(root.url, "selected", "-");
+            }
+            
+            if(root.title){
+                root.title = root.title.replace(new RegExp("__", 'g'), "&");
+                root.title = root.title.replace(new RegExp("_", 'g'), " ");
+                root.title = root.title.replace(new RegExp("&", 'g'), "_");                
+            }
+            
+            for(var i = 0; i < root.children.length; i++)
+                predraw(root.children[i]);
+        }
+        
 
-        var topMenu=new vjMenuView({ data:'dsMenu', formObject:document.forms[formname] }) ;
+        function sortKids (a,b){
+            if(a.order != undefined && b.order != undefined){
+                if(a.order < b.order) return -1;
+                if(a.order > b.order) return 1;                        
+            }
+            else if (a.order == undefined && b.order != undefined) return 1;
+            else if (b.order == undefined && a.order != undefined) return -1;
+            
+            if(a.title.toLowerCase() < b.title.toLowerCase()) return -1;
+            if(a.title.toLowerCase() > b.title.toLowerCase()) return 1;
+            return 0;
+        }
+        
+        function sortTopMenu (menu){
+            recursiveSort(menu.tree.root);
+            
+            function recursiveSort (node){
+                if(!node.children) return node;
+
+                
+                node.children = node.children.sort(sortKids);
+                
+                for(var i = 0; i < node.children.length; i++){
+                    node.children[i] = recursiveSort(node.children[i]);
+                }
+                
+                return node;
+            }            
+        }
+
+        var topMenu=new vjMenuView({ data:'dsMenu', formObject:document.forms[formname], predrawMenuView: predraw, rebuildTreeCallback: sortTopMenu});
+        
+        topMenu.onFinishedDrawing = function(viewer, content){ 
+            const currentUrl = window.location.href;
+            const currentUrlEnd = currentUrl.split('dna.cgi')[1];
+            
+            const menuUrl =  document.querySelector(".menu").querySelector("a[href*='"+ currentUrlEnd +"']");
+            $(menuUrl).addClass("active__link");
+        };
+        
         topMenu.iconSize=20;
-        // create data store for Menu
         if(!wheretogo)wheretogo="dvMenu";
         vjDV.add(wheretogo).frame="none";
         vjDV.dvMenu.add( "menu", "commands", "menu", topMenu );
 
         vjDV.dvMenu.render();
         vjDV.dvMenu.load();
-        //alert(formname+" while contstructing" );
-
-        // create data store for Popup Menu
-        /*
-        vjDS.add("Loading...", "dsMenuPopup" , "static://" );
-        vjDV.add("dvMenuPopup").frame="none";
-        vjDV.dvMenuPopup.add( "menu", "commands", "menu", new vjMenuView({data:'dsMenuPopup',rootMenuStyle:"vertical",maxMenuDepthOpen:2 })  );
-
-        vjDV.dvMenuPopup.render();
-        vjDV.dvMenuPopup.load();
-        */
     };
 
     this.initToolbar=function(pagename, datasourceURL, formname )
@@ -78,7 +134,6 @@ function vjPageLayout()
 
         vjDS.add("infrastructure: Constructing Toolbar", "dsToolbar"+pagename, datasourceURL );
 
-        // create data store for Menu
         vjDV.add("dvToolbar"+pagename,"100%","100%").frame="none";
         vjDV["dvToolbar"+pagename].add( "toolbar", "", "menu",
             new vjPanelView({
@@ -94,16 +149,12 @@ function vjPageLayout()
     };
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Record Viewers
-    // _/
 
     this.initStandardRecordViewer=function(dataview,tagWord,formname, readonly, editonly , doShowReadonlyInNonReadonlyMode)
     {
 
-        vjDS.add("infrastructure: Loading Objects Metadata Information", "ds"+tagWord+"Record" , "static://preview:Select objects to see detail metadata" );
-        vjDS.add("infrastructure: Obect Specifications","ds"+tagWord+"Spec" , "static:// " );
+        vjDS.add("infrastructure: Loading Objects Metadata Information", "ds"+tagWord+"Record" , "static:
+        vjDS.add("infrastructure: Obect Specifications","ds"+tagWord+"Spec" , "static:
 
         vjDV[dataview].add( "details", "rec", "tab",
             [
@@ -115,7 +166,6 @@ function vjPageLayout()
                     objType:"",
                     readonlyMode: readonly ? true : false,
                     editExistingOnly: editonly ? true : false,
-                   // constructionPropagateDown:2,
                     showReadonlyInNonReadonlyMode: doShowReadonlyInNonReadonlyMode,
                     RVtag: "RV"+tagWord,
                     formObject:document.forms[formname],
@@ -140,42 +190,31 @@ function vjPageLayout()
             showTotalOnly:totalOnly,
             formObject:document.forms[formname],
             autoexpand: "all",
-            //icons:{plus:'img/process.gif'},
-            //iconSize:24,
-            //showRoot: totalOnly ? 0 : 1,
             doneCallback: doneCallbackFun,
             reportEvenWhenNotDone:reportWhenNotDone,
 
-//            maxTxtLen:48,
             isok:true });
 
         return viewerProgress;
     };
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Panels
-    // _/
 
     this.initStandardObjListPanel=function (tagWord,formname, rowlist)
     {
-        //rowlist=verarr(rowlist);
 
         var cmdlist= [
                 {name:new RegExp(/.*/), align:'left'},
                 {name:'refresh', align:'left', order:-1 ,title: 'Refresh' , icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS.ds"+tagWord+".reload(null,true);"},
                 {name:'download', align:'left', title:'Download', description: 'download the content of this object to local computer', url:"?cmd=objFile&ids=$(ids)", icon: 'download', single_obj_only:true},
                 {name:'detail', icon: 'eye', description: 'examine, review, edit details of the object' ,hidden:true, prohibit_new: true  },
-                //{name:'create', align:'left', showTitle : true , order:0, title:'Add', description: 'add new objects to the list' , url:"javascript:vjDV.select('dv"+tagWord+"Viewer.add.0',true)" , icon:'plus' },
                 {name:'delete', target: 'ajax' , icon: 'delete', description: 'remove the object from the repository', refreshDelay: 1000, prohibit_new: true },
                 {name:'admin', hidden:true, description: 'administer this object', prohibit_new: true },
                 {name:'edit', target: 'edit' , icon: 'rec', description: 'edit the content of the object', prohibit_new: true  },
                 {name:'share', target:'share', icon: 'share' , description: 'share the object with other users of the system; esablish permissions.', prohibit_new: true  },
                 {name:'pager', icon:'page' , align:'right',order:2, title:'per page', description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']},
-                {name:'search', align:'right',order:10, isSubmitable: true, prohibit_new: true }
+                {name:'search', align:'right',order:10, isSubmitable: true}
                 ];
-        //alert(tagWord+ " " + jjj(rowlist));
         rowlist=cmdlist.concat(verarr(rowlist));
 
         var viewerPanel = new vjPanelView({
@@ -185,7 +224,6 @@ function vjPageLayout()
             hideViewerToggle:true,
             showTitles: false,
             rows:rowlist,
-            //precompute:"if(node.target) node.url='javascript:linkURL(\"'+node.url+'\",\"'+ node.target+'\")'; node.target=null;",
             precompute:"if(node.target) node.url='javascript:linkURL(\"'+node.url+'\",\"'+ node.target+'\")'; node.target=null;",
             isok:true });
 
@@ -228,7 +266,6 @@ function vjPageLayout()
                 { name: 'refresh', title: 'Refresh', icon: 'refresh', align:'left', description: 'refresh the content of the control to retrieve up to date information', url: "javascript:vjDS.ds" + tagWord + ".state=\"\";vjDS.ds" + tagWord + ".load();" },
                 { name: 'pager', icon: 'page', title: 'per page', align: 'left', description: 'page up/down or show selected number of objects in the control', type: 'pager', counters: [10, 20, 50, 100, 1000, 'all'] },
                 { name: 'search', isRgxpControl: true, rgxpOff:true,align: 'right', order: Number.MAX_VALUE, type: ' search', isSubmitable: true, title: 'Search', description: 'Search sequences. Regular expressions are currently off', url: "?cmd=objFile&ids=$(ids)" },
-        //{ name: 'isRxp', icon:'off_icon', isSubmitable: true, value: false,align: 'right', order: '100', description: 'Regular expressions are currently off' },
                 {name: 'alHigh', type: 'text', forceUpdate: true, size: '10', isSubmitable: true, prefix: 'Position', align: 'right', description: 'Jump to specific genomic position', order: '1', title: (alPosistion ? alPosistion : ' '), value: (alPosistion ? alPosistion : ' ') },
                 { name: 'alTouch', title: 'Touching', type: 'checkbox', isSubmitable: true, value: true, align: 'right', order: '2', description: 'Show only reads that touch the position' },
                 { name: 'randomize', title: 'Shuffle', type: 'checkbox', isSubmitable: true, value: true, align: 'right', order: '4', description: 'Show results in non sorted order' },
@@ -251,10 +288,6 @@ function vjPageLayout()
 
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Uploader
-    // _/
 
     this.uploaderSubmit = function(form, tagWord)
     {
@@ -268,7 +301,6 @@ function vjPageLayout()
                         if(els[i].value) {
                             ++qty;
                         } else {
-                            // drop empty inputs
                             els[i].parentNode.parentNode.removeChild(els[i].parentNode);
                             --i;
                         }
@@ -303,28 +335,27 @@ function vjPageLayout()
             var n = document.createElement("div");
             n.id = tagWord + q.value + "_div";
             n.innerHTML = "<img title='delete file from upload' src='img/minus.png' width='16' height='16' onclick='var dd=gObject(\"" + tagWord + q.value + "_div\"); if(dd){dd.parentNode.removeChild(dd)}' />"
-                            + "<input type='file' name='" + tagWord + "' id='" + tagWord + q.value + "' multiple/>";
+                            + "<input type='file' name='" + tagWord + "' id='" + tagWord + q.value + "' multiple " + ` onchange='vjPAGE.uploaderProject("${tagWord}","floater-${this.objCls}","true")'/>`;
             ur.appendChild(n);
             n = gObject(tagWord + q.value);
             if( parseInt(q.value) > 1 && n ) {
-                n.click(); // open file chooser window, but only from second upload
+                n.click();
             }
         }
     }
-    this.onSelectPopupList = function (viewer, node)
+    this.onSelectOnbehalf = function (viewer, node)
     {
         var list = viewer.accumulate("node.selected", "node");
         
         
         var txt = "<table class='TABLEVIEW_table'>";
         var nn = 0;
-        for( var ind in list ) { //Maybe we want to make it multifield in the future
-            var obj = list[ind];
+        list.forEach(function(obj) {
             txt += "<tr><td class='TABLEVIEW_table_cell'>";
             txt += "<input type='text' style='display:none' name='onbehalf_"+(++nn)+"' value='"+obj.id+"'></span>";
             txt += "<span>"+(obj._brief?obj._brief:obj.name)+"<span>";
             txt += "</td></tr>";
-        }
+        });
         txt += "</table>";
 
         var container = gObject(viewer.tagWord+"_uploader_onbehalfofuser");
@@ -334,43 +365,73 @@ function vjPageLayout()
         container.style.display='block';
         gModalClose(viewer.myFloaterName+"Div");
     }
-    this.onGetPopupList = function(myFloaterName,nodelist) {
+    
+    this.onSelectSubject = function(myFloaterName,nodelist) {
         if( !this.popObjectExplorerViewer ) {
             console.log("explorerview object is missing");
             return;
         }
         var tagWord = this.popObjectExplorerViewer.tagWord;
-        var container = gObject(tagWord+"_uploader_objlinks");
+        var container = gObject(tagWord+"_uploader_subject");
         if( !container ) {
-            console.log("element \""+tagWord+"_uploader_objlinks\" is missing");
+            console.log("element \""+tagWord+"_uploader_subject\" is missing");
             gModalClose(myFloaterName+"Div");
             return;
         }
         var txt = "<table class='TABLEVIEW_table'>";
         var nn = 0;
-        for( var objid in nodelist ) {
-            var obj = nodelist[objid];
+        nodelist.forEach(function(obj) {
             txt += "<tr><td class='TABLEVIEW_table_cell'>";
             txt += "<input type='text' style='display:none' name='subj_"+(++nn)+"' value='"+obj.id+"'></span>";
             txt += "<span>"+(obj._brief?obj._brief:obj.id)+"<span>";
             txt += "</td></tr>";
-        }
+        });
         txt += "</table>";
         
         container.innerHTML = txt;
 
-        container = gObject(tagWord+"_uploader_objlinks_clean");
+        container = gObject(tagWord+"_uploader_subject_clean");
         container.style.display='block';
         
         gModalClose(this.popObjectExplorerViewer.myFloaterName+"Div");
     }
     
+    this.onSelectFolder = function(myFloaterName,nodelist) {
+        if( !this.popObjectExplorerViewer ) {
+            console.log("explorerview object is missing");
+            return;
+        }
+        var tagWord = this.popObjectExplorerViewer.tagWord;
+        var container = gObject(tagWord+"_uploader_folder");
+        if( !container ) {
+            console.log("element \""+tagWord+"_uploader_folder\" is missing");
+            gModalClose(myFloaterName+"Div");
+            return;
+        }
+        var txt = "<table class='TABLEVIEW_table'>";
+        var nn = 0;
+        nodelist.forEach(function(obj) {
+            txt += "<tr><td class='TABLEVIEW_table_cell'>";
+            txt += "<input type='text' style='display:none' name='folder_"+(++nn)+"' value='"+obj.id+"'></span>";
+            txt += "<span>"+(obj._brief?obj._brief:obj.id)+"<span>";
+            txt += "</td></tr>";
+        });
+        txt += "</table>";
+        
+        container.innerHTML = txt;
+
+        container = gObject(tagWord+"_uploader_folder_clean");
+        container.style.display='block';
+        
+        gModalClose(this.popObjectExplorerViewer.myFloaterName+"Div");
+    }
+
     this.uploaderOnBehalfOfUser = function (tagWord, myFloaterName)
     {
         var container = myFloaterName+"Viewer";
         var ds = vjDS["ds"+container];
         if(!ds) {
-            ds = vjDS.add("Retrieving Objects Metadata Information","ds"+container,"http://?cmd=usrList&active=1&grp=0&primaryGrpOnly=1&cnt=20&raw=1");
+            ds = vjDS.add("Retrieving Objects Metadata Information","ds"+container,"http:
         }
         if(!this.popObjectPanel) {
             this.popObjectPanel = new vjPanelView({
@@ -402,7 +463,7 @@ function vjPageLayout()
                     maxTxtLen:128,
                     tagWord:tagWord,
                     myFloaterName:myFloaterName,
-                    selectCallback: "function:vjObjFunc('onSelectPopupList','" + this.objCls + "','" + tagWord + "')",
+                    selectCallback: "function:vjObjFunc('onSelectOnbehalf','" + this.objCls + "','" + tagWord + "')",
                     defaultIcon:'rec',
                     geometry:{ width:'90%',height:'100%'},
                     iconSize:0,
@@ -420,30 +481,62 @@ function vjPageLayout()
         var xx=(gMoX+1000>gPgW) ? gPgW-1000 : gMoX;
         gModalOpen(myFloaterName+"Div", gModalCallback , xx, gMoY, clickCount);
     }
+    this.uploaderProject = function(tagWord, myFloaterName , check = false){
+        let input = gObject(`${tagWord}_submission_project_value`)
+        
+        if (check && input && input.value) return;
+        
+        const onSubmit = function (id = null) {
+            let field = gObject(`${tagWord}_uploader_submission_project_field`)
+            
+            if(field && field.style.display === 'none') field.style.display = 'table-row'
+            
+            if(id !== null){        
+                let txt = '';
+                this.projectJson.forEach(function(project, i){
+                    if(project.id == id){
+                        txt = `<table class='TABLEVIEW_table'>
+                                    <tr><td class='TABLEVIEW_table_cell'>
+                                        <input type='text' style='display:none' id='${tagWord}_submission_project_value' name='submission_project' value='${id}'>
+                                        <span>${project._brief} | ${project.project_status}<span>
+                                    </td></tr>
+                                </table>`;
+                    } else if(id == -1) {
+                              txt = `<table class='TABLEVIEW_table'>
+                                    <tr><td class='TABLEVIEW_table_cell'>
+                                        <input type='text' style='display:none' id='${tagWord}_submission_project_value' name='submission_project' value='${id}'>
+                                        <span> Personal Computation (assign no project) <span>
+                                    </td></tr>
+                                </table>`;
+                    }
+                })
+
+                var container = gObject(tagWord+"_uploader_submission_project");
+                container.innerHTML = txt;
+
+                container = gObject(tagWord+"_uploader_submission_project_clean");
+                container.style.display='block';
+                gModalClose(myFloaterName+"Div");
+               
+            }            
+        }
+        let submission_project_dialog = new ProjectListDialog({
+            submit: onSubmit, 
+        })
+    }
     
-    this.onCleanOnBehalfOfUserList = function (tagWord,myFloaterName) {
-        var container = gObject(tagWord+"_uploader_onbehalfofuser");
-        if( !container ) {
-            console.log("element \""+tagWord+"_uploader_onbehalfofuser\" is missing");
+    this.onCleanField = function(tagWord, myFloaterName, field) {
+        var container = gObject(tagWord + "_uploader_" + field);
+        if(!container) {
+            console.log("element \"" + tagWord + "_uploader_" + field + "\" is missing");
             return;
         }
         container.innerHTML = "";
-        container = gObject(tagWord+"_uploader_onbehalfofuser_clean");
-        container.style.display='none';
+        container = gObject(tagWord + "_uploader_" + field + "_clean");
+        container.style.display = 'none';
     }
     
-    this.onCleanPopupList = function(tagWord,myFloaterName) {
-        var container = gObject(tagWord+"_uploader_objlinks");
-        if( !container ) {
-            console.log("element \""+tagWord+"_uploader_objlinks\" is missing");
-            return;
-        }
-        container.innerHTML = "";
-        container = gObject(tagWord+"_uploader_objlinks_clean");
-        container.style.display='none';
-    }
-    
-    this.uploaderObjectLink = function(tagWord,myFloaterName)
+    this.uploaderSubject = function(tagWord,myFloaterName)
     {
         if(this.popObjectExplorerViewer){
             this.popObjectExplorerViewer.destroyDS();
@@ -485,7 +578,64 @@ function vjPageLayout()
              isNdisplay_Previews:true,
              isNoUpload:true,
              tagWord:tagWord,
-             onSubmitObjsCallback: "function:vjObjFunc('onGetPopupList','" + this.objCls + "')",
+             onSubmitObjsCallback: "function:vjObjFunc('onSelectSubject','" + this.objCls + "')",
+             drag:false,
+             isok:true
+         });
+         var explorer = this.popObjectExplorerViewer;
+         
+         explorer.init();
+         explorer.render();
+         explorer.load();
+         gModalCallback="true";
+         var clickCount=0;
+         var xx=(gMoX+1000>gPgW) ? gPgW-1000 : gMoX;
+         gModalOpen(myFloaterName+"Div", gModalCallback , xx, gMoY, clickCount);
+    }
+
+    this.uploaderFolder = function(tagWord,myFloaterName)
+    {
+        if(this.popObjectExplorerViewer){
+            this.popObjectExplorerViewer.destroyDS();
+            delete this.popObjectExplorerViewer; 
+        }
+         this.popObjectExplorerViewer=new vjExplorerBaseView({
+             container:myFloaterName+"Viewer",
+             formFolders:"form-floatingDiv",
+             formTables:"form-floatingDiv",
+             formSubmit:"form-floatingDiv",
+             preselectedFolder:"/All",
+             formPreviews:"form-floatingDiv",
+             isNShowactions:true,
+             subTablesAttrs : [{    tabname : "All",
+                                   tabico : "folder-apps",
+                                   url : { type : "folder+" , prop:"id,_brief,created" }
+                               }],
+             folders_DV_attributes : {
+                 width : 200,
+                 height : 400,
+                 hideDV:true
+             },
+             tables_DV_attributes : {
+                 width : 700,
+                 height : 400,
+                 maxtabs : 8,
+                 isok:true
+             },
+             submit_DV_attributes : {
+                 width : "100%",
+                 height : 60,
+                 frame : "notab",
+                 isok:true
+             },
+             preselectedFolder:"/all",
+             myFloaterName: myFloaterName,
+             isSubmitMode:true,
+             autoexpand:0,
+             isNdisplay_Previews:true,
+             isNoUpload:true,
+             tagWord:tagWord,
+             onSubmitObjsCallback: "function:vjObjFunc('onSelectFolder','" + this.objCls + "')",
              drag:false,
              isok:true
          });
@@ -524,41 +674,45 @@ function vjPageLayout()
                     "<td align='center'>" +
                         "<input type='button' value='Add Another File' onclick='vjPAGE.uploaderAddUpload(\"" + tagWord + "\")' />" +
                         "<input onclick='vjPAGE.uploaderSubmit(this.form,\"" + tagWord + "\")' type='button' name='" + tagWord + "-submit' id='" + tagWord + "-submit' value='Start Upload'>" +
+                        "<hr />" +
                     " </td>" +
                 "</tr><tr>" +
                     "<td align='center'>" +
-                        "<table style='display:inline'>"+
+                        "<span style='font-style: italic; font-size: 90%'>If file type is recognized it will be decompressed, indexed, etc. File extension is used to determine file types.</span><br /><br />" +
+                        "<label for='chkauto_" + tagWord + "'><input type='checkbox' id='chkauto_" + tagWord + "' name='chkauto_" + tagWord + "' value='-1' " +
+                        "onClick=\"gObject('idx_" + tagWord + "').disabled=gObject('qc_" + tagWord + "').disabled=gObject('screen_" + tagWord + "').disabled=!this.checked;\"/>" +
+                        "automatically process file(s)</label> " +
+                        "<label for='qc_" + tagWord + "'><input disabled type='checkbox' id='qc_" + tagWord + "' name='qc_" + tagWord + "' value='1'/>Quality Control</label> " +
+                        "<label for='screen_" + tagWord + "'><input disabled type='checkbox' id='screen_" + tagWord + "' name='screen_" + tagWord + "' value='1'/>Screening</label> " +
+                        "<br /><hr />" +
+                    "</td>" +
+                "</tr><tr>" +
+                    "<td align='center'>" +
+                        "<table style='display:inline'>" +
                             "<tr>" +
                                 "<td>Reference genome(s)</td>" +
                                 "<td>" +
                                     "<table class='REC_input' >" +
                                         "<tr>"+
-                                            "<td><div style='max-height:600px;max-width:300px;overflow:auto' id='" + tagWord + "_uploader_objlinks'></div></td>"+
-                                            "<td style='vertical-align:top'><input class='linker' type='button' onclick='vjPAGE.uploaderObjectLink(\""+tagWord+"\",\""+myFloaterName+"\")' value='...'></td>" +
+                                            "<td><div style='max-height:600px;max-width:300px;overflow:auto' id='" + tagWord + "_uploader_subject'></div></td>"+
+                                            "<td style='vertical-align:top'><input class='linker' type='button' onclick='vjPAGE.uploaderSubject(\""+tagWord+"\",\""+myFloaterName+"\")' value='...'></td>" +
                                         "</tr>" +
                                     "</table>" +
                                 "</td>" +
-                                "<td><small>(used when uploading alignments)</small></td>" +
-                                "<td><img src='img/delete.gif' style='display:none' height='23' border='0' id='"+tagWord+"_uploader_objlinks_clean' onClick='vjPAGE.onCleanPopupList(\""+tagWord+"\",\""+myFloaterName+"\");'></td> " +
-                            "</tr>" +
-                        "</table>"+
-                    "</td>" +
-                "</tr><tr>" +
-                    "<td align='center'>" +
-                        "<hr/>" +
-                        "<label for='chkauto_" + tagWord + "'><input checked type='checkbox' id='chkauto_" + tagWord + "' name='chkauto_" + tagWord + "' value='-1' " +
-                        "onClick=\"gObject('idx_" + tagWord + "').disabled=gObject('qc_" + tagWord + "').disabled=gObject('screen_" + tagWord + "').disabled=!this.checked;\"/>" +
-                        "automatically process file(s)</label> " +
-                        "<label for='idx_" + tagWord + "'><input checked type='checkbox' id='idx_" + tagWord + "' name='idx_" + tagWord + "' value='1'/>Index</label> " +
-                        "<label for='qc_" + tagWord + "'><input checked type='checkbox' id='qc_" + tagWord + "' name='qc_" + tagWord + "' value='1'/>Quality Control</label> " +
-                        "<label for='screen_" + tagWord + "'><input checked type='checkbox' id='screen_" + tagWord + "' name='screen_" + tagWord + "' value='1'/>Screening</label> " +
-                        "<br /><br />" +
-                        "<span style='font-style: italic;'>If file type is recognized it will be decompressed, indexed, etc. File extension is used to determine file types</span>" +
-                    "</td>" +
-                "</tr><tr>" +
-                    "<td align='center'>" +
-                        "<table style='display:inline'>"+
-                            "<tr>" +
+                                "<td><img src='img/delete.gif' style='display: none' height='23' border='0' id='"+tagWord+"_uploader_subject_clean' onClick='vjPAGE.onCleanField(\""+tagWord+"\",\""+myFloaterName+"\",\"subject\");'></td> " +
+                                "<td><small>(used when uploading alignments only)</small></td>" +
+                            "</tr><tr>" +
+                                "<td>Destination folder</td>" +
+                                "<td>" +
+                                    "<table class='REC_input' >" +
+                                        "<tr>"+
+                                            "<td><div style='max-height:600px;max-width:300px;overflow:auto' id='" + tagWord + "_uploader_folder'></div></td>"+
+                                            "<td style='vertical-align:top'><input class='linker' type='button' onclick='vjPAGE.uploaderFolder(\""+tagWord+"\",\""+myFloaterName+"\")' value='...'></td>" +
+                                        "</tr>" +
+                                    "</table>" +
+                                "</td>" +
+                                "<td><img src='img/delete.gif' style='display: none' height='23' border='0' id='"+tagWord+"_uploader_folder_clean' onClick='vjPAGE.onCleanField(\""+tagWord+"\",\""+myFloaterName+"\",\"folder\");'></td> " +
+                            "</tr><tr>" +
                                 "<td>On behalf of the user</td>" +
                                 "<td>" +
                                     "<table class='REC_input' >" +
@@ -568,8 +722,20 @@ function vjPageLayout()
                                         "</tr>" +
                                     "</table>" +
                                 "</td>" +
-                                "<td><img src='img/delete.gif' style='display:none' height='23' border='0' id='"+tagWord+"_uploader_onbehalfofuser_clean' onClick='vjPAGE.onCleanOnBehalfOfUserList(\""+tagWord+"\",\""+myFloaterName+"\");'></td> " +
+                                "<td><img src='img/delete.gif' style='display: none' height='23' border='0' id='"+tagWord+"_uploader_onbehalfofuser_clean' onClick='vjPAGE.onCleanField(\""+tagWord+"\",\""+myFloaterName+"\",\"onbehalfofuser\");'></td> " +
                             "</tr>" +
+                            `<tr id='${tagWord}_uploader_submission_project_field' style='display: none'>
+                                <td>For Project</td>
+                                <td>
+                                    <table class='REC_input' >
+                                        <tr>
+                                            <td><div style='max-height:600px;max-width:300px;overflow:auto' id='${tagWord}_uploader_submission_project'></div></td>
+                                            <td style='vertical-align:top'><input class='linker' type='button' onclick='vjPAGE.uploaderProject("${tagWord}","${myFloaterName}")' value='...'></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td><img src='img/delete.gif' style='display: none' height='23' border='0' id='${tagWord}_uploader_submission_project_clean' onClick='vjPAGE.onCleanField("${tagWord}","${myFloaterName}","submission_project");'></td>
+                            </tr>`+
                         "</table>"+
                     "</td>" +
                 "</tr><tr>" +
@@ -582,10 +748,6 @@ function vjPageLayout()
         return t;
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Downloader
-    // _/
     this.initStandardDownloader=function (divname, tagWord, formname, cgiCmd)
     {
         document.forms[formname].onsubmit = function(e) {
@@ -600,20 +762,24 @@ function vjPageLayout()
         document.forms[formname].method="POST";
         document.forms[formname].enctype="multipart/form-data";
 
-        vjDS.add("infrastructure: Object Specifications", "ds" + tagWord + "Spec", "http://?cmd=propspec&type=svc-download");
-        vjDS.add("infrastructure: Constructing Uploader", "ds" + tagWord + "Uploader", "static://" + vjPAGE.uploaderBody(tagWord, formname));
-        vjDS.add("infrastructure: Dropbox", "ds" + tagWord + "Dropbox", "http://?cmd=dropboxlist");
+        vjDS.add("infrastructure: Object Specifications", "ds" + tagWord + "Spec", "http:
+        vjDS.add("infrastructure: Constructing Uploader", "ds" + tagWord + "Uploader", "static:
+        vjDS.add("infrastructure: Dropbox", "ds" + tagWord + "Dropbox", "http:
         var viewers=[
             new vjHTMLView({
                 name:'local file uploader',
                 hidden:false,
-                icon: 'upload',
+                icon: 'upload_arrow',
+                iconSize: 18,
+                iconExtention: 'png',
                 data: "ds"+tagWord+"Uploader",
                 callbackRendered: "javascript:vjPAGE.uploaderAddUpload('" + tagWord + "')",
                 isok:true}),
             new vjRecordView({
                 name:'external downloader',
-                icon: 'download',
+                icon: 'cloud_download_thin',
+                iconSize:20,
+                iconExtention: 'png',
                 data:["ds"+tagWord+"Spec"],
                 formObject: document.forms[formname],
                 showRoot: false,
@@ -621,61 +787,94 @@ function vjPageLayout()
                 hidden:true,
                 objType:'svc-download',
                 doNotDrawDelete:true,
-                //debug:true,
                 rows: [
-                 /*{name:new RegExp(/.* /), type:'hidden'},
-                 {name:'name', is_hidden_fg:false },
-                 {name:'baseURL', is_hidden_fg:false },
-                 {name:'datasource', is_hidden_fg:false },
-                 {name:'uri', is_hidden_fg:false },
-                 {name:'url_to_uris', is_hidden_fg:true },
-                 {name:'download_concurrency', is_hidden_fg:false }*/
-                 {name:'external_password', is_hidden_fg:true },
-                 {name:'login', is_hidden_fg:true}
+                 {name:'external_password', is_hidden_fg:false },
+                 {name:'login', is_hidden_fg:false}
                  ],
                 cmdPropSet:cgiCmd,
                 noFileErrorText:true,
                 accumulateWithNonModified:true,
                 accumulateWithoutHidden:true,
                 constructionPropagateDown: 2,
-                //Initially, it's true, which will prohibit the popUp of explorer viewer, I am not sure the original purpose to set it true
-                popNExplorer:false,
                 forceLoad:true,
                 callbackRendered:"function:vjObjFunc(\"checkDropboxElements\",\"" + this.objCls + "\" )",
                 RVtag: "RV"+tagWord,
-                prefixHTML:"<table class='HIVE_table' width='100%' ><tr><td colspan=3 align=center><input type=button name=c value='START DOWNLOAD' onclick='vjDV.locate(\""+divname+".add._active\").saveValues(0,true,vjPAGE.downloadSubmitted);' /></td></tr></table>",
-                appendHTML:"<table class='HIVE_table' width='100%' ><tr><td colspan=3 align=center><input type=button name=c value='START DOWNLOAD' onclick='vjDV.locate(\""+divname+".add._active\").saveValues(0,true,vjPAGE.downloadSubmitted);' /></td></tr></table>",
+                prefixHTML:"<div width='100%' ><input style='margin-bottom:20px;' class='tree-view__bottom-btn hv--btn__primary'  type=button name=c value='START DOWNLOAD' onclick='vjObjEvent(\"uploaderOnSubmit\",\""+this.objCls+"\",\""+divname+"\",\"_active\" )' /></div>",
+                appendHTML:"<div width='100%' ><input style='margin-top:20px;' class='tree-view__bottom-btn hv--btn__primary'  type=button name=c value='START DOWNLOAD' onclick='vjObjEvent(\"uploaderOnSubmit\",\""+this.objCls+"\",\""+divname+"\",\"_active\" )' /></div>",
                 isok:true
                 }),
             new vjTreeView({
                 name:'dropbox',
                 hidden:true,
                 formObject: document.forms[formname],
-                icon: 'upload',
-                iconSize:24,
+                icon: 'cloud_upload_thin',
+                iconExtention: 'png',
+                iconSize:20,
                 data: "ds"+tagWord+"Dropbox",
-                showRoot:1,
+                showRoot:2,
                 showLeaf : true ,
                 checkLeafs: true,
                 checkBranches: true,
                 checkPropagate: true,
                 showChildrenCount: true,
-                autoexpand: 'all',
-                icons:{plus:'img/folder-hive.gif', minus:'img/folder-hive.gif', empty:'img/folder-hive.gif' , leaf: null},
-
+                isDropbox:true,
+                autoexpand:2,
+                icons:{plus:'img/folder-close.gif', minus:'img/folder-hive.gif', empty:'img/folder-open.gif' , leaf: null},
+                cmdMoreNodes: "http:
+                disableBranches: false,
+                nodeRenderCallback: "function:vjObjFunc(\"createBclButton\",\""+this.objCls+"\" )",
                 checkLeafCallback:"function:vjObjFunc(\"checkDropboxElements\",\""+this.objCls+"\" )",
                 checkBranchCallback:"function:vjObjFunc(\"checkDropboxElements\",\""+this.objCls+"\" )",
-                appendHTML:"<table class='HIVE_table' width='100%' ><tr><td colspan=3 align=left><input type=button name=c value='START DOWNLOAD' onclick='vjDV.locate(\""+divname+".add._active\").saveValues(0,true,vjPAGE.downloadSubmitted);' /></td></tr></table>",
-
-                isok:true})
-
-            ];
+                prefixHTML:"<div width='100%' ><input style='margin-bottom:20px;' class='tree-view__bottom-btn hv--btn__primary' type=button name=c value='START DOWNLOAD' onclick='vjObjEvent(\"uploaderOnSubmit\",\""+this.objCls+"\",\""+divname+"\",\"external downloader\" )' /></div>",
+                appendHTML:"<div width='100%' ><input style='margin-top:20px;' class='tree-view__bottom-btn hv--btn__primary' type=button name=c value='START DOWNLOAD' onclick='vjObjEvent(\"uploaderOnSubmit\",\""+this.objCls+"\",\""+divname+"\",\"external downloader\" )' /></div>",
+                isok:true
+                }),
+                {
+                name: 'NCBI SRA',
+                hidden: true,
+                link: true,
+                linkUrl: "?cmd=menu&root=Portal&selected=Downloaders"
+                },
+                {
+                    name: 'AWS S3',
+                    hidden: true,
+                    link: true,
+                    linkUrl: "?cmd=pipeline&type=svc-pipeline-download-s3"
+                    }
+                ];
         if(divname){
             var tb=vjDV[divname].add( "add", "upload", "tab", viewers);
             tb.viewtoggles=-1;
+            tb.tabs = "tabs"
         }
         return viewers;
     };
+    
+    this.uploaderOnSubmit = function(objCls , divname , view){
+        vjDV.locate(divname + ".add." + view).saveValues(0 , true , vjPAGE.downloadSubmitted);
+    }
+    
+    this.createBclButton=function(viewer,node){
+        if(!node.leafnode){
+            for( let i = 0; i < node.children.length; ++i){
+                var nodeData = node.children[i];
+                if(!nodeData.leafnode && nodeData.title=='Data'){
+                    for( let j = 0; j < nodeData.children.length; ++j){
+                        var nodeIntensities = nodeData.children[j];
+                        if(!nodeIntensities.leafnode && nodeIntensities.title=='Intensities'){
+                            for( let k = 0; k < nodeIntensities.children.length; ++k){
+                                var nodeBaseCalls = nodeIntensities.children[k];
+                                if(!nodeBaseCalls.leafnode && nodeBaseCalls.title=='BaseCalls'){
+                                    return "<a class='tree-view__side-btn' href='?cmd=dmBcl2Fastq&bclpath=dropbox:
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return "";
+    }
 
     this.checkDropboxElements=function(viewer,node)
     {
@@ -683,9 +882,22 @@ function vjPageLayout()
             return;
         }
         var dropboxviewer = viewer.tab.viewers[2];
-        var checklist = verarr(dropboxviewer.accumulate("node.checked==1 && node.leafnode","'dropbox:/'+node.path"));
+        
+        let checker = `(function(){
+                if (node.checked === 1){
+                    let parent = node.parent;
+                    if(parent && parent.checked === 1 && parent.children && ( parent.children.length > 0 || parent.children.length === 1 && node.leafnode) ){
+                        return false;
+                    }
+                    return true;
+                }
+                return false;
+            })()`
+        let filler = "`dropbox:
+        var checklist = verarr(dropboxviewer.accumulate( checker, filler ));
         var downloader = viewer.tab.viewers[1];
         var cont = downloader.getElementValue("uri");
+        
         if( cont ) {
             var carr = new vjTable(cont, 0, 0, 0, 0, ",;\\s", "keep_empty!!!");
             cont = "";
@@ -694,17 +906,17 @@ function vjPageLayout()
                     var c = carr.rows[ir].cols[ic];
                     if( c ) {
                         c = c.toString();
-                        if( c.match(/["']?dropbox:\/\//) ) { // dropbox item ?
+                        if( c.match(/["']?dropbox:\/\//) ) {
                             for( var il = 0; il < checklist.length; ++il ) {
                                 if(c == checklist[il]) {
                                     break;
                                 }
                             }
-                            if( il >= checklist.length ) { // not in the checked list ... do not append
+                            if( il >= checklist.length ) {
                                 continue;
                             }
                             cont += "\"" + checklist[il].replace(/"/g, "\"\"") + "\"\n";
-                            checklist[il] = ""; // empty the ones added already
+                            checklist[il] = "";
                         } else {
                             cont += "\"" + c.replace(/"/g, "\"\"") + "\"\n";
                         }
@@ -714,33 +926,42 @@ function vjPageLayout()
         } else {
             cont = "";
         }
+        
         for( var il = 0; il < checklist.length; ++il ) {
-            if( checklist[il].match(/["']?dropbox:\/\//) ) { // dropbox item ?
+            if( checklist[il].match(/["']?dropbox:\/\//) ) {
                 cont += "\"" + checklist[il].replace(/"/g, "\"\"") + "\"\n";
             }
         }
         downloader.changeElementValue("uri", cont, 0, true);
     };
 
-    this.downloadSubmitted = function(obj, text)
+    this.downloadSubmitted = function(obj, text , page_request)
     {
-        if (text.indexOf("error") == -1 && text.indexOf("err.") == -1) {
-            alert("Download request has been submitted. The progress can be tracked in current folder's Data-loading tab.\n\nAll downloaded items will appear in current folder and/or it's subfolders.");
-        } else {
+        let objCls = vjPAGE.objCls;
+        let divname = obj.tab.parent.name;
+        let view = obj.name;
+        
+        if (text.indexOf("error") == -1 && text.indexOf("err.") == -1 && page_request.status < 400) {
+            alert("Download request has been submitted. The progress can be tracked in current folder's Data-loading tab.\n\nAll downloaded items will appear in current folder and/or it's subfolders.");            
+        } else if(text.indexOf("error") > -1 || text.indexOf("err.") > -1){
             alert("The information you provided insufficient or has errors, please review and resubmit your request.");
+        } else {
+            if(!obj.req_count || obj.req_count < 2 ){
+                obj['req_count'] = obj.req_count ? obj.req_count + 1 : 1;
+                vjPAGE.uploaderOnSubmit(objCls,divname,view);
+            }else{
+                obj['req_count'] = 0;
+                alert("Problem with downloading process, please try again later.");
+            }
         }
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Taxonomy
-    // _/
 
     this.initTaxonomyBrowserTree=function(dvname, tabname,formname, srch)
     {
-        var baseURL="http://vio.cgi?vioDBPath=taxtree&bioprojectPath=taxToBioproject&whatToPrint=taxid|rank|matchname|path|parentid|name|allname|bioprojectID|childrenCnt&whatToSearch=name";
-        vjDS.add("Retrieving Taxonomy tree","dsNCBITaxonomyTree", baseURL + "&taxid=1&depth=2&cmd=ncbiTaxBrowseDown"+(srch ? "&prop_val="+srch : "" ));//.parser=dataset_check;
-        vjDS.add("infrastructure: Constructing taxonomy control","dsTaxonomyActions" , "static:// " );
+        var baseURL="http:
+        vjDS.add("Retrieving Taxonomy tree","dsNCBITaxonomyTree", baseURL + "&taxid=1&depth=2&cmd=ncbiTaxBrowseDown"+(srch ? "&prop_val="+srch : "" ));
+        vjDS.add("infrastructure: Constructing taxonomy control","dsTaxonomyActions" , "static:
 
         var viewerTaxTreePanel = new vjPanelView({
             data:['dsTaxonomyActions', 'dsNCBITaxonomyTree' ],
@@ -749,7 +970,6 @@ function vjPageLayout()
             cmdUpdateURL: baseURL + "&cmd=ncbiTaxBrowseAll&cnt=20",
 
             rows: [
-                //{name:new RegExp(/.*/) },
                 {name: 'search', align: 'right', type: 'search', isSubmitable: true, url: ''}]
             });
 
@@ -765,9 +985,8 @@ function vjPageLayout()
             icons: { leaf: 'img/dna.gif' },
             showChildrenCount: true,
             autoexpand: 'all',
-            //precompute:"node.path=node.idpath;node.title=node.name;",
             cmdMoreNodes: baseURL + "&taxid=$(taxid)&depth=2&cmd=ncbiTaxBrowseDown",
-            postcompute: "if(!parseInt(node.bioprojectID)) node.uncheckable=true;",//alerJ('aaaaaa',node);",s
+            postcompute: "if(!parseInt(node.bioprojectID)) node.uncheckable=true;",
             objectsDependOnMe: [dvname + '.' + tabname + '.0'],
             isok:true
             });
@@ -776,10 +995,6 @@ function vjPageLayout()
     };
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ List and Hierarchy Viewer Generic
-    // _/
 
     this.initListAndTreeViewerTab=function(dsurl, dvname, tabname, tabico, recordviewer, formname, fullpanel, active,  addCmd, selectCallback, bgColorMap,isdrag)
     {
@@ -801,7 +1016,6 @@ function vjPageLayout()
                 ];
 
         var viewCmd= [
-                //{name:new RegExp(/.*/), align:'left', hidden: true },
                 {name:'add', align:'left', order:1, hidden:false, showTitle : true , title:'Add', description: 'add new objects to the list' , url:"javascript:vjDV.select('"+dvname+".add.0',true);" , icon:'plus', prohibit_new: true },
                 {name:'refresh', align:'left', order:0, hidden: false, align:'left', title: 'Refresh' , icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS['"+dsname+"'].reload(null,true);"},
                 {name:'detail', align:'left', order:1, hidden: false, icon: 'eye', description: 'examine, review, edit details of the object' ,hidden:true },
@@ -831,7 +1045,7 @@ function vjPageLayout()
             formObject: document.forms[formname],
             bgColors:bgColorMap,
             cols: [
-                {name:new RegExp(/.*/), hidden:true },// , url: (( typeof(recordviewer) == "function" ) ? recordviewer : vjHC.recordViewNode) },
+                {name:new RegExp(/.*/), hidden:true },
                 {name:'id', hidden: false, title:'ID', order: 1 } ,
                 {name:'name', hidden: false, title:'Name', wrap: true, order: 2 } ,
                 {name:'size', hidden: false, title:"Size" , align: "right", type: "bytes", order: 3 } ,
@@ -846,7 +1060,7 @@ function vjPageLayout()
             defaultIcon:'rec',
             iconSize:16,
             maxTxtLen:this.maxTxtLen,
-            maxTextLenCutExtensionAfterSymbols: "." , // to cut extensions when maxTextLen is Reached
+            maxTextLenCutExtensionAfterSymbols: "." ,
             defaultEmptyText:'no accessible information to show',
             geometry:{ width:'100%'},
             drag:true,
@@ -874,7 +1088,6 @@ function vjPageLayout()
             maxTxtLen:this.maxTxtLen,
             vjHCAssociatedRecordViewer:recordviewer+".details.0",
             precompute: "row.path=(row.hierarchy ? row.hierarchy : '/') +row['name'];",
-            //postcompute:"if(node.name=='inpos.fa')node.uncheckable=true;alert(node.name + ' - ' + node.uncheckable);",
             objectsDependOnMe:[ dvname+'.'+tabname+'.'+cntViewersIn ],
             drag:isdrag,
             isok:true });
@@ -883,16 +1096,12 @@ function vjPageLayout()
 
     };
 
-
-
-
     this.initStandardProcessViewer=function (dvname, datasource, formname , callbackSelect, callbackCheck,  depends , addCols)
     {
         var colList=[
             {name:new RegExp(/.*/), hidden:true },
             {name:'name', hidden: false, title:'Name' , order: 2.5} ,
             {name:'^id$', hidden: false, title:'ID' , order: 1 } ,
-            //{name:'reqID', hidden: false, title:'Request' } ,
             {name:'svcTitle', hidden: false, title:'Task', order: 4} ,
             {name:'created', hidden: false, title:'Created', order: 4.5, type: 'datetime'} ,
             {name:'uri', title:'Source', order: 5} ,
@@ -916,28 +1125,20 @@ function vjPageLayout()
             maxTxtLen:32,
             iconSize:0,
             isok:true}  );
-        //alerJ('d',viewerProcessList)
         return viewerProcessList;
     };
 
-
-
-
-
-    this.initRecordViewerSingle=function( rv, formname, type , id, rvTag, doSaveButton, isreadonly, isfake)
+    this.initRecordViewerSingle=function( rv, formname, type , id, rvTag, doSaveButton, isreadonly, isfake, options)
     {
-        var rec=type;//(pos!=-1) type.substring(pos+1) : type
-        vjDV[rv].add( rec+": "+(id ? id : type), "table", "tab",
-            new vjRecordView( {
+        var rec=type;
+        var pars = {
                 data: id ? ["dsRecordSpec"+rv+type, "dsRecordVals"+rv + id ] : [ "dsRecordSpec"+rv+type],
 
                 formObject:document.forms[formname],
                 hiveId: (id && !isfake) ? id : type ,
                 showRoot: true,
                 autoStatus:3,
-                //debug:1,
                 autoDescription:false,
-                // constructionPropagateDown:true,
                 RVtag:rvTag ? rvTag : null,
                 objType: type,
                 constructionPropagateDown:10,
@@ -951,58 +1152,54 @@ function vjPageLayout()
                 accumulateWithNonModified: true,
                 accumulateWithoutHidden: (id && !isfake) ? true : false,
                 isok:true
-            })
+            };
+        if(options) {
+            for ( var ff in options ) {
+                pars[ff]=options[ff];
+            }
+        }
+        vjDV[rv].add( rec+": "+(id ? id : type), "table", "tab",
+            new vjRecordView( pars )
         );
 
         vjDV[rv].render();
         vjDV[rv].load();
     };
 
-    this.initRecordViewers=function (rv, formname,  types,ids, rvTag,isreadonly, isfake)
+    this.initRecordViewers=function (rv, formname,  types,ids, rvTag,isreadonly, isfake, options)
     {
         types=verarr(types);
         for( var it=0; it< types.length; ++it ) {
-            vjDS.add("infrastructure: Object Specifications", "dsRecordSpec"+rv+types[it] ,"http://?cmd=propspec&type="+types[it]+"&types=1" );
+            vjDS.add("infrastructure: Object Specifications", "dsRecordSpec"+rv+types[it] ,"http:
         }
         for( ; it< ids.length; ++it ) {
             types.push("autoType"+ids[it]);
-            vjDS.add("infrastructure: Object Specifications", "dsRecordSpec"+rv+types[it] ,"http://?cmd=propspec&ids="+ids[it]+"&types=1" );
+            vjDS.add("infrastructure: Object Specifications", "dsRecordSpec"+rv+types[it] ,"http:
         }
 
         if( isok(ids) || (ids instanceof Array && ids.length )) {
             for( var ii=0; ii< ids.length; ++ii ){
-                  vjDS.add("infrastructure: Retrieving Objects Metadata Information", "dsRecordVals"+rv+ids[ii] ,"http://?cmd=propget&mode=csv&ids="+ids[ii] );
-                  vjPAGE.initRecordViewerSingle( rv , formname, types[ (ii<types.length) ? ii : types.length-1 ] , ids[ii] , rvTag,null,isreadonly, isfake);
+                  vjDS.add("infrastructure: Retrieving Objects Metadata Information", "dsRecordVals"+rv+ids[ii] ,"http:
+                  vjPAGE.initRecordViewerSingle( rv , formname, types[ (ii<types.length) ? ii : types.length-1 ] , ids[ii] , rvTag,null,isreadonly, isfake, options );
             }
         }
 
         else {
             for( var it=0; it< types.length; ++it )
-                vjPAGE.initRecordViewerSingle( rv, formname, types[it], null, rvTag,null,isreadonly, isfake);
+                vjPAGE.initRecordViewerSingle( rv, formname, types[it], null, rvTag,null,isreadonly, isfake, options );
         }
 
     };
 
-    /**
-     * sitemap function fully generates a sitemap.  The sitemap is a tree view that enables the user to navigate quickly through the system.
-     * 
-     */
     this.sitemap=function(dvName,formName,visibleFields,header)
-    /*
-     * visibleFields is an array of visible fields 
-     * header is true or false
-     * 
-     */
     
     {
         var dsName='ds'+dvName;
-        vjDS.add('infrastructure:', "dsVoid", "static:// ");
-        vjDS.add("infrastructure: ",dsName,"http://?cmd=objList&type=webpage&mode=csv");
+        vjDS.add('infrastructure:', "dsVoid", "static:
+        vjDS.add("infrastructure: ",dsName,"http:
 
-        // Add the viewer.  The sizes sent here don't seem to change the size of the viewer in the browser
         vjDV.add(dvName,gPgW,gPgH).frame='none';
 
-        // Create the toolbar for the sitemap object with the search attribute
         var viewerToolbar=new vjPanelView({
             data:['dsVoid', dsName]
             ,formObject:document.forms[formName]
@@ -1013,17 +1210,13 @@ function vjPageLayout()
                 ]
             });
 
-        // Construct the visible fields from visibleFields array
         var _visibleFields = new Array();
         
-        // Hide all columns by default
         _visibleFields.push({
             name:new RegExp(/.*/), 
             hidden:true
         })
         
-        // Construct the object telling the vjTableView which columns should be visible
-        // based on the visibleFields variable passed in
         for (var i = 0; i < visibleFields.length; i++) {
             _visibleFields.push({
                 name:visibleFields[i],
@@ -1031,10 +1224,9 @@ function vjPageLayout()
                     });
         }
         
-        this.autoexpand = this.autoexpand || 100;  // By default, show all nodes
+        this.autoexpand = this.autoexpand || 100;
         this.offSetColumn = this.offSetColumn || 150;
 
-        // Create the vjTableView object to show the sitemap.
         var viewerTree=new vjTableView({
             data:dsName
             ,formObject: document.forms[formName]
@@ -1059,8 +1251,8 @@ function vjPageLayout()
     this.projectmap=function(dvName,formName)
     {
         var dsName='ds'+dvName;
-        vjDS.add('infrastructure:', "dsVoid", "static:// ");
-        vjDS.add("infrastructure: ",dsName,"http://?cmd=objList&type=dev-project&mode=csv");
+        vjDS.add('infrastructure:', "dsVoid", "static:
+        vjDS.add("infrastructure: ",dsName,"http:
 
         vjDV.add(dvName,1024*1024,1024*1024).frame='none';
 
@@ -1091,12 +1283,40 @@ function vjPageLayout()
         vjDV[dvName].load();
 
     }
-
-
+    
 }
 
 
 var vjPAGE=new vjPageLayout();
-vjDS.add("infrastructure: Loading Actions", "dsActions" , "http://?cmd=objList&type=action&mode=csv" );
+vjDS.add("infrastructure: Loading Actions", "dsActions" , "http:
 
-//# sourceURL = getBaseUrl() + "/js/vjPageLayout.js"
+
+function vjRefArchive (url , name){
+        var vjRefFileExp=new vjPageLayout();
+        var myFloaterName="floater-vjRefFileExp";
+        var tMyFloater=gObject("dvFloatingDiv").outerHTML;
+        var tMyFloater=tMyFloater.replace(/dvFloating/g,myFloaterName);
+        tMyFloater=tMyFloater.replace(/href=\"#\" onclick=\".*\return false;\">/g, "href=\"#\" onclick=\"vjObjEvent('onClosepop','vjRefFileExp'\)return false;\">");
+        gCreateFloatingDiv(tMyFloater);
+        vjRefFileExp.onSelectSubject = function(myFloaterName,nodelist){
+            let listIds =[]
+            for( let i = 0 ; i < nodelist.length ; i++){
+                listIds.push(nodelist[i].id)
+            }
+            url += '&subject=' + encodeURIComponent(listIds);
+            vjDS.dsVoid.reload(url, true);
+            gModalClose(vjRefFileExp.popObjectExplorerViewer.myFloaterName+"Div");
+        }
+        vjRefFileExp.uploaderSubject("dvExplorerDownloader",myFloaterName);
+        let subElementId = '#DV_' + vjRefFileExp.popObjectExplorerViewer.container_Submit + '_tabcontainer';
+        let fileExplorerMsg = `<p style="font-size:16px;">Please choose <b>Reference Genome(s)</b> `;
+        if(name){
+            fileExplorerMsg += `for <b>${name}</b> `
+        }
+        fileExplorerMsg += 'to archive</p>'
+        $(subElementId).prepend(fileExplorerMsg)
+        $('#'+ myFloaterName + 'Div').attr('class' , 'hv--modal--container')
+}
+
+
+

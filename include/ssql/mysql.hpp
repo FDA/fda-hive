@@ -40,24 +40,25 @@ namespace slib
     class sSql
     {
         public:
-        struct gSettings{
-             char db[128];
-             char server[128];
-             char user[128];
-             char pass[128];
-             idx permanent;
-             idx pageSize;
-             char rndTbl[128];
+            struct gSettings {
+                char db[128];
+                char server[128];
+                char user[128];
+                char pass[128];
+                idx permanent;
+                idx pageSize;
+                char rndTbl[128];
                 idx debug;
-         } ;
-           static gSettings gSet; // sSql::gSettings sSql::gSet={"sSql_db","localhost","sSql_user","sSql_password",1,50,"random",0};
-            enum eStatus{eDisconnected=0,eConnected, eFailure};
-            idx status ;
+                udx rwTimeout;
+            };
+            static gSettings gSet;
+            enum eStatus { eDisconnected = 0, eConnected, eFailure };
+            idx status;
             bool permanentConnection;
 
-        public://construction
+        public:
             sSql(const char * db = 0, const char * serverlist00 = 0, const char * user = 0, const char * pass = 0)
-                : m_res(0), m_res_row(0), m_res_lengths(0)
+                : m_res(0), m_res_row(0), m_res_lengths(0), m_lib_init(0)
             {
                 permanentConnection = true;
                 isRawOut = false;
@@ -65,40 +66,41 @@ namespace slib
                 endlSymb = "\n//";
                 nullSymb = "-";
                 rawFltOut = ", \t\r\n";
-                //quoteSymb="\"";
                 srchCaseSensitive = false;
-                //doValueClipEnds=true;
+                rwTimeout = 120;
                 m_mysql_errno = 0;
                 m_in_transaction = 0;
                 m_had_deadlocked = false;
                 init(db, serverlist00, user, pass);
             }
-            sSql * init(const char * db=0, const char * serverlist00=0, const char * user=0, const char * pass=0)
+            sSql* init(const char* db = 0, const char* serverlist00 = 0, const char* user = 0, const char* pass = 0)
             {
-
-                dbConn=0;
-                dbConnDel=0;
-                status=eDisconnected;
-                if(db){
-                    connect(db, serverlist00, user, pass);
-                    if(status==eConnected)return 0;
-                }return this;
-            }
-            sSql * init(sSql * reuse)
-            {
-                dbConn=reuse->dbConn;
-                dbConnDel=0;
+                dbConn = 0;
+                dbConnDel = 0;
+                status = eDisconnected;
+                if( db ) {
+                    connect(db, serverlist00, user, pass, rwTimeout);
+                    if( status == eConnected ) {
+                        return 0;
+                    }
+                }
                 return this;
             }
-            ~sSql(){
+            sSql* init(sSql* reuse)
+            {
+                dbConn = reuse->dbConn;
+                dbConnDel = 0;
+                return this;
+            }
+            ~sSql()
+            {
                 disconnect();
             }
 
-
-        public:// connection
+        public:
             idx realConnect(void);
 
-            idx connect(const char * db, const char * serverlist00, const char * user, const char * pass);
+            idx connect(const char * db, const char * serverlist00, const char * user, const char * pass, const udx rwtmout);
             idx connect(const char * filenm, const char * section) ;
             idx connect(const char * defline) ;
 
@@ -110,42 +112,16 @@ namespace slib
             { return m_mysql_errno; }
             bool HasFailed() const
             { return m_mysql_errno != 0; }
-            /*! \returns true if the current (or just completed) transaction deadlocked
-                \note To clear a deadlock: rollback() then resubmit the transaction */
             bool hadDeadlocked() const
             { return m_had_deadlocked; }
             const sStr& Get_error() const
             { return m_mysql_error; }
 
-            //! max number of times (16) to retry statement or transaction if DB deadlocks
-            static const idx max_deadlock_retries; // = 16;
-            //! max time (100 * 1000 microseconds) to sleep before each retry of statement or transaction if DB deadlocks
-            /*! Example usage pattern:
-                \code
-                for(idx itry = 0; itry < sSql::max_deadlock_retries; itry++) {
-                    bool is_our_transaction = !db.in_transaction();
-                    db.start_transaction();
-                    success = update_various_stuff(db);
-                    if( success ) {
-                        db.commit();
-                    } else if( db.hadDeadlocked() && is_our_transaction ) {
-                        // DB deadlock detected, and our own db.start_transaction() call had
-                        // started the low-level DB transaction. So wait a bit and retry.
-                        db.rollback();
-                        sTime::randomSleep(sSql::max_deadlock_wait_usec);
-                        continue;
-                    } else {
-                        db.rollback();
-                    }
-                    break;
-                }
-                \endcode
-            */
-            static const idx max_deadlock_wait_usec; // = 100 * 1000;
-            //! for testing purposes - set sSql object's state as if a deadlock had been detected
+            static const idx max_deadlock_retries;
+            static const idx max_deadlock_wait_usec;
             void pretendDeadlock();
 
-        public:// execution
+        public:
 
             bool execute(const char * sqlfmt, ... ) __attribute__((format(printf, 2, 3)));
             bool executeString(const char * sql);
@@ -186,8 +162,6 @@ namespace slib
 
             class sqlProc {
                 private:
-                    // the following empty operator is only here to suppress
-                    // Visual Studios meaningless C4512 warning
                     sqlProc& operator=( const sqlProc& );
 
                 public:
@@ -204,8 +178,6 @@ namespace slib
                         { if( m_qty++ ) { m_stmt.addString(", "); } m_stmt.printf(fmt, value); return *this; }
                     sqlProc& Add(const bool value)
                         { m_stmt.printf("%s%s", m_qty++ ? ", ": "", value ? "TRUE" : "FALSE"); return *this; }
-                    //sqlProc& Add(const time_t value)
-                    //    { m_stmt.printf("%s%" UDEC, m_qty++ ? ", ": "", value); return *this; }
                     sqlProc& Add(const sStr& value)
                         { return Add(value.ptr()); }
                     sqlProc& Add(const char* value, udx value_len = 0)
@@ -223,6 +195,8 @@ namespace slib
 
                     const char* statement(void)
                         { return close(); }
+                    const char * rawStatement(void) const
+                        { return m_stmt.ptr(); }
                     bool execute()
                         { return m_sql.executeString(close()); }
                     idx getTable(sVarSet * ofs, sMex * blb = 0)
@@ -269,9 +243,7 @@ namespace slib
                 return getTable(tmp.ptr(),0,blb);
             }
 
-            //! methods to operate directly on results w/o copying into temp sVarSet
             bool resultOpen(const char * sqlfmt, ...) __attribute__((format(printf, 2, 3)));
-            //! drops all results
             void resultClose(void);
             bool resultNext(void);
             idx resultColDim() const
@@ -306,7 +278,6 @@ namespace slib
                 }
                 return defval;
             }
-            // result operators end
 
             idx sscanfTable( const char * sql, const char * fmt00, void * pVal0, idx maxcnt, int sizeofval=0);
             template < typename Tobj > idx sscanfTable( const char * sql, const char * fmt00, Tobj * pVal0, idx maxcnt=0){
@@ -321,32 +292,11 @@ namespace slib
             char * svalue(sStr & out, const char * sqlfmt, ...) __attribute__((format(printf, 3, 4)));
             time_t time_value(time_t defval, const char * sqlfmt, ...) __attribute__((format(printf, 3, 4)));
             time_t time_value(const char * sql, time_t defval);
-            //! protect fragment of a sql cell value
-            /*! \note \a to will have a terminal 0 which will be included in to.length()
-                \warning value appended to \a to will not be surrounded by quotes - if you need that, use protectValue() */
             char * protect(sStr& to, const char* from, udx length = 0);
-            //! protect and quote a complete sql cell value
             char * protectValue(sStr& to, const char* from, udx length = 0);
-            //! protect and quote a sql column or table name
             char * protectName(sStr& to, const char* from, udx length = 0);
-            //! protect and quote a string to use for LIKE substring matching, e.g. 99% -> '%99\%%'
             char * protectSubstringLike(sStr& to, const char* from, udx length = 0);
-            //! protect and quote a binary blob value (X'1234DEADBEEF' format in MySQL syntax)
             char * protectBlob(sStr& to, const void * from, udx length);
-            //! write optimal sql expression equivalent to "((domid_expr = 1 AND objid_expr = 100) OR (domid_expr = 1 AND objid_expr = 101) OR ...)"
-            /*! Assumptions:
-                 * domain IDs are sparse;
-                 * object IDs are potentially dense;
-                 * domain ID 0 is stored as NULL in the database.
-                For example, "((d = 1 AND o = 100) OR ... OR (d = 1 AND o = 200) OR (d IS NULL and o = 300))" may reduce to "(((d = 1 AND (o >= 100 AND o <= 200)) OR (d IS NULL and o = 300))"
-                \param to where to print
-                \param domid_expr expression whose value will be checked against domain ID in the list; will be inserted into sql without escaping; will be ignored if 0
-                \param objid_expr expression whose value will be checked against object ID in the list; will be inserted into sql without escaping
-                \param list list of hive id values (doesn't have to be sorted or unique)
-                \param cnt number of values
-                \param negate whether to generate expression equivalent to "((domid_expr != 1 OR objid_expr != 100) AND ...)"
-                \param empty_list_is_true if true and \a negate is false, an empty \a list returns "TRUE" (default would be "FALSE")
-                \returns pointer to start of printed expression in \a to */
             static char * exprInList(sStr& to, const char* domid_expr, const char* objid_expr, const sHiveId * list, idx cnt, bool negate = false, bool empty_list_is_true = false);
             static char * exprInList(sStr& to, const char* domid_expr, const char* objid_expr, sVec<const sHiveId> & list, bool negate = false, bool empty_list_is_true = false)
             {
@@ -356,51 +306,23 @@ namespace slib
             {
                 return exprInList(to, domid_expr, objid_expr, list.ptr(), list.dim(), negate, empty_list_is_true);
             }
-            //! write optimal sql expression equivalent to "lhs_expr in (1, 2, 3, 42,...)"
-            /*! For example, "foo in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)" may reduce to "(foo >= 1 and foo <= 10)"
-                \param to where to print
-                \param lhs_expr expression whose value will be checked against list; will be inserted into sql without escaping
-                \param list list of integer values (doesn't have to be sorted or unique)
-                \param cnt number of values
-                \param negate whether to generate expression equivalent to "lhs_expr not in (...)"
-                \param empty_list_is_true if true and \a negate is false, an empty \a list returns "TRUE" (default would be "FALSE")
-                \returns pointer to start of printed expression in \a to */
             static char * exprInList(sStr& to, const char* lhs_expr, const idx * list, idx cnt, bool negate = false, bool empty_list_is_true = false);
             static char * exprInList(sStr& to, const char* lhs_expr, const sVec<idx> & list, bool negate = false, bool empty_list_is_true = false)
             {
                 return exprInList(to, lhs_expr, list.ptr(), list.dim(), negate, empty_list_is_true);
             }
-            //! write optimal sql expression equivalent to "lhs_expr in (1, 2, 3, 42,...)"
-            /*! For example, "foo in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)" may reduce to "(foo >= 1 and foo <= 10)"
-                \param to where to print
-                \param lhs_expr expression whose value will be checked against list; will be inserted into sql without escaping
-                \param list list of integer values (doesn't have to be sorted or unique)
-                \param cnt number of values
-                \param negate whether to generate expression equivalent to "lhs_expr not in (...)"
-                \param empty_list_is_true if true and \a negate is false, an empty \a list returns "TRUE" (default would be "FALSE")
-                \returns pointer to start of printed expression in \a to */
             static char * exprInList(sStr& to, const char* lhs_expr, const int * list, idx cnt, bool negate = false, bool empty_list_is_true = false);
-            //! write optimal sql expression equivalent to "lhs_expr in (1, 2, 3, 42,...)"
-            /*! For example, "foo in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)" may reduce to "(foo >= 1 and foo <= 10)"
-                \param to where to print
-                \param lhs_expr expression whose value will be checked against list; will be inserted into sql without escaping
-                \param list list of integer values (doesn't have to be sorted or unique)
-                \param cnt number of values
-                \param negate whether to generate expression equivalent to "lhs_expr not in (...)"
-                \param empty_list_is_true if true and \a negate is false, an empty \a list returns "TRUE" (default would be "FALSE")
-                \returns pointer to start of printed expression in \a to */
             static char * exprInList(sStr& to, const char* lhs_expr, const udx * list, idx cnt, bool negate = false, bool empty_list_is_true = false);
             static char * exprInList(sStr& to, const char* lhs_expr, const sVec<udx> & list, bool negate = false, bool empty_list_is_true = false)
             {
                 return exprInList(to, lhs_expr, list.ptr(), list.dim(), negate, empty_list_is_true);
             }
 
-            //bool upload(const char * sql , const void * bindata, ... );
 
 
-    public: // sql statment manipulation
-        const char * separSymb, *endlSymb, *nullSymb, * rawFltOut;//, * quoteSymb;
-        bool srchCaseSensitive, isRawOut;//, doValueClipEnds;
+    public:
+        const char * separSymb, *endlSymb, *nullSymb, * rawFltOut;
+        bool srchCaseSensitive, isRawOut;
         void outTblValues(sStr * str,sVarSet * valtbl, const char * fields00=0, const char * srch00=0, const char * srchflds00=0, idx maxfoundout=0);
 
         idx outTblSql(sStr * str,const char * tbl, const char * fields=0, const char * whereclause=0);
@@ -433,42 +355,41 @@ namespace slib
 
             void add(const char * tbln, const char * fldlist, const char * quotes,bool isupdateable=true);
 
-            char * searchSql(sStr * srchSql, const char * srch,const char * anyExclusions00=0, sStr * participants=0); // makes a where statment based on srch line
-            char * searchSqlRecomb(sStr * srchSql, const char * srch,const char * anyExclusions00=0, sStr * participants=0); // makes a where statment based on srch line
-            char * dumpSql(sStr * dmp, const char * fltr, const char * fldlst); // make a select statment based on field list and previously searched fltr field
+            char * searchSql(sStr * srchSql, const char * srch,const char * anyExclusions00=0, sStr * participants=0);
+            char * searchSqlRecomb(sStr * srchSql, const char * srch,const char * anyExclusions00=0, sStr * participants=0);
+            char * dumpSql(sStr * dmp, const char * fltr, const char * fldlst);
             char * getAllFields( sStr * dmp);
 
             idx ensureIDRow(sSql * ligFam, idx recID,const char * tblnm);
             void updateTbl(sSql * ligFam, idx recID, sVar * pForm, const char * whereclasue);
 
         };
-        private:
+    private:
 
-            static sString::SectVar gSetVars[];
+        static sString::SectVar gSetVars[];
 
-            void * dbConn, *dbConnDel;
-            sStr errB;
-            sStr dataB;
-            sStr sqlB;
-            idx ofsServerList, ofsDB, ofsUser, ofsPasswd;
-            udx m_mysql_errno;
-            sStr m_mysql_error;
-            udx m_in_transaction;
-            bool m_had_deadlocked; //!< deadlocked during current (or just completed) transaction
+        void * dbConn, *dbConnDel;
+        sStr errB;
+        sStr dataB;
+        sStr sqlB;
+        idx ofsServerList, ofsDB, ofsUser, ofsPasswd;
+        udx rwTimeout;
+        udx m_mysql_errno;
+        sStr m_mysql_error;
+        udx m_in_transaction;
+        bool m_had_deadlocked;
 
-            // resultSet for iteration result after result, row after row
-            void * m_res;
-            void * m_res_row;
-            void * m_res_lengths;
-            sDic<idx> m_res_ids; // column name -> column number
+        void * m_res;
+        void * m_res_row;
+        void * m_res_lengths;
+        sDic<idx> m_res_ids;
 
-            // internal use only
-            bool exec(const char * sql);
-            bool hasError(void);
+        bool exec(const char * sql);
+        bool ihasError(const char * func, unsigned int line);
+
+        idx m_lib_init;
     };
 
 };
 
-#endif // sLib_mysql_h
-
-
+#endif 

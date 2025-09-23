@@ -36,11 +36,6 @@
 namespace slib
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ class sAlgo
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
     class sAlgo
@@ -51,7 +46,7 @@ namespace slib
         static void * algo_alloc(sMex * mex, idx size, void * ptr ){
             if(mex) {
                 if(size!=0) return mex->ptr(mex->add(0,size)) ;
-                return 0;//{mex->empty(); return 0;}
+                return 0;
             }
             return sNew(size,ptr);
         }
@@ -64,16 +59,15 @@ namespace slib
             return sConvInt2Ptr(ofs, void);
         }
 
-    public: // lix containter implementations
+    public:
         struct lix_Hdr{idx _count, _total, _bits;};
         typedef lix_Hdr * lix;
         typedef const lix_Hdr * constlix;
         static idx lix_hdrsize;
-        //static lix emptyLix;
         static lix emptyLix(void) { return sConvInt2Ptr(sNotIdx,sAlgo::lix_Hdr); }
 
         static idx * lix_deref(idx index, constlix hdr);
-        static void * lix_add(sMex * mex, idx cntAdd, idx objsize, lix * phdr, idx bits); // request element(s) , return  pointer and the index
+        static void * lix_add(sMex * mex, idx cntAdd, idx objsize, lix * phdr, idx bits);
         template <class TObj> static TObj * lix_add(sMex * mex, idx cntAdd, lix * phdr, idx bits){return (TObj * )lix_add(mex, cntAdd, sizeof(TObj), phdr, bits); }
         static void lix_unlink(sMex * mex, idx cntDel, lix * phdr);
         static void * lix_ptr(const sMex * mex , idx index, idx objsize, constlix hdr);
@@ -88,7 +82,7 @@ namespace slib
 
         struct hax_id { idx _idx, _id, _len, _rev;};
         struct hax_hdr {idx _cnt, _bits, _rescollisions, _collisionReducer;};
-        typedef idx (*hax_hashFunc)(const void * mem, idx len, idx bits, idx iNum, idx seed ); // this function hashes the piece of memory using built in hashing procedure
+        typedef idx (*hax_hashFunc)(const void * mem, idx len, idx bits, idx iNum, idx seed );
 
 
         static idx hax_hashfun(const void * mem, idx len, idx bits, idx iNum);
@@ -103,7 +97,7 @@ namespace slib
         static void * hax_identifier(sMex * mex, idx iids, idx * pLen, constlix hdr) { return const_cast<void *>(hax_identifier(const_cast<const sMex *>(mex), iids, pLen, hdr)); }
 
         static void lilist_add_base(sMex * mex, idx * baseofs, idx value);
-        static idx lilist_add_item(sMex * mex, idx * baseofs, idx value, bool reversed=false, idx insIndex=sNotIdx);// returns the position in mex for the newly added list element
+        static idx lilist_add_item(sMex * mex, idx * baseofs, idx value, bool reversed=false, idx insIndex=sNotIdx);
         static idx lilist_next_item(sMex * mex, idx * pindex, bool jumpLast=false, idx cnt=1);
         static idx * lilist_pcnt_items(sMex * mex, idx baseofs){return ((idx*)mex->ptr(baseofs)+2);}
         static idx lilist_find_items(sMex * mex, idx * baseofs, idx * idexes, idx cntidexes, idx * pindexes ,bool jumpLast);
@@ -120,8 +114,7 @@ namespace slib
 }
 
 
-#endif // sLib_core_vec_h
-
+#endif 
 
 
 

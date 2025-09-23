@@ -1,7 +1,3 @@
-<!--
- $Id$
--->
-
 <script>
     gInitList+="perm_init();";
 
@@ -276,7 +272,7 @@
                     objs_dic[obj_id] = true;
                 }
             }
-            if (node.leafnode && cookieGet("email") && node.email.toLowerCase() == cookieGet("email").toLowerCase() ) {
+            if (node.leafnode && cookieGet("email") && node.email && node.email.toLowerCase() == cookieGet("email").toLowerCase() ) {
                 my_perm_dic = node._perm;
             }
         }, uTree);
@@ -284,6 +280,7 @@
         if (can_check_if_can_share) {
             this.isNCheckableHeader = true;
         }
+        var allDisabled = {};
         this.tblArr.enumerate(function(viewer, tbl, ir) {
             var row = tbl.rows[ir];
             if (!row.id) {
@@ -295,11 +292,51 @@
                 if (my_perm_dic && (my_perm_dic[row.id].effective_bits['share'] || my_perm_dic[row.id].effective_bits['admin'])) {
                     row.checkDisabled = false;
                     viewer.isNCheckableHeader = false;
+                    allDisabled[row.id] = false;
                 } else {
                     row.checkDisabled = true;
+                    allDisabled[row.id] = true;
                 }
             }
         }, this);
+
+        var collectDisabled = [];
+        for(var id in allDisabled){
+            if(allDisabled[id]) collectDisabled.push(id);
+        }
+
+        if(collectDisabled.length > 0){
+            console.log("popup");
+
+            $("body").append(
+                    $(document.createElement("div"))
+                        .attr("id", "dialog")
+                        .attr("title", "No Permissions")
+                );
+            $("#dialog").empty();
+            $("#dialog").append (
+                                $(document.createElement("p")).text("You do not have the permissions to share object(s) " + collectDisabled.join(","))
+                        );
+                
+            $("#dialog").dialog({
+                modal: true,
+                width: 500,
+                buttons: {
+                    OK: function() {
+                       $(this).dialog("close");
+                    }
+                },
+                open: function() {
+                    $(this).closest(".ui-dialog")
+                        .find(".ui-dialog-titlebar-close")
+                        .addClass("ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close")
+                        .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+                    $(this).closest(".ui-dialog")
+                        .find(".ui-dialog-titlebar")
+                        .addClass("error-header");
+                }
+            });
+        }
 
         var dsObjTblArr = null;
         if (this == oList) {
@@ -477,7 +514,7 @@
             for (var ig=0; ig<this.groupNodeList.length; ig++) {
                 var unode = this.groupNodeList[ig];
                 this.groupList.push(unode.id);
-                if (unode.leafnode && cookieGet("email") && unode.email.toLowerCase() == cookieGet("email").toLowerCase() ) {
+                if (unode.leafnode && cookieGet("email") && unode.email && unode.email.toLowerCase() == cookieGet("email").toLowerCase() ) {
                     change_my_perms = true;
                 }
             }
@@ -789,9 +826,27 @@
         vjDS.dsObjDeps.reload(null, true);
         vjDS.dsUserTree.reload(null, true);
     }
+
+    $(document).ready(function(){
+        $("#jumpNewPage").on("click", function (eventData){
+             var url = window.location.href;
+
+             if (url.indexOf("&") >= 0)
+                 linkURL("?cmd=sharing-new" + url.substring(url.indexOf("&")));
+             else
+                 linkURL("?cmd=sharing-new");
+
+             eventData.preventDefault();
+         });
+    });
 </script>
 
 <div class="HIVE_section">
+    <div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" id="jumpNewPage">
+        <a href = "#">
+            Click to go to new Sharing webpage
+        </a>
+    </div>
     <table width="100%">
         <tr>
             <td class="HIVE_section_title">Group Hierarchy</td>
@@ -895,7 +950,6 @@ admin,Administer,permission to administer the object's access rights
                     <tr>
                         <td><input type="button" id="btnSet" onclick="perm_setter.set()" value="Apply"></td>
                         <td><input type="button" id="btnDel" onclick="perm_setter.set(true)" value="Delete"></td>
-                        <td><input type="button" id="btnReset" value="Reset" onclick="perm_refreshSettings()"></td>
                     </tr>
                 </table>
             </td>

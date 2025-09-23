@@ -32,11 +32,12 @@
 #define dmArchiver_hpp
 
 #include <qpsvc/qpsvc.hpp>
-#include <dmlib/dmlib.hpp>
+#include <xlib/dmlib.hpp>
 
 class dmArchiver: public sQPSvc
 {
         typedef sQPSvc TParent;
+
     public:
 
         dmArchiver(sQPride& qp, const char * path, const char * dataSource, const char * formatHint = 0, const char * name = 0);
@@ -46,44 +47,29 @@ class dmArchiver: public sQPSvc
         {
             return "dmArchiver";
         }
-        virtual sUsrProc * makeObj(sUsr& user) const;
+        virtual sUsrProc * makeObj(sUsr& user, sUsrProc * p = 0) const;
 
-        // sets physical location to process
         void setInput(const char * path, ...) __attribute__((format(printf, 2, 3)));
-        // set name (meta) for the location
         void setInputName(const char * name, ...) __attribute__((format(printf, 2, 3)));
         void setDataSource(const char* ds);
         void setFolder(sUsrFolder & folder);
         void setSubject(const char * subject);
         bool convertObj(const sHiveId & objId, const char * typeName);
 
-        //! only applied when it is object conversion
-        /** DataTypes supported:
-         * - fasta
-         * - fastq
-         * - sam
-         * - annotation
-         */
         void setFormatHint(const char *s);
         void addObjProperty(const char* name, const char * value, ...) __attribute__((format(printf, 3, 4)));
-        // file(s) decompression depth
-        static void setDepth(sQPrideBase & qp, udx max_depth);
+        void setDepth(udx max_depth);
         static udx getDepth(sQPrideBase & qp);
-        // file(s) needs to be index
-        static void setIndexFlag(sQPrideBase & qp, idx flag);
-        static idx getIndexFlag(sQPrideBase & qp);
-        // file(s) needs to be QC-ed
-        static void setQCFlag(sQPrideBase & qp, idx flag);
-        static idx getQCFlag(sQPrideBase & qp);
-        // set file(s) needs to be screened
-        static void setScreenFlag(sQPrideBase & qp, idx flag);
-        static idx getScreenFlag(sQPrideBase & qp);
+        void setQCFlag(const bool flag);
+        static bool getQCFlag(sQPrideBase & qp);
+        void setScreenFlag(const bool flag);
+        static bool getScreenFlag(sQPrideBase & qp);
 
         typedef struct {
             const char * objType00;
             enum dmLib::EPackAlgo compressor;
             const char * ext00;
-            const char * props00; // additional properties to assign
+            const char * props00;
         } TKnownTypes;
 
         static const TKnownTypes * getKnownTypes(void)
@@ -94,7 +80,6 @@ class dmArchiver: public sQPSvc
         sStr m_properties;
 
         static TKnownTypes m_knownTypes[];
-
 };
 
-#endif // dmArchiver_hpp
+#endif 

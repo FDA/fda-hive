@@ -71,13 +71,11 @@ void sTextClust::switchPop (idx i1, idx i2)
     Population[i2].id = cltemp;
 }
 
-// Get the index value of the character in the alphabet
 idx sTextClust::getValue (char c)
 {
     return *alphaDic.set(&c, 1);
 }
 
-// Get the character value in the alphabet based on the index
 char sTextClust::getCharacter (idx i)
 {
     idx sizeID;
@@ -112,9 +110,6 @@ bool sTextClust::addNewCluster (idx iPop, bool isTemporary)
         ++(clu->representation[i][let]);
         clu->strRep.printf("%c", getCharacter(let));
     }
-//    extractRepresentation (&(clu->strRep), &(clu->representation));
-//    Clusters[iClust].representation.printf("%s",rep);
-    // Switch with the last one
     num_clusters++;
     return true;
 }
@@ -127,7 +122,6 @@ bool sTextClust::addExistingCluster (idx iPop, idx iClust)
 
     Population.ptr(iPop)->cluster = iClust;
 
-    // Modify the count and the representation count
     Clusters.ptr(iClust)->count += 1;
     centroid *clu = Clusters.ptr(iClust);
     idx length = len1 > clu->representation.dim() ? clu->representation.dim() : len1;
@@ -135,19 +129,11 @@ bool sTextClust::addExistingCluster (idx iPop, idx iClust)
     for (idx i = 0; i < length; ++i){
         let = getValue (t1[i]);
         ++(clu->representation[i][let]);
-        // updates representation letter by letter
-        // let is the new letter
         maxletter = getValue(clu->strRep[i]);
         if ((let != maxletter) && (clu->representation[i][let]) > (clu->representation[i][maxletter])){
-//            char *consensus = clu->strRep;
-//            consensus[i] = getCharacter(let);
             *(clu->strRep.ptr(i)) = getCharacter(let);
         }
-        // clu->representation[i][]
     }
-//    if ((clu->count % 200) == 0){
-//        extractRepresentation (clu->strRep, iClust);
-//    }
     return true;
 }
 
@@ -198,7 +184,6 @@ idx sTextClust::findClosestCluster (idx iPop, real tolerance, bool useMatrixDist
     for (idx i = 0; i < num_clusters; ++i){
         t2.cut(0);
         if (Clusters.ptr(i)->strRep.length() != 0){
-            // useConsensus
             t2.printf("%s", Clusters.ptr(i)->strRep.ptr());
             len2 = Clusters.ptr(i)->representation.dim();
         }
@@ -213,12 +198,10 @@ idx sTextClust::findClosestCluster (idx iPop, real tolerance, bool useMatrixDist
             dist = distance (t1, t2, (len1 < len2) ? len1 : len2, tolerance);
         }
         if ((dist < tolerance) && (dist < min_distance)){
-            // Return index of the cluster
             min_distance = dist;
             iminDist = i;
         }
     }
-    // Could not find any cluster
     return iminDist;
 }
 
@@ -229,10 +212,7 @@ bool sTextClust::pop2cluster (idx iClust, idx iPop, idx offset)
     Clusters[iClust].offset = offset;
     sStr rep;
     rep.cut(0);
-//    idx len = getString (&rep, iPop);
 
-//    Clusters[iClust].representation.printf("%s",rep);
-    // Switch with the last one
     return true;
 }
 
@@ -243,9 +223,6 @@ bool sTextClust::exportCluster(idx *pmat, bool useMatrix, bool useOffsets)
     for (idx i = 0; i < num_clusters; ++i){
         for (idx j = 0; j < num_clusters; ++j){
             pmat[im] = textComparison(i, j, 0, useMatrix, useOffsets);
-//            if (pmat[im] == 0 && i != j){
-//                pmat[im] = 50;
-//            }
             im++;
         }
     }
@@ -279,16 +256,6 @@ real sTextClust::matrixDistance (const char * t1, const char * t2, idx len)
         t_diff += (idx) external_mat[t1[i] * external_dim + t2[i]];
     }
     t_diff /= len;
-//    if (!matrixMinimization){
-//        idx value, normalization;
-//        for(idx i = 0; i < len; ++i) {
-//            value = (idx) external_mat[t1[i] * external_dim + t2[i]];
-//            normalization = (real)((value - matrixMinimum) * 100.0) / (matrixMaximum - matrixMinimum);
-//            t_diff += normalization;
-//        }
-//        // t_diff is a value between 0 and 100*len
-//        t_diff = 100 - (real)(t_diff* 100.0) / (len*100.0);
-//    }
     return t_diff;
 }
 
@@ -301,13 +268,10 @@ idx sTextClust::textComparison (idx index1, idx index2, idx len, bool useMatrix,
     idx len2 = getString (t2, ix2);
     idx length = (len1 < len2) ? len1 : len2;
     if (len){
-        // try to use the len given
         length = (len < length) ? len : length;
     }
     idx t_diff = 0;
     if (useOffsets){
-        // We need to calculate the part in which both clusters intersect
-        // two intervals [ofs1, ofs1+len1] and [ofs2, ofs2+len2]
         idx ofs1 = Clusters.ptr(index1)->offset;
         idx ofs2 = Clusters.ptr(index2)->offset;
         idx start, newlength;
@@ -319,13 +283,9 @@ idx sTextClust::textComparison (idx index1, idx index2, idx len, bool useMatrix,
             if (ofs2 == -1){
                 ofs2 = 0;
             }
-            // The intersection of two intervals [s1, s2] and [t1, t2] is empty if and only if:
-            // t2 < s1 or s2 < t1
             if ((ofs2 + len2 < ofs1) || (ofs1 + len1 < ofs2)) {
                 return 100;
             }
-            // The intersection of [s1,s2] and [t1, t2] is:
-            // [max(s1, t1), min(s2,t2)]
             start = sMax (ofs1, ofs2);
             newlength = sMin(ofs1 + len1, ofs2 + len2) - start;
             newt1 = t1.ptr(start - ofs1);
@@ -334,7 +294,6 @@ idx sTextClust::textComparison (idx index1, idx index2, idx len, bool useMatrix,
             return t_diff;
         }
     }
-    // returns the differences of t1 and t2 based on the matrix (_mat),
     if( useMatrix ) {
         t_diff = matrixDistance (t1, t2, length);
     }
@@ -349,7 +308,6 @@ const char * sTextClust::stringConsensus (sStr &out, idx iClust)
     if (iClust > num_clusters){
         return 0;
     }
-//    getString (&out, Clusters.ptr(iClust)->id);
     extractRepresentation(out, iClust);
 
     return out.ptr();
@@ -359,8 +317,6 @@ const char * sTextClust::stringConsensus (sStr &out, idx iClust)
 bool sTextClust::reportPopulationInfo (sStr &out)
 {
     out.cut(0);
-    //out.printf("# There are: %" DEC " clusters in total \n", num_clusters);
-    //out.printf("# Population size: %" DEC " \n", num_population);
     out.printf("row,cluster,id%s\n", printInfo ? ",info": 0);
     sStr t1;
 
@@ -411,7 +367,6 @@ bool sTextClust::reportClusterDistanceMatrix (sStr &out, idx *pmat)
 
 bool sTextClust::reportHeatmapInfoDetail (sStr &out)
 {
-    // print Header
     out.printf("let");
     for (idx i = 0; i < num_alphabet; ++i){
         out.printf(",%c", getCharacter(i));
@@ -419,10 +374,8 @@ bool sTextClust::reportHeatmapInfoDetail (sStr &out)
     out.printf("\n");
     centroid *clu;
     real val;
-    // print Rows
     for (idx i = 1; i < 2; ++i){
         clu = Clusters.ptr(i);
-//        out.printf("cluster_%" DEC, i);
         for (idx j = 0; j < stringLength; ++j){
             out.printf("pos_%" DEC, j);
             for (idx k = 0; k < num_alphabet; ++k){
@@ -444,7 +397,6 @@ bool sTextClust::reportHeatmapInfoDetail (sStr &out)
 
 bool sTextClust::reportHeatmapInfoGen (sStr &out)
 {
-    // print Header
     out.printf("cluster");
     for (idx i = 0; i < stringLength; ++i){
         out.printf(",pos_%" DEC, i);
@@ -455,7 +407,6 @@ bool sTextClust::reportHeatmapInfoGen (sStr &out)
     centroid *clu;
     real val;
     sStr buf;
-    // print Rows
     sStr aux;
     for (idx i = 0; i < num_clusters; ++i){
         aux.cut(0);
@@ -463,8 +414,6 @@ bool sTextClust::reportHeatmapInfoGen (sStr &out)
         stringConsensus(aux, i);
         out.printf("\"%" DEC ",%s (%" DEC ")\"", i, aux.ptr(), getCountCluster(i));
 
-//        out.printf("%" DEC, i);
-//        out.printf("cluster_%" DEC, i);
         tpos.cut(0);
         extractRepresentation (buf, i, &tpos);
         for (idx j = 0; j < stringLength; ++j){
@@ -485,7 +434,6 @@ bool sTextClust::reportHeatmapInfoGen (sStr &out)
 bool sTextClust::reportAnnotationMap (sStr &out, bool printHeader)
 {
     sStr outAux;
-    // print Header
     if (printHeader){
         out.printf("ref,start,end,idType-id\n");
     }
@@ -495,17 +443,11 @@ bool sTextClust::reportAnnotationMap (sStr &out, bool printHeader)
         centroid *clu = Clusters.ptr(i);
         idx repLen = getString(aux, i);
 
-//        if (printInfo && infoContainer){
-//            out.printf ("\"%s\"", );
-//        }
         outAux.printf(0,"%" DEC ",%" DEC ",%" DEC ",\"id:%s;seq:%.*s\"\n", i+1, clu->offset+1, clu->offset+1 + repLen, sString::next00(infoContainer->ptr(0), i), (int)repLen, aux.ptr(0));
         out.add(outAux, outAux.length());
-//        sString::escapeForCSV(out, outAux, outAux.length());
-//        out.printf(",%" DEC ":%.*s\n", i+1, );
     }
     return true;
 }
-// Expensive function that should be avoided
 idx sTextClust::getMinNumberCols()
 {
     idx minCols = sIdxMax;

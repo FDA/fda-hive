@@ -36,7 +36,6 @@ using namespace slib;
 
 void sUsrFile::fixOldPath(void) const
 {
-    // fix data for old imported files when implementation was poor
     sStr path(sMex::fExactSize);
     const char * prop = "path";
     propGet(prop, &path);
@@ -51,7 +50,7 @@ void sUsrFile::fixOldPath(void) const
             sFilePath nm(path, "%%flnmx.*"), ext(path, "%%ext%s", gz ? ".gz" : "");
             if( const_cast<sUsrFile*>(this)->propSet("ext", ext) == 1 ) {
                 sStr p;
-                propGet("_dir", &p);
+                propGet("_dir", &p, true);
                 sDir files;
                 files.find(sFlag(sDir::bitFiles), p, nm);
                 const idx offset = p.length() + nm.length() - 3;
@@ -92,7 +91,6 @@ bool sUsrFile::delFilePathname(const char* key, ...) const
     return (r && strcmp(del, r) == 0) ? false : TParent::delFilePathname("%s", k.ptr());
 }
 
-// TEMP !! for old obj conversion only!!!
 const char * sUsrFile::getFilePathnameX(sStr & buf, const sStr & key, bool check_existence) const
 {
     fixOldPath();
@@ -107,7 +105,7 @@ const char* sUsrFile::getFile(sStr & buf) const
     return TParent::getFilePathname(buf, "%s", ext.ptr());
 }
 
-bool sUsrFile::setFile(const char * file_path, const char* name /* = 0 */, const char * ext /* = 0 */, udx file_sz /* = 0 */)
+bool sUsrFile::setFile_donotuse(const char * file_path, const char* name, const char * ext, udx file_sz)
 {
     udx q = 0;
     if( file_path && file_path[0] ) {
@@ -118,7 +116,6 @@ bool sUsrFile::setFile(const char * file_path, const char* name /* = 0 */, const
             ext = strchr(n, '.');
         }
         if( ext && ext[0] ) {
-            // cut leading dotS
             while( ext[0] == '.' && ext[0] != '\0' ) {
                 ++ext;
             }
@@ -126,7 +123,7 @@ bool sUsrFile::setFile(const char * file_path, const char* name /* = 0 */, const
                 e.printf("%s", ext);
             }
         }
-        q += propSet("ext", &e[1]); //extension w/o dot
+        q += propSet("ext", &e[1]);
         if( !file_sz ) {
             file_sz = sFile::size(file_path);
         }

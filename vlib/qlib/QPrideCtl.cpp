@@ -34,8 +34,6 @@ class QPrideCtl : public sQPrideCGI
     public:
         QPrideCtl(const char * defline00=0, idx argc=0, const char * * argv=0, const char * * envp=0)
             :sQPrideCGI(defline00, "qm", argc, argv, envp, stdin, false, true ){
-            //comma="//";
-            //endl="//\n";
         }
         virtual ~QPrideCtl(){
 
@@ -46,19 +44,9 @@ class QPrideCtl : public sQPrideCGI
 
 };
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/  Command Handler
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
 idx QPrideCtl::Cmd(const char * cmd)
 {
-    //
-    // Default commands
-    //
     idx ret=sQPrideCGI::Cmd(cmd); if(ret)return ret;
 
 
@@ -84,13 +72,6 @@ idx QPrideCtl::Cmd(const char * cmd)
 }
 
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/  Initialization
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 int main(int argc, const char *argv[])
 {
     QPrideCtl qapp("config=qapp.cfg" __, argc, argv);

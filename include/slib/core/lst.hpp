@@ -37,16 +37,11 @@
 namespace slib
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ class sLst
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
     template< class Tobj , int Tbits=8 > class sLst : public sArr< Tobj, sLst<Tobj, Tbits> >
     {
-    public: // constructor/destructor
+    public:
         typedef sArr< Tobj, sLst<Tobj, Tbits> > Tparent;
         friend class sArr< Tobj, sLst<Tobj, Tbits> >;
         sAlgo::lix lst0;
@@ -55,11 +50,9 @@ namespace slib
         ~sLst () { this->sdel_op(0,dim(),(Tobj * )0); this->empty(); }
         sLst * init(sMex * mex=0) { _mex=mex; lst0=sAlgo::emptyLix(); return this;}
 
-    // sArr implementations
     private:
         Tobj * _add(idx cntAdd=1) __attribute__((used)) {return (Tobj *)sAlgo::lix_add(_mex,cntAdd,sizeof(Tobj),&lst0,Tbits);}
         void _del( idx posDel, idx cntDel) __attribute__((used)) { Tparent::sshift_op( posDel+cntDel, posDel, cntDel); sAlgo::lix_unlink(_mex,cntDel,&lst0);}
-        //Tobj * _insert(idx pos, idx cntAdd) { Tobj * p=sArr<Tobj>::add( cntAdd ); sArr<Tobj>::sshift_op( pos, pos+cntAdd, cntAdd ); return p;}
     public:
         const Tobj * ptr( idx index=0) const __attribute__((used)) { return static_cast<const Tobj *>(sAlgo::lix_ptr(_mex,index,sizeof(Tobj),lst0));}
         Tobj * ptr( idx index=0) __attribute__((used)) { return static_cast<Tobj*>(sAlgo::lix_ptr(_mex,index,sizeof(Tobj),lst0));}
@@ -70,29 +63,10 @@ namespace slib
 
     };
 
-    /*
-    template< class Tobj , int Tbits=3 > class sLis : public sArr<Tobj>
-    {
-    public: // constructor/destructor
-        sAlgo::lix lst0;
-        sLis( ) {lst0=sAlgo::emptyLix();}
-
-    // sArr implementations
-    private:
-        Tobj * add(sMex * mex, idx cntAdd=1){return (Tobj *)sAlgo::lix_add(mex,cntAdd,sizeof(Tobj),&lst0,Tbits);}
-        void _del( idx posDel, idx cntDel) { sArr<Tobj>::sshift_op( posDel+cntDel, posDel, cntDel); sAlgo::lix_unlink(_mex,cntDel,&lst0);}
-        //Tobj * _insert(idx pos, idx cntAdd) { Tobj * p=sArr<Tobj>::add( cntAdd ); sArr<Tobj>::sshift_op( pos, pos+cntAdd, cntAdd ); return p;}
-    public:
-        Tobj * ptr( idx index=0) { return (Tobj *)sAlgo::lix_ptr(_mex,index,sizeof(Tobj),lst0);}
-        idx dim(void) { return sAlgo::lix_cnt(_mex,lst0);}
-        sMex * mex(void) {return _mex;}
-
-    };*/
 }
 
 
-#endif // sLib_core_vec_h
-
+#endif 
 
 
 

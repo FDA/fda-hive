@@ -62,7 +62,6 @@ namespace slib
                     idx offset;
                     sVec < sVec<idx> > representation;
                     sStr strRep;
-//                    void (*func) (sStr * str, sVec < sVec<idx> > *rep);
             };
 
             sVec <centroid> Clusters;
@@ -160,8 +159,6 @@ namespace slib
 
             void addInfo(sStr &info){
                 infoContainer = &info;
-//                infoContainer.add(info, sLen(info));
-//                infoContainer.add0();
                 printInfo = true;
             }
 
@@ -199,26 +196,16 @@ namespace slib
 
             bool resetCluster(idx clustSize = 0)
             {
-//                if (!popSize && srcType == sTextHiveseq){
-//                    popSize = SrcFile->dim();
-//                }
-//                else if (srcType == sTextTable){
-////  Missing the size from the table
-//                    // popSize = ?;
-//                }
                 initCluster (clustSize);
                 return true;
             }
             idx runCluster (real tolerance, bool useMatrixDistance = false)
             {
-                // Add the first element to the cluster
                 addNewCluster (0);
 
-                // Add the rest elements to the cluster
 
                 idx center = 0;
                 for (idx i = 1; i < num_population; ++i){
-             //        rand = (RANDREAL1*num_population);
                     if (PROGRESS(i, i, num_population)){
                         return -1;
                     }
@@ -237,7 +224,6 @@ namespace slib
 
             idx loadClusterwithExistingPopulation (void)
             {
-                // Add the first element to the cluster
                 for (idx i = 0; i < num_population; ++i){
                     addNewCluster (i);
                 }
@@ -248,13 +234,6 @@ namespace slib
                 Clusters[iClust].offset = offset;
             }
 
-//            bool loadAlphabet(const char * abc){
-//                alphabet00.cut(0);
-//                alphabet00.printf ("%s",abc);
-//                alphaDic.parse00(alphabet00 , alphabet00.length());
-//                return true;
-//            }
-//
             bool loadMatrix (idx *mat, idx dim)
             {
                 external_mat = mat;
@@ -330,4 +309,4 @@ namespace slib
             idx getMinNumberCols();
     };
 }
-#endif // sMath_textclust_h
+#endif 

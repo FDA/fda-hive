@@ -65,30 +65,6 @@ $(function () {
                                         size: '300',
                                         allowClose: true
                                     });
-/*
-                                    var manager = $.getLayoutManager();
-
-                                    manager.append({
-                                        layout: {
-                                            items:[
-                                            {
-                                                id: 'tabs1',
-                                                tabs:{
-                                                    items: [{
-                                                        active:true,
-                                                        title:'New Tab',
-                                                        name:'new',
-                                                        class: 'details icon',
-                                                        allowClose: true,
-                                                        view: {
-                                                            name: 'areastats'
-                                                        }
-                                                    }]
-                                                }
-                                            }]
-                                        }
-                                    });
-*/
                                 })
                                 .appendTo(this.toolbar);
         },

@@ -1,27 +1,27 @@
-<!--
- $Id: dna-profiler_tmplt.html 7341 2014-10-17 14:47:02Z jtorcivia $
-vim: set et ts=4 sts=4:
--->
-<!-- 
-For the Annotation Viewer
- -->
- 
-<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" id="jumpNewPage">
-    <a href = "#">
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;visibility:hidden;"
+    id="jumpNewPage">
+    <a href="#">
         Click to go to old Profiler webpage
     </a>
 </div>
- 
- 
- <script>
+
+
+<script>
     $.loadLayoutManager();
     $.loadCSS('css/look_and_feel/velvet.css');
     $.loadCSS('css/algoview.css');
     $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
     $.loadCSS('css/tabs.css');
 </script>
-<script> 
+<script>
     document.write(algoViewHTMLSetUp(false));
+    document.addEventListener('submit', function (event) {
+        // Modal Window Details has a problem at 'Profile Zoom' tab   'Position' input field that
+        // periodically switches to a sumbitter type
+        if (event.target.id === 'algoModalForm') {
+            event.preventDefault();
+        }
+    });
 </script>
 
 <script src="js-obj-new/svc-heptagon.js"></script>
@@ -35,43 +35,104 @@ For the Annotation Viewer
 <script src='js/vjProfilerView.js'></script>
 <script src='js-graph/vjSVG_Defaults.js'></script>
 <script src='js-graph/vjSVG_General.js'></script>
+<script src='js/vjTableViewX2.js'></script>
 <script>
     google.load("visualization", "1", {
-        packages : [ "corechart" ]
+        packages: ["corechart"]
     });
-    
+
     setLocationTitle("Heptagon: HIVE");
-    
-    var algoProcess=new valgoProcess(docLocValue("id"),  "dna-heptagon", "svc-profiler-heptagon" );
-    algoProcess.visibleParameters=[ "name", "snpCompare", "minCover", "parent_proc_ids", "batch_svc"];
-    algoProcess.submitButtonName="Analyse All References";
-    algoProcess.docLocsToBorrow=["id", "query","subject"];
-    algoProcess.recViewerName = 'DV_Parameter_view';    
-    algoProcess.initialPresets={name:""};
-    
-    var alignID=docLocValue("parent_proc_ids"); if(isok(alignID))alignID=alignID.split(",");
+    var alignID = docLocValue("parent_proc_ids"); if (isok(alignID)) alignID = alignID.split(",");
+    var valgoToolbarWaitingList = [
+        {
+            type: 'html',
+            align: 'left',
+            order: '0',
+            name: 'next',
+            title: '<b>what can you do next (?) &rarr;</b>',
+            icon: '',
+            path: '/next',
+            url: '',
+            description: 'Choose what would you like to do next'
+        },
+        {
+            type: '',
+            align: 'left',
+            order: '1',
+            name: 'home',
+            title: 'Home Page',
+            icon: 'img/home.png',
+            path: 'home',
+            url: '?cmd=home',
+            description: 'Jump to Home Page'
+        },
+        {
+            type: '',
+            align: 'left',
+            order: '1',
+            name: 'modresubmit',
+            title: 'Modify and Resubmit',
+            icon: 'img/recRevert.gif',
+            path: '/resubmit',
+            url: urlExchangeParameter(document.location, "id", "-" + docLocValue("id")),
+            description: 'Modify parameters and resubmit this computation using the same template'
+        },
+        {
+            type: '',
+            align: 'left',
+            order: '1',
+            name: 'dna-hexagon',
+            title: 'Back to Alignment',
+            icon: 'img-algo/svc-align-hexagon.gif',
+            path: '/hexagon',
+            url: '?cmd=dna-hexagon&id=$(::alignID)',
+            description: 'Review Alignment Process'
+        }
+    ]
+    var valgoToolbarDoneList = [
+        {
+            type: 'html',
+            align: 'left',
+            order: '0',
+            name: 'next',
+            title: '<b>what can you do next (?) &rarr;</b>',
+            icon: '',
+            path: '/next',
+            url: '',
+            description: 'Choose what would you like to do next'
+        },
+        {
+            type: '',
+            align: 'left',
+            order: '1',
+            name: 'dna-clust',
+            title: 'Hierarchical Clustering',
+            icon: 'img-algo/svc-clust.png',
+            path: '/dna-clust',
+            url: 'javascript:toClust()',
+            description: 'Classify related profiling results by comparing their SNP frequencies'
+        }
+    ]
+
+
+    var algoProcess = new valgoProcess(docLocValue("id"), "dna-heptagon", "svc-profiler-heptagon");
+    algoProcess.visibleParameters = ["name", "snpCompare", "minCover", "parent_proc_ids"];
+    algoProcess.submitButtonName = "Analyze All References";
+    algoProcess.docLocsToBorrow = ["id", "query", "subject"];
+    algoProcess.recViewerName = 'DV_Parameter_view';
+    algoProcess.initialPresets = { name: "" };
+
     var process_showParentList = 1;
     var dna_hexagonHitList, dna_profilerProfile;
     var curStat = 0;
 
-    valgoToolbarWaitingList = "type,align,order,name,title,icon,path,url,description\n"
-            + "html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next\n"
-            + ",left,1,home,Home Page,img/home.png,home,?cmd=home,Jump to Home Page\n"
-            + ",left,1,modresubmit,Modify and Resubmit,img-algo/svc-profiler.gif,/resubmit,"+urlExchangeParameter(document.location,"id","-"+docLocValue("id"))+",Modify parameters and resubmit this computation using the same template\n"
-            + ",left,1,dna-hexagon,Back to Alignment,img-algo/svc-align-hexagon.gif,/hexagon,?cmd=dna-hexagon&id=$(::alignID),Review Alignment Process";
-
-    valgoToolbarDoneList = /* "type,align,order,name,title,icon,path,url,description\n"+ */
-    "html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next\n"
-            + ",left,1,dna-clust,Hierarchical Clustering,img-algo/svc-clust.png,/dna-clust,javascript:toClust(),\"Classify related profiling results by comparing their SNP frequencies\"";
- 
-    function load_genomeID(redirect)
-    {
+    function load_genomeID(redirect) {
         if (!alignID)
             return;
 
         linkCmd('objQry&raw=1&qry=("' + alignID.join(",") + '"%20as%20objlist).map({.subject}).reduce(function(x,y){x.append(y)})',
             "",
-            function(param, text) {
+            function (param, text) {
                 try {
                     genomeID = JSON.parse(text);
                     if (genomeID.join) {
@@ -80,27 +141,27 @@ For the Annotation Viewer
                     if (!genomeID) {
                         genomeID = 0;
                     }
-                    if(redirect) {
-                        linkSelf('dna-clust&profileID='+docLocValue("id")+'&referenceID='+genomeID,true);
+                    if (redirect) {
+                        linkSelf('dna-clust&profileID=' + docLocValue("id") + '&referenceID=' + genomeID, true);
                     }
                 } catch (e) {
-                    genomeID = 0; 
+                    genomeID = 0;
                 }
             }
         );
     }
-    
 
     function setInitialName() {
-        linkCmd("objQry&raw=1&qry="+vjDS.escapeQueryLanguage("a=[" + alignID + "] as objlist ;return a[0].name;"), "", 
-        function(param, text) {
-            var title = "Profile based on alignment :";
-            if (text) {
-                title += " "+text;
-            }
-            title += " ("+alignID+")"
-            algoProcess.setValue("name", title);
-        });
+        let alignID1 = '"' + alignID.replace(/,/g, '","') + '"';
+        linkCmd("objQry&raw=1&qry=" + vjDS.escapeQueryLanguage("a=[" + alignID1 + "] as objlist ;return a[0].name;"), "",
+            function (param, text) {
+                var title = "Profile based on alignment :";
+                if (text) {
+                    title += " " + text;
+                }
+                title += " (" + alignID + ")"
+                algoProcess.setValue("name", title);
+            });
     }
 
     function toClust() {
@@ -110,10 +171,9 @@ For the Annotation Viewer
             linkSelf('dna-clust&profileID=' + docLocValue("id") + '&referenceID=' + genomeID, true);
         }
     }
-    
-    algoProcess.inputLoaded = function(viewer) 
-    {
-        var par =docLocValue("parent_proc_ids");
+
+    algoProcess.inputLoaded = function (viewer) {
+        var par = docLocValue("parent_proc_ids");
         var nam = algoProcess.getValue("name");
         var subset = algoProcess.getValue("subSet");
 
@@ -127,81 +187,84 @@ For the Annotation Viewer
 
         if (algoProcess.modeActive) {
             if (!nam) setInitialName();
-            algoProcess.setValue("scissors", "hiveal");
-            algoProcess.setValue("split", "parent_proc_ids");
+            //             algoProcess.setValue("scissors", "hiveal");
+            //             algoProcess.setValue("split", "parent_proc_ids"); //coming from db
         }
-        
-        var detailsTogether = (curStat >= 5) ? true: false;
+
+        var detailsTogether = curStat === "Done" || curStat === "Killed" || curStat === "ProgError" || curStat === "SysError";
 
         if (!dna_hexagonHitList) {
             var node = {
-                _type : 'svc-align2',
-                id : alignID[0],
+                _type: 'svc-align2',
+                id: alignID[0],
                 profiler: docLocValue("id"),
                 addTo: ["parameters", "1", "alignment", "Alignment"],
                 moveNext: false,
-                checkable: (algoProcess.modeActive) ? true : false, 
+                checkable: (algoProcess.modeActive) ? true : false,
                 isInput: true,
-                checkCallback : process_checkedReference,
-                selectCallback : process_selectedReference,
+                checkCallback: process_checkedReference,
+                selectCallback: process_selectedReference,
                 dbClickCallback: process_dbClickCallback,
                 subsetCount: isok(subset) ? str2ranges(subset, ";") : "",
                 detailsTogether: detailsTogether,
                 algoProc: algoProcess,
-                modifyResubmit: (docLocValue("id").indexOf("-") == 0 ) ? true : false,
+                modifyResubmit: (docLocValue("id").indexOf("-") == 0) ? true : false,
                 parentProc: docLocValue("parent_proc_ids"),
                 openTabsOnRefresh: false,
-                autoOpen: {general:"preSubmit", hitList:["preSubmit", "computed"], alignment:["preSubmit", "computed"]}
+                autoOpen: { general: "preSubmit", hitList: ["preSubmit", "computed"], alignment: ["preSubmit", "computed"] }
             };
             dna_hexagonHitList = vjHO.fullview(node._type, node, $.getAlgoViewManager().options.jsonForPage.subTabs.parameters);
+            //dna_hexagonHitList.subsetCount = isok(subset) ? str2ranges(subset, ";") : "";
             $(".preSubmit").children("ul").children("li").children("ul").toggle();
+
+            algoWidgetObj.moveTab("hitList", { top: '30%', bottom: '60%', left: '20%', right: '60%' }, 0);
+            algoWidgetObj.moveTab("pieChart", { top: '30%', bottom: '60%', left: '60%', right: '75%' }, 0);
         }
-        else{
-            algoWidgetObj.moveTab("hitList", {top:'0', bottom:'30%', left:'20%', right:'60%'}, 0);
-            algoWidgetObj.moveTab("alignments", {top:'0', bottom:'30%', left:'60%', right:'100%'}, 0);
+        else {
+            algoWidgetObj.moveTab("hitList", { top: '0', bottom: '30%', left: '20%', right: '60%' }, 0);
+            algoWidgetObj.moveTab("alignments", { top: '0', bottom: '30%', left: '60%', right: '100%' }, 0);
         }
     }
-    
+
     function process_checkedReference(viewer) {
         if (algoProcess.modeActive) {
             algoProcess.setValue("subSet", viewer.accumulate("node.checked", "node.id").join(";"));
             //valgoProcess_inputLoaded();
-            
+
             var totalRows = viewer.dim();
             if (totalRows <= 2) //the case that the table doesn't have any references
                 return;
             var checked = viewer.checkedCnt;
-            
-            if (checked == totalRows-2) //this is taking into account that the first at last row have to checkboxes.
-                $("#submitterInput").text("Analyse All References");
+
+            if (checked == totalRows - 2) //this is taking into account that the first at last row have to checkboxes.
+                $("[name='BUTTON-submitter']").text("Analyze All References");
             else
-                $("#submitterInput").text("Analyse Selected References");
+                $("[name='BUTTON-submitter']").text("Analyze Selected References");
         }
     }
-    
+
     function process_selectedReference(viewer, node) {
-        dna_hexagonHitList.onSelectedHitListItem(viewer,node);
+        dna_hexagonHitList.onSelectedHitListItem(viewer, node);
         if (!dna_profilerProfile || !dna_profilerProfile.onSelectReferenceID
-                || !node.id || ("" + node.id == "0") || node.id == "+")
+            || !node.id || ("" + node.id == "0") || node.id == "+")
             return;
 
         dna_profilerProfile.onSelectReferenceID(viewer, node);
     }
-    
+
     function process_dbClickCallback(viewer, node) {
-        dna_hexagonHitList.onSelectedHitListItem(viewer,node);
+        dna_hexagonHitList.onSelectedHitListItem(viewer, node);
         if (!dna_profilerProfile || !dna_profilerProfile.onSelectReferenceID
-                || !node.id || ("" + node.id == "0") || node.id == "+")
+            || !node.id || ("" + node.id == "0") || node.id == "+")
             return;
 
         dna_profilerProfile.onDblClickReference(viewer, node);
     }
 
-    algoProcess.doneComputing = function(viewer, reqid, stat) 
-    {
+    algoProcess.doneComputing = function (viewer, reqid, stat) {
         curStat = stat;
-        if (stat >= 5) {
-            var par =docLocValue("parent_proc_ids");
+        if (stat === "Done" || stat === "Killed" || stat === "ProgError" || stat === "SysError") {
+            var par = docLocValue("parent_proc_ids");
             var nam = algoProcess.getValue("name");
             var subset = algoProcess.getValue("subSet");
 
@@ -213,48 +276,47 @@ For the Annotation Viewer
             }
 
             var node = {
-                _type : 'svc-heptagon1',
-                id : docLocValue("id"),
+                _type: 'svc-heptagon1',
+                id: docLocValue("id"),
                 parentProc: alignID ? alignID[0] : ""
             };
             currentCompletionState = "computed";
-            algoWidgetObj.iterateAlgoJSON (algoWidgetObj.optionsForPage.subTabs, "algoMenu");
+            algoWidgetObj.iterateAlgoJSON(algoWidgetObj.optionsForPage.subTabs, "algoMenu");
             //algoProcess.inputLoaded();
 
-            if(!algoProcess.isMode("batch")){
+            if (!algoProcess.isMode("batch")) {
                 dna_profilerProfile = vjHO.fullview(node._type, node, $.getAlgoViewManager().options.jsonForPage.subTabs.results);
                 dna_profilerProfile.algoProc = algoProcess;
-                vjDS["ds" +toolBar].reload("innerText://ds" + toolBar + "DoneDV", true);
+                vjDS["ds" + toolBar].reload("innerText://ds" + toolBar + "DoneDV", true);
                 visibool("resultBlock", true);
             }
             return true;
         }
     }
-    
-    $(document).ready(function() 
-    {
+
+    gInitList += "heptagonInit();";
+    function heptagonInit() {
         var topVal = $("#header").height() + 45;
-        $(".content").attr("style", "top: "+ topVal +"px; ");
-        
+        //$(".content").attr("style", "top: "+ topVal +"px; ");
+
         globalAlgo = $('#mainAlgoArea').algoview({
             algoObj: algoProcess,
             svcType: "svc-heptagon1",
-            algoTitle: "HIVE Heptagon",
-            paramsPos: {posId: 'layout_inputs', top:'0', bottom:'30%', left:'20%', right:'75%'}
+            algoTitle: "HIVE Heptagon v2.1",
+            paramsPos: { posId: 'layout_inputs', top: '0', bottom: '30%', left: '20%', right: '75%' }
         });
-        
-        $("#jumpNewPage").on("click", function (eventData){
+
+        $("#jumpNewPage").on("click", function (eventData) {
             var url = window.location.href;
-            setCookie("jumpNewPageHeptagon", "false", 7);            
-            
+            setCookie("jumpNewPageHeptagon", "false", 7);
+
             if (url.indexOf("&") >= 0)
                 linkURL("?cmd=dna-heptagon" + url.substring(url.indexOf("&")));
             else
                 linkURL("?cmd=dna-heptagon");
-            
+
             eventData.preventDefault();
         });
-     });
+    };
+
 </script>
-
-

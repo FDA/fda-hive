@@ -29,26 +29,30 @@
 # * DEALINGS IN THE SOFTWARE.
 # */
 
-dna_alingx_finalize() {
+dna_alignx_protein_blast_finalize() {
+    local finalFiles="$1"
+    local output_fmt="$2"
+    local resultPath="$3"
+    
     if [[ "${output_fmt}" == "tsv" ]]; then
-        cnt=0
         if [[ ${finalFiles:0:1} == "@" ]]; then
             finalFiles=`cat ${finalFiles:1}`
         fi
+        rm -rf "${resultPath}.tsv"
+        echo "Concatenate into ${resultPath}.tsv"
         for f in ${finalFiles}; do
-            if [[ ${cnt} -lt 1 ]]; then
-                echo -e "qseqid\tsseqid\tpident\tlenght\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore" > ${resultPath}.tsv
+            if [[ ! -e "${resultPath}.tsv" ]]; then
+                echo -e "qseqid\tsseqid\tpident\tlenght\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore" > "${resultPath}.tsv"
             fi
-            echo "Append ${f} to ${resultPath}.tsv"
-            cat ${f} >> ${resultPath}.tsv
-            let cnt=${cnt}+1
+            dna_alignx_exec cat ${f} \>\> ${resultPath}.tsv
+            
         done
     else
         outDir=`dirname ${resultPath}` # remove /algorithm from path
         if [[ ${finalFiles:0:1} == "@" ]]; then
-            cat ${finalFiles:1} | zip --junk-paths -@ ${outDir}/All_Blast_Output.zip
+            dna_alignx_exec cat ${finalFiles:1} \| zip --junk-paths -@ ${outDir}/All_Blast_Output.zip
         else
-            zip --junk-paths ${outDir}/All_Blast_Output.zip ${finalFiles}
+            dna_alignx_exec zip --junk-paths ${outDir}/All_Blast_Output.zip ${finalFiles}
         fi
     fi
 }

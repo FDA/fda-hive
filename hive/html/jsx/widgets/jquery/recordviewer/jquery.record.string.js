@@ -41,12 +41,13 @@ $(function () {
             var field = $(document.createElement('input'))
                             .addClass('field')
                             .addClass(this.options.spec.type)
+                            .data ("spec", this.options.spec)
                             .attr({
-                                id: this.options.name,
-                                name: this.options.name,
+                                id: this.options.spec.path + "-field",
+                                name: this.options.spec.tmpObjName,
                                 type: 'text'
                             });
-            
+
             return field;
         }
     });

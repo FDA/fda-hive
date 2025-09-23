@@ -31,11 +31,12 @@
 LIBRARIES += violib
 
 violib_SRCS = viotools.cpp vioutils.cpp hiveseq.cpp hiveannot.cpp hiveidmap.cpp \
-    hiveion.cpp hive-ionlib.cpp hiveal.cpp hivetools.cpp hivealtax.cpp hivespecobj.cpp \
-    common.cpp dna-generic-launcher.cpp svc-batcher.cpp svc-batcher1.cpp sVioDBCGI.cpp \
-    hiveqlang.cpp
+    hiveion.cpp hive-ionlib.cpp hiveal.cpp hiveproc.cpp hivealtax.cpp hivespecobj.cpp \
+    common.cpp svc-batcher.cpp svc-batcher1.cpp sVioDBCGI.cpp \
+    hiveqlang.cpp hivegenericlauncher.cpp alignparse.cpp
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
+

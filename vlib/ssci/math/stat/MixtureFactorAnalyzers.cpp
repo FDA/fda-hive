@@ -27,8 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- */
 #include <ssci/math/stat/stat.hpp>
 #include <ssci/math/rand/rand.hpp>
 #include <math.h>
@@ -36,7 +34,6 @@
 using namespace slib;
 
 void sStat::MixtureFactorAnalyzers::logProbs (void) {
-    // Replace p and mu with safeLog counterparts
     for (idx k=0; k<numComp; k++) {
         p[k] = sRand::safeLog(p[k]);
         for (idx d=0; d<numVar; d++) {
@@ -49,7 +46,6 @@ void sStat::MixtureFactorAnalyzers::logProbs (void) {
 }
 
 void sStat::MixtureFactorAnalyzers::expLogProbs(void){
-    // Replace log p and mu with exp'd versions and normalize just to be careful
         for (idx k=0; k<numComp; k++) {
             p[k] = exp(p[k]);
             for (idx d=0; d<numVar; d++) {
@@ -63,27 +59,20 @@ void sStat::MixtureFactorAnalyzers::expLogProbs(void){
 }
 
 void sStat::MixtureFactorAnalyzers::conditionalProbs(real * l, idx * observation) {
-    // Assuming p and mu are log probabilities, compute the Bayesian probabilities of the observation's latent variable
     real total = 0.0;
 
-    //std::cout << "Starting loop over components and variables..." << std::endl;
 
     for (idx k=0; k<numComp; k++) {
         real logProb = p[k];
-        //std::cout << "Reading p is okay" << std::endl;
 
         for (idx i=0; i<numVar; i++) {
-            //std::cout<< "Accessing multi-index " << i << " " << k << " " << observation[i] << std::endl;
             logProb += mu[i][k][observation[i]];
-            //std::cout << "Accessing mu is okay" << std::endl;
         }
         l[k] = exp(logProb);
         total += l[k];
     }
 
-    //std::cout << "Now normalizing..." << std::endl;
 
-    // Now normalize
     for (idx k=0; k<numComp; k++) {
         l[k] /= total;
     }
@@ -91,7 +80,6 @@ void sStat::MixtureFactorAnalyzers::conditionalProbs(real * l, idx * observation
 }
 
 real sStat::MixtureFactorAnalyzers::logLikelihood(idx ** observations, idx numObs) {
-    // assuming p and mu are logs
     real ll = 0.0;
 
     for (idx n=0; n<numObs; n++) {
@@ -110,16 +98,11 @@ real sStat::MixtureFactorAnalyzers::logLikelihood(idx ** observations, idx numOb
 }
 
 void sStat::MixtureFactorAnalyzers::EMUpdate(idx ** observations, idx numObs) {
-    // Update p and mu given observation data
-    real * pCgO = new real[numComp]; // probabilities of latent component given observation
-
-    //std::cout<< "Before initialization in EMUpdate..." << std::endl;
+    real * pCgO = new real[numComp];
 
 
-    // output the current likelihood
-        //std::cout << "Likelihood of obs before update: " << logLikelihood(p,mu,numComp,numVar,observations,numObs) << std::endl;
 
-    // Initialize the accumulators
+
     real * q = new real[numComp];
     real *** nu = new real**[numVar];
 
@@ -137,12 +120,10 @@ void sStat::MixtureFactorAnalyzers::EMUpdate(idx ** observations, idx numObs) {
         }
     }
 
-    //std::cout<< "Before conditional probs in EMUpdate..." << std::endl;
 
 
     for (idx i=0; i<numObs; i++) {
         conditionalProbs(pCgO,observations[i]);
-        //std::cout<< "Made it past conditional probs..." << std::endl;
 
         for (idx k=0; k<numComp; k++) {
             q[k] += pCgO[k];
@@ -152,10 +133,8 @@ void sStat::MixtureFactorAnalyzers::EMUpdate(idx ** observations, idx numObs) {
         }
     }
 
-    //std::cout<< "Before normalization in EMUpdate..." << std::endl;
 
 
-    // Now normalize nu values and calculate normalization constant
     for (idx d=0; d<numVar; d++) {
             for (idx k=0; k<numComp; k++) {
                 for (idx i=0; i<numVal[k]; i++) {
@@ -164,49 +143,15 @@ void sStat::MixtureFactorAnalyzers::EMUpdate(idx ** observations, idx numObs) {
             }
     }
 
-    // Now normalize q values
     for (idx k=0; k<numComp; k++) {
         q[k] /= numObs;
     }
 
-    //std::cout << "Probs in update: " << q[0] << " " << q[1] << std::endl;
 
 
-    /* Display previous values
-    expLogProbs(p,mu,numComp,numVar,numVal);
-
-        real ** prevRF = new real*[numVal[0]];
-        for (idx i=0; i<numVal[0]; i++) {
-            prevRF[i] = new real[numVal[1]];
-            for (idx j=0; j<numVal[1]; j++) {
-                prevRF[i][j] = p[0]*mu[0][0][i]*mu[1][0][j] + p[1]*mu[0][1][i]*mu[1][1][j] ;
-            }
-        }
-
-        std::string title0 = "Prev: ";
-        std::cout << "Previous: " << std::endl;
-        for (idx i=0; i<numVal[0]; i++) {
-            printArray(title0,prevRF[i],numVal[1]);
-        }
-
-    // Now display update
-    real ** trainRF = new real*[numVal[0]];
-    for (idx i=0; i<numVal[0]; i++) {
-        trainRF[i] = new real[numVal[1]];
-        for (idx j=0; j<numVal[1]; j++) {
-            trainRF[i][j] = q[0]*nu[0][0][i]*nu[1][0][j] + q[1]*nu[0][1][i]*nu[1][1][j] ;
-        }
-    }
-
-    std::string title1 = "Update:";
-    std::cout << "After update: " << std::endl;
-    for (idx i=0; i<numVal[0]; i++) {
-        printArray(title1,trainRF[i],numVal[1]);
-    }*/
 
     logProbs();
 
-    // Copy over the values... not pretty
     for (idx k=0; k<numComp; k++) {
         p[k] = q[k];
         for (idx d=0; d<numVar; d++) {
@@ -215,16 +160,11 @@ void sStat::MixtureFactorAnalyzers::EMUpdate(idx ** observations, idx numObs) {
             }
         }
     }
-    //p = q;
-    //mu = nu;
 
-    // output the current likelihood
-    //std::cout << "Likelihood of obs after update: " << logLikelihood(q,nu,numComp,numVar,observations,numObs) << std::endl;
 
 }
 
 void sStat::MixtureFactorAnalyzers::cumProbs(real * q, real *** nu) {
-    // Create cumulative probabilities from p and mu, put them in q and nu
     sRand::cumulative(q,p,numComp);
 
     for (idx d=0; d<numVar; d++) {
@@ -235,7 +175,6 @@ void sStat::MixtureFactorAnalyzers::cumProbs(real * q, real *** nu) {
 }
 
 void sStat::MixtureFactorAnalyzers::sample(idx ** obs, idx numSamp) {
-    // Assuming p and mu are probabilities, compute the cdfs
 
     real * cdfP = new real[numComp];
     real *** cdfMu = new real**[numVar];
@@ -246,29 +185,16 @@ void sStat::MixtureFactorAnalyzers::sample(idx ** obs, idx numSamp) {
         }
     }
 
-    //std::cout << "Failure is after cdfP and cdfMu are initialized..." << std::endl;
 
     cumProbs(cdfP,cdfMu);
 
-    // Print out the cdfs:
-
-    /*std::string title = "cdfs in sample function: ";
-    printArray(title,cdfP,numComp);
-    for (int d=0; d<numVar; d++) {
-        for (int k=0; k<numComp; k++){
-            printArray(title,cdfMu[d][k],numVal[d]);
-        }
-    }*/
 
 
-    // Having built the cdfs, iterate through and sample
+
     for (int n=0; n<numSamp; n++) {
-        //int newObs[numVar];
         int latentVar = sRand::categoricalRand(cdfP,numComp);
         for (int d=0; d<numVar; d++) {
             obs[n][d] = sRand::categoricalRand(cdfMu[d][latentVar],numVal[d]);
-            //std::cout << "Sample in sample: " << obs[n][d] << std::endl;
         }
-        //obs[n] = newObs;
     }
 }

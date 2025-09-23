@@ -28,11 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*******************************************************************************
- *
- * VIEWS
- *
- ******************************************************************************/
 
 if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
 
@@ -237,7 +232,6 @@ function vjProfilerAnnotationListPanel(viewer){
             align : 'left',
             description : 'select an annotation file',
             order: 0,
-            /*url : appendToUrl,*/
             value:0,
             path:'/types/nothing'
         },{
@@ -258,16 +252,12 @@ function vjProfilerAnnotationListPanel(viewer){
                 { name: 'search', align: 'right', type: ' search',order:1, isSubmitable: true, title: 'Search', description: 'search sequences by ID',order:'1', url: "?cmd=objFile&ids=$(ids)" }
                 );
         vjPanelView.call(this, viewer);
-    // { name: 'search', align: 'right', type: ' search ',order:10, isSubmitable: true, title: 'Search', description: 'search sequences by ID',order:'1', url: "?cmd=objFile&ids=$(ids)" }
     
-}
-function appendToUrl(viewer, node){
-    
-    console.log("appending");
 }
 
 function vjProfilerAnnotationListView(viewer) {
 
+    
     this.formObject=document.forms[viewer.formName];
 
     this.bgColors = [ '#f2f2f2', '#ffffff' ];
@@ -284,8 +274,7 @@ function vjProfilerAnnotationListView(viewer) {
           type:'bytes'
       }
     ];
-    //this.checkable = true;
-    this.multiSelect = true;
+    this.multiSelect = false;
     vjTableView.call(this, viewer);
 }
 
@@ -657,7 +646,7 @@ function vjProfilerSNPProfileMenu(viewer) {
                 title: d.title,
                 path: "/download/download-item-" + i,
                 isSubmitable: true,
-                url: "static://",
+                url: "static:
                 makeUrlParam: d
             };
             this.rows.push(node);
@@ -670,8 +659,8 @@ function vjProfilerSNPProfileMenu(viewer) {
         if (parname == "start" || parname == "end" || parname == "cnt" || parname == "tqs") {
             var elStart = this.formObject.elements[this.objCls + "_start"];
             var elEnd = this.formObject.elements[this.objCls + "_end"];
-            var start = elStart ? parseInt(elStart.value) : 0;
-            var end = elEnd ? parseInt(elEnd.value) : 0;
+            var start = !isNaN(parseInt(elStart.value)) ? parseInt(elStart.value) : 0;
+            var end = !isNaN(parseInt(elEnd.value)) ? parseInt(elEnd.value) : 0;
             var tqs;
             try {
                 if (parname == "tqs") {
@@ -715,8 +704,6 @@ function vjProfilerSNPProfileMenu(viewer) {
                 } else {
                     tqs.push(op_slice);
                 }
-            } else {
-                tqs.splice(iop_slice, 1);
             }
 
             if (tqs.length) {
@@ -876,12 +863,10 @@ function vjProfilerSNPProfileEntropyView(viewer) {
 }
 
 function vjProfilerSNPProfileAnnotationView(viewer) {
-    // Used for tab config
     this.hidden = true;
     this.icon = 'graph2';
     this.name = "annotation";
 
-    // Used for graph
     this.columnToPick = {refID:"seqID",start:"start",end:"end","idType-id": "idType-id"};
     this.data = viewer.data;
     this.graphOptions= {
@@ -889,17 +874,15 @@ function vjProfilerSNPProfileAnnotationView(viewer) {
                    boxSize: 10,
                    showTipFull: true
                };
+    this.downloadSvg =true
     
-    // If width already exists then use it
-    if (viewer.width) this.width = viewer.width;
-    else this.width = 700;
-    if (viewer.height) this.height = viewer.height;
-    else this.height = 150;
+    this.width = viewer.width ? viewer.width : 700;
+    this.height = viewer.height ? viewer.height : 180;
+    this.changeHeight = false;
     
     this.selectCallback = viewer.anotSelectCallback;
     this.margin = {right: 60,left:70};
     vjD3JS_annotationBox.call(this,viewer);
-
 }
 
 function vjProfilerSNPProfileQualityView(viewer) {
@@ -945,11 +928,7 @@ function vjProfilerCoverageHistogramView(viewer)
         name : 'Left Tail'
     } , {
         name : 'Right Tail'
-    },/*{
-        name : 'Max Left Tail'
-    } , {
-        name : 'Max Right Tail'
-    },*/ {
+    },{
         name : 'Length Anisotropy'
     }  ];
     this.hidden=true;
@@ -976,10 +955,8 @@ function vjProfilerCoverageHistogramView(viewer)
         colors : [ 'green', 'cyan', 'brown' , 'navy' , 'green' , 'blue'  ]
     };
     this.type = 'line';
-    // this.debug=1;
+
     vjGoogleGraphView.call(this, viewer);
-
-
 }
 
 function vjProfilerSNPProfileSNPView(viewer) {
@@ -1026,7 +1003,7 @@ function vjProfilerSNPProfileSNPInDelsView(viewer) {
     this.isNrenderOnHide = true;
     this.options = {
         focusTarget : 'category',
-        isStacked : true, // true,
+        isStacked : true,
         width : viewer.width?viewer.width:700,
         height : 150,
         changeHeight: false,
@@ -1110,9 +1087,9 @@ function vjProfilerPanelSNPcallsView(viewer) {
                 name : 'cutOffCall',
                 type : 'text',
                 forceUpdate : true,
-                size : '1',
+                size : '15',
                 isSubmitable : true,
-                prefix : 'threshold',
+                prefix : 'Threshold',
                 align : 'left',
                 order : '1',
                 description : 'Jump to specific genomic position',
@@ -1167,12 +1144,7 @@ function vjProfilerPanelSNPcallsView(viewer) {
                     source : viewer.annotFileData,
                     name : "id",
                     title : "name",
-                    //description : "name",
-                    //path : "/Annotations/Files/"
                 },
-                //parentDependant:true, // when the element got clicked, it'll
-                // be shown like "parent=element" in the newUrl in stead of
-                // "element=1"
                 isSubmitable : true,
                 align : 'left',
                 order : '3',
@@ -1193,9 +1165,6 @@ function vjProfilerPanelSNPcallsView(viewer) {
             },
             {
                 name : 'jumpToMapper',
-                // type : 'checkbox',
-                // path : '/Annotations/nsSNV',
-                // isSubmitable : true,
                 align : 'right',
                 order : '0',
                 description : 'Jump to Annotation Mapper',
@@ -1270,9 +1239,7 @@ function vjProfilerPanelSNPcallsForORFView(viewer) {
                     description : "name",
                     path : "/Annotations/Files/"
                 },
-                parentDependant:true, // when the element got clicked, it'll
-                                        // be shown like "parent=element" in the
-                                        // newUrl in stead of "element=1"
+                parentDependant:true,
                 isSubmitable : true,
                 align : 'left',
                 order : '0',
@@ -1295,6 +1262,7 @@ function vjProfilerSNPcallsView(viewer) {
     this.maxTxtLen = 20;
     this.defaultEmptyText = 'no information to show';
     this.bgColors = [ '#f2f2f2', '#ffffff' ];
+    this.subInnerHTML = "<div style='text-align: center; background-color: #f4f4f4;'><p style='color:#b2b2b2; font-weight:600; font-size: 20px; padding: 50px 0px'>No data returned for SNP Calls</p></div>";
     vjTableView.call(this, viewer);
 }
 
@@ -1319,7 +1287,6 @@ function vjProfilerAnnotationPanelView(viewer) {
             title: "name"
         },
         isSubmitable : true,
-        // align : 'left',
         order : '0',
         title : 'Annotations',
         path : '/Annotations/objIDs',
@@ -1347,13 +1314,13 @@ function vjProfilerAnnotationPanelView(viewer) {
 
 function vjProfilerORFView(viewer) {
     this.fullurlproteinid = function(vv, table, irow, icol) {
-        var url = "http://www.ncbi.nlm.nih.gov/nuccore/"
+        var url = "http:
                 + table["protein_id"].replace(/\s+/g, '');
         window.open(url, "_blank");
     };
 
     this.fullurllocus = function(vv, table, irow, icol) {
-        var url = "http://www.ncbi.nlm.nih.gov/nuccore/"
+        var url = "http:
                 + table["locus_tag"].replace(/\s+/g, '');
         window.open(url, "_blank");
     };
@@ -1387,10 +1354,10 @@ function vjProfilerORFView(viewer) {
 
 function vjProfilerSNPCallGraphSVGView(viewer) {
 
-    var snpSerie =new vjDataSeries({    // LAM
+    var snpSerie =new vjDataSeries({
         name: viewer.data,
         title:"Computing SNP table",
-        url:"static://",
+        url:"static:
         columnDefinition:{x:"Position",y:"Frequency"},
         type: "column",
         valueMax:{x:"Length",y:1},
@@ -1469,10 +1436,8 @@ function vjProfilerGraphORFSVGView(viewer) {
     vjSVGView.call(this, viewer);
 }
 
-// ZOOM/////////////////////////ZOOM////////////////////ZOOM////////////////
 
 
-// --------------------------------Profile---------------------------------//
 
 
 function vjProfilerZoomSNPProfilePanelView(viewer)
@@ -1557,19 +1522,20 @@ function vjProfilerZoomSNPProfilePanelView(viewer)
             order: "9",
             type: "button",
             path: "/showGraphsZoom/updateZoom",
-            onClickFunc: this.onUpdateSNPGraphs,
-            url: "javascript:vjObjEvent(\"onUpdateSNPGraphs\", \"" + this.objCls+ "\");"
+            onClickFunc: this.onUpdateSNPGraphsZoom,
+            url: "javascript:vjObjEvent(\"onUpdateSNPGraphsZoom\", \"" + this.objCls+ "\");"
         }
     ];
     
-    var rows= [{name:'refresh', title: 'Refresh' ,order:'1', icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,url:viewer.urlrefresh?viewer.urlrefresh:''},
-           {name: 'alHigh', title: ' ', value: ' ', type: 'text', size: '10', prefix: 'Position', isSubmitable:true, align: 'left', description: 'Jump to specific genomic position', order: '0' }];
+    var rows= [
+                {name:'refresh', title: 'Refresh' ,order:'1', icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,url:viewer.urlrefresh?viewer.urlrefresh:''},
+                {name: 'alHigh', title: ' ', value: ' ', type: 'text', size: '10', prefix: 'Position', isSubmitable:true, align: 'left', description: 'Jump to specific genomic position', order: '0' }
+            ];
     viewer.iconSize=24;
     viewer.hideViewerToggle=true;
-    //vjBasicPanelView.call(this, viewer);
     vjPanelView.call(this, viewer);
     this.rows=rows.concat(defaultRows);
-    this.selectedCounter=0; // do not append cnt=20 to tblqryx4 queries and return incomplete results
+    this.selectedCounter=0;
     this.graphResolutionZoom=200;
     this.urlExchangeParameter = function(url, parname, newvalue) {
         if (parname == "alHigh") {
@@ -1619,6 +1585,22 @@ function vjProfilerZoomSNPProfilePanelView(viewer)
         }
         return urlExchangeParameter(url, parname, newvalue);
     };
+    
+    this.onUpdateSNPGraphsZoom = function (container, node, menuViewer)
+    {
+        var children = menuViewer.tree.findByName("showGraphs").children;
+        var parentChildren = $("#"+menuViewer.parent.divName).children();
+        
+        for (var i = 0; i < children.length; i++)
+        {
+            var tmp = children[i];
+            
+            if (tmp.value && (parseInt(tmp.value) == 1 || tmp.value == true))
+                $(parentChildren[i+1]).removeClass("hidden");
+            else
+                $(parentChildren[i+1]).addClass("hidden");
+        }
+    }
 };
 
 function vjProfilerZoomSNPCoverageView(viewer) {
@@ -1719,28 +1701,20 @@ function vjFreqHistPopUp(viewer){
             vAxis: { title: 'Count of positions for SNP frequency' }, hAxis: {title:'Coverage'},
             lineWidth: 1, isStacked: true,
             legend: 'bottom',
-            // focusTarget: 'category',
             chartArea: { top: 10, left: 80, width: '80%', height: "70%" },
-            // colors: ['blue', 'green','red','yellow']
         };
         this.type= 'column';
 
 
         vjGoogleGraphView.call(this, viewer);
-       /*
-         * this.maxTxtLen = 48; this.defaultEmptyText = 'no information to
-         * show'; this.newSectionWord = "-"; this.bgColors = [ '#f2f2f2',
-         * '#ffffff' ]; vjTableView.call(this, viewer);
-         */
 }
 
-// --------------------------------Annotations-----------------------------//
 function vjProfilerSNPCallGraphZoomSVGView(viewer) {
 
-    var snpSerie =new vjDataSeries({    // LAM
+    var snpSerie =new vjDataSeries({
         name: viewer.data,
         title: "Zooming to CDS Table",
-        url:"static://",
+        url:"static:
         columnDefinition:{x:"Position",y:"Frequency"},
         type: "column",
         isNXminBased: true,
@@ -1779,7 +1753,7 @@ function vjProfilerGraphORFZoomSVGView(viewer) {
     var serie1=new vjDataSeries({
         title:"ORFZoom",
         name:viewer.data,
-        url: "static://",
+        url: "static:
         columnDefinition:{end:'rangeEnd',start:'rangeStart',label:"protein_id"},
         type:'anotBox',
         boxSize: 0.20,
@@ -1835,11 +1809,6 @@ function vjProfilerZoomPanelAnnotView(viewer) {
 
 
 
-/*******************************************************************************
- *
- * CONTROLS
- *
- ******************************************************************************/
 function vjProfilerSNPProfileControl(viewer)
 {
 
@@ -1908,17 +1877,12 @@ function vjProfilerSNPProfileControl(viewer)
         data: this.data['annotationData'],
         width:this.width,
         formObject: this.formObject,
-        selectCallback : this.anotSelectCallback
+        selectCallback : this.anotSelectCallback,
+        subInnerHTML: "<div style='text-align: center; background-color: #f4f4f4;'><p style='color:#b2b2b2; font-weight:600; font-size: 20px; padding: 50px 0px'>Profile Annotations Graph: No data returned please select another type and/or another Annotation File</p></div>"
     });
-// this.entropy_acgtViewer=new vjProfilerEntropiesACGTView({
-// data: this.data.profile,
-// width:this.width,
-// formObject: this.formObject,
-// selectCallback : this.selectCallback
-// });
     this.allViewers = [ this.menuViewer, this.coverageViewer, this.coverageHistogramViewer,
                         this.disbalanceViewer, this.entropyViewer, this.qualityViewer,
-                        this.snpViewer, this.indelsViewer, this.annotationViewer/* , this.entropy_acgtViewer */ ];
+                        this.snpViewer, this.indelsViewer, this.annotationViewer];
 
     return this.allViewers;
 }
@@ -1927,6 +1891,8 @@ function vjProfilerAnnotationListControlView(viewer){
     for ( i in viewer ) {
         this[i] = viewer[i];
     }
+    
+    var that = this;
 
     if(this.data===undefined){
         alert("DEVELOPER WARNING: UNDEFINED data for vjProfilerConsensusControl");
@@ -1939,20 +1905,75 @@ function vjProfilerAnnotationListControlView(viewer){
     this.formObject=document.forms[this.formName];
 
     this.panelViewer = new vjProfilerAnnotationListPanel({
-        data: [ "dsVoid", this.data ],
-//        width: this.width,
+        data : [ "dsVoid", this.data ],
         callbackForPanel: this.callbackForPanel,
-        formObject: this.formObject
+        formObject : this.formObject
     });
     
     this.tableViewer = new vjProfilerAnnotationListView({
-        data: this.data,
-        //width: this.width,
-        formName: this.formName,
-        callbackRendered:this.callbackRendered,
-        selectCallback:this.selectCallbackForTable,
-        width: this.width
+        data : this.data,
+        formName : this.formName,
+        callbackRendered : this.callbackRendered,
+
+        selectCallback : (function() {
+            that.onSelectIonAnnotList.apply(that, arguments);
+        }),
+        width : this.width
     });
+
+    vjDS.add("loading Annot Types","dsAnnotTypes","static:
+    vjDS["dsAnnotTypes"].refreshOnEmpty = true;
+    vjDS["dsAnnotTypes"].parser = function (ds,text){
+        text = text ? text : "";
+        var panelV = that.panelViewer;
+        var nodeList = [];
+        for (var i=0; i<panelV.rows.length; ++i){
+            var n=panelV.rows[i];
+            if (n.path == undefined || n.path.indexOf("/types/")==-1){
+                nodeList.push(n);
+            }
+        }
+        panelV.rows = nodeList;
+        if (text.length){
+            var textSplit = text.split("\n");
+            for (var iN=0; iN<textSplit.length; ++iN){
+                var name = textSplit[iN];
+                if (!name || !name.length) continue;
+                if (name.indexOf("....")!=-1) continue;
+                var nodeName = name.replace(/\s+/g,"_");
+                var myNode = {name: nodeName, title: name, align: "left", value:0, description: name, type: "checkbox", path: "/types/" + nodeName};
+                panelV.rows.push(myNode);
+                if (name.toLowerCase().indexOf("features")!=-1){
+                    panelV.rows.push({name: "CDS", title: "CDS", align: "left", value:0, description: "CDS", type: "checkbox", path: "/types/" + "CDS"});
+                    panelV.rows.push({name: "misc_feature", title: "misc_feature", align: "left", value:0, description: "misc_feature", type: "checkbox", path: "/types/" + "misc_feature"});
+                    panelV.rows.push({name: "mat_peptide", title: "mat_peptide", align: "left", value:0, description: "mat_peptide", type: "checkbox", path: "/types/" + "mat_peptide"});
+                }
+            }
+        }else{
+            panelV.rows.push({
+                name : 'nothing',
+                title:'No types in this file',
+                align : 'left',
+                description : 'select an annotation file',
+                order: 0,
+                value:0,
+                path:'/types/nothing'
+            })
+        }
+        panelV.render();
+        return text;
+    }
+    
+    this.onSelectIonAnnotList = function (viewer, node, ir, ic){
+        var nodeIdSelected = [];
+        for (var i=0; i<viewer.selectedNodes.length; ++i){
+            nodeIdSelected.push(viewer.selectedNodes[i].id);
+        }
+
+        vjDS["dsAnnotTypes"].reload("http:
+        vjDS["dsAnnotTypes"].viewer=viewer;
+        
+    };
     
     return [this.panelViewer,this.tableViewer];
 }
@@ -2048,21 +2069,20 @@ function vjProfilerSNPcallsControl(viewer){
     for ( i in viewer ) {
         this[i] = viewer[i];
     }
-
     if(this.data===undefined){
-        alert("DEVELOPER WARNING: UNDEFINED data for vjProfilerSNPProfileControl");
+        console.warn("DEVELOPER WARNING: UNDEFINED data for vjProfilerSNPProfileControl");
     }
     if(this.formName==undefined){
         this.formName='form-alignment';
-        alert("DEVELOPER WARNING: UNDEFINED formName for vjProfilerSNPProfileControl");
+        console.warn("DEVELOPER WARNING: UNDEFINED formName for vjProfilerSNPProfileControl");
     }
     this.formObject=document.forms[this.formName];
 
     this.panel_snpcallsViewer=new vjProfilerPanelSNPcallsView({
-        data: ["dsVoid",this.data],
+        data: ["dsVoid",this.data, 'annot_files'],
         annotFileData:this.annotFileData,
         width:this.width,
-        formObject: this.formObject
+        formObject: this.formObject,
     });
 
     this.snpcallsViewer=new vjProfilerSNPcallsView({
@@ -2183,10 +2203,17 @@ function vjProfilerZoomSNPProfileControl(viewer){
         this.formName='form-alignment';
         alert("DEVELOPER WARNING: UNDEFINED formName for vjProfilerSNPProfileControl");
     }
+    
+    this.formObject=document.forms[this.formName];
+    if(this.formObject === undefined){
+       let newform = document.createElement("form")
+        newform.setAttribute("id", this.formName);
+        document.body.appendChild(newform);
+    }
     this.formObject=document.forms[this.formName];
 
     this.panelView=new vjProfilerZoomSNPProfilePanelView({
-        data: ["dsVoid",this.data.profile,this.data.profileX],
+        data: ["dsVoid",this.data.profile],
         width:this.width,
         parentVIS:this.parentVIS,
         parent: this,
@@ -2201,6 +2228,7 @@ function vjProfilerZoomSNPProfileControl(viewer){
         for (var i = 0; i < children.length; i++)
         {
             var tmp = children[i];
+            menuViewer.rows[3+i].value = tmp.value; 
             
             if (tmp.value && (parseInt(tmp.value) == 1 || tmp.value == true))
                 $(parentChildren[i+1]).removeClass("hidden");
@@ -2211,12 +2239,6 @@ function vjProfilerZoomSNPProfileControl(viewer){
 
     this.coverageViewer=new vjProfilerZoomSNPCoverageView({
         data: this.data.profile,
-        width:this.width,
-        formObject: this.formObject,
-        selectCallback : this.selectCallback
-    });
-    this.coverageHistogramViewer=new vjProfilerCoverageHistogramView({
-        data: this.data.profileX,
         width:this.width,
         formObject: this.formObject,
         selectCallback : this.selectCallback
@@ -2239,12 +2261,7 @@ function vjProfilerZoomSNPProfileControl(viewer){
         formObject: this.formObject,
         selectCallback : this.selectCallback
     });
-    this.qualityACGTViewer=new vjProfilerZoomSNPProfilerACGTQualityView({
-        data: this.data.profile,
-        width:this.width,
-        formObject: this.formObject,
-        selectCallback : this.selectCallback
-    });
+
     this.snpViewer=new vjProfilerZoomSNPProfileSNPView({
         data: this.data.profile,
         width:this.width,
@@ -2265,12 +2282,11 @@ function vjProfilerZoomSNPProfileControl(viewer){
     });
 
 
-    this.allViewers = [ this.panelView, this.coverageViewer, this.coverageHistogramViewer, 
+    this.allViewers = [ this.panelView, this.coverageViewer,
                         this.disbalanceViewer, this.entropyViewer, this.qualityViewer,
-                        this.qualityACGTViewer, this.snpViewer, this.indelsViewer,
+                        this.snpViewer, this.indelsViewer,
                         this.entropy_acgtViewer ];
 
     return this.allViewers;
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjProfilerView.js"

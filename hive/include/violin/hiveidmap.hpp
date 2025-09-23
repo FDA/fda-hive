@@ -49,7 +49,6 @@ namespace sviolin
             bool getLatest(sHiveId & out_latestId)
             {
                 init();
-                //Although objlist will not change for one obj, still do it everytime this function was called
                 out_latestId.reset();
                 udx maxV = 0;
                 for(sUsrObjRes::IdIter it = objIdList.first(); objIdList.has(it); objIdList.next(it)) {
@@ -73,12 +72,11 @@ namespace sviolin
             idx getMapInit(const char * flag)
             {
                 init();
-                //Although objlist will not change for one obj, still do it everytime this function was called
                 fileNameList.cut(0);
                 sHiveId latestId;
                 getLatest(latestId);
                 idx cnt = 0;
-                std::auto_ptr<sUsrObj> obj(m_usr.objFactory(latestId));
+                std::unique_ptr<sUsrObj> obj(m_usr.objFactory(latestId));
                 regex_t re;
                 idx regerr = flag ? regcomp(&re, flag, REG_EXTENDED|REG_ICASE) : true;
 
@@ -125,4 +123,4 @@ namespace sviolin
             sIdMap idMap;
     };
 }
-#endif // sHiveIdMap_hpp
+#endif 

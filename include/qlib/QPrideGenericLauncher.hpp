@@ -55,7 +55,6 @@ namespace slib
                 : sQPrideProc(defline00, srv)
             {
                     sQLan=0;
-                    //regExpResultList00.printf("*");
                     deleteWhenFinish = true;
                     addDispatchedFunctions00=0;
                     defaultMemUlimit=0;

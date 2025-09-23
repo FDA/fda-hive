@@ -42,15 +42,13 @@ class sVTree
     public:
 
         enum eNodeComparisonType {
-            eNC_SS=0x00,       //start start
-            eNC_SE=0x01,       //start end
-            eNC_ES=0x10,       //end   start
-            eNC_EE=0x11,       //end   end
+            eNC_SS=0x00,
+            eNC_SE=0x01,
+            eNC_ES=0x10,
+            eNC_EE=0x11,
             eNC_Max
         };
 
-        //deBruijn Sequence and LUT is used to find the LSB of the index ('ind') with ONE operation
-        //LSB in the virtual tree indicates the level of the tree
         static const idx deBrLUT_32[];
 
         static const idx deBrSeq_32 = 0x077cb531;
@@ -111,12 +109,11 @@ class sVTree
             if(node->start) node->start = &rnglist[ind].start;
             if(node->end) node->end = &rnglist[ind].end;
             if(node->max) {
-//                idx ind_max = 0;
                 if(maxPtr) {
                     idx * maxlist = (idx *)maxPtr;
                     node->max = maxlist[ind];
                 } else {
-                    node->max = rnglist[ind].max;//maxlist[ind];
+                    node->max = rnglist[ind].max;
                 }
             }
             return true;

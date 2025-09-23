@@ -37,13 +37,9 @@
 #include <slib/core/vec.hpp>
 #include <regex.h>
 
-/*! \file
- *  \ref qlang "See README.qlang.doxygen for information about the query language" */
 
 namespace slib {
-    //! Query language namespace
     namespace qlang {
-        //! line/column location in query language program source
         class SourceLocation {
         protected:
             idx _line;
@@ -56,15 +52,16 @@ namespace slib {
 
         class Scope; class Context; class BuiltinFunction;
 
-        //! Interface for a callable entity in the query language, e.g. a builtin function, or a lambda expression defined in the query text
-        class Callable {
-        public:
-            virtual ~Callable() {}
-            virtual const char *getName() const = 0;
-            virtual bool call(sVariant &result, Context &ctx, sVariant *topic, sVariant *args, idx nargs) const = 0;
+        class Callable
+        {
+            public:
+                virtual ~Callable()
+                {
+                }
+                virtual const char* getName() const = 0;
+                virtual bool call(sVariant & result, Context & ctx, sVariant * topic, sVariant * args, idx nargs) const = 0;
         };
 
-        //! Wrapper allowing a qlang::Callable to be used as an sVariant and to be called in a specific scope
         class CallableWrapper: public sVariant::sVariantData {
         public:
             typedef bool (*CallableBuiltin)(sVariant &result, Context &ctx, sVariant *topic, sVariant *args, idx nargs);
@@ -115,13 +112,13 @@ namespace slib {
 
             virtual const char* getTypeName() const;
             virtual void print(sStr &s, sVariant::ePrintMode mode=sVariant::eDefault, const sVariant::Whitespace * whitespace=0, idx indent_level=0) const;
-            virtual bool asBool() const { return true; }
+            virtual bool asBool() const { return _callable != NULL; }
+            virtual bool isNullish() const { return _callable == NULL; }
             virtual idx asInt() const { return 0; }
             virtual real asReal() const;
             virtual void getNumericValue(sVariant &numeric) const { numeric.setReal(asReal()); }
         };
 
-        //! Query language scope frame. These form a tree to allow lexical closure.
         class Scope {
         public:
             enum ScopeType {
@@ -178,7 +175,6 @@ namespace slib {
             bool setValue(const char *name, sVariant &val, bool readOnly=false);
 
             void mark();
-            // \returns Number of scopes garbage-collected
             idx sweep();
 
             ScopeType getType() const { return _type; }
@@ -186,7 +182,6 @@ namespace slib {
         };
 
         enum eEvalStatus {
-            // warning: keep in sync with ContextEvalStatusNames in interpreter.cpp
             EVAL_SUCCESS = 1,
             EVAL_OTHER_ERROR = 0,
             EVAL_NOT_IMPLEMENTED = -1,
@@ -206,7 +201,6 @@ namespace slib {
             EVAL_SYSTEM_ERROR = -15
         };
 
-        //! Interpreter context for query language
         class Context {
         public:
             enum eRunningMode {
@@ -277,8 +271,8 @@ namespace slib {
             virtual ~Context();
             virtual void reset();
 
-            // builtins
             bool hasBuiltin(const char *name) { return _builtins.get(name); }
+            const BuiltinFunction * getBuiltin(const char *name) { Builtin * b = _builtins.get(name); return b ? b->val.f : 0; }
             bool copyBuiltin(const char *newname, const char *oldname);
             bool removeBuiltin(const char *name);
             void registerBuiltinIdxPtr(const char *name, idx *ptr, bool isConst=false);
@@ -323,7 +317,6 @@ namespace slib {
 
             void printScopes(sStr &s) { _rootScope.print(s); }
 
-            // The standard operations
             virtual eEvalStatus evalAdd(sVariant &outval, sVariant &lhs, sVariant &rhs);
             virtual eEvalStatus evalSubtract(sVariant &outval, sVariant &lhs, sVariant &rhs);
             virtual eEvalStatus evalMultiply(sVariant &outval, sVariant &lhs, sVariant &rhs);
@@ -338,9 +331,7 @@ namespace slib {
             virtual eEvalStatus evalGetSlice(sVariant &outval, sVariant &lhs, sVariant &index1, sVariant &index2);
             virtual eEvalStatus evalKeys(sVariant &outval, sVariant &dic);
             virtual eEvalStatus evalKV(sVariant &outval, sVariant &dic);
-            // would evalSetSlice make sense or be useful?..
 
-            // Comparison operators are syntactically valid for any lhs/rhs values!
             inline virtual bool evalEquality(sVariant &lhs, sVariant &rhs) { return lhs == rhs; }
             inline virtual bool evalLess(sVariant &lhs, sVariant &rhs) { return lhs < rhs; }
             inline virtual bool evalGreater(sVariant &lhs, sVariant &rhs) { return lhs > rhs; }
@@ -354,7 +345,6 @@ namespace slib {
             virtual eEvalStatus evalListUnion(sVariant &outval, sVariant *lists, idx nlists);
             virtual eEvalStatus evalListIntersection(sVariant &outval, sVariant *lists, idx nlists);
 
-            // Override these in subclasses
             virtual bool evalValidObjectId(sVariant &obj) { return false; }
             virtual eEvalStatus evalHasProperty(sVariant &outval, sVariant &obj, const char *name) { return EVAL_NOT_IMPLEMENTED; }
             virtual eEvalStatus evalGetProperty(sVariant &outval, sVariant &obj, const char *name);
@@ -362,7 +352,6 @@ namespace slib {
             virtual eEvalStatus evalSetProperty(sVariant &obj, const char *name, sVariant &val);
             virtual eEvalStatus evalSetProperty(const char *name, sVariant &val);
             virtual eEvalStatus evalProps(sVariant &outval, sVariant &obj, sVariant *options=NULL) { return EVAL_NOT_IMPLEMENTED; }
-            // Declare a new object ID (or list) - cache, validate, etc. if needed
             virtual void declareObjectId(sVariant &obj) {}
             virtual void declareObjlist(sVariant &objlist) {}
 
@@ -370,7 +359,6 @@ namespace slib {
             virtual bool evalGetDollarNameValue(sVariant &outval, const char *s) { return false; }
         };
 
-        //! Query language builtin function class
         class BuiltinFunction : public Callable {
         protected:
             sStr _name;
@@ -381,11 +369,18 @@ namespace slib {
             bool checkTopicSubscriptable(Context &ctx, sVariant *topic) const;
             bool checkTopicObjectId(Context &ctx, sVariant *topic) const;
             bool checkArgsCallable(Context &ctx, sVariant *args, idx nargs) const;
-            bool checkNArgs(Context &ctx, idx nargs, idx min, idx max=-1) const;
+            bool checkNArgs(Context &ctx, idx nargs, idx min, idx max= sIdxMax) const;
+
         public:
-            virtual const char *getName() const { return _name.ptr(); }
-            virtual bool call(sVariant &result, Context &ctx, sVariant *topic, sVariant *args, idx nargs) const = 0;
             virtual ~BuiltinFunction() {}
+            virtual const char *getName() const { return _name.ptr(); }
+
+            idx getArgAsHiveIds(const idx arg_num, sVariant *args, const idx &nargs, sVec<sHiveId> &out) const;
+            const sHiveId* getArgAsHiveId(const idx arg_num, sVariant *args, const idx &nargs) const;
+            const char* getArgAsString(const idx arg_num, sVariant *args, const idx &nargs, const char *dflt = 0) const;
+            idx getArgAsInt(const idx arg_num, sVariant *args, const idx &nargs, const idx dflt = 0) const;
+            udx getArgAsUInt(const idx arg_num, sVariant *args, const idx &nargs, const udx dflt = 0) const;
+            bool getArgAsBool(const idx arg_num, sVariant *args, const idx &nargs, const bool dflt = false) const;
         };
     };
 };

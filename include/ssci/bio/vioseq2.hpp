@@ -37,11 +37,6 @@
 #include <ssci/bio/bioseqtree.hpp>
 
 namespace slib {
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Working format Sequence Collection Class
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     class sVioseq2: public sBioseq
     {
@@ -49,17 +44,12 @@ namespace slib {
             sVioDB vioDB;
             EBioMode mode;
             idx length;
-            bool quaBit; // Indicates if qualities are stored in a bit only mode.
+            bool quaBit;
 
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-            // _/
-            // _/ Construction/Destruction
-            // _/
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         protected:
             bool m_isSingleFile;
-            udx m_recLimit; // 0 - not limited
+            udx m_recLimit;
 
         public:
             typedef idx (*callbackType)(void * param, idx countDone, idx curPercent, idx maxPercent);
@@ -72,7 +62,7 @@ namespace slib {
                 eParseNoId         = 0x00000002,
                 eParseQuaBit       = 0x00000004,
                 eParsedQualities   = 0x00000010,
-                eParseMultiVioDB   = 0x00000020,    //nothing stored below this line
+                eParseMultiVioDB   = 0x00000020,
                 eFossilizeReverse  = 0x00000100,
                 eContainsPrimer    = 0x00001000,
                 eLowComplexity     = 0x00002000,
@@ -104,14 +94,14 @@ namespace slib {
             {
                     idx lenSeq;
                     idx countSeq;
-                    idx ofsSeq; // used for record tracking first and then used as user data
+                    idx ofsSeq;
             };
 
             struct Infopart
             {
                     idx origID;
                     idx partID;
-                    idx numID; // used for record tracking first and then used as user data
+                    idx numID;
             };
 
             sVioseq2(const char * filename = 0)
@@ -162,24 +152,18 @@ namespace slib {
                 if (justMemoryFree){
                     vioDB.deleteAllJobs(justMemoryFree);
                 }
-                //vioDB.destroy();
             }
 
         public:
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-            // _/
-            // _/ VioSeq filing operations
-            // _/
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
             idx parseSequenceFile(const char * outfile, const char * flnm, idx flags, idx maxChunkSize = ((idx) (8) * 1024 * 1024 * 1024), const char * primers00 = 0, idx complexityWindow = 0, real complexityEntropy = 0);
             idx parseSequenceFile(const char * outfile, const char * flnm, idx flags = eParseLazy, const char * primers00 = 0, idx complexityWindow = 0, real complexityEntropy = 0, idx sizecomb = 0, idx comb = 0, sVec<Infopart> * iPart = 0);
             idx parseFasta(sVioDB & db, sFil & baseFile, const char * inp, idx len, idx flags = 0, const char * primers00 = 0, idx complexityWindow = 0, real complexityEntropy = 0, idx sizecomb = 0, idx comb = 0, sVec<Infopart> * iPart = 0);
             idx parseFastQ(sVioDB &db, sFil & baseFile, const char * inp, idx len, idx flags = 0, const char * primers00 = 0, idx complexityWindow = 0, real complexityEntropy = 0, idx sizecomb = 0, idx comb = 0, sVec<Infopart> * iPart = 0);
             idx ParseGb(const char * fileContent, idx filesize, sVioDB &db , sFil & baseFile, sVec <Infopart> * iPart = 0);
-            idx ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil & baseFile, sVec<idx> * alignOut, sDic<idx> * rgm, bool alignOnly = false, sVec<Infopart> * iPart = 0,sDic < idx > * sub=0,sDic < idx > * qry=0, idx minMatchLength = 0, idx maxMissQueryPercent = 0, bool useRowInformationtoExtractQry = false);
-            static idx convertSAMintoAlignmentMap(const char * fileContent, idx filesize, sVec<idx> * alignOut, sDic<idx> * rgm, idx minMatchLength, idx maxMissQueryPercent, sDic<idx> *sub = 0, sDic<idx> *qry = 0, bool useRowInformationtoExtractQry = false);
+            idx ParseSam(const char * fileContent, idx filesize, sVioDB &db, sFil & baseFile, sVec<idx> * alignOut, sDic<idx> * rgm, bool alignOnly = false, sVec<Infopart> * iPart = 0,sDic < idx > * sub=0,sDic < idx > * qry=0, idx minMatchLength = 0, bool isMinMatchPercentage = false, idx maxMissQueryPercent = 0, bool useRowInformationtoExtractQry = false,  sFil * samHeader = 0, sFil *samData = 0, sFil *samFooter = 0);
+            static idx convertSAMintoAlignmentMap(const char * fileContent, idx filesize, sVec<idx> * alignOut, sDic<idx> * rgm, idx minMatchLength, bool isMinMatchPercentage, idx maxMissQueryPercent, sDic<idx> *sub = 0, sDic<idx> *qry = 0, bool useRowInformationtoExtractQry = false,  sFil * samHeader = 0, sFil *samcontent = 0, sFil *samFooter = 0);
             idx parseQualities(sVioDB & db, sFil & baseFile, const char * qual, idx qualalen, idx flags);
-            static udx getPartCount(const udx fileSize, udx maxChunkSize = ((udx) 8) * 1024 * 1024 * 1024);
+            static udx getPartCount(const udx fileSize, udx maxChunkSize);
             static udx getPrefixLength(const udx partCount);
             static idx fixAddRelation(sVioDB *db, sVec<sVec<Infopart> > * partList, idx *countRes, const char * partListfiles00=0, callbackType callback = 0, void * callbackParam = 0);
             void updateQualities(char *origQua, char *currQua, idx numSeq, idx lenSeq, idx rptcount = 1);
@@ -193,14 +177,9 @@ namespace slib {
             void skipMismatchesAtTheLeftEnd(const char * ptr, const char * lastpos, idx * skipPositions=0);
             void skipMismatchesAtTheRightEnd(const char * ptr, const char * lastpos, idx * skipPositions=0);
             char * cigar_parser(const char * ptr, const char * lastpos, sVec<idx> * alignOut, idx * lenalign, idx * qryStart, idx PositionsToSkip=0, idx *matches = 0);
-
+            static const char * extractGBSequence(const char * srcFile, sStr & sequenceOut);
             static idx sequential_parse_callback(void * param, idx countDone, idx percentDone, idx percentMax);
         public:
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-            // _/
-            // _/ VioSeq access functions
-            // _/
-            // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
             void setmode(EBioMode mod)
             {
@@ -222,13 +201,13 @@ namespace slib {
             }
 
             void setSingleFile(bool isSingleFile)
-            {  // isSingleFile = 1 means to put in 1 single file only
+            {
                 m_isSingleFile = isSingleFile;
             }
 
             virtual idx dim(void)
             {
-                if( mode == eBioModeLong ) { // Long Mode
+                if( mode == eBioModeLong ) {
                     length = vioDB.GetRecordCnt(eRecID_TYPE);
                 } else {
                     length = vioDB.GetRecordCnt(eRecREC_TYPE);
@@ -236,17 +215,11 @@ namespace slib {
                 return length;
             }
 
-//        virtual idx num(idx num, idx readtypes = eReadBiological)
-//        {
-//            return 0;
-//        }
 
             virtual idx len(idx num, idx iread = 0)
             {
-//                if( num < 0 || num >= length )
-//                    return 0;
                 idx sizetype, relcnt, reltype;
-                if( mode == eBioModeLong ) {  // Long Mode
+                if( mode == eBioModeLong ) {
                     idx irel = *vioDB.GetRelationPtr(eRecID_TYPE, num + 1, 1, &relcnt, &reltype);
                     if( irel == 0 ) {
                         return 0;
@@ -261,9 +234,7 @@ namespace slib {
 
             virtual idx rpt(idx num, idx iread = 0)
             {
-//                if( num < 0 || num >= length )
-//                    return 0;
-                if( mode == eBioModeLong ) {  // Long Mode
+                if( mode == eBioModeLong ) {
                     return 1;
                 } else {
                     idx sizetype;
@@ -274,9 +245,7 @@ namespace slib {
 
             virtual idx sim(idx num, idx iread = 0)
             {
-//                if( num < 0 || num >= length )
-//                    return 0;
-                if( mode == eBioModeLong ) {  // Long Mode
+                if( mode == eBioModeLong ) {
                     return 0;
                 } else {
                     idx sizetype;
@@ -289,9 +258,7 @@ namespace slib {
             {
                 idx sizetype, irel, relcnt, reltype;
                 const char *seq;
-//                if( num < 0 || num >= length )
-//                    return 0;
-                if( mode == eBioModeLong ) {  // Long Mode
+                if( mode == eBioModeLong ) {
                     irel = *vioDB.GetRelationPtr(eRecID_TYPE, num + 1, 1, &relcnt, &reltype);
                     if( irel == 0 ) {
                         return 0;
@@ -313,13 +280,10 @@ namespace slib {
             {
                 idx sizetype, irel, relcnt, reltype;
                 const char * id;
-//                if( num < 0 || num >= length )
-//                    return 0;
-                if( mode  == eBioModeLong ) {  // Long Mode
+                if( mode  == eBioModeLong ) {
                     id = (const char *) vioDB.Getbody(eRecID_TYPE, num + 1, &sizetype);
                     return id;
                 } else {
-                    //rec = (sVioseq2::Rec *) vioDB.Getbody (eRecREC_TYPE, num+1, &sizetype);
                     irel = *vioDB.GetRelationPtr(eRecREC_TYPE, num + 1, 1, &relcnt, &reltype);
                     if( irel <= 0 ) {
                         return 0;
@@ -333,9 +297,7 @@ namespace slib {
             {
                 idx sizetype, irel, relcnt, reltype;
                 const char * qua;
-//                if( num < 0 || num >= length )
-//                    return 0;
-                if( mode == eBioModeLong ) {  // Long Mode
+                if( mode == eBioModeLong ) {
                     idx * prel = vioDB.GetRelationPtr(eRecID_TYPE, num + 1, 1, &relcnt, &reltype);
                     if( !prel || !relcnt ) {
                         return 0;
@@ -379,7 +341,7 @@ namespace slib {
                 return irel - 1;
             }
             virtual idx getlongCount()
-            {  // Long Mode
+            {
                 return vioDB.GetRecordCnt(eRecID_TYPE);
             }
             virtual idx getshortCount()
@@ -391,7 +353,7 @@ namespace slib {
             BioseqTree *tree;
             idx uniqueCount, removeCount;
             sVec < idx > ids, ods, idsN;
-            sVec < Rec > vofs; //, nm.makeName(inp,"%%pathx.idx" ) );
+            sVec < Rec > vofs;
             idx idNum, iNN;
             idx sizecomb, isParallelversion, comb;
             idx flags;
@@ -408,10 +370,10 @@ namespace slib {
                 idsN.cut(0);
                 vofs.mex()->flags |= sMex::fBlockDoubling;
                 vofs.cut(0);
-                uniqueCount = 0;    // nonredundant counter
+                uniqueCount = 0;
                 removeCount = 0;
-                idNum = 0;  // counter for Id parsed lines
-                iNN = 0;    // Number of reads parsed (redundant count)
+                idNum = 0;
+                iNN = 0;
                 sizecomb = sizeComb;
                 isParallelversion = (sizecomb != 0) ? 1 : 0;
                 comb = c;
@@ -423,10 +385,6 @@ namespace slib {
 
             void freeVariables (){
                 delete tree;
-                //ids.cut(0);
-                //ods.cut(0);
-                //idsN.cut(0);
-                //vofs.cut(0);
                 ids.destroy();
                 ods.destroy();
                 idsN.destroy();
@@ -439,9 +397,6 @@ namespace slib {
             {
                 static sMex buf;
                 if( (id_len % sizeof(idx)) == 0) {
-                    // we need to pad id with '\0' in case its length multiple of idx size
-                    // otherwize sBioseq::id() returns char * to endless string sometimes
-                    // in other cases in viodb2 when a record is added values are padded to idx multiple length and are zero initialized
                     buf.cut(0);
                     buf.add(id, id_len);
                     buf.add("", 1);
@@ -455,4 +410,4 @@ namespace slib {
 
 }
 
-#endif // sBio_vioseq2_hpp
+#endif 

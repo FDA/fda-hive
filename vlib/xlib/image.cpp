@@ -31,25 +31,32 @@
 #include <slib/utils/heatmap.hpp>
 #include <xlib/image.hpp>
 
+#ifdef HAS_IMAGEMAGICK7
+#include <MagickWand/MagickWand.h>
+#else
 #include <wand/MagickWand.h>
+#endif
 
 #include <errno.h>
 #include <time.h>
+class sImageWandGenesis {
+    public:
+        sImageWandGenesis()
+        {
+            MagickWandGenesis();
+        }
+        ~sImageWandGenesis()
+        {
+            MagickWandTerminus();
+        }
+};
 
-static udx wand_genesis_cnt = 0;
+static std::unique_ptr<sImageWandGenesis> g_wand;
 
 static void safeWandGenesis()
 {
-    if( wand_genesis_cnt == 0 ) {
-        MagickWandGenesis();
-    }
-    wand_genesis_cnt++;
-}
-
-static void safeWandTerminus()
-{
-    if( wand_genesis_cnt && --wand_genesis_cnt == 0 ) {
-        MagickWandTerminus();
+    if( !g_wand ) {
+        g_wand.reset(new sImageWandGenesis());
     }
 }
 
@@ -68,21 +75,15 @@ static time_t str2time_t(const char * t_str)
         } else {
             fmt[sizeof(fmt) - 3] = '\0';
         }
-        struct tm tmp_tm, *tm_cur;
-
         time_t t_cur = time(0);
-        tm_cur = localtime(&t_cur);
-
-        strptime(in.ptr(), fmt, &tmp_tm);
-
-        tmp_tm.tm_isdst = tm_cur->tm_isdst;
-
-        int sec = tm_cur->tm_gmtoff - tmp_tm.tm_gmtoff;
-        //t = mktime(&tmp_tm);
-
-        //return mktime(gmtime(mktime(tmp_tm)));
-
-        t = sec + mktime(&tmp_tm); // gmt time
+        struct tm * tm_cur = localtime(&t_cur);
+        struct tm tmp_tm;
+        memset(&tmp_tm, 0, sizeof(tmp_tm));
+        if( tm_cur && strptime(in.ptr(), fmt, &tmp_tm) != NULL ) {
+            tmp_tm.tm_isdst = tm_cur->tm_isdst;
+            const int sec = tm_cur->tm_gmtoff - tmp_tm.tm_gmtoff;
+            t = sec + mktime(&tmp_tm);
+        }
     }
     return t;
 }
@@ -90,13 +91,9 @@ static time_t str2time_t(const char * t_str)
 sImage::sImage(const char* filename)
     : m_width(0), m_height(0), m_imgtype(0), m_filename(0)
 {
-    MagickWand * wand = NULL;
-
     safeWandGenesis();
-
-    wand = NewMagickWand();
-
-    if( MagickReadImage(wand, filename) == MagickTrue ) {
+    MagickWand * wand = NewMagickWand();
+    if( wand && filename && filename[0] && MagickReadImage(wand, filename) == MagickTrue ) {
         m_width = MagickGetImageWidth(wand);
         m_height = MagickGetImageHeight(wand);
         MagickGetImageResolution(wand, &m_xRes, &m_yRes);
@@ -109,23 +106,28 @@ sImage::sImage(const char* filename)
         m_filename = sString::next00(m_imgtype);
 
         const char * p = MagickGetImageProperty(wand, "date:create");
-        m_date_create = str2time_t(p);
-        MagickRelinquishMemory((void *)p);
-
+        if( p ) {
+            m_date_create = str2time_t(p);
+            MagickRelinquishMemory((void *)p);
+        }
         p = MagickGetImageProperty(wand, "date:modify");
-        m_date_modify = str2time_t(p);
-        MagickRelinquishMemory((void *)p);
-
+        if( p ) {
+            m_date_modify = str2time_t(p);
+            MagickRelinquishMemory((void *)p);
+        }
         m_date_taken = std::min(m_date_create, m_date_modify);
-
         p = MagickGetImageProperty(wand, "exif:DateTime");
         if( p ) {
-            char fmt[] = "%Y:%m:%d %H:%M:%S";
-            struct tm tmp_tm;
-            strptime(p, fmt, &tmp_tm);
-            time_t t = mktime(&tmp_tm); // gmt time
-            if( m_date_taken > t ) {
-                m_date_taken = t;
+            if( p[0] ) {
+                char fmt[] = "%Y:%m:%d %H:%M:%S";
+                struct tm tmp_tm;
+                memset(&tmp_tm, 0, sizeof(tmp_tm));
+                if( strptime(p, fmt, &tmp_tm) != NULL ) {
+                    time_t t = mktime(&tmp_tm);
+                    if( m_date_taken > t ) {
+                        m_date_taken = t;
+                    }
+                }
             }
             MagickRelinquishMemory((void *)p);
         }
@@ -137,7 +139,6 @@ sImage::sImage(const char* filename)
 
 sImage::~sImage()
 {
-    safeWandTerminus();
 }
 
 bool sImage::ok(void) const
@@ -225,7 +226,11 @@ sImage * sImage::resize(const char* pic_dst, udx width, udx height, EAspect keep
                 } else if( keepAspect == eAspectHeight ) {
                     width = m_width * height / m_height;
                 }
+#ifdef HAS_IMAGEMAGICK7
+                rc = MagickResizeImage(wand, width, height, LanczosFilter);
+#else
                 rc = MagickResizeImage(wand, width, height, LanczosFilter, 1);
+#endif
                 if( rc == MagickTrue ) {
                     rc = MagickWriteImage(wand, pic_dst);
                     if( rc == MagickTrue ) {
@@ -274,7 +279,6 @@ static inline real linear(real val, real min, real max)
     return min + val * (max - min);
 }
 
-//static
 bool sImage::generateHeatmap(const char * filename, const sVec < sVec< real > > * values, idx cx, idx cy, const sHeatmap::ColorLimits * limits)
 {
     if( !values || !values->dim()) {
@@ -298,10 +302,9 @@ bool sImage::generateHeatmap(const char * filename, const sVec < sVec< real > > 
     sClr clr = limits->missing;
     pixelSetColor(pixel, clr);
     PixelIterator * pixel_iter = 0;
-    MagickBooleanType status = MagickNewImage(wand, width, height, pixel); // initialize grey image
+    MagickBooleanType status = MagickNewImage(wand, width, height, pixel);
     if( status == MagickFalse ) {
 #ifdef _DEBUG
-        // FIXME - replace with proper logging functions
         ExceptionType severity;
         char * err = MagickGetException(wand, &severity);
         fprintf(stderr, "%s:%u: ImageMagick error: %s\n", __FILE__, __LINE__, err);
@@ -318,18 +321,16 @@ bool sImage::generateHeatmap(const char * filename, const sVec < sVec< real > > 
             for( idx ic=0; ic<values->ptr(ir)->dim(); ic++ ) {
                 real val = *values->ptr(ir)->ptr(ic);
                 if( val < 0 ) {
-                    continue; // keep pre-existing grey pixel
+                    continue;
                 }
                 limits->makeColor(clr, val);
                 for( idx icx=0; icx<cx; icx++ ) {
                     pixelSetColor(pixels[ic * cx + icx], clr);
                 }
             }
-            // write pixels into the image
             status = PixelSyncIterator(pixel_iter);
             if( status == MagickFalse ) {
 #ifdef _DEBUG
-                // FIXME - replace with proper logging functions
                 ExceptionType severity;
                 char * err = PixelGetIteratorException(pixel_iter, &severity);
                 fprintf(stderr, "%s:%u: ImageMagick error: %s\n", __FILE__, __LINE__, err);
@@ -343,7 +344,6 @@ bool sImage::generateHeatmap(const char * filename, const sVec < sVec< real > > 
     status = MagickWriteImage(wand, filename);
     if( status == MagickFalse ) {
 #ifdef _DEBUG
-        // FIXME - replace with proper logging functions
         ExceptionType severity;
         char * err = MagickGetException(wand, &severity);
         fprintf(stderr, "%s:%u: ImageMagick error: %s\n", __FILE__, __LINE__, err);
@@ -357,8 +357,6 @@ bool sImage::generateHeatmap(const char * filename, const sVec < sVec< real > > 
     pixel_iter = DestroyPixelIterator(pixel_iter);
     wand = DestroyMagickWand(wand);
     pixel = DestroyPixelWand(pixel);
-
-    safeWandTerminus();
 
     return status == MagickTrue;
 }

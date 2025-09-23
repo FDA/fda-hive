@@ -88,7 +88,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     DnaParserProc backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-ionparser",argv[0]));
     return (int)backend.run(argc,argv);

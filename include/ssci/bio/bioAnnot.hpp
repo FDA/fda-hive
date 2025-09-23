@@ -31,75 +31,92 @@
 #ifndef sLib_bioAnnot_hpp
 #define sLib_bioAnnot_hpp
 
-#include <slib/core/def.hpp>
+#include <slib/utils.hpp>
+#include <ssci/bio.hpp>
+#include <slib/std.hpp>
 
-class sBioAnnot
-{
-
-    public:
-        sBioAnnot ()
-        {
-        }
-
-        virtual ~sBioAnnot ()
-        {
-        }
+namespace slib {
 
 
-        bool isok(void){return true;}
-        virtual idx dimAnnot(void){return 0;}
+    class sIonAnnotBase
+    {
+        public:
 
+            sIonWander ts1, ts2, ts3, ts4, ts5;
 
-    protected:
-        class iterator {
-            idx iBioAnnotNum;
-            idx iIndexInBioAnnot;
-            void reset (){
-                iBioAnnotNum = 0;
-                iIndexInBioAnnot=0;
+            sIO localBuf;
+            sStr rBuf;
+            idx ionCnt;
+            sIO errIO;
+
+            sIonAnnotBase(const char * pathList00 = 0, bool precompile = true) {
+                ionCnt = 0;
+                rBuf.cut(0);
+                localBuf.cut(0);
+                errIO.cut(0);
+                if (pathList00){
+                    init (pathList00, true, precompile);
+                }
             }
 
-            iterator (){reset();}
-        };
-        idx getIDByAnotherID(iterator & it, const char * IdtosearchFor , const char * idtype)
-        {
-            return 0;
-        }
+            sIonAnnotBase * init(const char * pathList00=0, bool force = true, bool precompile = true)
+            {
+                localBuf.cut(0);
+                ionCnt=0;
+                ts1.attachIons(pathList00,sMex::fReadonly,sString::cnt00(pathList00));
+                ionCnt = ts1.ionList.dim();
+                if (!ionCnt){
+                    errIO.printf("Can't open any ionFile");
+                    return 0;
+                }
+
+                ts2.attachIons(pathList00,sMex::fReadonly,sString::cnt00(pathList00));
+                ts3.attachIons(pathList00,sMex::fReadonly,sString::cnt00(pathList00));
+                ts4.attachIons(pathList00,sMex::fReadonly,sString::cnt00(pathList00));
+                ts5.attachIons(pathList00,sMex::fReadonly,sString::cnt00(pathList00));
+
+                if (precompile){
+                    const char *err = initPrecompile();
+                    if (err){
+                        errIO.printf("%s", err);
+                        return 0;
+                    }
+                }
+                return this;
+            }
+
+            sIonAnnotBase * addIon(sIon * curIon, bool precompile = true)
+            {
+                ts1.addIon(curIon);
+                ionCnt = ts1.ionList.dim();
+                if (!ionCnt){
+                    errIO.printf("Can't open ionFile");
+                    return 0;
+                }
+                ts2.addIon(curIon);
+                ts3.addIon(curIon);
+                ts4.addIon(curIon);
+                ts5.addIon(curIon);
+                if (precompile){
+                    const char *err = initPrecompile();
+                    if (err){
+                        errIO.printf("%s", err);
+                        return 0;
+                    }
+                }
+                return this;
+            }
+
+            const char * initPrecompile(void);
+            idx getNumType(sStr *lbuf = 0, const char * separator = ",");
+            bool setGeneType (const char * geneType, idx geneid_len);
+            idx getNumRecords (const char * seqid, idx seqlen, idx startpos, idx endpos);
+            const char * prepareQuerywithTypes (const char * types00, idx format=0);
+            const char * getRecordInfo (const char * seqid, idx seqlen, idx startpos, idx endpos, bool escapeCSV = false);
+            idx getAllGenes(sStr *lbuf = 0, const char * separator = ",");
+            const char * getGeneInfo (const char *seqid, idx seqlen, idx startpos, idx enpos);
+    };
 
 
-
-};
-
-class sBioAnnotSet : public sBioAnnot
-{
-        // each record defines a multiple or a single sequences in the container
-        struct RefAnnot {
-            idx bioNum; // the serial number of sBioal in the biosR this alignment originates from
-        };
-
-        sVec < sBioAnnot * > biosR; // managed sBioal objects;
-        sVec < RefAnnot > refs; // list of references from this bioseq
-
-        sVec < idx > alInd;
-        idx totDim; // total dimension
-
-    public:
-
-        sBioAnnotSet()         {
-            totDim=0;
-
-        }
-
-        void attach(sBioAnnot * bioannot,
-                idx alNum=0,
-                idx alCnt=sIdxMax);
-
-        sBioAnnot * ref(idx * inum, idx iSub=sNotIdx); // returns the sBioal * object and its offset
-
-   public:
-        virtual idx dimAnnot(void){return totDim;}
-
-
-};
-
+}
 #endif

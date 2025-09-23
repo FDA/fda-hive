@@ -43,10 +43,10 @@ namespace slib
 
     class sLang
     {
-        public: // basic scripting 
+        public:
 
             struct Location {idx Start, End; };
-            struct Statement { Location stat, body, prth, equ, nam ; }; // starts and ends of statement, body, parenthesis or assignment
+            struct Statement { Location stat, body, prth, equ, nam ; };
 
             sStr script;
             sDic < Statement > dicStat;
@@ -59,20 +59,20 @@ namespace slib
 
             char * getStat(sStr * dst, const Location * loc, idx clean=true);
     
-        public: // execution 
+        public:
 
             typedef idx (* ExecFunction)(sLang * lg, idx il);
-            sDic < ExecFunction > dicLang, dicLib; // language Constructions: if , while ...  and core functions like eval(). .. 
-            sDic < idx > dicFun; // dictionary of user defined functions
+            sDic < ExecFunction > dicLang, dicLib;
+            sDic < idx > dicFun;
 
-            sDic< sDic < idx > > dicDic; // dictionary of custom dictionaries 
-            sStr dicDicData; // for the dicDic
+            sDic< sDic < idx > > dicDic;
+            sStr dicDicData;
 
         
             idx exitCond, doDebug;
                     
             bool executeStatement(idx il );
-            idx expressionCompute(sStr * out, const char * phrase, idx len ) ; // computes the values for mathematicalexpressions 
+            idx expressionCompute(sStr * out, const char * phrase, idx len ) ;
             static idx expressionCallback(sLang * lg, sStr * out,  sCalc * xic, idx cur, idx cnt, idx whattodo);
 
 
@@ -153,23 +153,23 @@ namespace slib
             static idx eval_online_httpbulk(sLang * lg, idx il);
 
 
-        public: // functional scope 
+        public:
 
-            class Scope { // this structure defines functional scope 
+            class Scope {
                 public:
-                    sStr data;//idx namOfs; 
-                    sDic < idx >  dicVar; // Variables definition
+                    sStr data;
+                    sDic < idx >  dicVar;
                     Scope *  up, *  down, *  global;
                     idx breakCond,retCond, contCond;
-                    idx lastIf; // the outcome of the last if in this scope statement 
+                    idx lastIf;
                     idx doDebug;
 
                     Scope ( Scope * lup=0 , char * lnam=0 ) 
                     {
                         breakCond=0;retCond=0;contCond=0;doDebug=0;lastIf=1;
                         up=lup;down=0;global=(lup && lup->global) ? lup->global : this;
-                        //namOfs=0;//namOfs=data.length();
-                        if(lnam)data.printf("%s",lnam);data.add("\0\0",2); // add double zero terminated name 
+                        if( lnam ) data.printf("%s", lnam);
+                        data.add("\0\0", 2);
                     }
 
                     const char * getVar( const char * var )
@@ -187,8 +187,8 @@ namespace slib
                     const char * setVar( const char * var, const char * fmt, ... );
 
                     ~Scope(){
-                        data.empty();//idx namOfs; 
-                        dicVar.empty(); // Variables definition
+                        data.empty();
+                        dicVar.empty();
                     }
                 };
             Scope * curScope, globalScope; 
@@ -198,7 +198,7 @@ namespace slib
             real charreal(const char * nam, Scope * scp=0){ const char * par=(scp ? scp : curScope)->getVar(nam); real val=0;if(par) sscanf(par,"%lf",&val);return val;}
             idx charcase(void){const char * vcase=curScope->getVar("case"); if(!strcmp(vcase,"upper") )return sString::eCaseHi;if(!strcmp(vcase,"lower") )return sString::eCaseLo;return atoi(vcase);}
     
-    public: // construction 
+    public:
         sIO * msg;
         bool constructionMode;
         sStr reslt;
@@ -211,7 +211,6 @@ namespace slib
         {
             msg=lmsg;
             
-            //inLib=0;
             funLevel=0;
             doDebug=0;
             curScope=&globalScope;
@@ -233,20 +232,4 @@ namespace slib
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Documentation
-// _/
-// /_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-/*
-        variable assignment    -   varname = value ; 
-
-        function call          -   funcname ( parameters ) ; 
-        function  definition   -   funcname ( parameters ) { body }
-        language constructions -   if ( statement ) { body }
-                                   while ( statement ) { body }
-        canonicalized as           name ( parameters ) { body } ;
-        with any of parts 
-        possibly missing
-*/

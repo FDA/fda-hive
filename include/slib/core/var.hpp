@@ -46,21 +46,17 @@ namespace slib
             public:
                 sVarElement(sVar * myCont, const char * myName){_varContainer=myCont;_varName=myName;};
 
-                // this can remember vectors
                 template < class Tobj > Tobj * operator=(const sVec < Tobj > & vec)
                 {
-                    // TODO: better handling for empty vectors?
                     return vec.dim() ? _varContainer->inp(_varName, vec.ptr(), sizeof(Tobj) * vec.dim()) : 0;
                 }
 
-                // this can remember any type of serializeable data
                 template < class Tobj > Tobj & operator=(const Tobj & data)
                 {
                     return _varContainer->inp(_varName, &data, sizeof(Tobj) );
 
                 }
 
-                // this can remember C/C++ strings
                 const char * operator=(const char * val)
                 {
                     return (const char *)_varContainer->inp(_varName, val, sLen(val)+1);
@@ -76,9 +72,9 @@ namespace slib
                     return (const char *)_varContainer->inp(_varName, val, 0);
 
                 }
-                operator const char *() const { return _varContainer->value(_varName);} // operator typecast to const char *
-                operator idx () const { return _varContainer->ivalue(_varName); } // operator typecast to idx
-                const char * operator *( ) const { return _varContainer->value(_varName); } // const dereferencing operator
+                operator const char *() const { return _varContainer->value(_varName);}
+                operator idx () const { return _varContainer->ivalue(_varName); }
+                const char * operator *( ) const { return _varContainer->value(_varName); }
 
 
 
@@ -87,39 +83,40 @@ namespace slib
 
     public:
         sVar() {mex()->flags|=sMex::fSetZero;}
-        //sVar * init (const char * haxflnm,const char * idflnm, const char * flnm) {sDic< sMex::Pos, sVec < sMex::Pos > >::init(haxflnm,idflnm, flnm);return this;}
         sVar * init (const char * flnm) {sDic< sMex::Pos >::init(flnm);mex()->flags|=sMex::fSetZero;return this;}
 
         static void * nonconst(const void * p) {return (((char *)0)+ ((const char *)p-((const char*)0)));}
 
-        char * inpf(const void * data, idx datasize, const char * namfmt, ... ) __attribute__((format(printf, 4, 5))) // the same as set() but the name of the variable is the format string
+        char * inpf(const void * data, idx datasize, const char * namfmt, ... ) __attribute__((format(printf, 4, 5)))
         {
             sStr nam; sCallVarg(nam.vprintf,namfmt);
             return inp(nam.ptr(),data,datasize);
         }
 
-        char * inp(const char * nam , const void * data, idx datasize=0, idx namln=0) // the same as set() but the name of the variable is the format string
+        char * inp(const char * nam , const void * data, idx datasize=0, idx namln=0)
         {
             if(!data) return 0;
-            //idx ofs=sDic< sMex::Pos, sVec < sMex::Pos > >::mex()->pos();
             idx ofs=sDic< sMex::Pos>::mex()->pos();
-            if(!strncmp((const char *)data,"null",(datasize && datasize<4) ? datasize : 4)){data=(const void *)"";datasize=1;}
+
+            if( (datasize == 0 || datasize == 4 || datasize == 5) &&
+                !strncmp((const char *) data, "null", 4) &&
+                (datasize == 4 || !((const char*) data)[4]) )
+            {
+                data = (const void *) "";
+                datasize = 1;
+            }
+
             if(datasize) {
-                //sDic< sMex::Pos, sVec < sMex::Pos > >::mex()->add(data,datasize);
                 sDic< sMex::Pos >::mex()->add(data,datasize);
             }
             else {
                 idx datastrlen=sLen((const char *)data);
                 datasize=datastrlen + 2;
-                //sDic< sMex::Pos, sVec < sMex::Pos > >::mex()->add(data,datasize);
-                //sDic< sMex::Pos, sVec < sMex::Pos > >::mex()->add(__,2);
                 sDic< sMex::Pos >::mex()->add(0, datasize);
                 char* pp=(char*)sDic< sMex::Pos >::mex()->ptr(ofs);
                 memmove(pp, data, datastrlen); pp[datastrlen]=0; pp[datastrlen+1]=0;
-                //sDic< sMex::Pos >::mex()->add(__,2);
 
             }
-            //sMex::Pos * p=(sDic< sMex::Pos, sVec < sMex::Pos > >::set(nam));
             sMex::Pos * p=(sDic< sMex::Pos >::set(nam, namln));
             p->pos=ofs;
             p->size=datasize;
@@ -132,12 +129,6 @@ namespace slib
             return (void*)inp(nam,&p,sizeof(p));
         }
 
-/*
-        template < class Tobj > Tobj * inp(const char * nam , Tobj * data, idx datasize=0)
-        {
-            return inp(nam,(void*)data,datasize ? datasize : sizeof(Tobj) );
-        }
-*/
         sVarElement operator[](const char * nam)
         {
             return sVarElement(this,nam);
@@ -150,10 +141,8 @@ namespace slib
 
         const void * out(const char * nam, const void * defVal=0, idx * psiz=0, idx lennam=0) const
         {
-            //sMex::Pos * p=sDic< sMex::Pos, sVec < sMex::Pos > >::get(nam);
             const sMex::Pos * p=sDic< sMex::Pos >::get(nam, lennam);
             if(psiz)*psiz=p ? p->size : 0 ;
-            //return nonconst(p ? sDic< sMex::Pos , sVec < sMex::Pos > >::mex()->ptr(p->pos) : defVal);
             return p ? sDic< sMex::Pos >::mex()->ptr(p->pos) : defVal;
         }
         void * out(const char * nam, void * defVal=0, idx * psiz=0, idx lennam=0)
@@ -170,11 +159,6 @@ namespace slib
         {
             return (char *)(out(name, defVal, psiz, lennam));
         }
-        /*
-        char * value(const char * name, void * defVal=0, idx * psiz=0)
-        {
-            return (char*) (out(name, defVal, psiz));
-        }*/
         idx ivalue(const char * name,idx defVal=0) const
         {
             idx vval=defVal;
@@ -213,7 +197,6 @@ namespace slib
             return sConvInt2Ptr(p->pos, const char);
         }
 
-        //! scanf the argument's next value
         template < class Tobj > Tobj * scanf(const char * name, const char * frmt, Tobj * valPtr) const
         {
             const char * val=value(name);if(!val)return 0;
@@ -223,7 +206,6 @@ namespace slib
 
 
         public:
-            // these are to serialize a string dictionary
         idx serialIn(const char * list00, idx lenmax = 0)
         {
             sStr ttt;
@@ -231,16 +213,12 @@ namespace slib
                 lenmax = sIdxMax;
             }
             for(const char * p = list00; p && p < (list00 + lenmax); p = p + sLen(p) + 1) {
-                //if (!*p)
-                //    break;
                 const char * psize = p + sLen(p) + 1;
                 idx size = 0;
                 sscanf(psize, "%" DEC, &size);
                 const char * val0 = psize + sLen(psize) + 1, *val = val0;
                 ttt.cut(0);
                 for(idx i = 0; val < list00 + lenmax && i < size; ++val, ++i) {
-                    //char v = ((*val) - '0') * 100 + ((*(val + 1)) - '0') * 10
-                    //        + (*(val + 2) - '0');
                     unsigned char v = (*val >= 'A' ? *val - 'A' + 10 : *val - '0') * 16;
                     v += *++val >= 'A' ? *val - 'A' + 10 : *val - '0';
                     ttt.add((char *)&v, sizeof(v));
@@ -267,7 +245,6 @@ namespace slib
                 buf->addSeparator(sep);
                 const char * val = (const char *) sDic<sMex::Pos>::mex()->ptr(p->pos);
                 if( nocode ) {
-                    // emulate printf
                     buf->add(val, p->size);
                     buf->add0();
                     buf->cut(-1);

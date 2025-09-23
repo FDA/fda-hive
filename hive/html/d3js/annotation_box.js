@@ -28,27 +28,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*
- var anot_box = new vjD3JS_annotationBox({
-      data: "dataname",
-      graphOptions: {
-             show_reference:[false|true] => default: false
-             ,has_reference:[false|true]  =>          false  (i.e: take the first row from table as the reference)
-            ,showBoxLabel: [false|true]  =>          false
-            ,collapse:[false|true]       =>          true
-      }
-  });
-
-*/
 function vjD3JS_annotationBox ( viewer )
 {
     loadCSS("d3js/css/annotation_box.css");
-    vjD3CategoryView.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjD3CategoryView.call(this,viewer);
     var divElement;
     var that = this;
-    //__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/
-    //  DATA TREATMENT
-    //
     this.determine_lane = function(lanes_collection, item_start, item_end) {
         var corrected_lane = 0;
         var nextLane = true;
@@ -57,13 +42,12 @@ function vjD3JS_annotationBox ( viewer )
         for( var il = 0; il < nbOfLanes; ++il) {
             var lane = lanes_collection[il];
             if(nextLane) {
-                nextLane = false; // reset next lane toggle
+                nextLane = false;
                 var foundFreeSpot = true;
-                // check if lane has free space at for new item
                 for ( var ii=0; ii< lane.length; ++ ii) {
                     var start = lane[ii][0];
                     var end = lane[ii][1];
-                    if((start > item_end) || (end <item_start)) {  // Doesn't overlap at all 
+                    if((start > item_end) || (end <item_start)) {
                         foundFreeSpot = true;
                     }
                     if ((start >= item_start && start <= item_end) || (end >= item_start && start <= item_end) || (start <= item_start && end >= item_end) || (start > item_start && end < item_end)) {
@@ -72,7 +56,6 @@ function vjD3JS_annotationBox ( viewer )
                         break;
                     }
                 }
-                // If it needs to be drawn, push the object into the layer
                 if (foundFreeSpot) {
                     corrected_lane = il;
                     newLane = false;
@@ -80,7 +63,6 @@ function vjD3JS_annotationBox ( viewer )
                 }
            }
         }
-        // If not match found...
         if (newLane) {
             corrected_lane = nbOfLanes;
         }
@@ -89,12 +71,11 @@ function vjD3JS_annotationBox ( viewer )
     
     this.data_treatment = function (data) {
         var items = [];
-        // gather rows having the same reference
         var collection = {};
         var listOfKeys = [];
         var ir=0;
         
-        if (this.graphOptions.has_reference) // when is set, assuming having the reference info on the first line 
+        if (this.graphOptions.has_reference)
         { 
             var ref_info = data[0];
             this.myReference = {
@@ -127,7 +108,6 @@ function vjD3JS_annotationBox ( viewer )
             collection[cur_ref].push(ir);
         }
         
-        // Loop through collection of reference
         
         var lanes_count = -1;
         var lanes_collection = [];
@@ -158,11 +138,6 @@ function vjD3JS_annotationBox ( viewer )
                     subLane_collection = lanes_collection[ik];
                 }
                 else subLane_collection = lanes_collection;
-            /*    var corrected_lane = this.determine_lane(lanes_collection, itemToPut.start,itemToPut.end);
-                if (!lanes_collection[corrected_lane]) {    
-                    lanes_collection[corrected_lane] = [];
-                }
-                lanes_collection[corrected_lane].push([itemToPut.start,itemToPut.end]);*/
                 var corrected_lane = this.determine_lane(subLane_collection, itemToPut.start,itemToPut.end);
                 if (!subLane_collection[corrected_lane]) {    
                     subLane_collection[corrected_lane] = [];
@@ -182,17 +157,10 @@ function vjD3JS_annotationBox ( viewer )
             
         }
         return {items: items, lanes_count: (lanes_count + 1)};
-        /*[ 
-              {"lane": 0, "id": "ref1", "start": 0, "end": 205, "idType-id": "id1:type1;id2:type2", "color": "red"},
-              {"lane": 1, "id": "ref2", "start": 265, "end": 420,"idType-id": "id1:type1;id2:type2", "color": "red"}
-          ]*/
     }
     
-    //__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/
-    //  COMPOSING
-    //
     
-    this.d3Compose=function(data){  // Start COMPOSE     
+    this.d3Compose=function(data){
         
         this.d3Compose_prv(data);
         var thiSS=this;
@@ -204,9 +172,6 @@ function vjD3JS_annotationBox ( viewer )
             if (!this.height) this.height=800;
             if (!this.width) this.width=800;
         }
-        //======================================
-        //     graphOptions
-        //======================================
         this.columnToPick = this.columnToPick || {"refID": "ref", "start": "start","end":"end", "idType-id": "idType-id"};
         this.min = this.min ? Number(this.min) :  Number.MAX_VALUE;
         this.max = this.max ? Number(this.max) : Number.MIN_VALUE;
@@ -216,7 +181,7 @@ function vjD3JS_annotationBox ( viewer )
         if (!this.graphOptions || this.graphOptions == undefined) this.graphOptions = {};
         if (this.graphOptions.collapse == undefined) this.graphOptions.collapse = false;
         if (this.graphOptions.showBoxLabel == undefined) this.graphOptions.showBoxLabel = false;
-        if (this.graphOptions.has_reference == undefined) this.graphOptions.has_reference = false; // i.e: reference is at the first row
+        if (this.graphOptions.has_reference == undefined) this.graphOptions.has_reference = false;
         if (this.graphOptions.show_reference == undefined) this.graphOptions.show_reference = false;
         if (this.graphOptions.showTipFull == undefined) this.graphOptions.showTipFull = false;
         if (this.graphOptions.fixedByMinMax == undefined) this.graphOptions.fixedByMinMax = false;
@@ -225,12 +190,10 @@ function vjD3JS_annotationBox ( viewer )
         
         if (this.margin==undefined) this.margin = {};
         
-        //======================================
-        //    SVG
         
-        var margin = {top: this.margin.top ? this.margin.top : 20, right: this.margin.right ? this.margin.right : 15, bottom: this.margin.bottom ? this.margin.bottom : 15, left: this.margin.left ? this.margin.left : 80}; //top right bottom left
-        var w = this.width - margin.right - margin.bottom, // 960
-            h = this.height - margin.top - margin.bottom; // 500
+        var margin = {top: this.margin.top ? this.margin.top : 20, right: this.margin.right ? this.margin.right : 5, bottom: this.margin.bottom ? this.margin.bottom : 15, left: this.margin.left ? this.margin.left : 5};
+        var w = this.width - margin.right - margin.bottom,
+            h = this.height - margin.top - margin.bottom;
         var refAreaHeight =  0.05 * h;
         if (!this.graphOptions.show_reference) {
             refAreaHeight = 0;
@@ -239,9 +202,6 @@ function vjD3JS_annotationBox ( viewer )
         
         if (data==undefined || !data.length)
             return;
-        //======================================
-        // Data Treatment
-        //======================================
         var data_info = this.data_treatment(data);
         
         var items = data_info.items;
@@ -257,9 +217,6 @@ function vjD3JS_annotationBox ( viewer )
         if (nbOfLanes < 3) {
             whereToStart = boxAreaHeight/2;
         }
-        //======================================
-        //      Defining scale rules
-        //======================================
         var x_scale = d3.scale.linear()
                 .domain([zoom_begin, zoom_end])
                 .range([0, w]);
@@ -274,16 +231,13 @@ function vjD3JS_annotationBox ( viewer )
     
         var xAxis = d3.svg.axis().scale(x_scale).orient("bottom").tickSize(8).tickPadding(8);
         
-        //======================================
-        // Append Area to draw
-        //======================================
         var chartClassName = "d3_annotationBox_";
-        var chart = svg.attr("width", w + margin.right + margin.left) // right and left
-                    .attr("height", h + margin.top + margin.bottom) // top and bottom
+        var chart = svg.attr("width", w + margin.right + margin.left)
+                    .attr("height", h + margin.top + margin.bottom)
                     .attr("class", chartClassName);
          
         var boxArea = chart.append("g")
-                    .attr("transform", "translate(" + (margin.left) + "," + (margin.top) + ")") // left and top
+                    .attr("transform", "translate(" + (margin.left) + "," + (margin.top) + ")")
                     .attr("width", w)
                     .attr("height", boxAreaHeight)
                     .attr("class", "boxArea");
@@ -303,27 +257,7 @@ function vjD3JS_annotationBox ( viewer )
              .call(xAxis);
         
         
-        // Adding SETTING 
-        /*chart.append("g")
-            .attr("class","annotation setting")
-            .append("image")
-              .attr("xlink:href", "img/reqstatus2.gif")
-              .attr("x", "12px")
-              .attr("y", "15px")
-              .attr("width", "15px")
-              .attr("height", "15px")
-              .on("mouseover",function(d,i){
-                  this.style.borderWidth = "10px";
-              })
-              .on("mouseout",function(d,i){
-                  this.style.borderWidth = "0px;"
-              })
-              ;*/
         
-        //======================================
-        // setting up the tool tip
-        // call tooltip function
-        //======================================
            var tip_id= "d3-tip-annotationBox";
            if (this.graphId) {
                tip_id+= "_" + this.graphId;
@@ -370,33 +304,9 @@ function vjD3JS_annotationBox ( viewer )
                 });
             chart.call(tip);
     
-        //======================================
-        //       boxArea lanes and texts
-        //======================================
-/*        boxArea.append("g").selectAll(".laneLines")
-            .data(items)
-            .enter().append("line")
-                .attr("x1", margin.right) // margin right
-                .attr("y1", boxHeight_scale(0))
-                .attr("x2", w) // the width of the area
-                .attr("y2", boxHeight_scale(0))
-                .attr("stroke", "lightgray");*/
-    /*
-        boxArea.append("g").selectAll(".laneText")
-            .data(lanes)
-            .enter().append("text")
-                .text(function(d) {return d;})
-                .attr("x", -margin.right) 
-                .attr("y", function(d, i) {
-                    //return boxHeight_scale(i + .5);
-                    return boxHeight_scale((nbOfLanes-1 -i) + .5);
-                })
-                .attr("dy", ".5ex")
-                .attr("text-anchor", "end")
-                .attr("class", "laneText");*/
         
         boxArea.append("g")
-            .attr("transform", "translate(" + (0) + "," + (0) + ")") // left and top
+            .attr("transform", "translate(" + (0) + "," + (0) + ")")
             .selectAll("refAreaItems")
             .data(items)
             .enter().append("rect")
@@ -415,10 +325,8 @@ function vjD3JS_annotationBox ( viewer )
                 })
                 .attr("y", function(d) {
                     return boxHeight_scale(nbOfLanes-1-d.lane);
-                    //return boxHeight_scale(d.lane) + 10;
                 })
                 .attr("width", function(d) {
-                    //var width = d.end - d.start + 2.5;
                     var start = d.start;
                     var end = d.end;
                     if (thiSS.graphOptions.fixedByMinMax){
@@ -456,19 +364,14 @@ function vjD3JS_annotationBox ( viewer )
                 .data(items)
                 .enter().append("text")
                 .text(function(d) {
-                    //return d["idType-id"] + " [" + d.start + "-" + d.end + "]";
                     return d.id + " [" + d.start + "-" + d.end + "]";
                 })
                 .attr("x", function(d) {return x_scale(d.start);})
                 .attr("y", function(d) {
-                    //return boxHeight_scale(d.lane + .5) ; //nbOfLanes-1
-                    return boxHeight_scale((nbOfLanes-1-d.lane) + .5) ; //
+                    return boxHeight_scale((nbOfLanes-1-d.lane) + .5) ;
                 })
                 .attr("dy", ".5ex");
         }
-         //=====================================
-         //     refArea lanes and texts
-         //=====================================
         if (this.graphOptions.show_reference && this.myReference) {
              refArea.append("g").append("line")
                 .attr("x1", margin.right)
@@ -491,7 +394,6 @@ function vjD3JS_annotationBox ( viewer )
                 .attr("text-anchor", "end")
                 .attr("class", "laneText");
             
-            //refArea item rects
             refArea.append("g").append("rect")
                 .data(verarr(this.myReference))
                 .attr("class", "refAreaItem")
@@ -516,6 +418,6 @@ function vjD3JS_annotationBox ( viewer )
                 });
         }
     
-    }; // End COMPOSE
+    };
 }
 

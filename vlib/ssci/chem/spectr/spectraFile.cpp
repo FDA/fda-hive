@@ -30,7 +30,6 @@
 #include <math.h>
 #include <ssci/chem/spectr/spectraFile.hpp>
 #include <stdio.h>
-//#include <iostream>
 
 bool sSpctr::miniMax(idx * pCnt, real * pMin, real * pMax)
 {
@@ -55,9 +54,9 @@ bool sSpctr::miniMax(idx * pCnt, real * pMin, real * pMax)
     fclose(fp);
 
     *pMin = floor(*pMin);
-    *pMax = ceil(*pMax); // no more : we substract -1 since the last cell is not always accumulated up to the end
+    *pMax = ceil(*pMax);
     real bbs = (*pMax - *pMin) / (allStp);
-    *pCnt = (idx) bbs + 1; ///(idx)((smax-smin)/gSet.allStp);
+    *pCnt = (idx) bbs + 1;
 
     return true;
 }
@@ -77,11 +76,8 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
 
     real * d = dst.add(cntBin);
     dst.set(0);
-    //dstnam.makeName(m_filename, "%%pathx.x");
     sStr * dstnamX = m_tmpFiles.add(1);
     dstnamX->printf(0,"%s.%s",resultPathPrefix.ptr(), "x");
-    //dstnam.makeName(m_filename, "/tmp/%%flnmx.x");
-    //sFile::remove(dstnam);
 
     sVec<real> xx(dstnamX->ptr());
     xx.cut(0);
@@ -90,10 +86,8 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
 
     sVec<real> ox, oy;
     real daltons, intensity, minx = REAL_MAX, maxx = -REAL_MAX;
-    /*real calTop[sDim(allTopI)];*/
     sVec <real> calTop; calTop.resize(allTopI.dim());
 
-    //idx rows = 0, itop[sDim(calTop) ]; // cnt=0,
     idx rows = 0;
     sVec <idx> itop; itop.resize(calTop.dim());
 
@@ -139,7 +133,6 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
     }
 
     idx cntTop = 0, iMaxTop = 0;
-    //real aTop[sDim(calTop) ], coefs[sDim(calTop) ];
     sVec <real> aTop, coefs;
     aTop.resize(calTop.dim() ); coefs.resize(calTop.dim());
 
@@ -150,9 +143,7 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
         if( oy[itop[it]] < 0.1 * maxInt ) {
             continue;
         } else{
-            //gLog->printf("\tPeak %lf has large enough %lf%% fraction of intensity >10%%. \n", calTop[it], 100 * oy[itop[it]] / maxInt);
         }
-        //if ( cntTop!=it) {
         itop[cntTop] = itop[it];
         aTop[cntTop] = calTop[it];
         coefs[cntTop] = 0;
@@ -162,11 +153,9 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
         if( cntTop && oy[itop[cntTop]] > oy[itop[iMaxTop]] )
             iMaxTop = cntTop;
         ax += bx;
-        //}
         ++cntTop;
     }
     if( cntTop == 0 ){
-        //gLog->printf("WARNING: all of the top peaks have less than 10%% intensity. Calibration is skipped ...\n");
     }
     fclose(fp);
     if( pshift )
@@ -174,7 +163,7 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
 
     if( cntTop ) {
         real shift = 0;
-        if( cntTop ) { // perform the shift
+        if( cntTop ) {
             if( calibration == 0 ) {
                 shift = aTop[iMaxTop] - ox[itop[iMaxTop]];
                 for(idx is = 0; is < ox.dim(); ++is)
@@ -185,11 +174,9 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
             } else {
                 for(idx is = 0, it = 0; is < ox.dim(); ++is) {
                     for(it = 0; it < cntTop && is >= itop[it]; ++it)
-                        ; // find which interval this falls in
+                        ;
                     if( it )
                         --it;
-//                  if(is==6936 || is==10856 || is==17823 || is==23771 )
-//                      is=is;
                     if( !coefs[it] )
                         coefs[it] = aTop[it] / ox[itop[it]];
                     ox[is] *= coefs[it];
@@ -201,27 +188,20 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
     sVec<real> secDeriv;
     real * sd = secDeriv.add(2 * rows);
     sFunc::spline::secDeriv(ox, oy, rows, REAL_MAX, REAL_MAX, sd, sd + rows);
-    //real rMax=-REAL_MAX;
     for(idx is = 0; is < cntBin; ++is) {
         xx[is] = smin + is * allStp;
         dst[is] = sFunc::spline::calc(ox, oy, sd, rows, xx[is], 0);
         if( dst[is] < 0 )
             dst[is] = 0;
-//      rMax=sMax(rMax,dst[is]);
     }
 
-    // scale to a thousand
-    //rMax=1000/rMax;
-    //for(idx is=0; is<cntBin; ++is) d[is]*=rMax;
 
 
-    //DAVID edit
-    for(idx ib = 0; ib <= (idx) (1. / allStp); ++ib) { // to remove splining artifacts
+    for(idx ib = 0; ib <= (idx) (1. / allStp); ++ib) {
         d[ib] = 0;
         d[cntBin - 1 - ib] = 0;
     }
 
-    // scale to a thousand
     real rMax = -REAL_MAX;
     for(idx is = 0; is < cntBin; ++is) {
         rMax = sMax(rMax, dst[is]);
@@ -231,9 +211,8 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
     for(idx is = 0; is < cntBin; ++is)
         d[is] *= rMax;
 
-    //lastTreated=".bin";
     sStr dstCSV("%s%s",resultPathPrefix.ptr(), "-bin.csv");
-    sFil myContent(dstCSV); // sFil srcFile(inputGBFile,sMex::fReadonly);
+    sFil myContent(dstCSV);
     for (idx i=0;i<dst.dim();i++){
         myContent.printf("%.2lf,%.2lf\n",smin+allStp*i,dst[i]);
     }
@@ -244,9 +223,7 @@ idx sSpctr::binData(idx cntBin, real * pshift, real smin, real shiftIsoPeaks)
 idx sSpctr::smoothSavGol(const char * srcsfx, const char * dstsfx)
 {
     sStr srcnam("%s.%s",resultPathPrefix.ptr(),srcsfx);
-    //sFilePath srcnam(m_filename, "/tmp/%%flnmx.%s", srcsfx);
 
-    //DAVID edit #2
     sVec<real> src((const char*) srcnam);
     real * s = src.ptr();
     idx cnt = src.dim();
@@ -255,7 +232,6 @@ idx sSpctr::smoothSavGol(const char * srcsfx, const char * dstsfx)
 
     sStr * dstnam = m_tmpFiles.add(1);
     dstnam->printf("%s.%s",resultPathPrefix.ptr(), dstsfx);
-    //sFilePath dstnam(m_filename, "/tmp/%%flnmx.%s", dstsfx);
     sVec<real> dst(sMex::fSetZero, dstnam->ptr());
     dst.cut(0);
     real * d = dst.add(cnt);
@@ -298,25 +274,22 @@ idx sSpctr::smoothWavelett(const char * srcsfx, const char * dstsfx)
 
     sMathNR::pwtset(wavlet.daubNum);
 
-    // determine a size which is bigger than cnt and is degree of 2
     for(k = 1; k < cnt; k <<= 1)
         ;
     real * coef = (real *) sNew(2 * (k + 1) * sizeof(real));
     real * unscoef = coef + k + 1;
-    memcpy(&coef[1], s, sizeof(real) * cnt); // make a copy of the array  shifted by one because of NR
+    memcpy(&coef[1], s, sizeof(real) * cnt);
     memset((void*) (coef + 1 + cnt), 0, sizeof(real) * (k - cnt));
 
-    // perform wavelett analysis
     sMathNR::wt1(coef, k, 1, sMathNR::pwt);
 
-    // now find the portion of the coefficients we do not nullify
     for(is = 1; is <= k; ++is)
         unscoef[is] = (coef[is] < 0) ? -coef[is] : coef[is];
     real thresh = sMathNR::select((idx) ((1.0 - wavlet.fracPercent * 0.01) * k), k, unscoef);
     for(is = 1; is < k; is++) {
         if( fabs(coef[is]) <= thresh )
             coef[is] = 0.0;
-    } // nullify the small ones
+    }
 
     sMathNR::wt1(coef, k, -1, sMathNR::pwt);
     memcpy(d, (void*) (coef + 1), sizeof(real) * cnt);
@@ -325,8 +298,6 @@ idx sSpctr::smoothWavelett(const char * srcsfx, const char * dstsfx)
         if( dst[is] < 0 )
             dst[is] = 0;
 
-    //txtDump(d,cnt,".wavlet.csv");
-    //lastTreated=".wavlet";
     sStr dstCSV("%s-%s.csv",resultPathPrefix.ptr(), dstsfx);
     sFil myContent(dstCSV);
     for (idx i=0;i<dst.dim();i++){
@@ -340,7 +311,6 @@ idx sSpctr::smoothWavelett(const char * srcsfx, const char * dstsfx)
 idx sSpctr::fftCutoff(const char * srcsfx, const char * dstsfx)
 {
     sStr srcnam("%s.%s",resultPathPrefix.ptr(), srcsfx);
-    //sFilePath srcnam(m_filename, "/tmp/%%flnmx.%s", srcsfx);
     sVec<real> src(srcnam.ptr());
     real * s = src.ptr();
     idx cnt = src.dim();
@@ -349,7 +319,6 @@ idx sSpctr::fftCutoff(const char * srcsfx, const char * dstsfx)
 
     sStr * dstnam = m_tmpFiles.add(1);
     dstnam->printf("%s.%s",resultPathPrefix.ptr(), dstsfx);
-    //sFilePath dstnam(m_filename, "/tmp/%%flnmx.%s", dstsfx);
     sVec<real> dst(sMex::fSetZero, dstnam->ptr());
     dst.cut(0);
     real * d = dst.add(cnt);
@@ -396,7 +365,6 @@ idx sSpctr::computeBaseline(const char * srcsfx, const char * dstsfx)
     real * dn = dstn.add(cnt);
     dstn.set(0);
 
-    // compute the minimums and draw a spline through them
 
     sVec<real> xx;
     real * x = xx.add(cnt);
@@ -447,7 +415,6 @@ idx sSpctr::computeBaseline(const char * srcsfx, const char * dstsfx)
     for(idx is = 0; is < cnt; ++is)
         if( dn[is] < 0 )
             dn[is] = 0;
-    // dump to CSV
     sStr dstbCSV("%s-%s.csv",resultPathPrefix.ptr(), "basepoints");
        sFil myContentb(dstbCSV);
        for (idx i=0;i<dstb.dim();i++){
@@ -470,23 +437,6 @@ idx sSpctr::computeBaseline(const char * srcsfx, const char * dstsfx)
     return cnt;
 }
 
-/*
- idx sSpctr::normalize(const char * nam, const char * srcsfx, const char * dstsfx)
- {
- sFilePath srcnam(nam,PEAK_WORKDIR"/%%pathx.%s",srcsfx);
- sVec <real> src(srcnam);
- real * s=src.ptr();idx cnt=src.dim(); if(!cnt)return -1;
-
- sFilePath dstnam(nam,PEAK_WORKDIR"/%%pathx.%s",dstsfx);
- sVec <real> dst(sMex::fSetZero,dstnam.ptr()); dst.cut(0);
- real * d=dst.add(cnt); dst.set(0);
-
- real totItgrl=sAlgebra::integral::calcUnispace(sAlgebra::integral::eTrapezoid, s, cnt, gSet.allStp);
- for( idx is=0; is<cnt; ++is) d[is]=s[is]/totItgrl;
-
- return dst.dim();
- }
- */
 const char * sSpctr::_config_lst = "" __;
 bool sSpctr::inputParams(const char * configFile)
 {
@@ -560,12 +510,10 @@ bool sSpctr::inputParams(const char * configFile)
         sString::cleanMarkup(&rst, sSpctr::_config_lst, sLen(sSpctr::_config_lst), "//" _ "/*" __, "\n" _ "*/" __, "\n", 0, false, false, true);
     }
 
-    // clean comments
     sString::xscanSect(rst.ptr(), rst.length(), cfgVars);
 
     if( !inputMolecules(rst, inpMolList) ) {
 
-        //printf("Missing Molecules section\n");
         return false;
     }
 

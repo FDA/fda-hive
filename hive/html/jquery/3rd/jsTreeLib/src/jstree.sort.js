@@ -27,12 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/**
- * ### Sort plugin
- *
- * Automatically sorts all siblings in the tree according to a sorting function.
- */
-/*globals jQuery, define, exports, require */
 (function (factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
@@ -49,14 +43,7 @@
 
     if($.jstree.plugins.sort) { return; }
 
-    /**
-     * the settings function used to sort the nodes.
-     * It is executed in the tree's context, accepts two nodes as arguments and should return `1` or `-1`.
-     * @name $.jstree.defaults.sort
-     * @plugin sort
-     */
     $.jstree.defaults.sort = function (a, b) {
-        //return this.get_type(a) === this.get_type(b) ? (this.get_text(a) > this.get_text(b) ? 1 : -1) : this.get_type(a) >= this.get_type(b);
         return this.get_text(a) > this.get_text(b) ? 1 : -1;
     };
     $.jstree.plugins.sort = function (options, parent) {
@@ -75,15 +62,6 @@
                         this.redraw_node(data.parent, true);
                     }, this));
         };
-        /**
-         * used to sort a node's children
-         * @private
-         * @name sort(obj [, deep])
-         * @param  {mixed} obj the node
-         * @param {Boolean} deep if set to `true` nodes are sorted recursively.
-         * @plugin sort
-         * @trigger search.jstree
-         */
         this.sort = function (obj, deep) {
             var i, j;
             obj = this.get_node(obj);
@@ -98,6 +76,4 @@
         };
     };
 
-    // include the sort plugin by default
-    // $.jstree.defaults.plugins.push("sort");
 }));

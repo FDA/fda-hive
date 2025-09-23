@@ -34,11 +34,9 @@
 
 using namespace slib;
 
-//enum eRelationTypes{eRel_taxid_gi=3};
 const char * sTaxIon::initPrecompile(void)
 {
     sStr trbuf;
-    // getTaxIdbyGI
     trbuf.printf("\
                 o=find.accession_taxid(accession=='to_modify') ; \
                 print(o.taxid); ");
@@ -50,7 +48,6 @@ const char * sTaxIon::initPrecompile(void)
     }
     argTIBG = (idx*) tsTIBG.getSearchArgumentPointer(0);
 
-    // get TaxtreeCGI information
     trbuf.printf(0, "\
         a=find.taxid_name(taxid=='to_modify', tag='scientific name'); \
         b=find.taxid_parent(taxid==a.taxid); \
@@ -66,7 +63,6 @@ const char * sTaxIon::initPrecompile(void)
     }
     argTTree=(idx*)tsTree.getSearchArgumentPointer( 0);
 
-    // get count of Tax
     trbuf.printf (0, "\
         o=count.taxid_parent(rank=='to_modify'); \
         print(o.#);");
@@ -77,7 +73,6 @@ const char * sTaxIon::initPrecompile(void)
     }
     argT2=(idx*)ts2.getSearchArgumentPointer(0);
 
-    // get parent TaxIds
     trbuf.printf (0, "\
         o=find.taxid_parent(taxid=='to_modify'); \
         print(o.parent,o.rank);");
@@ -89,7 +84,6 @@ const char * sTaxIon::initPrecompile(void)
     }
     argT3=(idx*)ts3.getSearchArgumentPointer(0);
 
-    // get taxInfo
     trbuf.printf (0, "\
         o=find.taxid_name(taxid=='to_modify',tag=='scientific name');\
         a=find.taxid_parent(taxid==o.taxid); \
@@ -111,7 +105,6 @@ const char * sTaxIon::initPrecompile(void)
 const char *sTaxIon::precompileGItoAcc(void)
 {
     sStr trbuf;
-    //getGIByAccessionNumber
     trbuf.printf(0, "\
         o=find.gi_accession(gi=='to_modify'); \
                 print(o.accession);");
@@ -220,7 +213,6 @@ const char * sTaxIon::getParentTaxIds(const char * taxlist, sStr *taxParent, sSt
     taxbuf.cut(0);
     if (ts3.traverseBuf.length() > 0){
         sString::searchAndReplaceSymbols(&taxbuf, ts3.traverseBuf.ptr(0), ts3.traverseBuf.length(), ",", 0, 0, true, true, true, true);
-    //sString::searchAndReplaceSymbols(&result,ts3.traverseBuf.ptr(pos), ts3.traverseBuf.length()-pos, ",",0,0,true,true,true, true);
 
         const char * result00 = taxbuf.ptr(0);
         taxParent->addString(result00);
@@ -231,7 +223,7 @@ const char * sTaxIon::getParentTaxIds(const char * taxlist, sStr *taxParent, sSt
     return taxbuf.ptr(0);
 }
 
-bool sTaxIon::filterbyParent (idx taxPar, idx taxid, sStr *path, bool taxidOnly)
+bool sTaxIon::filterbyParent (idx taxPar, idx taxid, sStr *path, bool taxidOnly, const char *fieldSeparator, const char * recordSeparator)
 {
     sStr taxParent, taxCurrent;
     idx taxId;
@@ -247,9 +239,12 @@ bool sTaxIon::filterbyParent (idx taxPar, idx taxid, sStr *path, bool taxidOnly)
                 path->add0();
             }
             else {
-                const char *info = getTaxIdInfo(taxCurrent.ptr(), taxCurrent.length());
+                const char *info = getTaxIdInfo(taxCurrent.ptr(), taxCurrent.length(), fieldSeparator);
                 path->addString(info);
-                path->add0();//("\n", 1);
+                if(recordSeparator)
+                    path->addString(recordSeparator);
+                else
+                    path->add0();
             }
         }
         if (taxId == taxPar){
@@ -261,6 +256,37 @@ bool sTaxIon::filterbyParent (idx taxPar, idx taxid, sStr *path, bool taxidOnly)
 
     return false;
 }
+
+idx sTaxIon::filterByRank(sStr *dstTax, const char * srcTax, const char * requiredRank)
+{
+    idx taxId;
+    if(strcmp(requiredRank, "leaf") == 0){
+        dstTax->addString(srcTax);
+        taxId = atoidx((const char *)srcTax);
+        if (taxId < 0){
+            dstTax->printf(0,"NO_INFO");
+            taxId = 0;
+        }
+        return taxId;
+    }
+    sStr taxParent, taxRank, taxCurrent;
+    taxCurrent.addString(srcTax);
+    do{
+        taxParent.cut(0);
+        taxRank.cut(0);
+        getParentTaxIds(taxCurrent, &taxParent, &taxRank);
+        taxId = atoidx((const char *)taxCurrent.ptr());
+        if (taxParent.length() && (strcmp (taxRank.ptr(), requiredRank) == 0)){
+            dstTax->addString(taxCurrent);
+            return taxId;
+        }
+        taxCurrent.printf(0,"%s", taxParent.ptr());
+    }while (taxId > 1);
+
+    dstTax->printf(0,"NO_INFO");
+    return 0;
+}
+
 const char * sTaxIon::getTaxIdsByRankandAcc(const char * acclist, const char * rank )
 {
     sStr trbuf;
@@ -306,6 +332,7 @@ const char * sTaxIon::getTaxIdsByName (const char *name, idx limit, sStr *taxRes
 
     if (taxResults00 && ts.traverseBuf.length()){
         taxResults00->add(ts.traverseBuf.ptr(0), ts.traverseBuf.length());
+        taxResults00->add0cut(2);
     }
     return ts.traverseBuf.ptr(0);
 
@@ -313,32 +340,38 @@ const char * sTaxIon::getTaxIdsByName (const char *name, idx limit, sStr *taxRes
 
 const char *sTaxIon::extractTaxIDfromSeqID(sStr *taxid, sStr *ginum, sStr *accnum, const char *seqid, idx seqlen, const char *defaultStr)
 {
-    idx initaccpos = accnum->length();
-    bool isValid = sString::extractNCBIInfoSeqID(ginum, accnum, seqid, seqlen);
+    lbuf.cut(0);
+    bool isValid = sString::extractNCBIInfoSeqID(ginum, &lbuf, seqid, seqlen);
     const char *tid = 0;
-    bool isAccnum = (accnum->length() - initaccpos != 0) ? true : false;
+    bool isAccnum = (lbuf.length()) ? true : false;
 
     if( isValid ) {
         if( isAccnum ) {
-            // We found accession number
-            tid = taxid->addString(getTaxIdsByAccession(accnum->ptr(initaccpos)));
+            tid = taxid->addString(getTaxIdsByAccession(lbuf.ptr()));
         }
     }
     if( !(tid && *tid) && defaultStr ) {
-        ginum->addString(defaultStr);
-        accnum->addString(defaultStr);
+        if (ginum){
+            ginum->addString(defaultStr);
+        }
+        if (!isAccnum){
+            lbuf.addString(defaultStr);
+        }
         tid = taxid->addString(defaultStr);
     }
 
+    if (accnum){
+        accnum->add(lbuf.ptr(), lbuf.length());
+    }
     return tid;
 }
 
-// taxid,parent,rank,name,childrenCnt
-const char *sTaxIon::getTaxIdInfo (const char *taxid, idx taxidlen)
+const char *sTaxIon::getTaxIdInfo (const char *taxid, idx taxidlen, const char *fieldSeparator )
 {
     if (!taxidlen){
         taxidlen = sLen(taxid);
     }
+    ts4.traverseFieldSeparator = fieldSeparator;
     ts4.traverseBuf.cut0cut(0);
     argT4[0]=sConvPtr2Int(taxid);
     argT4[1]=taxidlen;
@@ -356,7 +389,6 @@ idx sTaxIon::dnaScreeningGItoAcc(sStr &out, const char *src)
     srcTable.parse();
 
     idx cols = srcTable.cols();
-    // Copy the first row with headers (skipping the first column)
     out.cut(0);
     srcTable.printCSV(out,0,1,0,cols,true);
 

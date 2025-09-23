@@ -58,35 +58,30 @@ vjHO.register('svc-tnseq').Constructor=function ()
         formObject:document.forms[formName]
     });
     
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         var id = docLocValue("id");
-        vjDS.add("", "dsTNseq", "qpbg_tblqryx4://tnseq.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200&objs="+id);
-        vjDS.add("", "dsTNseqGeneInfo", "qpbg_tblqryx4://geneSpecInfo.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200&objs="+id);
+        vjDS.add("", "dsTNseq", "qpbg_tblqryx4:
+        vjDS.add("", "dsTNseqGeneInfo", "qpbg_tblqryx4:
         
-        // coverage
-        vjDS.add("", "dsCovHeatmapData", "qpbg_tblqryx4://cov_heatMapData.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200&objs="+id);
-        vjDS.add("", "dsCovHeatmapMap", "qpbg_tblqryx4://cov_heatMap.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200&objs="+id);
+        vjDS.add("", "dsCovHeatmapData", "qpbg_tblqryx4:
+        vjDS.add("", "dsCovHeatmapMap", "qpbg_tblqryx4:
         
-        vjDS.add("","dsCovHeatmapLeft","http://?cmd=objFile&ids="+id+"&filename=cov_horizontal.tre");
-        vjDS.add("","dsCovHeatmapTop","http://?cmd=objFile&ids="+id+"&filename=cov_vertical.tre");
+        vjDS.add("","dsCovHeatmapLeft","http:
+        vjDS.add("","dsCovHeatmapTop","http:
         
-        // insert
-        vjDS.add("", "dsInsHeatmapData", "qpbg_tblqryx4://ins_heatMapData.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200&objs="+id);
-        vjDS.add("", "dsInsHeatmapMap", "qpbg_tblqryx4://ins_heatMap.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200&objs="+id);
+        vjDS.add("", "dsInsHeatmapData", "qpbg_tblqryx4:
+        vjDS.add("", "dsInsHeatmapMap", "qpbg_tblqryx4:
         
-        vjDS.add("","dsInsHeatmapLeft","http://?cmd=objFile&ids="+id+"&filename=ins_horizontal.tre");
-        vjDS.add("","dsInsHeatmapTop","http://?cmd=objFile&ids="+id+"&filename=ins_vertical.tre");
+        vjDS.add("","dsInsHeatmapLeft","http:
+        vjDS.add("","dsInsHeatmapTop","http:
 
         
-        // var overall_link = "?cmd=objFile&ids=" + thisProcessID ;
         
         function createHeatMapPlot(heatMap_DS, leftTree_DS, topTree_DS) {
             
             var heatMapPlot = new vjSVG_HeatMap({
                 color: {min: "blue", max: "#ffc200", mid:"white"},
-                //heat_image_url: "http://?cmd=objFile&ids="+id+"&filename=heatmap.png",
                 heat_image_min_cells: 10000
             });
             
@@ -115,7 +110,6 @@ vjHO.register('svc-tnseq').Constructor=function ()
             return heatMapPlot;
         }
         
-        // Coverage HeatMap
         var myCovHeatmapPlot = createHeatMapPlot("dsCovHeatmapMap", "dsCovHeatmapLeft","dsCovHeatmapTop");
         
         var myCovHeatmapViewer = new vjSVGView({
@@ -130,7 +124,6 @@ vjHO.register('svc-tnseq').Constructor=function ()
             formObject:document.forms[formName]
         });
         
-        // Insert HeatMap
         var myInsHeatmapPlot = createHeatMapPlot("dsInsHeatmapMap", "dsInsHeatmapLeft","dsInsHeatmapTop");
         
         var myInsHeatmapViewer = new vjSVGView({
@@ -145,7 +138,6 @@ vjHO.register('svc-tnseq').Constructor=function ()
             formObject:document.forms[formName]
         });
         
-        // 
         var filesStructureToAdd = [
            {
                 tabId: 'resultTable',
@@ -171,8 +163,7 @@ vjHO.register('svc-tnseq').Constructor=function ()
                 position: {posId: 'resultsTable', top:'0%', bottom:'100%', left:'20%', right:'100%'},
                 viewerConstructor: {
                     instance: [myCovHeatmapViewer,cov_table]
-                }/*,
-                  autoOpen: ["computed"]*/
+                }
             },
             {
                 tabId: 'insTable',
@@ -180,8 +171,7 @@ vjHO.register('svc-tnseq').Constructor=function ()
                 position: {posId: 'resultsTable', top:'0%', bottom:'100%', left:'20%', right:'100%'},
                 viewerConstructor: {
                     instance: [myInsHeatmapViewer,ins_table]
-                }/*,
-                  autoOpen: ["computed"]*/
+                }
             }
            ];
         

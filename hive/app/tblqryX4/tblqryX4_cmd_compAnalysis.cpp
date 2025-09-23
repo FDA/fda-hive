@@ -103,7 +103,7 @@ bool CompAnalysisCommand::compute(sTabular * tbl)
     if (patientCol == -sIdxMax || posCol == -sIdxMax || compCol == -sIdxMax || visitCol == -sIdxMax || refCol == -sIdxMax || subCol == -sIdxMax || frequencyCol == -sIdxMax)
         return tbl;
 
-    sDic < sVec <compRows> > posToFinalRow; // this vector will map the position (from the table) to the row it is in
+    sDic < sVec <compRows> > posToFinalRow;
 
 
     for (idx r = 0; r < tbl->rows(); r++)
@@ -122,12 +122,10 @@ bool CompAnalysisCommand::compute(sTabular * tbl)
         originalMapping[patient.ptr()][position.ptr()][company.ptr()][size] = r;
     }
 
-    //iterating over patients
     for (idx p = 0; p < originalMapping.dim(); p++)
     {
         const char * pat = static_cast <const char *> (originalMapping.id(p));
 
-        //iterating over positions
         for (idx po = 0; po < originalMapping[pat].dim(); po++)
         {
             const char * pos = static_cast <const char *> (originalMapping[pat].id(po));
@@ -137,7 +135,6 @@ bool CompAnalysisCommand::compute(sTabular * tbl)
             idx howManyCompaniesInThisPos=0;
             idx iPrevComp=-1;
 
-            //iterating over companies
             for (idx c = 0; c < originalMapping[pat][pos].dim(); c++)
             {
                 const char * comp = static_cast <const char *> (originalMapping[pat][pos].id(c));
@@ -155,29 +152,17 @@ bool CompAnalysisCommand::compute(sTabular * tbl)
                     {
                         baselineRow = originalMapping[pat][pos][comp][i];
                         baselineFreq += tbl->rval(baselineRow, frequencyCol);
-                        //break;
                     }
                 }
 
-                //real baselineFreq = 0;
-                //if (baselineRow > -1)
-                //    baselineFreq = tbl->rval(baselineRow, frequencyCol);
 
 
-                //real maxDelta = -sIdxMax;
-                //idx row = -1;
 
                 for (idx i = 0 ; i < originalMapping[pat][pos][comp].dim(); i++)
                 {
                     real tempDelta = tbl->rval(originalMapping[pat][pos][comp][i],frequencyCol) - baselineFreq;
 
-                    //if (tempDelta > maxDelta)
-                    //{
-                    //    maxDelta = tempDelta;
-                    //    row = i;
-                    //}
 
-                    //if (maxDelta > 0.1)
                     if( tempDelta > 0.1)
                     {
                         tmp.cut(0);
@@ -201,13 +186,6 @@ bool CompAnalysisCommand::compute(sTabular * tbl)
                 }
             }
 
-            /*
-            if (comp_analysis->multipleMethods || (toAdd.rowGil > -1 && toAdd.rowPvd75 > -1) ||
-                (toAdd.rowGil > -1 && toAdd.rowQbvd > -1) ||
-                (toAdd.rowPvd75 > -1 && toAdd.rowQbvd > -1) ||
-                (toAdd.rowPvd75 > -1 && toAdd.rowHIVE > -1) ||
-                (toAdd.rowGil > -1 && toAdd.rowHIVE > -1) ||
-                (toAdd.rowGil > -1 && toAdd.rowHIVE > -1))*/
             if (multipleMethods || howManyCompaniesInThisPos>= algoToReport)
             {
                 idx size = posToFinalRow[pos].dim();

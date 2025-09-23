@@ -28,12 +28,17 @@
 # * DEALINGS IN THE SOFTWARE.
 # */
 
-PROGRAMS += dmAnnot
+PROGRAMS += dmAnnot sVioTest genbankParserL #sVioAnnotCGI 
 
 PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
 dmAnnot_SRCS = dmAnnot.cpp
+
+genbankParserL_SRCS = genbankParser_L.cpp
+
+sVioTest_SRCS = sVio_test.cpp
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)

@@ -78,8 +78,8 @@ class sVioDB
         sDic <idx> Rank;
 
         struct TypeList{
-            idx ctype;           //type
-            idx cnt, ofs, relCnt, bodyofs,bodyCnt,tnameOfs, tnameSizeOrHash,index;//relCnt=relation for each type; cnt=each type has how many records; ofs=type begin
+            idx ctype;
+            idx cnt, ofs, relCnt, bodyofs,bodyCnt,tnameOfs, tnameSizeOrHash,index;
             RLST rels[1];        
         };
         struct RecordType{
@@ -146,17 +146,13 @@ class sVioDB
             filenamebuf.printf(0,"%s_hash",filename.ptr());
             if(cntTypeObj && maxRel){
                 arr.cut(0);
-                //idx len=sLen(FileFlag);
                 arr.add(spaceForFlags);
                 char * space=(char *)(arr.ptr(1));
                 strcpy(space,vioDBFileMarker);
                 if(FileFlag)strncpy(space+sLen(vioDBFileMarker),FileFlag,(spaceForFlags-1)*sizeof(idx)-sLen(vioDBFileMarker));
-                //if(0 < len && len < (idx)(spaceForFlags*sizeof(idx)) )
-                //    strcat((char *)(arr.add(spaceForFlags)+1),FileFlag);
-                //else strcpy((char *)(arr.add(spaceForFlags)+1),"UnknownFileFlag");
                 arr.add(12);
-                *arr.ptr(pointerForCntType)=cntTypeObj;//Here we store how many data type we have in our file format
-                *arr.ptr(pointerForMaxRel)=maxRel;//Here we store how many data type we have in our file format
+                *arr.ptr(pointerForCntType)=cntTypeObj;
+                *arr.ptr(pointerForMaxRel)=maxRel;
 
                 sFile::remove(filenamebuf);
                 hashTable.init(filenamebuf,sMex::fSetZero|sMex::fBlockDoubling);
@@ -165,8 +161,8 @@ class sVioDB
                 if(!arr.dim())
                     return 0;
 
-                if(!arr[0]) // we will be lazy here and not map hashtable until needed
-                    ;// hashTable.init(filenamebuf,fileOpenMode);
+                if(!arr[0])
+                    ;
                 else{
                     if(arr.ptr(pointerForMapSize)&&arr.ptr(pointerForMapOfs)&&arr[pointerForMapSize]&&arr[pointerForMapOfs]){
                         hashTable.hashPtr=(sHash::HashRecord *)arr.ptr(*arr.ptr(pointerForMapOfs));
@@ -210,20 +206,14 @@ class sVioDB
         idx GetRecordIndexByBody(const void * body, idx typeIndexOneBased, idx bodysize=0);
         
           bool AllocRelation();
-          bool AddRelation(idx typeIndexOneBased_from, idx typeIndexOneBased_to, idx reocrdIndexOneBased_from, idx recordIndexOneBased_to);//,idx relationIndexOneBased_to);
+          bool AddRelation(idx typeIndexOneBased_from, idx typeIndexOneBased_to, idx reocrdIndexOneBased_from, idx recordIndexOneBased_to);
           bool Finalize(bool ifGlueTheFile=false);
-       // static bool JoinVioDBFiles(const char * fileFrom=0, const char * fileTo=0, bool ifGlueTheFile=false);
-        // how many types of data are in this vioDB: example: taxids, names, ranks 
         idx GetTypeCnt();
-        // how many records does this type have 
         idx GetRecordCnt(idx typeIndexOneBased);
-        // how many relations of which kind does this particular record GetRelationCnt(taxid , recrodnumer, 1); 1 being theparent child relation for example
         idx GetRelationCnt(idx typeIndexOneBased, idx recordIndexOneBased, idx relationIndexOneBased);
           
-        // retrieve the body of a record of a sepcified type 
         void * Getbody(idx typeIndexOneBased, idx recordIndexOneBased, idx * bodysize=0);
 
-        // return the list of relationships of a particular record 
         idx * GetRelationPtr(idx typeIndexOneBased, idx recordIndexOneBased, idx relationIndexOneBased, idx * relationCnt=0, idx * relationTypeIndex=0);
 
         static void * getRecordFunction(sVioDB * db, idx typeindex, idx recordindex,idx * sizeKey)

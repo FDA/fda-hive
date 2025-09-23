@@ -33,8 +33,8 @@ DROP TABLE IF EXISTS `QPResource`;
 CREATE TABLE `QPResource` (
   `svcName` varchar(127) NOT NULL,
   `dataName` varchar(256) NOT NULL,
-  `dataBlob` longblob,
-  `permID` bigint(20) NOT NULL DEFAULT '0',
-  `modTm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `dataBlob` longblob DEFAULT NULL,
+  `permID` bigint(20) NOT NULL DEFAULT 0,
+  `modTm` timestamp NOT NULL DEFAULT current_timestamp(),
   KEY `qpdresource_svcresource` (`svcName`,`dataName`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

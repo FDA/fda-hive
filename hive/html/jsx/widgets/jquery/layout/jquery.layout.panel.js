@@ -57,7 +57,6 @@ $(function () {
                     .layoutmanager();
             }
 
-            //    in case if layout manager placed inside the panel we have to notify it about area resize...
             this.element.on('area-resize', function (event, params) {
                 if (oThis.infobox.is('div.layout-manager') || $('div.layout-manager', oThis.infobox).length > 0) {
                     var area = null; 
@@ -94,8 +93,6 @@ $(function () {
             var viewArea = $('.view-area:first', this.element);
 
             viewArea.on('area-resize-move', function (event) {
-                //    if panael contains layout manager inside and if the areas inside 
-                //    are resized we must stop event propagation here
                 event.stopPropagation();
             });
 
@@ -116,12 +113,10 @@ $(function () {
                 $(this.element).trigger('panel-create', params);
             }
             else {
-                // Invoke the parent widget's sendEvent().
                 this._super(name, params);
             }
         },
 
-        //    Save config information in order to reproduse the same Tabs infobos later on the fly
         save: function () {
             var oThis = this;
 
@@ -136,11 +131,9 @@ $(function () {
             var viewArea = $('div.view-area', this.element).first();
 
             if (viewArea.children().length == 1 && viewArea.children().first().is('div.layout-manager')) {
-                //  layout manager inside panel...
                 $.extend(config, viewArea.children().first().layoutmanager('save'));
             }
             else {
-                //  regular view inside panel...
                 if (viewArea.is('[data-jquery-widget]')) {
                     config.view = {
                         name: viewArea.data('jquery-widget')

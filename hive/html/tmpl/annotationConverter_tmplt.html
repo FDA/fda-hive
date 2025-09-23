@@ -43,7 +43,7 @@ vim: set et ts=4 sts=4:
     
     setLocationTitle(anotConvPage.title);
 
-    // Determine which parameters will be visible (name field from the database, table: UPTypeFiled under annotation converter object [id = 100])
+    // Determine which parameters will be visible (name field from the database, table: under annotation converter type [id = 100])
     // Also can include inherited fields
 
     vjDS.add("...", "dsExtension", "static://");
@@ -90,12 +90,12 @@ vim: set et ts=4 sts=4:
       }];
       
      
-    anotConvPage.activateSubmitButton = function (showSubmitButton) {
-        var submitInputDom =  gObject("submitterInput"); // activateSubmitButton is not defined in new interface => need to manually do that :(
+/*     anotConvPage.activateSubmitButton = function (showSubmitButton) {
+        var submitInputDom =  $(".submitterInput"); // activateSubmitButton is not defined in new interface => need to manually do that :(
         if (submitInputDom) {
             submitInputDom.style.visibility = showSubmitButton ? ("visible") : ("hidden"); 
         }
-    }
+    } */
     
     anotConvPage.analyzeExtension = function(extension){
         var realExt  = extension.toLowerCase();
@@ -118,7 +118,7 @@ vim: set et ts=4 sts=4:
         var fn = "_." + this.extension;
         var cmtPrefix = ignoreComment ? "&commentPrefix=%23" : "";
         
-        url = engine + fn + "//objs=" + objectid + colsep +"&parseCnt=" + count + cmtPrefix;
+        url = engine + fn + "//objs=" + objectid + colsep +"&cnt=20&parseCnt=" + count + cmtPrefix;
         
         return url;
     }
@@ -355,7 +355,7 @@ vim: set et ts=4 sts=4:
                 break;
             }
         }
-        this.activateSubmitButton(showSubmitButton);
+        algoProcess.activateSubmitButton(showSubmitButton);
         //algoProcess.activateSubmitButton(showSubmitButton);
     }
 
@@ -371,7 +371,7 @@ vim: set et ts=4 sts=4:
         } else if (algoProcess.loadedID  /* && algoProcess.modeActive */) {
             this.process_inputChanged(rViewer);
         } else {
-            this.activateSubmitButton(false);
+            algoProcess.activateSubmitButton(false);
         }
         return;
     }
@@ -568,8 +568,8 @@ vim: set et ts=4 sts=4:
                                         name : 'search',
                                         align : 'left',
                                         order : 10,
-                                        isSubmitable : true,
-                                        prohibit_new : true
+                                        isSubmitable : true
+                                        //prohibit_new : true
                                     } ]
                         })
                 if (i > tabArr.length-1)
@@ -610,8 +610,8 @@ vim: set et ts=4 sts=4:
         this.algoProcess.setValue("submitOptions", opt);
     }
     
-    $(document).ready(function() 
-    {
+    gInitList += "annotConvInit();";
+    function annotConvInit () {
         // Start Drawing stuff
         globalAlgo = $('#mainAlgoArea').algoview({
             algoObj: algoProcess,
@@ -623,6 +623,6 @@ vim: set et ts=4 sts=4:
         (function() {
             anotConvPage.recordV = vjDV[algoProcess.recViewerName]
         })();
-     });
+     };
 </script>
 

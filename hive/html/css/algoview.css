@@ -29,29 +29,33 @@
  */
 
 .myButton {
-    background:#fff;
-    -moz-border-radius:6px;
-    -webkit-border-radius:6px;
-    border-radius:2px;
-    border:4px solid #0d47a1;
+    background:rgba(2, 117, 216, 0.88);;
+    -moz-border-radius:20px;
+    -webkit-border-radius:20px;
+    border-radius:20x;
+    border:2px solid #0275d8;
     cursor:pointer;
-    color:#0d47a1;
-    font-family:Century Gothic;
-    font-size:20px;
-    font-weight: bolder;
-    padding:6px 24px;
+/*    color:#0275d8;*/
+    color:#fff;
+    font-size:15px;
+    font-weight: 400;
+    padding:4px 24px;
     text-decoration:none;
     display: block;
     margin: 0 auto;
     margin-top: 20px;
+    box-shadow: 0px 2px 6px rgba(67, 83, 103, 0.58);
 }
 
 .myButton:hover {
     background: #1976d2;
-    color:#fff
+    color:#fff;
+    box-shadow: 0px 2px 6px rgba(67, 83, 103, 0.58);
 }
 
-.myButton:active {
-    position:relative;
-    top:1px;
+.myButton:active,.myButton:focus {
+    outline: none;
+    box-shadow: 0px 1px 2px rgba(67, 83, 103, 0.85);
+/*    position:relative;*/
+/*    top:1px;*/
 }

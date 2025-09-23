@@ -38,26 +38,21 @@
 namespace slib
 {
 
-    /*! \brief Read-only iterator that iterates over other iterators: first, over the data pointed by the first iterator, then over the data pointed by the second iterator, etc.
-     * Any invalid iterators are silently skipped over.
-     * \tparam Tdata Type iterated over by Titer; assumed to be a built-in type or a small struct that is cheap to allocate
-     * \tparam Titer Must be a subclass of sIter<Tdata> */
     template <class Tdata, class Titer>
     class sIterIter : public sIter<Tdata, sIterIter<Tdata, Titer> >
     {
     protected:
         const Titer *_iters;
-        idx _niters; //!< number of _iters
-        Titer _iter; //!< current iterator; cloned from _iters[_iiter], but may point to a different location in _iter[_iiter]'s buffer
-        idx _iiter; //!< index of _iter's original in _iters
-        idx _pos; //!<synthesize from pos() of _iters
-        bool _segmented; //!<moving to next element of _iters increments segment()
-        idx _segment; //!<synthesize from segment() of _iters
+        idx _niters;
+        Titer _iter;
+        idx _iiter;
+        idx _pos;
+        bool _segmented;
+        idx _segment;
 
         idx nextValidIter(idx iiter)
         {
             for (idx i=sMax<idx>(0, iiter); i<_niters; i++) {
-                // avoid calling valid() on original _iters[i] for const-correctness
                 Titer it(_iters[i]);
                 if (it.valid())
                     return i;
@@ -75,9 +70,6 @@ namespace slib
         inline idx pos_impl() const { return _pos; }
         inline idx segment_impl() const { return _segment; }
         inline idx segmentPos_impl() const { return _iter.segmentPos(); }
-        /*! \param iters array of sub-iterators
-         * \param niters number of \a iters
-         * \param segmented whether moving to the next sub-iterator should always increment the current segment */
         sIterIter<Tdata,Titer>(const Titer *iters = NULL, idx niters = 0, bool segmented=true): _iters(iters), _niters(niters), _segmented(segmented)
         {
             _iiter = nextValidIter(0);
@@ -100,7 +92,7 @@ namespace slib
                 if ((_iiter = nextValidIter(_iiter+1)) < _niters) {
                     _iter.releaseData();
                     _iter = _iters[_iiter];
-                    _iter.requestData(); // to ensure that _iter's segment information is correct!
+                    _iter.requestData();
                     if (_segmented || _iter.segment() != iterSegmentPrev)
                         _segment++;
                 }
@@ -130,14 +122,9 @@ namespace slib
         }
     };
 
-    // forward declare
     template <class Tdata, class Titer>
     class sIterPair;
 
-    /*! \brief Read-only iterator that iterates over a bundle of iterators in parallel, synchronized on segments, and fills in
-     *  missing values if its component iterators are sparse with different gaps.
-     * \tparam Tdata Type iterated over by Titer; assumed to be a built-in type or a small struct that is cheap to allocate
-     * \tparam Titer Must be a subclass of sIter<Tdata> */
     template <class Tdata, class Titer>
     class sIterBundle : public sIter<const Tdata*, sIterBundle<Tdata, Titer> >
     {
@@ -164,15 +151,14 @@ namespace slib
 
         sVec<Titer> _iters;
         sVec<bool> _is_incremented;
-        idx _niters; //!< number of _iters
-        Tdata _default; //!< default value
+        idx _niters;
+        Tdata _default;
         sVec<Tdata> _val;
-        idx _nvalid; //!< numer of _iters which are valid
+        idx _nvalid;
         idx _pos;
-        sMinHeap<TSegCoord> _segCoordHeap; //<! segment() and segmentPos() of _iters
+        sMinHeap<TSegCoord> _segCoordHeap;
         bool _eof;
 
-        // Note: needs to call valid() on each _iters element to make sure they all have data requested
         inline void fillVal()
         {
             TSegCoord minSegCoord = _segCoordHeap.peekValue();
@@ -190,14 +176,10 @@ namespace slib
         void incrementMin()
         {
             TSegCoord segCoord, minSegCoord = _segCoordHeap.peekValue();
-            // increment valid subiters whose seg/posd equals the current minimum
             memset(_is_incremented.ptr(), 0, _niters * sizeof(bool));
             for (idx ii=0; minSegCoord == _segCoordHeap.peekValue() && ii<_niters; ii++) {
-                // ii is not used, and just guarantees that the loop terminates
                 idx i = _segCoordHeap.peekIndex();
                 if (_iters[i].valid()) {
-                    // if we have already incremented iter i during this incrementMin() call, it means
-                    // remaining iters are invalid/uninitialized - so we should stop
                     if (_is_incremented[i]) {
                         break;
                     }
@@ -269,10 +251,6 @@ namespace slib
         inline const Tdata* dereference_impl() const { return _val.ptr(); }
     };
 
-    /*! \brief Read-only iterator that iterates over a pair of iterators in parallel, synchronized on segments, and fills in
-     *  missing values if its component iterators are sparse with different gaps.
-     * \tparam Tdata Type iterated over by Titer; assumed to be a built-in type or a small struct that is cheap to allocate
-     * \tparam Titer Must be a subclass of sIter<Tdata> */
     template <class Tdata, class Titer>
     class sIterPair : public sIter<const Tdata*, sIterPair<Tdata, Titer> >
     {
@@ -280,15 +258,14 @@ namespace slib
         typedef typename sIterBundle<Tdata, Titer>::TSegCoord TSegCoord;
 
         Titer _iters[2];
-        Tdata _default; //!< default value
+        Tdata _default;
         Tdata _val[2];
-        idx _nvalid; //!< numer of _iters which are valid
+        idx _nvalid;
         idx _pos;
-        TSegCoord _segCoords[2]; //<! segment() and segmentPos() of _iters
+        TSegCoord _segCoords[2];
 
         inline const TSegCoord & getMinSegCoord() const { return _segCoords[0] <= _segCoords[1] ? _segCoords[0] : _segCoords[1]; }
 
-        // Note: needs to call valid() on each _iters element to make sure they all have data requested
         inline void fillVal()
         {
             const TSegCoord & minSegCoord = getMinSegCoord();

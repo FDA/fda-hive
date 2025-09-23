@@ -28,33 +28,26 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-//http://codepen.io/hayatbiralem/pen/KpzjOL
-//Link for an option for hiding tabs that don't fit in the tab pane
 (function ($) {
     $.widget("layout.layoutmanager", {
 
         options: {
-            type: 'flex',                  //  vertical,
-                                        //    horizontal,
-                                        //    flex,
-                                        //    stack - http://wpftutorial.net/StackPanel.html
-                                        //    dock - http://wpftutorial.net/DockPanel.html - NOT IMPLEMENTED YET!!!
-            orientation: 'vertical',    //    currently used for stack only
+            type: 'flex',
+            orientation: 'vertical',
             saveState: false,
             resizable: false,
             config: null,
             bind: null,
-            border: 'all',                //    all, none, between
-            margin: 'all',              //  all, none, outside, between
-            //overflow: 'hidden',
-            allowResize: true,        //    is it allow to resize frames inside layout or not
-            roundup: 20
+            border: 'all',
+            margin: 'all',
+            allowResize: true,
+            roundup: 20,
+            allGrids:{}
         },
 
         _create: function () {
             var oThis = this;
 
-            //    list of resized areas during onResize event in order do not resize areas twice. 
             this.resizedAreas = [];
 
             this._onBeforeInit();
@@ -75,25 +68,30 @@
                 this.element.parent().css({ overflow: 'hidden' });
             }
 
-            //   we have to check that 'area' widget is applied to the element and if not - apply it
+            this.areaWid = this.options.layoutType != "gridstackArea" ? "area" : "gridstackArea";
+                
             if (!this.element.is('.layout-area')) {
-                this.element.area({
+                this.element[this.areaWid]({
                     rect: {
                         top: 0,
                         left: 0,
                         right: this.element.parent().outerWidth(),
                         bottom: this.element.parent().outerHeight()
                     },
-                    resizable: false    //  we cannot resize top level layout manager...
+                    resizable: false
                 });
             }
 
-            this.area = this.element.area('instance');
+            this.area = this.element[this.areaWid]('instance');
 
             this.element.on('area-resize', function (event, params) {
                 if ($(event.target).is(this)) {
                     $(this).children('div.layout-area').each(function () {
-                        var area = $(this).area('instance');
+                        var areaWid = "area";
+                        if ($(this).hasClass("layout-gridArea"))
+                            areaWid = "gridstackArea";
+                        
+                        var area = $(this)[areaWid]('instance');
                         area.setRect(oThis.calculateAreaRect(this));
                         area.sendEvent('area-resize');
                     });
@@ -105,7 +103,11 @@
             this.element.on('area-resize-stop', function (event, params) {
                 if ($(event.target).is(this)) {
                     $(this).children('div.layout-area').each(function () {
-                        var area = $(this).area('instance');
+                        var areaWid = "area";
+                        if ($(this).hasClass("layout-gridArea"))
+                            areaWid = "gridstackArea";
+                        
+                        var area = $(this)[areaWid]('instance');
                         area.sendEvent('area-resize-stop');
                     });
                 }
@@ -133,7 +135,6 @@
                         return $(elem).is('.layout-infobox .nav-tabs > li.ui-draggable');
                     },
                     drop: function (event, ui) {
-                        //  calculate new infobox's position...
                         var parentPos = $(ui.draggable).closest('div.layout-area').position();
                         var position = $(ui.draggable).position();
                         position.left += parentPos.left;
@@ -167,14 +168,13 @@
 
                 $(this.element).on('split-area', function (event, params) {
                     if (params.direction == 'center') {
-                        //  if we were dragging tab...
                         if ($(params.ui.helper).is('.layout-infobox-tabs .nav-tabs > li')) {
                             $(params.area).infoboxtabs('moveTab', params.ui.draggable);
                         }
                     }
                     else {
-                        //  calculate new infobox's position...
-                        var area = params.area.area('instance');
+                        if(!this.areaWid) this.areaWid = "area";
+                        var area = params.area[this.areaWid]('instance');
                         var infobox = params.infobox.infoboxtabs('instance');
                         var rect = area.getRect();
 
@@ -280,7 +280,6 @@
                     console.log('ERROR: layout Id must be specified in order to use save state mode! Please assign unique Id to the layout manager!');
 
                 this.element.on('state-changed', function () {
-                    //  save layout config to storage...
                     var config = oThis.save();
                     $.localStorage.set(id + '-layout', config);
                 });
@@ -288,7 +287,6 @@
 
             if (this.options.config) {
                 if (this.options.saveState) {
-                    //  try to load layout config from storage...
                     var id = this.element.attr('id');
                     var config = $.localStorage.get(id + '-layout');
                     if (config)
@@ -306,10 +304,24 @@
             else {
                 this._initChildren();
             }
+
+            
+            $(".tab-pane").css("overflow", "");
+            $(".tab-pane").css("overflow-y", "auto");
+            $(".tab-pane").css("overflow-x", "auto");
+            
+            for (var key in oThis.options.allGrids){
+                oThis.options.allGrids[key].appendAll(oThis);
+            }
+            
+            if ($(this.element).data("layout-gridstackArea"))
+                $(this.element).data("layout-gridstackArea").appendAll(oThis);
             
             this._onAfterInit();
             if (this.options._onAfterInit)
                 this.options._onAfterInit();
+            if (vjDSNew)
+                vjDSNew.loadAll();
         },
 
         isHorizontalLayout: function() {
@@ -328,14 +340,14 @@
             return this.options.type == 'stack';
         },
         
+        isGridLayout: function() {
+            return this.options.type == 'gridstack';
+        },
+        
         _onBeforeInit: function() {
-            /* override this function if you want to do anything 
-             * before init layout manager, generate config for example */
         },
 
         _onAfterInit: function() {
-            /* override this function if you want to do anything 
-             * after init layout manager*/
         },
 
         _recalculateSizes: function() {
@@ -343,10 +355,10 @@
 
             if(this.isStackLayout()) {
                 this.element.children('div.layout-area:not(.hidden)').each(function(index, area) {
-                    var rect = $(area).area('getRect');
+                    var rect = $(area)[this.areaWid]('getRect');
                     
                     if(index == 0) {
-                        $(area).area('setRect', {
+                        $(area)[this.areaWid]('setRect', {
                             top: 0,
                             left: oThis._round(rect.left, oThis.element.width()),
                             right: oThis._round(rect.right, oThis.element.width()),
@@ -355,21 +367,16 @@
                     }
                     else {
                         var prevArea = $(area).prevAll('div.layout-area:not(.hidden):first');
-                        var prevRect = $(prevArea).area('getRect');
+                        var prevRect = $(prevArea)[this.areaWid]('getRect');
                         
-                        $(area).area('setRect', {
+                        $(area)[this.areaWid]('setRect', {
                             top: oThis._round(prevRect.bottom),
                             left: oThis._round(rect.left, oThis.element.width()),
                             right: oThis._round(rect.right, oThis.element.width()),
                             bottom: oThis._round(prevRect.bottom) + oThis._round(rect.bottom - rect.top)
                         });
                     }
-                    //var area = $(this).area('instance');
-                    //var newRect = oThis.calculateAreaRect(this);
-                    //area.setRect(newRect);
     
-                    //area.sendEvent('area-resize');
-                    //area.sendEvent('area-resize-stop');
                 });
             }
             else {
@@ -394,7 +401,7 @@
                 });
     
                 this.element.children('div.layout-area').each(function() {
-                    var area = $(this).area('instance');
+                    var area = $(this)[this.areaWid]('instance');
                     var newRect = oThis.calculateAreaRect(this);
                     area.setRect(newRect);
     
@@ -405,7 +412,6 @@
         },
         
         _loadOptions: function () {
-            //  load options from HTML data attributes...
             if ($(this.element).is('[data-layout-manager]'))
                 this.options.type = $(this.element).data('layout-manager');
 
@@ -428,12 +434,10 @@
         _initChildren: function () {
             var oThis = this;
 
-            //    general initialization is finished and we are ready to start init internal infoboxes...
-            this.element.children('div[data-layout~="infobox"][data-init!=1], div[data-layout~="manager"]').each(function () {
+            this.element.find('div[data-layout~="infobox"][data-init!=1], div[data-layout~="manager"]').each(function () {
                 oThis._initChild(this);
             });
 
-            //    send event that we are ready to initiate widgets...
             $.unique($('div[data-need-init-widget=1]', this.element).closest('div.layout-infobox')).each(function() {
                 $(this).trigger('init-widgets');
             });
@@ -441,7 +445,7 @@
             this.findNeighbours();
         },
 
-        _initChild: function (area) {
+        _initChild: function (area, otherOptions) {
             var oThis = this;
 
             if(this.isStackLayout()) {
@@ -454,19 +458,23 @@
             var options = parseInfoboxOptions(area);
 
             options.rect = oThis.calculateAreaRect(area);
+            options.dragTab = this.options.dragTab;
+            $.extend(options, otherOptions);
 
-            $(area).area(options);
+            $(area)[this.areaWid](options);
 
             if (options.resizable) {
                 $(area).on('area-resize-start', function (event, params) {
+                    var areaWid = "area";
+                    if ($(this).hasClass("layout-gridArea"))
+                        areaWid = "gridstackArea";
                     $(this).data({
-                        initialRect: $(this).area('getRect')
+                        initialRect: $(this)[areaWid]('getRect')
                     });
                 });
 
                 $(area).on('area-resize-stop', function (event, params) {
                     oThis.findNeighbours();
-                    //$(this).area('findNeighbours');
 
                     oThis.sendEvent('state-changed');
 
@@ -479,7 +487,11 @@
             }
 
             $(area).on('area-drag-stop', function (event, params) {
-                $(this).area('findNeighbours');
+                var areaWid = "area";
+                if ($(this).hasClass("layout-gridArea"))
+                    areaWid = "gridstackArea";
+                
+                $(this)[areaWid]('findNeighbours');
                 
                 oThis.updateAreaState(this);
 
@@ -509,33 +521,40 @@
                 return;
             }
             else {
-                //    clear list of resized areas...
                 this.resizedAreas = [];
                 this._resizeArea(area, params.border);
             }
         },
-        
-        //_splitArea: function() {
-        //},
 
-        _resizeArea: function (area, border) {
+        _resizeArea: function (area, border, allowMax) {
             var oThis = this;
 
             this.resizedAreas.push(area);
 
-            var a = $(area).area('instance');
+            var a = $(area)[this.areaWid]('instance');
 
             var position = {
                     top: parseInt($(area).css('top')),
                     left: parseInt($(area).css('left')),
                 };
 
-            var newRect = {
-                top: oThis._round(position.top, this.element.outerHeight()),
-                left: oThis._round(position.left, this.element.outerWidth()),
-                right: oThis._round(position.left + $(area).outerWidth(), this.element.outerWidth()),
-                bottom: oThis._round(position.top + $(area).outerHeight(), this.element.outerHeight())
-            };
+            var newRect;
+            if(allowMax){
+                newRect = {
+                        top: oThis._round(position.top),
+                        left: oThis._round(position.left),
+                        right: oThis._round(position.left + $(area).outerWidth()),
+                        bottom: oThis._round(position.top + $(area).outerHeight())
+                    };
+            }
+            else{
+                newRect = {
+                        top: oThis._round(position.top, this.element.outerHeight()),
+                        left: oThis._round(position.left, this.element.outerWidth()),
+                        right: oThis._round(position.left + $(area).outerWidth(), this.element.outerWidth()),
+                        bottom: oThis._round(position.top + $(area).outerHeight(), this.element.outerHeight())
+                    };
+            }
 
             a.setRect(newRect);
 
@@ -544,8 +563,8 @@
                     if(oThis.resizedAreas.indexOf(this) != -1 || !$(this).is(':visible'))
                         return;
 
-                    var prevRect = $(this).area('getRect');
-                    $(this).area('setRect', {
+                    var prevRect = $(this)[oThis.areaWid]('getRect');
+                    $(this)[oThis.areaWid]('setRect', {
                         top: prevRect.top,
                         left: prevRect.left,
                         bottom: prevRect.bottom,
@@ -556,7 +575,7 @@
 
                     oThis.updateAreaState(this);
 
-                    $(this).area('sendEvent', 'area-resize');
+                    $(this)[oThis.areaWid]('sendEvent', 'area-resize');
                 });
             }
             else if (border == 'east') {
@@ -564,8 +583,8 @@
                     if(oThis.resizedAreas.indexOf(this) != -1 || !$(this).is(':visible'))
                         return;
 
-                    var prevRect = $(this).area('getRect');
-                    $(this).area('setRect', {
+                    var prevRect = $(this)[oThis.areaWid]('getRect');
+                    $(this)[oThis.areaWid]('setRect', {
                         top: prevRect.top,
                         left: newRect.right,
                         bottom: prevRect.bottom,
@@ -576,7 +595,7 @@
 
                     oThis.updateAreaState(this);
 
-                    $(this).area('sendEvent', 'area-resize');
+                    $(this)[oThis.areaWid]('sendEvent', 'area-resize');
                 });
             }
             else if (border == 'north') {
@@ -584,8 +603,8 @@
                     if(oThis.resizedAreas.indexOf(this) != -1 || !$(this).is(':visible'))
                         return;
 
-                    var prevRect = $(this).area('getRect');
-                    $(this).area('setRect', {
+                    var prevRect = $(this)[oThis.areaWid]('getRect');
+                    $(this)[oThis.areaWid]('setRect', {
                         top: prevRect.top,
                         left: prevRect.left,
                         bottom: newRect.top,
@@ -596,7 +615,7 @@
 
                     oThis.updateAreaState(this);
 
-                    $(this).area('sendEvent', 'area-resize');
+                    $(this)[oThis.areaWid]('sendEvent', 'area-resize');
                 });
             }
             else if (border == 'south') {
@@ -604,8 +623,8 @@
                     if(oThis.resizedAreas.indexOf(this) != -1 || !$(this).is(':visible'))
                         return;
 
-                    var prevRect = $(this).area('getRect');
-                    $(this).area('setRect', {
+                    var prevRect = $(this)[oThis.areaWid]('getRect');
+                    $(this)[oThis.areaWid]('setRect', {
                         top: newRect.bottom,
                         left: prevRect.left,
                         bottom: prevRect.bottom,
@@ -616,7 +635,7 @@
 
                     oThis.updateAreaState(this);
 
-                    $(this).area('sendEvent', 'area-resize');
+                    $(this)[oThis.areaWid]('sendEvent', 'area-resize');
                 });
             }
 
@@ -629,82 +648,25 @@
             var oThis = this;
 
             var border = params.border;
-/*            
-            var a = $(area).area('instance');
-
-            var position = {
-                   top: parseInt($(area).css('top')),
-                   left: parseInt($(area).css('left')),
-               };
-
-            var newRect = {
-                top: oThis._round(position.top, this.element.outerHeight()),
-                left: oThis._round(position.left, this.element.outerWidth()),
-                right: oThis._round(position.left + $(area).outerWidth(), this.element.outerWidth()),
-                bottom: oThis._round(position.top + $(area).outerHeight(), this.element.outerHeight())
-            };
-
-            a.setRect(newRect);
-*/
             if (border == 'west') {
                 console.log('WEST border not supported yet!');
-/*
-                $(a.neighbours.west).each(function () {
-                    if(oThis.resizedAreas.indexOf(this) != -1 || !$(this).is(':visible'))
-                        return;
-
-                    var prevRect = $(this).area('getRect');
-                    $(this).area('setRect', {
-                        top: prevRect.top,
-                        left: prevRect.left,
-                        bottom: prevRect.bottom,
-                        right: newRect.left
-                    });
-
-                    oThis._resizeArea(this, 'east');
-
-                    oThis.updateAreaState(this);
-
-                    $(this).area('sendEvent', 'area-resize');
-                });
-*/
             }
             else if (border == 'east') {
                 console.log('EAST border not supported yet!');
-/*
-                $(a.neighbours.east).each(function () {
-                    if(oThis.resizedAreas.indexOf(this) != -1 || !$(this).is(':visible'))
-                        return;
-
-                    var prevRect = $(this).area('getRect');
-                    $(this).area('setRect', {
-                        top: prevRect.top,
-                        left: newRect.right,
-                        bottom: prevRect.bottom,
-                        right: prevRect.right
-                    });
-
-                    oThis._resizeArea(this, 'west');
-
-                    oThis.updateAreaState(this);
-
-                    $(this).area('sendEvent', 'area-resize');
-                });
-*/
             }
             else if (border == 'north') {
                 var prevArea = $(area).prev();
 
-                var prevAreaRect = $(prevArea).area('getRect');
+                var prevAreaRect = $(prevArea)[this.areaWid]('getRect');
 
-                $(prevArea).area('setRect', {
+                $(prevArea)[this.areaWid]('setRect', {
                     top: prevAreaRect.top,
                     left: prevAreaRect.left,
                     bottom: this._round(params.position.top),
                     right: this._round(params.position.left + params.size.width, this.element.outerWidth())
                 });
 
-                $(area).area('setRect', {
+                $(area)[this.areaWid]('setRect', {
                     top: this._round(params.position.top),
                     left: this._round(params.position.left, this.element.outerWidth()),
                     bottom: this._round(params.position.top) + this._round($(area).data('initialRect').bottom - $(area).data('initialRect').top),
@@ -713,15 +675,15 @@
 
                 this.updateAreaState(area);
 
-                $(area).area('sendEvent', 'area-resize');
-                $(prevArea).area('sendEvent', 'area-resize');
+                $(area)[this.areaWid]('sendEvent', 'area-resize');
+                $(prevArea)[this.areaWid]('sendEvent', 'area-resize');
 
                 $(area).nextAll().each(function() {
-                    var rect = $(this).area('getRect');
+                    var rect = $(this)[oThis.areaWid]('getRect');
                     
-                    var prevAreaRect = $($(this).prev()).area('getRect'); 
+                    var prevAreaRect = $($(this).prev())[oThis.areaWid]('getRect'); 
 
-                    $(this).area('setRect', {
+                    $(this)[oThis.areaWid]('setRect', {
                         top: prevAreaRect.bottom,
                         left: rect.left,
                         right: rect.right,
@@ -730,21 +692,21 @@
                 });
             }
             else if (border == 'south') {
-                $(area).area('setRect', {
+                $(area)[this.areaWid]('setRect', {
                     top: this._round(params.position.top),
                     left: this._round(params.position.left, this.element.outerWidth()),
                     right: this._round(params.position.left + params.prevSize.width, this.element.outerWidth()),
                     bottom: this._round(params.position.top) + this._round($(area).height())
                 });
 
-                $(area).area('sendEvent', 'area-resize');
+                $(area)[this.areaWid]('sendEvent', 'area-resize');
                 
                 $(area).nextAll().each(function() {
-                    var rect = $(this).area('getRect');
+                    var rect = $(this)[oThis.areaWid]('getRect');
                     
-                    var prevAreaRect = $($(this).prev()).area('getRect'); 
+                    var prevAreaRect = $($(this).prev())[this.areaWid]('getRect'); 
 
-                    $(this).area('setRect', {
+                    $(this)[oThis.areaWid]('setRect', {
                         top: prevAreaRect.bottom,
                         left: rect.left,
                         right: rect.right,
@@ -755,8 +717,9 @@
         },
         
         findNeighbours: function() {
+            var oThis = this;
             this.element.children('.layout-area').each(function(index, area) {
-                $(area).area('findNeighbours');
+                $(area)[oThis.areaWid]('findNeighbours');
             });
         },
 
@@ -774,10 +737,8 @@
             var round = Math.round(val / this.options.roundup) * this.options.roundup;
 
             if(max != null) {
-                //  if rounded value greater than possible MAX value we have to return MAX...
                 if (round > max) return max;
     
-                //  ... or if rounded value very close to the end of the interval we have to return MAX again...
                 if (max - round < this.options.roundup) return max;
             }
 
@@ -795,7 +756,6 @@
                 if (size == '*') {
                     var otherAreasSize = 0;
 
-                    //  calculate total size for all other areas...
                     $(area).siblings('div:layout-area').each(function () {
                         otherAreasSize += oThis._round(oThis._getAbsValue($(this).data('size'), oThis.element.outerWidth()), oThis.element.outerWidth());
                     });
@@ -824,7 +784,6 @@
                 if (size == '*') {
                     var otherAreasSize = 0;
 
-                    //  calculate total size for all other areas...
                     $(area).siblings('div:layout-area').each(function () {
                         otherAreasSize += oThis._round(oThis._getAbsValue($(this).data('size'), oThis.element.outerHeight()), oThis.element.outerHeight());
                     });
@@ -855,6 +814,14 @@
             }
             else if (this.isStackLayout()) {
                 return this.calculateAreaRectStack(area);
+            }
+            else if (this.isGridLayout()){
+                return {
+                    top: 0,
+                    left: 0,
+                    right: $(area).parent().outerWidth(),
+                    bottom: $(area).parent().outerHeight(),
+                };
             }
         },
 
@@ -894,21 +861,14 @@
             }
         },
         
-        //  returns true if size of area is fixed and cannot be changed. E.g. size of area in pixels.
         isAreaFixed: function (area) {
             return $(area).data('resizable') != null && !$(area).data('resizable');
 
-            //    after some thinking I decided that it's not good to prohibit resize area if it has size in pixels... 
-            //    the specific attribute 'allowResize' should be used in this case.
-            //var size = $(area).data('size');
-            //if (size)
-            //    return !size.toString().endsWith('%') && size != '*';
 
-            //return false;
         },
 
         _prepareAreaOptions: function (area) {
-            if (/*$(area).is('div[data-layout~="manager"]') ||*/ this.isAreaFixed(area) || !this.options.allowResize)
+            if (this.isAreaFixed(area) || !this.options.allowResize)
                 $(area).attr('data-resizable', false);
 
             if (this.options.border == 'none' || this.options.border == 'between') {
@@ -920,11 +880,9 @@
             }
 
             if (this.isHorizontalLayout()) {
-                //  in case of horizontal layout we cannot have draggable areas...
                 $(area).attr('data-draggable', false);
 
                 if ($(area).prev('div.layout-area').length == 0) {
-                    //    first...
                     if ($(area).next('div.layout-area').length > 0 && !this.isAreaFixed($(area).next('div.layout-area')))
                         $(area).attr('data-resizable-handles', 'e');
 
@@ -938,7 +896,6 @@
                     }
                 }
                 else if ($(area).next('div.layout-area').length == 0) {
-                    //    last...
                     if ($(area).prev('div.layout-area').length > 0 && !this.isAreaFixed($(area).prev('div.layout-area')))
                         $(area).attr('data-resizable-handles', 'w');
 
@@ -952,7 +909,6 @@
                     }
                 }
                 else {
-                    //    all others...
                     var handles = '';
                     if (!this.isAreaFixed($(area).prev('div.layout-area')))
                         handles = 'w';
@@ -976,11 +932,9 @@
                 }
             }
             else if (this.isVerticalLayout()) {
-                //  in case of vertical layout we cannot have draggable areas...
                 $(area).attr('data-draggable', false);
 
                 if ($(area).prev('div.layout-area').length == 0) {
-                    //    first...
                     if ($(area).next('div.layout-area').length > 0 && !this.isAreaFixed($(area).next('div.layout-area')))
                         $(area).attr('data-resizable-handles', 's');
 
@@ -994,7 +948,6 @@
                     }
                 }
                 else if ($(area).next('div.layout-area').length == 0) {
-                    //    last...
                     if ($(area).prev('div.layout-area').length > 0 && !this.isAreaFixed($(area).prev('div.layout-area')))
                         $(area).attr('data-resizable-handles', 'n');
 
@@ -1008,7 +961,6 @@
                     }
                 }
                 else {
-                    //    all others...
                     var handles = '';
                     if (!this.isAreaFixed($(area).prev('div.layout-area')))
                         handles = 'n';
@@ -1042,11 +994,9 @@
             }
 
             if (this.options.orientation == 'horizontal') {
-                //  in case of horizontal layout we cannot have draggable areas...
                 $(area).attr('data-draggable', false);
 
                 if ($(area).prev('div.layout-area').length == 0) {
-                    //    first...
                     if ($(area).next('div.layout-area').length > 0 && !this.isAreaFixed($(area).next('div.layout-area')))
                         $(area).attr('data-resizable-handles', 'e');
 
@@ -1054,7 +1004,6 @@
                         $('.layout-infobox', area).addClass('east-border');
                 }
                 else if ($(area).next('div.layout-area').length == 0) {
-                    //    last...
                     if ($(area).prev('div.layout-area').length > 0 && !this.isAreaFixed($(area).prev('div.layout-area')))
                         $(area).attr('data-resizable-handles', 'w');
 
@@ -1062,7 +1011,6 @@
                         $('.layout-infobox', area).addClass('west-border');
                 }
                 else {
-                    //    all others...
                     var handles = '';
                     if (!this.isAreaFixed($(area).prev('div.layout-area')))
                         handles = 'w';
@@ -1080,11 +1028,9 @@
                 }
             }
             else if (this.options.orientation == 'vertical') {
-                //  in case of vertical layout we cannot have draggable areas...
                 $(area).attr('data-draggable', false);
 
                 if ($(area).prev('div.layout-area').length == 0) {
-                    //    first...
                     if ($(area).next('div.layout-area').length > 0 && !this.isAreaFixed($(area).next('div.layout-area')))
                         $(area).attr('data-resizable-handles', 's');
 
@@ -1092,7 +1038,6 @@
                         $('.layout-infobox', area).addClass('south-border');
                 }
                 else if ($(area).next('div.layout-area').length == 0) {
-                    //    last...
                     var handles = '';
 
                     if ($(area).prev('div.layout-area').length > 0 && !this.isAreaFixed($(area).prev('div.layout-area')))
@@ -1110,7 +1055,6 @@
                         $('.layout-infobox', area).addClass('north-border');
                 }
                 else {
-                    //    all others...
                     var handles = '';
                     if (!this.isAreaFixed($(area).prev('div.layout-area')))
                         handles = 'n';
@@ -1131,29 +1075,41 @@
         
         updateAreaState: function(area) {
             if (this.isHorizontalLayout() || (this.options.type == 'stack' && this.options.orientation == 'horizontal')) {
-                $(area).data({
-                    size: ($(area).outerWidth() * 100 / this.element.outerWidth()).toFixed(3) + '%'
-                });
+                var areaSize = $(area).data("size");
+                if(!areaSize || (typeof areaSize == "string" &&  areaSize.indexOf("%") > -1)){
+                    $(area).data({
+                        size: ($(area).outerWidth() * 100 / this.element.outerWidth()).toFixed(3) + '%'
+                    });
+                }
+                else{
+                    $(area).data({
+                        size: $(area).outerWidth()
+                    });
+                }
                 $(area).attr({
                     'data-size': $(area).data('size')
                 });
             }
             else if (this.isVerticalLayout() || (this.options.type == 'stack' && this.options.orientation == 'vertical')) {
-                $(area).data({
-                    size: ($(area).outerHeight() * 100 / this.element.outerHeight()).toFixed(3) + '%'
-                });
+                var areaSize = $(area).data("size");
+                if(!areaSize || (typeof areaSize == "string" && $(area).data("size").indexOf("%") > -1)){
+                    $(area).data({
+                        size: ($(area).outerHeight() * 100 / this.element.outerHeight()).toFixed(3) + '%'
+                    });
+                }
+                else{
+                    $(area).data({
+                        size: $(area).outerWidth()
+                    });
+                }
                 $(area).attr({
                     'data-size': $(area).data('size')
                 });
             }
             else if (this.isFlexLayout()) {
-                var rect = $(area).area('getRect');
+                var rect = $(area)[this.areaWid]('getRect');
                 
                 $(area).data({
-                    //top: ($(area).position().top * 100 / this.element.outerHeight()).toFixed(3) + '%',
-                    //left: ($(area).position().left * 100 / this.element.outerWidth()).toFixed(3) + '%',
-                    //right: (($(area).position().left + $(area).width())* 100 / this.element.outerWidth()).toFixed(3) + '%',
-                    //bottom: (($(area).position().top + $(area).height()) * 100 / this.element.outerHeight()).toFixed(3) + '%'
                     top: (rect.top * 100 / this.element.outerHeight()).toFixed(3) + '%',
                     left: (rect.left * 100 / this.element.outerWidth()).toFixed(3) + '%',
                     right: (rect.right * 100 / this.element.outerWidth()).toFixed(3) + '%',
@@ -1173,7 +1129,7 @@
                 .attr({
                     'data-id': params.id
                 })
-                .addClass('layout-area');
+                .addClass((params.layout && params.layout.layoutType && params.layout.layoutType=="gridstack") ? "layout-gridArea" : 'layout-area');
             
             if(params.onClose) {
                 area.on('area-closed', function(event, areaParams) {
@@ -1203,6 +1159,9 @@
                 area.attr({ 'data-class': params.class })
             if (params.hasOwnProperty('allowResize'))
                 area.attr('data-resizable', params.allowResize);
+            if (params.hasOwnProperty('dragTabItself'))
+                area.attr('data-dragTabItself', params.dragTabItself);
+
             
             return area;
         },
@@ -1265,26 +1224,60 @@
                 area.attr('data-layout-overflow', params.layout.overflow);
             }
 
-            $(params.layout.items).each(function () {
-                if (this.tabs) {
-                    var tabs = oThis.createTabs(this);
-                    area.append(tabs);
-                }
-                else if (this.layout) {
-                    if (this.title) {
+            if (params.layout && params.layout.layoutType && params.layout.layoutType=="gridstack"){
+                var gridWid = area.gridstackArea().first().gridstackArea("instance");
+                params.instance = gridWid;
+                
+                $(params.layout.items).each(function () {
+                    if (this.tabs) {
+                        if (this.tabs.items)
+                            this.tabs.items = this.tabs.items.splice(0,1);
+                        var tabs = oThis.createTabs(this);
+                        gridWid.appendTabs(tabs, this.tabs);
+                        oThis.options.allGrids[gridWid.areaName] = gridWid;
+                    }
+                    else if (this.layout) {
+                        console.log("went into creating layout for gridstack");
+                        return;
+                        if (this.title) {
+                            var panel = oThis.createPanel(this);
+                            gridWid.appendPanel(panel, this.id);
+                        }
+                        else {
+                            var layout = oThis.createLayout(this);
+                            gridWid.append(layout, this.id);
+                        }
+                    }
+                    else {
+                        console.log("went into creating panels for gridstack");
+                        return;
+                        var panel = oThis.createPanel(this);
+                        gridWid.appendPanel(panel, this.id);
+                    }
+                });
+            }            
+            else{
+                $(params.layout.items).each(function () {
+                    if (this.tabs) {
+                        var tabs = oThis.createTabs(this);
+                        area.append(tabs);
+                    }
+                    else if (this.layout) {
+                        if (this.title) {
+                            var panel = oThis.createPanel(this);
+                            area.append(panel);
+                        }
+                        else {
+                            var layout = oThis.createLayout(this);
+                            area.append(layout);
+                        }
+                    }
+                    else {
                         var panel = oThis.createPanel(this);
                         area.append(panel);
                     }
-                    else {
-                        var layout = oThis.createLayout(this);
-                        area.append(layout);
-                    }
-                }
-                else {
-                    var panel = oThis.createPanel(this);
-                    area.append(panel);
-                }
-            });
+                });
+            }
 
             return area;
         },
@@ -1296,7 +1289,6 @@
             return area;
         },
 
-        //    Just create tabs' area...
         _createTabsArea: function(params) {
             var area = this.createInfobox(params);
 
@@ -1341,16 +1333,13 @@
             return area;
         },
 
-        //    add new tabs to the area
         _addTabs: function(area, params) {
             var oThis = this;
 
             if (params.tabs) {
                 $(params.tabs.items).each(function (index, tab) {
-                    //    check if tab with this name already exists...
                     if($('a[data-name="' + tab.name + '"]').length > 0) {
                         if($('a[data-name="' + tab.name + '"]').length == 1 && $('a[data-name="' + tab.name + '"]').is(':hidden')) {
-                            //    if tab hidden we just have to show it...
                             oThis.show(tab.name);
                             return;
                         }
@@ -1372,19 +1361,31 @@
                     var li = $(document.createElement('li'))
                                 .addClass(tab.active ? 'active' : '');
 
-                    if(tab.title) {
+                    if (tab.title && tab.newIcon){
+                        li.append($(document.createElement('a'))
+                                    .attr({
+                                        href: '#' + tab.name + '-tab',
+                                        role: 'tab',
+                                        'data-toggle': 'tab',
+                                        'data-name': tab.name
+                                    })
+                                    .text(" " + tab.title)
+                            );
+                        li.children("a").prepend($(document.createElement('i'))
+                                .addClass(tab.class))
+                    } else if(tab.title) {
                         li.append(
-                            $(document.createElement('a'))
-                                .addClass(tab.class)
-                                .attr({
-                                    href: '#' + tab.name + '-tab',
-                                    role: 'tab',
-                                    'data-toggle': 'tab',
-                                    'data-name': tab.name
-                                })
-                                .text(tab.title)
-                        );
-                    }
+                                $(document.createElement('a'))
+                                    .addClass(tab.class)
+                                    .attr({
+                                        href: '#' + tab.name + '-tab',
+                                        role: 'tab',
+                                        'data-toggle': 'tab',
+                                        'data-name': tab.name
+                                    })
+                                    .text(tab.title)
+                            );
+                        }
 
                     if (tab.allowClone) {
                         $('a', li).append(
@@ -1392,7 +1393,7 @@
                                 .attr({
                                     title: 'Clone'
                                 })
-                                .addClass('activity-icon clone-tab')
+                                .addClass('activity-icon clone-tab icomoon-liga')
                                 .click(function () {
                                     var config = $(area).infoboxtabs('buildTabConfig', tab.name);
 
@@ -1404,7 +1405,6 @@
                                     if(tab.onBeforeClone)
                                         tab.onBeforeClone(config);
 
-                                    //    check that tab's name doesn't exist yet...
                                     var index = 2;
                                     while($('a[data-name="' + config.name + '"]', oThis.element).length > 0) {
                                         config.name += '-' + index++;
@@ -1435,11 +1435,11 @@
 
                     if (tab.allowClose || tab.allowHide) {
                         var a = $('a', li).append(
-                            $(document.createElement('span'))
+                           $(document.createElement('i'))
                             .attr({
                                 title: 'Close'
                             })
-                            .addClass('activity-icon close-tab')
+                            .addClass('activity-icon close-tab icomoon-liga rv-close-thin')
                             .click(function () {
                                 if(tab.allowClose) {
                                     oThis.remove($(this).closest('a').data('name'));
@@ -1496,7 +1496,6 @@
 
             var infobox = $('.layout-infobox', area);
 
-            //    default overflow property set to 'auto'
             if(!params.overflow)
                 params.overflow = 'hidden';
 
@@ -1548,7 +1547,6 @@
             return area;
         },
 
-        //    Save everything. All necessary information in order to reproduse the same layout later
         save: function() {
             var config = {
                 layoutType: this.options.type,
@@ -1576,22 +1574,65 @@
             return state;
         },
 
-        //    Load layout form the config
         load: function (config) {
             this.append(config);
             
             this.sendEvent('manager-loaded')
         },
 
-        //    append new items to the layout
-        append: function (config) {
+        append: function (config, extraElem) {
             if (config.layout) {
                 var oThis = this;
 
                 $(config.layout.items).each(function () {
                     var area = $();
                     if(this.hasOwnProperty('id')) {
-                        //    try to find area if config has ID
+                        area = $('div.layout-area[data-id="' + this.id + '"]');
+                    }
+                    
+                    if (this.tabs) {
+                        if(area.length == 1) {
+                            area.removeClass("hidden");
+                            oThis._addTabs(area, this);
+                        }
+                        else if(area.length == 0) {
+                            var tabs = oThis.createTabs(this);
+                            if (oThis.isGridLayout()){
+                                extraElem.appendTabs(tabs, this.tabs);
+                            }else
+                                oThis.element.append(tabs);
+                        }
+                        else {
+                            console.log('ERROR: too many areas found by ID: ' + this.id);
+                        }
+                    }
+                    else if (this.layout) {
+                        if (this.title) {
+                            var panel = oThis.createPanel(this);
+                            oThis.element.append(panel);
+                        }
+                        else {
+                            var layout = oThis.createLayout(this);
+                            oThis.element.append(layout);
+                        }
+                    }
+                    else {
+                        var panel = oThis.createPanel(this);
+                        oThis.element.append(panel);
+                    }
+                });
+
+                this._initChildren();
+            }
+        },
+        
+        appendTo: function (config, id) {
+            if (config.layout) {
+                var oThis = this;
+
+                $(config.layout.items).each(function () {
+                    var area = $();
+                    if(this.hasOwnProperty('id')) {
                         area = $('div.layout-area[data-id="' + this.id + '"]');
                     }
                     
@@ -1634,14 +1675,11 @@
             if(area.length == 1) {
                 area.addClass('hidden');
                 
-                //    notify about the close area action...
                 this.sendEvent('area-closed', { area: area });
 
-                //    area was found successfully...
                 area.remove();
             }
             else if(area.length == 0) {
-                //  nothing was found... try to find among the tabs
                 var tab = $('a[data-name="' + id + '"]');
                 if(tab.length == 1) {
                     var infobox = tab.closest('div.layout-infobox');
@@ -1653,21 +1691,16 @@
                     tab.parent().remove();
                     tabPane.remove();
 
-                    //    notify about the close tab action...
                     infobox.trigger('tab-close', id);
 
-                    //    check if we need to close or hide area as well...
                     if(ul.children('li').length == 0) {
-                        //    notify about the close area action...
                         infobox.trigger('area-closed', ul.closest('div.layout-area').data('id'));
                         
                         ul.closest('div.layout-area').remove();
                     }
                     else if(ul.children('li').length == ul.children('li.hidden').length) {
-                        //    if all tabs are hidden we have to hide area as well...
                         ul.closest('div.layout-area').addClass('hidden');
 
-                        //    notify about the hide area action...
                         infobox.trigger('area-hide', ul.closest('div.layout-area').data('id'));
                     }
                 }
@@ -1681,14 +1714,11 @@
             var area = $('div.layout-area[data-id="' + id + '"]');
 
             if(area.length == 1) {
-                //    area was found successfully...
                 area.addClass('hidden');
 
-                //area.trigger('area-hide', id);
                 this.sendEvent('area-hide', { area: area });
             }
             else if(area.length == 0) {
-                //    nothing was found... try to find among the tabs
                 var tab = $('a[data-name="' + id + '"]');
                 if(tab.length == 1) {
                     var infobox = tab.closest('div.layout-infobox');
@@ -1700,13 +1730,11 @@
                     tab.parent().addClass('hidden');
                     tabPane.addClass('hidden');
 
-                    //    notify about the hide tab action...
                     infobox.trigger('tab-hide', id);
 
                     if(ul.children(':not(.hidden)').length == 0) {
                         ul.closest('div.layout-area').addClass('hidden');
 
-                        //    notify about the hide area action...
                         infobox.trigger('area-hide', ul.closest('div.layout-area').data('id'));
                     }
                 }
@@ -1720,15 +1748,13 @@
             area = $('div.layout-area[data-id="' + id + '"]');
 
             if(area.length == 1) {
-                //    area was found successfully...
                 area.removeClass('hidden');
 
-                area.area('setFocus');
+                area[this.areaWid]('setFocus');
 
                 return true;
             }
             else if(area.length == 0) {
-                //    nothing was found... try to find among the tabs
                 var tab = $('a[data-name="' + id + '"]');
                 if(tab.length == 1) {
                     var infobox = tab.closest('div.layout-infobox');
@@ -1753,7 +1779,7 @@
                     tabPane.addClass("active");
                     tab.parent().addClass("active");
 
-                    $(area).area('setFocus');
+                    $(area)[this.areaWid]('setFocus');
                     
                     return true;
                 }
@@ -1769,12 +1795,10 @@
             var area = $('div.layout-area[data-id="' + id + '"]');
 
             if(area.length == 1) {
-                //    area was found successfully...
                 $('.layout-infobox>.panel-heading>ul', area).empty();
                 $('.layout-infobox>.panel-body', area).empty();
             }
             else if(area.length == 0) {
-                //    nothing was found... try to find among the tabs
                 var tab = $('a[data-name="' + id + '"]');
                 if(tab.length == 1) {
                     var infobox = tab.closest('div.layout-infobox');
@@ -1795,7 +1819,7 @@
             var area = $('div.layout-area[data-id="' + id + '"]');
 
             if(area.length == 1) {
-                var a = $(area).area('instance');
+                var a = $(area)[this.areaWid]('instance');
 
                 var newRect = {
                     top: this._round(this._getAbsValue(rect.top, this.element.outerHeight()), this.element.outerHeight()),
@@ -1809,7 +1833,7 @@
                     done: function() {
                         a.sendEvent('area-resize');
                         a.sendEvent('area-resize-stop');
-                        a.sendEvent('area-drag-stop');
+                        a.sendEvent('area-drag-stop', {fromResize: true});
                     }
                 });
             }
@@ -1832,9 +1856,6 @@
             else if (name == 'state-changed') {
                 $(this.element).trigger('state-changed', params);
             }
-            //else if (name == 'area-closed') {
-            //    $(this.element).trigger('area-closed', params);
-            //}
             else if (name == 'area-hide' || name == 'area-closed') {
                 var config = {};
                 
@@ -1855,7 +1876,6 @@
                     config: config
                 });
 
-                //$(this.element).trigger(name, params);
                 $(params.area).trigger(name, params);
             }
         },
@@ -1868,23 +1888,17 @@
             return $('div.layout-infobox[data-id="' + id + '"]', this.element);
         },
         
-        // events bound via _bind are removed automatically
-        // revert other modifications here
         destroy: function () {
             this.element.empty();
             $.Widget.prototype.destroy.call(this);
         },
 
-        // events bound via _bind are removed automatically
-        // revert other modifications here
         _destroy: function () {
         },
 
-        // called when created, and later when changing options
         _refresh: function () {
         },
 
-        // Use the _setOption method to respond to changes to options
         _setOption: function (key, value) {
             $.Widget.prototype._setOption.apply(this, arguments);
         },
@@ -1906,10 +1920,13 @@ $(document).ready(function () {
                 right: $(this).parent().outerWidth(),
                 bottom: $(this).parent().outerHeight()
             },
-            resizable: false    //  we cannot resize top level layout manager...
+            resizable: false
         };
+        var areaWid = "area";
+        if ($(this).hasClass("layout-gridArea"))
+            areaWid = "gridstackArea";
         
-        $(this).area(options).layoutmanager(options);
+        $(this)[areaWid](options).layoutmanager(options);
     });
 });
 
@@ -1921,22 +1938,27 @@ var delayWindowResize = (function (event) {
     };
 })();
 
-//  catch event on window's resize action...
 $(window).resize(function (event) {
     if (event.target == window) {
         delayWindowResize(function () {
-            //  we have to find all top level layout areas...
             $('div.layout-area').each(function () {
                 if ($(this).parent().closest('div.layout-area').length == 0) {
-                    // ... and notify them about resize...
 
-                    var area = $(this).area('instance')
+                    var area;
+                    if ($(this).hasClass("layout-gridArea"))
+                        area = $(this).gridstackArea('instance')
+                    else
+                        area = $(this).area("instance");
+                    
+                    var parent = $(this).parent(".content");
+                    if(parent.length == 0)
+                        parent = $(this).closest(".content");
 
                     area.setRect({
                         top: 0,
                         left: 0,
-                        right: $(this).parent().outerWidth(),
-                        bottom: $(this).parent().outerHeight()
+                        right: parent.outerWidth(),
+                        bottom: parent.outerHeight()
                     });
 
                     area.sendEvent('area-resize');
@@ -1946,3 +1968,4 @@ $(window).resize(function (event) {
         }, 250);
     }
 });
+

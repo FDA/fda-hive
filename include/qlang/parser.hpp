@@ -36,7 +36,6 @@
 
 namespace slib {
     namespace qlang {
-        //! Driver for query language's Bison parser. Generates an abstract syntax tree from query text.
         class Parser {
         public:
             enum eParserFlags {
@@ -55,16 +54,14 @@ namespace slib {
             bool debugLexer;
             bool debugParser;
 
-            Parser(): _astRoot(NULL), _buf(NULL), _bufcur(NULL), _bufend(NULL), _flags(0), debugLexer(false), debugParser(false) {}
+            Parser(): _astRoot(NULL), _buf(NULL), _bufcur(NULL), _bufend(NULL), _ppriv(NULL), _flags(0), debugLexer(false), debugParser(false) {}
             virtual ~Parser() { delete _astRoot; }
 
-            /* parser<->lexer interaction; only for use by parser internals! */
             idx yyInput(char *lexerBuf, size_t size);
             void yyPushState(int new_state=0);
             void yyPopState();
             void yyPopStateUntilTemplate();
 
-            /* parse a query into a syntax tree */
             bool parse(const char *buf, const char *bufend, idx flags=0);
             bool parse(const sStr &s, idx flags=0);
 

@@ -70,9 +70,8 @@ class sNCBITaxTree
             eStdDev=0x00001000,
             eConfIntval=0x00020000,
             eOutFile=0x00040000
-            //eGI=0x00000400,
         };
-        static const char * columnNames; // defined in ncbitax.cpp, keep in sync with EColumns!
+        static const char * columnNames;
         static const char * printColumnNames(sStr & out, idx whatToPrintflags = eTaxId);
         struct ExtraData {
             idx matchCnt;
@@ -97,17 +96,13 @@ class sNCBITaxTree
         idx getNodeIndex(idx taxid=1);
         idx getTaxIdCnt(void);
         idx getNodeIndexByProID(idx projectID);
-        //idx getNodeIndexByGiID(idx GiID);
-        //idx getNodeIndexByGiID(const char* GiID);
         bool getNameTaxid(sVec <idx> * TaxidList, const char * srch);
-        //bool getNameListIndex(sVec <idx> * lontosa, const char * srch = 0);
         idx getParentIndex(idx taxid=1);
         idx getChildCnt(idx taxid=1);
         idx getParentCnt(idx taxid=1);
         idx getNodeCnt();
         idx getTaxIdByIndex(idx index = 1);
         idx getProjIDByIndex(idx index=1);
-        //idx getGIByIndex(idx index=1,sStr * buf=0);
         const char * getRankByIndex(idx index=1);
         idx getRankCount(const char * rank );
         bool IfNameMatch(idx index = 1, const char * srch = 0, idx * matchNameIndex=0 );

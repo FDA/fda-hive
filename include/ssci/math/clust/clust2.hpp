@@ -42,17 +42,16 @@
 #include <slib/core/heap.hpp>
 #include <slib/core/net.hpp>
 #include <slib/core/str.hpp>
-#include <slib/std/string.hpp> // for escaping for JSON
+#include <slib/std/string.hpp>
 
 namespace slib
 {
-    //! A binary tree containing a hierarchical clustering
     class sHierarchicalClusteringTree
     {
     public:
         struct ClusteringKnotData {
-            real dist; // weight of edge to parent
-            idx numLeaves; // total number of leaves under an inner node (1 if this is a leaf)
+            real dist;
+            idx numLeaves;
             idx quality;
             idx qualityMax;
 
@@ -62,7 +61,7 @@ namespace slib
                 dist = NAN;
             }
         };
-        typedef sKnot<struct ClusteringKnotData> Tnode; //!< in[0] is parent; out[0], out[1] are children
+        typedef sKnot<struct ClusteringKnotData> Tnode;
 
         enum NewickOptions {
             Newick_PRINT_DISTANCE = 1 << 0,
@@ -75,7 +74,7 @@ namespace slib
 
     protected:
         sMex _node_inout_mex;
-        sVec<Tnode> _vec; // first (dim()<<1)-1 nodes are leaves
+        sVec<Tnode> _vec;
 
         inline bool validIndex(idx i) { return i >= 0 && i < dim(); }
         inline bool parentless(idx i)
@@ -118,24 +117,22 @@ namespace slib
             if (i < 0 || i >= dim())
                 return;
             if (i < dimLeaves()) {
-                // leaf node
                 if (options & Newick_PRINT_LEAF_NAMES)
                     printNewickName(out, i, func, param);
-                if (options & Newick_PRINT_DISTANCE)
+                if ((options & Newick_PRINT_DISTANCE) && !isnan(_vec[i].obj.dist))
                     out.printf(":%g", _vec[i].obj.dist);
                 return;
             }
-            // inner node
             out.printf("(");
             printNewickNode(out, _vec[i].out[0], options, func, param);
             out.printf(", ");
             printNewickNode(out, _vec[i].out[1], options, func, param);
             out.printf(")");
-            bool atroot=(i == dim()-1);
+            bool atroot = (i == dim() - 1 && i >= dimLeaves());
             if (!atroot || (options & Newick_PRINT_ROOT)) {
                 if (options & Newick_PRINT_INNER_NAMES)
                     printNewickName(out, i, func, param);
-                if (options & Newick_PRINT_DISTANCE)
+                if ((options & Newick_PRINT_DISTANCE) && !isnan(_vec[i].obj.dist))
                     out.printf(":%g", _vec[i].obj.dist);
             }
             if (atroot)
@@ -145,15 +142,12 @@ namespace slib
         idx getLeavesWorker(sVec<idx> & out, idx out_offset, idx i) const
         {
             if (i < 0 || i >= dim()) {
-                // invalid node
                 return out_offset;
             } else if (i < dimLeaves()) {
-                // leaf node
                 out[out_offset] = i;
                 return out_offset + 1;
             }
 
-            // inner node
             out_offset = getLeavesWorker(out, out_offset, _vec[i].out[0]);
             out_offset = getLeavesWorker(out, out_offset, _vec[i].out[1]);
             return out_offset;
@@ -161,6 +155,7 @@ namespace slib
 
     public:
         sHierarchicalClusteringTree(idx dimLeaves=0): _vec(sMex::fExactSize) { reset(dimLeaves); }
+        virtual ~sHierarchicalClusteringTree() {}
         void reset(idx dimLeaves)
         {
             idx oldSize = dim();
@@ -231,7 +226,6 @@ namespace slib
         }
     };
 
-    /*! \brief Base class for hierarchical clusterization based on a distance matrix */
     class sHierarchicalClustering: public sDistMatrix
     {
     public:
@@ -239,7 +233,7 @@ namespace slib
 
     protected:
         sHierarchicalClusteringTree _tree;
-        sVec<idx> _matrix2tree; //!< _matrix2tree[x] == i means x'th cluster in distance matrix corresponds to node tree[i]
+        sVec<idx> _matrix2tree;
 
         virtual void init()
         {
@@ -249,17 +243,15 @@ namespace slib
                 _matrix2tree[i] = i;
         }
 
-        virtual bool peekNext(idx *x, idx *nearesty) = 0; //!< get next cluster in queue and its nearest neighbor
-        virtual void mergeNext(real *distx, real *disty) = 0; //!< merge next pair of clusters; return distances of the pair to the merged result as out-parameters
+        virtual bool peekNext(idx *x, idx *nearesty) = 0;
+        virtual void mergeNext(real *distx, real *disty) = 0;
 
-        //! main clusterization calculation loop
         virtual bool buildTree(progressCb prog_cb = 0, void * prog_param = 0)
         {
             for(idx i=sDistMatrix::_npoints; i<_tree.dim(); i++) {
                 if( prog_cb ) {
                     prog_cb(prog_param, i, sNotIdx, _tree.dim() - sDistMatrix::_npoints);
                 }
-                // extract closest pair of clusters (x,y) from the matrix
                 idx x = -1, y = -1;
                 peekNext(&x, &y);
 #ifdef _DEBUG_CLUST
@@ -271,16 +263,13 @@ namespace slib
                 assert(y >= 0); assert(y < sDistMatrix::_npoints);
                 real d = sDistMatrix::dist(x, y);
 
-                // clusters x and y in the matrix correspond to tree nodes xi and yi
                 idx xi = _matrix2tree[x];
                 idx yi = _matrix2tree[y];
 
-                // merge x and y into cluster x, and point tree node i at x
                 real distx = d/2, disty = d/2;
                 mergeNext(&distx, &disty);
                 _matrix2tree[x] = i;
 
-                // set tree node i as parent of nodes xi and yi
                 _tree.makeParent(i, xi, distx, yi, disty);
             }
 #ifdef _DEBUG_CLUST
@@ -290,8 +279,6 @@ namespace slib
             return true;
         }
 
-        // NodePrintfCallbackWrapper and wrapPointPrintfCallback exist to allow using a NodePrintfCallback
-        // in printMatrixCSV, and doing that requires verbosity due to C++ casting rules
         template <class Tclust_>
         struct NodePrintfCallbackWrapper
         {
@@ -330,7 +317,6 @@ namespace slib
             return sDistMatrix::reset(rhs);
         }
 
-        //! should be called after resetDistance()
         inline virtual bool recluster(progressCb prog_cb = 0, void * prog_param = 0)
         {
             this->init();
@@ -387,16 +373,11 @@ namespace slib
 #endif
     };
 
-    /*! \brief Single-link hierarchical clusterization
-     *
-     * if x and y are being merged into x, sim(x, z) == min(sim(x, z), sim(y, z))
-     * \n O(n<sup>2</sup>) overall: O(n<sup>2</sup>) to init(), O(1) per peekNext(), O(n) per mergeNext()
-     */
     class sSingleLinkClustering: public sHierarchicalClustering
     {
     public:
         sSingleLinkClustering(const sDistMatrix &distMatrix): sHierarchicalClustering(distMatrix) {init(); this->buildTree();}
-        sSingleLinkClustering() {}
+        sSingleLinkClustering() { _min = -1; }
 
     protected:
         sVec<idx> _nearest;
@@ -447,7 +428,7 @@ namespace slib
 
         void mergeNext(real *distx, real *disty)
         {
-            idx x = -1, y = -1; // merge cluster y into x
+            idx x = -1, y = -1;
             peekNext(&x, &y);
 
             assert(valid(x));
@@ -459,8 +440,8 @@ namespace slib
             if (disty)
                 *disty = d/2;
 
-            real mind = REAL_MAX; // distance between next closest pair of clusters z, w
-            real minxd = REAL_MAX; // distance between x+y and closest z
+            real mind = REAL_MAX;
+            real minxd = REAL_MAX;
             _nearest[x] = _nearest[y] = _min = -1;
 
             for (idx z=0; z<_npoints; z++) {
@@ -502,24 +483,18 @@ namespace slib
 
     };
 
-    /*! \brief Complete-link hierarchical clusterization
-     *
-     * If x and y are being merged into x, sim(x, z) == max(sim(x, z), sim(y, z))
-     * \n O(n<sup>2</sup> log n) overall: O(n<sup>2</sup>) to init(), O(1) per peekNext(), O(n log n) per mergeNext()
-     */
     class sCompleteLinkClustering: public sHierarchicalClustering
     {
     public:
         typedef sMinHeap<real, sDistMatrixRowIter> Theap;
 
-    sCompleteLinkClustering(const sDistMatrix &distMatrix): sHierarchicalClustering(distMatrix) {init(); this->buildTree();}
-        sCompleteLinkClustering() {}
+        sCompleteLinkClustering(const sDistMatrix &distMatrix): sHierarchicalClustering(distMatrix) {init(); this->buildTree();}
+        sCompleteLinkClustering() { _min = -1; }
 
     protected:
         sVec<Theap> _nearest;
         idx _min;
 
-        //! Requires the entire matrix to be valid; to relax this assumption, we would need a reset() implementation for sHeap that accepts validity iterators
         void init()
         {
             sHierarchicalClustering::init();
@@ -549,7 +524,6 @@ namespace slib
             return true;
         }
 
-        //! distance from z to x+y if x and y are merged
         virtual inline real mergedDist(idx x, idx y, idx z)
         {
             return sMax<real>(dist(z, x), dist(z, y));
@@ -557,7 +531,7 @@ namespace slib
 
         virtual void mergeNext(real *distx, real *disty)
         {
-            idx x = -1, y = -1; // merge cluster y into x
+            idx x = -1, y = -1;
             peekNext(&x, &y);
 
             assert(valid(x));
@@ -570,7 +544,7 @@ namespace slib
                 *disty = d/2;
 
             _nearest[x].pop();
-            real mind = REAL_MAX; // distance between next closest pair of clusters z, w
+            real mind = REAL_MAX;
             _min = -1;
 
             for (idx z=0; z<_npoints; z++) {
@@ -619,18 +593,22 @@ namespace slib
 
     };
 
-    /*! \brief Neighbor-joining hierarchical clusterization
-     *
-     * See <a href="http://mbe.oxfordjournals.org/content/5/6/729.full.pdf">Studier JA, Keppler KJ (1988).
-     * "A note on the Neighbor-Joining algorithm of Saitou and Nei"</a> and http://www.icp.be/~opperd/private/neighbor.html
-     * \n O(n<sup>3</sup>) overall: O(n<sup>2</sup>) to init(), O(n<sup>2</sup>) per peekNext(), O(n) per mergeNext()
-     * when mergeNext() is preceded by peekNext().
-     */
     class sNeighborJoining: public sHierarchicalClustering
     {
     public:
-        sNeighborJoining(const sDistMatrix &distMatrix, bool allowNegativeLength=false): sHierarchicalClustering(distMatrix), _divergence(sMex::fExactSize) { _allowNegativeLength = allowNegativeLength; init(); this->buildTree(); }
-        sNeighborJoining(bool allowNegativeLength=false) { _allowNegativeLength = allowNegativeLength; _needMakeDivergence = _needMakeMin = true; }
+        sNeighborJoining(const sDistMatrix &distMatrix, bool allowNegativeLength=false): sHierarchicalClustering(distMatrix), _divergence(sMex::fExactSize)
+        {
+            _allowNegativeLength = allowNegativeLength;
+            init();
+            this->buildTree();
+        }
+        sNeighborJoining(bool allowNegativeLength=false)
+        {
+            _allowNegativeLength = allowNegativeLength;
+            _needMakeDivergence = _needMakeMin = true;
+            _minx = _miny = -1;
+            _nvalid = 0;
+        }
 
     protected:
         sVec<real> _divergence;
@@ -667,7 +645,6 @@ namespace slib
             _minx = _miny = -1;
             _needMakeMin = false;
 
-            /* Trivial case: 1 or 2 valid points left */
             if (_nvalid < 3) {
                 for (idx x=0; x<_npoints; x++) {
                     if (!valid(x))
@@ -679,7 +656,6 @@ namespace slib
                 return;
             }
 
-            /* Standard case: 3+ valid points left */
             for (idx x=0; x<_npoints; x++) {
                 if (!valid(x))
                     continue;
@@ -704,6 +680,8 @@ namespace slib
             sHierarchicalClustering::init();
             _divergence.resize(_npoints);
             _needMakeDivergence = _needMakeMin = true;
+            _minx = _miny = -1;
+            _nvalid = 0;
         }
 
         bool peekNext(idx *x, idx *nearesty)
@@ -772,11 +750,6 @@ namespace slib
         }
     };
 
-    /*! \brief Fast Neighbor-joining hierarchical clusterization
-     *
-     * See <a href="http://www.nada.kth.se/~isaac/publications/FNJ_final_icalp.pdf">Isaac Elias, Jens Lagergren (2005) "Fast Neighbor Joining"</a>
-     * \n O(n<sup>2</sup>) overall: O(n<sup>2</sup>) to init(), O(n) per peekNext(), O(n) per mergeNext().
-     */
     class sFastNeighborJoining: public sNeighborJoining
     {
     public:
@@ -808,7 +781,6 @@ namespace slib
             if (_needMakeDivergence)
                 makeDivergenceNValid();
 
-            // initialize _visible pairs
             _visible.resize(_npoints);
             for (idx x=0; x<_npoints; x++)
                 _visible[x] = valid(x) ? getLightest(x) : -1;
@@ -820,7 +792,6 @@ namespace slib
             _minx = _miny = -1;
             _needMakeMin = false;
 
-            /* Trivial case: 1 or 2 valid points left */
             if (_nvalid < 3) {
                 for (idx x=0; x<_npoints; x++) {
                     if (!valid(x))
@@ -832,7 +803,6 @@ namespace slib
                 return;
             }
 
-            /* Standard case: 3+ valid points left */
             for (idx x=0; x<_npoints; x++) {
                 idx y = _visible[x];
                 if (y < 0 || !valid(x) || !valid(y))
@@ -854,7 +824,6 @@ namespace slib
         {
             sNeighborJoining::mergeNext(distx, disty);
 
-            /* Update _visible */
             for (idx x=0; x<_npoints; x++) {
                 if (x == _miny || _visible[x] == _minx || _visible[x] == _miny)
                     _visible[x] = -1;

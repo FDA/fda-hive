@@ -32,19 +32,19 @@ vjPAGE.initSequenceListViewerTab = function (dvname, tabname, tabico, recordview
 {
     var cntViewersIn = (vjDV[dvname].tabs && vjDV[dvname].tabs[tabname]) ? vjDV[dvname].tabs[tabname].viewers.length : 0;
 
-    var dsurl = "http://?cmd=objList&type=u-hiveseq%2B&mode=csv&info=1&actions=1&cnt=100&prop=id,name,rec-count,size,created,hierarchy,_type";
-    if (url!==undefined && url.indexOf("http://")!==null) dsurl = url;
+    var dsurl = "http:
+    if (url!==undefined && url.indexOf("http:
     if (!active) active = "tree";
     if (searchKey) dsurl += "&prop_val=" + searchKey;
-    var hideDBactions=[{name:'upload',hidden:true,prohibit_new:true},
-                       {name:'create',hidden:true,prohibit_new:true},
-                       {name:'convert',hidden:true,prohibit_new:true}];
+    var hideDBactions=[{name:'upload',hidden:true},
+                       {name:'create',hidden:true},
+                       {name:'convert',hidden:true}];
     if(hidebuttons)hideDBactions=hidebuttons.concat(hideDBactions);
     vjPAGE.initListAndTreeViewerTab(dsurl, dvname, tabname, tabico, recordviewer, formname, fullpanel, active, hideDBactions, selectCallback, bgClrMap,isdrag);
 
     var viewer = vjDV.locate(dvname + "." + tabname + "." + (cntViewersIn + 1));
     viewer.cols = ([
-           { name: new RegExp(/.*/), hidden: true }, // , url: (( typeof(recordviewer) == "function" ) ? recordviewer : vjHC.recordViewNode) },
+           { name: new RegExp(/.*/), hidden: true },
            {name: '^name', hidden: false, title: 'Name', wrap: false, order: 2 },
            { name: 'id', hidden: false, title: 'ID', order: 1 },
            { name: 'rec-count', hidden: false, title: "Records", align: "left", type: "largenumber", order: 3 },
@@ -59,9 +59,7 @@ vjPAGE.initSequenceListViewerTab = function (dvname, tabname, tabico, recordview
         viewer = vjDV.locate(dvname + "." + tabname + "." + (cntViewersIn + 2)); viewer.checkLeafCallback = checkcallback; viewer.checkBrunchCallback = checkcallback;
     }
 
-    //alert(jjj(vjDV.locate(dvname+"."+tabname+"."+cntViewersIn).rows));
 
-    //if(!fullpanel)return ;
 
     var viewerPanel = vjDV.locate(dvname + "." + tabname + "." + cntViewersIn);
     var objtype = (searchKey && searchKey.indexOf("genomic") == 0 ? "subject" : "query");
@@ -79,7 +77,7 @@ vjPAGE.initShortSelectedSequenceListTab=function(dvname,dsname,tabname,title, ta
     var textForEmpty="no sequences selected";
     if (emptyText!==undefined) textForEmpty = emptyText;
     var queryBriefViewer=new vjTableView( {
-        data: dsname,// 'dsQuerySelected',
+        data: dsname,
         cols: [
             {name:new RegExp(/.*/), hidden:true },
             {name:'^name', hidden: false, title:(title ? title : "Sequences"), wrap: true } ,
@@ -98,7 +96,7 @@ vjPAGE.initSelectedElementListTab=function(dvname,dsname,tabname,title, tabico, 
     var textForEmpty="no element selected";
     if (emptyText!==undefined) textForEmpty = emptyText;
     var queryBriefViewer=new vjTableView( {
-        data: dsname,// 'dsQuerySelected',
+        data: dsname,
         cols: [
             {name:new RegExp(/.*/), hidden:true },
             {name:'^name', hidden: false, title:(title ? title : "Sequences"), wrap: true } ,
@@ -120,15 +118,16 @@ vjPAGE.initSelectedElementListTab=function(dvname,dsname,tabname,title, tabico, 
 };
 
 vjPAGE.colorsACGT=['#006AFF','#95BE4D','#556B2F', '#000080'];
+vjPAGE.colorsACGTN=['#006AFF','#95BE4D','#556B2F', '#000080','#ff8000'];
 
 vjPAGE.initSequenceQCViewerTabs=function(dvname, formname, geometryX, geometryY )
 {
 
     var initTxt="preview:<img border=0 src='img/music.gif' /' width=128>";
-    vjDS.add("Constructing Next-Gen Sequences Positional QC Data", "ds-" + dvname + "-SeqQualityControlPositional", "static://" + initTxt);
-    vjDS.add("Constructing Next-Gen Sequences Nucleotide Quality", "ds-" + dvname + "-SeqQualityControlATGC", "static://" + initTxt);
-    vjDS.add("Computing Quality Control Lengthwise Histograms", "ds-" + dvname + "-SeqQualityControlLengthwise", "static://" + initTxt);
-    vjDS.add("infrastructure: Hiveseq composition help documentation","dsHelpHiveseq1","http://help/hlp.page.hiveseq.input.html");
+    vjDS.add("Constructing Next-Gen Sequences Positional QC Data", "ds-" + dvname + "-SeqQualityControlPositional", "static:
+    vjDS.add("Constructing Next-Gen Sequences Nucleotide Quality", "ds-" + dvname + "-SeqQualityControlATGC", "static:
+    vjDS.add("Computing Quality Control Lengthwise Histograms", "ds-" + dvname + "-SeqQualityControlLengthwise", "static:
+    vjDS.add("infrastructure: Hiveseq composition help documentation","dsHelpHiveseq1","http:
 
     var viewerPreviewGraphPositionalCount = new vjGoogleGraphView ({
         data: 'ds-'+dvname+'-SeqQualityControlPositional',
@@ -165,7 +164,6 @@ vjPAGE.initSequenceQCViewerTabs=function(dvname, formname, geometryX, geometryY 
         name:'qualities',
         data: 'ds-'+dvname+'-SeqQualityControlLengthwise',
         options:{ focusTarget:'category',width: geometryX, height: geometryY, colors:vjPAGE.colorsACGT  , legend: 'top' },
-        //series:[ {label:false, name:'pos', title: 'Length of query sequences'}, {name: 'countA', title: 'Count of bases A in sequences of given length' } ],
         series:[
                 {label:false, name:'pos', title: 'Length'},
                 {name: 'countA', title: 'A' } ,
@@ -195,7 +193,6 @@ vjPAGE.initSequenceQCViewerTabs=function(dvname, formname, geometryX, geometryY 
     vjDV[dvname].add( "ACGT", "graph", "tab", [ viewerPreviewGraphATGCCount ,viewerPreviewGraphATGCQuality] );
     vjDV[dvname].add( "positionalQC", "graph", "tab", [ viewerPreviewGraphLengthwiseCount ,viewerPreviewGraphLengthwiseQuality] );
 
-    //.add( "help", "help", "tab", [ ] );
 
     vjDV[dvname].add( "help", "help", "tab", [ new vjHelpView ({ data:'dsHelpHiveseq1'})  ]);
 
@@ -239,4 +236,3 @@ vjPAGE.initSequenceContentViewer=function(dsName,dvname,tabname,formname)
 };
 
 
-//# sourceURL = getBaseUrl() + "/js/vjPageLayoutSequence.js"

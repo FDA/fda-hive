@@ -47,7 +47,7 @@ namespace slib {
             typedef sRangeTree<Tobj, Kobj> sRangetree;
             struct NodeRange
             {
-                Tobj start, end;    //start,end, Tind:range index, Rind,
+                Tobj start, end;
                 NodeRange()
                 {
                     sSet(this, 0);
@@ -82,7 +82,6 @@ namespace slib {
                 return 0;
             }
 
-            // Number of Nodes in the Tree
             idx getTreeDim()
             {
                 return _rTree._vec.dim();
@@ -98,9 +97,6 @@ namespace slib {
                 lenStat.mex()->flags |= sMex::fSetZero;
 
                 for (idx i = 0; i < _vec.dim(); i ++){
-//                    sStr s_vecSize;
-//                    s_vecSize.printf("%" DEC,getVecDim(i));
-//                    lenStat[s_vecSize.ptr()]++;
                     idx seqlen = getVecDim(i);
                     sSort::Lenstats * auxlenStat = lenStat.set(&seqlen, sizeof(seqlen));
                     auxlenStat->num += 1;
@@ -171,7 +167,6 @@ namespace slib {
             idx addNewRangeSorted(idx start, idx end, idx id){
                 setRanges * t_set = _vec.add();
                 t_set->id = id;
-//                NodeRange * t_node = t_set->nodes.add();
                 NodeRange * t_node = 0;
                 bool insertion = false;
                 for (idx i = 0; i < t_set->nodes.dim(); ++i){
@@ -221,7 +216,7 @@ namespace slib {
                 init (0);
             }
 
-            sRangeIntervalTreeList(idx tree_mode)//const char * flnm = 0, bool doMap = false)
+            sRangeIntervalTreeList(idx tree_mode)
             {
                 _vec.mex()->flags |= sMex::fSetZero;
                 _rTree.setMode(tree_mode);
@@ -247,7 +242,6 @@ namespace slib {
                     range_id = _insert(start1,end1, search_res2.ptr(0));
                 }
                 else {
-                    // bug (or not?)
                 }
                 return range_id;
             }
@@ -320,7 +314,6 @@ namespace slib {
                 sRangeNode *curr = _rTree.getRoot();
 
                 if (curr == 0){
-                    // the tree is empty
                     return 0;
                 }
                 stack.vadd(1, curr);
@@ -329,9 +322,7 @@ namespace slib {
                     curr = *stack.ptr(stack.dim() - 1);
                     isPresent = _rTree.searchOneNode(stack, position1, position1, 0);
                     if (isPresent){
-                        // I found something and I need to check in my sVec
                         idx offset = searchInRangeSet (curr->value, curr->start, position1, position2);
-                        // If I found something, return the value
                         if (offset >= 0){
                             return offset;
                         }

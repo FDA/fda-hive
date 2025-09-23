@@ -43,7 +43,6 @@ class dmAnnotProc: public sQPrideProc
         virtual idx OnExecute(idx);
 
         struct myStructObj {
-                //any data I migfht need here
                 sQPrideProc * qp;
                 sVaxAnnotGB * myvax;
                 idx counter;
@@ -98,13 +97,11 @@ idx dmAnnotProc::OnExecute(idx req)
 
         vax.init(sVax::fUseMMap|sVax::fDoNotSupportTableHeader,sourceFilePath.ptr(0));
 
-        //ION.providerLoad(sVax::ionProviderCallback,(void*)&vax,0,0); //,sFlag(sIon::fLoadIncompleteRelation)
 
         ION.providerLoad(dmAnnotProc::progress_reporting_ionProviderCallback,(void*)&vax);
 
         sVec<idx> recordTypesUsed;
-        ION.sortRelations("annot","seqID pos", pForm->value("sortFile", "possort"), 0 /* sorting function */, 0 /* params */,&recordTypesUsed, sizeof(int),0 );
-        // allocate enough space for record results for binary search tree
+        ION.sortRelations("annot","seqID pos", pForm->value("sortFile", "possort"), 0, 0,&recordTypesUsed, sizeof(int),0 );
         sVec < sIon::RecordResult > rr;rr.resize(2*recordTypesUsed.dim());
         idx cnt=recordTypesUsed.dim() ;
         for( idx ir=0; ir<cnt; ++ir) {
@@ -114,8 +111,6 @@ idx dmAnnotProc::OnExecute(idx req)
         ION.buildVTree("annot", pForm->value("sortFile", "possort"), pForm->value("vTreeName","max"), rr.ptr(0), rr.ptr(cnt ),cnt );
 
 
-        // cast object
-        //sUsrObj * annotobj=obj.cast("u-annot");
         sUsrObj * annotobj=obj.cast("u-ionAnnot");
         if( ! annotobj ) {
             errmsg.printf("Cannot cast to u-ionAnnot");
@@ -147,7 +142,6 @@ idx dmAnnotProc::OnExecute(idx req)
 
 idx dmAnnotProc::progress_reporting_ionProviderCallback(idx record, void * param, idx iRecord, idx fieldType, const char * fieldTypeName, const void ** recordBody, idx * recordSize)
 {
-    //callbackParam
     sVaxAnnotGB * tt=(sVaxAnnotGB * )param;
 
     myStructObj * dd = (myStructObj *) tt->callbackParam;
@@ -159,11 +153,6 @@ idx dmAnnotProc::progress_reporting_ionProviderCallback(idx record, void * param
     idx myRecord =dd->myvax->ionProviderCallback(record,iRecord,fieldType,fieldTypeName, recordBody, recordSize);
 
     dd->qp->reqProgress(myRecord,0,100);
-    /*
-    if (!dd->qp->reqProgress(myRecord,0,dd->totalSize)){
-        dd->counter = -1;
-        return sIon::eProviderDestroy;
-    }*/
 
 
     return myRecord;
@@ -174,7 +163,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     dmAnnotProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dmAnnot", argv[0]));
     return (int) backend.run(argc, argv);
@@ -182,31 +171,3 @@ int main(int argc, const char * argv[])
 
 
 
-// OLD FORMAT
-/*sVioAnnot annot;
-    annot.myCallbackFunction = reqProgressStatic;
-    annot.myCallbackParam = this;
-    const char * ext = strrchr(sourceFilePath, '.');
-    if( ext && strcmp(ext, ".vioannot") == 0 ) {
-        annot.init(sourceFilePath, sMex::fReadonly);
-    } else {
-        // any other file assumed to be in GenBank format
-        sStr outfile;
-        if( !obj.addFilePathname(outfile, true, ".vioannot") ) {
-            errmsg.printf("failed to create destination");
-            break;
-        }
-        logOut(eQPLogType_Info, "output file '%s'\n", outfile.ptr());
-        idx ires = annot.ParseGBfile(sourceFilePath, outfile, true);
-        if( ires < 0 ) {
-            if (ires==-6){
-                errmsg.printf("file format Error");
-                break;
-            }
-            else{
-                errmsg.printf("Parser returns Error Code: %" DEC, ires);
-                break;
-            }
-        }
-        annot.init(outfile, sMex::fReadonly);
-}*/

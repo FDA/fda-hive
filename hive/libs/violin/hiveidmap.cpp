@@ -29,7 +29,8 @@
  */
 #include <ssci/bio.hpp>
 #include <ulib/ulib.hpp>
-#include <violin/violin.hpp>
+#include <violin/hiveidmap.hpp>
+
 
 using namespace sviolin;
 

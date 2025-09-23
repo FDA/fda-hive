@@ -37,8 +37,6 @@
 
 using namespace slib;
 
-// insert src_len bytes from src into buf (total length buf_len, used length buf_used_len) at position buf_pos,
-// overwriting del_len original bytes from buf
 static bool bufInsert(char * buf, idx buf_len, idx buf_used_len, idx buf_pos, const char * src, idx src_len, idx del_len)
 {
     if( buf_used_len + src_len - del_len > buf_len ) {
@@ -63,7 +61,6 @@ namespace {
     } storage_schemes;
 }
 
-// static
 idx sStorageScheme::extractSchemeName(char * buf_out, const char * uri_or_name, idx uri_len)
 {
     if( buf_out ) {
@@ -93,7 +90,6 @@ idx sStorageScheme::extractSchemeName(char * buf_out, const char * uri_or_name, 
 
     if( (uri_len == 0 || scheme_len + 3 <= uri_len) && uri_or_name[scheme_len] ) {
         if( strncmp(uri_or_name + scheme_len, "://", 3) != 0 ) {
-            // uri_or_scheme is long enough to be a uri, but doesn't have "://" after scheme name
             if( buf_out ) {
                 buf_out[0] = 0;
             }
@@ -112,8 +108,6 @@ sStorageScheme::Root::Root()
 #ifndef WIN32
     pthread_mutex_init(&usability_mutex, 0);
 #ifdef __APPLE__
-    // OSX has no pthread_condattr_setclock(), no CLOCK_REALTIME_COARSE, no clock_gettime() :/
-    // https://github.com/nanomsg/nanomsg/issues/10
     pthread_cond_init(&usability_cond, 0);
 #else
     pthread_condattr_t usability_condattr;
@@ -143,7 +137,7 @@ sStorageScheme::sStorageScheme(const char * names00)
     }
 }
 
-bool sStorageScheme::matches(const char * uri_or_name, idx len /* = 0 */) const
+bool sStorageScheme::matches(const char * uri_or_name, idx len) const
 {
     char buf[max_name_len + 1];
     if( extractSchemeName(buf, uri_or_name, len) ) {
@@ -169,7 +163,6 @@ bool sStorageScheme::updateRootIsDead(idx iroot)
 }
 
 #ifndef WIN32
-//static
 void * sStorageScheme::updateRootUsabilityWorker(void * param)
 {
     sStorageScheme::Root * r = static_cast<sStorageScheme::Root*>(param);
@@ -185,7 +178,6 @@ void * sStorageScheme::updateRootUsabilityWorker(void * param)
 }
 #endif
 
-// Root::cur_free is valid for 10 minutes
 #define CUR_FREE_VALID_SECS 600
 
 udx sStorageScheme::updateRootUsability(idx iroot)
@@ -203,8 +195,6 @@ udx sStorageScheme::updateRootUsability(idx iroot)
 #else
     struct timespec abs_time;
 #ifdef __APPLE__
-    // OSX has no pthread_condattr_setclock(), no CLOCK_REALTIME_COARSE, no clock_gettime() :/
-    // https://github.com/nanomsg/nanomsg/issues/10
     struct timeval abs_tv;
     gettimeofday(&abs_tv, 0);
     TIMEVAL_TO_TIMESPEC(&abs_tv, &abs_time);
@@ -216,7 +206,7 @@ udx sStorageScheme::updateRootUsability(idx iroot)
 
     if( !r->total_size || cur_seconds > r->cur_free_checked + CUR_FREE_VALID_SECS ) {
         r->cur_free_checked = cur_seconds;
-        udx local_cur_free = r->cur_free; // thread-local copy for consistent math
+        udx local_cur_free = r->cur_free;
 #ifdef WIN32
         if( !r->total_size ) {
             r->total_size = sDir::fileSystemSize(getRoot(iroot));
@@ -224,10 +214,9 @@ udx sStorageScheme::updateRootUsability(idx iroot)
         local_cur_free = r->cur_free = sDir::freeSpace(getRoot(iroot));
 #else
         if( pthread_mutex_trylock(&r->usability_mutex) == 0 ) {
-            // no other threads are updating this root's usability at the moment
             if( pthread_create(&r->usability_tid, 0, sStorageScheme::updateRootUsabilityWorker, (void*) r) == 0 ) {
                 pthread_detach(r->usability_tid);
-                abs_time.tv_sec += 1; // wait 1 sec
+                abs_time.tv_sec += 1;
                 if( pthread_cond_timedwait(&r->usability_cond, &r->usability_mutex, &abs_time) == 0 ) {
                     local_cur_free = r->cur_free;
                 }
@@ -245,7 +234,7 @@ udx sStorageScheme::updateRootUsability(idx iroot)
     return r->usability;
 }
 
-bool sStorageScheme::addRoot(const char * root_path, real weight /* = 1 */, udx min_free /* = 0 */, sStr * err_out /* = 0 */)
+bool sStorageScheme::addRoot(const char * root_path, real weight, udx min_free, sStr * err_out)
 {
     if( !sDir::exists(root_path) ) {
         if( err_out ) {
@@ -288,7 +277,7 @@ void sStorageScheme::updateRootsUsability()
     }
 }
 
-bool sStorageScheme::rootsOK(sStr * err_out /* = 0 */)
+bool sStorageScheme::rootsOK(sStr * err_out)
 {
     sStr buf;
     for(idx i=0; i<dimRoots(); i++) {
@@ -354,7 +343,6 @@ const char * sStorageScheme::printPathSuffix(sStr & out, const char * uri, idx l
     }
 
     if( !allow_empty_path && id_len + 1 >= len ) {
-        // uri is of the form "scheme://1234567/" or "scheme://1234567"
         out.cut0cut(out_start);
         return 0;
     }
@@ -403,7 +391,6 @@ const char * sStorageScheme::printPathSuffix(char * buf_out, idx buf_out_len, co
     }
 
     if( !allow_empty_path && id_len + 1 >= len ) {
-        // uri is of the form "scheme://1234567/" or "scheme://1234567"
         buf_out[0] = 0;
         return 0;
     }
@@ -413,14 +400,12 @@ const char * sStorageScheme::printPathSuffix(char * buf_out, idx buf_out_len, co
         udx curLevel = levelId % print_path_suffix_level_base;
         buf_pos += snprintf(buf_out + buf_pos, buf_out_len - buf_pos, "%03" UDEC "%c", curLevel, sDir::sysSep);
         if( buf_pos + 1 >= buf_out_len ) {
-            // buffer is too short
             buf_out[0] = 0;
             return 0;
         }
         levelId /= print_path_suffix_level_base;
     }
     if( buf_pos + S_HIVE_ID_SHORT_BUFLEN + len - id_len > buf_out_len ) {
-        // buffer is too short
         buf_out[0] = 0;
         return 0;
     }
@@ -472,7 +457,6 @@ const char * sStorageScheme::printDump(sStr & out, const char * newline) const
     return out.ptr(out_start);
 }
 
-//static
 bool sStorage::addScheme(sStorageScheme * scheme)
 {
     if( !scheme ) {
@@ -490,14 +474,12 @@ bool sStorage::addScheme(sStorageScheme * scheme)
         *storage_schemes.name_map.setString(scheme->getName(i)) = scheme;
     }
 
-    // allow sMex to use globally registered schemes
     sMex::uri_callback = sMexUriCallback;
 
     return true;
 }
 
-//static
-sStorageScheme * sStorage::getScheme(const char * uri_or_scheme, idx len /* = 0 */)
+sStorageScheme * sStorage::getScheme(const char * uri_or_scheme, idx len)
 {
     char name_buf[sStorageScheme::max_name_len + 1];
     if( sStorageScheme::extractSchemeName(name_buf, uri_or_scheme, len) ) {
@@ -509,7 +491,6 @@ sStorageScheme * sStorage::getScheme(const char * uri_or_scheme, idx len /* = 0 
     return 0;
 }
 
-//static
 idx sStorage::getSchemes(sVec<sStorageScheme*> & schemes_out)
 {
     idx start = schemes_out.dim();
@@ -528,14 +509,12 @@ static bool createParentDirs(char * s, struct stat * stat_out)
     bool ret = sDir::makeDir(s);
     *last_slash = sDir::sysSep;
     if( ret && !last_slash[1] ) {
-        // s ended in '/', so we created s itself - so need to fill in stat_out
         ret = (::stat(s, stat_out) == 0);
     }
     return ret;
 }
 
-//static
-const char * sStorage::makePath(sStr & out, struct stat * stat_out, const char * uri, idx len, sStorage::EMakePathMode mode /* = eCreateDirs */)
+const char * sStorage::makePath(sStr & out, struct stat * stat_out, const char * uri, idx len, sStorage::EMakePathMode mode)
 {
     struct stat stat_local;
     if( !stat_out ) {
@@ -585,8 +564,7 @@ const char * sStorage::makePath(sStr & out, struct stat * stat_out, const char *
     return 0;
 }
 
-//static
-const char * sStorage::makePath(char * buf_out, idx buf_out_len, struct stat * stat_out, const char * uri, idx len, sStorage::EMakePathMode mode/* = eCreateDirs */)
+const char * sStorage::makePath(char * buf_out, idx buf_out_len, struct stat * stat_out, const char * uri, idx len, sStorage::EMakePathMode mode)
 {
     if( buf_out_len <= 2 ) {
         return 0;
@@ -616,7 +594,6 @@ const char * sStorage::makePath(char * buf_out, idx buf_out_len, struct stat * s
         const char * root = scheme->getRoot(i);
         idx root_len = sLen(root);
         if( !bufInsert(buf_out, buf_out_len, suffix_start + suffix_len + 1, 0, root, root_len, suffix_start) ) {
-            // buffer is too short :(
             buf_out[0] = 0;
             return 0;
         }
@@ -631,7 +608,6 @@ const char * sStorage::makePath(char * buf_out, idx buf_out_len, struct stat * s
         if( const char * root = scheme->getRandomRootFor(uri, len) ) {
             idx root_len = sLen(root);
             if( !bufInsert(buf_out, buf_out_len, suffix_start + suffix_len + 1, 0, root, root_len, suffix_start) ) {
-                // buffer is too short :(
                 buf_out[0] = 0;
                 return 0;
             }
@@ -663,8 +639,7 @@ void sStorage::FindResult::push(const char * uri_dir, idx uri_dir_len, const cha
     e->is_dir = is_dir;
 }
 
-//static
-idx sStorage::findPaths(sStorage::FindResult & out, const char * uri_dir, idx uri_dir_len/* = 0 */, const char * fileglob/* = "*" */, idx recurse_depth/* = 0 */, bool no_dirs/* = false */)
+idx sStorage::findPaths(sStorage::FindResult & out, const char * uri_dir, idx uri_dir_len, const char * fileglob, idx recurse_depth, bool no_dirs)
 {
     if( !uri_dir_len ) {
         uri_dir_len = sLen(uri_dir);
@@ -712,7 +687,6 @@ idx sStorage::findPaths(sStorage::FindResult & out, const char * uri_dir, idx ur
 
     for(idx dirs_depth = 0, dirs_start = 0, dirs_cnt = dirs.dim(); dirs_cnt && dirs_depth <= recurse_depth; dirs_depth++) {
         for(idx idir = dirs_start; idir < dirs_start + dirs_cnt; idir++) {
-            // buf will be used for composing relative URIs
             const char * rel_uri_dir = dirs.absUri(idir) + uri_dir_len_with_slash;
             buf.cut0cut();
             if( rel_uri_dir[0] && strcmp("/", rel_uri_dir) != 0 ) {
@@ -750,7 +724,6 @@ idx sStorage::findPaths(sStorage::FindResult & out, const char * uri_dir, idx ur
     return cnt_all;
 }
 
-//static
 const char * sStorage::printDump(sStr & out)
 {
     idx out_start = out.length();

@@ -35,8 +35,7 @@
 
 using namespace slib;
 
-//! read |-delimeted list of permissions
-udx slib::permPermParse(const char * src, idx len/*=0*/)
+udx slib::permPermParse(const char * src, idx len)
 {
     udx perm = ePermNone;
     static sStr fmt("%%b=0|browse=%x|read=%x|write=%x|exec=%x|del=%x|admin=%x|share=%x|download=%x;",
@@ -50,8 +49,7 @@ udx slib::permPermParse(const char * src, idx len/*=0*/)
     return perm;
 }
 
-//! read |-delimeted list of permission flags
-udx slib::permFlagParse(const char * src, idx len/*=0*/)
+udx slib::permFlagParse(const char * src, idx len)
 {
     udx flags = eFlagNone;
     static sStr fmt("%%b=0|allow=0|active=0|deny=%x|down=%x|up=%x|hold=%x|revoke=%x;",

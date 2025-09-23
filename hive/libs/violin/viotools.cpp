@@ -32,7 +32,13 @@
 #include <ssci/math.hpp>
 #include <ssci/bio.hpp>
 #include <slib/utils.hpp>
-#include <violin/violin.hpp>
+#include <violin/viotools.hpp>
+#include <violin/hiveseq.hpp>
+#include <violin/hiveion.hpp>
+#include <violin/hivealtax.hpp>
+
+using namespace sviolin;
+
 
 #define limits(_v_nam) idx _v_nam##Min=gFilter.ivalue( #_v_nam "Min",0); idx _v_nam##Max=gFilter.ivalue( #_v_nam "Max",sIdxMax)
 #define compare(_v_nam,_v_var) if(_v_nam##Min!=0 || _v_nam##Max!=sIdxMax) {idx _v_nam=(_v_var); if ( _v_nam < _v_nam##Min  || _v_nam > _v_nam##Max )continue;}
@@ -50,7 +56,7 @@ sVar gPrint;
 sVar gInsilico;
 sVec < udx > gHitlist;
 idx gHitListDim=0;
-idx complexityWindow=0; // by default we are not filtering by complexity
+idx complexityWindow=0;
 real complexityEntropy=1.,mutfreqRand=0.4,noiseRand=0;
 sStr gPrimers,qualitySymbol;
 sStr taxpathfile;
@@ -63,11 +69,6 @@ char tmppath[200];
 
 bool vParseSingle=false;
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Variables
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static idx __on_vars(sVioTools * QP, const char * cmd, const char * , const char * ,sVar * pForm)
 {
     if(sIs(cmd,"-biomode")){
@@ -119,15 +120,15 @@ static idx __on_vars(sVioTools * QP, const char * cmd, const char * , const char
     } else if(sIs(cmd,"-filter")){
         const char * argv[2]; argv[0]=0;
         argv[1]=pForm->value("conditions");
-        if(argv[1])sHtml::inputCGI(0, 2, argv, &gFilter,0,false,"ARGS"); // read the filters
+        if(argv[1])sHtml::inputCGI(0, 2, argv, &gFilter,0,false,"ARGS");
     } else if(sIs(cmd,"-print")){
         const char * argv[2]; argv[0]=0;
         argv[1]=pForm->value("values");
-        if(argv[1])sHtml::inputCGI(0, 2, argv, &gPrint,0,false,"ARGS"); // read the print
+        if(argv[1])sHtml::inputCGI(0, 2, argv, &gPrint,0,false,"ARGS");
     } else if (sIs(cmd,"-insilico")){
         const char * argv[2]; argv[0]=0;
         argv[1]=pForm->value("options");
-        if(argv[1])sHtml::inputCGI(0, 2, argv, &gInsilico,0,false,"ARGS"); // dna-insilico parameters
+        if(argv[1])sHtml::inputCGI(0, 2, argv, &gInsilico,0,false,"ARGS");
     } else if(sIs(cmd,"-endl")){
         endline=1-endline;
     } else if(sIs(cmd,"-negFilter")){
@@ -155,11 +156,6 @@ static idx __on_vars(sVioTools * QP, const char * cmd, const char * , const char
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Variables
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static idx __on_sel(sVioTools * , const char * cmd, const char * , const char * ,sVar * pForm)
 {
     gHitlist.mex()->flags|=sMex::fSetZero;
@@ -176,7 +172,7 @@ static idx __on_sel(sVioTools * , const char * cmd, const char * , const char * 
             fgets(buf,sizeof(buf),fp);
             if(inum==-1)continue;
 
-            gHitlist.resize((inum+1)/WSIZE+1); // for a bit array
+            gHitlist.resize((inum+1)/WSIZE+1);
             idx ibyte=inum/WSIZE;
             idx ibit=inum%WSIZE;
             gHitlist[ibyte]|=((udx)1)<<ibit;
@@ -189,11 +185,6 @@ static idx __on_sel(sVioTools * , const char * cmd, const char * , const char * 
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Data
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static idx __on_fasta(sVioTools * QP, const char * cmd, const char * arg , const char * equCmd, sVar * pForm)
 {
     if(sIs(cmd,"-vRedund")){
@@ -228,19 +219,19 @@ static idx __on_fasta(sVioTools * QP, const char * cmd, const char * arg , const
         if(isVioDBMulti ) flags|=sVioseq2::eParseMultiVioDB;
         if (isVioseqlist) flags|=sVioseq2::eCreateVioseqlist;
         if (filetype){
-            if (filetype == 1){   //  Treat as a fasta or fa file
+            if (filetype == 1){
                 flags |= sVioseq2::eTreatAsFastA;
             }
-            if (filetype == 2){   //  Treat as a fastq or fq file
+            if (filetype == 2){
                 flags |= sVioseq2::eTreatAsFastQ;
             }
-            else if (filetype == 3){   // Is a sam file
+            else if (filetype == 3){
                 flags |= sVioseq2::eTreatAsSAM;
             }
-            else if (filetype == 4){ // Annotation File
+            else if (filetype == 4){
                 flags |= sVioseq2::eTreatAsAnnotation;
             }
-            else {  // by default use it as FastA file
+            else {
                 flags |= sVioseq2::eTreatAsFastA;
             }
         }
@@ -252,11 +243,8 @@ static idx __on_fasta(sVioTools * QP, const char * cmd, const char * arg , const
             bool isStdIn=strcmp(infile,"stdin")==0 ? true : false ;
 
             sVioseq2 sub(0);
-            //sub.complexityWindow=complexityWindow;
-            //sub.complexityEntropy=complexityEntropy;
             if (!noLim)
                 sub.setLimit(10000000);
-//                sub.setLimit(1);
 
             sStr ext;
 
@@ -267,7 +255,6 @@ static idx __on_fasta(sVioTools * QP, const char * cmd, const char * arg , const
                 ext.printf("vioseq2");
             }
             sFilePath o(infile,"%%pathx.%s",ext.ptr(0));
-            // sFilePath in(infile,"%%pathx.sviodb");
 
             if (isConcat){
                 sub.setSingleFile(true);
@@ -291,7 +278,7 @@ static idx __on_fasta(sVioTools * QP, const char * cmd, const char * arg , const
             if (vParseSingle)
                 break;
         }
-        if (!isConcat){  // I don't want to print total sequences
+        if (!isConcat){
             QP->printf("%" DEC "\n",cntTot);
         }
     }
@@ -309,7 +296,6 @@ static idx __on_fasta(sVioTools * QP, const char * cmd, const char * arg , const
         if(endline)QP->printf("\n");
     }
     else if(sIs(cmd,"-vAnnot")){
-            // read static annotation file
             const char * path = pForm->value("vioannot_file");
             annot.init( path,sMex::fReadonly);
     }
@@ -340,7 +326,6 @@ PERF_START("Init");
         idx annotMode=gPrint.ivalue("annotMode") ? 1 : 0 ;
         const char * annotType=gPrint.value("annotType") ;
 
-//        idx isHiveseq=gPrint.ivalue("hiveseq")?1:0;
         idx totLen=0;
         const char * out=pForm->value("outfile");
 
@@ -351,12 +336,10 @@ PERF_START("Init");
             ofil.init(out);
         }
 
-        sHiveseq sub(0,pForm->value("vioseq"), biomode);//sub.reindex();
+        sHiveseq sub(0,pForm->value("vioseq"), biomode);
 
 
         limits(Len);
-        //const char * idcont=gFilter.value("id");
-        //idx hitDim=gHitlist.dim()*WSIZE;
         udx * hitlist=gHitListDim ? gHitlist.ptr() : 0;
 
         idx maxnum= (cnt!=sIdxMax) ?  start+cnt : sub.dim();
@@ -389,7 +372,6 @@ PERF_START("SEQUENCE");
             }
 
             compare(Len,sublen);
-            //compareS(idcont,id);
 
             const char * id=sub.id(i);
             idx slen=seqLen ? seqLen : sublen;
@@ -408,12 +390,9 @@ PERF_START("SEQUENCE");
                 const char * annotID=0, * annotIDType=0;
                 if(annot.isok() && indexRangePtr) {
 
-                    if(annotType){ // check if we are interested only in a particular type of annotations : exome, mrna, etc
-                        // if(not the type )
-                        //     continue;
-                        // annotID, annotIDType
+                    if(annotType){
                         idx cntIDsForRange=annot.getNberOfIdsByRangeIndex(indexRangePtr[irange]);
-                        for( idx iid=0; iid<cntIDsForRange; ++iid)  {  /* loop for id list */
+                        for( idx iid=0; iid<cntIDsForRange; ++iid)  {
                             const char * idPtr,*idTypePtr;
                             annot.getIdTypeByRangeIndexAndIdIndex(indexRangePtr[irange], iid, &idPtr, 0, &idTypePtr, 0);
                             if (strcasecmp(idTypePtr,annotType)==0){
@@ -454,13 +433,11 @@ PERF_START("SEQUENCE");
                             oQP.printf(">");
                     }
                     if(isNum)oQP.printf("%" DEC "-",i);
-                    //const char * id=sub.id(i);
                     if(!isNoID){
                         if(id[0]=='>' || id[0] == '@')++id;
                         oQP.printf("%s",id);
                         if(annot.isok() ) {
                             if(!supressIDline ) {
-                                // annot.get irange find id/idtype pairs from annotation into -> annotID, annotIDType
                                 if(annotID) {
                                     oQP.printf(" %s:%s:%" DEC "-%" DEC,annotIDType, annotID,seqStart, slen+seqStart);
                                 }else  {
@@ -480,12 +457,10 @@ PERF_START("SEQUENCE");
                         idx subrpt = sub.rpt(i);
                         if(isLen){oQP.printf(" len=%" DEC " rpt=%" DEC " sim=%" DEC " ",sublen,subrpt, sub.sim(i)); totLen+=sublen;}
                         if(isPos){oQP.printf(" range=%" DEC "-%" DEC " ",seqStart,seqStart+seqLen); }
-            //            if(isReverse){oQP.printf(" rev"); }
                         if(hiverpt && (subrpt != 1)){
                             oQP.printf(" H#=%" DEC "", sub.rpt(i));
                         }
 
-                        //else oQP->printf("\n");
 
                     }
                     if(isId ){if(!endline)oQP.printf("\n");continue;}
@@ -548,7 +523,7 @@ PERF_START("SEQUENCE");
                     if(out && (strcmp(out, "stdout") != 0)){
                         ofil.printf("%s", oQP.ptr(0));
                     }
-                    else{    // stdout
+                    else{
                         QP->printf("%s", oQP.ptr(0));
                     }
                     oQP.cut(0);
@@ -561,7 +536,7 @@ PERF_START("SEQUENCE");
         if(out && (strcmp(out, "stdout") != 0)){
             ofil.printf("%s\n", oQP.ptr(0));
         }
-        else{    // stdout
+        else{
             QP->printf("%s\n", oQP.ptr(0));
         }
         if (rmfile){
@@ -586,14 +561,11 @@ PERF_PRINT();
         idx isQualBit=gPrint.ivalue("quabit");
         idx isPos=gPrint.ivalue("pos");
 
-        //idx isSort = gFilter.ivalue("sort");
 
         idx totLen=0;
-        //sort()
 
         limits(Len);
         const char * idcont=gFilter.value("id");
-        //idx hitDim=gHitlist.dim()*WSIZE;
         udx * hitlist=gHitListDim ? gHitlist.ptr() : 0;
 
         for( idx i=start; i<start+cnt && i<sub.dim() ; ++i ){
@@ -618,7 +590,6 @@ PERF_PRINT();
             if(isLen){QP->printf(" len=%" DEC " ",len); totLen+=len;}
             if(isPos){QP->printf(" range=%" DEC "-%" DEC " ",seqStart,seqStart+seqLen); }
 
-            //else QP->printf("\n");
             if(isId ){if(endline)QP->printf("\n");continue;}
             const char * seq=sub.seq(i);
             idx sublen=sub.len(i), slen=seqLen ? seqLen : sublen;
@@ -633,17 +604,13 @@ PERF_PRINT();
                     idx qlen=seqLen ? seqLen : sublen;
                     if(isQualBit || (sub.hdrR.flags&sVioseq::eParseQuaBit)) {
                         for( idx iq=seqStart; iq<qlen; ++iq ){
-                            //QP->printf("%" DEC " ",(idx)qua[iq/8]&((idx)1)<<(iq%8) ? 40 : 10);
-                            //if(wrap && iq && (iq%wrap)==0)QP->printf("\n");
                             idx qqq=(idx)qua[iq/8]&((idx)1)<<(iq%8) ? 40 : 10;
                             QP->printf("%c",(idx)(qqq+33));
 
                         }
                     } else {
                         for( idx iq=0; iq<len; ++iq ){
-                            //QP->printf("%" DEC " ",(idx)qua[iq]);
                             QP->printf("%c",(idx)(qua[iq]+33));
-                            //if(iq && (iq%wrap)==0)QP->printf("\n");
                         }
                     }
                     if(qlen<sublen)
@@ -661,15 +628,11 @@ PERF_PRINT();
     }
 
     else if(sIs(cmd,"-vRand")){
-        //sRand trand;
 
-        //Grab vioseq file----------------------------------------------------------------------//
-        sHiveseq sub(0, pForm->value("vioseq"));//sub.reindex();
+        sHiveseq sub(0, pForm->value("vioseq"));
 
         if(!sub.dim()){QP->printf("File missing or corrupted\n");return 0;}
-        //--------------------------------------------------------------------------------------//
 
-        //=------
         const char * out=pForm->value("outfile");
 
         sFil ofil;
@@ -688,7 +651,6 @@ PERF_PRINT();
         idx sStart=0,seqLen=0;
         sHiveseq sub(0,pForm->value("vioseq"));sub.reindex();
         const char * onm=pForm->value("outfile");
-        //sStr ovioseq,ofasta;
         sFilePath o;
         if(!onm)onm=o.makeName(pForm->value("vioseq"),"%%pathxComb.fasta");
         sFil ofil;
@@ -698,8 +660,6 @@ PERF_PRINT();
             sFile::remove(onm);
             ofil.init(onm);
         }
-        //ovioseq.printf(0,"%s.vioseq",onm);
-        //ofasta.printf(0,"%s.fasta",onm);
         sStr fastaTitle;fastaTitle.printf(">RECOMBINANT (");
         const char * recomb=pForm->value("recomb","false");
         sStr rst, t,out;
@@ -712,7 +672,6 @@ PERF_PRINT();
                 sStr subid;
                 sString::searchAndReplaceSymbols(&subid, nPtr, 0, ":",0,0,true , true, false, true);
                 idx i=atol(subid.ptr());
-//                QP->printf(" id=%" DEC,i);
                 if(i<sub.dim())
                 {
                     sStr subID;sString::searchAndReplaceSymbols(&subID, sub.id(i), 0, ","," ",0,true,true,false,false);
@@ -733,7 +692,6 @@ PERF_PRINT();
                         else
                             seqLen=sub.len(i)-sStart;
                         fastaTitle.printf(":%" DEC "-%" DEC ",",sStart,seqLen);
-                        //QP->printf(" start=%8" DEC " , length=%8" DEC "\n",sStart,seqLen);
                     }
                     else
                         QP->printf(" whole sequence used \n");
@@ -751,33 +709,22 @@ PERF_PRINT();
             sStr rcmbStr;rcmbStr.printf(",%s",recomb);
             recomb=rcmbStr.ptr();
             sStr tcmb;
-            /*while(*recomb){
-                sStr sid;
-                sString::extractSubstring(&sid,recomb,0,1,"," _ ":" __,0,0);
-                i=atol(sid.ptr());
-                sid.printf(0,"%s" _ "%s",sub.id(i)+1,sub.id(i)+1);
-                recomb=sString::cleanMarkup(recomb,0,"," _ "," __,"," _ ":" __,sid.ptr(),1,false,false);
-            }*/
 
             out.printf(0,"%s\n",fastaTitle.ptr());
             for(const char *nPtr=t.ptr();nPtr;nPtr=sString::next00(nPtr))
                 out.printf("%s",nPtr);
             out.printf("\n");
-            //QP->printf("%s" ,out.ptr());
         }
         ofil.printf("%s",out.ptr(0));
 
     }   else if (sIs(cmd, "-vInsilico")){
 
-        // Load output file
         const char * onm=pForm->value("outfile");
         sFilePath o1, o2;
         idx numReads = 0;
 
-        // Load input files
         bool useMutFile = false;
         bool useAnnotFile = false;
-        // 1. sub
         sHiveseq sub(0,pForm->value("infile"), sBioseq::eBioModeLong);
         if(!sub.dim()){
             sub.parse(pForm->value("vioseq"), sBioseq::eBioModeLong, false);
@@ -785,16 +732,13 @@ PERF_PRINT();
                 QP->printf("\nERROR: File missing or corrupted\n");return 0;
             }
         }
-        // 2. mutation
         const char * mutFile = gInsilico.value("mutFile");
         if (mutFile){
             useMutFile = true;
         }
-        // 3. annotation
         const char * annotFile = gInsilico.value("annotFile");
         sIon ionAnnot (annotFile);
         sIonWander wander(&ionAnnot);
-//        wand.addIon()(annotFile);
         if (annotFile && ionAnnot.ok()){
             useAnnotFile = true;
         }
@@ -814,9 +758,6 @@ PERF_PRINT();
             return 0;
         }
         if( useMutFile ) {
-            // load the csv Table and put it in RefSeqs
-//            idx filetype=0;
-//            sTxtTbl * tbl = randseq.tableParser(mutFile, 0, 0, filetype);
             if( !randseq.readTableMutations(mutFile, &sub, &err) ) {
                 QP->printf("%s", err.ptr());
                 return 0;
@@ -824,8 +765,6 @@ PERF_PRINT();
         }
         idx randseqFlags = randseq.getFlags ();
         if( randseqFlags & sRandomSeq::eSeqParseAnnotFile ) {
-            // Important: sRandomSeq::ionWanderCallback assumes the result is going to be in
-            // the variable a=find.annot()
             wander.traverseCompile("b=foreach.seqID(\"\");a=find.annot(seqID=b.1,type='strand');");
             randseq.Sub = &sub;
             wander.callbackFunc = sRandomSeq::ionWanderCallback;
@@ -840,9 +779,7 @@ PERF_PRINT();
                 return 0;
             }
         }
-//        sDic <idx> cntRowProb;
         if( (randseqFlags & sRandomSeq::eSeqPrintRandomReads) && (randseqFlags & sRandomSeq::eSeqPrintPairedEnd) ) {
-            // Generate two paired end reads
             const char *outfile1;
             const char *outfile2;
             if (!onm){
@@ -868,7 +805,6 @@ PERF_PRINT();
                 return 0;
             }
         } else {
-            // Generate only one read
             sStr outReadsPath;
             const char *outfile;
             if (!onm){
@@ -890,21 +826,6 @@ PERF_PRINT();
                 return 0;
             }
         }
-//        if (cntRowProb.dim()){
-//            const char *outfile;
-//            if( !onm ) {
-//                outfile = o1.makeName(pForm->value("vioseq"), "%%pathx_report.csv");
-//            } else {
-//                outfile = o1.makeName(pForm->value("outfile"), "%%pathx_report.csv");
-//            }
-//            sFil readsFile(outfile);
-//            if( !readsFile.ok() ) {
-//                QP->printf("failed to create destination file");
-//                return 0;
-//            }
-//            readsFile.empty();
-//            randseq.outrowProbInfo(&readsFile, &cntRowProb);
-//        }
         if( randseqFlags & sRandomSeq::eSeqMutations ) {
             const char *csvTableOutput;
             const char *vcfTableOutput;
@@ -924,11 +845,10 @@ PERF_PRINT();
             }
             csvFile.empty();
             bool success = randseq.mutationCSVoutput(&csvFile, sub, err);
-            if( !success ) {                //IF WE WERE UNABLE TO LAUNCH ALIGNMENT
+            if( !success ) {
                 QP->printf("%s", err.ptr());
                 return 0;
             }
-            // Create an output for the mutation parameters as a VCF file
             sFil vcfFile(vcfTableOutput);
             if( !vcfFile.ok() ) {
                 QP->printf("failed to create destination VCF file");
@@ -959,7 +879,6 @@ PERF_PRINT();
 
     } else if( sIs(cmd, "-tScreening") ) {
 
-        // Load output file
         const char * startDirectory = pForm->value("directory", ".");
         bool deepSearch = pForm->boolvalue("deepSearch", true);
         idx limitFiles = pForm->ivalue("limit", sIdxMax);
@@ -977,7 +896,6 @@ PERF_PRINT();
             QP->printf("a path for the ion database must be specify with: -taxPath filepath\n");
             return 0;
         }
-        // Load the taxonomy database ver
         sTaxIon taxIon(taxpathfile.ptr(), false);
         taxIon.precompileGItoAcc();
         if (!taxIon.isok()){
@@ -1000,7 +918,6 @@ PERF_PRINT();
         idx ie = 0;
         for(ie = 0; ie < dirList.dimEntries(); ie++) {
             const char * srcfilename = dirList.getEntryAbsPath(ie);
-            // Check that source file exists
             if (!sFile::exists(srcfilename)){
                 ++skippedRows;
                 continue;
@@ -1032,13 +949,6 @@ PERF_PRINT();
 }
 
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/  Initialization
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
 void sVioTools::printf(const char * formatDescription , ...)
 {
@@ -1049,7 +959,7 @@ void sVioTools::printf(const char * formatDescription , ...)
 
 idx sVioTools::CmdForm(const char * cmd , sVar * pForm)
 {
-    for ( idx i=0; cmdExes[i].param!=sNotPtr; ++i) {  // see if this is a sQPrideClient command
+    for ( idx i=0; cmdExes[i].param!=sNotPtr; ++i) {
         if ( cmdExes[i].cmd ==0 ) continue;
         if( strcmp(cmdExes[i].cmd , cmd )==0 ) {
             sCmdLine cmdline;char equCmd[128];equCmd[0]=0;
@@ -1134,11 +1044,6 @@ sCmdLine::exeCommand sVioTools::cmdExes[]={
 };
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Help
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 static idx __on_help(sVioTools * QP, const char * cmd, const char * , const char * ,sVar * pForm)
 {
     if(sIs(cmd,"-help")){
@@ -1152,4 +1057,3 @@ static idx __on_help(sVioTools * QP, const char * cmd, const char * , const char
     return 0;
 }
 
-// vioapp -vParse dodo.fa dodo.vioseq -insilico "input=.vioseq2&..."

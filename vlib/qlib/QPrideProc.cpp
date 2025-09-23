@@ -34,13 +34,6 @@
 
 using namespace slib;
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/
- _/  Initialization
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- */
 
 sQPrideProc::sQPrideProc(const char * defline00, const char * service)
     : sQPride(defline00, service)
@@ -56,13 +49,11 @@ sQPrideProc::sQPrideProc(const char * defline00, const char * service)
     exitCode = eQPErr_None;
     inBundle = 0;
     socketSelect = 0;
-    prvGrabReqID = -1;
     isProblemReported = 0;
     sleepTimeOverride = 0;
-    lastInGroup = false;
 
 #ifdef SLIB_WIN
-    doStdin = 0; // windows doesn't select() on stdin
+    doStdin = 0;
 #endif
 
     doStdin = 1;
@@ -73,10 +64,7 @@ sQPrideProc::sQPrideProc(const char * defline00, const char * service)
     _argvBufLen = 0;
     _argvBufChanged = false;
 
-    if( strcmp(service, "data_cache") == 0 )
-        return;
-
-    tmfix.time(); // set the initial clock
+    tmfix.time();
     if( !serviceGet(&svc, 0, 0) ) {
         logOut(eQPLogType_Fatal, "Service '%s' is not operational\n", service);
         return;
@@ -88,19 +76,15 @@ sQPrideProc::sQPrideProc(const char * defline00, const char * service)
 
 sQPrideProc::~sQPrideProc()
 {
+    if( sql() ) {
+        sql()->disconnect();
+    }
     if( sQPrideBase::user ) {
         delete sQPrideBase::user;
     }
 }
 
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/
- _/  Running
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- */
 
 
 void sQPrideProc::executeRequest(void * procthis)
@@ -108,128 +92,334 @@ void sQPrideProc::executeRequest(void * procthis)
     sQPrideProc *pc = (sQPrideProc*) procthis;
     pc->tmExec.time();
     sStr log("==> request %" DEC " (%" DEC ", %" DEC ") user %" UDEC, pc->reqId, pc->masterId, pc->grpId, pc->user ? pc->user->Id() : 0);
-/*    if( pc->objs.dim() ) {
+    if( pc->objs.dim() ) {
         log.printf(" proc obj[0] %s", pc->objs[0].Id().print());
-        for(idx io = 0; io < pc->objs.dim(); ++io) {
-            pc->objs[io].propSync();
+            for(idx io = 0; io < pc->objs.dim(); ++io) {
+        if( pc->reqId == pc->grpId ) {
+                pc->objs[io].propSync();
+            }
         }
-    }*/
+    }
     pc->logOut(eQPLogType_Trace, "%s started\n", log.ptr());
     pc->reqGetData(pc->reqId,"_reqStage", &pc->requestStage, true);
     if( !pc->requestStage.length() ) {
         pc->requestStage.add("init", 5);
     }
     pc->exitCode = pc->OnExecute(pc->reqId);
-    idx status = pc->reqGetStatus(pc->reqId);
+    const idx status = pc->reqGetStatus(pc->reqId);
     pc->logOut(eQPLogType_Info, "%s finished, returned %" DEC ", status %" DEC "\n", log.ptr(), pc->exitCode, status);
     ++pc->loopCnt;
-    pc->reqId = 0;
-    if (pc->svc.runInMT > 1) { // TODO  wake my checking thread
+    if (pc->svc.runInMT > 1) {
         pc->messageSubmit(pc->vars.value("thisHostName"), pc->svc.svcID, false, "wake");
     }
-    if( pc->isLastInMasterGroup() ) {
-        pc->OnCollect(pc->reqId);
+    if( pc->objs.dim() && pc->isEmailSender() ) {
+        pc->user->sendEmailOnFinish(status, pc->objs[0]);
     }
-    if( pc->isLastInGroup() ) {
-        pc->OnFinalize(pc->reqId);
-    }
-    // synchronize object when a request is finished to provide recent meta data
-    if( status > eQPReqStatus_Running || pc->lastInGroup || pc->isLastInGroup() ) {
+
+    if( status > eQPReqStatus_Running && pc->isLastInGroup() ) {
         for(idx io = 0; io < pc->objs.dim(); ++io) {
             pc->objs[io].propSync();
         }
     }
-}
-
-/*
-void sQPrideProc::executeAThread(void * param)
-{
-    ThreadSpecific * tr=(ThreadSpecific *)param;
-    sQPrideProc * app=(sQPrideProc *)tr->thisObj;
-    app->OnComputeThread(app->reqId,tr);
-    return ;
+    pc->reqId = 0;
 }
 
 
-idx sQPrideProc::executeThreads(idx , idx rangeCnt, idx rangeStart) //req
+idx sQPrideProc::splitFile(sVar * pForm, sUsr * user, sUsrProc * obj, const char * fld, idx slice)
 {
-    idx myError=0;
-    threadsWorking=0;threadID=0; // to start from zero
-    parSplitForJob(rangeStart,rangeCnt, inBundle, &svc); // determine the boundaries for the whole job, not just this thread
-    for( idx i=1; i<threadsCnt; ++i) {  // launch parallel threads
-        ThreadSpecific * t=parSplitForThread(rangeStart,rangeCnt,inBundle, parGetThreadID(), &svc); // determine the thread specific parameters for this thread, this job
-        threadBegin(executeAThread,(void*)t,myError);
-        sleepSeconds(1); /// wait so threads do not conflict during initialization
+    sUsrObj * so = (sUsrObj *)obj;
+    sStr splitFieldValue;
+    const char * fld_val = pForm->value(fld);
+    if( !fld_val && so ) {
+        fld_val = so->propGet00(fld, &splitFieldValue, "\n");
     }
-    executeAThread(parSplitForThread(rangeStart,rangeCnt,inBundle,parGetThreadID(),&svc)); // computation by self
 
-    //
-    // wait until all threads have finished
-    //
-    while(threadsWorking>0){
-        sleepSeconds(1);
-    }
-    return 0;
-}
-
-
-idx sQPrideProc::OnExecute(idx req)
-{
-    // group id is needed since some data may be associated not with the request but with the MASTER group
-    grpId = req2Grp(req);
-    masterId = req2Grp(req, 0, true);
-    idx myError=OnPrepare(req) ;
-
-    if(myError==0){
-        //bool isCollector=strstr(vars.value("serviceName"), "-collector")!=0 ? true : false;
-
-        //if( isCollector ){
-        //    myError=OnCollect(req);
-        //} else {
-            myError=OnCompute(req);
-        //}
-
-        //if( myError==0 && !isCollector && svc.parallelJobs>1 && parReqsStillIncomplete(grpId) ==1){
-        //    idx reqCollect=grp2Req(grpId,0,"-collector");
-        //    reqSetAction(reqCollect,eQPReqAction_Run);
-        //}
-        if(svc.parallelJobs>1 && myError==0 && req==masterId  ){
-            logOut(eQPLogType_Trace,"Waiting for other parallel jobs to finish\n");
-            while ( parReqsStillIncomplete(masterId) >0 )
-                sleepMS(1000);
-            OnCollect(req);
+    idx cntChunks = 0;
+    sHiveId id(fld_val);
+    if( id.valid() ) {
+        std::unique_ptr<sUsrObj> obj(user->objFactory(id));
+        sUsrFile * file = dynamic_cast<sUsrFile *>(obj.get());
+        if( file ) {
+            sStr buf;
+            sFil f(file->getFile(buf), sMex::fReadonly);
+            if( f.ok() ) {
+                cntChunks = (f.recCnt(true) - 1) / slice + 1;
+            }
         }
-
+    }
+    return cntChunks;
+}
+idx sQPrideProc::splitList(sVar * pForm , sUsr * user, sUsrProc * obj, const char * fld, idx slice)
+{
+    sUsrObj * so = (sUsrObj *)obj;
+    sStr spl_vals00;
+    const char * fld_val = pForm->value(fld);
+    if( !fld_val && so ) {
+        so->propGet00(fld, &spl_vals00);
+    } else {
+        sString::searchAndReplaceSymbols(&spl_vals00, fld_val, 0, ";,\n", 0, 0, true, true, true, true);
     }
 
-    OnCleanup(req);
+    return sString::cnt00(spl_vals00.ptr(0));
+}
+idx sQPrideProc::splitMultiplier(sVar * pForm , sUsr * user, sUsrProc * obj, const char * fld, idx slice)
+{
+    sUsrObj * so = (sUsrObj *)obj;
+    sStr splitFieldValue;
+    const char * fld_val = pForm->value(fld);
+    if( !fld_val && so ) {
+        fld_val = so->propGet00(fld, &splitFieldValue, "\n");
+    }
+    return atoidx(fld_val);
+}
 
+
+
+sRC sQPrideProc::OnSplit(idx req, idx &cnt)
+{
+    return genericSplitting(cnt, pForm,user,objs.ptr(),&svc,0);
+}
+
+enum eSplitTypes {
+    eSplitFile,
+    eSplitList,
+    eSplitMultiplier
+};
+const char * sQPrideProc::listTypes="file" _ "list" _ "multiplier" __;
+
+sQPrideProc::splittertFunction sQPrideProc::getSplitFunction(const char * type)
+{
+    if(!type)
+        return 0;
+
+    idx splittypenum=-1;
+    sString::compareChoice(type, sQPrideProc::listTypes, &splittypenum, false, 0, true);
+
+    switch(splittypenum) {
+        case eSplitFile: {
+            return (sQPrideProc::splitFile);
+        }
+        case eSplitList: {
+            return (sQPrideProc::splitList);
+        }
+        case eSplitMultiplier: {
+            return (sQPrideProc::splitMultiplier);
+        }
+        default: return 0;
+    }
     return 0;
 }
-*/
+
+const char * sQPrideProc::getSplitType(sUsrObj * so, sVar * pForm, sStr * buf)
+{
+    const char * splitType = so ? so->propGet("splitType", buf) : 0;
+    if( !pForm ) {
+        pForm = this->pForm;
+    }
+    if( so ) {
+        splitType = so->propGet("splitType", buf);
+        if ( !splitType ) {
+            splitType = so->propGet("scissors", buf);
+        }
+    }
+    if( !splitType && pForm ) {
+        splitType = pForm->value("splitType");
+        if( !splitType ) {
+            splitType = pForm->value("scissors");
+        }
+    }
+    return splitType;
+}
+const char * sQPrideProc::getSplitField(sUsrObj * so, sVar * pForm, sStr * buf)
+{
+    const char * splitField = 0;
+    if( !pForm ) {
+        pForm = this->pForm;
+    }
+    if( so ) {
+        splitField = so->propGet("splitField", buf);
+        if ( !splitField ) {
+            splitField = so->propGet("split", buf);
+        }
+    }
+    if( !splitField && pForm ) {
+        splitField = pForm->value("splitField");
+        if( !splitField ) {
+            splitField = pForm->value("split");
+        }
+    }
+    return splitField;
+}
+const char * sQPrideProc::getSplitSize(sUsrObj * so, sVar * pForm, sStr * buf)
+{
+    const char * splitSize = 0;
+    if( !pForm ) {
+        pForm = this->pForm;
+    }
+    if( so ) {
+        splitSize = so->propGet("splitSize", buf);
+        if ( !splitSize ) {
+            splitSize = so->propGet("slice", buf);
+        }
+    }
+    if( !splitSize && pForm ) {
+        splitSize = pForm->value("splitSize");
+        if( !splitSize ) {
+            splitSize = pForm->value("slice");
+        }
+    }
+    return splitSize;
+}
+
+sRC sQPrideProc::genericSplitting(idx &cntParallel, sVar * pForm , sUsr * user, sUsrProc * obj, sQPride::Service * pSvc, sStr * log)
+{
+    sUsrObj * so = (sUsrObj *) obj;
+
+    const char * batch = so ? so->propGet00("batch_param") : 0;
+    if( batch && *batch ) {
+        cntParallel = 1;
+        return sRC::zero;
+    }
+
+    sStr sSplitType,sSplitField,sSplitSlice;
+    const char * splitType = getSplitType(so, pForm, &sSplitType);
+    const char * splitField = getSplitField(so, pForm, &sSplitField);
+    const char * splitSize = getSplitSize(so, pForm, &sSplitSlice);
+
+    cntParallel = 1;
+    sStr lstType00,lstField00,lstSlice00;
+    sString::searchAndReplaceSymbols(&lstType00, splitType, 0, " ,\r\n", 0, 0, true, true, true, true);
+    sString::searchAndReplaceSymbols(&lstField00, splitField, 0, " ,\r\n", 0, 0, true, true, true, true);
+    sString::searchAndReplaceSymbols(&lstSlice00, splitSize, 0, " ,\r\n", 0, 0, true, true, true, true);
+    if( lstType00 && sString::cnt00(lstType00) != sString::cnt00(lstField00) && sString::cnt00(lstType00) != sString::cnt00(lstSlice00) ) {
+        return RC(sRC::eSplitting,sRC::eRequest,sRC::eField, sRC::eIncorrect);
+    }
+    sRC rc= sRC::zero;
+    const char * s_type = lstType00, * s_field = lstField00, * s_size = lstSlice00;
+    for(; s_type && s_field && s_size; s_type = sString::next00(s_type), s_field = sString::next00(s_field),s_size = sString::next00(s_size)) {
+        splittertFunction splf = getSplitFunction(s_type);
+        if( !splf ) {
+            RCSET(rc, sRC::eSplitting,sRC::eRequest,sRC::eFunction, sRC::eNotFound);
+            continue;
+        }
+        idx currentCnt = splf(pForm, user, obj, s_field, atoidx(s_size));
+        cntParallel *= currentCnt ? currentCnt : 1;
+    }
+    return rc;
+}
+
+sRC sQPrideProc::splitRequest(void)
+{
+    sRC rc;
+    if( reqId ) {
+        if( reqGetAction(reqId) == eQPReqAction_Split ) {
+            pForm = &reqForm;
+            idx cntParallel = 1;
+            rc = OnSplit(reqId, cntParallel);
+            if( !rc ) {
+                if( cntParallel > 1 ) {
+                    grpSubmit(svc.name, 0, 0, cntParallel - 1, 0, reqId);
+                    if( !isGroupId() ) {
+                        sVec<idx> reqList;
+                        grp2Req(reqId, &reqList, 0, reqId);
+                        for(idx ig = 1; ig < reqList.dim(); ++ig) {
+                            grpAssignReqID(reqList[ig], grpId, ig);
+                        }
+                    }
+                } else if( cntParallel < 1 ) {
+                    rc = RC(sRC::eSplitting, sRC::eRequest, sRC::eResult, sRC::eIncompatible);
+                }
+            }
+        }
+    } else {
+        rc = RC(sRC::eSplitting, sRC::eRequest, sRC::eRequest, sRC::eUninitialized);
+    }
+    if( !rc ) {
+        sVec<idx> reqList;
+        grp2Req(reqId, &reqList, 0, reqId);
+        for(idx ig = 0; ig < reqList.dim(); ++ig) {
+            reqSetAction(reqList[ig], eQPReqAction_Run);
+        }
+    }
+    return rc;
+}
 
 idx sQPrideProc::OnGrab(idx forceReq)
 {
     isRegrab = 0;
 
-    // we grab the requests to execute
     if( forceReq ) {
         reqId = forceReq;
         isRegrab = 1;
         reqSetStatus(reqId, eQPReqStatus_Processing);
     } else {
-        reqId = reqGrab(0, jobId, inBundle, eQPReqStatus_Waiting, eQPReqAction_Run);
+        reqId = reqGrab(0, jobId, inBundle, eQPReqStatus_Waiting, eQPReqAction_Split);
+        if(!reqId) {
+            reqId = reqGrab(0, jobId, inBundle, eQPReqStatus_Waiting, eQPReqAction_Run);
+        }
     }
+    const idx prvReqId = reqId;
 
-    lazyTime.time(); // since Grabber always resets the alive time counter, we make sure our lazy time is in consistency
+    lazyTime.time();
     if( !user ) {
         user = new sUsr();
     }
-    // has request and switched to the submitting user
-    if( reqId != 0 && user->init(reqGetUser(reqId)) ) {
-        psMessage("req %" DEC, reqId);
-        grpId = req2Grp(reqId); // group id is needed since some data may be associated not with the request but with the group
+    if( reqId != 0 ) {
+        grpId = req2Grp(reqId);
         masterId = req2Grp(reqId, 0, true);
+
+        reqForm.empty();
+        pForm = reqGetData(masterId, "formT.qpride", &reqForm);
+
+        udx projectId = reqForm.uvalue("projectID", 0);
+        if( !projectId ) {
+            sVar grpForm;
+            reqGetData(grpId, "formT.qpride", &grpForm);
+            projectId = grpForm.uvalue("projectID", 0);
+        }
+        if( !user->init(reqGetUser(reqId), projectId) ) {
+            psMessage("sleeping...");
+            return 0;
+        }
+        psMessage("user %" DEC " req %" DEC, (user && user->Id()) ? user->Id() : 0, reqId);
+
+        progress100Start = 0;
+        progress100End = 100;
+        progress100Last = 0;
+        objs.cut(0);
+        if( user ) {
+            sStr rootPath;
+            sRC rc = sUsrObj::initStorage(cfgStr(&rootPath, 0, "user.rootStoreManager"), cfgInt(0, "user.storageMinKeepFree", (udx) 20 * 1024 * 1024 * 1024), this);
+            if( !rc ) {
+                sStr strObjList;
+                sVec<sHiveId> objIds;
+                requestGetPar(reqId, eQPReqPar_Objects, &strObjList, true);
+                if( strObjList.length() < 2 ) {
+                    strObjList.cut0cut();
+                    requestGetPar(masterId ? masterId : grpId, eQPReqPar_Objects, &strObjList, false);
+                }
+                if( strObjList ) {
+                    sHiveId::parseRangeSet(objIds, strObjList, strObjList.length());
+                }
+                for(idx io = 0; io < objIds.dim(); ++io) {
+                    idx cnt = objs.dim();
+                    sUsrProc * p = objs.add(1);
+                    new (p) sUsrProc(*user, objIds[io]);
+                    if( !objs[cnt].Id() ) {
+                        objs.cut(cnt);
+                    }
+                }
+            } else {
+                logOut(eQPLogType_Error, "%s", rc.print());
+                reqSetStatus(reqId, sQPrideBase::eQPReqStatus_Waiting);
+                return 0;
+            }
+        }
+        if( sRC rc = splitRequest() ) {
+            reqSetInfo(reqId, sQPrideBase::eQPInfoLevel_Error, "%s", rc.print());
+            reqSetStatus(reqId, sQPrideBase::eQPReqStatus_SysError);
+            return 0;
+        }
         reqSliceCnt = 1;
         reqSliceId = req2GrpSerial(reqId, masterId, &reqSliceCnt, svc.svcID) - 1;
         if( reqSliceId < 0 ) {
@@ -238,49 +428,21 @@ idx sQPrideProc::OnGrab(idx forceReq)
         if( !reqSliceCnt ) {
             reqSliceCnt = 1;
         }
-        reqForm.empty(); // ensure reqForm doesn't contain values from previous grabs
-        pForm = reqGetData(masterId, "formT.qpride", &reqForm);
-        // used by outProgress Function
-        progress100Start = 0;
-        progress100End = 100;
-        progress100Last = 0;
-        objs.cut(0);
-        if( user ) { // map the defined objects for this request to sUsrObjects
-            sStr strObjList;
-            sVec<sHiveId> objIds;
-            requestGetPar(grpId, eQPReqPar_Objects, &strObjList);
 
-            if( strObjList )
-                sHiveId::parseRangeSet(objIds, strObjList, strObjList.length());
-
-            for(idx io = 0; io < objIds.dim(); ++io) {
-                idx cnt = objs.dim();
-                //user->objFactory(objIds[io])
-                sUsrProc * p = objs.add(1);
-                new (p) sUsrProc(*user, objIds[io]);
-                if( !objs[cnt].Id() ) {
-                    objs.cut(cnt);
-                }
-            }
-            sStr rootPath;
-            sUsrObj::initStorage(cfgStr(&rootPath, 0, "user.rootStoreManager"), cfgInt(0, "user.storageMinKeepFree", (udx) 20 * 1024 * 1024 * 1024));
-        }
         reqSetStatus(reqId, eQPReqStatus_Running);
-        prvReqId = reqId;
         rand_seed = pForm->ivalue("rand_seed", time(0)) + reqSliceId;
         srand(rand_seed);
         if( svc.runInMT > 1 ) {
-            idx code;
+            idx code = 0;
             threadBegin(executeRequest, (void* )this, code);
+            if(code)code=0;
         } else {
             executeRequest((void *) this);
             reqId = 0;
         }
-        user->init(); //forget user
-        prvGrabReqID = reqId;
+        user->init();
     } else {
         if( !promptOK ) {
-            prvGrabReqID = reqId;
             logOut(eQPLogType_Trace, "No available requests to perform\n");
         }
         psMessage("sleeping...");
@@ -294,38 +456,6 @@ void sQPrideProc::psMessage(const char * fmt, ...)
 {
     if( _argvBuf && _argvBufLen ) {
 #ifdef WIN32
-        // not tested or verified
-        /*
-        #include <Windows.h>
-        #include <Winternl.h> // for PROCESS_BASIC_INFORMATION and ProcessBasicInformation
-        #include <stdio.h>
-        #include <tchar.h>
-
-        typedef NTSTATUS (NTAPI *PFN_NT_QUERY_INFORMATION_PROCESS) (
-            IN HANDLE ProcessHandle,
-            IN PROCESSINFOCLASS ProcessInformationClass,
-            OUT PVOID ProcessInformation,
-            IN ULONG ProcessInformationLength,
-            OUT PULONG ReturnLength OPTIONAL);
-
-        int main()
-        {
-            HANDLE hProcess = OpenProcess (PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-                                           FALSE, GetCurrentProcessId());
-            PROCESS_BASIC_INFORMATION pbi;
-            ULONG ReturnLength;
-            PFN_NT_QUERY_INFORMATION_PROCESS pfnNtQueryInformationProcess =
-                (PFN_NT_QUERY_INFORMATION_PROCESS) GetProcAddress (
-                    GetModuleHandle(TEXT("ntdll.dll")), "NtQueryInformationProcess");
-            NTSTATUS status = pfnNtQueryInformationProcess (
-                hProcess, ProcessBasicInformation,
-                (PVOID)&pbi, sizeof(pbi), &ReturnLength);
-            // remove full information about my command line
-            pbi.PebBaseAddress->ProcessParameters->CommandLine.Length = 0;
-
-            getchar(); // wait till we can verify the results
-            return 0;
-        }*/
 #else
         static sStr buf(sMex::fExactSize);
         buf.cut(0);
@@ -338,7 +468,7 @@ void sQPrideProc::psMessage(const char * fmt, ...)
             if( tail ) {
                 const idx pos = buf.length();
                 buf.resize(_argvBufLen);
-                memset(buf.ptr(pos), ' ', tail); // clean tail of previous output
+                memset(buf.ptr(pos), ' ', tail);
             }
         }
         memcpy(_argvBuf, buf.ptr(), _argvBufLen);
@@ -350,10 +480,8 @@ void sQPrideProc::psMessage(const char * fmt, ...)
 idx sQPrideProc::run(idx argc, const char *argv[])
 {
     if (!ok) {
-        ///printf("FATAL ERROR: cannot connect to QueueManager\n");
         return 0;
     }
-    // process all arguments
     for(idx i = 1; i + 1 < argc; ++i) {
         ok = executeCommand(argv[i], argv[i + 1]);
         ++i;
@@ -362,40 +490,20 @@ idx sQPrideProc::run(idx argc, const char *argv[])
         }
     }
     if( doStdin == 0 && argc > 0 ) {
-        // only works in "stdin 0" mode
-        // can't overwrite argv[0] - ps will break
         _argvBuf = const_cast<char *>(argv[1]);
         for(idx i = 1; i < argc; ++i) {
             _argvBufLen += strlen(argv[i]) + 1;
         }
-        _argvBufLen--; // leave space for last \0 from printf
+        _argvBufLen--;
     }
     sStr tmpB;
     cfgStr(&tmpB,0,"qm.domains","");
     char * domains00=vars.inp("domains",tmpB.ptr());
     sString::searchAndReplaceSymbols(domains00,0, "/", 0, 0, true,true,true,true);
     const char* thisHostName=vars.value("thisHostName");
-    /* for(char * qmThisDomain=domains00; qmThisDomain && *qmThisDomain; qmThisDomain=sString::next00(qmThisDomain), ++inDomain){
-        sStr td; td.printf("qm.domains_%s",qmThisDomain);
-        // get the list of workstations in this domain
-        tmpB.cut(0);cfgStr(&tmpB,0,td,""); sString::searchAndReplaceSymbols(tmpB.ptr(),0, "/", 0, 0, true,true,true,true);
-
-        if( sString::compareChoice( thisHostName, tmpB.ptr() ,&thisHostNumInDomain,true, 0, true) !=-1) {
-            vars.inp("thisDomain", tmpB.ptr(0), tmpB.length());
-            isDomainFound=true;
-            break;
-        }
-    }
-    if(!isDomainFound){
-        logOut(eQPLogType_Fatal, "Domain configuration error: this host doesn't belong to domain. Cannot continue!\n" );
-        ok=false;
-        return 0;
-    }
-    */
 
     for(char * qmThisDomain=domains00; qmThisDomain && *qmThisDomain; qmThisDomain=sString::next00(qmThisDomain), ++inDomain){
         sStr td; td.printf("qm.domains_%s",qmThisDomain);
-        // get the list of workstations in this domain
         tmpB.cut(0);cfgStr(&tmpB,0,td,""); sString::searchAndReplaceSymbols(tmpB.ptr(),0, "/", 0, 0, true,true,true,true);
 
         idx insideDomain=0;
@@ -404,7 +512,6 @@ idx sQPrideProc::run(idx argc, const char *argv[])
             isDomainFound=hostNameMatch(rp, thisHostName);
 
             if(isDomainFound) {
-                //vars.inp("thisDomain", rp);
                 vars.inp("thisDomain", tmpB.ptr(0), tmpB.length());
                 vars.inp("thisDomainHostMatch", rp);
                 thisHostNumInDomain=insideDomain;
@@ -451,23 +558,21 @@ idx sQPrideProc::run(idx argc, const char *argv[])
     maxMemSize = ps.getMem(pid);
     jobSetMem(jobId, maxMemSize, maxMemSize);
 
-    // run the main cycle
     for (loopCnt = 0; loopCnt < svc.maxLoops && exitCode == eQPErr_None;) {
 
-        if( reqId != 0 ) { // if we have a working thread running - we do not try to grab more
+        if( reqId != 0 ) {
             selectSleep(sleepTimeOverride);
-            if( loopCnt >= svc.maxLoops && reqId != 0 ) {
+            if( loopCnt >= svc.maxLoops ) {
                 logOut(eQPLogType_Info, "Exit requested. Waiting for %" DEC " to finish\n", reqId);
                 loopCnt = svc.maxLoops - 1;
             }
-            if( memReport(svcName) ) {
+            if( memReport(reqId, svcName) ) {
                 break;
             }
-            //sTim_Global= tmfix.time();
             continue;
         }
 
-        if (!dbHasLiveConnection()) { // hot switch to live connection from the pool of DBs
+        if (!dbHasLiveConnection()) {
             dbDisconnect();
             ok = dbReconnect();
             if (ok) {
@@ -480,8 +585,6 @@ idx sQPrideProc::run(idx argc, const char *argv[])
             }
         }
 
-        // exit politely if asked to do so.
-        // we do polite exits if we have no running requests
         idx act;
         act=jobGetAction(jobId);
         if (act == eQPJobAction_Kill) {
@@ -490,7 +593,7 @@ idx sQPrideProc::run(idx argc, const char *argv[])
         }
 
         idx tmdiff = tmfix.time();
-        if (tmdiff > ((idx) (svc.cleanUpDays) * 24 * 3600 - 2 * 3600)) { // if less than two hours are left for this job to expire
+        if (tmdiff > ((idx) (svc.cleanUpDays) * 24 * 3600 - 2 * 3600)) {
             logOut(eQPLogType_Trace, "Exiting politely ... according to timespan allowed for this job\n");
             break;
         }
@@ -503,7 +606,8 @@ idx sQPrideProc::run(idx argc, const char *argv[])
             }
         }
 
-        if (!OnGrab()) {
+        const idx grabbedReqId = OnGrab();
+        if( !grabbedReqId ) {
             ++noGrabs;
             if (svc.noGrabExit && noGrabs >= svc.noGrabExit) {
                 logOut(eQPLogType_Trace, "Nothing to grab after %" DEC " attempts ... exiting temporarily\n", noGrabs);
@@ -516,10 +620,9 @@ idx sQPrideProc::run(idx argc, const char *argv[])
                 dbDisconnect();
             }
             selectSleep(sleepTimeOverride);
-            //logOut(eQPLogType_Trace, "Nothing to grab \n");
 
         } else {
-            if( memReport(svcName) ) {
+            if( memReport(grabbedReqId, svcName) ) {
                 break;
             }
             noGrabs = 0;
@@ -528,9 +631,6 @@ idx sQPrideProc::run(idx argc, const char *argv[])
 
         if(!jobShouldRun())
             loopCnt =svc.maxLoops+1;
-        //if( OnWatch() ) {
-        //    jobRegisterAlive(jobId,svc.lazyReportSec);
-        //}
 
         if (svc.maxLoops && loopCnt >= svc.maxLoops ) {
             logOut(eQPLogType_Trace, "Exiting after executing %" DEC " requests \n", loopCnt);
@@ -547,7 +647,7 @@ idx sQPrideProc::run(idx argc, const char *argv[])
     return exitCode;
 }
 
-bool sQPrideProc::memReport(const char * svcName)
+bool sQPrideProc::memReport(const idx req, const char * svcName)
 {
     sPS psLocal;
     idx mem = psLocal.getMem(pid);
@@ -557,25 +657,18 @@ bool sQPrideProc::memReport(const char * svcName)
     jobSetMem(jobId, mem, maxMemSize);
     if( svc.maxmemSoft != 0 && mem > svc.maxmemSoft && maxmemMailSent == false ) {
         logOut(eQPLogType_Warning, "While executing %" DEC " service '%s' used %" DEC "MB of memory (Soft=%" DEC ", Hard=%" DEC ")\n",
-            prvReqId, svcName, mem / (1024 * 1024), svc.maxmemSoft / (1024 * 1024), svc.maxmemHard / (1024 * 1024));
+            req, svcName, mem / (1024 * 1024), svc.maxmemSoft / (1024 * 1024), svc.maxmemHard / (1024 * 1024));
         maxmemMailSent = true;
     }
     if( svc.maxmemHard != 0 && mem > svc.maxmemHard ) {
         logOut(eQPLogType_Fatal, "While executing %" DEC " service '%s' used %" DEC "MB of memory (Soft=%" DEC ", Hard=%" DEC "). Hard limit reached: exiting...\n",
-            prvReqId, svcName, mem / (1024 * 1024), svc.maxmemSoft / (1024 * 1024), svc.maxmemHard / (1024 * 1024));
+            req, svcName, mem / (1024 * 1024), svc.maxmemSoft / (1024 * 1024), svc.maxmemHard / (1024 * 1024));
         jobSetStatus(jobId, eQPJobStatus_ExitError);
         return true;
     }
     return false;
 }
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/QmSetJ
- _/  Commands
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- */
 
 idx sQPrideProc::selectSleep(idx slpTm)
 {
@@ -591,7 +684,6 @@ idx sQPrideProc::selectSleep(idx slpTm)
 }
 idx sQPrideProc::selectSleepSingle(idx slpTm)
 {
-    // output the prompt
     if (!promptOK) {
         promptOK = 1;
         time_t tt;
@@ -606,12 +698,11 @@ idx sQPrideProc::selectSleepSingle(idx slpTm)
 
     fd_set rfds;
     idx retval = 0;
-    //static idx non_sel = 0;
     idx len = 0;
 
     if (!slpTm)
         slpTm = svc.sleepTime;
-    initializeTriggerPorts(); // trying to reinitialize the triggers
+    initializeTriggerPorts();
 
     #ifdef ZZZ_WIN32
         struct _SECURITY_ATTRIBUTES secat;
@@ -621,12 +712,8 @@ idx sQPrideProc::selectSleepSingle(idx slpTm)
         HANDLE conin = CreateFile("CONIN$", GENERIC_READ, FILE_SHARE_READ, &secat, OPEN_EXISTING, 0, 0);
 
         HANDLE handle[2];
-        handle[0]=conin;//STD_INPUT_HANDLE
-        //handle[1]=socketSelect;
+        handle[0]=conin;
 
-        //while (1){
-        //cout <<"I start my loop...";
-        //DWORD test = WaitForMultipleObjects(  1, handle,  TRUE,  slpTm);
 
         DWORD test = WaitForSingleObject(handle[0], slpTm);
         if( test == WAIT_OBJECT_0 )
@@ -643,13 +730,11 @@ idx sQPrideProc::selectSleepSingle(idx slpTm)
 
         retval= (idx)GetLastError();
 
-        //if(infile!=-1)retval=WaitForSingleObject(stdin,slpTm);
     #else
         struct timeval tv;
         tv.tv_sec = (long) (slpTm / 1000);
         tv.tv_usec = (slpTm % 1000) * 1000;
 
-        // if stdin ihas something, get it!
         FD_ZERO(&rfds);
         if (doStdin){
             FD_SET(0 , &rfds);
@@ -677,7 +762,7 @@ idx sQPrideProc::selectSleepSingle(idx slpTm)
             Buf[len] = 0;
             fflush(0);
         } else if (doStdin)
-            fgets(Buf, sizeof(Buf), stdin); //read from stdin
+            fgets(Buf, sizeof(Buf), stdin);
     }
     releaseTriggerPorts();
     if(!retval)return 0;
@@ -694,7 +779,7 @@ bool sQPrideProc::executeCommand(const char * nam, const char * val)
 {
 #define jobIsCmd(_cmd) (!strcmp(nam,_cmd) || !strcmp(nam,"-" _cmd))
 
-    if( !reqId && !dbHasLiveConnection() ) { // hot switch to live connection from the pool of DBs
+    if( !reqId && !dbHasLiveConnection() ) {
         ok = dbReconnect();
         if( !ok ) {
             logOut(eQPLogType_Fatal, "Exiting ... no live connection available\n");
@@ -715,13 +800,12 @@ bool sQPrideProc::executeCommand(const char * nam, const char * val)
             vars.inp(nam + 3, val);
         }
     } else if( jobIsCmd("exit") || jobIsCmd("quit")) {
-        //if(!alwaysRun)
         svc.maxLoops = 0;
         logOut(eQPLogType_Trace, "Exit requested.\n");
     } else if( jobIsCmd("shell")) {
         system(val);
     } else if( jobIsCmd("time")) {
-        tmCount.time(); // set the initial clock
+        tmCount.time();
     } else if( jobIsCmd("sleep")) {
         sscanf(val, "%" DEC, &sleepTimeOverride);
     } else if( jobIsCmd("stdin")) {
@@ -745,8 +829,6 @@ bool sQPrideProc::executeCommand(const char * nam, const char * val)
         for(idx i = 0; i < reqList.dim(); ++i) {
             OnGrab(reqList[i]);
         }
-        //sscanf(val, "%" DEC, &ival);
-        //OnGrab(ival);
     } else if( jobIsCmd("trigger")) {
 
     } else if( jobIsCmd("daemon")) {
@@ -777,13 +859,6 @@ bool sQPrideProc::executeCommand(const char * nam, const char * val)
     return true;
 }
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/
- _/  Utilities
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- */
 
 const char * sQPrideProc::formValue(const char * prop, sStr * lbuf, const char * defaultValue, idx iObj)
 {
@@ -804,7 +879,6 @@ const char * sQPrideProc::formValue(const char * prop, sStr * lbuf, const char *
         idx propValLen = 0;
         propVal = pForm->value(prop, defaultValue, &propValLen);
         if( propVal && lbuf ) {
-            // printf imitation
             lbuf->add(propVal, propValLen);
             lbuf->add0();
             lbuf->cut(-1);
@@ -842,27 +916,38 @@ idx sQPrideProc::formUValues(const char *prop, sVec<udx> *values, idx iObj)
 {
     sStr buf00;
     idx ret = -1;
-    if (formValues00(prop, &buf00, 0, iObj))
+    if (values && formValues00(prop, &buf00, 0, iObj))
         for (const char *p = buf00.ptr(); p; p = sString::next00(p), ret++)
             sscanf(p, "%" UDEC, values->add(1));
     return ret;
 }
 
-idx sQPrideProc::formHiveIdValues(const char *prop, sVec<sHiveId> *values, idx iObj)
+idx sQPrideProc::formHiveIdValues(const char *prop, sVec<sHiveId> & values, idx iObj)
 {
     sStr buf00;
-    idx ret = -1;
-    if (formValues00(prop, &buf00, 0, iObj))
-        for (const char *p = buf00.ptr(); p; p = sString::next00(p), ret++)
-            values->add(1)->parse(p);
-    return ret;
+    idx ret = values.dim();
+    if(formValues00(prop, &buf00, 0, iObj)) {
+        sHiveId id;
+        for (const char *p = buf00.ptr(); p; p = sString::next00(p)) {
+            if( id.parse(p) && id ) {
+                sHiveId * added = values.add(1);
+                if( added ) {
+                    *added = id;
+                } else {
+                    values.resize(ret);
+                    break;
+                }
+            }
+        }
+    }
+    return values.dim();
 }
 
 idx sQPrideProc::formRValues(const char *prop, sVec<real> *values, idx iObj)
 {
     sStr buf00;
     idx ret = -1;
-    if (formValues00(prop, &buf00, 0, iObj))
+    if (values && formValues00(prop, &buf00, 0, iObj))
         for (const char *p = buf00.ptr(); p; p = sString::next00(p), ret++)
             sscanf(p, "%lf", values->add(1));
     return ret;
@@ -885,7 +970,6 @@ const char * sQPrideProc::reqAddFile(sStr & buf, const char * flnmFmt, ...)
         if( sIs("reqself-", flnm) ) {
             dataReq = reqId;
         }
-        // create and empty file for this request
         if( reqSetData(dataReq, pathVariableName, 0, 0) ) {
             reqDataPath(dataReq, flnm, &buf);
         }
@@ -912,7 +996,6 @@ const char * sQPrideProc::reqGetFile(sStr & buf, const char * flnmFmt, ...)
     return buf.pos() == pos ? 0 : buf.ptr(pos);
 }
 
-//! OBSOLETE DO NOT USE, use add/getFile instead
 const char * sQPrideProc::destPath(sStr * buf, const char * flnmFmt, ... )
 {
     sStr pathVariableName("file://");
@@ -929,7 +1012,7 @@ const char * sQPrideProc::destPath(sStr * buf, const char * flnmFmt, ... )
         idx dataReq = ((!sIs("req-",flnm)) && grpId ) ? grpId : reqId;
         if(sIs("reqself-",flnm))
             dataReq = reqId;
-        reqSetData(dataReq, pathVariableName, 0, 0); // create and empty file for this request
+        reqSetData(dataReq, pathVariableName, 0, 0);
         reqDataPath(dataReq, flnm, buf);
     }
     return buf->ptr(pos);
@@ -937,19 +1020,18 @@ const char * sQPrideProc::destPath(sStr * buf, const char * flnmFmt, ... )
 
 idx sQPrideProc::reqProgress(idx items, idx progress, idx progressMax)
 {
-    // update argv message only the first reqProgress() call, and every svc.lazyReportSec seconds afterwards
     bool abort_proc = false;
     if( reqId && _argvBuf && (!_argvBufChanged || jobRegisterAlive(0, 0, svc.lazyReportSec, true)) ) {
         abort_proc = !OnProgress(reqId);
         if( !abort_proc ) {
             const idx prcnt = progress2Percent(items, progress, progressMax);
-            psMessage("req %" DEC " %" DEC "%%", reqId, prcnt);
+            psMessage("user %" UDEC " req %" DEC " %" DEC "%%", user ? user->Id() : 0, reqId, prcnt);
         }
     }
     if( !abort_proc ) {
         return sQPrideBase::reqProgress(reqId, svc.lazyReportSec, items, progress, progressMax);
     }
-    return 0; // mimics sQPrideBase::reqProgress on kill
+    return 0;
 }
 
 idx sQPrideProc::reqProgressStatic(void * param, idx items, idx progress, idx progressMax)
@@ -964,27 +1046,90 @@ idx sQPrideProc::reqProgressFSStatic(void * param, idx items)
     return qp ? qp->reqProgress(items, 0, -1) : 1;
 }
 
-idx sQPrideProc::exec(const char * cmdline, const char * input, const char * path, sIO * log, idx sleepSecForExec /*  = sNotIdx */)
+typedef struct reqProgressFSStatic2_data_struct {
+    sQPrideProc * qp;
+    sStr FSPath;
+} reqProgressFSStatic2_data;
+
+bool sQPrideProc::reqProgressFSStatic2(idx pid, const char * path, struct stat * st, void * param)
+{
+    reqProgressFSStatic2_data * d = static_cast<reqProgressFSStatic2_data *>(param);
+    if( d ) {
+        const idx items = path ? sDir::size(d->FSPath) : 0;
+        return d->qp->reqProgress(items, 0, -1) == 0 ? false : true;
+    }
+    return false;
+}
+
+idx sQPrideProc::exec(const char * cmdline, const char * input, const char * path, sIO * log, idx sleepSecForExec)
 {
     return sPipe::exeFS(log, cmdline, 0, sleepSecForExec ? reqProgressFSStatic : 0 , this, path, sleepSecForExec > 0 ? sleepSecForExec : svc.lazyReportSec);
 }
 
-bool sQPrideProc::isLastInGroup(const char * svcName )
+sRC sQPrideProc::exec2(sPipe2::CmdLine & cmdline, const char * path, sIO * log, idx sleepSecForExec)
 {
-    if(!svcName )
-        svcName=vars.value("serviceName");
-    sVec<idx> stat;
-    grpGetStatus(grpId, &stat, svcName);
-    lastInGroup=(getGroupCntStatusIs(grpId, eQPReqStatus_Done, &stat, sQPrideBase::eStatusEqual, svcName) >= stat.dim()-1) ? true : false ;
-    return lastInGroup;
+    sPipe2 e(&cmdline);
+    if( sleepSecForExec ) {
+        reqProgressFSStatic2_data param;
+        param.qp = this;
+        if( path ) {
+            param.FSPath.printf("%s", path);
+        }
+        param.FSPath.add0(2);
+        e.setMonitor(reqProgressFSStatic2, 0, &param, sleepSecForExec > 0 ? sleepSecForExec : svc.lazyReportSec, true);
+    }
+    if( log ) {
+        e.setStdErr(log).setStdOut(log);
+    }
+    sRC rc = e.execute();
+#if !_DEBUG
+    if( rc.isSet() )
+#endif
+    {
+        logOut(rc.isSet() ? eQPLogType_Error : eQPLogType_Debug, "exec[%s: %" DEC "] %s", rc.print(), e.retcode(), cmdline.printBash());
+        if( log ) {
+            sStr buf;
+            sString::searchAndReplaceSymbols(&buf, log->ptr(), log->length(), "\r\n", 0, 0, true, true, false, true);
+            for(const char * p = buf.ptr(); p; p = sString::next00(p)) {
+                logOut(rc.isSet() ? eQPLogType_Error : eQPLogType_Debug, "%s", p);
+            }
+        }
+    }
+    return rc;
 }
 
-bool sQPrideProc::isLastInMasterGroup(const char * svcName)
+bool sQPrideProc::lockKey(const char * key)
 {
-    sVec<idx> stat;
-    if(!svcName )
-        svcName=vars.value("serviceName");
+    const idx lockLifetime = 10 * 60;
+    idx timeoutSec = 2 * lockLifetime;
+    while( !reqLock(-reqId, key, 0, lockLifetime) && timeoutSec > 0 ) {
+        --timeoutSec;
+        sleepSeconds(1);
+    }
+    return timeoutSec > 0;
+}
 
+bool sQPrideProc::unlockKey(const char * key)
+{
+    return reqUnlock(-reqId, key);
+}
+
+bool sQPrideProc::isLastInGroup(const char * svcName )
+{
+    if( !svcName ) {
+        svcName = vars.value("serviceName");
+    }
+    sVec<idx> stat;
+    grpGetStatus(grpId, &stat, svcName);
+    return getGroupCntStatusIs(grpId, eQPReqStatus_Done, &stat, sQPrideBase::eStatusEqual, svcName) >= stat.dim() - 1;
+}
+
+bool sQPrideProc::isLastInMasterGroup(const char *svcName)
+{
+    if( !svcName ) {
+        svcName = vars.value("serviceName");
+    }
+    sVec<idx> stat;
     grpGetStatus(masterId, &stat, svcName, masterId);
     idx cntis = 0;
     for(idx i = 0; i < stat.dim(); ++i) {
@@ -993,15 +1138,42 @@ bool sQPrideProc::isLastInMasterGroup(const char * svcName)
     return cntis == stat.dim() - 1;
 }
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/
- _/  Utilities
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
+bool sQPrideProc::isLastInMasterGroupWithLock(void)
+{
+    const char * svcName = vars.value("serviceName");
+    sStr key("%" DEC "-%s", masterId, __func__);
+    if( !lockKey(key.ptr()) ) {
+        logOut(eQPLogType_Warning, "Checking %s w/o lock", key.ptr());
+    }
+    sVec<idx> stat;
+    grpGetStatus(masterId, &stat, svcName, masterId);
+    idx cntis = 0;
+    for(idx i = 0; i < stat.dim(); ++i) {
+        cntis += (stat[i] == eQPReqStatus_Done ? 1 : 0);
+    }
+    reqSetStatus(reqId, eQPReqStatus_Done);
+    if( !unlockKey(key.ptr()) ) {
+        logOut(eQPLogType_Warning, "Failed to release %s lock", __func__);
+    }
+    return cntis == stat.dim() - 1;
+}
 
-
+bool sQPrideProc::isEmailSender(void)
+{
+    bool isEmailSender = false;
+    const char * svcName = vars.value("serviceName");
+    sStr key("%" DEC "-%s", grpId, __func__);
+    sVec<idx> stat;
+    grpGetStatus(grpId, &stat, svcName);
+    idx cntis = 0;
+    for(idx i = 0; i < stat.dim(); ++i) {
+        cntis += (stat[i] >= eQPReqStatus_Done ? 1 : 0);
+    }
+    if( cntis == stat.dim() && reqLock(-reqId, key.ptr()) ) {
+        isEmailSender = true;
+    }
+    return isEmailSender;
+}
 
 
 idx sQPrideProc::hostNumInPool(Service * svc, idx * pCntList, idx * pmaxjob)
@@ -1033,18 +1205,6 @@ idx sQPrideProc::hostNumInPool(Service * svc, idx * pCntList, idx * pmaxjob)
         }
         ++countThisDomain;
 
-/*
-        char * col=strchr(p,':');
-        if(col){*col=0;++col;}
-        if( sString::compareChoice( p, thisDomain00 ,0, 0, true) ==-1)continue; // not even this domain
-        if(strcmp(p,thisHost)==0)
-            numHost=countThisDomain;
-
-        if(col){
-            if(strcmp(p,thisHost)==0 && pmaxjob)sscanf(col,"%" DEC,pmaxjob);
-            p=col;
-        }
-*/
 
     }
     *pCntList=countThisDomain;
@@ -1057,13 +1217,9 @@ bool sQPrideProc::jobShouldRun(void)
     if (alwaysRun)
         return true;
 
-    // now determine the maximum number of jobs allowed on this computer
     idx maxnumJobs = svc.maxJobs;
     hostNumInPool(&svc, (idx*)0, &maxnumJobs);
 
-    //idx bundle = svc.parallelJobs;
-    //if (bundle < 2)
-    //    bundle = 1;
 
     sFilePath Proc,buf,tmp;
     sString::searchAndReplaceStrings(&buf,svc.cmdLine,0, "$(svc)" __,svc.name,0,false);
@@ -1093,7 +1249,6 @@ bool sQPrideProc::initializeTriggerPorts(void)
             }
             ++isProblemReported;
         } else {
-            //logOut(eQPLogType_Trace,"Initiated server %s UDP port %" DEC " in %s domain.\n", vars.value("thisHostName"), port,vars.value("thisDomain","undefined") );
             isProblemReported=0;
         }
     }
@@ -1107,3 +1262,23 @@ void sQPrideProc::releaseTriggerPorts(void)
     socketSelect=0;
 }
 
+sUsrQueryEngine * sQPrideProc::queryEngineFactory(idx flags)
+{
+    return queryEngineInit(new sUsrInternalQueryEngine(this, *user, flags));
+}
+
+sUsrQueryEngine * sQPrideProc::queryEngineInit(sUsrQueryEngine * qe)
+{
+    if( qe) {
+        if( objs.dim() != 0 ) {
+            qe->registerBuiltinThis(objs[0].Id());
+            qe->registerBuiltinIdxProperty(objs[0].Id(), "grpId", grpId);
+        } else {
+            const char *type = formValue("type");
+            if( type ) {
+                qe->registerBuiltinThisPropertiesForm(type, *pForm);
+            }
+        }
+    }
+    return qe;
+}

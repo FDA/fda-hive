@@ -28,18 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*
-samplePanelView={
-
-};
-*/
  
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Panel viewer constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 vDV.generatePanelView=function( viewer , text) 
 {
@@ -144,13 +134,6 @@ vDV.generatePanelViewText=function( viewer, arr )
         }
     }
     
-    /*
-    //if(viewer.totalInputs) {
-   //     tt+="<td><input type='"+viewer.totalInputs.type+"' ";
-        tt+=" name='"+viewer.totalInputs.name+"':";
-        tt+=" value='"+(viewer.cntElements)+"' ";
-         tt+="/></td>";
-    }*/
     tt+="</tr></table>";
     
     
@@ -162,7 +145,6 @@ vDV.generatePanelViewText=function( viewer, arr )
     return tt;
 };
 
-////////////////////////////////////////////////////////
 vDV.generatePageCountPanelViewer=function(container, pagecounts, selectedCounter){
     var t;
     if(!pagecounts) {t="&nbsp;";}
@@ -185,11 +167,6 @@ vDV.generatePageCountPanelViewer=function(container, pagecounts, selectedCounter
     return t;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Panel viewer Event Handlers
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 
 vDV.updatePanelView=function(container, page )
@@ -239,11 +216,6 @@ vDV.updatePanelView=function(container, page )
 };
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Registration
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 vDV.registerViewer( "panelview", vDV.generatePanelView) ;
 
 

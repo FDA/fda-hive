@@ -28,19 +28,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Dataview Viewer
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
-var debug=0;
 
 function vjDataViewViewer( viewbase )
 {
-    // allow distinguishing constructed vjDataViewViewers from parameter objects
     this.isDataViewViewer = true;
-    //this.objectsIDependOn=verarr(this.objectsIDependOn);
-    //this.objectsDependOnMe=verarr(this.objectsDependOnMe);
     if( typeof(this.formObject) == "string" )
         this.formObject=document.forms[this.formObject];
         
@@ -48,64 +39,53 @@ function vjDataViewViewer( viewbase )
     {
         if(!viewbase)viewbase=this;
         var i=0;
-        // copy all the features from base objejct
         for ( i in viewbase ) {
-            //if( typeof(viewbase[i]) == "Object" )
-                //this[i] = viewbase[i];
             this[i] = viewbase[i];
         }
 
     };
     this.clone(viewbase);
     this.uniqueId=Math.random();
-    //this.objCls="cls_"+this.container+"_"+parseInt(1000*Math.random());
-    // replace non-alphanumerics with underscore to ensure objCls can be used as a variable name in evals
     if(this.container)this.objCls=this.container.replace(/\W/g, "_");
     else this.objCls=("cls"+this.uniqueId).replace(".","");
-    vjObj.register(this.objCls,this); // needed to find this object in events by object container
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Renderer
+    vjObj.register(this.objCls,this);
 
     this.unlink=function(){
         this.unregister_callback();
         vjObj.unregister(this.objCls);
     };
 
-//  this.remove=function(){
-//      this.unlink();
-//  };
 
     this.render=function( param, text, page_request)
     {
-        //alerJ(text,this)
         var dataDone=0;
         this.data=verarr(this.data);
-        // count how many datasource are in by now
         for(var i=0; i<this.data.length; i++) {
             var ds=this.dataSourceEngine[this.data[i]];
             if(ds && ds.state=='done')++dataDone;
         }
-        if(!this.allowPartialLoad && dataDone<this.data.length) // not all data sources are loaded yet
+        if(!this.allowPartialLoad && dataDone<this.data.length){
             return;
-        if(this.isVisible() || this.prohibitReRender )
+        } 
+            
+        if(this.isVisible() || this.prohibitReRender ){
             this._rendered=true;
-        else{
+        }else{
             this._rendered=false;
         }
-        if(!text && this.data[0])
+        if(!text && this.data[0]){
             text=this.dataSourceEngine[this.data[0]].data;
-        if (!text)
-            text = "";
+        }
+        if(!text){ text = ""; }
+            
 
         if(!this.composerFunction)
             this.composerFunction=this.dataViewEngine.registeredRenderers[this.composer];
 
-        if(debug=='flow')alert(" RENDERING " + this.container );
-
-        var o=document.getElementById(this.container+"_cell");
-        if(o) {
-            if(this.hidden) o.className="cellHid";
-            else o.className="cellVis";
+        var o = document.getElementById(this.container+"_cell");
+        if(o){
+            if(this.hidden){ o.className="cellHid"; } 
+            else{ o.className="cellVis"; }
         }
 
         if(this.callbackDataViewerParser){
@@ -114,41 +94,42 @@ function vjDataViewViewer( viewbase )
 
         this.div=document.getElementById(this.container);
         if(this.callbackDataReady) {
-            //alert(text)
             var rescontinue=funcLink(this.callbackDataReady,this,text,page_request);
-            if(rescontinue)return ;
+            if(rescontinue){ return; }
         }
 
-        if(!this.nodiv ){
-            if(!this.div) {
-                console.error("Div does not exist !!!");
-                return ;
+        if(!this.nodiv && !this.div){
+            console.error("Div does not exist !!!");
+            return;
+        }
+
+        if(this.hideOnEmptyData) {
+            if(!text || !text.length){
+                this.div.className="sectHid";
+            }else{
+                this.div.className="sectVis";
             }
         }
-
-        // now deal with registered viewers
-        if(this.hideOnEmptyData) {
-            if(!text || !text.length)
-                this.div.className="sectHid";
-            else
-                this.div.className="sectVis";
-        }
-        if(this.composerFunction && text.indexOf("preview:")!=0 ) {
+        if(this.composerFunction && typeof text === 'string' && text.indexOf("preview:")!=0 ) {
             this.composerFunction.call(this,this,text,page_request);
-            //return;
-        }
-        else if( this.composer=='preview' || text.indexOf("preview")==0 ) { // unformtatted blobs
+        }else if(this.composerFunction && this.constructor.name === 'vjHTMLView'){
+            this.composerFunction.call(this,this,text,page_request);
+        }else if( this.composer=='preview' || text.indexOf("preview")==0 ) {
             var t="";
-            if(this.prefixHTML)t+=this.prefixHTML;
-            if(text.indexOf("preview")==0)t+="<pre>"+text.substring(8)+"</pre>";
-            else t+="<pre>"+text+"</pre>";
-            if(this.appendHTML)t+=this.appendHTML;
+            if(this.prefixHTML){ 
+                t += this.prefixHTML; 
+            }
+            if(text.indexOf("preview")==0){ 
+                t += `<pre>${text.substring(8)}</pre>`; 
+            }else{ 
+                t += `<pre>${text}</pre>`; 
+            } 
+            if(this.appendHTML){ 
+                t += this.appendHTML; 
+            }
             this.div.innerHTML=t;
-            //return ;
-        }
-        else {
+        }else{
             this.div.innerHTML=text;
-            //return ;
         }
 
         if(this.hideTabOnEmpty){
@@ -165,62 +146,49 @@ function vjDataViewViewer( viewbase )
             this.tab.parent.render(true);
         }
 
-        if(this.div && this.div.style.overflow=='hidden')this.div.style.overflow='auto';
-//        this.emptySources=true;
-//        for(var iD=0; iD < this.getData.length ; ++iD){
-//            if(this.getData(iD).data.length > 50)
-//                this.emptySources=false;
-//        }
-//
-//        if(this.emptySources){
-//            this.div.innerHTML="";
-//        }
+        if(this.div && this.div.style.overflow=='hidden'){ this.div.style.overflow='auto'; }
+        
+        if(this.operationInit){ eval(this.operationInit); }  
 
-        if(this.operationInit)
-            eval(this.operationInit);
-
-        if(this.callbackRendered) {
-            funcLink(this.callbackRendered,this,text,page_request);
+        if(this.callbackRendered){ funcLink(this.callbackRendered,this,text,page_request); }
+        
+        if(this.widgetCallbackRendered) {
+            funcLink(this.widgetCallbackRendered,this,text,page_request);
         }
 
         this.updateDependents();
 
-        if(this.isVisible() || this.prohibitReRender )
+        if(this.isVisible() || this.prohibitReRender){
             this._rendered=true;
-        else{
+        }else{
             this._rendered=false;
         }
     };
 
     this.updateDependents=function( )
     {
-        if(!this.objectsDependOnMe)return ;
+        if(!this.objectsDependOnMe){ return; }
 
         for( var im=0; im < this.objectsDependOnMe.length ; ++im) {
-            if(typeof ( this.objectsDependOnMe[im] ) =='string' )
+            if(typeof ( this.objectsDependOnMe[im] ) =='string' ){
                 this.objectsDependOnMe[im]=this.dataViewEngine.locate(this.objectsDependOnMe[im]);
+            }
             var depObj=this.objectsDependOnMe[im];
-            //alerJ("ddddd",depObj);
 
-            // make sure I am on the list of dependent objects
             depObj.objectsIDependOn=verarr(depObj.objectsIDependOn);
             for( var id=0; id < depObj.objectsIDependOn.length && depObj.objectsIDependOn[id].uniqueId!=this.uniqueId ; ++id)
                 ;
             depObj.objectsIDependOn[id]=this;
 
-            // update dependent objects
-            if(depObj.composerFunction)
+            if(depObj.composerFunction){
                 depObj.composerFunction(depObj,depObj.getData(0).data);
-            //alerJ('here',depObj)
+            }
         }
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Loader
 
     this.load=function( loadmode )
     {
-        //if(!isok(this.data)) return ; // no associated data source: can do nothing
         this.data=verarr(this.data);
         if(!this.data.length)return;
         var dataHere=0, ds ;
@@ -234,16 +202,11 @@ function vjDataViewViewer( viewbase )
             }
 
             if( loadmode=='download'){
-                ds.load(loadmode ); // refresher will be called from data handler
-                //return ;
+                ds.load(loadmode );
                 continue;
             }
-            if(debug=='flow')alert("VIEWLOAD ANALIZING "+vDS[this.data[id]].url +"\n\n"+ vDS[this.data[id]].dataurl +"\n\n"+ vDS[this.data[id]].state) ;
-            if( (ds.url && ds.url!=ds.dataurl ) || (ds.state!='done' && ds.state!='err') ) { // datasource is associated but data is not here
-                if(debug=='flow')alert("VIEWLOAD attempts to get the data " +  ds.data ) ;
-
-                ds.load(loadmode ); // refresher will be called from data handler
-                //return ;
+            if( (ds.url && ds.url!=ds.dataurl ) || (ds.state!='done' && ds.state!='err') ) {
+                ds.load(loadmode );
                 continue;
             }
             else if( (ds.state=='done' || ds.state=='err') && ( (loadmode=='rerender' && !this.preventRerender) || (!this._rendered && this.tabvisible)) && ds.url)
@@ -252,12 +215,8 @@ function vjDataViewViewer( viewbase )
                 if(!this.prohibitReRender || !this._rendered)
                     this.render(this,ds.data);
             }
-            if(debug=='flow')alert("VIEWLOAD had the data from " + this.data[id] ) ;
             ++dataHere;
         }
-      //  if(dataHere!=this.data.length)return; // not all data are here , should wait until data are here
-
-      //  this.render(this.param, ds.data ) ;
     };
 
     this.viewer_refresh=function(datasource_names){
@@ -285,7 +244,6 @@ function vjDataViewViewer( viewbase )
             if( isNaN(iData) ) {if( this.data[i]!=whichData) continue;}
             else { if( i!=iData) continue;}
             var ds=vjDS[this.data[i]];
-            //if(ds && ds.state=='done')return ds;//.data;
             return ds;
         }
         return ;
@@ -315,14 +273,15 @@ function vjDataViewViewer( viewbase )
         var top=this.div.scrollTop;
         if( !this.doNotShowRefreshIcon) {
             if(this.div.style.overflow=='auto')this.div.style.overflow='hidden';
-            this.div.innerHTML ="<div id='"+this.container+"_loading' style='position:static;width:100%;height:100%'><div style='top:"+top+"px' class='progressing'>&nbsp;</div></div>"+this.div.innerHTML;//styles='background-image:url(\"img/progress.gif\");' width='16'></img>";
+            let max_height = '100%';
+            let height = '';
+            if(this.div.style.maxHeight && !this.div.innerHTML) height = `height:${this.div.style.maxHeight};`; 
+                
+            this.div.innerHTML = "<div id='"+this.container+"_loading' style='position:static;width:100%;max-height:" + max_height + ";"+ height +"'><div style='top:"+top+"px' class='progressing'>&nbsp;</div></div>" +  this.div.innerHTML;
         }
-//        this.div_loading=gObject(this.container+"_loading");
     };
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Hooks
 
-    this.register_callback=function(dsname, param, current_only) //current_only is a flag in order to register only the datasources provided from dsname argument
+    this.register_callback=function(dsname, param, current_only)
     {
         this.data=verarr(this.data);
         if(this.data) {
@@ -340,7 +299,7 @@ function vjDataViewViewer( viewbase )
         for ( var is=0; is<dataArr.length ; ++is){
             if(!this.dataSourceEngine[dataArr[is]])
                 alert("DEVELOPER ALERT: datasource "+dataArr[is]+ " is not found");
-            this.dataSourceEngine[dataArr[is]].register_callback( { 'obj' : this, 'param' : param } ); // register ourselves a callback for a data updater
+            this.dataSourceEngine[dataArr[is]].register_callback( { 'obj' : this, 'param' : param } );
             if(!this.isNrefreshOnLoad)
                 this.dataSourceEngine[dataArr[is]].register_callback( { 'obj' : this, 'param' : param, 'func' : this.waitOnLoadCallback} , "fetching");
         }
@@ -359,11 +318,8 @@ function vjDataViewViewer( viewbase )
     };
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // data types
 
     this.formDataValue = function (realText, type, node, col, options) {
-        // options: { ellipsize: true, textonly: false }
 
         if(!realText)
             return "";
@@ -372,7 +328,6 @@ function vjDataViewViewer( viewbase )
             realText = eval(realText.substring(5));
         else if (this.allowVariableReplacement)
             realText = evalVars(realText, "$(", ")", node);
-        //        alert("realText OUT= " + realText);
 
         var ellipsize = !options || options.ellipsize;
         var textonly = options && options.textonly;
@@ -380,7 +335,7 @@ function vjDataViewViewer( viewbase )
         var maxlen = node ? node.maxTxtLen : 0;
         if (!maxlen && col) maxlen = col.maxTxtLen;
         if (!maxlen) maxlen = this.maxTxtLen;
-        if (maxlen && realText.length > maxlen && ellipsize) { //  && realText.indexOf(">") == -1 && realText.indexOf("<") == -1
+        if (maxlen && realText.length > maxlen && ellipsize) {
             var lastIndexToKeep = (this.maxTextLenCutExtensionAfterSymbols) ? realText.lastIndexOf(this.maxTextLenCutExtensionAfterSymbols) : realText.length;
             if(lastIndexToKeep==-1)lastIndexToKeep=realText.length;
             realText=realText.substr(0,lastIndexToKeep);
@@ -397,13 +352,7 @@ function vjDataViewViewer( viewbase )
             realText = this.formatRequestStatus(stat, node, col, textonly);
         }
         if (type == "id-specific") {
-            //var tmplt=this.template;
             realText=evalVars(col.template, "$(", ")",node);
-            //realText= "<img src='?cmd=objFile&ids="+realText+"&raw=1' ";
-            //if(this.iconWidth){
-            //    realText = " width='" + this.iconWidth + "' ";
-            //}
-            //realText+="/>";
         }
         if (type == "icon" && !textonly) {
             icon = realText;
@@ -479,13 +428,14 @@ function vjDataViewViewer( viewbase )
             realText += "&nbsp;" + sizeUnit[unit];
         }
         else if (type == "datetime") {
-            var dt_abs,dt_fcDate,dt_fcTime;
+            var dt_abs,dt_fcDate,dt_fcTime,dt_fullDT;
             if(options && options.datetime) {
                 dt_abs = options.datetime.absoluteOnly ? options.datetime.absoluteOnly : null;
                 dt_fcDate = options.datetime.forceDate ? options.datetime.forceDate : null;
                 dt_fcTime = options.datetime.forceTime ? options.datetime.forceTime : null;
+                dt_fullDT = options.datetime.completeDate ? options.datetime.completeDate : null;
             }
-            realText = formaDatetime(realText, dt_abs, dt_fcDate, dt_fcTime);
+            realText = formaDatetime(realText, dt_abs, dt_fcDate, dt_fcTime, dt_fullDT);
         }
         else if (type == "pre" && !textonly) {
             realText = "<span class='code'>" + realText + "</span>";
@@ -505,6 +455,12 @@ function vjDataViewViewer( viewbase )
             realText = this.formatRequestQPProgress(realText, node, col, textonly);
 
         }
+        else if (type == "qp_progress2" || type == "qp_progress2*100") {
+            realText = realText.split("|");
+            realText[0] = (type == "qp_progress*100") ? parseInt(parseFloat(realText[0]) * 100) : parseInt(realText[0]);
+            realText = this.formatRequestQPProgress(realText, node, col, true);
+        }
+
         return realText;
     };
 
@@ -518,7 +474,7 @@ function vjDataViewViewer( viewbase )
         var txt = "<table width='"+ ( (col && col.width) ? col.width : "100%")+"' class='HIVE_table' ><tr>";
         if (prc > 0) txt += "<td class='ProgressBgColor'  width='" + prc + "%' >" + (prc >= 50 ? prc + "&nbsp;%" : "") + "</td>";
         if (prc < 100 && prc > 0 ) txt += "<td bgcolor='white' width='" + (100 - prc) + "%'>" + (prc < 50 ? prc + "&nbsp;%" : "") + "</td>";
-        if (prc < 0) {//   {[rot_bar]||||||prc[barsize]||||}
+        if (prc < 0) {
             var barsize = 40;
             var t = new Date();
             prc = Int((Int(t.getTime()/10))%100);
@@ -583,15 +539,7 @@ function vjDataViewViewer( viewbase )
     };
 
     this.formatTimespan = function( tt, node, col) {
-        var realText = "";
-        if (tt > 24 * 3600) { 
-            realText += parseInt(tt / (24 * 3600)) + "d "; 
-            tt = parseInt(tt % (24 * 3600)); 
-        }
-        if( tt > 3600 ){ realText += (parseInt(tt / (3600)) + "") + "h "; tt = parseInt(tt % (3600)); }
-        if( tt > 60 ) { realText += (parseInt(tt / (60)) + "") + "m "; tt = parseInt(tt % (60)); }
-        if(!realText || tt>0){ realText += (parseInt(tt) + "s") + ""; }
-        return realText;
+        return formatTimespan(tt);
     };
 
     this.formatRequestStatus = function( stat, node, col, textonly ) {
@@ -615,65 +563,31 @@ function vjDataViewViewer( viewbase )
         return realText;
     };
 
-    this.formatRequestQPProgress = function( txt, node, col, textonly ) {
-
+    this.formatRequestQPProgress = function( txt, node, col, textonly ) {        
         var statList = new Array("Any", "Queued", "Processing", "Running",
                 "Suspended", "Done", "Killed", "Program Error", "System Error",
                 "Unknown");
         var stat = parseInt(txt[1]);
         var prc = parseInt(txt[0]);
-        if( stat < 3 && prc==0 ) {
+
+        if(textonly) stat = txt[1];
+
+        if( !textonly && (stat < 3 && prc==0) ) {
             realText = this.formatRequestStatus(stat, node, col, textonly);
-        } else if (textonly) {
-            realText = statList[stat];
         } else {
-            var col_bar;
-            var tooltip_txt = statList[stat];
-            switch (stat) {
-                case 3:
-                    col_bar = '#90caf9';
-                    break;
-                case 4:
-                    col_bar = '#90caf9';
-                    break;
-                case 5:
-                    col_bar = '#90caf9';
-                    break;
-                case 6:
-                case 7:
-                case 8:
-                    col_bar = '#90caf9';
-                    break;
-                default:
-                    col_bar = '#90caf9';
-                    break;
-            }
+            var col_bar = '#6e9cc2';
+            var tooltip_txt = (typeof stat == "number" ? statList[stat] : stat);
             realText = "<table width='"+ ( (col && col.width) ? col.width : "100%")+"' class='HIVE_table' title='"+sanitizeElementAttr(tooltip_txt)+"'><tr>";
-            if (prc >= 0) {
-                realText += "<td bgcolor='"+col_bar+"' width='" + prc + "%' >" + (prc >= 50 ? tooltip_txt + " "+ prc + "&nbsp;%" : "") + "</td>";
+
+            if (prc > 0) {
+                realText += `<td bgcolor='${col_bar}' width='${prc}%' >${prc >= 50 ? tooltip_txt + " "+ prc + "&nbsp;%" : ""}</td>`;
             }
-            if (prc < 100 && prc >= 0 ) {
-                realText += "<td bgcoor='white' width='" + (100 - prc) + "%'>" + (prc < 50 ? prc + "&nbsp;% "+tooltip_txt : "") + "</td>";
+
+            if (prc < 100 && prc > 0 ) {
+                realText += `<td bgcoor='white' width='${100 - prc}%'>${prc < 50 ? prc + "&nbsp;% " + tooltip_txt : ""}</td>`;
             }
-            if (prc < 0 ) {//   {[rot_bar]||||||prc[barsize]||||}
-                var barsize = 40;
-                var t = new Date();
-                prc = Int((Int(t.getTime()/10))%100);
-                var rot_bar = (barsize - (100 - prc) );
-                if(rot_bar<0)rot_bar = 0;
-                if( rot_bar > 0 ) {
-                    realText += "<td bgcolor='"+col_bar+"' width='" + rot_bar + "%'>&nbsp;</td>";
-                }
-                if(prc > 0) {
-                    realText += "<td bgcolor='white' width='" + (prc-rot_bar) + "%'>&nbsp;</td>";
-                }
-                if(prc + barsize > 100 ) {
-                    realText += "<td bgcolor='"+col_bar+"' >&nbsp;</td>";
-                }
-                else {
-                    realText += "<td bgcolor='"+col_bar+"' width='" + ( barsize ) + "%'>&nbsp;</td>";
-                    realText += "<td bgcolor='white' >&nbsp;</td>";
-                }
+            else if (prc == 0){
+                realText += `<td bgcoor='white' width='${97}%'>${prc + "% &nbsp;" + tooltip_txt}</td>`;
             }
             realText += "</tr></table>";
         }
@@ -683,7 +597,7 @@ function vjDataViewViewer( viewbase )
     this.formatAlignment = function (realText, node, col){
         if(this.idd=='aa')
             alert("node.PosHigh="+node.PosHigh);
-        var ip=parseInt(node.PosHigh);//,is=parseInt(node.Start);
+        var ip=parseInt(node.PosHigh);
         var extS="<span style='background-color:" + (this.matchColor ? this.matchColor : 'red') + ";'>";
         var extE="</span>";
         var realVarTextIndex=realText.search(/\S/);
@@ -704,7 +618,7 @@ function vjDataViewViewer( viewbase )
             var ext2E="</span>";
             if(node.matchSubstring && node.matchSubstring.end >= node.matchSubstring.start){
                 if(node.matchSubstring.start-1<=ip){
-                        ip+=extS.length;//+extE.length;//+node.matchSubstring.end-node.matchSubstring.start+1;
+                        ip+=extS.length;
                 }
                 if(node.matchSubstring.end-1<parseInt(node.PosHigh)-1)
                     ip+=extE.length;
@@ -736,16 +650,15 @@ function vjDataViewViewer( viewbase )
         var tt="";
         var tn=node.treenode;
         var icoSize=16;
-        var white="<img src='img/tree-white.gif' width='"+icoSize+"' border=0 />";
 
         for ( var it=0; it<node.treenode.depth ; ++it ) {
             var connector="";
             if(it==0) {
-                if(tn.childId==tn.parent.children.length-1) connector="northeast"; // "&#9492;&#9472;";
-                else connector="northsoutheast";//"&#9500;&#9472;";
+                if(tn.childId==tn.parent.children.length-1) connector="northeast";
+                else connector="northsoutheast";
             }else {
-                if(tn.childId==tn.parent.children.length-1) connector="white"; // null;
-                else connector="northsouth";//"&#9474;";
+                if(tn.childId==tn.parent.children.length-1) connector="white";
+                else connector="northsouth";
             }
             if(tn.depth==1)break;
             tt="<td width="+icoSize+"><img src='img/tree-white.gif' width='"+icoSize+"' border=0 /></td>"+tt;
@@ -753,21 +666,35 @@ function vjDataViewViewer( viewbase )
             tn=tn.parent;
 
         }
-        tt="<table><tr>"+tt+"<td>";
+        tt = `<table><tr>${tt}<td>`;
         tn=node.treenode;
 
-        var imgnam=""; // "bio-run" 
+        var imgName;
+
         if(tn && tn.children && tn.children.length){
-            if(!tn.expanded)imgnam='recExpand';
-            else imgnam='recCollapse';
+            imgName = !tn.expanded ? 'chevronRightBlack.svg' : 'chevronBottomBlack.svg'
         }
 
-        if(this.onClickExpandNode)tt+="<span onclick='vjObjEvent(\"onClickExpandNode\",\""+this.objCls+"\", \""+sanitizeElementAttrJS(tn.path)+"\","+ tn.expanded+")' style='cursor:hand'>";
-        if(imgnam)tt+="<img src='img/"+imgnam+".gif' width="+icoSize+" />";
-        if(this.onClickExpandNode)tt+="</span>";
-        tt+="</td><td>"+(node.title?node.title:node.name)+"</td></tr></table>";
-        realText=tt;
-        return realText;
+
+        let iconCollapse  = imgName 
+                            ?  `<img 
+                                    src='img/${imgName}' 
+                                    width=${icoSize} 
+                                    height=${icoSize} 
+                                    style="margin-bottom:6px; margin-right: 3px" 
+                                />` 
+                            : '';
+        
+        if(this.onClickExpandNode) tt += `<span 
+                                            onclick='vjObjEvent("onClickExpandNode","${this.objCls}", "${sanitizeElementAttrJS(tn.path)}","${tn.expanded}")' 
+                                            style='cursor:hand'
+                                          > 
+                                            ${iconCollapse}
+                                          </span>`;
+
+        tt += `</td><td> ${ node.title ? node.title : node.name }</td></tr></table>`;
+    
+        return tt;
     };
 
     this.isVisible=function(){
@@ -848,18 +775,13 @@ function vjDataViewViewer( viewbase )
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Dataview Tab
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 function vjDataViewTab(name, icon, type, viewers, doClone, order)
 {
     this.name=name;
     this.icon=(icon ? icon : name );
-    this.viewers=new Array(); // one of the known types of viewers; currently "ggraph', seltable
-    this.type=type; // tab, link, download, redir
+    this.viewers=new Array();
+    this.type=type;
     if(this.columns===undefined)this.columns=1;
     this.width='100%';
     this.height='1%';
@@ -868,16 +790,12 @@ function vjDataViewTab(name, icon, type, viewers, doClone, order)
     this.viewtoggles=0;
     this.is_composed=false;
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Constructor
 
     this.add=function(viewers, doClone)
     {
         var vie=verarr(viewers);
 
         for ( var iv=0;  iv< vie.length ; ++ iv) {
-            //vie[iv].uniqueId=Math.random();
-            // remember this viewer in our list
             var vv = (!doClone && vie[iv].isDataViewViewer) ? vie[iv] : new vjDataViewViewer(vie[iv]);
             vv.dataSourceEngine=this.dataSourceEngine;
             vv.dataViewEngine=this.dataViewEngine;
@@ -907,29 +825,22 @@ function vjDataViewTab(name, icon, type, viewers, doClone, order)
             if (remove_ids[this.viewers[it].uniqueId] === true) {
                 this.viewers[it].unlink();
                 this.viewers.splice(it, 1);
-                it--; // to compensate for loop increment and spliced out member
+                it--;
             }
         }
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Loader
 
-    this.load=function( loadmode  ) // load all the viewers
+    this.load=function( loadmode  )
     {
         var vie=verarr(this.viewers);
         for ( var iv=0;  iv< vie.length ; ++ iv) {
             if(!vie[iv].forceLoad && vie[iv].hidden)continue;
-//            if(vie[iv].loadIssued)continue;
-            // If the tab html was regenerated, composeText() would have set vie[iv]._rendered = false;
-            // if the viwer was never rendered, vie[iv]._rendered would not exist.
-            // In both of these cases, the viewer must be force-rendered, no matter what its datasource thinks.
             vie[iv].load(vie[iv]._rendered ? loadmode : "rerender");
-//            vie[iv].loadIssued=true;
         }
     };
 
-    this.refresh=function( mode  ) // load all the viewers
+    this.refresh=function( mode  )
     {
         var vie=verarr(this.viewers);
         for ( var iv=0;  iv< vie.length ; ++ iv) {
@@ -953,33 +864,24 @@ function vjDataViewTab(name, icon, type, viewers, doClone, order)
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Dataview
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 
 
 function vjDataView( name, width, height , maxtabs )
 {
     this.name=name;
-    this.container=sanitizeElementId(this.name);  // the default container is the same as the name
+    this.container=sanitizeElementId(this.name);
     this.tabs=new Object ({length:0});
-    //this.tabsN=new Array (); // keeps the tabs by name
     this.width=(width ? width  : 0 );
     this.height=(height ? height : 0 );
     this.maxtabs=(maxtabs ? maxtabs : 0 );
-    this.tabstart=0; // index in this.sortTabs() of first tab to show
-    this.selected=0; // tab.num of current selected tab
-    //this.active=''; // the list of available tabs
+    this.tabstart=0;
+    this.selected=0;
     this.iconSize=24;
     this.iconToggleSize=18;
     this.tabSeparation=10;
     this.tabHeight=16;
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Constructors
 
     this.add=function(name, icon, type, viewers, doClone, order)
     {
@@ -997,12 +899,11 @@ function vjDataView( name, width, height , maxtabs )
             ++this.tabs.length;
         }
         tb.add(viewers, doClone);
-        //this.tabsN[name]=tb;
 
         return tb;
     };
-    this.objCls="cls"+Math.random();//this.name;
-    vjObj.register(this.objCls,this); // needed to find this object in events by object container
+    this.objCls="cls"+Math.random();
+    vjObj.register(this.objCls,this);
 
     this.addTab=function(name, icon, viewers, doClone, order) { return this.add(name, icon, "tab", viewers, doClone, order);};
 
@@ -1025,8 +926,6 @@ function vjDataView( name, width, height , maxtabs )
 
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Renderer
 
     this.updateTabVisibility = function(force_recompose, min_selectable, max_selectable) {
         if (min_selectable === undefined) {
@@ -1051,12 +950,11 @@ function vjDataView( name, width, height , maxtabs )
         }
 
         if (recompose) {
-            var nm = "DV_" + this.container + "_tablist"; // the tablist is here
+            var nm = "DV_" + this.container + "_tablist";
             o = gObject(nm);
             if (o) o.innerHTML = this.composeText(2);
-            nm = "DV_" + this.container + "_viewtoggles"; // the tablist is here
+            nm = "DV_" + this.container + "_viewtoggles";
             o = gObject(nm);
-            //this.tabs[this.selected]
             if (o) o.innerHTML = this.composeText(4);
         }
     };
@@ -1074,22 +972,17 @@ function vjDataView( name, width, height , maxtabs )
         }
 
         var o = gObject(this.container); if (!o) return;
-        //{o.style.resize="both";o.style.overflow="auto";}
 
         if (!reuse) {
             o.innerHTML = this.composeText();
         } else {
             var eov = gObject("DV_" + this.container + "_end_of_viewers");
             if (eov) {
-                // If we added some new tabs, we want to add divs for their new viewers
-                // without making the browser redraw existing tabs' viewers
                 eov.insertAdjacentHTML("beforebegin", this.composeText(1));
             }
 
-            // Update viewer and tab visibility
             this.updateTabVisibility(true);
         }
-        //this.fixResizeables();
         if(this.callbackDVrendered)
             funcLink(this.callbackDVrendered,this);
         return;
@@ -1146,7 +1039,7 @@ function vjDataView( name, width, height , maxtabs )
 
         var sp=" cellspacing=0 cellpadding=0 border=0 ";
         var t1="";
-        if(whattocompose&1) { // data viewers
+        if(whattocompose&1) {
             var num_tabs_composed = 0;
             if (whattocompose != 1) {
                 t1+="<table "+sp+" width='100%' height='100%'>";
@@ -1175,9 +1068,8 @@ function vjDataView( name, width, height , maxtabs )
                                 var curTr=0;
                                 for ( var iv=0, curTd=0; iv<cntviewer; ++iv,++curTd) {
                                     viewer[iv].container=sanitizeElementId("DV_"+this.container+"_"+tb.name+"_"+iv);
-                                    //viewer[iv].container=this.name+"."+tb.name+"."+iv;
                                     viewer[iv].tabvisible=(this.selected==tb.num) ? true : false;
-                                    viewer[iv]._rendered = false; // since viewer[iv].div will be pointing out of dom after tab's html is regenerated
+                                    viewer[iv]._rendered = false;
 
                                     t1+="<td ";
                                     if(viewer[iv].colspan){
@@ -1189,9 +1081,9 @@ function vjDataView( name, width, height , maxtabs )
                                         startRowSpan[curTr]= viewer[iv].rowspan-1;
                                         
                                     }
-                                    t1+=" class='"+(this.selected==tb.num ? "cellVis" : "cellHid" )+ "' id='"+viewer[iv].container+"_cell' valign='"+(tb.valign)+"' align='"+(tb.align)+"' " + (tb.width ? ("width="+tb.width) : "");
+                                    t1+=" class='"+(this.selected==tb.num ? "cellVis" : "cellHid" )+ "' id='"+viewer[iv].container+"_cell' valign='"+(tb.valign)+"' align='"+(tb.align)+"' " + (tb.width ? ("style='width:calc("+tb.width+"/"+tb.columns+")'") : "");
                                     t1+=" >";
-                                        var szWd=gConstructCSSMetrics(this.width),szVWd=gConstructCSSMetrics(viewer[iv].width);
+                                        var szWd=gConstructCSSMetrics(this.width/tb.columns),szVWd=gConstructCSSMetrics(viewer[iv].width);
                                         var szHi=gConstructCSSMetrics(this.height),szVHi=gConstructCSSMetrics(viewer[iv].height);
                                         var szVMWd=gConstructCSSMetrics(viewer[iv].maxWidth);
                                         var szVMHi=gConstructCSSMetrics(viewer[iv].maxHeight);
@@ -1199,12 +1091,9 @@ function vjDataView( name, width, height , maxtabs )
                                         t1+="<div ";
                                         t1+=" onMouseEnter='vjObjEvent(\"onShowResizer\",\""+this.objCls+"\",this,"+tb.num+","+iv+",\"rb\")' ";
                                         t1+="id='"+viewer[iv].container+"' style='position:relative;overflow:auto;margin:0px;padding: 0px;";
-                                        //if(this.frame!="notab")
                                         if(tb.columns>1)t1+="display:inline-block;vertical-align:top;";
                                         t1+="max-height:"+(szVMHi||szHi)+";";
                                         t1+="max-width:"+(szVMWd||szWd)+";";
-                                        //if(szVHi)t1+="height:"+szVHi+";";
-                                        //if(szVWd)t1+="width:"+szVWd+";";
                                         if (szVHi != undefined) {
                                             t1+="height:"+szVHi+";";
                                         }
@@ -1213,14 +1102,11 @@ function vjDataView( name, width, height , maxtabs )
                                         }
                                         t1+="'>";
 
-                                           // t1+=viewer[iv].container;
                                         t1+="</div>";
                                     t1+="</td>";
-                                    //alerJ("iv="+iv + " cntviewer=" + cntviewer + " " + tb.columns + " iv<cntviewer+1 && ((iv+1)%tb.columns)==0="+(iv<cntviewer+1 && ((iv+1)%tb.columns)==0),tb)
                                     if(iv<cntviewer+1 && ((rowspans+colspans+curTd+1)%tb.columns)==0){
-                                        t1+="</tr><tr>"; // insert a new row  if new columns has to be started
+                                        t1+="</tr><tr>";
                                         curTr++;
-                                        curTd=0;
                                         rowspans=0;colspan=0;
                                         for(var irsp = 0 ; irsp < startRowSpan.length ; irsp++ ) {
                                             if(!startRowSpan[irsp]){
@@ -1248,9 +1134,7 @@ function vjDataView( name, width, height , maxtabs )
         }
 
         var t2="";
-        if(whattocompose&2 && this.frame!="none"){ // tab names
-            //t2+="<tr><td colspan="+this.tabs.length +" >"+t3+"</td></tr>";
-            //t2+=t3;
+        if(whattocompose&2 && this.frame!="none"){
             var tableTabSize="";
             if(this.width){
                 var t_width=parseInt(this.width);
@@ -1261,11 +1145,7 @@ function vjDataView( name, width, height , maxtabs )
             }
             t2+="<table  "+sp+" " + tableTabSize +" " + (this.tabHeight ? ("height="+this.tabHeight) : "") + " >";
                 t2+="<tr>";
-//                var curHiddenTabs=0;
                 for (var i=0; i<tabs_sorted.length ; ++i ) {
-//                    if(i<this.tabstart)continue;
-//                    if(this.maxtabs && i-this.tabstart>=(this.maxtabs-curHiddenTabs))continue;
-//                    if( tabs_sorted[i].hidden ){++curHiddenTabs;continue;}
                     var tb = tabs_sorted[i];
                     if(i<this.tabstart || (this.maxtabs && i-this.tabstart>=(this.maxtabs+this.invisibleCnt)))
                         tb.hidden=true;
@@ -1278,14 +1158,11 @@ function vjDataView( name, width, height , maxtabs )
                     else if(this.frame!="none")t2+=" class='"+ cls +"' ";
                     t2+=" height="+ this.tabHeight+" width='1%' >";
                         t2+="<span style='white-space: nowrap;'>";
-                        // don't make the currentselected tab clickable, but put
-                        // it in a clickable-styled span for visual consistency
                         if (this.selected == tb.num) {
                             t2 += "<span class='clickablish'>";
                         } else {
                             t2+="<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onClickTabSelect\",\""+this.objCls+"\","+tb.num+",\""+sanitizeElementAttrJS(tb.name)+"\"); stopDefault(event);'>";
                         }
-                        //t2+="<img border=0 src='img/white.gif' width="+this.tabSeparation+" height=1 />&nbsp;"
 
                         var icontxt = tb.icon;
                         if( tb.icon.indexOf("/") == -1 )
@@ -1302,7 +1179,6 @@ function vjDataView( name, width, height , maxtabs )
                         } else {
                             t2 += "</button>";
                         }
-                        //t2+="<img border=0 src='img/white.gif' width="+this.tabSeparation+" height=1 />";
                         if(tb.canclose){
                             t2+="<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onClickTabClose\",\""+this.objCls+"\","+tb.num+",\""+sanitizeElementAttrJS(tb.name)+"\"); stopDefault(event);'>";
                             t2+="<img class='DV_tab_icon' src='img/close.gif' width="+this.iconSize+" height="+this.iconSize+" />";
@@ -1322,38 +1198,45 @@ function vjDataView( name, width, height , maxtabs )
         }
 
         var t3="";
-        if(whattocompose&4 && this.selected<this.tabs.length){ // view toggles
+        if(whattocompose&4 && this.selected<this.tabs.length){
             var tb=this.tabs[this.selected];
             var viewer=verarr(tb.viewers);
             var cntviewer=viewer.length;
-            //alerJ(tb.viewtoggles,tb);
-            //alerJ(tb.viewtoggles,this);
+
             if(cntviewer>1 && tb.viewtoggles ){
                 var seenNames = {};
                 for ( var iv=0; iv<cntviewer; ++iv) {
                     if(viewer[iv].hideViewerToggle) continue;
-                    if(!viewer[iv].hidden && tb.viewtoggles==-1)continue;
                     var viewerName = isok(viewer[iv] && viewer[iv].name ) ? viewer[iv].name : iv;
-                    // treat all viewers with the same name as a group that has one toggle
                     if(seenNames[viewerName]) continue;
                     seenNames[viewerName] = true;
-                    //t3+="<tr>";
 
-                    t3+="<span class='DV_tab_label'><small>&raquo;</small></span>";
-                        //t3+="<img border=0 src='img/white.gif' width="+this.tabSeparation+" height=1 />&nbsp;"
-                    t3+="<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onClickViewToggle\",\""+this.objCls+"\","+this.selected+","+iv+"); stopDefault(event);'>";
-                    t3+="<span class='DV_tab_icon'>";
-                    var icothis=(this.iconToggleSize && viewer[iv].icon) ? "<img src='img/"+ viewer[iv].icon  +".gif' width="+this.iconToggleSize+" height="+this.iconToggleSize +" border=0 />" : "+";
+                    t3+= iv === 0 ? "" : `<span><small> ${tb.tabs === 'tabs' ? ' | ' : '&raquo;'}</small></span>`;
+
+                    let content = '';
+                    content+="<span class='DV_tab_icon'>";
+                    var icothis= (this.iconToggleSize && viewer[iv].icon) ? `<img src='img/${viewer[iv].icon}.${viewer[iv].iconExtention || 'gif' }' width=${viewer[iv].iconSize ? viewer[iv].iconSize : this.iconToggleSize} height=${viewer[iv].iconSize ? viewer[iv].iconSize : this.iconToggleSize} border=0 />` : " ";
+
                     if(tb.viewtoggles==-1){
-                        t3+=icothis;"<img src='img/"+ viewer[iv].icon  +".gif' width="+this.iconToggleSize+" height="+this.iconToggleSize +" border=0 />";
+                        content+=icothis;"<img src='img/"+ viewer[iv].icon  +".gif' width="+this.iconToggleSize+" height="+this.iconToggleSize +" border=0 />";
                     }
-                    else t3+=viewer[iv].hidden ? icothis : "&times;";
-                    t3+="</span>";
+                    else {
+                        content+= icothis
+                    }
 
-                    t3+="<small class='DV_tab_label'>" + viewerName + "</small>";
+                    content+="</span>";
+                    viewerName = !viewer[iv].hidden ? `<b> ${viewerName} </b>` : viewerName
+                    content+=`<small class='DV_tab_label'>${viewerName}</small>`;
 
-                    t3+="</button>";
-                    //t3+="</tr>";
+
+                    
+                    if(viewer[iv].link === true){
+                        t3+= `<a class='linker' href='${viewer[iv].linkUrl}' target="_blank">${content}</a>`
+                    } 
+                    else {
+                        t3+= `<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onClickViewToggle\",\"${this.objCls}\",${this.selected},${iv}); stopDefault(event);'>${content}</button>`
+                    }
+                    
                 }
 
             }
@@ -1364,7 +1247,7 @@ function vjDataView( name, width, height , maxtabs )
 
 
         var t="";
-        if(whattocompose&8) { // the framing of the whole dv
+        if(whattocompose&8) {
             t+="<table border=0 "+sp+" " + (this.width ? ("width="+this.width) : "") +" ";
             if(this.height )
                 t+="height="+this.height ;
@@ -1379,7 +1262,6 @@ function vjDataView( name, width, height , maxtabs )
                         t22+=" width="+(this.tabSeparation*2)+" valign='center'";
                         if(!this.maxtabs)t22+= " style='display:none'";
                         t22+=">";
-                            //if(this.tabstart>0)
                             if(this.maxtabs){
                                 t22+="<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onClickTabScroll\",\""+this.objCls+"\",-1); stopDefault(event);'>";
                                 t22+="<img src='img/left.gif' class='DV_tab_icon' height="+this.tabHeight+" width="+(this.tabSeparation*2)+" />";
@@ -1394,7 +1276,6 @@ function vjDataView( name, width, height , maxtabs )
                         t22+=" width="+(this.tabSeparation*2)+" valign='center' ";
                         if(!this.maxtabs)t22+= " style='display:none'";
                         t22+=">";
-                            //if(this.maxtabs && this.tabstart+this.maxtabs<this.tabs.length)
                             if(this.maxtabs){
                                 t22+="<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onClickTabScroll\",\""+this.objCls+"\",1); stopDefault(event);'>";
                                 t22+="<img src='img/right.gif' class='DV_tab_icon' height="+this.tabHeight+" width="+(this.tabSeparation*2)+" />";
@@ -1421,17 +1302,14 @@ function vjDataView( name, width, height , maxtabs )
                 t+="</td>";
                 t+="</tr>";
 
-           //if(t3.length){
                 t+="<tr  height=0 >";
                     t+="<td colspan=3 id='DV_"+this.container+"_viewtoggles' class='"+(t3.length ? "DV_content" : "sectHid")+"' >";
                         t+=t3;
                     t+="</td>";
                 t+="</tr>";
-            //}
 
             if(this.tabsOnBottom)
                 t+=t22;
-            //if(this.resizeable)
 
             t+="</table>";
 
@@ -1448,25 +1326,18 @@ function vjDataView( name, width, height , maxtabs )
 
                 t=tmp;
             }
-            //return t;
         }
-        //alert(t1);
 
         return t;
     };
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Loader
 
     this.load=function( loadmode )
     {
-        //var tbs=verarr(this.tabs);
         for ( var it=0;  it< this.tabs.length ; ++ it) {
 
-            //alerJ("loading Viewer " + (this.tabs[it].type=='tab' || this.tabs[it].type=='menu') && ( it==this.selected || this.frame=='none' || this.forceLoadAll || this.tabs[it].forceLoadAll ) , this.tabs[it] ) ;
             if( (this.tabs[it].type=='tab' || this.tabs[it].type=='menu') && ( it==this.selected || this.frame=='none' || this.forceLoadAll || this.tabs[it].forceLoadAll ) ){
-                //alerJ(it+" loading  "+this.selected, this.tabs[it]);
                 this.tabs[it].load(loadmode);
             }
         }
@@ -1478,12 +1349,9 @@ function vjDataView( name, width, height , maxtabs )
             this.tabs[it].refresh(mode);
         }
     };
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Utility
 
     this.find=function( tbname, iview )
     {
-        //var tb=this.tabsN[tbname];if(!tb)return ;
         var tb;
 
         if(tbname=="_active")tb=this.tabs[this.selected];
@@ -1494,8 +1362,11 @@ function vjDataView( name, width, height , maxtabs )
         if(iview=="_active")return tb.viewers[tb.activeView];
         var num=parseInt(iview);
         if(isNaN(num)){
-            for ( var ik=0; ik<tb.viewers.length; ++ik )
-                if(tb.viewers[ik].name & tb.viewers[ik].name==iview)return tb.viewers[ik];
+            for ( var ik=0; ik<tb.viewers.length; ++ik ){
+                if(tb.viewers[ik].name && tb.viewers[ik].name == iview){
+                  return tb.viewers[ik];  
+                } 
+            }
             return ;
         }
         return tb.viewers[num];
@@ -1510,7 +1381,6 @@ function vjDataView( name, width, height , maxtabs )
 
         if(dorender){
             if(this.maxtabs) {
-                //alert(this.selected + " == " + this.tabstart + " " + this.maxtabs+"\n"+(this.selected<this.tabstart)+"\n"+(this.selected>=this.tabstart+this.maxtabs));
                 var selected_sort_index = this.tabNum2SortIndex(this.selected);
                 if (selected_sort_index < this.tabstart) {
                     this.tabstart = selected_sort_index;
@@ -1518,7 +1388,6 @@ function vjDataView( name, width, height , maxtabs )
                 if (selected_sort_index >= this.tabstart + this.maxtabs + (this.invisibleCnt?this.invisibleCnt:0)) {
                     this.tabstart = selected_sort_index - this.maxtabs + (this.invisibleCnt?this.invisibleCnt:0) + 1;
                 }
-                //alert(this.tabstart)
             }
             if(this.callbackTabSelect)
                 funcLink(this.callbackTabSelect,this,this.tabs[tbname].name,this.tabs[tbname].num,prv_selected);
@@ -1539,18 +1408,14 @@ function vjDataView( name, width, height , maxtabs )
         this.select( it, dorender ) ;
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Events
 
     this.onShowResizer=function(cls, e, it, iv ,type )
     {
         var vObjCls;
         var container;
         var callback;
-        if(it!=-1){ // viewer resizing
-            var v = verarr(this.tabs[it].viewers)[iv];//var o=gObject(v.container+"_resizeable");if(!o)return;
-            //callback=(v.refreshOnResize) ? "javascript:vjObjEvent(\"onResizeViewer\",\""+this.objCls+"\","+it+","+iv+")" : "" ;
-            //callback="javascript:vjObjEvent(\"onResizeViewer\",\""+this.objCls+"\","+it+","+iv+")"  ;
+        if(it!=-1){
+            var v = verarr(this.tabs[it].viewers)[iv];
             callback="javascript:vjObjEvent(\"onResizeViewer\",\""+this.objCls+"\","+it+","+iv+")" ;
             vObjCls = v.objCls;
             container = v.container;
@@ -1559,19 +1424,11 @@ function vjDataView( name, width, height , maxtabs )
             container = iv;
         }
         gShowResizer (container, vObjCls, type, callback);
-        /*var t=gResizerText(container, vObjCls, type, callback);
-        var o = gObject(container) ;
-        var pos = gObjPos(o, false);
-        //alerJ(5, gObjPos(gObject(v.container) ));
-        gObjectSet('basic-resizer',pos.x+o.clientWidth,pos.y+o.clientHeight,t,'show','-','-');
-        */
 
     }
     this.onResizeViewer=function(cls,it, iv )
     {
-        //alert("resize");
-        var v=verarr(this.tabs[it].viewers)[iv];//var o=gObject(v.container+"_resizeable");if(!o)return;
-        //if(v.refreshOnResize && v.refresh)
+        var v=verarr(this.tabs[it].viewers)[iv];
         if (v.refresh)
             v.refresh();
     }
@@ -1615,16 +1472,6 @@ function vjDataView( name, width, height , maxtabs )
         }
         tb.activeView=ivi;
 
-        /*
-        var cols=tb.columns ? tb.columns : 1 , rows=0;
-        for ( var iv=0; iv<tb.viewers.length; ++iv)if( !tb.viewers[iv].hidden ) rows++;if(!rows)rows=1;
-        for ( var iv=0; iv<tb.viewers.length; ++iv) {
-            viewer=tb.viewers[iv];
-            viewer.widthAvail=parseInt(parseInt(this.width)/cols);
-            viewer.heightAvail=parseInt(parseInt(this.height)/rows);
-            //viewer.reload();
-            //this.loadview(viewer);
-        }*/
 
         if(donotrender)
             return;
@@ -1644,8 +1491,6 @@ function vjDataView( name, width, height , maxtabs )
 
     this.onClickTabClose=function( name,itb)
     {
-        //this.tabs[itb].hidden=true;
-        //this.render(true);
         this.hide( itb, true) ;
     };
 
@@ -1711,16 +1556,10 @@ function vjDataView( name, width, height , maxtabs )
     };
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ DataViewEngine
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 
 function vjDataViewEngine( dataSourceEngine )
 {
-    //this.DataViews= new Array ();
     this.registeredRenderers=new Array();
     this.dataSourceEngine =dataSourceEngine;
 
@@ -1757,32 +1596,10 @@ function vjDataViewEngine( dataSourceEngine )
     {
         var viewer=this.locate( objorname );
         viewer.tab.parent.select(viewer.tab.num,redraw);
-        //viewer.tab.parent.selected=viewer.tab.num;
-        //if(redraw)viewer.tab.parent.render();
         return viewer;
     };
-/*
-    this.viewerToDivs=function ( dvorTabList , tabs , associationList  )
-    {
-         var t_viewersArr=new Array();
-         for ( var io=0 ; io<associationList.length; ++io ){
-             var as=associationList[io];
-
-             t_viewerArr=t_viewersArr.concat(dvorTabList[as.dvnum].obj.addTab(tabs.names[as.tabnum],
-                     tabs.icons[as.tabnum],verarr(as.viewerList)).viewers;
-         }
-
-    }
-*/
 }
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Static Even Handlers : statics
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 var vjDV=new vjDataViewEngine(vjDS);
-
-//# sourceURL = getBaseUrl() + "/js/vjDataView.js"

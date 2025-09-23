@@ -42,32 +42,18 @@
 
 namespace slib
 {
-    /*! \brief Bitflags for initializing sHeap and its subclasses */
     enum EHeapFlags {
-// FIXME: for pushy mode, need a new data structure, one whose size is O(number of pushes). A balanced tree maybe?
-        eHeapFlags_Pushy = 0, //1, //!< Total number of push() operations may far exceed max size of heap
-        eHeapFlags_DEFAULT = 0 //!< Default bitwise conjunction of #EHeapFlags for initializing sHeap
+        eHeapFlags_Pushy = 0,
+        eHeapFlags_DEFAULT = 0
     };
 
-    /*! \brief Basic binary heap; can be used as a container, or an aribtrary sArr can be heapified using static methods.
-     * \tparam Tobj Type of data stored
-     * \tparam Tcmp binary comparison function object for Tobj which defines the heap property, e.g. \code
-struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
-    \endcode
-     *
-     * Runtime peformance is O(dim) to initialize or reset, O(1) to peek, O(log dim) to pop, push, or modify.
-     * Memory usage for the container is O(max-heap-size + total-number-of-push()-calls) by default.
-     * If the heap was initialized with #eHeapFlags_Pushy in flags, memory usage is O(max-heap-size), but
-     * each operation will be slower.
-     */
     template <class Tobj, class Tcmp, class Titer=sBufferIter<Tobj> >
     class sHeap
     {
     protected:
-        static inline idx parent(idx i) {return (i-1)/2;} //!< index of parent of i
-        static inline idx child(idx i) {return 2*i + 1;} //!< index of first child of i
+        static inline idx parent(idx i) {return (i-1)/2;}
+        static inline idx child(idx i) {return 2*i + 1;}
 
-        //! \brief index of the smallest (for min-heap) of i's two children
         static inline idx smallChild(const Tcmp &cmp, sVec<Tobj> &array, idx i, idx dim)
         {
             idx ichild = sHeap<Tobj,Tcmp,Titer>::child(i);
@@ -75,7 +61,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
                 return -1;
             return (ichild == dim-1 || cmp(array[ichild], array[ichild+1])) ? ichild : ichild+1;
         }
-        //! \brief swap array[i] and array[j]
         static inline void swap(sVec<Tobj> &array, idx i, idx j)
         {
             Tobj temp = array[i];
@@ -83,7 +68,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             array[j] = temp;
         }
 
-        //! \brief O(log dim - log i)
         static idx siftdown(const Tcmp &cmp, sVec<Tobj> &array, idx i, idx dim)
         {
             idx ichild = sHeap<Tobj,Tcmp,Titer>::smallChild(cmp, array, i, dim);
@@ -95,7 +79,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             return i;
         }
 
-        //! \brief O(log i)
         static idx siftup(const Tcmp &cmp, sVec<Tobj> &array, idx i, idx dim)
         {
             idx iparent = sHeap<Tobj,Tcmp,Titer>::parent(i);
@@ -108,31 +91,15 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
         }
 
     public:
-        // Static methods for using any sArr as a heap
 
-        /*! \brief Turn array into a heap; O(dim)
-         * \param cmp Binary comparison function object
-         * \param array Array to heapify
-         * \param dim Size of array
-         */
         static void heapify(const Tcmp &cmp, sVec<Tobj> &array, idx dim)
         {
             for (idx i=dim/2 - 1; i >= 0; i--)
                 siftdown(cmp, array, i, dim);
         }
 
-        /*! \brief Peek at top (i.e. smallest in case of minheap) element of a heap; O(1)
-         * \param array Heapified array
-         * \param dim Size of array
-         */
         static inline Tobj peek(sVec<Tobj> &array, idx dim) {assert(dim>0); return array[0];}
 
-        /*! \brief Pop the top (i.e. smallest in case of minheap) element from a heap; O(log dim)
-         * \param cmp Binary comparison function object
-         * \param array Heapified array
-         * \param dim Size of array
-         * \warning The array will not be resized; the last element should simply be ignored. The caller must manually decrement dim after using this function.
-         */
         static Tobj pop(const Tcmp &cmp, sVec<Tobj> &array, idx dim)
         {
             assert (dim > 0);
@@ -142,13 +109,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             return ret;
         }
 
-        /*! \brief Add an element to a heap; O(log dim)
-         * \param cmp Binary comparison function object
-         * \param array Heapified array
-         * \param dim Size of array
-         * \param x Value to add to heap
-         * \warning The caller must manually increment dim after using this function.
-         */
         static void push(const Tcmp &cmp, sVec<Tobj> &array, idx dim, Tobj x)
         {
             array.resize(dim+1);
@@ -156,10 +116,7 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             sHeap<Tobj,Tcmp,Titer>::siftup(cmp, array, dim, dim);
         }
 
-        // Container methods
     protected:
-        //! We wrap values in this struct to allow retrieving individual values by index, i.e. by the order in which they were first added to the heap
-        //! \tparam Tobj_ sHeap's Tobj
         template <class Tobj_>
         struct sHeapNode
         {
@@ -170,17 +127,16 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
         };
         typedef sHeapNode<Tobj> Tnode;
 
-        const Tcmp *_cmp; //!< comparison function object
-        sVec<Tnode> _array; //!< the actual heap
+        const Tcmp *_cmp;
+        sVec<Tnode> _array;
 
-        sVec<idx> _arrayPositionV; //!< maps from node.index to node's position in _array when !(_flags & eHeapFlags_Pushy)
-        sDic<idx> _arrayPositionD; //!< maps from node.index to node's position in _array when _flags & eHeapFlags_Pushy
+        sVec<idx> _arrayPositionV;
+        sDic<idx> _arrayPositionD;
 
-        idx _dim; //!< current number of elements in _array
-        idx _maxdim; //!< maximum number of elements ever present in _array
+        idx _dim;
+        idx _maxdim;
         idx _flags;
 
-        //! wrap _arrayPositionV / _arrayPositionI
         inline idx getArrayPosition(idx index) const
         {
             if (_flags & eHeapFlags_Pushy) {
@@ -224,11 +180,8 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             } 
         }
 
-        //! \brief compare _array[i].value and _array[j].value
         inline virtual bool cmpi(idx i, idx j) const {return (*_cmp)(_array[i].value, _array[j].value);}
-        //! \brief compare _array[i].value and x
         inline virtual bool cmp(idx i, Tobj x) const {return (*_cmp)(_array[i].value, x);}
-        //! \brief position in array of the smaller of _array[i]'s two children
         inline idx smallChild(idx i) const
         {
             idx ichild = sHeap<Tobj,Tcmp,Titer>::child(i);
@@ -236,7 +189,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
                 return -1;
             return (ichild == _dim-1 || cmpi(ichild, ichild+1)) ? ichild : ichild+1;
         }
-        //! \brief swap _array[i] and _array[j], and update _arrayPosition
         inline void swap(idx i, idx j)
         {
             Tnode temp = _array[i];
@@ -245,7 +197,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             setArrayPosition(_array[i].index, i);
             setArrayPosition(_array[j].index, j);
         }
-        //! \brief assert that the data is consistent and the heap property holds
         void assertSanity() const
         {
             assert(_dim >= 0);
@@ -267,7 +218,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             }
         }
 
-        //! \brief O(log _dim - log i); if force is true, will always sift i to bottom of heap, ignoring its value
         idx siftdown(idx i, bool force=false)
         {
             idx ichild = smallChild(i);
@@ -279,7 +229,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             return i;
         }
 
-        //! \brief O(log i); if force is true, will always sift i to top of heap, ignoring its value
         idx siftup(idx i, bool force=false)
         {
             idx iparent = sHeap<Tobj,Tcmp,Titer>::parent(i);
@@ -292,9 +241,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
         }
 
     public:
-        /*! \brief Clear the heap and reload with new data; O(dim)
-         * \param vec New data
-         * \param dim Size of vec */
         virtual void reset(sVec<Tobj> &vec, idx dim)
         {
             _dim = dim;
@@ -313,9 +259,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
                 siftdown(i);
         }
 
-        /*!  \brief Clear the heap and reload with new data; O(dim)
-         * \param iter New data
-         * \param dim Steps in iter */
         virtual void reset(const sIter<Tobj, Titer> &iter, idx dim)
         {
             _dim = dim;
@@ -336,57 +279,43 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             delete piter;
         }
 
-        /*! \brief Clear the heap and reload with new data; O(iter.dim)
-         * \param iter New data */
+        virtual void reset(const sHeap<Tobj, Tcmp, Titer> &rhs)
+        {
+            _dim = rhs._dim;
+            _maxdim = rhs._maxdim;
+
+            _array.resize(_dim);
+            _array.copy(&rhs._array);
+            emptyArrayPositions();
+            resizeArrayPositions(_dim);
+            if( _flags == rhs._flags && !(_flags & eHeapFlags_Pushy) ) {
+                _arrayPositionV.copy(&rhs._arrayPositionV);
+            } else {
+                for(idx i = 0; i < _dim; i++) {
+                    setArrayPosition(_array[i].index, i);
+                }
+            }
+        }
+
         virtual inline void reset(const sFixedLengthIter<Tobj, Titer> &iter) { reset(iter, iter.dim()); }
 
-        /*! \brief Set the heap's binary comparison object
-         * \warning Asserts if the heap has elements
-         * \param cmp Pointer to a binary comparison object */
         virtual inline void setCmp(const Tcmp *cmp)
         {
             assert (!_dim);
             _cmp = cmp;
         }
 
-        /*! \brief Initialize an empty heap; O(1)
-         * \param cmp Binary comparison function object
-         * \param flags Bitwise disjunction of #EHeapFlags; make sure to set #eHeapFlags_Pushy if the total number of push() calls
-         *              might significantly exceed the maximum number of heaped objects. */
         sHeap<Tobj,Tcmp,Titer>(const Tcmp *cmp=NULL, idx flags=eHeapFlags_DEFAULT): _cmp(cmp), _dim(0), _maxdim(0), _flags(flags) {}
 
-        /*! \brief Initialize the heap with given data; O(dim)
-         * \param cmp Binary comparison function object
-         * \param vec Data
-         * \param dim Size of vec
-         * \param flags Bitwise disjunction of #EHeapFlags; make sure to set #eHeapFlags_Pushy if the total number of push() calls
-         *              might significantly exceed the maximum number of heaped objects. */
         sHeap<Tobj,Tcmp,Titer>(const Tcmp *cmp, sVec<Tobj> &vec, idx dim, idx flags=eHeapFlags_DEFAULT): _cmp(cmp), _dim(dim), _maxdim(dim), _flags(flags) {reset(vec, dim);}
-        /*! \brief Initialize the heap with given data; O(dim)
-         * \param cmp Binary comparison function object
-         * \param iter Data
-         * \param dim Steps in iter
-         * \param flags Bitwise disjunction of #EHeapFlags; make sure to set #eHeapFlags_Pushy if the total number of push() calls
-         *              might significantly exceed the maximum number of heaped objects. */
         sHeap<Tobj,Tcmp,Titer>(const Tcmp *cmp, const sIter<Tobj, Titer> &iter, idx dim, idx flags=eHeapFlags_DEFAULT): _cmp(cmp), _dim(dim), _maxdim(dim), _flags(flags) {reset(iter, dim);}
-        /*! \brief Initialize the heap with given data; O(iter.dim)
-         * \param cmp Binary comparison function object
-         * \param iter Data
-         * \param flags Bitwise disjunction of #EHeapFlags; make sure to set #eHeapFlags_Pushy if the total number of push() calls
-         *              might significantly exceed the maximum number of heaped objects. */
         sHeap<Tobj,Tcmp,Titer>(const Tcmp *cmp, const sFixedLengthIter<Tobj, Titer> &iter, idx flags=eHeapFlags_DEFAULT): _cmp(cmp), _dim(iter.dim()), _maxdim(iter.dim()), _flags(flags) {reset(iter);}
 
         virtual ~sHeap<Tobj,Tcmp,Titer>() {}
 
-        /*! \brief Peek at the top of the heap; O(1)
-         * \returns Value on top of the heap (i.e. the smallest in case of minheap) */
         virtual inline Tobj peekValue() const {return _array[0].value;}
-        /*! \brief Peek at the top of the heap; O(1)
-         * \returns Order index in which the value on top of the heap (i.e. the smallest in case of minheap) was originally added to the heap */
         virtual inline idx peekIndex() const {return _array[0].index;}
 
-        /*! \brief Check if an element is in the heap; O(1)
-         * \returns true if the index'th element to be added to the heap is still in the heap */
         virtual bool validIndex(idx index) const
         {
             if (index < 0)
@@ -397,19 +326,12 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             return true;
         }
 
-        /*! \brief Peek by order index; O(1)
-         * \param index Order index
-         * \returns Value which was the index'th to be added to the heap
-         * \warning Asserts if the index'th value to be added to the heap is no longer in the heap */
         virtual inline Tobj peekValue(idx index) const
         {
             assert(validIndex(index));
             return _array[getArrayPosition(index)].value;
         }
 
-        /*! \brief Pop the top (smallest in case of min heap) value from the heap; O(log dim())
-         * \returns Value at the top of the heap
-         * \warning Asserts if the heap is empty */
         virtual inline Tobj pop()
         {
             assert(_dim > 0);
@@ -421,14 +343,9 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
                 setArrayPosition(_array[0].index, 0);
                 siftdown(0);
             }
-//            assertSanity();
             return ret;
         }
 
-        /*! \brief Add a value to the heap; O(log dim())
-         * \warning If the heap was initialized without #eHeapFlags_Pushy in \a flags,
-         *          the heap's memory usage will be O(total number of push() calls)
-         * \param x Value to be added */
         virtual inline void push(Tobj x)
         {
             _dim++;
@@ -439,13 +356,8 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             _array[_dim-1].value = x;
             _array[_dim-1].index = _maxdim-1;
             setArrayPosition(_maxdim-1, siftup(_dim-1));
-//            assertSanity();
         }
 
-        /*! \brief Modify a value in the heap; O(log dim())
-         * \param index Order index in which the value had been added to the heap
-         * \param value The new value for the index'th element to be added to the heap
-         * \warning Asserts if the index'th value to be added to the heap is no longer in the heap */
         virtual inline void adjust(idx index, Tobj value)
         {
             assert(validIndex(index));
@@ -453,17 +365,12 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             if (cmp(i, value)) {
                 _array[i].value = value;
                 siftdown(i);
-//                assertSanity();
             } else {
                 _array[i].value = value;
                 siftup(i);
-//                assertSanity();
             }
         }
 
-        /*! \brief Remove a value from the heap; O(log dim())
-         * \param index Order index in which the value had been added to the heap
-         * \warning Asserts if the index'th value to be added to the heap is no longer in the heap */
         virtual void remove(idx index)
         {
             assert(validIndex(index));
@@ -472,13 +379,11 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
             pop();
         }
 
-        /*! \brief Clear the heap of all data; O(1) */
         virtual void clear()
         {
             _dim = _maxdim = 0;
         }
 
-        /*! \returns Number of elements in the heap; O(1) */
         virtual inline idx dim() const {return _dim;}
 
 #ifdef _DEBUG_HEAP
@@ -497,22 +402,16 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
 
     };
 
-    /*! \brief <= binary comparison object
-     * \tparam Tobj Type to compare; must support the <= operator */
     template <class Tobj>
     struct sLessThanOrEqual {
         inline bool operator() (Tobj x, Tobj y) const {return x <= y;}
     };
 
-    /*! \brief >= binary comparison object
-     * \tparam Tobj Type to compare; must support the >= operator */
     template <class Tobj>
     struct sGreaterThanOrEqual {
         inline bool operator() (Tobj x, Tobj y) const {return x >= y;}
     };
 
-    /*! \brief Basic binary min heap
-     * \tparam Tobj Type to be heapified; must support the <= operator */
     template <class Tobj, class Titer=sBufferIter<Tobj> >
     class sMinHeap: public sHeap<Tobj, sLessThanOrEqual<Tobj>, Titer> {
     protected:
@@ -531,8 +430,6 @@ struct compare { bool operator() {idx x, idx y} const { return x <= y;} };
         }
     };
 
-    /*! \brief Basic binary max heap
-     * \tparam Tobj Type to be heapified; must support the >= operator */
     template <class Tobj, class Titer=sBufferIter<Tobj> >
     class sMaxHeap: public sHeap<Tobj, sGreaterThanOrEqual<Tobj>, Titer> {
     protected:

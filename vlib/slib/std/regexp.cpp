@@ -165,7 +165,6 @@ struct sRegExp::Priv {
     }
 };
 
-//static
 bool sRegExp::isPCRE()
 {
 #ifdef HAS_PCRE
@@ -234,8 +233,6 @@ bool sRegExp::init(const char * pat, idx flags)
         cflags |= REG_ICASE;
     }
     if( flags & fMultiline ) {
-        // FIXME - not quite right semantics. POSIX regexp makes '.' match newline unless REG_NEWLINE, but
-        // we want to '.' never match a newline
         cflags |= REG_NEWLINE;
     }
 
@@ -271,7 +268,6 @@ const char * sRegExp::search(const char * str, idx len, idx * out_len_matched)
     Priv * priv = getPriv();
     if( len ) {
 #ifndef HAS_PCRE
-        // POSIX regexp API requires 0-terminated strings
         _err.cutAddString(0, str, len);
         str = _err.ptr();
         _err.cut(0);
@@ -320,7 +316,6 @@ idx sRegExp::exec(sVec<sMex::Pos> & res, const char * str, idx len)
 
     if( len ) {
 #ifndef HAS_PCRE
-        // POSIX regexp API requires 0-terminated strings
         _err.cutAddString(0, str, len);
         str = _err.ptr();
         _err.cut(0);
@@ -428,7 +423,6 @@ namespace {
                 idx raw_len = 0;
                 EType next_type = nextDollarCode(string + cur_start, &raw_len);
                 if( next_type == eRawString && !elts.dim() ) {
-                    // no dollar codes found in repl
                     break;
                 }
                 if( raw_len ) {
@@ -443,7 +437,6 @@ namespace {
                 Elt * e = elts.add();
                 e->start = cur_start;
                 if( next_type == eSubmatch ) {
-                    // submatch number is in range 1..99 (1 or 2 digits)
                     e->len = isdigit(string[cur_start + 2]) ? 3 : 2;
                     char numbuf[4];
                     strncpy(numbuf, string + cur_start + 1, e->len - 1);
@@ -469,7 +462,6 @@ idx sRegExp::replace(sStr & out, const char * str, idx str_len, const char * rep
     idx nmatches = 0;
     if( str_len ) {
 #ifndef HAS_PCRE
-        // POSIX regexp API requires 0-terminated strings
         _err.cutAddString(0, str, str_len);
         str = _err.ptr();
         _err.cut(0);
@@ -485,12 +477,10 @@ idx sRegExp::replace(sStr & out, const char * str, idx str_len, const char * rep
         if( !priv->regexec(str, pos, str_len, -1) ) {
             break;
         }
-        // copy unmatched substring from str
         if( priv->posMatch(0) > pos ) {
             out.addString(str + pos, priv->posMatch(0) - pos);
         }
 
-        // substitute
         if( repl.elts.dim() ) {
             for(idx i=0; i<repl.elts.dim(); i++) {
                 idx isubmatch = repl.elts[i].isubmatch;
@@ -531,14 +521,12 @@ idx sRegExp::replace(sStr & out, const char * str, idx str_len, const char * rep
         }
 
         pos = priv->posMatch(0) + priv->sizeMatch(0);
-        // If previous match was 0 length, advance in str by 1 UTF-8 character
         if( !priv->sizeMatch(0) ) {
             pos = nextUnicodeSym(str, pos, str_len, _flags & fMultiline);
         }
         nmatches++;
     } while( (_flags & fGlobal) && pos < str_len );
 
-    // copy unmatched tail from str
     if( pos < str_len ) {
         out.addString(str + pos, str_len - pos);
     }

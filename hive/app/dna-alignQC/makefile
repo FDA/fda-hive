@@ -33,14 +33,23 @@ PROGRAMS += dna-alignQC
 PROGRAMS_LIBS = -lviolib -lqpsvc $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
-dna-alignQC_SRCS = dna-alignQC.cpp
+OBJECT_TYPES = svc-dna-alignQC svc-rna-alignQC svc-dna-targetQC
+APPS = Targeted-Alignment-QC:1
+
+MENUITEMS = /Portal/Post-Alignment/Targeted_Alignment_QC
+
+dna-alignQC_SRCS = biotargetedqc.cpp dna-alignQC.cpp
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-alignQC,Alignment Quality Control,/Sequencing/)
 	$(call dist-app,dna-alignQC,dna-alignQC)
+	$(call dist-service-register,dna-rnaSeqQC,RNA-Seq Alignment Quality Control,/Sequencing/)
+	$(call dist-app,dna-rnaSeqQC,dna-alignQC)
+	$(call dist-service-register,dna-targetedSeqQC,Targeted Alignment Quality Control,/Sequencing/)
+	$(call dist-app,dna-targetedSeqQC,dna-alignQC)

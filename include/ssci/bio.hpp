@@ -53,6 +53,7 @@
 #include <ssci/bio/viosam.hpp>
 #include <ssci/bio/filterseq.hpp>
 #include <ssci/bio/ion-bio.hpp>
+#include <ssci/bio/vax-bio.hpp>
 #include <ssci/bio/biofingerprint.hpp>
 #include <ssci/bio/randseq.hpp>
 #include <ssci/bio/ionseq/suffixTree.hpp>

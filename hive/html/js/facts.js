@@ -345,34 +345,17 @@ var vFact_array = new Array (
 
     var  o=gObject(objname);
     if(!o)return;
-    //if(repeat && o.innerHTML.indexOf("<vFact>")!=0)return ;
 
     if(!delay) delay=gFact_delay;
 
     var r=parseInt( Math.random()*(vFact_array.length-1) ) ;
 
-    var ttt="";//"<vFact>";
+    var ttt="";
     ttt+=vFact_array[r];
-    /*
-    ttt="<table border=0 width=600>";
-        ttt+="<tr>";
-            ttt+="<td valign=center>";
-                ttt+="<img border=0 src='img/unknown.png' />";
-            ttt+="</td>";
-            ttt+="<td valign=center>";
-                ttt+="<span class='HIVE_fact'>"+vFact_array[r]+"</span>";
-                ttt+="<br/><br/><br/><br/><br/>";
-                ttt+="<span class='HIVE_descr'>BTW: you have only about " + parseInt(delay/1000)+",000,000,000,000 pico-seconds to conceptualize this.</span>";
-            ttt+="</td>";
-        ttt+="</tr>";
-    ttt+="</table>";
-    */
     o.innerHTML=ttt;
     setTimeout("vFact_Progress('"+objname+"', "+delay+",1)",delay);
 
  }
 
 
-//http://www.universal-web-design.com/vectors-arrows-04.aspx
 
-//# sourceURL = getBaseUrl() + "/js/facts.js"

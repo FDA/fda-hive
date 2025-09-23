@@ -38,11 +38,11 @@ setLocationTitle("HIVE-heptagon profiler");
 
 
 var alignID=docLocValue("parent_proc_ids"); if(isok(alignID))alignID=alignID.split(",");
-var genomeID=0; // reference genome(s) of alignID; used for clustering
+var genomeID=0;
 var process_visibleParameters=["name","snpCompare","minCover","parent_proc_ids"];
 var process_visualImage="";
 var process_help=[];
-var process_initialPresets={};//{name:""};
+var process_initialPresets={};
 var process_cmdMode=docLocValue("cmdMode");
 var process_qpsvc="dna-profiler";
 var process_svc="svc-profiler";
@@ -56,7 +56,6 @@ function isMode(mode)
     return (!process_cmdMode || (process_cmdMode.indexOf("-"+mode)==-1 && process_cmdMode.indexOf(mode)!=0)) ? false : true;
 }
 
-// for clustering
 function load_genomeID()
 {
     if (!alignID)
@@ -86,10 +85,7 @@ function process_init()
     gUserLoginAccess(0);
     var visualArray=new Array(
         {     name: 'dvProcess',
-            //passive: !process_defaults_ui.visualElements.parameters,
-            //role: 'input',
             title: "Variation calling parameters",
-            //rightTitle:appended,
             icon: 'img/processSvc.gif',
             icoSize: 64,
             align: 'left',
@@ -119,20 +115,10 @@ function process_init()
                   align: 'left' ,
                   popupCloser: true
               }
-        /*,
-        { name: 'dvProcessParentList',
-              role: 'input',
-              noicon:true,
-              title:"<input type=button value='on selected alignments' />",
-              align: 'right' ,
-              noBGImage:true,
-              popupCloser: true
-          }*/
     );
     vjVIS.generate( visualArray );
 
 
-    ///////////////////////////////////Process/Progress///////////////////////////////////////
     algoProcess = new valgoProcess(process_ID, process_formName, "dvProcess", process_qpsvc,process_svc, "    Analyse    ");
     algoProcess.callbackLoaded = process_inputLoaded;
     algoProcess.callbackChanged = process_inputChanged;
@@ -140,8 +126,7 @@ function process_init()
     algoProcess.subject_help=process_help;
 
     algoProcess.toolBar="processToolbar";
-    algoProcess.generate(); // process_IDD
-    //algoProcess.viewer.fldEnumerate="if(node.name=='parent_proc_ids') { node.title='Alignment(s)'; node.type=''; } ";
+    algoProcess.generate();
 
 
     visibool("dvProcessSubmitter", false);
@@ -186,12 +171,6 @@ function process_inputLoaded()
     par.fld.checkCallback=process_parentCheckCallback;
     par.fld.selectCallback=function (viewer,node){dna_hexagonHitList.reload(node.id,0,0);};
 
-/*
-    par=algoProcess.viewer.getElement( "subject");
-    par.fld.constraint_data="svc-align*";
-    par.fld.checkCallback=process_parentCheckCallback;
-    par.fld.selectCallback=function (viewer,node){dna_hexagonHitList.reload(node.id,0,0);};
-*/
     var nam=algoProcess.getValue("name");
     var subset=algoProcess.getValue("subSet");
 
@@ -205,15 +184,14 @@ function process_inputLoaded()
 
     if(okToSubmit) {
         if( !nam ) {
-            algoProcess.setValueList({name: "query:"+"a=["+alignID+"] as objlist ;return a[0].name;"});
+            let alignID1 = '"' + alignID.replace(/,/g, '","') + '"';
+            algoProcess.setValueList({name: "query:"+"a=[" + alignID1 + "] as objlist ;return a[0].name;"});
         }
     }
     if(algoProcess.modeActive){
-        algoProcess.setValue("scissors", "hiveal");
-        algoProcess.setValue("split", "parent_proc_ids");
     }
 
-    if(!dna_hexagonHitList){ ///////////////////////////////////Input///////////////////////////////////////
+    if(!dna_hexagonHitList){
         var node={_type:'svc-align',id:alignID[0]};
         var dvname=vjDV.add("dvHitListViewer", 350, 350);
         var dvinfo=vjDV.add("dvHitListInfoViewer",800,350);
@@ -239,10 +217,6 @@ function process_parentCheckCallback(viewer,node,nn)
     url=urlExchangeParameter(url,"prop_val","5"+(node.checked ? ","+node.subject : "" )) ;
     var checkedIds=viewer.accumulate("node.checked" , "node.id");
 
-    //viewer.precompute="";
-    //if(isok(checkedIds))viewer.precompute="if(arrayCross(["+checkedIds+"],verarr(node.id)))node.checked=1;";
-    //vjDS[viewer.data].reload(url,true);
-    //algoProcess.setValue('parent_proc_ids',checkedIds);
     dna_hexagonHitList.reload(node.id,0,0);
 }
 
@@ -264,13 +238,13 @@ function process_doneComputing(viewer, reqid, stat, callcounter)
         var dvzoom=vjDV.add("dvProfilerZoomViewer",0.95*gPgW,450);
         var dvannotzoom=vjDV.add("dvAnnotZoomViewer",0.7*gPgW,350);
         var dvHistpopup=vjDV.add("dvhistpopupViewer",0.7*gPgW,350);
-        algoProcess.reload(undefined,true);//to load files
+        algoProcess.reload(undefined,true);
         dna_profilerProfile = vjHO.fullview(node._type,node,{obj:[dvname,dvinfo,dvzoom,dvannotzoom,dvHistpopup]});
         dna_profilerProfile.algoProc = algoProcess;
         if(dna_hexagonHitList && dna_hexagonHitList.referenceNode){
             dna_profilerProfile.onFullviewRenderCallback = process_selectedReference(null,dna_hexagonHitList.referenceNode);
         }
-        vjDS["ds"+algoProcess.toolBar].reload("innerText://ds"+algoProcess.toolBar+"DoneDV", true);
+        vjDS["ds"+algoProcess.toolBar].reload("innerText:
         visibool("resultBlock", true);
     }
 }
@@ -288,18 +262,15 @@ function process_submitAll(button)
 {
     if(!confirm("Do you want to build profiles for ALL references in this alignment?"))
         return;
-      //alert("0:"+docLocValue('profx',0));
       if (docLocValue('cmdMode',0)=="profx" ) {
         algoProcess.setValue("svc", "dna-profx");
         algoProcess.setValue("slice", "1000000000000");
         algoProcess.setValue("split", "-");
         if (docLocValue('svc-profx-samtools',0) ) {
             algoProcess.setValue("profSelector", "svc-profx-samtools");
-            //alert("profSelector set to svc-profx-samtools");
         }
         else if (docLocValue('svc-profx-cuffdiff',0) ) {
             algoProcess.setValue("profSelector", "svc-profx-cuffdiff");
-            //alert("profSelector set to svc-profx-cuffdiff");
         }
       }
     algoProcess.setValue("subSet", "");

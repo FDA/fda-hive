@@ -78,17 +78,36 @@ else
 fi
 
 cd $bindir
-CGIS="dmDownloader.cgi dna.cgi"
+CGIS="dmDownloader.cgi dna.cgi pdb.cgi taxTree.cgi hive.cgi upload.cgi"
 for f in $CGIS; do
     rm -rf "$instver$f"
     cp -vp $f "$instver$f"
     if [ "$USER" = "root" ]; then
         chown root:root "$instver$f"
     fi
-    chmod 0755 "$instver$f"
+    chmod a+rx,a-w "$instver$f"
 done
 ln -fsv dmDownloader.cgi "$instver/dmUploader.cgi"
-ln -fsv dna.cgi "$instver/hive.cgi"
+
+#special case of distributed apps
+rm -rf $instver/apps
+mkdir $instver/apps
+cp -p vioapp $instver/apps/blue_nrapp
+rm -rf /tmp/hive_insilico
+#HIVE insilico
+mkdir /tmp/hive_insilico
+cp -p hive_insilico_README.txt $instver/apps/
+cp -p hive_insilico_README.txt /tmp/hive_insilico/README.txt
+cp -p vioapp /tmp/hive_insilico/hive_insilico
+cp -p ionapp /tmp/hive_insilico/hive_ion
+zip -j $instver/apps/hive_insilico.zip /tmp/hive_insilico/*
+if [[ $? -ne 0 ]]; then
+    echo "Failed to pack insilico"
+    exit 22;
+fi
+rm -rf /tmp/hive_insilico
+cd - >/dev/null
+
 
 # process them
 for arg in "$@"; do
@@ -125,6 +144,11 @@ for arg in "$@"; do
         find "$instver/$d" -type d -exec chmod 0755 {} \;
         find "$instver/$d" -not -type d -exec chmod u+rw,g+r,o+r {} \;
     done
+    echo "Copying libraries..."
+    if [[ ! -d "$instver/lib" ]]; then
+        rm -rf "$instver/lib"
+        mkdir "$instver/lib" || exit 1
+    fi
     if [ ! "$slast" = "/" ]; then
         cd - >/dev/null
     fi
@@ -142,8 +166,16 @@ if [ ! "$VERDIR" = "" ]; then
     fi
     cd $instver
     for f in *; do
-        rm -rf "$instdir/$f"
-        ln -fsv "$VERDIR/$f" "$instdir/$f"
+        if [[ "$f" == "index.html" && -e "$instdir/index.html" && ! -L "$f" ]]; then
+            echo "Skipped index.html: not symlink"
+        else
+            rm -rf "$instdir/$f"
+            if [[ -x "$f" && ! -d "$f" ]]; then
+                cp -pv "$f" "$instdir/$f"
+            else
+                ln -fsv "$VERDIR/$f" "$instdir/$f"
+            fi
+        fi
     done
     for h in `find -L . -name header_tmplt.html`; do
         mv "$h" "$h.sed"

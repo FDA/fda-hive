@@ -38,14 +38,9 @@
 idx sViopop::Digest(const char* outputfilename, sFrameConsensus * Clones,idx * arrSortClon,sBioseqpopul::cloneStats * sumStats,idx * sortedSubjInd)
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Create the Data format headers
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
 
 
-    sVioDB db(outputfilename,"viopop2",5,7);//constructor: 6 types, 8 is the maximum number of relationships
+    sVioDB db(outputfilename,"viopop2",5,7);
 
 
     idx relationlistClones[8]={eTypeClone,eTypeClone,eTypeClone,eTypeSeqCov,eTypeStats,eTypeSummary,eTypeSortArr};
@@ -75,9 +70,6 @@ idx sViopop::Digest(const char* outputfilename, sFrameConsensus * Clones,idx * a
             db.AddRecordRelationshipCounter(eTypeClone, 0, eClone2SeqCov);
             db.AddRecordRelationshipCounter(eTypeClone, 0, eClone2Stats);
 
-        //----------------------------------------------------
-        //Split seqcov that has both seqCov and similarities
-        //----------------------------------------------------
             idx myRecordID=0;
             if(clone->seqCov.dim()){
                 sVec<idx> * seqCov=clonesSeqCov.ptr(iCl);
@@ -86,7 +78,6 @@ idx sViopop::Digest(const char* outputfilename, sFrameConsensus * Clones,idx * a
                 for(idx iC=0;iC<seqCov->dim();++iC){
                     *seqCov->ptr(iC)=clone->seqCov[iC].baseCov;
                 }
-        //----------------------------------------------------
 
                 if(db.SetRecordIndexByBody((const void *)seqCov->ptr(), eTypeSeqCov, &myRecordID, sizeof(idx)*seqCov->dim() )){
                     db.AddRecord(eTypeSeqCov,(const void *)(seqCov->ptr()), sizeof(idx)*seqCov->dim() );
@@ -172,13 +163,14 @@ bool sViopop::buildMergeDictionary(ParamCloneIterator * params, sDic<sVec<idx> >
     bool isGapsInfo = isVersion2();
     for(idx iCl = 0; iCl < clCnt; ++iCl) {
         sBioseqpopul::cloneStats * clStat = getStats(iCl);
+        sBioseqpopul::cloneSummary * clSum = getCl(iCl);
         t_buf.printf(0, "%" DEC, iCl);
         mergeCl = false;
         if( params->hiddenClones && cl2hide.get(t_buf.ptr()) ) {
             mergeCl = true;
         }
 
-        length = clStat->size;
+        length = clSum->end - clSum->start;
         if( isGapsInfo && (params->flags & clSkipSupportedDeletions) )
             length -= clStat->supportedGapsCnt;
         if( isGapsInfo && (params->flags & clPrintNoGapsFrame) )
@@ -201,9 +193,7 @@ bool sViopop::buildMergeDictionary(ParamCloneIterator * params, sDic<sVec<idx> >
                 t_buf.printf(0, "%" DEC, parentCl->clID);
                 sVec<idx> *tm = mergeTree.get(t_buf.ptr());
                 if( tm ) {
-                    if( params->mergeHidden ) {
                         tm->vadd(1, iCl);
-                    }
                     break;
                 }
                 if( parentCl->hasParent() ) {
@@ -241,16 +231,12 @@ idx sViopop::buildMergeCompositionDictionary( ParamCloneIterator * params, sDic<
 idx sViopop::iterateClones(idx * iVis, idx start, idx cnt, typeCallbackIteratorFunction callbackFunc,ParamCloneIterator * params,idx * arrSortClon)
 {
 
-    //=======================================================================
-    //--------------Check for Filters like minCov or merging-----------------
-    //=======================================================================
 
     idx * clList=0;
     idx clCnt=0, iFound=0,res=0;
     sVec<idx> sumPosCov;
     sDic< sVec<idx> > mergeTree;
 
-//    idx myVis=0;
     clCnt=dimCl();
     if(arrSortClon){
         clList=arrSortClon;
@@ -306,9 +292,7 @@ idx sViopop::iterateClones(idx * iVis, idx start, idx cnt, typeCallbackIteratorF
             idx iCl=clList ? clList[icl] : icl;
             sBioseqpopul::cloneSummary * clSum=getCl(iCl);
             if(!clSum || clSum->clID<0 || clSum->start==clSum->end)continue;
-//            idx cSize=0;
             sVec<idx> scCov(sMex::fExactSize);
-//            idx * cCov=
                 getCov(iCl,scCov);
             for(idx p=clSum->start;p<clSum->end;++p){
                 idx ip=p-(clSum->start);
@@ -318,11 +302,6 @@ idx sViopop::iterateClones(idx * iVis, idx start, idx cnt, typeCallbackIteratorF
         params->normCov=sumPosCov.ptr();
     }
 
-    //-----------------------End of processing-------------------------------
-    //=======================================================================
-    //-----------------------------------------------------------------------
-    //=======================================================================
-    //-----------------------Starting iterations-----------------------------
 
 
     for (idx icl=0; icl<clCnt; ++icl) {
@@ -332,9 +311,9 @@ idx sViopop::iterateClones(idx * iVis, idx start, idx cnt, typeCallbackIteratorF
         if(clSum && clSum->clID<0)continue;
         sBioseqpopul::cloneStats * clStat=getStats(iCl);
         if(!clStat)continue;
-        if( clSum->start==clSum->end)continue;// || clStat->support<=1)continue;
+        if( clSum->start==clSum->end)continue;
 
-        res=callbackFunc(this, params, iCl);// piVis ? *piVis : 0);
+        res=callbackFunc(this, params, iCl);
         if(res)++iFound;
 
         if(progress_CallbackFunction){
@@ -350,9 +329,8 @@ idx sViopop::clonesCoverage( ParamCloneIterator * params, sBioseqpopul::cloneSum
 {
     real maxCov = -1;
 
-    idx spcFrmStart = getFramePos ( cl, cl->start, gap2skpMap,true );//, frmStart = cl->start;
+    idx spcFrmStart = getFramePos ( cl, cl->start, gap2skpMap,true );
     idx spcFrmRangeStart = spcFrmStart;
-//    idx start = cl->start;
     idx spcFrmEnd = getFramePos ( cl, cl->end -1, gap2skpMap,true ) + 1;
     idx spcFrmRangeEnd = spcFrmEnd;
     idx cov = 0; char c;
@@ -371,11 +349,11 @@ idx sViopop::clonesCoverage( ParamCloneIterator * params, sBioseqpopul::cloneSum
         }
     }
 
-    params->out->printf("%" DEC ",%" DEC ",", spcFrmRangeStart + 1, spcFrmRangeEnd);//showStart, showEnd
+    params->out->printf("%" DEC ",%" DEC ",", spcFrmRangeStart + 1, spcFrmRangeEnd);
     sBioseqpopul::cloneSummary * p_cl = 0, * m_cl = 0;
     idx parentID = cl->clID, mergeID = cl->clID, bifurcPos = -1, mergePos = -1;
     if( cl->hasParent() ) {
-        p_cl = getValidCloneSummary(cl->parentClID);
+        p_cl = getValidParentSummary(cl);
 
         if( p_cl ) {
             parentID = p_cl->clID;
@@ -383,14 +361,10 @@ idx sViopop::clonesCoverage( ParamCloneIterator * params, sBioseqpopul::cloneSum
         }
     }
     if( cl->hasMerged() ) {
-        m_cl = getValidCloneSummary(cl->mergeclID);
+        m_cl = getValidMergingSummary(cl);
         if( m_cl ) {
             mergeID = m_cl->clID;
-//            if( mergeID == parentID ) {
-//                mergePos = spcFrmStart + getMergedContigPos(m_cl, cl->end - m_cl->start - 1,params,true)+1;
-//            } else {
                 mergePos = getMergedFramePos(m_cl, cl->end -1,params,true)+1;
-//            }
         }
     }
     params->out->printf("Clone_%" DEC ",Clone_%" DEC ",%" DEC ",%" DEC ",", parentID,mergeID,bifurcPos,mergePos );
@@ -406,11 +380,10 @@ idx sViopop::clonesCoverage( ParamCloneIterator * params, sBioseqpopul::cloneSum
     }
 
     idx interval;
-    interval = params->resolution;    //(resolution && resolution>0 )? (((end-start-2)/resolution > 0) ? (end-start-2)/resolution : 1) : 0;
-    idx fi = 0, ci = 0, ti = 0, cPos = -1; //mutualframe, contigframe, trueframe
+    interval = params->resolution;
+    idx fi = 0, ci = 0, ti = 0, cPos = -1;
     sStr oCov, oSimil, single_simil;
     oCov.printf("[");
-//    oSimil.printf("\"s\":");
 
     idx contigSpcFrmStart = spcFrmRangeStart - spcFrmStart;
     idx contigMultStart = getSkip2GapContigPos(cl, contigSpcFrmStart, skp2gapMap);
@@ -442,7 +415,7 @@ idx sViopop::clonesCoverage( ParamCloneIterator * params, sBioseqpopul::cloneSum
     for(fi = frmMultStart + 1, ci = contigMultStart + 1; fi < frmMultEnd - 1 && ci < contigMultEnd - 1 ; ++fi, ++ci) {
 
         cPos = getContigPos(cl, ci, gap2skpMap);
-        if( cPos < 0 || (gap2skpMap && !sCP[ci].base() && !sCP[ci].coverage() /*fixes interface glitch from old backed bug*/) ) {
+        if( cPos < 0 || (gap2skpMap && !sCP[ci].base() && !sCP[ci].coverage()) ) {
             continue;
         }
         ti = spcFrmStart + cPos;
@@ -523,7 +496,7 @@ idx sViopop::clonesCoverage( ParamCloneIterator * params, sBioseqpopul::cloneSum
     idx seqcovEnd = contigMultEnd - 1 , cordEnd = frmMultEnd - 1;
     cPos = getContigPos(cl, seqcovEnd, gap2skpMap);
     if( cPos>=0 ) {
-        ti = spcFrmStart + cPos;//getContigPos(cl, seqcovEnd, gap2skpMap);
+        ti = spcFrmStart + cPos;
 
         c = sCP[seqcovEnd].baseChar();
         cov = sCP[seqcovEnd].isMultiGap()?0:sCP[seqcovEnd].coverage();
@@ -623,10 +596,10 @@ bool sViopop::mergeClone(sBioseqpopul::cloneSummary * cl, sBioseqpopul::cloneSum
     }
     bool res = getValidCloneComposition(cl, comp );
     if( !res ) {
-        return false; //not valid
+        return false;
     }
     else if ( comp.dim() <= 1 ) {
-        return false; //not merged
+        return false;
     }
     else {
         idx gapFlag = params?params->flags:gapFrameLevel;
@@ -700,13 +673,12 @@ bool sViopop::mergeClone(sBioseqpopul::cloneSummary * cl, sBioseqpopul::cloneSum
                         if(l_gap2skpMap && gap2skipMap )*(l_gap2skpMap->add()) = -1;
                         ++gapPos;
                     }
-                    else if( prof[j].isSupportedGap() && ( gapFlag&clSkipSupportedDeletions) ){
+                    else if( prof[j].isDeletion() && ( gapFlag&clSkipSupportedDeletions) ){
                         r_seqCov->setCoverage( prof[j].pos[sBioseqpopul::baseDel] );
                         r_seqCov->setBase( sBioseqpopul::baseDel );
                         if(l_gap2skpMap && gap2skipMap )*(l_gap2skpMap->add()) = -2;
                         ++gapPos;
                     }
-                    //TODO
                     else if( base != sBioseqpopul::baseIns ) {
                         r_seqCov->setCoverage( prof[j].sum() );
                         r_seqCov->setBase( base );
@@ -721,18 +693,22 @@ bool sViopop::mergeClone(sBioseqpopul::cloneSummary * cl, sBioseqpopul::cloneSum
     return true;
 }
 
-idx sViopop::getValidCloneID( idx iCl )
+idx sViopop::getValidCloneID( idx iCl, bool followMergingPath)
 {
     idx res = -1, cl;
     if( mergeDict ) {
         _t_buf.printf(0,"%" DEC,iCl);
-        if( !mergeDict->get(_t_buf.ptr()) ) {
+        if( !mergeDict->get(_t_buf.ptr(),_t_buf.length()) ) {
             sBioseqpopul::cloneSummary * clSum = getCl(iCl);
-            if(clSum && clSum->parentClID != clSum->clID ) {
-                cl =  getValidCloneID( clSum->parentClID  );
+            idx followID = followMergingPath?clSum->mergeclID:clSum->parentClID;
+            if(clSum && followID != clSum->clID ) {
+                cl =  getValidCloneID( followID, followMergingPath );
                 if(cl>=0) {
                     _t_buf.printf(0,"%" DEC,cl);
-                    sVec<idx> * mergedIDs = mergeDict->get(_t_buf.ptr());
+                    sVec<idx> * mergedIDs = mergeDict->get(_t_buf.ptr(),_t_buf.length());
+                    if (followMergingPath && mergedIDs) {
+                        return cl;
+                    }
                     for (idx i = 0 ; i < mergedIDs->dim(); ++i ) {
                         if( iCl == *mergedIDs->ptr(i) ) {
                             return cl;
@@ -752,41 +728,37 @@ idx sViopop::getValidCloneID( idx iCl )
 }
 
 
-sBioseqpopul::cloneSummary * sViopop::getValidCloneSummary( idx iCl)
+sBioseqpopul::cloneSummary * sViopop::getValidCloneSummary( idx iCl, bool followMergingPath)
 {
-    sBioseqpopul::cloneSummary * cl = 0, * t_cl = 0;
-    if( mergeDict ) {
-        _t_buf.printf(0,"%" DEC,iCl);
-        if( !mergeDict->get(_t_buf.ptr()) ) {
-            sBioseqpopul::cloneSummary * clSum = getCl(iCl);
-            if(clSum && clSum->parentClID != clSum->clID ) {
-                t_cl = getValidCloneSummary( clSum->parentClID );
-                 if( t_cl ) {
-                     _t_buf.printf(0,"%" DEC,t_cl->clID);
-                     sVec<idx> * mergedIDs = mergeDict->get(_t_buf.ptr());
-                     for (idx i = 0 ; i < mergedIDs->dim(); ++i ) {
-                         if( iCl == *mergedIDs->ptr(i) ) {
-                             return t_cl;
-                         }
-                     }
-                     return 0;
-                 }
-            }
-        }
-        else {
-            cl = getCl(iCl);
-        }
+    idx res = getValidCloneID(iCl,followMergingPath);
+    if (res < 0 ) {
+        return 0;
     }
-    else {
-        cl = getCl(iCl);
+    return getCl(res);
+}
+
+sBioseqpopul::cloneSummary * sViopop::getValidParentSummary(sBioseqpopul::cloneSummary * cl) {
+    idx iCl = cl->parentClID;
+    sBioseqpopul::cloneSummary * rcl = getValidCloneSummary(iCl);
+    if( rcl && rcl->clID == cl->clID ) {
+        return getValidCloneSummary(iCl,true);
     }
-    return cl;
+    return rcl;
+}
+
+sBioseqpopul::cloneSummary * sViopop::getValidMergingSummary(sBioseqpopul::cloneSummary * cl) {
+    idx iCl = cl->mergeclID;
+    sBioseqpopul::cloneSummary * rcl = getValidCloneSummary(iCl);
+    if( rcl->clID == cl->clID ) {
+        return getValidCloneSummary(iCl,true);
+    }
+    return rcl;
 }
 
 void sViopop::constructCloneComposition(idx iCl, sVec< contigComp > *comp)
 {
     comp->cut(0);
-    cloneRegion t_contig;//, * c_contig;
+    cloneRegion t_contig;
     contigComp * c_Comp;
     sBioseqpopul::cloneSummary * cl = getCl(iCl), * m_cl;
 
@@ -795,13 +767,13 @@ void sViopop::constructCloneComposition(idx iCl, sVec< contigComp > *comp)
         sVec<idx> * merged = mergeDict->get(_t_buf.ptr());
 
         sVec< idx > rangePos;
-        rangePos.vadd(2, cl->start, cl->end - 1);
+        rangePos.vadd(2, cl->start, cl->end);
 
         if( merged ) {
             for( idx i = 0 ; i < merged->dim() ; ++i ) {
                 m_cl = getCl( *(merged->ptr(i)) );
                 if(!m_cl) continue;
-                rangePos.vadd(2,m_cl->start, m_cl->end - 1);
+                rangePos.vadd(2,m_cl->start, m_cl->end);
             }
             sSort::sort( rangePos.dim(),rangePos.ptr());
             for( idx i = 0 ; i+1 < rangePos.dim(); ++i ) {
@@ -843,7 +815,6 @@ void sViopop::constructCloneComposition(idx iCl, sVec< contigComp > *comp)
     }
     else if( cl ){
         comp->cut(0);
-        //added to results
         c_Comp = comp->add();
         c_Comp->start = cl->start;
         c_Comp->end = cl->end;
@@ -886,7 +857,6 @@ idx sViopop::printAllClones(sViopop * viopop, ParamCloneIterator * params, idx c
 
     sBioseqpopul::cloneStats * gStats = viopop->getGenStats ();
     idx refCnt=gStats->support;
-//    sStr t_buf;t_buf.printf(0,"%" DEC,clIndex);
     sVec< seqCovPosition > seqCov, * pSC = 0;
     sVec < contigComp > cComp, * pC_Comp;
     sVec<idx> skp2gapMap, gap2skpMap, * pS2Gmap = 0,* pG2Smap = 0;
@@ -916,7 +886,7 @@ idx sViopop::printAllClones(sViopop * viopop, ParamCloneIterator * params, idx c
         return 0;
 
     params->out->printf(",");
-    sBioseqpopul::cloneSummary * pCl = viopop->getValidCloneSummary( cl->parentClID );
+    sBioseqpopul::cloneSummary * pCl = viopop->getValidParentSummary(cl);
     if( cl->hasParent() && pCl ) {
         sVec< seqCovPosition > pSeqCov, * ppSC = 0;
         sVec < contigComp > pComp;
@@ -982,7 +952,7 @@ idx sViopop::clonesDifferences(ParamCloneIterator * params, sBioseqpopul::cloneS
         }
         if( isDiff ) {
             if( !diffs )
-                firstDif = i+1;//firstDif.printf("%" DEC, i+1);    //Starting point of bifurcation based on mutation and not on first read available
+                firstDif = i+1;
             else
                 oDifs.printf(",");
             char fB = pSeqCov[pi].baseChar() ;
@@ -1002,7 +972,7 @@ idx sViopop::clonesDifferences(ParamCloneIterator * params, sBioseqpopul::cloneS
 }
 
 idx sViopop::printHierarchySingle(sViopop * viopop, ParamCloneIterator * params, idx clIndex){
-    sBioseqpopul::cloneSummary * clSum=0;//,* clFSum=0;
+    sBioseqpopul::cloneSummary * clSum=0;
     sVec<idx> scCov(sMex::fExactSize), scSeq(sMex::fExactSize);
 
     if(params->flags&sViopop::clPrintSummary)
@@ -1082,7 +1052,6 @@ idx sViopop::printAllCoverageClones(idx * iVis, idx start, idx cnt,sStr & out,id
 
     return iFound;
 }
-//static
 idx sViopop::getClonesOnPosition( sViopop * viopop, idx pos, sVec<idx> * clInds ) {
     sBioseqpopul::cloneSummary * cl=0, rsCl;
     sVec<contigComp> comp;
@@ -1179,7 +1148,6 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
         *clIds.set( (void * )vec_clIds.ptr(i), sizeof(idx) ) = true;
     }
     vec_clIds.empty();
-//    sBioseqpopul::cloneSummary * clSum=0,* t_clSum, lastcl;
     sStack<sBioseqpopul::cloneSummary> clonesParsed;
     sStack< sVec <sViopop::cloneRegion> > permStack;
     sBioseqpopul::cloneSummary lastcl, * cl, rsCl, * t_cl=0, rsTCl, rsMergedCl;
@@ -1189,7 +1157,6 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
 
     idx pos = 0, cnt=0;
 
-    //scan for the first covered position
     bool again = true;
     while( again ){
         getClonesOnPosition(this,pos++,&vec_clIds);
@@ -1203,7 +1170,6 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
     }
     --pos;
     for (idx c = 0 ; c < vec_clIds.dim() ; ++c){
-        //Clone that have other clones merged to them will still have same start position so no need to call mergedClones function.
         if( mergeDict && !mergeDict->get( t_buf.printf(0,"%" DEC,vec_clIds[c]) ) )
             continue;
         else
@@ -1224,7 +1190,6 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
     sBioseqpopul::cloneStats * gen = getGenStats();
 
     while( clonesParsed.dim() && cnt<params->cnt ) {
-//         bif = false;
         lastcl = *clonesParsed.top();
         s_Out = *permStack.top();
         c_Out = &s_Out;
@@ -1269,7 +1234,6 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
                         break;
                     }
                     if( !cloneOverlap( t_cl , clIds) ) {
-                        //update current to the new position
                         clonesParsed.top()->start = pos+1;
                         lastcl.start = pos;
                         lastcl.clID = t_cl->clID;
@@ -1283,7 +1247,6 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
                         t_Contig = t_Out->add();
                         t_Contig->contigInd = lastcl.clID;
                         t_Contig->start = 0;
-//                        bif = true;
                     }
                 }
             }
@@ -1292,7 +1255,7 @@ idx sViopop::getPermutationsCompositions( const char * clones_input, sVec< sVec 
                 if( !cl->hasMerged() ) {
                     break;
                 }
-                t_cl = getValidCloneSummary( cl->mergeclID );
+                t_cl = getValidMergingSummary(cl);
                 if( t_cl ) {
                     cl = t_cl;
                     c_Out->ptr(c_Out->dim()-1)->end = pos - getCl(c_Out->ptr(c_Out->dim()-1)->contigInd)->start;
@@ -1350,7 +1313,7 @@ idx sViopop::getExtendedComposition( sBioseqpopul::cloneSummary * cl, sVec<sViop
 
     parentCl = 0; mergeCl = 0;
     if( cl->hasParent() ) {
-        parentCl =  getValidCloneSummary(cl->parentClID);
+        parentCl =  getValidParentSummary(cl);
         if( parentCl && mergeClone(parentCl,rsParnentCl,comp,params) ) {
             parentCl = &rsParnentCl;
         }
@@ -1417,7 +1380,7 @@ idx sViopop::getExtendedComposition( sBioseqpopul::cloneSummary * cl, sVec<sViop
         cl=mergeCl;
         mergeCl = 0;
         if( cl->hasMerged() ) {
-            mergeCl = getCl(cl->parentClID);
+            mergeCl = getCl(cl->mergeclID);
             if(!mergeCl) break;
             if( mergeClone(mergeCl,rsMergedCl,comp,params) ) {
                 mergeCl = &rsMergedCl;
@@ -1577,13 +1540,11 @@ struct rangeGraphNode {
                         minFrDistance = sAbs(fr - cls[i].fr);
                         iR = i;
                     }
-//                    zerod = false;
                 }
             }
         }
         if( iR < 0 && !unconnected ) {
             for(idx i = 0 ; i < cls.dim() ; ++i) {
-//                bool zerod = false;
                 ic = &cls[i].iCl;
                 if( ( cls[i].iCl.clID == cc->clID ) || (forward && isForwardRelated(cc,ic) ) || ( !forward && isBackwardRelated(cc,ic) ) ) {
                     unrelated =false;
@@ -1598,7 +1559,6 @@ struct rangeGraphNode {
         }
         if( iR < 0 && !unrelated ) {
             for(idx i = 0 ; i < cls.dim() ; ++i) {
-//                bool zerod = false;
                 ic = &cls[i].iCl;
                 if( cls[i].fr > minF ) {
                     if( sAbs(fr - cls[i].fr) < minFrDistance ) {
@@ -1649,7 +1609,6 @@ real getPath(sViopop * vp, sVec<rangeGraphNode> & grph, idx iNode, sVec<sViopop:
     }
     sViopop::cloneRegion * cr = 0;
     for(idx i = start_node+1 ; i < end_node ; ++i ) {
-//        if(iClGr[i]<0) continue;
         cr = out.add();
         cr->contigInd = grph[i].cls[iClGr[i]].iCl.clID;
         cr->start = grph[i].start - grph[i].cls[iClGr[i]].iCl.start;
@@ -1722,87 +1681,6 @@ void normalizeRangeGraph(sVec<rangeGraphNode> &rangeGraph)
         for (idx j = 0 ; j < gn->cls.dim() ; ++j ) tot_sum += gn->cls[j].fr;
     }
 }
-
-//idx sViopop::getPredictedGlobal(sVec< sVec <sViopop::cloneRegion> > & out, sVec< real > & frequencies, ParamCloneIterator * params)
-//{
-////    sVec< sVec <sViopop::cloneRegion> > out;
-////    sVec< real > frequencies;
-//    sVec< idx > rng_cl(sMex::fSetZero|sMex::fExactSize), sorted_cl_rngs(sMex::fSetZero);
-//    sBioseqpopul::cloneSummary * cl = 0;
-//    sVec<contigComp> comp;
-//    sBioseqpopul::cloneSummary rsCl;
-//    for( idx i = 0 ; i < 2*dimCl() ; i+=2 ){
-//        cl = getCl(i/2);
-//        if( mergeClone(cl,rsCl,comp,params) ) {
-//            cl = &rsCl;
-//        }
-//        else if (!isValidClone(cl->clID)) {
-//            continue;
-//        }
-//        rng_cl.vadd(2,cl->start,cl->end);
-//    }
-//    sSort::sort(rng_cl.dim(),rng_cl.ptr());
-//    sorted_cl_rngs.vadd(1,rng_cl[0]);
-//    for(idx i = 1 ; i < rng_cl.dim() ; ++i ) {
-//        if( rng_cl[i-1] != rng_cl[i] )
-//            sorted_cl_rngs.vadd(1,rng_cl[i]);
-//    }
-//    sVec<rangeGraphNode> rangeGraph(sMex::fExactSize);
-//    rangeGraph.add(sorted_cl_rngs.dim() - 1);
-//    for(idx i = 1 ; i < sorted_cl_rngs.dim() ; ++i ){
-//        rangeGraphNode * gn = rangeGraph.ptr(i-1);
-//        gn->end=sorted_cl_rngs[i];
-//        gn->start=sorted_cl_rngs[i-1];
-//        sVec<idx> res;
-//        real tot_cov = 0;
-//        getClonesOnPosition(this,(gn->start+gn->end)/2,&res);
-//        for (idx j = 0 ; j < res.dim() ; ++j ) {
-//            clfr * cf = gn->cls.add();
-//            sVec< seqCovPosition > seqCov;
-//            seqCovPosition * sc = 0;
-//            if( !mergeClone(getCl(res[j]),cf->iCl,comp,0,&seqCov) ) {
-////                cf->iCl = *getCl(res[j]);
-//                sc = getSeqCov(res[j],0,0);
-//            } else {
-//                sc = seqCov.ptr();
-//            }
-//            for(idx i = gn->start - cf->iCl.start ; i < gn->end - cf->iCl.start ; ++i ) {
-//                cf->fr += sc[i].coverage();
-//            }
-//            cf->fr /= (gn->end - gn->start);
-//            tot_cov += cf->fr;
-//        }
-//        for (idx j = 0 ; j < res.dim() ; ++j ) {
-//            gn->cls[j].fr /= tot_cov;
-//        }
-//    }
-////    normalizeRangeGraph(rangeGraph);
-//
-//    idx seedNode = getSeedNode(rangeGraph, params->minF);
-//    while( seedNode >= 0 ) {
-//        frequencies.vadd(1,getPath(this,rangeGraph,seedNode,*out.add(), params->minF));
-//        seedNode = getSeedNode(rangeGraph,params->minF);
-//    }
-//    return out.dim();
-////    sVec<idx> sort_ind;sort_ind.resize(frequencies.dim());
-////    sSort::sort(frequencies.dim(),frequencies.ptr(),sort_ind.ptr());
-////    real fr_sum = 0;
-////    idx min_fr_i = 0;
-////    for( min_fr_i = sort_ind.dim()-1; min_fr_i >= 0; --min_fr_i) {
-////        if( frequencies[sort_ind[min_fr_i]] > params->minF ) {
-////            fr_sum += frequencies[sort_ind[min_fr_i]];
-////        } else {
-////            break;
-////        }
-////    }
-////    min_fr_i++;
-////    for(idx i = sort_ind.dim()-1; i >= min_fr_i; --i) {
-////        l_frequencies.vadd(1,frequencies[sort_ind[i]]/fr_sum);
-////        sVec<cloneRegion> * ts_cl = l_out.add();
-////        ts_cl->copy(out.ptr(sort_ind[i]));
-////    }
-////    return l_out.dim();
-//}
 
 idx sViopop::getPredictedGlobal(sVec< sVec <sViopop::cloneRegion> > & out, sVec< real > & frequencies, ParamCloneIterator * params)
 {
@@ -1881,7 +1759,6 @@ idx popGraph::buildGraph(sViopop::ParamCloneIterator * params)
     idx c_start = 0, c_end = 0;
     sVec<idx> res, * p_res = 0;
     node * cn = 0;
-//    sDic<real> avClCov;
     sVec<idx> rng_tot_cov(sMex::fSetZero|sMex::fExactSize);
     rng_tot_cov.resize(sorted_cl_rngs.dim()-1);
     for(idx i = 1 ; i < sorted_cl_rngs.dim() ; ++i ){
@@ -1907,8 +1784,7 @@ idx popGraph::buildGraph(sViopop::ParamCloneIterator * params)
             }
         }
         sViopop::seqCovPosition * sc = 0;
-        idx seqlen = 0, cr_in = _nodes.dim();
-//        real cur_sum = 0;
+        idx seqlen = 0;
         for (idx j = 0 ; j < res.dim() ; ++j ) {
             sBioseqpopul::cloneSummary cl_sum = cl_sums[j];
             if(seqCovs[j].dim()) {
@@ -1922,7 +1798,8 @@ idx popGraph::buildGraph(sViopop::ParamCloneIterator * params)
                 cn = addNode(c_start,c_end,i-1,cl_sum);
                 if( cn->clone.hasParent() ) {
                     idx i_pnode = getNodeIndFromRange( cn->clone.parentClID, c_start);
-                    connectNodes(_nodes.ptr(i_pnode),cn);
+                    if( i_pnode >= 0 )
+                        connectNodes(_nodes.ptr(i_pnode), cn);
                 }
             } else {
                 sVec<idx> merged_res;
@@ -1933,16 +1810,17 @@ idx popGraph::buildGraph(sViopop::ParamCloneIterator * params)
                         ++bifurc_cnt;
                 }
                 idx i_pnode = getNodeIndFromRange(cl_sum.clID,c_start);
-                if (!merged_cnt  && !bifurc_cnt) {
-                    cn = _nodes.ptr(i_pnode);
-                    extendFrw(cn,c_end,i-1);
-                }
-                else {
-                    cn = addNode(c_start,c_end,i-1,cl_sum);
-                    for(idx l = 0 ; l < merged_res.dim() ; ++l ) {
-                        connectNodes(_nodes.ptr(merged_res[l]),cn);
+                if( i_pnode >= 0 ) {
+                    if( !merged_cnt && !bifurc_cnt ) {
+                        cn = _nodes.ptr(i_pnode);
+                        extendFrw(cn, c_end, i - 1);
+                    } else {
+                        cn = addNode(c_start, c_end, i - 1, cl_sum);
+                        for(idx l = 0; l < merged_res.dim(); ++l) {
+                            connectNodes(_nodes.ptr(merged_res[l]), cn);
+                        }
+                        connectNodes(_nodes.ptr(i_pnode), cn);
                     }
-                    connectNodes(_nodes.ptr(i_pnode),cn);
                 }
             }
             if( is_max_contig ) {
@@ -1952,10 +1830,6 @@ idx popGraph::buildGraph(sViopop::ParamCloneIterator * params)
             for(idx ic = c_start - cn->clone.start ; ic < c_end - cn->clone.start ; ++ic ) {
                 cr_cov += (real)sc[ic].coverage();
             }
-//            if(cl_sum.start == c_start){
-//                avClCov[&cn->clone.clID] = 0;
-//            }
-//            avClCov[&cn->clone.clID] += cr_cov;
             cn->cov += cr_cov;
             rng_tot_cov[i-1] += cr_cov;
             if( is_max_contig ) {
@@ -1963,9 +1837,6 @@ idx popGraph::buildGraph(sViopop::ParamCloneIterator * params)
                 _max_sum += *_max_contigs_freqs.last();
             }
         }
-//        for(idx in = cr_in; in < _nodes.dim() ; ++in) {
-//            _nodes[in].cov /= cur_sum;
-//        }
     }
     _tot_sum = 0;
     for( idx i = 0 ; i < _nodes.dim() ; ++i ) {
@@ -1973,14 +1844,9 @@ idx popGraph::buildGraph(sViopop::ParamCloneIterator * params)
         for(idx j = _nodes[i].irng_s ; j < _nodes[i].irng_e ; ++j) {
             cr_rng_tot += rng_tot_cov[j];
         }
-        _nodes[i].cov /= cr_rng_tot;// avClCov[&_nodes[i].clone.clID];
+        _nodes[i].cov /= cr_rng_tot;
         _tot_sum += _nodes[i].length()*_nodes[i].cov;
     }
-//    for( idx i = 0 ; i < _max_contigs.dim() ; ++i ) {
-////        _max_contigs_freqs.vadd(1,_nodes[_max_contigs[i]].cov);
-//        _max_contigs_freqs[i] /= _max_sum;
-//    }
-//    _max_sum = 1;
 
     _max_contigs_freqs.cut(0);
     _max_sum = 0;
@@ -2028,6 +1894,199 @@ idx popGraph::traverse(idx seed_ind, sVec<sViopop::cloneRegion> & out, bool min_
     }
     return out.dim();
 }
+
+void sViopop::getDiversityMeasureUnits(sVec< sVec< sViopop::cloneRegion > > & compositions, ParamCloneIterator * param, sVec<real> & avCovs, sVec<sVec<seqCovPosition> > & all_seqs)
+{
+    sBioseqpopul::cloneStats * stats=getGenStats();
+
+    avCovs.init(sMex::fSetZero|sMex::fExactSize);
+    avCovs.addM(compositions.dim());
+
+    all_seqs.init(sMex::fExactSize);
+    all_seqs.add(compositions.dim());
+
+    cloneRegion * t_region;
+    seqCovPosition * tSC = 0;
+    sBioseqpopul::cloneSummary * cl=0, rsCl;
+    real totAvCovs = 0;
+
+    for(idx ic = 0; ic < compositions.dim(); ++ic) {
+        real & avCov = avCovs[ic];avCov = 0;
+        all_seqs.ptr(ic)->init(sMex::fExactSize|sMex::fSetZero);
+        all_seqs.ptr(ic)->add(stats->size);
+        sVec<seqCovPosition> * seq = all_seqs.ptr(ic);
+        sVec<cloneRegion> & composition = compositions[ic];
+        if( composition.dim() <= 0 ) continue;
+        sVec< seqCovPosition > seqCov ;
+        idx pos = 0;
+
+        sVec<contigComp> comp;
+        idx sq_size = 0, start = 0 , offset = 0,len = 0, s_pos = 0;
+        sStr title;
+        for( idx i = 0 ; i < composition.dim() ; ++i )
+        {
+            t_region = composition.ptr(i);
+            cl = getCl( t_region->contigInd );
+            if(!cl) continue;
+
+            if( mergeClone(cl,rsCl,comp,param,&seqCov) ) {
+                cl = &rsCl;
+                tSC = seqCov.ptr(0);
+            }
+            else if (!isValidClone(cl->clID)) {
+                continue;
+            }
+            else {
+                tSC = getSeqCov ( cl->clID, &sq_size );
+            }
+            start = getContigPos(cl, t_region->start, 0, true);
+            if(start==-1) {
+                continue;
+            }
+
+
+            for (idx i = pos ; i < cl->start + t_region->start ; ++i ) {
+                seq->ptr(s_pos++)->setBase(sBioseqpopul::baseDel);
+            }
+
+            for( pos = t_region->start ; pos < t_region->end ; ++pos, ++offset )
+            {
+                if( getContigPos(cl,pos) < 0 ) {
+                    seq->ptr(s_pos++)->setBase(sBioseqpopul::baseDel);
+                    --offset;
+                } else {
+                    if( isAnyGap(cl,pos) || tSC[pos].base()==4 || (param->covThrs && param->covThrs >= tSC[pos].coverage() ) ){
+                        seq->ptr(s_pos++)->setBase(sBioseqpopul::baseDel);
+                    }
+                    else {
+                        seq->ptr(s_pos++)->baseCov =  tSC[pos].baseCov;
+                        avCov += tSC[pos].coverage()*t_region->freq;
+                        ++len;
+                    }
+                }
+            }
+            pos += cl->start;
+        }
+
+        for( ; pos < stats->size ; ++pos ) {
+            seq->ptr(s_pos++)->setBase(sBioseqpopul::baseDel);
+        }
+        if(avCov) {
+            avCov/=len;
+            totAvCovs += avCov;
+        }
+    }
+}
+
+void sViopop::printContigsDiversityMeasurements(sVec< sVec< sViopop::cloneRegion > > & compositions, sVec<idx> & clIds, sStr & out, ParamCloneIterator * param)
+{
+    sBioseqpopul::cloneStats * stats=getGenStats();
+    idx pair_cnt = (compositions.dim() * (compositions.dim()-1))/2;
+
+
+    sVec< sVec<seqCovPosition> > all_seqs;
+    sVec<real> avCovs, norm_avCovs;
+
+    getDiversityMeasureUnits(compositions,param,avCovs,all_seqs);
+
+    norm_avCovs.copy(&avCovs);
+    sAlgebra::matrix::normalizeCols(norm_avCovs.ptr(),1,norm_avCovs.dim(), true);
+
+    sMatrix pair_dist(sMex::fSetZero|sMex::fExactSize);
+    pair_dist.resize(pair_cnt, pair_cnt);
+
+    real mfmin = 0, mfe = 0, mfmax = 0;
+    seqCovPosition * p1 = 0, * p2 = 0;
+    idx calls[5], calls_cov[5], s1, s2, max_call_cov = 0 , cons_base = sBioseqpopul::baseDel;
+    idx dim_calls = sDim(calls), size_calls = sizeof(calls);
+    idx base_call = 0, tot_cov = 0;
+    for(idx i = 0 ; i < stats->size ; ++i) {
+        sSet(calls, 0, size_calls);
+        sSet(calls_cov, 0, size_calls);
+
+        max_call_cov = 0;
+        cons_base = 0;
+
+        for(s1 = 0 ; s1 < all_seqs.dim() ; ++s1) {
+              p1 = all_seqs[s1].ptr(i);
+              base_call = p1->isAnyGap()?sBioseqpopul::baseDel:p1->base();
+              calls[base_call]++;
+              calls_cov[base_call] += p1->coverage();
+
+              tot_cov += calls_cov[base_call];
+
+              for(idx c = 0 ; c < dim_calls; ++c) {
+                  if( calls_cov[c] > max_call_cov) {
+                      cons_base = c;
+                  }
+                  if( calls_cov[c] ) {
+                      ++mfmin;
+                      mfe += calls[c];
+                      mfmax += calls_cov[c];
+                  }
+              }
+              if( mfmin ) {
+                  mfe -= calls[cons_base];
+                  mfmax -= calls_cov[cons_base];
+              }
+
+
+              for(s2 = s1 ; s2 < all_seqs.dim() ; ++s2) {
+                  p2 = all_seqs[s2].ptr(i);
+                  if( !((p1->isAnyGap() && p2->isAnyGap() ) || p1->base() == p2->base()) ) {
+                      ++pair_dist.val(s1,s2);
+                  }
+              }
+        }
+    }
+    real nucl_diversity = 0, fad = 0;
+
+    for(s1 = 0 ; s1 < all_seqs.dim() ; ++s1) {
+        for(s2 = s1 ; s2 < all_seqs.dim() ; ++s2) {
+            nucl_diversity += norm_avCovs[s1] * norm_avCovs[s2] * pair_dist.val(s1,s2);
+            fad += pair_dist.val(s1,s2);
+        }
+    }
+
+    idx haplotype_cnt = all_seqs.dim();
+    idx length = all_seqs.dim();
+    idx read_cnt = *(idx *)param->userPointer;
+    out.printf("Reads,"
+        "Haplotypes,"
+        "Mfmin,"
+        "Mfe,"
+        "Mfmax,"
+        "Shannon,"
+        "Shannon log(Reads) normalized,"
+        "Shannon log(Haplotypoes) normalized,"
+        "Shannon bias corrected,"
+        "population nucleotide diversity,"
+        "sample diversity,"
+        "Simpsons index,"
+        "GS index (reads normalized),"
+        "FAD\n");
+
+
+    real shannonEntr = sStat::shannonEntropy(norm_avCovs);
+    real simpsIndex = sStat::simpsonIndex(norm_avCovs);
+    real read_norm_coef = (real)read_cnt/(read_cnt-1);
+    out.printf("%" DEC ",",read_cnt);
+    out.printf("%" DEC ",",haplotype_cnt);
+    out.printf("%lf,",tot_cov?(real)mfmin/tot_cov:0);
+    out.printf("%lf,",(length && haplotype_cnt)?(real)mfe/(length * haplotype_cnt):0);
+    out.printf("%lf,",tot_cov?(real)mfmax/tot_cov:0);
+    out.printf("%lf,",shannonEntr);
+    out.printf("%lf,",read_cnt?shannonEntr/log10(read_cnt):0);
+    out.printf("%lf,",haplotype_cnt?shannonEntr/log10(haplotype_cnt):0);
+    out.printf("%lf,",shannonEntr - (read_cnt?(real)(haplotype_cnt - 1)/(2*read_cnt):0));
+    out.printf("%lf,",length?nucl_diversity/length:length);
+    out.printf("%lf,",length?(read_norm_coef*((real)nucl_diversity)/length):length);
+    out.printf("%lf,",simpsIndex);
+    out.printf("%lf,",(1-simpsIndex)*read_norm_coef);
+    out.printf("%lf",length?fad/length:length);
+    out.addString("\n");
+}
+
 idx sViopop::printContigsPrevalence(sVec< sVec< sViopop::cloneRegion > > & compositions, sVec<idx> & clIds, sStr & out, ParamCloneIterator * param)
 {
     if( compositions.dim() <= 0 ) return 0;
@@ -2169,6 +2228,10 @@ idx sViopop::printContig( sVec< sVec< sViopop::cloneRegion > > & composition, sV
             params->out->printf("Clone ID,Prevalence,Average Coverage\n");
             res = printContigsPrevalence(composition, clIds, out, params);
             break;
+        case ePrintContigDiversityMeasures:
+
+            printContigsDiversityMeasurements(composition,clIds,out,params);
+            break;
         default:
             out.printf("Please specify printing option");
             break;
@@ -2196,19 +2259,21 @@ const char * sViopop::printTitle(sStr & title, ParamCloneIterator * param, idx c
 {
     if( !sep )
         sep = ",";
+    const char * seq_tag = "clone";
+    if(param->flags&clPrintGlobal)
+        seq_tag = "global";
     if( param && (param->flags & clPrintFastaTitleSimple) && !title.length() ) {
-        title.printf("%scontig_%" DEC,sep,contgId);
+        title.printf("%s%s_%" DEC,sep,seq_tag,contgId);
     } else if( param && (param->flags & clPrintFastaTitleNumbersOnly)&& !title.length() ) {
         title.printf("%s%" DEC,sep,contgId);
     } else if ( !param || (param->flags & clPrintFastaTitleComposition) ) {
         if(start==end && title.length()==0 ) {
-            title.printf("%sclone_%" DEC " | composition:", sep, contgId);
+            title.printf("%s%s_%" DEC " | composition:", sep, seq_tag, contgId);
         } else {
             if( title.ptr(title.length()-1)[0] != ':') {
                 title.printf("%s",sep);
             }
             appendToLastComp(title,contgId,start,end,sep);
-//            title.printf("contig_%" DEC "[%" DEC "-%" DEC "]", contgId, start, end);
         }
     }
     return title.ptr();
@@ -2272,7 +2337,7 @@ idx sViopop::printContigSequences( sVec< sViopop::cloneRegion > & composition, s
                     continue;
                 }
             }
-            else { //supported deletion
+            else {
                 seq.printf("%c",tSC[pos].baseChar());
             }
             if ( !((++cnt)%param->wrap) ) {
@@ -2346,7 +2411,7 @@ idx sViopop::printContigAlignments( sVec< sViopop::cloneRegion > & composition, 
                 if( isAnyGap(cl,pos) || t_b==4 || (param->covThrs && param->covThrs >= tSC[pos].coverage() ) ){
                     seq.printf("-");
                 }
-                else { //supported deletion
+                else {
                     seq.printf("%c",tSC[pos].baseChar());
                 }
             }
@@ -2413,9 +2478,6 @@ idx sViopop::printContigCoverages( sVec< sViopop::cloneRegion > & composition, s
         }
 
         printTitle(title,param, t_region->contigInd, offset + 1, end - start + offset,"|");
-//        for (idx i = pos ; i < cl->start + t_region->start ; ++i ) {
-//            seq.addString(",0");
-//        }
         for( pos = t_region->start ; pos < t_region->end ; ++pos, ++offset )
         {
             if( getContigPos(cl,pos) < 0 ) {
@@ -2427,7 +2489,7 @@ idx sViopop::printContigCoverages( sVec< sViopop::cloneRegion > & composition, s
             if( isAnyGap(cl,pos) || t_b==4 || (param->covThrs && param->covThrs >= tSC[pos].coverage() ) ){
                 seq.printf(",0");
             }
-            else { //supported deletion
+            else {
                 seq.printf(",%" DEC,(idx)(tSC[pos].coverage()*(t_region->freq)));
             }
         }
@@ -2524,7 +2586,6 @@ idx sViopop::printContigBreakpoints( sVec< sViopop::cloneRegion > & composition,
     if( simil_thrshld < 0.1 ) {
         simil_thrshld = 0.1;
     }
-//    idx sim_max_cnt = 1/simil_thrshld;
     sVec< real > similsV(sMex::fExactSize);
     similsV.add(refCnt);
     sStr simils, t_simils;
@@ -2626,14 +2687,14 @@ idx sViopop::printContigSummary(sVec< sViopop::cloneRegion > & composition, sStr
     }
     params->out->printf("Clone_%" DEC ",%" DEC ",%" DEC ",",cl->clID,cl->start + 1,cl->end);
     if( cl->hasMerged() ) {
-        mcl = getValidCloneSummary(cl->mergeclID);
+        mcl = getValidMergingSummary(cl);
         if( mcl ) {
             params->out->printf("Clone_%" DEC,mcl->clID);
         }
     }
     params->out->addString(",");
     if( cl->hasParent() ) {
-        pcl = getValidCloneSummary(cl->parentClID);
+        pcl = getValidParentSummary(cl);
         if ( mergeClone(pcl, rsPCl,pComp, params,&pSeqCov ) ) {
             pPSC = &pSeqCov;
             pcl = &rsPCl;
@@ -2653,9 +2714,8 @@ idx sViopop::printContigSummary(sVec< sViopop::cloneRegion > & composition, sStr
 
 idx sViopop::printAllSequenceClones(idx * iVis, idx start, idx cnt,sStr & out,idx * arrSortClon){
     idx * clList=0;
-    idx clCnt=0, iFound=0,base=0;//,res=0;
+    idx clCnt=0, iFound=0,base=0;
 
-//    idx myVis=0;
     clCnt=dimCl();
     if(arrSortClon){
         clList=arrSortClon;
@@ -2702,7 +2762,7 @@ idx sViopop::printAllSequenceClones(idx * iVis, idx start, idx cnt,sStr & out,id
 
 
 idx sViopop::printCoverageSingle(sViopop * viopop, ParamCloneIterator * params, idx clIndex){
-    sBioseqpopul::cloneSummary * clSum=0;//,* clFSum=0;
+    sBioseqpopul::cloneSummary * clSum=0;
     sVec<idx> scCov(sMex::fExactSize), scSeq(sMex::fExactSize);
     idx step=params->step;
 
@@ -2769,7 +2829,6 @@ idx sViopop::printStackedStats(sStr * out, ParamCloneIterator * params){
      return stck_lengths.dim();
 }
 
-//contig coordinates
 idx sViopop::getContigDistance(sBioseqpopul::cloneSummary * cl, idx end, idx start, sVec<idx> * contigMap, bool forceValid) {
     if( ( !gap2skipMap || !gap2skipMap->dim() ) && ( !contigMap || !contigMap->dim() ) ) {
         if ( end < cl->end-cl->start && start >= 0)
@@ -2792,7 +2851,7 @@ idx sViopop::getGap2SkipFramePos(sBioseqpopul::cloneSummary * cl, idx pos, sVec<
     idx clPos = 0;
 
     clPos = getContigPos(cl, pos - cl->start, contigMap, forceValid);
-    sBioseqpopul::cloneSummary * parentCl = cl->hasParent()?getValidCloneSummary( cl->parentClID ):0;
+    sBioseqpopul::cloneSummary * parentCl = cl->hasParent()?getValidParentSummary(cl):0;
     if( parentCl ) {
         sVec< contigComp > comp;
         sBioseqpopul::cloneSummary resCl;
@@ -2805,8 +2864,8 @@ idx sViopop::getGap2SkipFramePos(sBioseqpopul::cloneSummary * cl, idx pos, sVec<
         }
     }
     else if( cl->hasMerged() ) {
-        sBioseqpopul::cloneSummary * m_cl = getValidCloneSummary(cl->mergeclID);
-        if( m_cl ) {
+        sBioseqpopul::cloneSummary * m_cl = getValidMergingSummary(cl);
+        if( m_cl && (!m_cl->hasParent() || !isCloneAncestor(cl,m_cl) ) ) {
             idx mergePos, contigLen = getContigPos(cl, cl->end - cl->start - 1, contigMap, forceValid);
 
             sVec< contigComp > comp;

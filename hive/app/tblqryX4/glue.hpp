@@ -41,8 +41,8 @@ namespace slib {
                     sTabular * src;
                     bool owned;
                     idx col_map_offset;
-                    sVec<idx> row_map; // map from output absrow to src row
-                    sVec<idx> col_map; // map from output abscol - col_map_offset to src col
+                    sVec<idx> row_map;
+                    sVec<idx> col_map;
 
                     SubTable() : row_map(sMex::fExactSize), col_map(sMex::fExactSize)
                     {

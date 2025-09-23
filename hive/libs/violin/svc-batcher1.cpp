@@ -1,4 +1,4 @@
-  /*
+/*
  *  ::718604!
  * 
  * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
@@ -29,7 +29,7 @@
  */
 
 #include <violin/svc-batcher1.hpp>
-#include <violin/hivetools.hpp>
+#include <violin/hiveproc.hpp>
 
 idx SvcBatcher1::OnExecute(idx req)
 {
@@ -46,7 +46,7 @@ idx SvcBatcher1::OnExecute(idx req)
     if(!svcToSubmit)
         svcToSubmit = formValue("batch_svc",&bSvc);
     if(!svcToSubmit) {
-        return 0; // ERR HERE
+        return 0;
     }
     idx reqPriority = formIValue("reqPriority", 0);
 
@@ -62,18 +62,15 @@ idx SvcBatcher1::OnExecute(idx req)
         if( !doCreateProcesses )
             reqSetData(req,"resultFileTemplate","reqself-");
 
-        const char * svc=svcToSubmit ? svcToSubmit : pForm->value("svc",0); // otherwise , use the CGI's service itself
+        const char * svc=svcToSubmit ? svcToSubmit : pForm->value("svc",0);
         sQPride::Service Svc;
-        serviceGet( &Svc, svc, 0) ; // otherwise retrieve it from the reqID
+        serviceGet( &Svc, svc, 0) ;
 
 
 
         if(batchingDescriptor.dim()==0) {
             const sUsrObjPropsTree * objPropsTree=objs[0].propsTree();
             const sUsrObjPropsNode * batchArr = objPropsTree ? objPropsTree->find("batch_list") : 0;
-            //
-            // Get each batch parameter and the values from the webpage
-            //
             for(const sUsrObjPropsNode * batchRow = batchArr ? batchArr->firstChild() : 0; batchRow; batchRow= batchRow->nextSibling()) {
                 const sUsrObjPropsNode * batchOn= batchRow ->find("batch_param");if(!batchOn)break;
                 const sUsrObjPropsNode * batchVal= batchRow ->find("batch_value");if(!batchVal)break;
@@ -86,9 +83,6 @@ idx SvcBatcher1::OnExecute(idx req)
         }
 
         if(batchingDescriptor.dim()==0) {
-            //
-            // If there was no batching Descriptors then set as an error
-            //
             logOut(eQPLogType_Error, "Incorrect or missing 'batch_param' and 'batch_value' parameters\n");
             reqSetInfo(req, eQPInfoLevel_Error, "Incorrect or missing batch parameters.");
             reqSetStatus(req, eQPReqStatus_ProgError);
@@ -121,7 +115,6 @@ idx SvcBatcher1::OnExecute(idx req)
 
             sDic <idx > * curCombination=valueSets.ptr(iv);
             nameTemplate.printf(0," %s #%" DEC, svcToSubmit, iv+1);
-            //sStr batched_service;
 
             for( idx i=0 ; i<curCombination->dim() ; ++i ){
                 const char * param=(const char * ) curCombination->id(i);
@@ -134,8 +127,6 @@ idx SvcBatcher1::OnExecute(idx req)
                 if (b.length() == 0) {
                     b.printf("%s %s", value, param);
                 }
-                //if (batched_service.length() == 0) _tmp.propGet("batch_svc", &batched_service);
-                //_tmp.propGet("batch_svc", &batched_service);
 
                 nameTemplate.printf(" %s",b.ptr());
 
@@ -146,7 +137,6 @@ idx SvcBatcher1::OnExecute(idx req)
 
                     }
                 }else {
-                    //reqSetData(reqSub,param,value,sLen(value)+1);
                     pForm->inp(param,value,sLen(value)+1);
 
                 }
@@ -163,7 +153,7 @@ idx SvcBatcher1::OnExecute(idx req)
                 pForm->inp("name", nameTemplate.ptr(), nameTemplate.length() + 1);
             }
 
-            idx cntParallel=sHiveTools::customizeSubmission(pForm , user, procObjs.dim() ? procObjs.ptr(0) : 0, &Svc, &log);
+            idx cntParallel=sHiveProc::customizeSubmission(pForm , user, procObjs.dim() ? procObjs.ptr(0) : 0, &Svc, &log);
             if( !cntParallel ) {
                 logOut(eQPLogType_Error, "Failed to customize submission for value set %" DEC ": %s\n", iv, log.ptr());
                 reqSetInfo(req, eQPInfoLevel_Error, "Failed to customize submission.");
@@ -208,12 +198,10 @@ idx SvcBatcher1::OnExecute(idx req)
 
         }
 
-        // remember the list of submitted Ids here
 
         if( selfService && doCreateProcesses ){
-            // Sets svc-batcher process to finished no matter what
             reqProgress(valueSets.dim(), 100, 100);
-            reqSetStatus(req, eQPReqStatus_Done);// change the status
+            reqSetStatus(req, eQPReqStatus_Done);
         }
         else
             reqSetData(req,"submittedGrpIDs",submittedGrpIDs.dim()*sizeof(idx),submittedGrpIDs.ptr());
@@ -222,12 +210,8 @@ idx SvcBatcher1::OnExecute(idx req)
     else {
 
 
-        // if it has already been submitted
-        // now we analyze the status
         for ( idx ig=0; ig<submittedGrpIDs.dim() ; ++ig) {
             sVec < idx > stat;
-            //grpGetStatus( submittedGrpIDs[ig], &stat,svcToWaitFor);
-            //grp2Req(submittedGrpIDs[ig], &waitedReqs, svcToWaitFor);
             grp2Req(req, &waitedReqs, svcToWaitFor, 0);
             if(waitedReqs.dim())reqGetStatus(&waitedReqs,&stat);
 
@@ -250,19 +234,11 @@ idx SvcBatcher1::OnExecute(idx req)
 
         if(killed) {
             reqSetProgress(req,valueSets.dim(), 0);
-            reqSetStatus(req, eQPReqStatus_ProgError); // change the status
+            reqSetStatus(req, eQPReqStatus_ProgError);
             return 0;
         }
     }
-//    else if( stillRunning) {
-//        reqReSubmit(req,60);
-//        return 0;
-//    }
 
-//    if(selfService) {
-//        reqSetProgress(req,valueSets.dim(), 100);
-//        reqSetStatus(req, eQPReqStatus_Done);// change the status
-//    }
     return 0;
 }
 
@@ -271,15 +247,12 @@ void SvcBatcher1::recursiveBatchCollect( idx level , sDic < idx > * curCombinati
     sDic < idx > local;
     if(!curCombination)curCombination=&local;
 
-    // deepest level
     if(level==batchingDescriptor.dim())
     {
         sDic < idx > *d=valueSets.add(1);
-        // copy the dictionary elements
         for( idx i=0 ; i<curCombination->dim() ; ++i ){
             const char * param = (const char * ) curCombination->id(i);
             idx valueOfs=*curCombination->ptr(i);
-            //const char * val=(char*)(this->valueBuf.ptr(valueOfs));
             *d->set( param ) = valueOfs ;
         }
         return ;
@@ -291,11 +264,6 @@ void SvcBatcher1::recursiveBatchCollect( idx level , sDic < idx > * curCombinati
     const char * param=(const char* )batchingDescriptor.id(level);
     const char * value00=formValues00(param,&valB);
     idx numberOfElements=sString::cnt00(value00);
-    /*
-    if(numberOfElements==1) {
-        sString::searchAndReplaceSymbols(&extraBuf,valu00, ";",0,,..... );
-        value00=extraBuf.ptr();
-    }*/
 
      if(numberOfElements==1) {
         sString::searchAndReplaceSymbols(&extraBuf00,value00,0, ";",0,0, true, true, false, true);

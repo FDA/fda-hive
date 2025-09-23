@@ -30,11 +30,13 @@
 
 PROGRAMS = dmDownloader.cgi dmDownloaderproc
 
-dmDownloader.cgi_LIBS = -lqpsvc -ldmlib $(VLIB_LIB)
-dmDownloader.cgi_XLIBS = $(MYSQL_LIB) $(LIBZIP_LIB)
+OBJECT_TYPES=svc-download
 
-dmDownloaderproc_LIBS = -lqpsvc -ldmlib $(VLIB_LIB)
-dmDownloaderproc_XLIBS = $(MYSQL_LIB) $(LIBZIP_LIB)
+dmDownloader.cgi_LIBS = -lqpsvc $(VLIB_LIB)
+dmDownloader.cgi_XLIBS = $(MYSQL_LIB_STATIC)
+
+dmDownloaderproc_LIBS = -lqpsvc $(VLIB_LIB)
+dmDownloaderproc_XLIBS = $(MYSQL_LIB)
 
 dmDownloader.cgi_SRCS = dmDownloadercgi.cpp
 dmDownloaderproc_SRCS = dmDownloaderproc.cpp
@@ -44,7 +46,6 @@ ifeq ($(devdir),)
 endif
 include $(devdir)/build/makefile.meta
 
-# no SPACES around '=' signs in dist-* functions!!
 .PHONY: dist
 dist::
 	$(call copy-bin,dmDownloader.cgi)

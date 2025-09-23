@@ -136,12 +136,6 @@ namespace slib {
                     }
                 }
 
-#if 0
-                if (val->type == KeyValue::eReal)
-                    fprintf(stderr, "Key %" DEC " for row %" DEC " is %.2f\n", ival, irow, val->val.r);
-                else
-                    fprintf(stderr, "Key %" DEC " for row %" DEC " is '%s'\n", ival, irow, row->buf.ptr(val->val.s));
-#endif
 
                 return val;
             }
@@ -149,20 +143,19 @@ namespace slib {
             static idx compareKeyValues(const KeyRow * key_row1, const KeyValue * val1, const KeyRow * key_row2, const KeyValue * val2)
             {
                 idx ret = 0;
-                // sort order: "", numbers, non-empty strings
                 if (val1->type == KeyValue::eString) {
                     const char * s1 = key_row1->buf.ptr(val1->val.s);
                     if (val2->type == KeyValue::eString) {
                         const char * s2 = key_row2->buf.ptr(val2->val.s);
                         ret = strcasecmp(s1, s2);
                     } else {
-                        ret = *s1 ? -1 : 1; // non-empty strings sort after numbers
+                        ret = *s1 ? -1 : 1;
                     }
                 } else {
                     real r1 = val1->val.r;
                     if (val2->type == KeyValue::eString) {
                         const char * s2 = key_row2->buf.ptr(val2->val.s);
-                        ret = *s2 ? 1 : -1; // non-emtpy strings sort after numbers
+                        ret = *s2 ? 1 : -1;
                     } else {
                         real r2 = val2->val.r;
                         ret = isnan(r1) && isnan(r2) ? 0 : sSig0<real>(r1 - r2);
@@ -199,23 +192,6 @@ namespace slib {
                     }
 
                     ret = compareKeyValues(key_row1, val1, key_row2, val2);
-#if 0
-                    {
-                        fprintf(stderr, "Key #%" DEC ",%" DEC " (== ", irow1, ival);
-                        if (val1->type == KeyValue::eString) {
-                            fprintf(stderr, "%s", key_row1->buf.ptr(val1->val.s));
-                        } else {
-                            fprintf(stderr, "%g", val1->val.r);
-                        }
-                        fprintf(stderr, ") %s key #%" DEC ",%" DEC " (== ", ret > 0 ? ">" : ret < 0 ? "<" : "=", irow2, ival);
-                        if (val2->type == KeyValue::eString) {
-                            fprintf(stderr, "%s", key_row2->buf.ptr(val2->val.s));
-                        } else {
-                            fprintf(stderr, "%g", val2->val.r);
-                        }
-                        fprintf(stderr, ")\n");
-                    }
-#endif
 
                     if (ret) {
                         return sorter->_reverse ? -ret : ret;
@@ -295,7 +271,6 @@ namespace slib {
                 if (!_key_specs.dim())
                     return true;
 
-                // simplify dollar-call formulas for current table
                 for (idx is=0; is<_key_specs.dim(); is++) {
                     _key_specs[is].setFormula(tbl, _key_specs[is].getFormula());
                 }
@@ -316,9 +291,6 @@ namespace slib {
                     return false;
 
                 if (tbl->hasRowsRemapped()) {
-                    // If the table already had rows remapped, the sorted index is a sorting of
-                    // that map's domain. So replace the map with a new reordered map - note that
-                    // this requires the old map, new map, and sorted index all in memory.
                     sVec<sReorderedTabular::TypedSource> sorted_map;
                     sorted_map.resize(nrows + top_header);
                     for (idx absrow=0; absrow<top_header; absrow++) {
@@ -329,8 +301,6 @@ namespace slib {
                     }
                     tbl->borrowRowsMap(sorted_map);
                 } else {
-                    // If the table didn't have remapped rows, the sorted index is a sorting of
-                    // the underlying source table, so the sorted index becomes the row map
                     tbl->initRowsMap();
                     for (idx absrow=top_header; absrow < nrows + top_header; absrow++) {
                         tbl->getRowsMap()[absrow].src = sorted_index[absrow - top_header];

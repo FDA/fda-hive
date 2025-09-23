@@ -37,32 +37,19 @@ $(function () {
             this._super();
         },
 
-        generateField: function() {
-            var field = $(document.createElement('input'))
-                            .addClass('field')
-                            .addClass(this.options.spec.type)
-                            .attr({
-                                id: this.options.name,
-                                name: this.options.name,
-                                type: 'checkbox'
-                            });
-            
-            return field;
-        },
+        generateField: function() {            
+                var field = $(document.createElement('input'))
+                                .addClass('field')
+                                .addClass(this.options.spec.type)
+                                .data("spec", this.options.spec)
+                                .attr({
+                                    id: this.options.spec.path + "-field",
+                                    name: this.options.spec.tmpObjName,
+                                    type: 'checkbox'
+                                });
 
-        setDefaultValue: function() {
-            if(Boolean.parse(this.options.spec.default_value))
-                this.field.attr({ checked: true });
-        },
-
-        setInitialValue: function() {
-            $(this.field).data({ 'initial-value': $(this.field).is(':checked') });
-        },
-
-        resetInitialValue: function() {
-            $(this.field).prop('checked', $(this.field).data('initial-value'));
-            $(this.field).removeAttr('data-changed');
-        },
+                return field;
+        }
     });
 
 }(jQuery));

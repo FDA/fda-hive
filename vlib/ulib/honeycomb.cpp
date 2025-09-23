@@ -53,18 +53,18 @@ sHoneyCombIon * sHoneyCombIon::init(const char * baseName, idx openMode )
 
 
     objToTypeRelationshipIndex=ion->addRelationType("obj_type","obj" _ "type" __,
-        "obj" __, // relation hasher 3
-        "obj" _ "type" __, // relation hasher 5
-        "type" __, // relation hasher 8
+        "obj" __,
+        "obj" _ "type" __,
+        "type" __,
         (const char * )0);
     objToValueRelationshipIndex=ion->addRelationType("obj_prop","obj" _ "name" _ "path" _ "value" __,
-        "#obj"_"#name"_"#path"_"#value" __, // if index hashing : the same nodes cannot be linked second time ?
-        "obj" __, // relation hasher 10
-        "obj" _ "name" __, // relation hasher 12
-        "obj" _ "name" _ "value" __, // relation hasher 15
-        "name" __, // relation hasher 19
-        "name" _ "value" __, // relation hasher 21
-        "value" __, // relation hasher 24
+        "#obj"_"#name"_"#path"_"#value" __,
+        "obj" __,
+        "obj" _ "name" __,
+        "obj" _ "name" _ "value" __,
+        "name" __,
+        "name" _ "value" __,
+        "value" __,
         (const char * )0);
 
     return this;
@@ -84,16 +84,6 @@ bool sHoneyCombIon::propSet(idx objID, const char * name, const char * path, con
     pathIndex=ion->addRecord(pathType, sLen(path)+1, (void*)path);
     valueIndex=ion->addRecord(valueType, sLen(value)+1, (void*)value);
 
-    /*
-    idx next_bucket=ion->getRelationBucketByHash(objToValueRelationshipIndex,sHoneyComb_allIndexesHash
-        , &objIndex, sizeof(idx)
-        , &nameIndex, sizeof(idx)
-        , &pathIndex, sizeof(idx)
-        , &valueIndex, sizeof(idx)
-        , (const void * )0);
-    if(next_bucket!=sNotIdx)
-        return false;
-*/
 
     objToValue=ion->addRelation(objToValueRelationshipIndex, objIndex, nameIndex, pathIndex, valueIndex);
 
@@ -128,8 +118,6 @@ idx sHoneyCombIon::objListIterate(Locator * locator, bool isMult, const char * t
     const idx * pObjID=0;
 
     do {
-        /////// TODO
-        ///////locator->bucket=ion->getRelationsByBucketAndIndex(relationshipToUse, locator->bucket, &locator->indexObjId) ;
 
         const char * nname, * nvalue;
 
@@ -147,7 +135,7 @@ idx sHoneyCombIon::objListIterate(Locator * locator, bool isMult, const char * t
                 if(!more)
                     break;
 
-                pObjID= (const idx * )ion->getRecordBody(objType, locator->indexObjId, 0);//&size);
+                pObjID= (const idx * )ion->getRecordBody(objType, locator->indexObjId, 0);
                 next_bucket=ion->getRelationBucketByHash(objToValueRelationshipIndex,sHoneyComb_objNameValueHash,  0,pObjID, sizeof(*pObjID), nname,sLen(nname)+1, nvalue, sLen(nvalue)+1, (const void * )0);
 
                 if(next_bucket==sNotIdx) {
@@ -157,11 +145,10 @@ idx sHoneyCombIon::objListIterate(Locator * locator, bool isMult, const char * t
 
         }
 
-        // if specific type is asked : make sure this is of that type
         if(type && relationshipToUse==objToValueRelationshipIndex) {
             next_bucket=ion->getRelationBucketByHash(objToTypeRelationshipIndex,sHoneyComb_objTypeHash,  0,pObjID, sizeof(*pObjID), type,sLen(type)+1, (const void * )0);
             if(next_bucket==sNotIdx) {
-                continue;// return sNotIdx;
+                continue;
             }
         }
         break;
@@ -180,7 +167,6 @@ idx sHoneyCombIon::objListIterate(Locator * locator, bool isMult, const char * t
         buf->printf("\nprop.%" DEC ".%s.%s=%s",*pObjID,nname,npath,nvalue);
     }
     return locator->bucket;
-    //}while(bucket!=sNotIdx);
 
 
 }
@@ -190,8 +176,6 @@ idx sHoneyCombIon::objListIterate(Locator * locator, bool isMult, const char * t
 const char * sHoneyCombIon::propGet(sIO * buf, idx objID, const char * name, const char * path)
 {
 
-    /////// TODO
-    ///////idx bucket=ion->getRelationBucketByHash(objToValueRelationshipIndex,sHoneyComb_objNameHash,  &objID, sizeof(objID), name,sLen(name)+1, (const void * )0);
     idx bucket=0;
 
     if(bucket==sNotIdx) return 0;
@@ -199,8 +183,6 @@ const char * sHoneyCombIon::propGet(sIO * buf, idx objID, const char * name, con
     idx arr[12];
     const char * ret=0;
     do{
-        /////// TODO
-        /////// bucket=ion->getRelationsByBucketAndIndex(objToValueRelationshipIndex, bucket, arr) ;
 
         idx size;
         const idx * objID= (const idx * )ion->getRecordBody(objType, arr[0], &size);
@@ -216,11 +198,6 @@ const char * sHoneyCombIon::propGet(sIO * buf, idx objID, const char * name, con
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  HoneycombSet functions
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 

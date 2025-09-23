@@ -38,9 +38,9 @@ CREATE TABLE `UPObjField` (
   `group` varchar(255) DEFAULT NULL,
   `value` mediumtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `encoding` smallint(6) DEFAULT NULL,
-  `blob_value` mediumblob,
+  `blob_value` mediumblob DEFAULT NULL,
   KEY `name_idx` (`name`),
-  KEY `objID_idx` (`domainID`,`objID`),
   KEY `objID_name_idx` (`domainID`,`objID`,`name`),
-  KEY `value_idx` (`value`(255))
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  KEY `value_idx` (`value`(255)),
+  KEY `objID_idx` (`domainID`,`objID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

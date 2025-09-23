@@ -44,7 +44,7 @@ class sTree {
         {
             protected:
                 idx irow;
-                idx icoluse; // index into columnsToUse
+                idx icoluse;
                 bool vertical;
 
             public:
@@ -82,7 +82,7 @@ class sTree {
         };
         enum neighborJoiningMethods
         {
-            FAST, REGULAR
+            FAST, REGULAR, COMPLETE
         };
 
         static idx generateTree (sStr & out,sVec < idx > * columnsToUse, sVec <idx > * rowsToUse, sTabular * tbl, sVec <idx> * newOrder, idx horizontal=1, sVec < idx > * uIDs=0, DistanceMethods distMethod=EUCLIDEAN, neighborJoiningMethods jMethod=REGULAR);
@@ -90,4 +90,4 @@ class sTree {
 
 };
 
-#endif // sLib_utils_tree_hpp
+#endif 

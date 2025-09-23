@@ -42,17 +42,8 @@
 
 using namespace slib;
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Initialization
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-//#define QPDB ((sQPrideDB *)pQPDB)
-
-//sQPrideBase * QPP=0;
-
-sQPrideBase::sQPrideBase(sQPrideConnection * connection /* = 0 */, const char * service /* = "qm" */)
+sQPrideBase::sQPrideBase(sQPrideConnection * connection, const char * service)
     : QPDB(0), svcID(0), user(0), inDomain(0), jobId(0), pid(0), reqId(0), grpId(0), masterId(0),
       promptOK(true), qmBaseUDPPort(0), thisHostNumInDomain(0), isSubNetworkHead(false),
       isDomainFound(false), ok(false), largeDataReposSize(0), appMode(0),
@@ -68,7 +59,7 @@ sQPrideBase * sQPrideBase::init(sQPrideConnection * lconnection, const char * se
 
     sStr tmpB;
 
-    QPDB=lconnection;//(void *)new sQPrideDB(lsql);
+    QPDB=lconnection;
 
     svcID=0;
     jobId=0;
@@ -109,97 +100,58 @@ sQPrideBase * sQPrideBase::init(sQPrideConnection * lconnection, const char * se
     vars.inp("/tmp/", tmpB.ptr(0));
 
         tmpB.cut(0);
-    //QPDB->QP_configGet(&tmpB,"qm.SubNetworkHeadList");
     cfgStr(&tmpB,0,"qm.subNetworkHeadList","");
     char * subdomainHeads00=vars.inp("subNetworkHeadList",tmpB.ptr());
-    //sString::searchAndReplaceSymbols(subdomainHeads00,0, sString_symbolsBlank, 0, 0, true,true,true,true);
     sString::searchAndReplaceSymbols(subdomainHeads00,0, "/", 0, 0, true,true,true,true);
     const char * thisHostName = vars.value("thisHostName");
     isSubNetworkHead=sString::compareChoice(thisHostName,subdomainHeads00,0,true,0,true)==-1 ? false : true;
 
-/*    tmpB.cut(0);
-    // QPDB->QP_configGet(&tmpB,0,"qm.Domains");
-    cfgStr(&tmpB,0,"qm.domains","");
-    char * domains00=vars.inp("domains",tmpB.ptr());
-    sString::searchAndReplaceSymbols(domains00,0, "/", 0, 0, true,true,true,true);
-
-    thisHostName=vars.value("thisHostName");
-    for(char * qmThisDomain=domains00; qmThisDomain && *qmThisDomain; qmThisDomain=sString::next00(qmThisDomain), ++inDomain){
-        sStr td; td.printf("qm.domains_%s",qmThisDomain);
-        // get the list of workstations in this domain
-        tmpB.cut(0);cfgStr(&tmpB,0,td,""); sString::searchAndReplaceSymbols(tmpB.ptr(),0, "/", 0, 0, true,true,true,true);
-
-
-        for( const char * rp=tmpB.ptr(); rp; rp=sString::next00(rp)) {
-            if(strstr(rp,"regex:")==rp) {
-
-                regex_t re;
-                if(regcomp(&re, rp+6, REG_EXTENDED|REG_ICASE)!=0)
-                    continue;
-                if( regexec(&re, thisHostName, 0, NULL, 0)==0)  { // a match has been found
-                    isDomainFound=true;
-                    //break;
-                }
-            }else if(!strcasecmp(rp,thisHostName)){
-                isDomainFound=true;
-            }
-            if(isDomainFound) {
-                vars.inp("thisDomain", rp);
-
-                break;
-            }
-            ++thisHostNumInDomain;
-        }
-        if(isDomainFound)
-            break;
-
-        //if( sString::compareChoice( thisHostName, tmpB.ptr() ,&thisHostNumInDomain,true, 0, true) !=-1) {
-          //  vars.inp("thisDomain", tmpB.ptr(0), tmpB.length());
-            //isDomainFound=true;
-            //break;
-        //}
-    }
-    if(!isDomainFound) {
-        thisHostNumInDomain=-1;
-
-        logOut(eQPLogType_Fatal, "Domain configuration error: host %s doesn't belong to domain. Cannot continue!\n" , thisHostName );
-        ok=false;
-        return this;
-    }
- */
-
     tmpB.cut(0);
-    cfgStr(&tmpB,0,"qm.%platform%.largeDataRepository;qm.largeDataRepository",0);  // get the path to query repository, either platform dependent or general
+    cfgStr(&tmpB,0,"qm.%platform%.largeDataRepository;qm.largeDataRepository",0);
     vars.inp("largeDataRepository",tmpB.ptr());
     largeDataReposSize=cfgInt(0,"qm.largeDataReposSize",8*1024*1024);
 
-    //QPDB->QP_configGet(&tmpB,0,"qm.BaseSvcUDPPort");
     tmpB.cut(0);
     cfgStr(&tmpB,0,"qm.baseSvcUDPPort","13666");
     qmBaseUDPPort=atoi(tmpB.ptr());if(!qmBaseUDPPort)qmBaseUDPPort=13666;
 
     tmpB.cut(0);
-    cfgStr(&tmpB,0,"qm.%platform%.resourceRoot;qm.resourceRoot",0);  // get the path to query repository, either platform dependent or general
+    cfgStr(&tmpB,0,"qm.%platform%.resourceRoot;qm.resourceRoot",0);
     vars.inp("resourceRoot",tmpB.ptr());
 
     umask(0);
 
-    //QPP=this;
     ok=true;
     return this;
 }
 
-char * sQPrideBase::QPrideSrvName(sStr * buf, const char * srvbase, const char * progname)
+char* sQPrideBase::QPrideSrvName(sStr * buf, const char * srvbase, const char * progname)
 {
-    const char * lastSlash=strrchr(progname,'/');
-    if(!lastSlash)lastSlash=strrchr(progname,'\\');
-    if(!lastSlash)lastSlash=progname;
-    const char * dash=strrchr(lastSlash,'~');
-    if( dash ) buf->printf("%s%s",srvbase,dash);
-    else buf->printf("%s",srvbase);
-    const char * dotos=strstr(buf->ptr(0),".os");
-    if(dotos){
-        buf->cut(dotos-buf->ptr(0)); buf->add0();
+    if( !progname ) {
+        progname = "unspecified";
+    }
+    const char * lastSlash = strrchr(progname, '/');
+    if( !lastSlash ) {
+        lastSlash = strrchr(progname, '\\');
+    }
+    if( !lastSlash ) {
+        lastSlash = progname;
+    } else {
+        ++lastSlash;
+    }
+    if( !srvbase ) {
+        srvbase = lastSlash;
+    }
+    const char * dash = strrchr(lastSlash, '~');
+    if( dash ) {
+        buf->printf("%s%s", srvbase, dash);
+    } else {
+        buf->printf("%s", srvbase);
+    }
+    const char * dotos = strstr(buf->ptr(0), ".os");
+    if( dotos ) {
+        buf->cut(dotos - buf->ptr(0));
+        buf->add0();
     }
     return buf->ptr(0);
 }
@@ -208,15 +160,9 @@ sQPrideBase::~sQPrideBase()
 {
     if( sUsr::QPride() == this )
         sUsr::setQPride(0);
-    //QPDB->QP_dbDisconnect();
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Logging and Messaging
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 void sQPrideBase::logOut(eQPLogType level, const char * formatDescription, ...)
 {
@@ -230,7 +176,6 @@ void sQPrideBase::vlogOut(eQPLogType level, const char * formatDescription, va_l
 {
     if( formatDescription && eQPLogType_Trace <= level && level <= eQPLogType_Max ) {
         sStr dummy;
-        // remember the last error message (it is never used anywhere)
         sStr * str = level <= eQPLogType_Error ? &lastErr : &dummy;
         str->cut(0);
         str->vprintf(formatDescription, ap);
@@ -243,7 +188,7 @@ void sQPrideBase::vlogOut(eQPLogType level, const char * formatDescription, va_l
     }
 }
 
-idx sQPrideBase::setupLog(bool force /* = false */, idx force_level)
+idx sQPrideBase::setupLog(bool force, idx force_level)
 {
     static idx logging = -sIdxMax;
 
@@ -275,14 +220,14 @@ bool sQPrideBase::OnLogOut(idx level, const char * message)
     if( setupLog() < 0 ) {
         time_t tt = time(0);
         struct tm & t = *localtime(&tt);
-        fprintf(stdout, "%s%d/%d/%d %d:%d:%d %" DEC "/%" DEC " %s %s // ",
+        fprintf(stderr, "%s%d/%d/%d %d:%d:%d %" DEC "/%" DEC " %s %s // ",
             promptOK ? "\n" : "", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min, t.tm_sec, jobId, pid, vars.value("serviceName"), getLevelName(level));
         if( tmCount ) {
             sTime t;
-            fprintf(stdout, "%" DEC "// ", t.time(&tmCount));
+            fprintf(stderr, "%" DEC "// ", t.time(&tmCount));
         }
-        fprintf(stdout, "%s%s", message, message[sLen(message) - 1] == '\n' ? "" : "\n");
-        fflush(stdout);
+        fprintf(stderr, "%s%s", message, message[sLen(message) - 1] == '\n' ? "" : "\n");
+        fflush(stderr);
     }
     return false;
 }
@@ -304,7 +249,6 @@ idx sQPrideBase::messageSubmitToDomainHeader(const char * fmt, ...)
     sStr str; sCallVarg(str.vprintf,fmt);
 
     idx cnt=0;
-    //for(char * qmThisDomain=vars.value("domains"); qmThisDomain; qmThisDomain=sString::next00(qmThisDomain)){
 
     for(const char * qmThisDomain=vars.value("subNetworkHeadList"); qmThisDomain; qmThisDomain=sString::next00(qmThisDomain)){
         cnt+=messageSubmit(qmThisDomain, "qm", true, str.ptr());
@@ -326,11 +270,6 @@ idx sQPrideBase::messageWakePulljob(const char * service)
     return messageSubmitToDomainHeader(service,"wake");
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Config
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 void sQPrideBase::flushCache(){
     QPDB->QP_flushCache();
 }
@@ -351,7 +290,7 @@ char * sQPrideBase::configGet(sStr * str , sVar * pForm, const char * parList, c
     const char *varval=0;
     const char * macroSymbolsFind00="%platform%" __;
 
-    bool tryPlatforms= strstr( parList,  macroSymbolsFind00 ) ? false : true;  // if platform specific parameters are defined - we do not construct them automatically
+    bool tryPlatforms= strstr( parList,  macroSymbolsFind00 ) ? false : true;
 
     if(parList)sString::searchAndReplaceSymbols(&par00 , parList,0, ";", 0,0,true,true,true,true);
     par00.add0(2);
@@ -359,16 +298,12 @@ char * sQPrideBase::configGet(sStr * str , sVar * pForm, const char * parList, c
         if(pForm) {
             varval=pForm->value(par);
         }
-        // if not in the form
         if(!varval) {
             sStr strB, strD, strT;
-            // prepare fully qualified name
             if(par[0]=='.')strB.printf(vars.value("serviceName"));
-            //char * strdash=strB.`length() ? strrchr(strB.ptr(),'-') : 0 ;if(strdash)strB.cut(strdash-strB.ptr());
             strB.printf("%s",par);
             tmpB.cut(0);
 
-            // make macro replacements
             if( tryPlatforms ) {
                 strD.printf("%s-%s", SLIB_PLATFORM, strB.ptr());
                 strD.add0(2);
@@ -388,7 +323,7 @@ char * sQPrideBase::configGet(sStr * str , sVar * pForm, const char * parList, c
             if(tmpB.length())
                 varval=tmpB.ptr();
             if(varval && !(*varval))
-                varval=0; //QP_config get may return "";
+                varval=0;
         }
 
 
@@ -397,21 +332,10 @@ char * sQPrideBase::configGet(sStr * str , sVar * pForm, const char * parList, c
 
         sStr out,in;
         idx ichunk=0;
-        //sString::searchAndReplaceStrings(&tt,varval, 0 ,"$("_")" __,(const char *)0,0,false);
         sString::cleanMarkup(&out,varval,0,"$(" __,")" __,0,0,false,false, false);
         sString::cleanMarkup(&in,varval,0,"$(" __,")" __,0,0,true,false, false);
 
         for( const char * chunk=out.ptr(),* tag=in.ptr(); chunk || tag; chunk=sString::next00(chunk) , tag=sString::next00(tag) , ++ichunk) {
-            /*if((ichunk%2)==0){
-                resRepl.printf("%s",chunk);
-            }else {
-                sStr v;
-                configGet(&v, pForm, chunk, 0, 0 );
-                if(v)
-                    resRepl.printf("%s",v.ptr(0));
-                else
-                    resRepl.printf("$(%s)",chunk);
-            }*/
 
             if(tag && *tag){
                 sStr v;
@@ -426,7 +350,7 @@ char * sQPrideBase::configGet(sStr * str , sVar * pForm, const char * parList, c
         if(varval)break;
     }
 
-    if(!varval) // if couldn't get from anywhere
+    if(!varval)
         varval=defval;
 
     if(varval && str )
@@ -445,7 +369,6 @@ char * sQPrideBase::configGet(sStr * str , sVar * pForm, const char * parList, c
 
 char * sQPrideBase::configGetAll( sStr * vals00, const char * pars00)
 {
-    // may miss \0\0 at the end!!!
     return QPDB->QP_configGet(vals00, pars00, false);
 }
 
@@ -468,11 +391,6 @@ char * sQPrideBase::replVar00(sStr * str, const char * src, idx len)
     return str->ptr();
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  db
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 idx sQPrideBase::dbHasLiveConnection(void)
 {
     return QPDB->QP_dbHasLiveConnection();
@@ -486,11 +404,6 @@ idx sQPrideBase::dbReconnect(void)
     return QPDB->QP_dbReconnect();
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Service
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 idx sQPrideBase::serviceGet(Service * svc, const char * service, idx svcId)
 {
     if(svcId)return QPDB->QP_serviceGet( (void *)svc, 0 , svcId );
@@ -571,18 +484,22 @@ void sQPrideBase::reqCleanTbl(idx req, const char * dataname)
     QPDB->QP_reqCleanTbl(&tblfiles,req,dataname);
 
     sStr tblDir;
-    cfgStr(&tblDir, 0, "qm.largeDataRepository");
 
-    for (idx i=0; i<tblfiles.dim();++i) {
-        sStr onefile;
-        onefile.printf("%s",tblfiles.ptr(i)->ptr(0));
+    if ( getReqFilePath(tblDir,req, dataname) ) {
+        sDir::removeDir(tblDir,true);
+    } else {
+        cfgStr(&tblDir, 0, "qm.largeDataRepository");
 
-        sStr fullPath;
-        fullPath.printf("%s%" DEC "-%s",tblDir.ptr(),req,onefile.ptr());
+        for (idx i=0; i<tblfiles.dim();++i) {
+            sStr onefile;
+            onefile.printf("%s",tblfiles.ptr(i)->ptr(0));
 
-        sFile::remove(fullPath.ptr());
+            sStr fullPath;
+            fullPath.printf("%s%" DEC "-%s",tblDir.ptr(),req,onefile.ptr());
+
+            sFile::remove(fullPath.ptr());
+        }
     }
-
 }
 
 idx sQPrideBase::workRegisterTime(const char * svc, const char * params, idx amount, idx time)
@@ -616,19 +533,132 @@ idx sQPrideBase::servicePath2Clean(sVarSet & tbl)
 void sQPrideBase::servicePurgeOld(sVec<idx> * reqList, const char * service, idx limit, bool no_delete)
 {
     QPDB->QP_servicePurgeOld(reqList, service, limit, no_delete);
-    /*
-    sDic<idx> ind;
-    for(idx i = 0; i < reqList->dim(); ++i) {
-        ind.set(reqList->ptr(i), sizeof(idx));
-    }*/
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Submission
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+
+idx sQPrideBase::reqProcSubmit( idx cntParallel, sVar * pForm, const char * svc , idx grp, idx autoAction, bool requiresGroupSubmission, idx priority , idx previousGrpSubmitCounter)
+{
+#if 1
+    idx req=0;
+    if( cntParallel > 1 || requiresGroupSubmission ) {
+        req=grpSubmit(svc,0,priority,cntParallel,0,previousGrpSubmitCounter);
+        if(grp) {
+            sVec < idx > reqList;
+            grp2Req(req,&reqList,0,req);
+            for (idx ig=0; ig< reqList[ig]; ++ig ) {
+                grpAssignReqID(reqList[ig], grp, ig);
+            }
+        }
+    } else {
+        req = reqSubmit(svc,0,priority);
+        idx g = grp ? grp : (pForm ? pForm->ivalue("grp", 0) : 0);
+        if( g ) {
+            grpAssignReqID(req, g, 0);
+        }
+    }
+
+    if(req){
+        if(pForm) reqSetData(req,"formT.qpride",pForm);
+
+        if( cntParallel > 1 || requiresGroupSubmission ) {
+            sVec < idx > reqIds;
+            grp2Req(req, &reqIds);
+            reqSetAction(&reqIds, autoAction);
+        } else {
+            reqSetAction(req, autoAction);
+        }
+    }
+    return req;
+#else
+    sVec<sQPrideBase::PriorityCnt> priority_cnts(sMex::fExactSize);
+    priority_cnts.resize(1);
+    priority_cnts[0].priority = priority;
+    priority_cnts[0].cnt = 0;
+    return reqProcSubmit2(cntParallel, pForm, svc, grp, autoAction, requiresGroupSubmission, &priority_cnts, previousGrpSubmitCounter);
+#endif
+}
+
+sVec<sQPrideBase::PriorityCnt> * sQPrideBase::reqMakePriorityCnts(sVec<sQPrideBase::PriorityCnt> & priority_cnts, idx cntParallel, idx start_priority, idx prevTotalCntParallel)
+{
+    static const idx BASE = 10;
+
+    priority_cnts.cut(0);
+
+    idx base = BASE;
+    idx priority = start_priority;
+
+    while( base <= prevTotalCntParallel ) {
+        base *= BASE;
+        priority++;
+    }
+
+    idx prev = prevTotalCntParallel;
+
+    while( base < prevTotalCntParallel + cntParallel ) {
+        idx ip = priority_cnts.dim();
+        priority_cnts.add(1);
+        priority_cnts[ip].priority = priority;
+        priority_cnts[ip].cnt = base - prev;
+
+        prev = base;
+        base *= BASE;
+        priority++;
+    }
+
+    if( prev < prevTotalCntParallel + cntParallel  || !priority_cnts.dim() ) {
+        idx ip = priority_cnts.dim();
+        priority_cnts.add(1);
+        priority_cnts[ip].priority = priority;
+        priority_cnts[ip].cnt = prevTotalCntParallel + cntParallel - prev;
+    }
+
+    return &priority_cnts;
+}
+
+idx sQPrideBase::reqProcSubmit2( idx cntParallel, sVar * pForm, const char * svc , idx grp, idx autoAction, bool requiresGroupSubmission, const sVec<sQPrideBase::PriorityCnt> * priority_cnts, idx previousGrpSubmitCounter)
+{
+    idx req=0;
+    if( cntParallel > 1 || requiresGroupSubmission ) {
+        req=grpSubmit2(svc,0, priority_cnts ? priority_cnts->ptr() : 0, priority_cnts ? priority_cnts->dim() : 0, cntParallel, 0, previousGrpSubmitCounter);
+        if(grp) {
+            sVec < idx > reqList;
+            grp2Req(req,&reqList,0,req);
+            for (idx ig=0; ig< reqList[ig]; ++ig ) {
+                grpAssignReqID(reqList[ig], grp, ig);
+            }
+        }
+    } else {
+        idx priority = 0;
+        if( priority_cnts && priority_cnts->dim() ) {
+            for(idx ip = 0; ip < priority_cnts->dim(); ip++) {
+                priority = priority_cnts->ptr(ip)->priority;
+                if( priority_cnts->ptr(ip)->cnt ) {
+                    break;
+                }
+            }
+        }
+        req = reqSubmit(svc, 0, priority);
+        idx g = grp ? grp : (pForm ? pForm->ivalue("grp", 0) : 0);
+        if( g ) {
+            grpAssignReqID(req, g, 0);
+        }
+    }
+
+    if(req){
+        if(pForm) reqSetData(req,"formT.qpride",pForm);
+
+        if( cntParallel > 1 || requiresGroupSubmission ) {
+            sVec < idx > reqIds;
+            grp2Req(req, &reqIds);
+            reqSetAction(&reqIds, autoAction);
+        } else {
+            reqSetAction(req, autoAction);
+        }
+    }
+    return req;
+}
 
 idx sQPrideBase::reqSubmit( const char * serviceName , idx subip, idx priority , idx usrid)
 {
@@ -645,7 +675,7 @@ idx sQPrideBase::reqReSubmit(idx req, idx delaySeconds)
     return QPDB->QP_reqReSubmit(&req, 1, delaySeconds);
 }
 
-idx sQPrideBase::grpReSubmit(idx grp, const char * serviceName, idx delaySeconds /* = 0 */, idx excludeReq /* = 0 */)
+idx sQPrideBase::grpReSubmit(idx grp, const char * serviceName, idx delaySeconds, idx excludeReq)
 {
     sVec<idx> reqs;
     grp2Req(grp, &reqs, serviceName);
@@ -659,9 +689,14 @@ idx sQPrideBase::grpReSubmit(idx grp, const char * serviceName, idx delaySeconds
     return QPDB->QP_reqReSubmit(reqs.ptr(), reqs.dim(), delaySeconds);
 }
 
-idx sQPrideBase::grpSubmit( const char * serviceName, idx subip , idx priority, idx numSubReqs, idx usrid , idx previousGrpSubmitCounter)
+idx sQPrideBase::grpSubmit( const char * serviceName, idx subip , idx priority, idx numSubReqs, idx usrid , idx previousGrpSubmit)
 {
-    return QPDB->QP_grpSubmit(!serviceName ? vars.value("serviceName") : serviceName, subip, priority , numSubReqs , usrid ? usrid : user->Id() , previousGrpSubmitCounter);
+    return QPDB->QP_grpSubmit(!serviceName ? vars.value("serviceName") : serviceName, subip, priority , numSubReqs , usrid ? usrid : user->Id() , previousGrpSubmit);
+}
+
+idx sQPrideBase::grpSubmit2(const char * serviceName, idx subip, const sQPrideBase::PriorityCnt * priority_cnts, idx num_priority_cnts, idx num_subreqs, idx user_id, idx start_subreq, idx grp_id)
+{
+    return QPDB->QP_grpSubmit2(!serviceName ? vars.value("serviceName") : serviceName, subip, priority_cnts, num_priority_cnts, num_subreqs, user_id ? user_id : user->Id(), start_subreq, grp_id);
 }
 
 idx sQPrideBase::reqGrab(const char * serviceName , idx job, idx inBundle,idx status, idx action)
@@ -671,16 +706,92 @@ idx sQPrideBase::reqGrab(const char * serviceName , idx job, idx inBundle,idx st
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Data management
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 bool sQPrideBase::reqSetPar(idx req, idx type, const char * value,bool isOverwrite)
 {
     return QPDB->QP_reqSetPar(req, type, value, isOverwrite );
 }
 
+
+const char* sQPrideBase::constructReqFilePath(sStr & res, idx req, const char * dataName, bool create)
+{
+    static sVec<sStr> s_repos;
+
+    if( !s_repos.dim() ) {
+        const char * pathList = vars.value("largeDataRepository");
+        sStr path00;
+        sString::searchAndReplaceSymbols(&path00, pathList, 0, ";,", 0, 0, true, true, false, true);
+        path00.add0();
+        for(char * p = path00.ptr(); p; p = sString::next00(p)) {
+            sStr * r = 0;
+            if( sDir::exists(p) ) {
+                r = s_repos.add(1);
+                if( r ) {
+                    r->printf("%s", p);
+                    r->add0();
+                }
+            }
+            if( !r ) {
+                logOut(sQPrideBase::eQPLogType_Error, "sUsrObj::%s() : failed to read storage path '%s'", __func__, p);
+#if _DEBUG
+                ::fprintf(stderr, "sUsrObj::%s() : failed to read storage path '%s'\n", __func__, p);
+#endif
+            }
+        }
+    }
+    if( !s_repos.dim() ) {
+        logOut(eQPLogType_Error, "FAILED blob area list empty");
+        reqSetInfo(reqId, eQPInfoLevel_Error, "An error occurred during intermediate file creation.");
+        reqSetStatus(reqId, eQPReqStatus_ProgError);
+        return 0;
+    }
+    if( reqId != req && create ) {
+        logOut(eQPLogType_Warning, "Request %" DEC " accessing path for request %" DEC " with create permission", reqId, req);
+    }
+    const sStr & path = s_repos[req % s_repos.dim()];
+    sFilePath t_res("", "%s%s%" DEC "/", path.ptr(), path.ptr(sLen(path.ptr()) - 1)[0] == '/' ? "" : "/", req);
+    t_res.simplifyPath();
+    if( create ) {
+        if( !sDir::exists(t_res.ptr()) ) {
+            if( !sDir::makeDir(t_res, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH | S_IWOTH) ) {
+                logOut(eQPLogType_Error, "FAILED to create blob area '%s': %s", t_res.ptr(), strerror(errno));
+                reqSetInfo(reqId, eQPInfoLevel_Error, "An error occurred during intermediate file creation.");
+                reqSetStatus(reqId, eQPReqStatus_ProgError);
+                return 0;
+            }
+        }
+    } else {
+        if( !sDir::exists(t_res.ptr()) ) {
+            for(idx i = 0; i < s_repos.dim(); ++i) {
+                const sStr & path = s_repos[i];
+                t_res.printf(0, "%s%s/%" DEC "/", path.ptr(), path.ptr(sLen(path.ptr()) - 1)[0] == '/' ? "" : "/", req);
+                if( sDir::exists(t_res.simplifyPath()) ) {
+                    break;
+                }
+                t_res.cut(0);
+            }
+        }
+    }
+    return t_res ? res.printf("%s%s", t_res.ptr(), dataName ? dataName : "") : 0;
+}
+
+const char* sQPrideBase::getWorkDir(sStr& path)
+{
+    idx pos = path.length();
+    cfgStr(&path, 0, "qm.tempDirectory");
+    if( !path ) {
+        path.cut0cut(pos);
+        if( !constructReqFilePath(path, reqId, 0, true) ) {
+            return 0;
+        }
+    } else {
+        path.printf("%s%" DEC "/", path.ptr(path.length() - 1)[0] == '/' ? "" : "/", reqId);
+        if( !sDir::makeDir(path, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP) ) {
+            logOut(sQPrideBase::eQPLogType_Error, "failed to create directory '%s'", path.ptr());
+            return 0;
+        }
+    }
+    return path.ptr(pos);
+}
 
 bool sQPrideBase::reqSetData(idx req, const char * dataName, idx datasize, const void * data)
 {
@@ -693,13 +804,18 @@ bool sQPrideBase::reqSetData(idx req, const char * dataName, idx datasize, const
     if( forceFile ) {
         dataName += fpfx_sz;
     }
-    sStr path("%s%s%" DEC "-%s", fpfx, vars.value("largeDataRepository", ""), req, dataName);
+    sStr path(fpfx);
+
     bool retval = true;
     if( forceFile || (largeDataReposSize && datasize > sAbs(largeDataReposSize)) ) {
+        if ( !constructReqFilePath(path,req,dataName) ) {
+            return false;
+        }
         if( sFile::exists(path.ptr(fpfx_sz)) ) {
             retval = sFile::remove(path.ptr(fpfx_sz));
         }
         if( retval && datasize ) {
+
             sFil fl(path.ptr(fpfx_sz));
             retval = fl.ok();
             if( retval ) {
@@ -708,7 +824,6 @@ bool sQPrideBase::reqSetData(idx req, const char * dataName, idx datasize, const
                 retval = sFile::size(path.ptr(fpfx_sz)) == datasize;
 #ifndef WIN32
                 if( retval ) {
-                    // TODO should be remove - execution environment must provider proper mode
                     chmod(path.ptr(fpfx_sz), S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH);
                 }
 #endif
@@ -720,7 +835,6 @@ bool sQPrideBase::reqSetData(idx req, const char * dataName, idx datasize, const
             datasize = path.length();
         }
     } else {
-        // remove file if data goes to db
         if( sFile::exists(path.ptr(fpfx_sz)) ) {
             retval = sFile::remove(path.ptr(fpfx_sz));
         }
@@ -742,8 +856,8 @@ bool sQPrideBase::reqRepackData(idx req, const char * dataName)
         return true;
     }
 
-    const char * largeDataRepository = vars.value("largeDataRepository");
-    sStr path("%s%" DEC "-%s", largeDataRepository, req, dataName);
+    sStr path;
+    getReqFilePath(path,req,dataName);
     sFil fl(path.ptr(), sMex::fReadonly);
     if( fl.length() < largeDataReposSize ) {
         if( QPDB->QP_reqDataSet(req, dataName, fl.length(), fl.ptr(0)) ) {
@@ -764,7 +878,7 @@ char * sQPrideBase::reqGetData(idx req, const char * dataName, sMex * data, bool
     idx pos=data->pos();
 
     char * ret=QPDB->QP_reqDataGet(req, dataName, data, timestamp);
-    if(largeDataReposSize!=0 && ret && strncmp(ret,"file://",7)==0 ) { // reference to a file ?
+    if(largeDataReposSize!=0 && ret && strncmp(ret,"file://",7)==0 ) {
 
         sFil fl(ret+7,sMex::fReadonly);
         if(fl.length()) {
@@ -783,8 +897,7 @@ char * sQPrideBase::reqGetData(idx req, const char * dataName, sMex * data, bool
 char * sQPrideBase::reqUseData(idx req, const char * dataName, sMex * data, idx openmode )
 {
     char * ret=QPDB->QP_reqDataGet(req, dataName, data);
-    if(largeDataReposSize!=0 && ret && strncmp(ret,"file://",7)==0 ) { // reference to a file ?
-        //data->destroy();
+    if(largeDataReposSize!=0 && ret && strncmp(ret,"file://",7)==0 ) {
         data->init(ret+7,openmode);
         if( (openmode&sMex::fReadonly) && !data->pos()) {
             data->destroy();
@@ -845,11 +958,6 @@ idx sQPrideBase::grpGetData( idx grp , const char * blobName, sVec < sStr > * da
 {
     sVec < idx > reqs;grp2Req(grp, &reqs) ;
 
-    /*if(!reqs.dim()){
-        dat->resize(1);
-        reqGetData(grp, blobName, (*dat)[0].mex() , true) ;
-        return 1;
-    }*/
     dat->resize(reqs.dim());
     if( timestamps )
         timestamps->resize(reqs.dim());
@@ -862,11 +970,6 @@ idx sQPrideBase::grpGetData( idx grp , const char * blobName, sVec < sStr > * da
 idx sQPrideBase::grpGetData( idx grp , const char * blobName , sMex * data, bool emptyold, const char * separ, idx * timestamp)
 {
     sVec < idx > reqs;grp2Req(grp, &reqs) ;
-    /*
-    if(!reqs.dim()){
-        reqGetData(grp, blobName,data , emptyold) ;
-    }  else
-    {*/
         if(emptyold)data->empty();
         for( idx i=0; i<reqs.dim(); ++i) {
             idx curTimestamp=0;
@@ -875,7 +978,6 @@ idx sQPrideBase::grpGetData( idx grp , const char * blobName , sMex * data, bool
             if( timestamp )
                 *timestamp = sMax<idx>(*timestamp, curTimestamp);
         }
-    //}
     return data->pos();
 }
 
@@ -890,11 +992,6 @@ bool sQPrideBase::reqSetData(idx req, const char * blobName, const sMex * mex)
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Progress and Status
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 idx sQPrideBase::requestGet(idx req, sQPrideBase::Request * r)
 {
@@ -906,49 +1003,67 @@ idx sQPrideBase::requestGetForGrp(idx grp, sVec< sQPrideBase::Request > * r, con
     return QPDB->QP_requestGetForGrp(grp, (void *)r,serviceName) ;
 }
 
-char * sQPrideBase::requestGetPar(idx req, idx type, sStr * val)
+idx sQPrideBase::requestGetForGrp2(idx grp, sVec< sQPrideBase::Request > * r, const char * serviceName)
 {
-    return QPDB->QP_requestGetPar(req, type, val) ;
+    return QPDB->QP_requestGetForGrp2(grp, r,serviceName) ;
 }
 
-sStr QPLogMessage_buf;
-idx QPLogMessage_qty = 0;
+char * sQPrideBase::requestGetPar(idx req, idx type, sStr * val, const bool req_only)
+{
+    return QPDB->QP_requestGetPar(req, type, val, req_only);
+}
+
 
 sQPrideBase::QPLogMessage::QPLogMessage()
-    : req(0), job(0), level(0), cdate(0), txt_idx(0)
+    : req(0), job(0), level(0), cdate(0)
 {
 }
 
-void sQPrideBase::QPLogMessage::init(idx preq, idx pjob, idx plevel, idx pcdate, const char * ptxt)
+
+void sQPrideBase::QPLogMessage::init(idx preq, idx pjob, idx plevel, real pcdate, const char * ptxt)
 {
     req = preq;
     job = pjob;
     level = plevel;
     cdate = pcdate;
-    txt_idx = QPLogMessage_buf.printf("%s", ptxt ? ptxt : "") - QPLogMessage_buf.ptr();
-    QPLogMessage_buf.add0();
-    ++QPLogMessage_qty;
+    msg.printf("%s", ptxt ? ptxt : "");
+}
+void sQPrideBase::QPLogMessage::init(sVariant& in)
+{
+    sVariant* val = in.getDicElt("jobID");
+    if(val && val->isInt()) {
+        job = val->asInt();
+    }
+    val = in.getDicElt("level");
+    if(val) {
+        if(val->isInt()) {
+            level = val->asInt();
+        }
+        else if(val->isString() ) {
+            level = sQPrideBase::getLevelCode((char*)val->asString());
+        }
+    }
+    val = in.getDicElt("date");
+    if(val && val->isInt()) {
+        cdate = val->asInt();
+    }
+    val = in.getDicElt("msg");
+    if(val && val->isString() ) {
+        msg.printf("%s", val->asString());
+    }
 }
 
 const char * sQPrideBase::QPLogMessage::message(void)
 {
-    return QPLogMessage_buf.ptr(txt_idx);
+    return msg.ptr();
 }
 
-sQPrideBase::QPLogMessage::~QPLogMessage()
-{
-    if( --QPLogMessage_qty <= 0 ) {
-        QPLogMessage_buf.destroy();
-        QPLogMessage_qty = 0;
-    }
-}
 
-// static
 const char * const sQPrideBase::getLevelName(idx level)
 {
     switch(level) {
-        case eQPInfoLevel_Trace:
         case eQPLogType_Trace:
+        case eQPInfoLevel_Trace:
             return "Trace";
         case eQPLogType_Debug:
         case eQPInfoLevel_Debug:
@@ -969,6 +1084,40 @@ const char * const sQPrideBase::getLevelName(idx level)
     }
 }
 
+idx sQPrideBase::getLevelCode(const char * level)
+{
+    idx retVal = eQPInfoLevel_Trace;
+    if( level ) {
+        if( isalpha(*level) ) {
+            sStr buf;
+            sString::changeCase(&buf, level, 0, sString::eCaseLo);
+            sString::xscanf(buf.ptr(), "%n=0^all^trace^debug^info^warning^error^fatal;", &retVal);
+        } else {
+            retVal = atoidx(level);
+        }
+    }
+    switch(retVal) {
+        case eQPLogType_Trace:
+        case eQPInfoLevel_Trace:
+        case eQPLogType_Debug:
+        case eQPInfoLevel_Debug:
+        case eQPLogType_Info:
+        case eQPInfoLevel_Info:
+        case eQPLogType_Warning:
+        case eQPInfoLevel_Warning:
+        case eQPLogType_Error:
+        case eQPInfoLevel_Error:
+        case eQPLogType_Fatal:
+            break;
+        default:
+            retVal = eQPLogType_Trace;
+    }
+#ifndef _DEBUG
+            retVal *= 100;
+#endif
+    return retVal;
+}
+
 idx sQPrideBase::getLog(idx req, bool isGrp, idx job, idx level, sVec<QPLogMessage> & log)
 {
     sVarSet res;
@@ -977,11 +1126,26 @@ idx sQPrideBase::getLog(idx req, bool isGrp, idx job, idx level, sVec<QPLogMessa
         log.add(res.rows);
         for(idx i = 0; i < res.rows; ++i) {
             QPLogMessage & m = log[i + sz];
-            m.init(res.ival(i, 0), res.ival(i, 1), res.ival(i, 2), res.ival(i, 3), res(i, 4));
+            m.init(res.ival(i, 0), res.ival(i, 1), res.ival(i, 2), res.rval(i, 3), res(i, 4));
         }
     }
     return res.rows;
 }
+
+idx sQPrideBase::getLog2(idx req, idx level, sVec<QPLogMessage> & log)
+{
+    sVarSet res;
+    if( QPDB->QP_getLogGrp(req, level, res) ) {
+        const idx sz = log.dim();
+        log.add(res.rows);
+        for(idx i = 0; i < res.rows; ++i) {
+            QPLogMessage & m = log[i + sz];
+            m.init(res.ival(i, 0), res.ival(i, 1), res.ival(i, 2), res.rval(i, 3), res(i, 4));
+        }
+    }
+    return res.rows;
+}
+
 
 idx sQPrideBase::reqGetInfo(idx req, idx level, sVec<QPLogMessage> & log)
 {
@@ -1003,6 +1167,11 @@ idx sQPrideBase::grpGetInfo(idx grp, idx level, sVec<QPLogMessage> & log)
     return getLog(grp, true, 0, level, log);
 }
 
+idx sQPrideBase::grpGetInfo2(idx grp, idx level, sVec<QPLogMessage> & log)
+{
+    return getLog2(grp, level, log);
+}
+
 bool sQPrideBase::reqSetInfo(idx req, idx level, const char * fmt, ...)
 {
     va_list ap;
@@ -1019,10 +1188,8 @@ bool sQPrideBase::vreqSetInfo(idx req, idx level, const char * fmt, va_list ap)
         str.vprintf(fmt, ap);
         if( str ) {
             while( strchr("\n\r \t", *str.last()) != 0 ) {
-                // db do not need trailing junk
                 str.cut(-1);
             }
-            // duplicate message to screen/log
             OnLogOut(level, str);
             return QPDB->QP_setLog(req, jobId, level, str.ptr());
         }
@@ -1033,8 +1200,6 @@ bool sQPrideBase::vreqSetInfo(idx req, idx level, const char * fmt, va_list ap)
 idx sQPrideBase::grpGetStatus( idx grp , sVec < idx > * stat, const char * svcname, idx masterGroup)
 {
     sVec < idx > reqs;
-    //if(svcname) grp2Req(grp, &reqs, svcname) ;
-    //else
         grp2Req(grp, &reqs, svcname, masterGroup);
     QPDB->QP_reqGetStatus(&reqs,stat);
     return stat->dim();
@@ -1087,15 +1252,10 @@ idx sQPrideBase::reqGetUser(idx req)
 {
     return QPDB->QP_reqGetUser(req);
 }
-/*
-idx sQPrideBase::reqSetObject(idx req, idx obj)
+idx sQPrideBase::reqSetUser(idx req, idx val)
 {
-    return QPDB->QP_reqSetObject(req,obj);
+    return QPDB->QP_reqSetUser(req, val);
 }
-idx sQPrideBase::reqGetObject(idx req)
-{
-    return QPDB->QP_reqGetObject(req);
-}*/
 
 
 idx sQPrideBase::reqSetStatus(idx req, idx status)
@@ -1132,12 +1292,12 @@ idx sQPrideBase::getReqByUserKey(idx userKey, const char * serviceName)
     return QPDB->QP_getReqByUserKey(userKey, serviceName);
 }
 
-bool sQPrideBase::reqLock(idx req, const char * key, idx * req_locked_by /* = 0 */, idx max_lifetime /* = 48*60*60 */, bool force /* = false */)
+bool sQPrideBase::reqLock(idx req, const char * key, idx * req_locked_by, idx max_lifetime, bool force)
 {
-    return QPDB->QP_reqLock(req ? req : this->reqId, key, req_locked_by, max_lifetime /* = 48*60*60 */, force /* = false */);
+    return QPDB->QP_reqLock(req ? req : this->reqId, key, req_locked_by, max_lifetime, force);
 }
 
-bool sQPrideBase::reqUnlock(idx req, const char * key, bool force /* = false */)
+bool sQPrideBase::reqUnlock(idx req, const char * key, bool force)
 {
     return QPDB->QP_reqUnlock(req ? req : this->reqId, key, force);
 }
@@ -1147,7 +1307,6 @@ idx sQPrideBase::reqCheckLock(const char * key)
     return QPDB->QP_reqCheckLock(key);
 }
 
-//static
 idx sQPrideBase::reqProgressStatic(void * param, idx req, idx minReportFrequency, idx items, idx progress, idx progressMax)
 {
     sQPrideBase * qp = static_cast<sQPrideBase*>(param);
@@ -1157,9 +1316,7 @@ idx sQPrideBase::reqProgressStatic(void * param, idx req, idx minReportFrequency
 idx sQPrideBase::reqProgress(idx req, idx minReportFrequency, idx items, idx progress, idx progressMax)
 {
     progress = progress2Percent(items, progress, progressMax);
-    // register the fact that the process is alive
     if( jobRegisterAlive(jobId, req, minReportFrequency) || progress > progress100Last || items < -1 ) {
-        // report about the progress only if time has passed
         progress100Last = progress;
         QPDB->QP_reqSetProgress(req, items < -1 ? -items : items, progress);
         if( reqGetAction(req) == eQPReqAction_Kill ) {
@@ -1205,17 +1362,11 @@ void sQPrideBase::purgeReq(idx req)
     for(idx i = 0; i < v1.dim(); ++i) {
         grp2Req(v1[i], &v2);
     }
-    // for purge stored proc to pickup these stat must be >= 5
     QPDB->QP_purgeReq(&v2, eQPReqStatus_Killed);
 }
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Jobs
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 bool sQPrideBase::jobRegisterAlive(idx job, idx req, idx notMoreFrequentlySec, bool isReadonly)
 {
     sTime t;
@@ -1270,11 +1421,6 @@ idx sQPrideBase::jobSetReq(idx job, idx req)
     return QPDB->QP_jobSetReq(job, req);
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Grouping
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 idx sQPrideBase::grpAssignReqID(idx req, idx grp, idx jobIDSerial)
 {
@@ -1302,11 +1448,6 @@ idx sQPrideBase::grp2Req(idx grp, sVec<idx> * reqIds, const char * svc, idx mast
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Grouping
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 idx sQPrideBase::parSplit(idx globalStart, idx globalEnd, idx parallelJobs, idx parallelThreads, idx myJobNum, idx myThreadNum, idx * myStart, idx * myEnd)
 {
@@ -1317,14 +1458,14 @@ idx sQPrideBase::parSplit(idx globalStart, idx globalEnd, idx parallelJobs, idx 
     idx chunkForJob=globalCnt/parallelJobs;
     idx myJobStart=myJobNum ? chunkForJob*(myJobNum-1) : globalStart;
     idx myJobEnd=myJobNum ? myJobStart+chunkForJob : globalEnd;
-        if(myJobNum && (myJobNum-1)==parallelJobs-1) // the last one
+        if(myJobNum && (myJobNum-1)==parallelJobs-1)
             myJobEnd=globalEnd;
 
     idx cntForJob=myJobEnd-myJobStart;
     idx chunkForThread=cntForJob/parallelThreads;
     idx myThreadStart=myJobStart+myThreadNum*chunkForThread;
     idx myThreadEnd=myThreadStart+chunkForThread;
-        if(myThreadNum==parallelThreads-1) // the last one
+        if(myThreadNum==parallelThreads-1)
             myThreadEnd=myJobEnd;
 
     if(myStart)*myStart=myThreadStart;
@@ -1347,7 +1488,7 @@ sQPrideBase::ThreadSpecific * sQPrideBase::parSplitForThread(idx globalStart, id
 idx sQPrideBase::parSplitForJob(idx globalStart, idx globalEnd, idx myJobNum, sQPrideBase::Service * svc)
 {
 
-    return parSplit(globalStart,globalEnd, svc->parallelJobs, 1, myJobNum, 0, &iJobArrStart,&iJobArrEnd); // for the whole job, not just this thread
+    return parSplit(globalStart,globalEnd, svc->parallelJobs, 1, myJobNum, 0, &iJobArrStart,&iJobArrEnd);
 }
 
 
@@ -1356,12 +1497,9 @@ idx sQPrideBase::parProgressReport(idx req, const char * blbname)
     sStr t;
     idx percent100, progressDone=0;
 
-    // hostname and threads number
     t.printf("%s,%" DEC ",%" DEC,vars.value("thisHostName"),req,thrSpc.dim());
 
-    //PerThread * per;
     ThreadSpecific * tr;
-    // get all the results together
     for( idx it=0; it<thrSpc.dim();  ++it) {
         tr=thrSpc.ptr(it);
         percent100=tr->progressDone*100/(tr->iThreadEnd-tr->iThreadStart);
@@ -1404,11 +1542,6 @@ idx sQPrideBase::parReportingThread(void)
     return 0;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  System Operations
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 idx sQPrideBase::sysPeekOnHost(sVec < Service > * srvlst, const char * hostname )
 {
@@ -1458,11 +1591,6 @@ idx sQPrideBase::sysCapacityNeed(idx * capacity_total)
     return QPDB->QP_sysCapacityNeed(capacity_total);
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Resoure Operations
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 char * sQPrideBase::resourceGet(const char * service, const char * resName,    sMex * data, idx * timestamp)
 {
     return QPDB->QP_resourceGet(service,resName,data, timestamp);
@@ -1477,7 +1605,7 @@ idx sQPrideBase::resourceGetAll(const char * service, sStr * infos00, sVec < sSt
     return QPDB->QP_resourceGetAll(service, infos00, dataVec,tmStmps);
 }
 
-bool sQPrideBase::resourceDel(const char * service, const char * resName /* = 0 */)
+bool sQPrideBase::resourceDel(const char * service, const char * resName)
 {
     return QPDB->QP_resourceDel(service,resName);
 }
@@ -1492,14 +1620,14 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
     if( resourceRoot ) {
         sDir::chDir(resourceRoot);
     }
-    std::auto_ptr<sUsrQueryEngine> qengine;
+    sUsrQueryEngine * qengine = 0;
+    sUsr * curr_user = user;
     const char * rs = rslst00;
     for(idx ir = 0; rs; rs = sString::next00(rs), ++ir) {
-        if( platformSpec ) { // if platform is specified
-            const char * plat = strstr(rs, ".os"); // is this a platform specific resource ?
+        if( platformSpec ) {
+            const char * plat = strstr(rs, ".os");
             if( plat && strncmp(platformSpec, plat + 3, sLen(platformSpec)) != 0 ) {
-                // and this particular resource is of different platform
-                continue; // skip it
+                continue;
             }
         }
         blob.cut0cut();
@@ -1508,13 +1636,13 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
         if( !blob.length() ) {
             log.printf("\tEMPTY resource blob is ignored for %s@%s\n", rs, service);
             logHasErr = true;
-            continue; // empty blobs ... nothing to do
+            continue;
         }
         bool iscmd = false, islink = false, isQry = false;
         const char * rs0 = rs;
         idx srcTime = tmStmps[ir];
+        sStr rsScript;
         if( strncasecmp(rs, "query://", 8) == 0 ) {
-            // prefix skipped to get actual resource name, query is in blob (it might be too long to be in name)!
             rs += 8;
             isQry = true;
         }
@@ -1523,17 +1651,18 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
             iscmd = true;
         } else if( rs[0] == '-' && rs[1] == '>' ) {
             rs += 2;
-            islink = isQry ? false : true; // no links to objects directories! They are not persistent!
+            islink = isQry ? false : true;
         }
         if( isQry ) {
-            // prefix skipped to get actual resource name, query is in blob (it might be too long to be in name)!
             sStr lerr;
-            if( user ) {
-                if( !qengine.get() ) {
-                    qengine.reset(new sUsrQueryEngine(const_cast<sUsr&>(*user)));
+            if( !curr_user ) {
+                curr_user = new sUsr("qpride", true);
+            }
+            if( curr_user && curr_user->Id()) {
+                if( !qengine ) {
+                    qengine = new sUsrInternalQueryEngine(this, *curr_user);
                 }
-                if( qengine.get() ) {
-                    // resolve query to a single object and set rs
+                if( qengine ) {
                     qengine->parse(blob.ptr(), blob.length(), &lerr);
                     if( !lerr ) {
                         sVariant * v = qengine->run(&lerr);
@@ -1541,16 +1670,16 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
                             if( v && v->isList() && v->dim() > 0 ) {
                                 sHiveId id;
                                 v->getListElt(0)->asHiveId(&id);
-                                std::auto_ptr<sUsrObj> obj(user->objFactory(id));
-                                if( obj.get() ) {
+                                sUsrObj * obj = curr_user->objFactory(id);
+                                if( obj ) {
+                                    log.printf("\tresource %s@%s using object %s\n", rs0, service, obj->Id().print());
                                     sDir files;
                                     const idx len = sLen(rs);
                                     if( len && (rs[len - 1] == '/' || rs[len - 1] == '\\') ) {
-                                        // all files in object directory
                                         const idx flags = sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs);
                                         obj->files(files, flags);
                                     } else {
-                                        files._list00.printf(0, "%s", rs); // specific file
+                                        files._list00.printf(0, "%s", rs);
                                         files._list00.add0(2);
                                     }
                                     srcTime = 0;
@@ -1559,7 +1688,6 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
                                         if( !fpath ) {
                                             lerr.printf("file '%s' not found in object %s", f, id.print());
                                         } else {
-                                            // find newest entry in the list
                                             const idx tm = sFile::time(fpath, true);
                                             if( tm > srcTime ) {
                                                 srcTime = tm;
@@ -1568,6 +1696,8 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
                                         }
                                     }
                                     src00.add0(2);
+                                    obj->propGet("init_script", &rsScript);
+                                    delete obj;
                                 } else {
                                     lerr.printf("object %s not found or permission denied", id.print());
                                 }
@@ -1589,12 +1719,9 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
             }
         }
 
-        // setup destination
         if( *rs == '\\' || *rs == '/' ) {
-            // the path is specified from the root
             dst.printf(0, "%s", rs);
         } else if( *rs == '~' ) {
-            // the path is specified from the home
             const char * hm = getenv(
 #ifdef WIN32
                 "USERPROFILE"
@@ -1603,44 +1730,60 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
 #endif
                 );
             if( hm && hm[0] ) {
-                dst.printf(0, "%s%s", hm, &rs[1]); // skip '~' in name
+                dst.printf(0, "%s%s", hm, &rs[1]);
             } else {
                 log.printf("\tcannot resolve home directory for resource %s@%s\n", rs, service);
                 logHasErr = true;
             }
         } else {
-            // the path is specified from the resourceRoot
             dst.printf(0, "%s%s", resourceRoot ? resourceRoot : "./", rs);
         }
         const bool dstIsDir = dst.last()[-1] == '/' || dst.last()[-1] == '\\';
-        // get the timestamp of the file, NOT its target in case of symlink
         const idx mtm = sFile::time(dst, false);
         if( mtm != sIdxMax && srcTime != sIdxMax && srcTime <= mtm ) {
-            log.printf("\tresource %s@%s is up-to-date\n", rs0, service);
-            continue;  // if resource is older than the file : no need to update the file
+            sStr buf;
+            const char * s = sString::printDateTime(buf, srcTime);
+            buf.add0(2);
+            const char * m = sString::printDateTime(buf, mtm);
+            log.printf("\tresource %s@%s is up-to-date: %s <= %s\n", rs0, service, s, m);
+            continue;
         }
         log.printf("\tresource %s@%s %" DEC " %s to %s\n", rs0, service, src00 ? sString::cnt00(src00) : blob.length(), src00 ? "files" : "bytes", dst.ptr());
-        if( sDir::exists(dst) && !sDir::removeDir(dst, true) ) {
-            log.printf("\tfailed to delete directory '%s'\n", dst.ptr());
-            logHasErr = true;
-            continue;
-        } else if( sFile::exists(dst, false) && !sFile::remove(dst) ) {
-            log.printf("\tfailed to delete file '%s..'\n", dst.ptr());
-            logHasErr = true;
-            continue;
-        }
-        if( src00 ) {
-            // save blob as file
-            if( dstIsDir && !sDir::makeDir(dst, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH) ) {
-                log.printf("\tFAILED to create path '%s'\n", dst.ptr());
+        if( sDir::exists(dst) ) {
+            if( !sDir::removeDir(dst, true) ) {
+                log.printf("\tfailed to delete directory '%s'\n", dst.ptr());
                 logHasErr = true;
                 continue;
             }
+            log.printf("\tdeleted directory '%s'\n", dst.ptr());
+        } else if( sFile::exists(dst, false) ) {
+            if( !sFile::remove(dst) ) {
+                log.printf("\tfailed to delete file '%s..'\n", dst.ptr());
+                logHasErr = true;
+                continue;
+            }
+            log.printf("\tdeleted file '%s..'\n", dst.ptr());
+        }
+        if( src00 ) {
+            if( dstIsDir ) {
+                if( !sDir::makeDir(dst, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH) ) {
+                    log.printf("\tFAILED to create path '%s'\n", dst.ptr());
+                    logHasErr = true;
+                    continue;
+                }
+                struct stat st;
+                if( stat(dst, &st) == 0 ) {
+                    st.st_mtime = srcTime;
+                    sFile::setAttributes(dst, &st);
+                }
+
+            }
             for(const char * entry = src00; entry; entry = sString::next00(entry)) {
                 sFilePath p(entry, "%s%%flnm", dstIsDir ? dst.ptr() : "");
-                if( (sDir::exists(entry) && sDir::copyDir(entry, p, true) ) ||
-                    (sFile::exists(entry, true) && sFile::copy(entry, p, false, true)) ) {
-                    logOut(eQPLogType_Debug, "for resource %s copied %s to %s\n", rs0, entry, p.ptr());
+                idx numCopied = 1;
+                if( (sDir::exists(entry) && sDir::copyDir(entry, p, false, &numCopied) ) ||
+                    (sFile::exists(entry, false) && sFile::copy(entry, p, false, false)) ) {
+                    logOut(eQPLogType_Debug, "for resource %s %" DEC " files copied %s to %s\n", rs0, numCopied, entry, p.ptr());
                 } else {
                     log.printf("\tFAILED to copy resource %s@%s %s to %s: %s\n", rs0, service, entry, p.ptr(), strerror(errno));
                     logHasErr = true;
@@ -1648,20 +1791,18 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
                 }
             }
             if( iscmd ) {
-                toExec.printf(dst);
+                toExec.printf("%s", dst.ptr());
                 toExec.add0();
             }
         } else {
             if( islink ) {
-                // blob content is link name
                 toSymlink.printf("%.*s", (int) blob.length(), blob.ptr());
                 toSymlink.add0();
                 toSymlink.printf("%s", rs);
                 toSymlink.add0();
             } else {
-                // save blob as file
                 if( iscmd ) {
-                    toExec.printf(dst);
+                    toExec.printf("%s", dst.ptr());
                     toExec.add0();
                 }
                 sFilePath ppp(dst, "%%dir");
@@ -1695,7 +1836,15 @@ idx sQPrideBase::resourceSync(const char * resourceRoot, const char * service, c
 #endif
             }
         }
+        if(rsScript) {
+            toExec.printf("cd '%s' && './%s'", dst.ptr(), rsScript.ptr());
+            toExec.add0();
+        }
     }
+    if( curr_user != user ) {
+        delete curr_user;
+    }
+    delete qengine;
     toSymlink.add0(2);
     for(rs = toSymlink.ptr(); rs && *rs; rs = sString::next00(rs)) {
         const char * lnk = sString::next00(rs);

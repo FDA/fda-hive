@@ -41,7 +41,6 @@ namespace slib {
             sUsrEmail(const sUsr& from, const sUsr& to, const char* subject = 0, const char* body = 0);
             sUsrEmail(sUsr& from, const char* to, const char* subject = 0, const char* body = 0);
             sUsrEmail(sUsr& usr, const sHiveId & objId);
-            //! safe constructor for use in propset in case of write-only permissions
             sUsrEmail(sUsr& usr, const sHiveId & objId, const sHiveId * ptypeId, udx permission);
             ~sUsrEmail();
 
@@ -77,7 +76,6 @@ namespace slib {
             const char* body() const
             { return propGet(sm_prop[ePropBody]); }
 
-            // technical fields
             bool isSent(void) const
             { return propGetBool(sm_prop[ePropSent]); }
             udx isSent(bool is_sent)
@@ -98,13 +96,19 @@ namespace slib {
             const char* errmsg(void) const
             { return propGet(sm_prop[ePropErrMsg]); }
 
+            udx draft(bool draft)
+            { return propSetBool(sm_prop[ePropDraft], draft); }
+            bool draft(void) const
+            { return propGetBool(sm_prop[ePropDraft]); }
+
         private:
+
+            friend class sUsr;
 
             udx addRecipient(ERecipientType type, const char* email);
 
             sVarSet m_recepients;
             static const char* sm_prop[];
-            // must be in sync with above enum for recipients!!
             enum EProp {
                 ePropFrom = 0,
                 ePropTo = 1,
@@ -115,9 +119,10 @@ namespace slib {
                 ePropSent,
                 ePropSentOn,
                 ePropTryCount,
-                ePropErrMsg
+                ePropErrMsg,
+                ePropDraft
             };
     };
 }
 
-#endif // sLib_usremail_h
+#endif 

@@ -41,7 +41,7 @@ javaScriptEngine.include("js-graph/vjSVG_General.js");
 
 
 vjHO.register('svc-clust').Constructor = function() {
-    if (this.objCls) return;      //stupid chrome loads from both cached file and the one coming from server.
+    if (this.objCls) return;
 
     if (!this.defaultDownloadWildcard)
         this.defaultDownloadWildcard = "*.{csv,fa,tre}";
@@ -50,7 +50,6 @@ vjHO.register('svc-clust').Constructor = function() {
 
     this.fullview = function(node, dv) {
         if (this.isRendered) return;
-        //this.mode='fullview';
         this.create(dv, node.id);
         this.isRendered=true;
     };
@@ -60,16 +59,9 @@ vjHO.register('svc-clust').Constructor = function() {
     };
 
     this.preview = function(node, dv) {
-//        if (this.isRendered) {
-//            if (this.loadedID == node.id)
-//                return;
-//
-//            this.reset();
-//        }
         this.parent.preview("svc", node, dv, "vjObj['"+this.objCls+"'].customizeSvcDownloads();");
         if(!node.status || parseInt(node.status)<5) return;
 
-        //this.mode = 'preview';
         this.create(dv, node.id);
         this.isRendered=true;
     };
@@ -162,7 +154,6 @@ vjHO.register('svc-clust').Constructor = function() {
         if (this.mode == "preview")
             return;
 
-        // fullview viewers
 
         this.addDownloadViewer(this.downloadViewerDescriptions);
 
@@ -177,11 +168,9 @@ vjHO.register('svc-clust').Constructor = function() {
                { name: 'created', hidden: false, title: "Created", align: "right", type: "datetime", order: 3 }
             ],
             checkCallback: function(viewer, node, cursel, dummy) {
-                // FIXME: what if cursel is "all"?
                 this_.mimicLeafChecked(node.id, node.checked, "profiles");
             }
         }));
-        /* Color checked table rows with a lighter shade of the color used for graphs */
         this.viewers["profiles"].precompute = function(param, table, ir) {
             this_.rebgcolorViewerProfilesRow(ir, table.rows[ir].id, table.rows[ir].checked);
         };
@@ -238,11 +227,9 @@ vjHO.register('svc-clust').Constructor = function() {
                     lineWidth: 1,
                     chartArea: { top: 5, left: 70, height: '80%', width: '100%' },
                     legend: { position: "bottom" },
-                    // bar:{groupWidth: .9},
                     isok: true
                 },
                 series: [{ name: 'Position', label: false }, { name: "Cumulative SNP frequency" }],
-    //          selectCallback: "function:vjObjFunc('onZoomProfileOperation','" + this.objCls + "')",
                 type: 'column',
                 isok: true
             }));
@@ -261,11 +248,9 @@ vjHO.register('svc-clust').Constructor = function() {
                     lineWidth: 1,
                     chartArea: { top: 5, left: 70, height: '80%', width: '100%' },
                     legend: { position: "bottom" },
-                    // bar:{groupWidth: .9},
                     isok: true
                 },
                 series: [{ name: 'Position', label: false }, { name: "Count Forward" }, { name: "Count Reverse" }],
-    //          selectCallback: "function:vjObjFunc('onZoomProfileOperation','" + this.objCls + "')",
                 type: "area",
                 isok: true
             }));
@@ -281,7 +266,6 @@ vjHO.register('svc-clust').Constructor = function() {
             this.dvs[0] = dv.obj;
             var origNumTabs = this.dvs[0].tabs.length;
             var tab = this.dvs[0].addTab(this.tabs.names[0], this.tabs.icons[0], [this.viewers["phylogram"], this.viewers["options"]]);
-            //this.dvs[0].selected = origNumTabs;
             this.dvs[0].render();
             this.dvs[0].load("rerender");
         } else {
@@ -312,12 +296,12 @@ vjHO.register('svc-clust').Constructor = function() {
             return this.treeSeries;
 
         this.treeSeries = new vjTreeSeries({
-            name: "tree", // name must match urlSet element
+            name: "tree",
             title: "hierarchical clustering tree",
-            url: "static://",
+            url: "static:
             dataFormat: "newick",
             type: "rectangular"
-        }, false /* Do not register as vjDS["tree"]! */);
+        }, false);
 
         if (this.mode != "preview") {
             this.treeSeries.register_callback({
@@ -362,7 +346,7 @@ vjHO.register('svc-clust').Constructor = function() {
     this.makePhylogramNodeLabel = function(format) {
         var hiddenProfilesLabel = this.hiddenProfilesLabel;
         return function(node) {
-            var lab = this.defaultNodeLabel.apply(this, arguments); // this, not this_!
+            var lab = this.defaultNodeLabel.apply(this, arguments);
             if (node.leafnode && this.svc_clust_info[node.name]) {
                 if (format === "ID") {
                     return node.name;
@@ -387,7 +371,7 @@ vjHO.register('svc-clust').Constructor = function() {
         this.phylogram = new vjSVG_Phylogram({
             nodeLabel: this.makePhylogramNodeLabel(),
             nodeTooltip: function(node) {
-                var tip = this.defaultNodeTooltip.apply(this, arguments); // this, not this_!
+                var tip = this.defaultNodeTooltip.apply(this, arguments);
                 if (node.leafnode && this.svc_clust_info[node.name]) {
                     tip = tip ? tip+"\n" : "";
                     tip += "ID: " + node.name + "\n" + this.svc_clust_info[node.name].name + "\n" + formaDatetime(this.svc_clust_info[node.name].created);
@@ -417,7 +401,6 @@ vjHO.register('svc-clust').Constructor = function() {
 
     this.mimicLeafChecked = function(nodeId, checked, source, param)
     {
-        // avoid infinite recursion
         if (this.inMimicLeafChecked)
             return;
 
@@ -432,7 +415,6 @@ vjHO.register('svc-clust').Constructor = function() {
 
         this.renderSNP();
 
-        // To refresh the background color in the profiles table
         this.rebgcolorViewerProfilesRow(ir, nodeId, checked);
         this.viewers["profiles"].refresh();
 
@@ -484,7 +466,7 @@ vjHO.register('svc-clust').Constructor = function() {
                 }
             }
         ];
-        var url = "qpbg_tblqryx4://::://tqs=" + vjDS.escapeQueryLanguage(JSON.stringify(tqs)) + "&minmaxMainCol=1&resolution=200";
+        var url = "qpbg_tblqryx4:
         return vjDS.add(title, dsname, url);
     };
 
@@ -511,7 +493,6 @@ vjHO.register('svc-clust').Constructor = function() {
                 coverageViewer.series[2].title = "Count reverse for profiling result "+profileID+" at ref #"+reference;
 
                 if (i+1 == profiles.length || i+1 == this.maxViewersSNP) {
-                    // show legend
                     snpViewer.options.legend.position = "bottom";
                     snpViewer.options.hAxis = {textPosition: "out"};
                     snpViewer.options.height = 200;
@@ -524,16 +505,16 @@ vjHO.register('svc-clust').Constructor = function() {
                 } else {
                     snpViewer.options.legend.position = "bottom";
                     snpViewer.options.hAxis = {textPosition: "none"};
-                    snpViewer.options.height = 170; // chartArea.height + 5 px padding for top and bottom
-                    snpViewer.options.chartArea.height = 160; // original height * original chartArea.height
+                    snpViewer.options.height = 170;
+                    snpViewer.options.chartArea.height = 160;
 
                     coverageViewer.options.legend.position = "bottom";
                     coverageViewer.options.hAxis = {textPosition: "none"};
-                    coverageViewer.options.height = 130; // chartArea.height + 5 px padding for top and bottom
-                    coverageViewer.options.chartArea.height = 120; // original height * original chartArea.height
+                    coverageViewer.options.height = 130;
+                    coverageViewer.options.chartArea.height = 120;
                 }
 
-                snpViewer.unregister_callback(); // before modifying snpViewer.data
+                snpViewer.unregister_callback();
                 coverageViewer.unregister_callback();
                 var source = this.ensureSNPSource(profileID, reference);
                 snpViewer.data = [source.name];
@@ -562,31 +543,31 @@ vjHO.register('svc-clust').Constructor = function() {
     this.addUrlSet({
         "tree": {
             title: "Retrieving clustering hierarchy",
-            active_url: "http://?cmd=objFile&filename=result.tre",
+            active_url: "http:
             objs: "ids",
             isSeries: true
         },
         "profiles": {
             title: "Retrieving list of compared profiler computations",
             make_active_url: function(url, id) {
-                return 'http://?cmd=objQry&qry=(("'+id+'"%20as%20obj).profileID%20as%20objlist).csv(["name","created"])';
+                return 'http:
             }
         },
         "references": {
             title: "Retrieving reference genome",
             make_active_url: function(url, id) {
                 if (!this.references[id] && this.references[id].genome && this.references[id].examined)
-                    return "static://";
-                return "http://?cmd=seqList&long=0&ids="+this.references[id].genome+"&rows="+this.references[id].examined;
+                    return "static:
+                return "http:
             }
         },
         "ref_examined": {
             title: "Retrieving list of examined references",
-            active_url: "http://?cmd=objFile&filename=examined-references.txt",
+            active_url: "http:
             objs: "ids"
         },
         "options": {
-            active_url: "static://" + ["<table>",
+            active_url: "static:
                 "<tr>",
                     "<td>Phylogram shape:</td>",
                     "<td>",
@@ -620,7 +601,7 @@ vjHO.register('svc-clust').Constructor = function() {
             "</table>"].join("")
         },
         "help": {
-            active_url: "http://help/hlp.view.results.dna-clust.html",
+            active_url: "http:
             doNotChangeMyUrl: true
         }
     });

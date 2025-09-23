@@ -32,7 +32,7 @@
 function vjD3JS_DynamicPie ( viewer )
 {
     loadCSS("d3js/css/dynamic_pie.css");
-    vjD3View.call(this,viewer); // inherit default behaviors of the DataViewer
+    vjD3View.call(this,viewer);
     
     this.data=viewer.data;
     viewer.marin ? this.margin = viewer.margin : this.margin = {top:0, right:0, bottom:50, left:0};
@@ -48,7 +48,6 @@ function vjD3JS_DynamicPie ( viewer )
     
     this.d3Compose=function(content)
     {
-        //just in case there are some errors. to avoid the page from crashing
         if (content.indexOf("error") == 0)
             return;
         
@@ -59,11 +58,11 @@ function vjD3JS_DynamicPie ( viewer )
         if (!this.wrapLength)
             this.wrapLength = (this.width - 2 * (radius + 10))/2;
         
-        //need to grab the data and make it an array
         this.tblArr=new vjTable(content, 0, vjTable_propCSV, undefined, undefined, undefined, undefined, 1);
         
-        if (this.tblParsedCallback)
+        if (this.tblParsedCallback){
             this.tblArr = this.tblParsedCallback(this);
+        }
         
         var toPut = [], labels = [];
         var colToUseData = "", colToUseLabel = "";
@@ -180,7 +179,6 @@ function vjD3JS_DynamicPie ( viewer )
           return function(t) { return arc(i(t)); };
         }
 
-        //stuff = randomData();
         var otherPie = d3.layout.pie()
             .sort(null)
             .value(function(d) {
@@ -199,7 +197,6 @@ function vjD3JS_DynamicPie ( viewer )
             .attr("class", "lines");
         
         
-        //label texts added here
         var text = svg.select(".labels").selectAll("text")
             .data(otherPie(labels), function (d,i){
                 if (Array.isArray(d))

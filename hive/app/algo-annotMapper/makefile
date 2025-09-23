@@ -31,12 +31,22 @@
 PROGRAMS += algo-annotMapper algo-ionAnnotMapper
 
 PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
+PROGRAMS_XLIBS = $(MYSQL_LIB_STATIC)
+
+OBJECT_TYPES = svc-algo-annotMapper svc-algo-ionAnnotMapper
 
 algo-annotMapper_SRCS = algo-annotMapper.cpp
 algo-annotMapper_XLIBS = $(MYSQL_LIB)
 
 algo-ionAnnotMapper_SRCS = algo-annotMapper_new.cpp
 algo-ionAnnotMapper_XLIBS = $(MYSQL_LIB)
+
+APPS = Annotation-Mapper:1
+
+MENUITEMS = \
+/Portal/Annotations/General \
+/Portal/Annotations/General/Annotation_Mapper
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)

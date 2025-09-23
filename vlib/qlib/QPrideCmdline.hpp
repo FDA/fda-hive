@@ -45,24 +45,24 @@ namespace slib
     {
         private:
             sCmdLine cmdl;
-        public: // constructors
+        public:
             sQPrideCmdline( idx argc=0, const char ** argv=0, const char ** envp=0);
             ~sQPrideCmdline ();
 
-        public: // configuration
+        public:
             char * QP_configGet( sStr * vals00, const char * pars00, bool single=true);
             bool QP_configSet(const char * par, const char * val);
 
             idx QP_serviceList(sStr * lst00, void * svcVecList){return 0;}
 
-        public: //     requests
-            idx QP_requestGet(idx req , void * r, bool isGrp=0, char * serviceName=0) ; // r is of sQPrideBase::Request type
+        public:
+            idx QP_requestGet(idx req , void * r, bool isGrp=0, char * serviceName=0) ;
 
-        public: //     data
+        public:
             char * QP_reqDataGet(idx req, const char * dataName,    sMex * data);
             bool QP_reqDataSet(idx req, const char * dataName, idx dsize , const void * data);
 
-        public: //     services
+        public:
             idx QP_serviceGet(void * Svc, const char * serviceName=0, idx svcId=0);
 
 
@@ -70,4 +70,4 @@ namespace slib
 
 }
 
-#endif // #ifndef _QPrideCmdline_qLib_hpp
+#endif 

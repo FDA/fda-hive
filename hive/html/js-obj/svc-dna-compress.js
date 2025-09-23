@@ -27,17 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//
-// $Id: svc-dna-demo.js 6929 2014-08-20 21:15:38Z tetromino $
-/*
- *  Copyright (c) 2005 Dr. Vahan Simonyan and Dr. Raja Mazumder.
- * This software is protected by U.S. Copyright Law and International
- * Treaties. Unauthorized use, duplication, reverse engineering, any
- * form of redistribution, use in part or as a whole, other than by
- * prior, express, written and signed agreement is subject to penalties.
- * If you have received this file in error, please notify copyright
- * holder and destroy this and any other copies. All rights reserved.
- */
 
 
 if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
@@ -91,7 +80,6 @@ vjHO.register('svc-dna-demo').Constructor=function ()
     if(this.objCls)return;
     this.resolution=200;
 
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.mode='fullview';
@@ -100,7 +88,6 @@ vjHO.register('svc-dna-demo').Constructor=function ()
 
     this.preview = function(node,dv)
     {
-//        this.parent.preview('svc',node,dv);
         this.mode='preview';
         this.create(dv,node.id);
     };
@@ -123,7 +110,7 @@ vjHO.register('svc-dna-demo').Constructor=function ()
 
     this.urlSet ={
             'ACGT' :{
-                active_url:"http://?cmd=objFile&filename=sumLetterTable.csv",
+                active_url:"http:
                 objs:"ids"
 
             }
@@ -177,7 +164,6 @@ vjHO.register('svc-dna-demo').Constructor=function ()
 
     this.construct=function(stickytabs){
 
-//        alert("start of construct");
         if(!this.loaded || !this.current_dvORtab)return;
 
         this.constructed=true;

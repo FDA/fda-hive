@@ -39,11 +39,6 @@
 namespace slib
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ class sHash
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     class sHash2 {
 
@@ -58,7 +53,6 @@ namespace slib
 
 
             struct HashHeader{
-            //    hashtypeIdx mapCount;
                 idx _val;
                 idx mapCount(void) {return _val&sHash2_idxMask;}
                 idx mapCountSet(idx lval) {return _val=(_val&(~sHash2_idxMask))|lval;}
@@ -87,7 +81,7 @@ namespace slib
 
         sVec < HashRecord > hashTableVec;
         HashRecord * hashPtr;
-        idx collisionReducer;//,mapCount;
+        idx collisionReducer;
         const static idx defaultInitialBitness=4;
         bool reversed;
 
@@ -95,7 +89,7 @@ namespace slib
         void unmap(idx hash);
         idx mapCount(void){return ((HashHeader *)hashPtr)->mapCount(); }
         static idx hashfun(hashtypeIdx typeindex, const void * mem, idx len, idx bits, idx iNum);
-        idx find(HashRecord * hashPtrLocal, hashtypeIdx typeindex, const void * key, idx lenKey, idx slotType=0, idx * pHash=0); // , idx * bucketStart=0
+        idx find(HashRecord * hashPtrLocal, hashtypeIdx typeindex, const void * key, idx lenKey, idx slotType=0, idx * pHash=0);
 
     public:
 
@@ -104,7 +98,6 @@ namespace slib
             bucketContainer=0;
             init(filename,flags);
             collisionReducer=4;
-            //bucket_lstBits=3;
             keyfunc=0;
             keyParam=0;
             baseFileName.flags=sMex::fExactSize;
@@ -121,8 +114,7 @@ namespace slib
         }
         ~sHash2()
         {
-            //if(hashTableVec.mex()->flags&sMex::fReadonly)
-            hashTableVec.destroy(); // to avoid calling stupid destructors
+            hashTableVec.destroy();
         }
 
         idx map(idx recordindex, hashtypeIdx typeindex, const void * key,idx lenKey, idx * pFnd=0, idx insIndex=sNotIdx);
@@ -132,14 +124,11 @@ namespace slib
 
 
         typedef void * (* keyFuncType)(void * param, hashtypeIdx  typeindex, idx recordindex,idx * sizeKey, sMex * keybody);
-        //typedef void * (* hashFuncType)(idx typeindex, idx recordindex,idx * sizeKey);
 
         keyFuncType keyfunc;
         void * keyParam;
 
         idx hashMemSize(void){
-            //return (((HashHeader *)hashPtr)->mapCount)*sizeof(HashRecord)+sizeof(HashHeader);
-            //return hashTableVec.dim(); //(((HashHeader *)hashPtr)->mapCount)*sizeof(HashRecord)+sizeof(HashHeader);
             if(hashPtr)
                 return  (((udx)1)<<(((HashHeader *)hashPtr)->bits()))*sizeof(HashRecord)+sizeof(HashHeader);
             else return 0;
@@ -208,6 +197,6 @@ namespace slib
         }
 
     };
-} // namespace slib
+}
 
-#endif //  sLib_hash2_h
+#endif 

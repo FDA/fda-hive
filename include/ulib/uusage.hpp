@@ -40,74 +40,85 @@ namespace slib {
     class sUsrUsage2: public sUsrObj
     {
         public:
-            //*! Same interface as sQPrideProc::reqProgress()
             typedef idx (*progressCb)(void * param, idx items, idx progress, idx progressMax);
 
             enum EUsageType
             {
                 eUsageTypeInvalid = -1,
-                eDiskUsage = 0, //! permanent (object data) disk usage in bytes; type name is "disk-usage"
-                eTempUsage, //! qpdata db and temporary disk usage in bytes; type name is "temp-usage"
-                eObjCount, //! number of objects; type name is "obj-count"
-                eReqCount, //! number of requests; type name is "req-count"
-                eFileCount, //! number of permament (object data) files; type name is "file-count"
-                eRunTime, //! number of seconds requests were running; type name is "run-time"
-                eWaitTime, //! number of seconds requests waited to be grabbed; type name is "wait-time"
-                eCompletionTime, //! number of seconds process objects took to complete; type name is "completion-time"
-                eUsageTypeLast = eCompletionTime
+                eDiskUsage = 0,
+                eTempUsage,
+                eObjCount,
+                eReqCount,
+                eFileCount,
+                eRunTime,
+                eWaitTime,
+                eCompletionTime,
+                eComputationObjCount,
+                eDataLoadingObjCount,
+                eFileObjCount,
+                eDirectoryObjCount,
+                eUsageTypeLast = eDirectoryObjCount
             };
             static const char * getTypeName(EUsageType t);
             static EUsageType parseTypeName(const char * name);
 
-            //! Get the global usage object.
             static const sUsrUsage2 * getObj(const sUsr & user, sRC * prc = 0);
 
-            //! Get the global usage object. If it doesn't exist, create it.
-            static sUsrUsage2 * ensureObj(const sUsr & admin, sRC * prc = 0);
+            static sUsrUsage2 * ensureObj(sUsr & admin, sRC * prc = 0);
 
-            //! Typical usage update
-            /*! \param at_time if non-0, attempt to emulate what would have happened if called at given time
-             *  \warning at_time must be greater than effective time of any previous call */
-            sRC updateIncremental(progressCb cb=0, void * cb_param = 0, time_t at_time=0);
-            //! call before removing objects or requests
+            time_t getFirstUpdateTime() const;
+            time_t getLastUpdateTime() const;
+
+            sRC updateIncremental(progressCb cb=0, void * cb_param = 0, time_t at_time = 0, bool find_deleted = false);
             sRC updateDeleted(const sVec<sUsrHousekeeper::PurgedObj> & objs, const sVec<sUsrHousekeeper::PurgedReq> & reqs, progressCb cb=0, void * cb_param = 0, time_t at_time=0);
 
             struct UserList
             {
-                const char * label; //! email or group prefix
-                idx dim; //! number of \a user_ids
-                const udx * user_ids; //! pointer into array of user ids
+                sStr label;
+                sVec<udx> user_ids;
             };
 
-            //! Get usage for the current user
             sRC exportTable(sTxtTbl & out, EUsageType usage_type, time_t start, time_t end) const
             {
                 return exportTable(out, usage_type, start, end, m_usr.Id());
             }
-            //! Get usage for a specified user
             sRC exportTable(sTxtTbl & out, EUsageType usage_type, time_t start, time_t end, udx user_id) const
             {
                 UserList list;
-                list.label = m_usr.Email();
-                list.dim = 1;
-                list.user_ids = &user_id;
+                list.label.init(sMex::fExactSize);
+                list.label.addString(m_usr.Email());
+                list.user_ids.init(sMex::fExactSize);
+                *list.user_ids.add(1) = user_id;
                 return exportTable(out, usage_type, start, end, &list, 1);
             }
-            //! Get usage sum for the list of unique users matched by each given group path (or "*" to get sum for all users)
+
+            struct GroupSpec {
+                enum {
+                    eGroupPath,
+                    eUserID,
+                    eBillableGroupObj,
+                    eBillableGroupName
+                } kind;
+                sVariant value;
+                sVec<GroupSpec> except;
+            };
+            sRC exportGroupsTable(sTxtTbl & out, EUsageType usage_type, time_t since, time_t to, GroupSpec * group_specs, idx num_group_specs, bool with_all_selected=false, bool expand_users=false) const;
+
             sRC exportGroupsTable(sTxtTbl & out, EUsageType usage_type, time_t since, time_t to, const char * group_paths00, bool with_all_selected=false) const;
-            //! Get usage sum for each given list of user accounts
             sRC exportTable(sTxtTbl & out, EUsageType usage_type, time_t since, time_t to, const UserList * user_lists, idx num_user_lists) const;
 
             virtual ~sUsrUsage2();
 
         private:
-            // constructor is private - use sUsrUsage::getObj() or ensureObj() to create
-            sUsrUsage2(const sUsr& user, const sHiveId & objId);
-            sRC getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx primary_group_id, time_t since[eUsageTypeLast + 1], time_t to, progressCb cb, void * cb_param, idx iuser, idx num_users);
+            class IncrementalUpdates;
+
+            sUsrUsage2(const sUsr& user, const sHiveId & objId, sUsr * admin);
+            sRC getUsageChange(IncrementalUpdates * value_updates, udx user_id, udx primary_group_id, time_t since[eUsageTypeLast + 1], time_t to, progressCb cb, void * cb_param, idx iuser, idx num_users, bool find_deleted);
 
             class UsageDb;
             UsageDb * _usage_db;
+            sUsr * _admin;
     };
 }
 
-#endif // sLib_usrusage_h
+#endif 

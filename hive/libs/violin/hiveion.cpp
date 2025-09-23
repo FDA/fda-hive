@@ -28,8 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <ulib/ulib.hpp>
-#include <ssci/bio.hpp>
-#include <violin/violin.hpp>
+#include <violin/hiveion.hpp>
+
 
 
 using namespace sviolin;
@@ -37,58 +37,50 @@ using namespace sviolin;
 
 idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLength,sStr & output, idx cntStart=0, idx cnt=100, idx endMax=0,sBioal * mutAl=0);
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/
- _/  HIVE ION GENERAL CLASS
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- */
 
-sHiveIon * sHiveIon::init(sUsr * user, const char * objList, const char * iontype, const char * filenameWithoutExtension)
+sHiveIon * sHiveIon::init(sUsr * user, const char * objList, const char * iontype, const char * filenameWithoutExtension00)
 {
     if( user )
         myUser = user;
     sVec<sHiveId> ionList;
     if( objList )
         sHiveId::parseRangeSet(ionList, objList);
-    if( !ionList.dim() && iontype ) { // when ionObjIDs not specified, get All user's ionObjIDs
+    if( !ionList.dim() && iontype ) {
         sUsrObjRes res;
         user->objs2(iontype, res);
         for(sUsrObjRes::IdIter it = res.first(); res.has(it); res.next(it)) {
             *(ionList.add(1)) = *res.id(it);
         }
     }
-    // bool atLeastOne = false;
+    ionCnt=0;
+    pathList00.cut(0);
+    wanderList.empty();
     sStr tmpPath;
     for(idx iV = 0; iV < ionList.dim(); ++iV) {
 
-        //get object
         sUsrObj obj(*user, ionList[iV]);
         if( !obj.Id() )
             continue;
 
-        /// get its ion path
 
         tmpPath.cut(0);
 
-        obj.getFilePathname00(tmpPath, filenameWithoutExtension);
-        if (tmpPath.length() && sFile::exists(tmpPath.ptr(0))){ // in ion list format ==> file name "ion" containing the list of name of ion
+        obj.getFilePathname00(tmpPath, filenameWithoutExtension00);
+
+        if (tmpPath.length() && sFile::exists(tmpPath.ptr(0))){
             pathList00.add(tmpPath.ptr(0),tmpPath.length() + 1);
             ++ionCnt;
             continue;
         }
-        // assume
-        sStr addExtensionByDefaut("%s.%s",filenameWithoutExtension,"ion");
+        sStr addExtensionByDefaut("%s.%s",filenameWithoutExtension00,"ion");
+        addExtensionByDefaut.add0cut(2);
         obj.getFilePathname00(tmpPath, addExtensionByDefaut);
 
         if (tmpPath.length() && sFile::exists(tmpPath.ptr(0))){
-            //atLeastOne = true;
-            sFilePath fullPathWithoutExtension(tmpPath.ptr(),"%%dir/%s",filenameWithoutExtension);
+            sFilePath fullPathWithoutExtension(tmpPath.ptr(),"%%dir/%s",filenameWithoutExtension00);
 
             pathList00.add(fullPathWithoutExtension.ptr());
             ++ionCnt;
-            //pathList00.add0(1); // there is already an
         }
     }
     pathList00.add0(2);
@@ -102,15 +94,8 @@ sIonWander * sHiveIon::addIonWander(const char * wandername, const char * iql, i
     sIonWander * ionWander=wanderList.set(wandername);
 
 
-    //idx success =0;
     ionWander->attachIons(pathList00.ptr(0),sMex::fReadonly,ionCnt);
-    // success = ionWander->ionList.dim();
     ionWander->ionList.dim();
-/*    for(const char * ptr=pathList00.ptr(); ptr; ptr=sString::next00(ptr) ) {
-
-        ionWander->addIon(0)->ion->init(ptr,sMex::fReadonly);
-        ++success;
-    }*/
     if( ionWander->traverseCompile(iql,iqllen ? iqllen : sLen(iql)) )
         return 0;
 
@@ -120,13 +105,6 @@ sIonWander * sHiveIon::addIonWander(const char * wandername, const char * iql, i
 
 
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/
- _/  SEQUENCE SPECIFIC HIVE ION CLASS
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- */
 
 idx sHiveIonSeq::annotMap(sIO * io, sBioseq * sub, sDic < sStr > * dic, const char * seqidFrom00, idx countResultMax, idx startResult, idx contSequencesMax , idx outPutWithHeader, sStr * header )
 {
@@ -159,11 +137,9 @@ idx sHiveIonSeq::annotMap(sIO * io, sBioseq * sub, sDic < sStr > * dic, const ch
     for (idx i=0; i< countSequenceIds && success<countResultMax ; ++i ){
         idx found=0;
 
-        if(sub)seqid= sub->id(i);//   =Sub.id(i)
+        if(sub)seqid= sub->id(i);
         else if(i && seqidFrom00 ) { seqid=sString::next00(seqid); if(!seqid) break;}
 
-        //nxt=strchr(seqid, ' '); // find the separator to exclude description from defline
-        //if(!nxt) nxt=seqid+sLen(seqid);
         nxt=seqid+sLen(seqid);
         idx sizeSeqId=nxt-seqid;
         iWander1->setSearchTemplateVariable("$id", 0, seqid, sizeSeqId);
@@ -172,28 +148,26 @@ idx sHiveIonSeq::annotMap(sIO * io, sBioseq * sub, sDic < sStr > * dic, const ch
         iWander1->traverseBuf.cut(0);
         iWander1->traverse();
 
-        /////////
         if( iWander1->traverseBuf.length()!=0 ) {
             ++success;
             if(success<=startResult)
                 return success;
 
             found=1;
-            //continue;
         }
 
         if (complexIDLookUp){
           if(strcmp("profilerIDLookup",wanderId)==0 || (!found  && strcmp("profilerIDLookup",wanderId)!=0) ) {
-                for( const char * p=seqid; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){ // scan until pipe | separated types and ids are there
+                for( const char * p=seqid; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){
                     const char * curType=p;
-                    nxt=strpbrk(p,"| "); // find the separator
+                    nxt=strpbrk(p,"| ");
                     if(!nxt || *nxt==' ')
                         break;
 
                     const char * curId=nxt+1;
-                    nxt=strpbrk(nxt+1," |"); // find the separator
-                    if(!nxt) // if not more ... put it to thee end of the id line
-                        nxt=seqid+sizeSeqId;/// nxt=seqid+id1Id[1];
+                    nxt=strpbrk(nxt+1," |");
+                    if(!nxt)
+                        nxt=seqid+sizeSeqId;
                     if(*nxt==' ')
                         break;
 
@@ -203,7 +177,6 @@ idx sHiveIonSeq::annotMap(sIO * io, sBioseq * sub, sDic < sStr > * dic, const ch
                     iWander2->traverseBuf.cut(0);
                     iWander2->traverse();
 
-                    ////////////*/
                     if( iWander2->traverseBuf.length()!=0 ) {
                         ++success;
                         if(success<=startResult)
@@ -224,7 +197,7 @@ idx sHiveIonSeq::annotMap(sIO * io, sBioseq * sub, sDic < sStr > * dic, const ch
             idx icoma=0, elementAdded=0;
             for ( idx il=0 ; il < dic->dim(); ++il){
                 const char * id=(char*)dic->id(il);
-                if (strncmp(id,"FEATURES",8)==0 || strncmp(id,"strand",6)==0) { // Skipping when asking about info from GB Header, GB Feature source
+                if (strncmp(id,"FEATURES",8)==0 || strncmp(id,"strand",6)==0) {
                     toSkip[elementAdded++]=il;
                     continue;
                 }
@@ -282,11 +255,8 @@ idx sHiveIonSeq::annotMapPosition(sStr * output, sDic < sStr > * dic, const char
     if (wanderList.find("seqPositionLookUp")){
         sIonWander * iWander1 = &wanderList["seqPositionLookUp"];
         iWander1->resultCumulator=dic;
-        //iWander1->recordProtectQuote = '\"';
-        //iWander1->printMode = sVariant::eCSV;
 
         sIonWander * iWander2 = &wanderList["seqPositionLookUp_1"];
-        //iWander2->printMode = sVariant::eCSV;
         iWander2->resultCumulator=dic;
 
         const char *seqidRaw=seqidFrom00;
@@ -296,7 +266,6 @@ idx sHiveIonSeq::annotMapPosition(sStr * output, sDic < sStr > * dic, const char
             const char * seqid=seqidRaw;
 
             if(ikind==1) {
-                idx sl=sLen(seqid);
                 if( strncasecmp(seqid,"chr",3)==0 ) {
                     seqid=seqid+3;
                 }
@@ -316,13 +285,9 @@ idx sHiveIonSeq::annotMapPosition(sStr * output, sDic < sStr > * dic, const char
             iWander2->setSearchTemplateVariable("$id", 0, seqid, sizeSeqId);
             iWander2->traverse();
 
-            //bool needToContinue = true;
             bool needToTryDot = true;
-            if (iWander1->traverseBuf.length()){ // get the full seqid to map to seqID from ion file
-                //output->printf(0,"%s",iWander1->traverseBuf.ptr(0));
-                //collapseByRangeAndtype(iWander1->traverseBuf.ptr(0),iWander1->traverseBuf.length(),*output, startResult, countResultMax, pos_end);
+            if (iWander1->traverseBuf.length()){
                 buf_out.addString(iWander1->traverseBuf.ptr(0),iWander1->traverseBuf.length());
-                //return success;
             }
             if (iWander2->traverseBuf.length()){
                 buf_out.addString(iWander2->traverseBuf.ptr(0),iWander2->traverseBuf.length());
@@ -342,20 +307,15 @@ idx sHiveIonSeq::annotMapPosition(sStr * output, sDic < sStr > * dic, const char
                      return success;
                 }
             }
-             // ###
-             // try to parse seqid as NCBI id type format: gi|3654323|gb|CP0078938
-             // ###
-            //if(needToContinue) {
-            for( const char * p=seqid; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){ // scan until pipe | separated types and ids are there
-                //const char * curType=p;
-                nxt=strpbrk(p,"| "); // find the separator
+            for( const char * p=seqid; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){
+                nxt=strpbrk(p,"| ");
                 if(!nxt || *nxt==' ')
                     break;
 
                 const char * curId=nxt+1;
-                nxt=strpbrk(nxt+1," |"); // find the separator
-                if(!nxt) // if not more ... put it to thee end of the id line
-                    nxt=seqid+sizeSeqId;/// nxt=seqid+id1Id[1];
+                nxt=strpbrk(nxt+1," |");
+                if(!nxt)
+                    nxt=seqid+sizeSeqId;
                 if(*nxt==' ')
                     break;
 
@@ -368,8 +328,6 @@ idx sHiveIonSeq::annotMapPosition(sStr * output, sDic < sStr > * dic, const char
                 iWander2->traverse();
 
                 if (iWander1->traverseBuf.length()){
-                    //collapseByRangeAndtype(iWander1->traverseBuf.ptr(0),iWander1->traverseBuf.length(),*output,startResult, countResultMax, pos_end);
-                    //return success;
                     buf_out.addString(iWander1->traverseBuf.ptr(0),iWander1->traverseBuf.length());
                 }
                 if (iWander2->traverseBuf.length()){
@@ -390,23 +348,19 @@ idx sHiveIonSeq::annotMapPosition(sStr * output, sDic < sStr > * dic, const char
                    }
                }
             }
-           // }
-            // ###
-            // after 2 attempts without any result, we try to look for the seqID based on type and id
-            // ###
             sIonWander * iWander3 = &wanderList["idTypePositionLookUp"];
             sDic <sStr > tmpDicSeq;
             iWander3->resultCumulator = &tmpDicSeq;
-            for( const char * p=seqid; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){ // scan until pipe | separated types and ids are there
+            for( const char * p=seqid; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){
                 const char * curType=p;
-                nxt=strpbrk(p,"| "); // find the separator
+                nxt=strpbrk(p,"| ");
                 if(!nxt || *nxt==' ')
                     break;
 
                 const char * curId=nxt+1;
-                nxt=strpbrk(nxt+1," |"); // find the separator
-                if(!nxt) // if not more ... put it to thee end of the id line
-                    nxt=seqid+sizeSeqId;/// nxt=seqid+id1Id[1];
+                nxt=strpbrk(nxt+1," |");
+                if(!nxt)
+                    nxt=seqid+sizeSeqId;
                 if(*nxt==' ')
                     break;
 
@@ -423,7 +377,6 @@ idx sHiveIonSeq::annotMapPosition(sStr * output, sDic < sStr > * dic, const char
                         const char * myseq = (const char *) tmpDicSeq.id(iS);
                         mySeqToReplace.printf("%s",myseq);
                     }
-                    //mySeqToReplace.printf(0,"gi|167006427|ref|NC_010315.1|");
                     iWander1->setSearchTemplateVariable("$id", 3, mySeqToReplace.ptr(0), mySeqToReplace.length());
                     iWander1->resetResultBuf();
                     iWander1->traverse();
@@ -491,7 +444,6 @@ idx sHiveIonSeq::standardTraverse(sStr & output, sDic < sStr > * dic, idx countR
     for (; iW<wanderList.dim(); ++iW){
         sIonWander * iWander1 = wanderList.ptr(iW);
         iWander1->resultCumulator=dic;
-        //iWander1->printMode=sVariant::eUnquoted;
         iWander1->callbackFunc =  sHiveIonSeq::traverserCallback;
         iWander1->callbackFuncParam = &myParams;
 
@@ -508,8 +460,6 @@ idx sHiveIonSeq::standardTraverse(sStr & output, sDic < sStr > * dic, idx countR
 }
 
 idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLength,sStr & output, idx cntStart, idx cnt, idx endMax,sBioal * mutAl){
-    // no header
-    // 5 columns: seqID,start,end,type,id
     sTxtTbl tbl;
     tbl.setBuf(contentInSpecificFormat,contentLength);
     tbl.parseOptions().flags = sTblIndex::fSaveRowEnds;
@@ -526,9 +476,8 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
     }
 
 
-    sDic < sDic < sVec <sStr> > > dictBySeq_PosAndType_id;//{seqID_start_end: {type1: id1, type2:id2}}
+    sDic < sDic < sVec <sStr> > > dictBySeq_PosAndType_id;
 
-    //idx seqLen, startLen, typeLen,idLen;
     idx typeLen,idLen, seqLen;
     sStr compositeKey;
 
@@ -538,8 +487,6 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
     sVariant startVar;
 
     sVariant endVar;
-    //idx endVal=0;
-    //char ibufEnd[128]; idx ilenEnd;
     char * prev_seq = 0;
     sVec<idx> uncompM(sMex::fSetZero);
     idx * matchTrain = 0, iMutS = 0;
@@ -550,7 +497,6 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
             break;
 
         const char * seq = tbl.cell(ir,0,&seqLen);
-        //const char * start = tbl.cell(ir,1,&startLen);
         tbl.val(startVar,ir,1);
         tbl.val(endVar,ir,2);
         if (mutAl && mutAl->Qry){
@@ -576,7 +522,6 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
         compositeKey.cut(0);
         compositeKey.addString(seq,seqLen);
         compositeKey.addString(",",1);
-        //compositeKey.addString(start,startLen);
         compositeKey.printf("%" DEC "",startVar.asInt());
         compositeKey.addString(",",1);
         if (endMax!=0 && (endVar.asInt() > endMax || (endVar.asInt()==-1 || endVar.asInt()==0))) {
@@ -585,7 +530,6 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
         else {
             compositeKey.printf("%" DEC "",endVar.asInt());
         }
-        //compositeKey.printf("%" DEC "",endVar.asInt());
         curStart = startVar.asInt();
         if (curStart != prvStart){
              prvStart = curStart;
@@ -599,16 +543,14 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
 
     }
 
-    // printToOutPut
     if (!dictBySeq_PosAndType_id.dim()) return 1;
     idx keyLen=0;
     idx keykeyLen=0;
     output.printf(0,"seqID,start,end,idType-id\n");
     sStr idType_id;
-    //sStr cleanedId;
     for (idx ik=0; ik < dictBySeq_PosAndType_id.dim(); ++ik){
             if (ik) output.addString("\n",1);
-            const char * key = (const char *)dictBySeq_PosAndType_id.id(ik,&keyLen); // key is the seqID
+            const char * key = (const char *)dictBySeq_PosAndType_id.id(ik,&keyLen);
             output.addString(key,keyLen);
             output.addString(",",1);
 
@@ -617,18 +559,16 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
                 sDic < sVec <sStr> > * dicdic = dictBySeq_PosAndType_id.get(key,keyLen);
                 for (idx iik=0; iik < dicdic->dim(); ++iik) {
                     if (iik) idType_id.addString(";",1);
-                    const char * secondKey = (const char *)dicdic->id(iik, &keykeyLen); // secondKey is the TYPE
+                    const char * secondKey = (const char *)dicdic->id(iik, &keykeyLen);
                     if (strncmp("listOfConnectedRanges",secondKey,15)==0){
                         idType_id.addString("Join");
                     } else {
                         idType_id.addString(secondKey,keykeyLen);
                     }
                     idType_id.addString(":",1);
-                    sVec <sStr> * valueVec= dicdic->get(secondKey,keykeyLen); // value is the list of ids associated with the TYPE
+                    sVec <sStr> * valueVec= dicdic->get(secondKey,keykeyLen);
                     sDic <idx> checkDuplicate;
                     for (idx iv=0; iv<valueVec->dim(); ++iv){
-      //                  cleanedId.cut(0); // try to remove the extra comma within id value, prevent from crashing when front-end render table
-        //                sString::searchAndReplaceStrings(&cleanedId,valueVec->ptr(iv)->ptr(0), valueVec->ptr(iv)->length(),","," ",0,0);
                         if (checkDuplicate.find(valueVec->ptr(iv)->ptr(0),valueVec->ptr(iv)->length())){
                             continue;
                         }
@@ -645,8 +585,6 @@ idx collapseByRangeAndtype(const char * contentInSpecificFormat, idx contentLeng
     return 0;
 }
 
-//              idType_id.addString(cleanedId.ptr(0));
-            //            *checkDuplicate.set(cleanedId.ptr(0),cleanedId.length()) = 1;
 
 
 

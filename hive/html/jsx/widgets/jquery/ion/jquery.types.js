@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.ion_types.js
 
 $(function () {
     $.widget("ion.ion_types", {
@@ -111,9 +110,6 @@ $(function () {
                                         .append(
                                             $(document.createElement('div'))
                                                 .addClass('col-md-8 recordviewer')
-                                        //        .ion_recordviewer({
-                                        //            spec: type
-                                        //        })
                                         )
                                         .append(
                                                 $(document.createElement('div'))

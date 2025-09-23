@@ -28,7 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <slib/core/tim.hpp>
-#include <slib/std/file.hpp>
 #include <slib/std/cryptohash.hpp>
 #include <slib/std/cryptocipher.hpp>
 #include <ulib/usr.hpp>
@@ -39,7 +38,10 @@
 #include <ulib/uemail.hpp>
 #include <ulib/ufolder.hpp>
 #include <ulib/uusage.hpp>
+#include <ulib/upropset.hpp>
 #include <qlib/QPride.hpp>
+#include <slib/std/crypt.hpp>
+#include <slib/std/url.hpp>
 #include <xlib/md5.hpp>
 
 #include "uperm.hpp"
@@ -58,6 +60,62 @@ sSql * sUsr::sm_actual_db = 0;
 sUsr::EAuditMode g_Audit = sUsr::eUserAuditOff;
 sStr g_key;
 
+static const char * canonicalCase(sStr & buf, const char * str, idx len = 0)
+{
+    if( !str ) {
+        return sStr::zero;
+    }
+    if( !len ) {
+        len = sLen(str);
+    }
+    for(idx i=0; i<len; i++) {
+        if( str[i] >= 'A' && str[i] <= 'Z' ) {
+            buf.cut0cut();
+            sString::changeCase(&buf, str, 0, sString::eCaseLo);
+            return buf.ptr(0);
+        }
+    }
+    return str;
+}
+
+namespace {
+
+udx projRoleToPerm(sUsr::EProjectRole role) {
+    switch( role ) {
+        case sUsr::eProjectViewer:
+            return ePermCanBrowse | ePermCanRead;
+        case sUsr::eProjectDataHandler:
+            return ePermCanBrowse | ePermCanRead | ePermCanWrite | ePermCanDownload;
+        case sUsr::eProjectContributer:
+            return ePermCanBrowse | ePermCanRead | ePermCanWrite | ePermCanDownload | ePermCanExecute;
+        case sUsr::eProjectAdmin:
+            return ePermCompleteAccess;
+    }
+    return 0;
+}
+
+char projRoleToChar(sUsr::EProjectRole role) {
+    switch( role ) {
+        case sUsr::eProjectAdmin: return 'A';
+        case sUsr::eProjectContributer: return 'C';
+        case sUsr::eProjectDataHandler: return 'D';
+        case sUsr::eProjectViewer: return 'V';
+    }
+    return 0;
+}
+
+sUsr::EProjectRole projCharToRole(char c) {
+    switch( c ) {
+        case 'A': return sUsr::eProjectAdmin;
+        case 'C': return sUsr::eProjectContributer;
+        case 'D': return sUsr::eProjectDataHandler;
+        case 'V': return sUsr::eProjectViewer;
+    }
+    return sUsr::eProjectViewer;
+}
+
+}
+
 sUsr::EAuditMode sUsr::audit() const
 {
     return g_Audit;
@@ -72,7 +130,7 @@ bool sUsr::audit(sUsr::EAuditMode mode, const char * oper, const char * fmt, ...
         sStr tmp;
 #endif
         sCallVarg(tmp.vprintf, fmt);
-        std::auto_ptr<sSql::sqlProc> p(db().Proc("sp_user_audit"));
+        std::unique_ptr<sSql::sqlProc> p(db().Proc("sp_user_audit"));
         if( p.get() ) {
             p->Add(m_SID).Add(m_Id).Add(oper).Add(tmp);
             return p->execute();
@@ -81,134 +139,45 @@ bool sUsr::audit(sUsr::EAuditMode mode, const char * oper, const char * fmt, ...
     return false;
 }
 
-// static
 const char* const sUsr::getKey(void)
 {
-    // normally this key comes from configuration, see setQpride function
-    if( !g_key ) {
-        // in case it is missing somewhat random text is generated here
-        // relaying on this part will cause all session invalidation upon new binaries build
-        g_key.printf("%sx%sx%s", "$Id$", __FILE__, __DATE__);
-    }
-    return g_key.ptr();
+    return "";
 }
 
 const char* sUsr::encodeSID(sStr & sid, sStr & buf)
 {
-    time_t t = time(0);
-    udx gmt_time = mktime(gmtime(&t));
-    sStr str("q%" UDEC "|%" DEC "|%" UDEC "|%" UDEC, m_SID, m_SIDrnd, m_Id, gmt_time);
-    str.printf("|%" UDEC, sAlgo::algo_murmurHash64(str.ptr(1), str.length() - 1, 32, 0, gmt_time));
-    idx pos = buf.length();
-    sMex cryptbin;
-    idx cryptlen = sBlockCrypto::encrypt(&cryptbin, sBlockCrypto::eAES256_HMACSHA256, str.ptr(1), str.length() - 1, getKey(), sLen(getKey()));
-    if( cryptlen > 0 ) {
-        sString::encodeBase64(&buf, (const char *)cryptbin.ptr(), cryptlen, false);
-        buf.add0cut(2);
-    }
-    if( !sid ) {
-        const char* e = getenv("UNIQUE_ID");
-        if( e && e[0] ) {
-            sid.printf("%s", e);
-        } else {
-            sid.printf("r%" UDEC "%" UDEC, static_cast<udx>(rand()), gmt_time);
-        }
-    }
-    buf.printf("@%s", sid.ptr());
-    return buf.ptr(pos);
+    return "";
 }
 
-// characters that cannot occur within a password hash, and that separate multiple password hashes in a list
+static
+const char* encodePasswordOld(const char* s, const char* salt, sStr& buf)
+{
+    return "";
+}
+
 static const char * hash_seps = " \t\r\n";
 
-// Check password. If the current hash uses an outdated algorithm and the password matches,
-// automatically upgrade to a better algorithm
 static
 bool checkPassword(const char * cur_hash, idx cur_hash_len, const char * pass, const char * email, const char * user_id, sStr * upgraded_hash = 0)
 {
-    bool need_upgrade = false;
-    bool match = false;
-    if( cur_hash && pass ) {
-        if( !cur_hash_len ) {
-            cur_hash_len = strcspn(cur_hash, hash_seps);
-        }
-        match = sPassword::checkPassword(cur_hash, cur_hash_len, pass, &need_upgrade);
-    }
-    if( need_upgrade && upgraded_hash ) {
-        sPassword::encodePassword(*upgraded_hash, pass);
-    }
-    // invalid
-    return match;
+    return true;
 }
 
-static const idx field_encryption_secret_len = 64;
-
-// return XOR of builtin 64-byte secret and hex-encoded value of qm.encoder in QPCfg
-static void * ensureFieldEncryptionSecret(sQPrideBase * qpb)
-{
-    static const unsigned char builtin_field_encryption_secret[field_encryption_secret_len] = {
-        0x27, 0xd4, 0xc7, 0x49, 0x67, 0x7f, 0x6c, 0xc3, 0xce, 0xdc, 0x11, 0x3e, 0xb9, 0xde, 0x3a, 0xde,
-        0x40, 0xb7, 0xdf, 0xb3, 0x22, 0x5c, 0x22, 0xf8, 0x4b, 0xa2, 0xca, 0x1f, 0x13, 0xb6, 0x64, 0x64,
-        0x6d, 0x4a, 0xad, 0x6a, 0x4c, 0xc6, 0x0d, 0xe7, 0x18, 0x0b, 0x8e, 0xb3, 0x91, 0xd5, 0x56, 0x51,
-        0x83, 0x15, 0xb4, 0x4a, 0x36, 0x72, 0x87, 0x6e, 0x40, 0xc8, 0xa7, 0xc4, 0x27, 0x2c, 0xf1, 0xc3
-    };
-    static unsigned char field_encryption_secret[field_encryption_secret_len] = { 0 };
-    static enum {
-        eUncached,
-        eCached,
-        eError
-    } field_encryption_secret_status = eUncached;
-
-    if( field_encryption_secret_status == eUncached ) {
-        sStr qm_encoder_hex;
-        qpb->configGet(&qm_encoder_hex, 0, "qm.encoder", 0, 0);
-        if( qm_encoder_hex.length() ) {
-            memcpy(field_encryption_secret, builtin_field_encryption_secret, field_encryption_secret_len);
-            for(idx i = 0; i < field_encryption_secret_len && i < qm_encoder_hex.length() * 2; i++ ) {
-                unsigned int qm_encoder_byte = 0;
-                sscanf(qm_encoder_hex.ptr(2 * i), "%02x", &qm_encoder_byte);
-                field_encryption_secret[i] ^= (unsigned char)qm_encoder_byte;
-            }
-            field_encryption_secret_status = eCached;
-        } else {
-            field_encryption_secret_status = eError;
-        }
-    }
-
-    return field_encryption_secret_status == eCached ? field_encryption_secret : 0;
-}
-
-enum FieldEncodings {
-    eField_eAES256_HMACSHA256 = 1
-};
 
 
 bool sUsr::encodeField(sStr * out_encoded_value, sMex * out_encoded_blob, idx encoding, const void * orig_value, idx len) const
 {
-    if( encoding == eField_eAES256_HMACSHA256 ) {
-        const void * secret = ensureFieldEncryptionSecret(QPride());
-        if( secret && sBlockCrypto::encrypt(out_encoded_blob, sBlockCrypto::eAES256_HMACSHA256, orig_value, len, secret, field_encryption_secret_len) >= 0 ) {
-            return true;
-        }
-    }
     return false;
 }
 
 bool sUsr::decodeField(sMex * out, idx encoding, const void * encoded_value, idx value_len, const void * encoded_blob, idx blob_len) const
 {
-    if( encoding == eField_eAES256_HMACSHA256 ) {
-        const void * secret = ensureFieldEncryptionSecret(QPride());
-        if( secret && sBlockCrypto::decrypt(out, sBlockCrypto::eAES256_HMACSHA256, encoded_blob, blob_len, secret, field_encryption_secret_len) >= 0 ) {
-            return true;
-        }
-    }
     return false;
 }
 
 sSql* sUsr::pdb(bool initIfUndefined) const
 {
     if( !sm_actual_db && initIfUndefined ) {
-        // preserves single connection when no configs found and has qpdb!!!
         static struct sCfg
         {
             char db[64];
@@ -216,23 +185,39 @@ sSql* sUsr::pdb(bool initIfUndefined) const
             char user[64];
             char pass[256];
             udx debug;
+            udx rwTimeout;
         } cfg;
         sString::SectVar cfgVars[] = {
-            { 0, "[HIVE]" _ "db" __, "%s=" HIVE_DB, "%s", &cfg.db },
-            { 0, "[HIVE]" _ "server" __, "%s=" HIVE_DB_HOST, "%s", &cfg.server },
-            { 0, "[HIVE]" _ "user" __, "%s=" HIVE_DB_USER, "%s", &cfg.user },
-            { 0, "[HIVE]" _ "pass" __, "%s=" HIVE_DB_PWD, "%s", &cfg.pass },
-            { 0, "[HIVE]" _ "debug" __, "%" UDEC "=0", "%s", &cfg.debug }
+            {0, "[HIVE]" _ "db" __, "%s=" HIVE_DB, "%s", &cfg.db},
+            {0, "[HIVE]" _ "server" __, "%s=" HIVE_DB_HOST, "%s", &cfg.server},
+            {0, "[HIVE]" _ "user" __, "%s=" HIVE_DB_USER, "%s", &cfg.user},
+            {0, "[HIVE]" _ "pass" __, "%s=" HIVE_DB_PWD, "%s", &cfg.pass},
+            {0, "[HIVE]" _ "debug" __, "%" UDEC "=0", "%s", &cfg.debug},
+            {0, "[HIVE]" _ "rwTimeoutSec" __, "%" UDEC "=120", 0, &cfg.rwTimeout}
         };
-        const char* cfgs[] = { "hive.cfg", "~/hive.cfg", "qapp.cfg", "~/qapp.cfg", "~/.my.cnf"};
-        for(idx i = 0; i < sDim(cfgs); ++i) {
-            sFil inp(cfgs[i], sFil::fReadonly);
-            if( inp.length() ) {
-                sStr rst;
-                sString::cleanMarkup(&rst, inp, inp.length(), "//" _ "/*" __, "\n" _ "*/" __, "\n", 0, false, false, true);
-                sString::xscanSect(rst.ptr(), rst.length(), cfgVars, sDim(cfgVars));
-                if( sm_cfg_db.connect(cfg.db, cfg.server, cfg.user, cfg.pass) == sSql::eConnected ) {
-                    break;
+        const char * hm = getenv(
+#ifdef WIN32
+            "USERPROFILE"
+#else
+            "HOME"
+#endif
+        );
+        if( !hm ) {
+            hm = "~";
+        }
+        const char * cfgs00 = "hive.cfg" _ "qapp.cfg" __;
+        const char * pfx[] = { ".", hm };
+        for( const char * p = cfgs00; p && *p; p = sString::next00(p) ) {
+            for(idx i = 0; i < sDim(pfx); ++i) {
+                sStr nm("%s/%s", pfx[i], p);
+                sFil inp(nm.ptr(), sFil::fReadonly);
+                if( inp.ok() && inp.length() ) {
+                    sStr rst;
+                    sString::cleanMarkup(&rst, inp, inp.length(), "//" _ "/*" __, "\n" _ "*/" __, "\n", 0, false, false, true);
+                    sString::xscanSect(rst.ptr(), rst.length(), cfgVars, sDim(cfgVars));
+                    if( sm_cfg_db.connect(cfg.db, cfg.server, cfg.user, cfg.pass, cfg.rwTimeout) == sSql::eConnected ) {
+                        break;
+                    }
                 }
             }
         }
@@ -240,19 +225,15 @@ sSql* sUsr::pdb(bool initIfUndefined) const
         if( sm_cfg_db.status != sSql::eConnected ) {
             sQPride* qp = dynamic_cast<sQPride*>(sm_qpride);
             if( qp && qp->sql() && qp->sql()->status == sSql::eConnected) {
-                // fail over to qpride db connection
                 sm_actual_db = qp->sql();
             }
         }
-        // TODO call connection setup stored procedure
     }
     return sm_actual_db;
 }
 
-// static
 void sUsr::setQPride(sQPrideBase * qpride)
 {
-    // May be called by ~sQPrideBase, so we cannot use dynamic_cast<sQPride*>(sm_qpride)
     if( sm_qpride && sm_qpride != qpride ) {
         if( sm_actual_db != &sm_cfg_db ) {
             sm_actual_db = 0;
@@ -281,8 +262,10 @@ void sUsr::setQPride(sQPrideBase * qpride)
 void sUsr::session(udx sid, udx uid, idx key, const char* ipaddr)
 {
     reset();
+#ifdef _DEBUG
+#endif
     {
-        std::auto_ptr<sSql::sqlProc> p(db().Proc("sp_user_session_v2"));
+        std::unique_ptr<sSql::sqlProc> p(db().Proc("sp_user_session_v2"));
         if( p.get() ) {
             time_t t = time(0);
             const udx now = mktime(gmtime(&t));
@@ -326,91 +309,145 @@ void sUsr::batch(const char * ipaddr)
     }
 }
 
-void sUsr::initFolders(bool keepHierarchy)
+sRC sUsr::initProjectFolders() const
 {
-    // TODO should be done from admin account
+    sDic<udx> groupPerms;
+    sVec<Project> projRoles;
+    if( sRC rc = allProjectRoles(projRoles, m_currProj.projectId) ) {
+        return rc;
+    }
+    for (idx i = 0; i < projRoles.dim(); i++) {
+        udx grpId = projRoles[i].groupId;
+        *groupPerms.set(&grpId, sizeof(udx)) = projRoleToPerm(projRoles[i].role);
+    }
     const bool su = m_SuperUserMode;
-    std::auto_ptr<sUsrFolder> sysFolder(sSysFolder::Home(*this, true));
+    std::unique_ptr<sUsrFolder> sysFolder(sSysFolder::Inbox(*this, true));
     if( sysFolder.get() ) {
         m_SuperUserMode = true;
-        setPermission(m_PrimaryGroup, sysFolder->Id(), ePermCanRead | ePermCanBrowse | ePermCanWrite, eFlagDefault, 0);
+        sRC rc = clearAndSetPermissions(sysFolder->Id(), groupPerms);
+        m_SuperUserMode = su;
+        if( rc ) {
+            return rc;
+        }
+    }
+    sysFolder.reset(sSysFolder::Trash(*this, true));
+    if( sysFolder.get() ) {
+        m_SuperUserMode = true;
+        sRC rc = clearAndSetPermissions(sysFolder->Id(), groupPerms);
+        m_SuperUserMode = su;
+        if( rc ) {
+            return rc;
+        }
+    }
+    return sRC::zero;
+}
+
+void sUsr::initFolders(bool keepHierarchy)
+{
+    const udx group = m_PrimaryGroup;
+    const bool su = m_SuperUserMode;
+    std::unique_ptr<sUsrFolder> sysFolder(sSysFolder::Home(*this, true));
+    if( sysFolder.get() ) {
+        m_SuperUserMode = true;
+        setPermission(group, sysFolder->Id(), ePermCanRead | ePermCanBrowse | ePermCanWrite, eFlagDefault, 0);
         m_SuperUserMode = su;
     }
     sysFolder.reset(sSysFolder::Inbox(*this, true));
     if( sysFolder.get() ) {
         m_SuperUserMode = true;
-        setPermission(m_PrimaryGroup, sysFolder->Id(), ePermCanRead | ePermCanBrowse | ePermCanWrite, eFlagDefault, 0);
+        setPermission(group, sysFolder->Id(), ePermCanRead | ePermCanBrowse | ePermCanWrite, eFlagDefault, 0);
         m_SuperUserMode = su;
-#if 0
-        sVec<sHiveId> orph;
-        sUsrFolder::orphans(*this, orph, "");
-        for(idx i = 0; i < orph.dim(); ++i) {
-            std::auto_ptr<sUsrObj> o(objFactory(orph[i]));
-            if( o.get() && o->Id() ) {
-                const char * h = o->propGet("hierarchy");
-                if( keepHierarchy && h && h[0] && strncasecmp(h, "/http", 5) != 0 ) {
-                    std::auto_ptr<sUsrFolder> f(sysFolder->createSubFolder("%s", h));
-                    if( f.get() ) {
-                        f->attach(*o.get());
-                    }
-                } else {
-                    sysFolder->attach(*o.get());
-                }
-            }
-        }
-#endif
     }
     sysFolder.reset(sSysFolder::Trash(*this, true));
     if( sysFolder.get() ) {
         m_SuperUserMode = true;
-        setPermission(m_PrimaryGroup, sysFolder->Id(), ePermCanRead | ePermCanBrowse | ePermCanWrite, eFlagDefault, 0);
+        setPermission(group, sysFolder->Id(), ePermCanRead | ePermCanBrowse | ePermCanWrite, eFlagDefault, 0);
         m_SuperUserMode = su;
     }
-#if 0
-    // find all user visible objects, given criteria
-    if( false ) {
-        sUsrObjRes all;
-        objs2("folder,sysfolder", all);
-        for(sUsrObjRes::IdIter it = all.first(); all.has(it); all.next(it)) {
-            std::auto_ptr<sUsrObj> o(objFactory(*(all.id(it))));
-            if( o.get() ) {
-                ((sUsrFolder*)o.get())->fixChildrenPath();
-            }
+    sUsrObjRes us;
+    objs2("user-settings", us);
+    if( ! us.dim() ) {
+        m_SuperUserMode = true;
+        sHiveId usid;
+        sRC rc = objCreate(usid, "user-settings");
+        if( !rc ) {
+            setPermission(group, usid, ePermCanRead | ePermCanBrowse | ePermCanWrite, eFlagDefault, 0);
         }
+        m_SuperUserMode = su;
     }
-#endif
 }
 
-sUsr::ELoginResult sUsr::login(const char * email, const char * pswd, const udx token, const char * ipaddr, idx * plogCount)
+sUsr::ELoginResult sUsr::init2(const udx userId, const char * ipaddr, idx * plogCount)
+{
+    ELoginResult status = eUserOperational;
+    time_t t = time(0);
+    udx gmt_time = mktime(gmtime(&t));
+    sSql::sqlProc* p = db().Proc("sp_user_login");
+    p->Add(userId).Add(ipaddr).Add(gmt_time).Add(false);
+    sVarSet tbl;
+    p->getTable(&tbl);
+    if( !db().HasFailed() && tbl.rows > 0 && tbl.cols > 1) {
+        if( init(userId) ) {
+            m_SID = tbl.uval(0, 0, 0);
+            m_SIDrnd = tbl.ival(0, 1, 0);
+            if( plogCount ) {
+                *plogCount = tbl.ival(0, 2, 0);
+            }
+            if( tbl.ival(0, 2, 0) < 2 ) {
+                initFolders(true);
+            }
+        } else {
+            status = eUserInternalError;
+        }
+    } else {
+        status = eUserInternalError;
+    }
+    delete p;
+    return status;
+}
+
+sUsr::ELoginResult sUsr::login(const char * email, const char * pswd, const char * ipaddr, idx * plogCount)
 {
     ELoginResult status = eUserBlocked;
     sVarSet t;
     sStr tmp;
     const char * lemail = db().protect(tmp, email);
     tmp.add0(2);
-    sStr sql("SELECT is_active_fg, userID, is_email_valid_fg, is_admin_fg, pswd, pswd_reset_id, "
-        "loginTm + INTERVAL (SELECT IF(val REGEXP '^[0-9]+$', val, NULL) FROM QPCfg WHERE par = 'user.accountExpireDays') DAY < NOW() AS account_expired, "
-        "IFNULL(pswd_changed, NOW() - INTERVAL 200 YEAR) + INTERVAL (SELECT IF(val REGEXP '^[0-9]+$', val, NULL) FROM QPCfg WHERE par = 'user.pswdExpireDays') DAY < NOW() AS pswd_expired "
-        "FROM UPUser WHERE email = '%s' AND `type` = 'user'", lemail);
+    sStr sql("SELECT is_active_fg, userID, is_email_valid_fg, is_admin_fg, pswd"
+        ", loginTm + INTERVAL (SELECT IF(val REGEXP '^[0-9]+$', val, NULL) FROM QPCfg WHERE par = 'user.accountExpireDays') DAY < NOW() AS account_expired"
+        ", IFNULL(pswd_changed, NOW() - INTERVAL 200 YEAR) + INTERVAL (SELECT IF(val REGEXP '^[0-9]+$', val, NULL) FROM QPCfg WHERE par = 'user.pswdExpireDays') DAY < NOW() AS pswd_expired"
+        ", UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(IFNULL(login_failed_date, NOW() - INTERVAL 1 YEAR)) AS login_failed_secs_ago"
+        ", (SELECT IF(val REGEXP '^[0-9]+$', val * 60, 0) FROM QPCfg WHERE par = 'user.loginAttemptsInMinutes') As login_lock_period_sec"
+        ", (SELECT IF(val REGEXP '^[0-9]+$', val, 0) != 0 FROM QPCfg WHERE par = 'user.loginAttemptsWarnLockLast') As login_failed_warn"
+        ", login_failed_count, (SELECT IF(val REGEXP '^[0-9]+$', val, 0) FROM QPCfg WHERE par = 'user.loginAttemptsMax') AS login_failed_count_max"
+        ", (SELECT IF(val REGEXP '^[0-9]+$', val, 0) FROM QPCfg WHERE par = 'user.loginAttemptsLockAccount') AS login_failed_lock_acc"
+        " FROM UPUser WHERE email = '%s' AND `type` = 'user'", lemail);
     db().getTable(&t, "%s", sql.ptr());
     if( t.rows == 1 ) {
-        if( token ) {
-            status = (token == t.uval(0, t.colId("pswd_reset_id"))) ? eUserOperational : eUserNotFound;
+        const bool lock_account = t.boolval(0, t.colId("login_failed_lock_acc"));
+        const char * pp = t.val(0, t.colId("pswd"));
+        sStr upgraded_pp;
+        if( checkPassword(pp, 0, pswd, email, t.val(0, t.colId("userID")), &upgraded_pp) ) {
+            if( upgraded_pp.length() ) {
+                db().execute("UPDATE UPUser SET pswd='%s', modifTm = CURRENT_TIMESTAMP WHERE userID=%" UDEC, upgraded_pp.ptr(), t.uval(0, t.colId("userID")));
+                audit(eUserAuditLogin, "upgrade_password", "userID=%" UDEC "; from='%s'; to='%s'", t.uval(0, t.colId("userID")), pp, upgraded_pp.ptr());
+                pp = upgraded_pp.ptr();
+            }
         } else {
-            const char * pp = t.val(0, t.colId("pswd"));
-            sStr upgraded_pp;
-            if( checkPassword(pp, 0, pswd, email, t.val(0, t.colId("userID")), &upgraded_pp) ) {
-                if( upgraded_pp.length() ) {
-                    db().execute("UPDATE UPUser SET pswd='%s', modifTm = CURRENT_TIMESTAMP WHERE userID=%" UDEC, upgraded_pp.ptr(), t.uval(0, t.colId("userID")));
-                    audit(eUserAuditLogin, "upgrade_password", "userID=%" UDEC "; from='%s'; to='%s'", t.uval(0, t.colId("userID")), pp, upgraded_pp.ptr());
-                    pp = upgraded_pp.ptr();
-                }
+            if( t.boolval(0, t.colId("login_failed_warn")) && (t.ival(0, t.colId("login_failed_count_max")) - t.ival(0, t.colId("login_failed_count")) == 2) ) {
+                status = lock_account ? eUserLoginAttemptsWarn1Left : eUserNotFound;
+            } else if( lock_account && t.boolval(0, t.colId("login_failed_warn")) && (t.ival(0, t.colId("login_failed_count_max")) - t.ival(0, t.colId("login_failed_count")) == 1) ) {
+                status = lock_account ? eUserLoginAttemptsNowLocked : eUserNotFound;
             } else {
                 status = eUserNotFound;
             }
+            if( t.uval(0, t.colId("login_failed_secs_ago")) <= t.uval(0, t.colId("login_lock_period_sec")) ) {
+                db().execute("UPDATE UPUser SET login_failed_date = IFNULL(login_failed_date, NOW()), login_failed_count = login_failed_count + 1 WHERE userID=%" UDEC, t.uval(0, t.colId("userID")));
+            } else {
+                db().execute("UPDATE UPUser SET login_failed_date = NOW(), login_failed_count = 1 WHERE userID=%" UDEC, t.uval(0, t.colId("userID")));
+            }
         }
         if( status == eUserBlocked ) {
-            // admin can get in even with invalid email or expired account!
             const bool is_admin = t.boolval(0, t.colId("is_admin_fg"));
             if( !t.boolval(0, t.colId("is_email_valid_fg")) && !is_admin ) {
                 status = eUserEmailNotValidated;
@@ -418,6 +455,16 @@ sUsr::ELoginResult sUsr::login(const char * email, const char * pswd, const udx 
                 status = eUserAccountExpired;
             } else if( t.boolval(0, t.colId("pswd_expired")) ) {
                 status = eUserPswdExpired;
+            } else if( t.uval(0, t.colId("login_failed_count_max")) > 0 && t.uval(0, t.colId("login_failed_count")) >= t.uval(0, t.colId("login_failed_count_max")) ) {
+                if( lock_account ) {
+                    status = eUserLoginAttemptsTooMany;
+                } else {
+                    if( t.uval(0, t.colId("login_failed_secs_ago")) <= t.uval(0, t.colId("login_lock_period_sec")) ) {
+                        status = eUserLoginAttemptsTooManyTryLater;
+                    } else if( t.boolval(0, t.colId("is_active_fg")) ) {
+                        status = eUserOperational;
+                    }
+                }
             } else if( t.boolval(0, t.colId("is_active_fg")) ) {
                 status = eUserOperational;
             }
@@ -426,31 +473,7 @@ sUsr::ELoginResult sUsr::login(const char * email, const char * pswd, const udx 
         status = eUserNotFound;
     }
     if( status == eUserOperational ) {
-        udx userId = t.uval(0, t.colId("userID"));
-        time_t t = time(0);
-        udx gmt_time = mktime(gmtime(&t));
-        sSql::sqlProc* p = db().Proc("sp_user_login");
-        p->Add(userId).Add(ipaddr).Add(gmt_time).Add(false);
-        sVarSet tbl;
-        p->getTable(&tbl);
-        if( !db().HasFailed() && tbl.rows > 0 && tbl.cols > 1) {
-            if( init(userId) ) {
-                m_SID = tbl.uval(0, 0, 0);
-                m_SIDrnd = tbl.ival(0, 1, 0);
-                if( plogCount ) {
-                    *plogCount = tbl.ival(0, 2, 0);
-                }
-                // ~~first time login only, to prevent sysfolder dupes, this should completely go away if there no new accounts registered before this fix
-                if( tbl.ival(0, 2, 0) < 2 ) {
-                    initFolders(true);
-                }
-            } else {
-                status = eUserInternalError;
-            }
-        } else {
-            status = eUserInternalError;
-        }
-        delete p;
+        status = init2(t.uval(0, t.colId("userID")), ipaddr, plogCount);
     }
     audit(eUserAuditLogin, __func__, "email='%s'; sessionID='%" UDEC "'; rnd='%" DEC "'; source='%s'; result='%" DEC, email, m_SID, m_SIDrnd, ipaddr, (idx)status);
     return status;
@@ -468,6 +491,94 @@ void sUsr::logout(const char * ipaddr)
     loginAsGuest();
 }
 
+sUsr::ELoginResult sUsr::loginByEmail(const char * email, const char * ipaddr, idx * plogCount, const char * log_data)
+{
+    sVarSet t;
+    sStr tmp;
+    db().getTable(&t, "SELECT is_active_fg, is_email_valid_fg, userID"
+        ", (loginTm + INTERVAL (SELECT IF(val REGEXP '^[0-9]+$', val, NULL) FROM QPCfg WHERE par = 'user.accountExpireDays') DAY < NOW() AND !is_admin_fg) AS account_expired"
+        ", IFNULL(pswd_changed, NOW() - INTERVAL 200 YEAR) + INTERVAL (SELECT IF(val REGEXP '^[0-9]+$', val, NULL) FROM QPCfg WHERE par = 'user.pswdExpireDays') DAY < NOW() AS pswd_expired"
+        ", login_failed_count >= (SELECT IF(val REGEXP '^[0-9]+$', val, login_failed_count - 1) FROM QPCfg WHERE par = 'user.loginAttemptsMax')"
+        "FROM UPUser WHERE email = '%s' AND `type` = 'user'",  db().protect(tmp, email));
+    ELoginResult res = eUserNotFound;
+    if( t.rows == 1 ) {
+        if( !t.uval(0, 0) ) {
+            res = eUserBlocked;
+        } else if( !t.uval(0, 1) ) {
+            res = eUserEmailNotValidated;
+        } else if( t.boolval(0, 3) ) {
+            res = eUserAccountExpired;
+        } else if( t.boolval(0, 4) ) {
+            res = eUserPswdExpired;
+        } else if( t.boolval(0, 5) ) {
+            res = eUserLoginAttemptsTooMany;
+        } else {
+            res = init2(t.uval(0, t.colId("userID")), ipaddr, plogCount);
+        }
+    }
+    audit(eUserAuditLogin, __func__, "email='%s'; result='%" UDEC "'; auth='%s'", email, (udx)res, log_data ? log_data : "" );
+    return res;
+}
+
+sUsr::ELoginResult sUsr::loginByToken(const char * email, const char * token, const char * ipaddr, idx * plogCount, const char * log_data)
+{
+    sVarSet t;
+    sStr tmp;
+    db().getTable(&t, "SELECT u.is_active_fg, u.is_email_valid_fg, u.userID, g.groupID AS creatorID"
+        ", (u.loginTm + INTERVAL (SELECT IF(val REGEXP '^[0-9]+$', val, NULL) FROM QPCfg WHERE par = 'user.accountExpireDays') DAY < NOW() AND !u.is_admin_fg) AS account_expired"
+        " FROM UPUser u JOIN UPGroup g USING(userID) WHERE u.email = '%s' AND u.`type` = 'user' AND g.flags = -1",  db().protect(tmp, email));
+    ELoginResult res = eUserNotFound;
+    if( t.rows == 1 ) {
+        if( !t.uval(0, 0) ) {
+            res = eUserBlocked;
+        } else if( !t.uval(0, 1) ) {
+            res = eUserEmailNotValidated;
+        } else if( t.boolval(0, 4) ) {
+            res = eUserAccountExpired;
+        } else {
+            const char * creatorID = t.val(0, t.colId("creatorID"));
+            if ( creatorID && sLen(creatorID) ) {
+                sUsrObjRes token_res;
+                bool old_SuperUserMode = m_SuperUserMode;
+                m_SuperUserMode = true;
+                objs2("^user-settings$", token_res, 0, "_creator", creatorID);
+                m_SuperUserMode = old_SuperUserMode;
+
+                if ( token_res.dim() == 1 ) {
+                    const sHiveId * id = NULL;
+                    sUsrObj * o = NULL;
+                    if ( ( id = token_res.firstId() ) && ( o = objFactory(*id) ) ) {
+                        sUsrObjPropsTree props_tree(*this, o->getTypeName());
+                        o->propBulk(props_tree.getTable(), 0, "account_token_hash" _ "account_token_expiration" __);
+                        props_tree.useTable(props_tree.getTable());
+
+                        const sUsrObjPropsNode * node = props_tree.firstChild("account_token");
+                        while ( node ) {
+                            const char * hash = node->findValue("account_token_hash");
+                            if ( hash && sPassword::checkPassword(hash, 0, token) ) {
+                                const sUsrObjPropsNode * expir_node = node->find("account_token_expiration");
+                                if ( expir_node && expir_node->hasValue() && time(0) > expir_node->ivalue() ) {
+                                    res = eUserTokenExpired;
+                                } else {
+                                    res = init2(t.uval(0, t.colId("userID")), ipaddr, plogCount);
+                                }
+                                break;
+                            }
+                            node = node->nextSibling("account_token");
+                        }
+                    } else {
+                        res = eUserInternalError;
+                    }
+                }
+            } else {
+                res = eUserInternalError;
+            }
+        }
+    }
+    audit(eUserAuditLogin, __func__, "email='%s'; result='%" UDEC "'; auth='%s'", email, (udx)res, log_data ? log_data : "" );
+    return res;
+}
+
 sUsr::ELoginResult sUsr::loginAsGuest(void)
 {
     udx g = db().uvalue(0, "SELECT userID FROM UPUser WHERE email = '%s' AND `type` = 'system'", "guest");
@@ -483,14 +594,12 @@ sUsr::ELoginResult sUsr::loginAsGuest(void)
 
 sUsr::sUsr(idx usrid)
 {
-    prohibitSelfRegistration = 0;
-    checkComplexity = 1;
     m_SuperUserMode = false;
     reset();
     init(usrid);
 }
 
-sUsr::sUsr(const char* service_name, bool su_mode /* = false */)
+sUsr::sUsr(const char* service_name, bool su_mode)
 {
     m_SuperUserMode = false;
     udx srv = 0;
@@ -539,7 +648,7 @@ void sUsr::reset(void)
         for(idx k = 0; k < m_ObjPermission->dim(); ++k) {
             const sHiveId * id = static_cast<const sHiveId*>(m_ObjPermission->id(k));
             log.printf(",%s", id->print());
-            if( log.length() > 256 ) { // split into multiple lines
+            if( log.length() > 256 ) {
                 audit(audit(), "accessed", "objID='%s'", log.ptr(1));
                 log.cut(0);
             }
@@ -562,15 +671,18 @@ void sUsr::reset(void)
     m_ObjPermission.reset();
     m_AllowExpiredObjects = false;
     err.cut0cut(0);
+    m_currProj.projectId = 0;
+    m_projMembership.destroy();
 }
 
-bool sUsr::init(udx userId)
+bool sUsr::init(udx userId, udx projectId)
 {
     if( userId == 0 ) {
         reset();
         return true;
     }
-    if( m_Id != userId ) {
+
+    if( m_Id != userId || projectId ) {
         sSql::sqlProc* p = db().Proc("sp_user_init");
         if( p ) {
             sVarSet usr;
@@ -585,57 +697,10 @@ bool sUsr::init(udx userId)
                 m_Email.replace(usr.val(0, usr.colId("email")));
                 m_First.replace(usr.val(0, usr.colId("first_name")));
                 m_Last.replace(usr.val(0, usr.colId("last_name")));
-                if( m_IsAdmin && m_SuperUserMode ) {
-                    m_membership.printf(" TRUE ");
-                    for(idx ir = 1; ir < usr.rows; ++ir) {
-                        if( usr.ival(ir, 1) == -1 ) {
-                            m_PrimaryGroup = usr.uval(ir, 0);
-                            break;
-                        }
-                    }
-                } else {
-                    sDic<idx> parDic;
-                    sStr directParents;
-                    m_membership.printf("((p.groupID IN (");
-                    for(idx ir = 1; ir < usr.rows; ++ir) {
-                        if( m_PrimaryGroup == 0 && usr.ival(ir, 1) == -1 ) {
-                            m_PrimaryGroup = usr.uval(ir, 0);
-                        }
-                        const char * p = usr.val(ir, 2);
-                        m_membership.printf("%s,", usr.val(ir, 0));
-                        const char * curSlash;
-                        sStr t;
-                        for(curSlash = sString::skipWords(p + 1, 0, 1, "/" __); curSlash; curSlash = sString::skipWords(curSlash + 1, 0, 1, "/" __)) {
-                            t.cut(0);
-                            t.add(p, curSlash - p);
-                            t.add0();
-                            parDic.set(t.ptr());
-                        }
-                        if( directParents.length() > 0 ) {
-                            directParents.printf(" OR ");
-                        }
-                        if( t.ptr() ) {
-                            directParents.printf("groupPath like '%s%%'", t.ptr());
-                        }
-                        parDic.set(p);
-                    }
-                    // direct membership rule
-                    m_membership.cut(-1);
-                    m_membership.printf(") AND (p.flags & %" UDEC ") = 0) OR ", (udx)(eFlagInheritDown | eFlagInheritUp));
-                    // inherit down
-                    m_membership.printf("((g.groupPath in (");
-                    for(idx i = 0; i < parDic.dim(); ++i) {
-                        if( i > 0 ) {
-                            m_membership.printf(",");
-                        }
-                        m_membership.printf("'%s'", (const char *)(parDic.id(i)));
-                    }
-                    m_membership.printf(")) AND (p.flags & %" UDEC ") != 0)", (udx)eFlagInheritDown);
-                    if( directParents ) {
-                        // inherit up
-                        m_membership.printf(" OR ((%s) AND (p.flags & %" UDEC ") != 0) )", directParents.ptr(), (udx)eFlagInheritUp);
-                    }
-                }
+
+                setProject(projectId);
+                sHiveId::mapDomainReset();
+                getDomainIdDescr(0);
             }
             delete p;
         }
@@ -647,17 +712,16 @@ sSql::sqlProc* sUsr::getProc(const char* sp_name) const
 {
     sSql::sqlProc* p = (sp_name && sp_name[0]) ? db().Proc(sp_name) : 0;
     if( p ) {
-        p->Add(m_PrimaryGroup).Add(m_SuperUserMode ? " TRUE " : m_membership.ptr());
+        if( m_currProj.projectId ) {
+            p->Add(m_currProj.groupId).Add(m_SuperUserMode ? " TRUE " : m_projMembership.ptr());
+        } else {
+            p->Add(m_PrimaryGroup).Add(m_SuperUserMode ? " TRUE " : m_membership.ptr());
+        }
     }
     return p;
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Account settings
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 bool sUsr::sendEmailValidation(const char* baseURL, const char* email, const char* firstName, const char* lastName)
 {
@@ -673,17 +737,146 @@ bool sUsr::sendEmailValidation(const char* baseURL, const char* email, const cha
     }
     if( email && firstName && lastName ) {
         sUsr admin("qpride");
-        // TODO add checksum
         sStr body("%s %s,\n\n"
                 "Your account on HIVE was successfully created.\n"
                 "Now, in order to verify your email address, please, click the link below:\n"
                 "%s?cmd=userV1&emailAct=%s\n"
-                "\nHIVE Team.\n", firstName, lastName, baseURL, email);
-        sUsrEmail eml(admin, email, "HIVE registration", body.ptr());
+                "\nHIVE Team.\n", firstName, lastName, baseURL, URLEncode(email, tmp, eUrlEncode_ProcessMarkChars));
+        sUsrEmail eml(admin, email, "HIVE registration");
+        eml.body("%s", body.ptr());
+        sQPrideBase * qp = QPride();
+        if( qp ) {
+            sStr adminEmail;
+            qp->cfgStr(&adminEmail, 0, "emailAddr", 0);
+            if( adminEmail ) {
+                eml.addRecipient(sUsrEmail::eBcc, adminEmail);
+            }
+        }
+        eml.draft(false);
     } else {
-        err.printf(0, "Email address %s is not recognized", email);
+        err.printf(0, "Email address is not recognized");
     }
     audit(eUserAuditAdmin, __func__, "email='%s'; result='%s'", email, err ? err.ptr() : "ok");
+    return !err;
+}
+
+bool sUsr::sendEmailOnFinish(const idx status, sUsrObj& proc_obj)
+{
+    sVarSet t;
+    sStr tmp;
+
+    const char* email = Email();
+
+    if( email ) {
+        sQPrideBase * qp = QPride();
+        if( qp ) {
+            bool send_email = false;
+
+            sStr process_notify;
+            proc_obj.propGet("notify", &process_notify);
+
+            if ( !process_notify ) {
+                process_notify.printf(0,"Use value from user settings");
+            }
+
+            sStr user_notify;
+            sUsrObjRes us;
+            objs2("user-settings", us);
+            if( us.dim() ) {
+                const sHiveId * hive_id = us.firstId();
+                if ( hive_id ) {
+                    sUsrObj setting_obj(*this, *hive_id);
+                    setting_obj.propGet("notify", &user_notify);
+                }
+            }
+
+            if ( !user_notify ) {
+                user_notify.printf(0,"Failures Only");
+            }
+
+            if ( sIsExactly(process_notify, "Use value from user settings") ) {
+                if ( sIsExactly(user_notify, "Always") ) {
+                    send_email = true;
+                }
+                else if ( sIsExactly(user_notify, "Failures Only") && status > sQPrideBase::eQPReqStatus_Done ) {
+                    send_email = true;
+                }
+            }
+            else if ( sIsExactly(process_notify, "Always") ) {
+                send_email = true;
+            }
+            else if ( sIsExactly(process_notify, "Failures Only") && status > sQPrideBase::eQPReqStatus_Done ) {
+                send_email = true;
+            }
+
+
+            if (send_email) {
+                const char* name = Name();
+                name = name ? name : "Dear User";
+
+                const char* fin_status;
+                const char* body_phrase;
+                switch(status) {
+                    case sQPrideBase::eQPReqStatus_Suspended:
+                        fin_status = "Failed";
+                        body_phrase = "was suspended by a user or system";
+                        break;
+                    case sQPrideBase::eQPReqStatus_Done:
+                        fin_status = "Finished";
+                        body_phrase = "finished successfully";
+                        break;
+                    default:
+                        fin_status = "Failed";
+                        body_phrase = "finished unsuccessfully";
+                }
+
+                sStr url;
+                qp->cfgStr(&url, 0, "baseURL");
+
+                sStr oid;
+                proc_obj.IdStr(&oid);
+                oid.add0(2);
+
+                sStr submitter;
+                sUsrObjRes actions;
+                objs2("^action$+", actions, 0, "name", "open", "url");
+
+                for(sUsrObjRes::IdIter it = actions.first(); actions.has(it); actions.next(it)) {
+                    sUsrObj action(*this, *actions.id(it));
+                    const char* type_name = action.propGet("type_name");
+                    if( action.Id() && type_name && strcmp(type_name, proc_obj.getTypeName()) == 0 ) {
+                        sString::searchAndReplaceStrings(&submitter, action.propGet("url"), 0, "$(ids)" __, oid.ptr(), sIdxMax, true);
+                        if( submitter ) {
+                            break;
+                        }
+                    }
+                }
+                if ( !submitter ) {
+                    submitter.printf("?cmd=home");
+                }
+
+                sStr subject_line("Process %s %s", oid.ptr(), fin_status);
+                sStr body("%s,\n\n"
+                        "Your computation %s.\n"
+                        "%sdna.cgi%s\n"
+                        "\nHIVE Team.\n", name, body_phrase, url.ptr(), submitter.ptr());
+
+                sUsrEmail eml(*this, email, subject_line.ptr(), body.ptr());
+                const idx on = qp->cfgInt(0, "ccAdminOnProcFail", 0);
+                if( on ) {
+                    sStr adminEmail;
+                    qp->cfgStr(&adminEmail, 0, "emailAddr", 0);
+                    if( adminEmail ) {
+                        eml.addRecipient(sUsrEmail::eBcc, adminEmail);
+                    }
+                }
+                eml.draft(false);
+            }
+        }
+    } else {
+        err.printf(0, "Email address is not recognized");
+    }
+    audit(eUserAuditAdmin, __func__, "email='%s'; result='%s'", email ? email : "", err ? err.ptr() : "ok");
     return !err;
 }
 
@@ -694,7 +887,6 @@ bool sUsr::verifyEmail(const char* baseURL, const char* email)
     db().getTable(&t, "SELECT is_active_fg, is_email_valid_fg FROM UPUser WHERE email = '%s' AND `type` = 'user'",  db().protect(tmp, email));
     if( t.rows == 1 ) {
         if( !t.uval(0, 1) ) {
-            // TODO add checksum validation here
             db().execute("UPDATE UPUser SET is_email_valid_fg = TRUE WHERE email = '%s' AND `type` = 'user'", tmp.ptr());
         }
         if( !t.uval(0, 0) ) {
@@ -702,7 +894,7 @@ bool sUsr::verifyEmail(const char* baseURL, const char* email)
             err.printf(0, "Account activation request was submitted");
         }
     } else {
-        err.printf(0, "Email address %s is not recognized", email);
+        err.printf(0, "Email address is not recognized");
         return false;
     }
     audit(eUserAuditAdmin, __func__, "email='%s'; result='%s'", email, err ? err.ptr() : "ok");
@@ -716,20 +908,25 @@ bool sUsr::sendAccountActivation(const char* baseURL, const char* email)
     db().getTable(&t, "SELECT first_name, last_name, email FROM UPUser WHERE email = '%s' AND `type` = 'user'",  db().protect(tmp, email));
     if( t.rows == 1 ) {
         sUsr admin("qpride");
-        // TODO add checksum
         sStr body("Dear Admin,\n\n"
                 "%s %s has applied for access to HIVE from email %s.\n"
                 "To activate this account, please, click the link below:\n"
                 "%s?cmd=userV3&emailAct=%s\n"
-                "\nHIVE Team.\n", t.val(0, 0), t.val(0, 1), t.val(0, 2), baseURL, t.val(0, 2));
+                "\nHIVE Team.\n", t.val(0, 0), t.val(0, 1), t.val(0, 2), baseURL, URLEncode(t.val(0, 2), tmp, eUrlEncode_ProcessMarkChars));
         sQPrideBase * qp = QPride();
         sStr adminEmail;
         if( qp ) {
             qp->cfgStr(&adminEmail, 0, "emailAddr", 0);
         }
-        sUsrEmail eml(admin, adminEmail, "HIVE account activation request", body.ptr());
+        if( adminEmail ) {
+            sUsrEmail eml(admin, adminEmail, "HIVE account activation request");
+            eml.body("%s", body.ptr());
+            eml.draft(false);
+        } else {
+            err.printf(0, "Admin email address is not configured");
+        }
     } else {
-        err.printf(0, "Email address %s is not recognized", email);
+        err.printf(0, "Email address is not recognized");
     }
     audit(eUserAuditAdmin, __func__, "email='%s'; result='%s'", email, err ? err.ptr() : "ok");
     return !err;
@@ -744,18 +941,26 @@ bool sUsr::accountActivate(const char* baseURL, const char* email)
         "FROM UPUser WHERE email = '%s' AND `type` = 'user'",  db().protect(tmp, email));
     if( t.rows == 1 ) {
         if( !t.uval(0, 0) || t.boolval(0, 1) ) {
-            // TODO add checksum validation here
             db().execute("UPDATE UPUser SET is_active_fg = TRUE, loginTm = NULL WHERE email = '%s' AND `type` = 'user'", tmp.ptr());
             t.empty();
             db().getTable(&t, "SELECT is_active_fg, first_name, last_name, email FROM UPUser WHERE email = '%s' AND `type` = 'user'",  tmp.ptr());
             if( t.rows == 1 && t.uval(0, 0) ) {
                 sUsr admin("qpride");
-                // TODO add checksum
                 sStr body("%s %s,\n\n"
                         "Your account on HIVE is now activated.\n"
                         "Please click here to login: %s?cmd=login&login=%s\n"
-                        "\nHIVE Team.\n", t.val(0, 1), t.val(0, 2), baseURL, email);
-                sUsrEmail eml(admin, t.val(0, 3), "HIVE account activation confirmation", body.ptr());
+                        "\nHIVE Team.\n", t.val(0, 1), t.val(0, 2), baseURL, URLEncode(email, tmp, eUrlEncode_ProcessMarkChars));
+                sUsrEmail eml(admin, t.val(0, 3), "HIVE account activation confirmation");
+                eml.body("%s", body.ptr());
+                sQPrideBase * qp = QPride();
+                if( qp ) {
+                    sStr adminEmail;
+                    qp->cfgStr(&adminEmail, 0, "emailAddr", 0);
+                    if( adminEmail ) {
+                        eml.addRecipient(sUsrEmail::eBcc, adminEmail);
+                    }
+                }
+                eml.draft(false);
             } else {
                 err.printf(0, "Activation unsuccessful");
             }
@@ -763,7 +968,7 @@ bool sUsr::accountActivate(const char* baseURL, const char* email)
             err.printf(0, "Was active already");
         }
     } else {
-        err.printf(0, "Email address %s is not recognized", email);
+        err.printf(0, "Email address is not recognized");
         return false;
     }
     audit(eUserAuditAdmin, __func__, "email='%s'; result='%s'", email, err ? err.ptr() : "ok");
@@ -781,7 +986,7 @@ bool sUsr::groupActivate(idx groupId)
             t.empty();
             db().getTable(&t, "SELECT is_active_fg, groupPath FROM UPGroup WHERE groupID = %" UDEC, groupId);
             if( t.rows == 1 && t.uval(0, 0) ) {
-                err.printf(0, "Group membership '%s' activation successful", t.val(0, 1));
+                err.printf(0, "Group membership activation successful");
                 res = true;
             } else {
                 err.printf(0, "Activation unsuccessful");
@@ -801,19 +1006,23 @@ bool sUsr::groupCreate(const char* name, const char* abbr, const char* parent)
 {
     bool res = false;
     if( !name || !name[0] || !abbr || !abbr[0] ) {
-        err.printf("Missing group name and/or abbreviation:\nName: '%s'\nAbbreviation: '%s'\n", name, abbr);
+        err.printf("Missing group name and/or abbreviation");
     } else if( !parent || !parent[0] || parent[0] != '/' || parent[strlen(parent) - 1] != '/' ) {
-        err.printf("Invalid parent group path '%s'.", parent);
+        err.printf("Invalid parent group path");
     } else {
-        if( db().uvalue(0, "SELECT userID FROM UPUser WHERE first_name = '%s%s/' OR (first_name LIKE '%s%%' AND last_name LIKE '%s') AND `type` = 'group'", parent, abbr, parent, name) != 0 ) {
+        sStr protectedName, protectedAbbr, protectedParent;
+        db().protect(protectedName, name);
+        db().protect(protectedAbbr, abbr);
+        db().protect(protectedParent, parent);
+
+        if( db().uvalue(0, "SELECT userID FROM UPUser WHERE first_name = '%s%s/' OR (first_name LIKE '%s%%' AND last_name LIKE '%s') AND `type` = 'group'", protectedParent.ptr(), protectedAbbr.ptr(), protectedParent.ptr(), protectedName.ptr()) != 0 ) {
             err.printf("Group with same name and/or abbreviation already exists.");
         } else if( updateStart() ) {
-            // email now determines if a person can add new sub groups to a group
-            db().execute("INSERT INTO UPUser (first_name, last_name, email, is_active_fg, is_email_valid_fg, pswd, `type`)"
-                    " VALUES ('%s%s/', '%s', '%s', TRUE, TRUE, '--not an account--', 'group')", parent, abbr, name, m_Email.ptr());
+            db().execute("INSERT INTO UPUser (first_name, last_name, email, is_active_fg, is_email_valid_fg, pswd, `type`, createTm)"
+                    " VALUES ('%s%s/', '%s', '%s', TRUE, TRUE, '--not an account--', 'group', CURRENT_TIMESTAMP)", protectedParent.ptr(), protectedAbbr.ptr(), protectedName.ptr(), m_Email.ptr());
             if( !db().HasFailed() ) {
                 db().execute("INSERT INTO UPGroup (userID, flags, is_active_fg, groupPath)"
-                        " VALUES ((SELECT userID FROM UPUser WHERE first_name = '%s%s/' AND `type` = 'group'), -1, TRUE, '%s%s/')", parent, abbr, parent, abbr);
+                        " VALUES ((SELECT userID FROM UPUser WHERE first_name = '%s%s/' AND `type` = 'group'), -1, TRUE, '%s%s/')", protectedParent.ptr(), protectedAbbr.ptr(), protectedParent.ptr(), protectedAbbr.ptr());
             }
             if( !db().HasFailed() ) {
                 res = updateComplete();
@@ -830,7 +1039,7 @@ bool sUsr::groupCreate(const char* name, const char* abbr, const char* parent)
     return res;
 }
 
-bool sUsr::contact(const char * from_email, const char * subject, const char * body)
+bool sUsr::contact(const char * from_email, const char * subject, const char * body, const char * autoreply)
 {
     err.cut(0);
     if( !from_email || strchr(from_email, '@') == 0 || strchr(from_email, '.') == 0 ) {
@@ -838,14 +1047,23 @@ bool sUsr::contact(const char * from_email, const char * subject, const char * b
     } else {
         sUsr admin("qpride");
         sQPrideBase * qp = QPride();
-        sStr adminEmail, msg("From: %s\n%s", from_email, (body && body[0]) ? body : "empty message body");
+        sStr adminEmail, msg("%s", (body && body[0]) ? body : "empty message body");
         if( qp ) {
             qp->cfgStr(&adminEmail, 0, "emailAddr", 0);
         }
-        sUsrEmail eml(admin, adminEmail, (subject && subject[0]) ? subject : "No subject", msg);
+        if( autoreply && autoreply[0] ){
+           sUsrEmail emlr(admin, from_email, (subject && subject[0]) ? subject : "No subject", autoreply);
+           emlr.draft(false);
+        }
+        if( adminEmail ) {
+            sUsrEmail eml(admin, adminEmail, (subject && subject[0]) ? subject : "No subject", msg);
+            eml.draft(false);
+        } else {
+            err.printf(0, "Admin email address is not configured");
+        }
     }
     audit(eUserAuditAdmin, __func__, "sessionID='%" UDEC "'; user_id=%" UDEC "; from='%s'; result='%s'", m_SID, Id(), from_email, err ? err.ptr() : "ok");
-    return err;
+    return !err;
 }
 
 udx sUsr::addPasswordResetID(const char* email)
@@ -853,12 +1071,15 @@ udx sUsr::addPasswordResetID(const char* email)
     udx pswd_reset_id = 0;
     sVarSet t;
     sStr tmp;
+    if( !email || !email[0] ) {
+        email = m_Email.ptr();
+    }
     db().getTable(&t, "SELECT is_active_fg, is_email_valid_fg FROM UPUser WHERE email = '%s' AND `type` = 'user'",  db().protect(tmp, email));
     if( t.rows == 1 ) {
         if( !t.uval(0, 0) ) {
             err.printf(0, "Account is disabled.");
         } else if( !t.uval(0, 1) ) {
-            err.printf(0, "Email address %s is not verified, try to login again and click on link to resent verification email.", email);
+            err.printf(0, "Email address not verified, try to login again and click on link to resend verification email.");
         } else {
             sUsr admin("qpride");
             udx r = rand(), r1 = rand();
@@ -872,7 +1093,7 @@ udx sUsr::addPasswordResetID(const char* email)
             }
         }
     } else {
-        err.printf(0, "Email address %s is not recognized.", email);
+        err.printf(0, "Email address not recognized.");
     }
     audit(eUserAuditAdmin, __func__, "email='%s'; pswd_reset_id=%" UDEC "; result='%s'", email, pswd_reset_id, err ? err.ptr() : "ok");
     return err ? 0 : pswd_reset_id;
@@ -882,18 +1103,26 @@ bool sUsr::sendForgotten(const char* baseURL, const char* email)
 {
     sStr tmp;
     db().protect(tmp, email);
-
     if( udx pswd_reset_id = addPasswordResetID(email) ) {
         sVarSet t;
         db().getTable(&t, "SELECT first_name, last_name, email, pswd_reset_id FROM UPUser WHERE email = '%s' AND `type` = 'user'",  tmp.ptr());
         if( t.rows == 1 && t.uval(0, 3) == pswd_reset_id ) {
-            // TODO add checksum
             sUsr admin("qpride");
             sStr body("%s %s,\n\n"
                       "To complete your request to reset password click the link below:\n"
                       "%s?cmd=pswdSet&login=%s&pswd=%" UDEC "&x=%" UDEC "\n"
-                      "\nHIVE Team.\n", t.val(0, 0), t.val(0, 1), baseURL, t.val(0, 2), t.uval(0, 3), (udx)(time(0) + 24 * 60 * 60));
-            sUsrEmail eml(admin, email, "HIVE password notification", body.ptr());
+                      "\nHIVE Team.\n", t.val(0, 0), t.val(0, 1), baseURL, URLEncode(t.val(0, 2), tmp, eUrlEncode_ProcessMarkChars), t.uval(0, 3), (udx)(time(0) + 24 * 60 * 60));
+            sUsrEmail eml(admin, email, "HIVE password notification");
+            eml.body("%s", body.ptr());
+            sQPrideBase * qp = QPride();
+            if( qp ) {
+                sStr adminEmail;
+                qp->cfgStr(&adminEmail, 0, "emailAddr", 0);
+                if( adminEmail ) {
+                    eml.addRecipient(sUsrEmail::eBcc, adminEmail);
+                }
+            }
+            eml.draft(false);
         } else {
             err.printf(0, "Unexpected system state, try again later.");
         }
@@ -902,50 +1131,12 @@ bool sUsr::sendForgotten(const char* baseURL, const char* email)
     return !err;
 }
 
-sUsr::ELoginResult sUsr::token(const char * email, sStr & token)
-{
-    sVarSet t;
-    sStr tmp;
-    db().getTable(&t, "SELECT is_active_fg, is_email_valid_fg, userID, "
-        "(loginTm + INTERVAL (SELECT IF(val REGEXP '^[0-9]+$', val, NULL) FROM QPCfg WHERE par = 'user.accountExpireDays') DAY < NOW() AND !is_admin_fg) AS account_expired, "
-        "IFNULL(pswd_changed, NOW() - INTERVAL 200 YEAR) + INTERVAL (SELECT IF(val REGEXP '^[0-9]+$', val, NULL) FROM QPCfg WHERE par = 'user.pswdExpireDays') DAY < NOW() AS pswd_expired "
-        "FROM UPUser WHERE email = '%s' AND `type` = 'user'",  db().protect(tmp, email));
-    ELoginResult res = eUserNotFound;
-    if( t.rows == 1 ) {
-        if( !t.uval(0, 0) ) {
-            res = eUserBlocked;
-        } else if( !t.uval(0, 1) ) {
-            res = eUserEmailNotValidated;
-        } else if( t.boolval(0, 3) ) {
-            res = eUserAccountExpired;
-        } else if( t.boolval(0, 4) ) {
-            res = eUserPswdExpired;
-        } else {
-            udx r = 0;
-            while(r == 0) { // Repeat to make sure new value is set
-                r = rand();
-                db().execute("UPDATE UPUser SET pswd_reset_id = IF(pswd_reset_id = %" UDEC ", NULL, %" UDEC ") WHERE email = '%s' AND `type` = 'user'", r, r, tmp.ptr());
-                t.empty();
-                db().getTable(&t, "SELECT pswd_reset_id, userID FROM UPUser WHERE email = '%s' AND `type` = 'user'",  tmp.ptr());
-                r = (t.rows == 1 && t.cols == 2) ? t.uval(0, 0) : 0;
-            }
-            // a little hack here
-            const udx s = m_SID, i = m_Id;
-            m_SID = r; m_Id = t.uval(0, 1);
-            tmp.cut(0);
-            encodeSID(tmp, token);
-            m_SID = s; m_Id = i;
-            res = token ? eUserOperational : eUserNotFound;
-        }
-    }
-    audit(eUserAuditLogin, "piv-auth", "email='%s'; result='%" UDEC "'", email, (udx)res);
-    return res;
-}
-
-#define PASSWORD_CHECK_SYMB_no
-
 bool sUsr::passwordCheckQuality(const char * mod, const char * mod1)
 {
+    sQPrideBase * qp = QPride();
+    const bool checkComplexity = qp ? qp->cfgInt(0, "user.pswdCheckComplexity", 1) : true;
+    const idx minLen = qp ? qp->cfgInt(0, "user.pswdMinLength", 15) : 15;
+    const bool useSymb = qp ? qp->cfgInt(0, "user.pswdUseSymbols", 0) : false;
     bool res = false;
 
     if( !mod ) {
@@ -954,14 +1145,7 @@ bool sUsr::passwordCheckQuality(const char * mod, const char * mod1)
     if( !mod1 ) {
         mod1 = "\x02";
     }
-    idx cAlphaLow = 0, cAlphaCap = 0, cNum = 0, cLen = 0;
-
-#ifdef PASSWORD_CHECK_SYMB
-    idx cSymb = 0;
-#else
-    idx cSymb = -sIdxMax; // do not check
-#endif
-
+    idx cAlphaLow = 0, cAlphaCap = 0, cNum = 0, cLen = 0, cSymb = 0;
     for(const char * p = mod; *p; ++p) {
         ++cLen;
         if( *p >= 'a' && *p <= 'z' ) {
@@ -970,20 +1154,17 @@ bool sUsr::passwordCheckQuality(const char * mod, const char * mod1)
             ++cAlphaCap;
         } else if( *p >= '0' && *p <= '9' ) {
             ++cNum;
-#ifdef PASSWORD_CHECK_SYMB
         } else if( strchr("~`!@#$%^&*()_-+={[}]|\\:;\"\'<,>.?/", *p) ) {
             ++cSymb;
-#endif
         }
     }
     if( strcmp(mod, mod1) ) {
         err.printf(0, "new password and confirmation do not match!");
-    } else if( checkComplexity && (cLen < 8 || cAlphaLow == 0 || cAlphaCap == 0 || cNum == 0 || cSymb == 0) ) {
-        err.printf(0, "new password does not satisfy minimum complexity criteria: more than 8 symbols, with one lower, one caps, one numeric");
+    } else if( checkComplexity && (cLen < minLen || cAlphaLow == 0 || cAlphaCap == 0 || cNum == 0 || (useSymb && cSymb == 0)) ) {
+        err.printf(0, "new password does not satisfy minimum complexity criteria: more than %" DEC " symbols, with one lower, one caps, one numeric%s", minLen, useSymb ? ", one specail" : "");
     } else {
         res = true;
     }
-
     return res;
 }
 
@@ -1005,7 +1186,6 @@ bool sUsr::passwordReset(const char* email, udx pswd_reset_id, const char * mod,
         err.printf(0, "password reset request is invalid or has expired");
         audit(eUserAuditLogin, __func__, "result='%s'", err.ptr());
     }
-    // if valid userId was retrieved, audit() was done by passwordReset(userId, mod, mod1)
     return res;
 }
 
@@ -1024,10 +1204,10 @@ bool sUsr::passwordReset(udx userId, const char * mod, const char * mod1)
             if( idx num_keep_old = db().ivalue("SELECT val FROM QPCfg WHERE par = 'user.pswdKeepOldQty'", 0) ) {
                 sStr userID_str("%" UDEC, userId);
                 hashes_buf.printf(0, "'%s ", cur_hash);
-                idx cur_hash_pos = 1; // skips initial quote
-                db().svalue(hashes_buf, "SELECT pswd_prev_list FROM UPUser WHERE userID = %" UDEC, userId); // whitespace-delimeted list of hashes, most recent is first
+                idx cur_hash_pos = 1;
+                db().svalue(hashes_buf, "SELECT pswd_prev_list FROM UPUser WHERE userID = %" UDEC, userId);
                 for(idx ihash = 0; ihash < num_keep_old; ihash++) {
-                    idx ws = strspn(hashes_buf.ptr(cur_hash_pos), hash_seps); // skip any whitespace
+                    idx ws = strspn(hashes_buf.ptr(cur_hash_pos), hash_seps);
                     idx cur_hash_len = strcspn(hashes_buf.ptr(cur_hash_pos + ws), hash_seps);
                     if( !cur_hash_len ) {
                         break;
@@ -1078,7 +1258,7 @@ idx sUsr::update(const bool isnew, const char * email, const char * password, co
 
     while( updateStart() ) {
         if( isnew ) {
-            // this is a new user creation
+            const bool prohibitSelfRegistration = QPride() ? QPride()->cfgInt(0, "user.prohibitSelfRegistration", 0) : false;
             if( prohibitSelfRegistration && !m_IsAdmin ) {
                 err.printf(0, "Need admin privileges to register a new user");
                 break;
@@ -1099,7 +1279,6 @@ idx sUsr::update(const bool isnew, const char * email, const char * password, co
                 err.printf(0, "Email address is already in use!");
                 break;
             } else {
-                // insert a new user
                 db().execute("INSERT INTO UPUser (email, is_active_fg, pswd, logCount, `type`, first_name, last_name, createTm)"
                                     " VALUES ('%s', FALSE, '--TBD--', %u, 'user', '%s', '%s', CURRENT_TIMESTAMP)",
                                         lemail, m_IsAdmin ? 0 : 1, lfirstName, llastName);
@@ -1109,12 +1288,11 @@ idx sUsr::update(const bool isnew, const char * email, const char * password, co
                     tmp.add0(2);
                     const char * pswd = sPassword::encodePassword(tmp, newpass1);
                     db().execute("UPDATE UPUser SET pswd = '%s', pswd_changed = NOW() WHERE userID = %" UDEC, pswd, userId);
-                    // create a personal group (flag = -1) for new user
                     db().execute("insert into UPGroup (userID, flags, is_active_fg, groupPath) values(%" UDEC ", -1, TRUE, '/everyone/users/%s')", userId, lemail);
                     if( !db().HasFailed() ) {
                         log.printf("new_user='%s'; ", email);
                         sendEmailValidation(baseURL, email, firstName, lastName);
-                        firstName = lastName = 0; // avoid reset later in this function
+                        firstName = lastName = 0;
                     } else {
                         err.printf(0, "Registration failed, please, come back later!");
 #if _DEBUG
@@ -1158,15 +1336,12 @@ idx sUsr::update(const bool isnew, const char * email, const char * password, co
             result = !db().HasFailed();
         }
         if( result && groups.dim() ) {
-            // update membership
             log.printf("old_groups='%s'; ", groupList());
             sStr g;
             sString::printfIVec(&g, &groups, ",");
-            // delete unselected
             db().execute("DELETE FROM UPGroup WHERE userID = %" UDEC " AND flags != -1 AND groupPath NOT IN (SELECT CONCAT(first_name, '%s') FROM UPUser WHERE userID IN (%s))", userId, lemail, g.ptr());
             result = !db().HasFailed();
             if( result ) {
-                // insert new but ignore existing
                 db().execute("INSERT INTO UPGroup (userID, flags, is_active_fg, groupPath) "
                          "SELECT %" UDEC ", 0, FALSE, CONCAT(first_name, '%s') FROM UPUser WHERE userID IN (%s) AND userID NOT IN ("
                            "SELECT userID FROM UPUser WHERE first_name IN ("
@@ -1184,7 +1359,7 @@ idx sUsr::update(const bool isnew, const char * email, const char * password, co
     } else if( !init(userId) ) {
         err.printf(0, "user corrupt");
     } else if( isnew ) {
-        initFolders(true); // create basic folder structure for new user
+        initFolders(true);
     }
     if( !result && !err ) {
         err.printf(0, "System temporarily unavailable. Try again later.");
@@ -1199,71 +1374,240 @@ const char* sUsr::groupList(bool inactive) const
 {
     static sStr buf;
     buf.cut0cut();
+    sStr protectedEmail;
+    db().protect(protectedEmail, m_Email.ptr());
     return db().svalue(buf, "SELECT GROUP_CONCAT(userID) FROM UPUser WHERE `type` = 'group' AND CONCAT(first_name, '%s') IN (SELECT groupPath FROM UPGroup WHERE userID = %" UDEC " AND is_active_fg IN (%s))",
-        m_Email.ptr(), m_Id, inactive ? "TRUE, FALSE" : "TRUE");
+        protectedEmail.ptr(), m_Id, inactive ? "TRUE, FALSE" : "TRUE");
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Object and Permission
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+bool sUsr::hasGroup(const char * path_prefix, bool direct_member_only, bool with_inactive) const
+{
+    idx len = sLen(path_prefix);
+    if( !len || path_prefix[len - 1] != '/' ) {
+        return false;
+    }
+    sStr sql;
+    sql.printf("SELECT COUNT(*) FROM UPGroup WHERE `userID` = %" UDEC " AND `groupPath` LIKE '", m_Id);
+    db().protect(sql, path_prefix);
+    sql.shrink00();
+    sql.addString("%'");
+    if( !with_inactive ) {
+        sql.addString(" AND `is_active_fg` = TRUE");
+    }
+    if( direct_member_only ) {
+        sql.printf(" AND SUBSTRING(`groupPath`, %" DEC ") NOT LIKE '%%/%%'", sLen(path_prefix) + 1);
+    }
 
-sRC sUsr::objCreate(sHiveId & out_id, const char* type_name, const udx in_domainID/* = 0 */, const udx in_objID/* = 0*/) const
+    return db().ivalue(sql, "%s", sql.ptr());
+}
+
+
+const sHiveId * sUsr::getDomainIdDescr(udx domain_id) const
+{
+    const char * url = sHiveId::domainIdAsUrl(domain_id);
+    if( !url ) {
+        sUsrObjRes res;
+        objs2("^domain-id-descr$+", res, 0, 0, 0, "domain-id-descr_ascii,domain-id-descr_uri", 0, 0, 0, true);
+        for(sUsrObjRes::IdIter it = res.first(); res.has(it); res.next(it)) {
+            const sUsrObjRes::TObjProp * props = res.get(it);
+            const sUsrObjRes::TPropTbl * tbl_ascii = res.get(*props, "domain-id-descr_ascii");
+            const char * ascii = res.getValue(tbl_ascii);
+            const sUsrObjRes::TPropTbl * tbl_uri = res.get(*props, "domain-id-descr_uri");
+            const char * uri = res.getValue(tbl_uri);
+            if( !sHiveId::mapDomainIdUrl(ascii, uri, *(res.id(it))) ) {
+                continue;
+            }
+        }
+    }
+    return sHiveId::domainObjId(domain_id);
+}
+
+sRC sUsr::objCreate(sHiveId & out_id, const char* type_name, const udx in_domainID, const udx in_objID) const
 {
     sRC rc;
     out_id.reset();
     if( type_name && type_name[0] ) {
         const sUsrType2 * tp = sUsrType2::ensure(*this, type_name);
-        // only admins/superuser can create objects descending from base_system_type
         if( tp && !tp->isVirtual() ) {
             if( m_SuperUserMode || m_IsAdmin || !tp->isSystem() ) {
-                static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
-                std::auto_ptr<sSql::sqlProc> p(getProc( use_type_upobj ? "sp_obj_create_v2" : "sp_obj_create"));
-                if( use_type_upobj ) {
-                    p->Add(tp->id().domainId()).Add(tp->id().objId()).Add(in_domainID).Add(in_objID);
-                } else {
-                    p->Add(type_name);
-                }
-                p->Add((udx) ePermCompleteAccess).Add((udx) eFlagDefault);
-                sVarSet tbl;
-                if( p->getTable(&tbl) && tbl.rows == 1 ) {
-                    // TODO support ion_id?
-                    if( use_type_upobj ) {
-                        out_id.set(tbl.uval(0, 0), tbl.uval(0, 1), 0);
+                std::unique_ptr<sSql::sqlProc> p;
+                if( !Id() || (isGuest() && !tp->nameMatch("HIVE_public_account_request") && !tp->nameMatch("HIVE-Development_Project_Request") && !tp->nameMatch("email")) ) {
+                    RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+                } else if( m_currProj.projectId && ( m_currProj.role == eProjectViewer || m_currProj.role == eProjectDataHandler ) ) {
+                    RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+                } else if( m_currProj.projectId && tp->nameMatch("user-settings") ) {
+                    RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eGroup, sRC::eIncompatible);
+                } else if( in_domainID && !in_objID ) {
+                    const sHiveId * domain_id_descr = getDomainIdDescr(in_domainID);
+                    if( !domain_id_descr ) {
+                        RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eDomain, sRC::eNotFound);
+                    } else if(  m_SuperUserMode || isAllowed(*domain_id_descr, ePermCanExecute) ) {
+                        p.reset(getProc("sp_obj_create_new_in_domain"));
+                        p->Add(tp->id().domainId()).Add(tp->id().objId()).Add(in_domainID).Add((udx) ePermCompleteAccess).Add((udx) eFlagDefault).
+                            Add(domain_id_descr->domainId()).Add(domain_id_descr->objId()).Add((udx) ePermCanExecute);
                     } else {
-                        out_id.setObjId(tbl.uval(0, 0));
-                    }
-                }
-                if( out_id ) {
-                    sUsrObj * o = objFactory(out_id);
-                    if( o ) {
-                        // TODO this is temp fix to avoid duplicate obj dirs, in future storeManager must handle it
-                        sStr hack;
-                        o->addFilePathname(hack, true, ".deleteme");
-                        delete o;
+                        RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eDomain, sRC::eNotAuthorized);
                     }
                 } else {
+                    const sHiveId * domain_id_descr = getDomainIdDescr(0);
+                    if( !domain_id_descr ) {
+                        RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eDomain, sRC::eNotFound);
+                    } else if( m_SuperUserMode || isAllowed(*domain_id_descr, ePermCanExecute) ) {
+                        p.reset(getProc("sp_obj_create_v2"));
+                        p->Add(tp->id().domainId()).Add(tp->id().objId()).Add(in_domainID).Add(in_objID).Add((udx) ePermCompleteAccess).Add((udx) eFlagDefault);
+                    } else {
+                        RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eDomain, sRC::eNotAuthorized);
+                    }
+                }
+                sVarSet tbl;
+                if( rc.isUnset() && p.get() && p->getTable(&tbl) && tbl.rows == 1 ) {
+                    out_id.set(tbl.uval(0, 0), tbl.uval(0, 1), 0);
+                    if( out_id ) {
+                        sUsrObj * o = objFactory(out_id);
+                        if( o ) {
+                            sStr hack;
+                            o->addFilePathname(hack, true, ".deleteme");
+                            o->delFilePathname("%s", ".deleteme");
+                            if( !rc.isSet() ) {
+                                const sUsrType2 * type_type = sUsrType2::ensureTypeType(*this);
+                                if( type_type && tp->id() == type_type->id() ) {
+                                    const udx system_grp_id = getGroupId("/system/");
+                                    if( !system_grp_id || !setPermission(system_grp_id, out_id, ePermCompleteAccess, eFlagInheritDown) ) {
+                                        RCSET(rc, sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
+                                    } else if( in_domainID == type_type->id().domainId() ) {
+                                        const udx everyone_grp_id = getGroupId("/everyone/");
+                                        if( !everyone_grp_id || !setPermission(everyone_grp_id, out_id, ePermCanBrowse | ePermCanRead, eFlagInheritDown) ) {
+                                            RCSET(rc, sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
+                                        }
+                                    }
+                                } else if( tp->nameMatch("HIVE_Development_Timelog") ) {
+                                    if( m_currProj.projectId ) {
+                                        RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eOperation, sRC::eProhibited);
+                                    } else {
+                                        const udx hive_grp_id = getGroupId("/Projects/Team/");
+                                        if( !hive_grp_id || !setPermission(hive_grp_id, out_id, ePermCanBrowse | ePermCanRead, eFlagInheritDown) ) {
+                                            RCSET(rc, sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
+                                        }
+                                    }
+                                } else if( tp->nameMatch("HIVE_public_account_request") || (isGuest() && tp->nameMatch("email")) ) {
+                                    if( const udx hive_grp_id = getGroupId("/Projects/Team/") ) {
+                                        if( !setPermission(hive_grp_id, out_id, ePermCanBrowse | ePermCanRead | ePermCanShare, eFlagInheritDown) ) {
+                                            RCSET(rc, sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
+                                        } else {
+                                            m_SuperUserMode = true;
+                                            if( !setPermission(m_PrimaryGroup, out_id, ePermCanWrite, eFlagNone) ) {
+                                                RCSET(rc, sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
+                                            }
+                                            m_SuperUserMode = false;
+                                        }
+                                    }
+                                } else if( tp->nameMatch("project+") ) {
+                                    sStr errBuf;
+                                    sVec<Project> projRoles;
+                                    const Project oldProject = m_currProj;
+
+                                    if( !updateStart() ) {
+                                        RCSET(rc, sRC::eStarting, sRC::eSequence, sRC::eDatabase, sRC::eFailed);
+                                    }
+                                    if( !rc ) {
+                                        sStr projPath;
+                                        const char * roleChars = "ACDV";
+                                        for (idx i = 0; i < 4; i++) {
+                                            projPath.cut(0);
+                                            projPath.printf("%" UDEC "-%c", out_id.objId(), roleChars[i]);
+                                            const bool success = const_cast<sUsr *>(this)->groupCreate(projPath.ptr(0), projPath.ptr(0), "/HIVEPROJ/");
+                                            if( !success || err ) {
+                                                RCSET(rc, sRC::eCreating, sRC::eGroup, sRC::eDatabase, sRC::eFailed);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if( !rc ) {
+                                        m_currProj.projectId = out_id.objId();
+                                        m_currProj.role = eProjectAdmin;
+                                        rc = addToProject(m_Id, eProjectAdmin);
+                                    }
+                                    if( !rc ) {
+                                        rc = allProjectRoles(projRoles, out_id.objId());
+                                    }
+                                    if( !rc ) {
+                                        rc = setProject(out_id.objId());
+                                    }
+                                    if( !rc ) {
+                                        rc = initProjectFolders();
+                                    }
+                                    if( !rc) {
+                                        rc = setProject(oldProject.projectId);
+                                    }
+                                    if( !rc ) {
+                                        sDic<udx> groupPerms;
+                                        for (idx i = 0; i < projRoles.dim(); i++) {
+                                            udx grpId = projRoles[i].groupId;
+                                            *groupPerms.set(&grpId, sizeof(udx)) = projRoleToPerm(projRoles[i].role);
+                                        }
+                                        const bool oldSuperUserMode = m_SuperUserMode;
+                                        m_SuperUserMode = true;
+                                        rc = clearAndSetPermissions(out_id, groupPerms);
+                                        if( !rc ) {
+                                            const udx hive_grp_id = getGroupId("/Projects/Team/");
+                                            if( !hive_grp_id || !setPermission(hive_grp_id, out_id, ePermCompleteAccess, eFlagInheritDown) ) {
+                                                RCSET(rc, sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
+                                            }
+                                        }
+                                        m_SuperUserMode = oldSuperUserMode;
+                                    }
+                                    if( !rc ) {
+                                        if( !updateComplete() ) {
+                                            RCSET(rc, sRC::eCommitting, sRC::eSequence, sRC::eDatabase, sRC::eFailed);
+                                        }
+                                    } else {
+                                        if( !updateAbandon() ) {
+                                            RCSET(rc, sRC::eCleaningUp, sRC::eSequence, sRC::eDatabase, sRC::eFailed);
+                                        }
+                                    }
+                                }
+
+                                if ( !rc && m_currProj.projectId && !tp->nameMatch("project+") ) {
+                                    sStr err;
+                                    sVec<Project> roles;
+                                    rc = allProjectRoles(roles, m_currProj.projectId);
+                                    if( !rc ) {
+                                        sDic<udx> groupPerms;
+                                        for (idx i = 0; i < roles.dim(); i++) {
+                                            *groupPerms.set(&roles[i].groupId, sizeof(udx)) = projRoleToPerm(roles[i].role);
+                                        }
+                                        const bool oldSuperUserMode = m_SuperUserMode;
+                                        m_SuperUserMode = true;
+                                        rc = clearAndSetPermissions(out_id, groupPerms);
+                                        m_SuperUserMode = oldSuperUserMode;
+                                    }
+                                }
+                            }
+                            delete o;
+                        }
+                    } else {
+                        RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eID, sRC::eNull);
+                    }
+                } else if( rc.isUnset() ) {
+                    RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eOperation, sRC::eFailed);
                     if( db().HasFailed() ) {
-                        // Serious DB failure that should not happen - need to log with details
-                        // fprintf needed because a DB connection failure or deadlock might cause QPride()->logOut() to fail too
                         fprintf(stderr, "objCreate() DB error %" UDEC ": %s\n", db().Get_errno(), db().Get_error().ptr());
                         if( QPride() ) {
-                            QPride()->logOut(sQPrideBase::eQPLogType_Error, "objCreate() DB error %" UDEC ": %s", db().Get_errno(), db().Get_error().ptr());
+                            QPride()->logOut(db().in_transaction() ? sQPrideBase::eQPLogType_Warning : sQPrideBase::eQPLogType_Error,
+                                                "objCreate() DB error %" UDEC ": %s", db().Get_errno(), db().Get_error().ptr());
                         }
                     }
-                    rc.set(sRC::eCreating, sRC::eObject, sRC::eOperation, sRC::eFailed);
                 }
             } else {
-                rc.set(sRC::eCreating, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+                RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
             }
         } else {
-            rc.set(sRC::eCreating, sRC::eObject, sRC::eType, sRC::eInvalid);
+            RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eType, sRC::eInvalid);
         }
     } else {
-        rc.set(sRC::eCreating, sRC::eObject, sRC::eType, sRC::eEmpty);
+        RCSET(rc, sRC::eCreating, sRC::eObject, sRC::eType, sRC::eEmpty);
     }
-    if( rc.isSet() || !objGet(out_id) ) {
+    if( rc.isSet() ) {
         out_id.reset();
     }
     audit(eUserAuditActions, __func__, "type='%s'; result='%s'", type_name, rc.isSet() ? rc.print() : out_id.print());
@@ -1283,44 +1627,9 @@ bool sUsr::objGet(const sHiveId & id, const sHiveId * ptypeHiveId, udx permissio
     return isAllowedAndHasType(id, ptypeHiveId, permission);
 }
 
-#define TYPE_TYPE_PERMS ePermCanRead | ePermCanBrowse
-
 bool sUsr::isAllowed(const sHiveId & objHiveId, udx permission) const
 {
-    udx p = ePermNone;
-    sObjPerm * op = m_ObjPermission.get() ? m_ObjPermission->get(&objHiveId, sizeof(sHiveId)) : 0;
-    if( !op ) {
-        sVec<sHiveId> out;
-        objs(&objHiveId, 1, out);
-        op = m_ObjPermission.get() ? m_ObjPermission->get(&objHiveId, sizeof(sHiveId)) : 0;
-    }
-    if( op && m_SuperUserMode && !m_AllowExpiredObjects && op->expiration == sObjPerm::eMaybeExpired ) {
-        // refetch permissions from db to check whether maybe-expired object is expired or not
-        cacheRemove(objHiveId);
-        sVec<sHiveId> out;
-        objs(&objHiveId, 1, out);
-        op = m_ObjPermission.get() ? m_ObjPermission->get(&objHiveId, sizeof(sHiveId)) : 0;
-        if( !op ) {
-            // object was retrievable before, was maybe-expired before, failed to retrieve now when requiring unexpired;
-            // so we conclude that if it is still retrieveable in allow-expired mode, then it is definitely expired
-            m_AllowExpiredObjects = true;
-            objs(&objHiveId, 1, out);
-            m_AllowExpiredObjects = false;
-            op = m_ObjPermission.get() ? m_ObjPermission->get(&objHiveId, sizeof(sHiveId)) : 0;
-            if( op ) {
-                op->expiration = sObjPerm::eExpired;
-            }
-        }
-    }
-    if( op && (m_AllowExpiredObjects || op->expiration == sObjPerm::eUnexpired) ) {
-        if( m_SuperUserMode ) {
-            // ignore all permissions in su mode
-            p = ePermCompleteAccess & ePermMask;
-        } else {
-            p = op->allow & ~op->deny;
-        }
-    }
-    return (p & permission) != 0;
+    return (objPermEffective(objHiveId) & permission) != 0;
 }
 
 bool sUsr::isAllowedAndHasType(const sHiveId & objHiveId, const sHiveId * ptypeHiveId, udx permission) const
@@ -1346,7 +1655,7 @@ const sUsrType2 * sUsr::objGetType(const sHiveId & objHiveId, udx permission) co
     return op ? sUsrType2::ensure(*this, op->type) : 0;
 }
 
-void sUsr::objPermAll(sVec<sHiveId>& ids, sVarSet& tbl, bool expand_grp /* = false */) const
+void sUsr::objPermAll(sVec<sHiveId>& ids, sVarSet& tbl, bool expand_grp) const
 {
     sVec<sHiveId> allowed;
     for(idx i = 0; i < ids.dim(); ++i) {
@@ -1361,17 +1670,47 @@ void sUsr::objPermAll(sVec<sHiveId>& ids, sVarSet& tbl, bool expand_grp /* = fal
         sStr sid;
         sSql::exprInList(sid, "domainID", "objID", allowed, false);
         if( sid ) {
-            std::auto_ptr<sSql::sqlProc> p(getProc("sp_obj_perm_all_v2"));
+            std::unique_ptr<sSql::sqlProc> p(getProc("sp_obj_perm_all_v2"));
             p->Add(sid).Add(expand_grp);
             p->getTable(&tbl);
         }
     }
 }
 
-sHiveId sUsr::propExport(sVec<sHiveId>& ids, sVarSet & v, bool permissions) const
+udx sUsr::objPermEffective(const sHiveId & objHiveId) const
+{
+    udx p = ePermNone;
+    sObjPerm * op = m_ObjPermission.get() ? m_ObjPermission->get(&objHiveId, sizeof(sHiveId)) : 0;
+    if( !op ) {
+        sVec<sHiveId> out;
+        objs(&objHiveId, 1, out);
+        op = m_ObjPermission.get() ? m_ObjPermission->get(&objHiveId, sizeof(sHiveId)) : 0;
+    }
+    if( op && m_SuperUserMode && !m_AllowExpiredObjects && op->expiration == sObjPerm::eMaybeExpired ) {
+        cacheRemove(objHiveId);
+        sVec<sHiveId> out;
+        objs(&objHiveId, 1, out);
+        op = m_ObjPermission.get() ? m_ObjPermission->get(&objHiveId, sizeof(sHiveId)) : 0;
+        if( !op ) {
+            m_AllowExpiredObjects = true;
+            objs(&objHiveId, 1, out);
+            m_AllowExpiredObjects = false;
+            op = m_ObjPermission.get() ? m_ObjPermission->get(&objHiveId, sizeof(sHiveId)) : 0;
+            if( op ) {
+                op->expiration = sObjPerm::eExpired;
+            }
+        }
+    }
+    if( op && (m_AllowExpiredObjects || op->expiration == sObjPerm::eUnexpired) ) {
+            p = op->allow & ~op->deny;
+    }
+    return p;
+}
+
+sHiveId sUsr::propExport(sVec<sHiveId>& ids, sVarSet & v, sUsr::EPermExport permissions) const
 {
     for(idx i = 0; i < ids.dim(); ++i) {
-        std::auto_ptr<sUsrObj> obj(objFactory(ids[i]));
+        std::unique_ptr<sUsrObj> obj(objFactory(ids[i]));
         if( !obj.get() ) {
             return ids[i];
         }
@@ -1381,7 +1720,7 @@ sHiveId sUsr::propExport(sVec<sHiveId>& ids, sVarSet & v, bool permissions) cons
             v.addRow().addCol(ids[i]).addCol("_type").addCol((const char*)0).addCol(obj->getTypeName());
         }
     }
-    if( permissions ) {
+    if( permissions != ePermExportNone ) {
         sVarSet tbl;
         sStr perm;
         objPermAll(ids, tbl, true);
@@ -1389,7 +1728,7 @@ sHiveId sUsr::propExport(sVec<sHiveId>& ids, sVarSet & v, bool permissions) cons
         idx n = 0;
         for(idx r = 0; r < tbl.rows; ++r) {
             const char * grp = tbl.val(r, 6);
-            if( grp && grp[sLen(grp) - 1] == '/' ) {
+            if( grp && (grp[sLen(grp) - 1] == '/' || permissions == ePermExportAll) ) {
                 perm.cut0cut();
                 permPrettyPrint(perm, tbl.uval(r, 2), tbl.uval(r, 3));
                 const char* vw = tbl.val(r, 5);
@@ -1405,37 +1744,73 @@ sHiveId sUsr::propExport(sVec<sHiveId>& ids, sVarSet & v, bool permissions) cons
     return sHiveId();
 }
 
-sHiveId sUsr::propExport(sVec<sHiveId>& ids, sJSONPrinter & printer, bool permissions, bool flatten/* = false */, bool upsert/* = false*/, const char * upsert_qry/* = 0*/) const
+sHiveId sUsr::propExport(sVec<sHiveId>& ids, sJSONPrinter & printer, EPermExport permissions, const char * rootDir, const bool flatten, const bool upsert, const char * upsert_qry, const char * prop_filter00, const char * prop_exclude00) const
 {
     sStr sid;
     sHiveId::printVec(sid, ids, ",");
     sUsrObjRes res;
-    objs2("*", res, 0, "_id", sid.ptr());
-
     sVarSet perm_tbl;
-    if( permissions ) {
+    if( permissions != ePermExportNone ) {
         objPermAll(ids, perm_tbl, true);
     }
-
     printer.startObject();
-    for(idx i = 0; i < ids.dim(); ++i) {
-        res.empty();
-        if( !objs2("*", res, 0, "_id", ids[i].print()) ) {
+    for(idx i = 0, c = 1; i < ids.dim(); ++i, ++c) {
+        sUsrObj * obj = objFactory(ids[i]);
+        if( !obj ) {
             return ids[i];
         }
-
-        printer.addKey(ids[i].print());
+        res.empty();
+        if( !objs2("*", res, 0, "_id", obj->Id().print()) ) {
+            delete obj;
+            return ids[i];
+        }
+        sStr x("%" DEC, c);
+        printer.addKey(x.ptr());
         printer.startObject();
-
-        res.json(*this, res.first(), printer, true, flatten, upsert, upsert_qry);
-
+        res.json(*this, res.first(), printer, true, flatten, upsert, upsert_qry, prop_filter00, prop_exclude00);
+        if( rootDir && *rootDir ) {
+            sDir xd;
+            obj->files(xd, sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs));
+            if( xd.dimEntries() ) {
+                printer.addKey("_file");
+                printer.startArray(
+#if _DEBUG
+    true
+#else
+    false
+#endif
+                );
+                sStr fldir("%s/%" DEC "/", rootDir, c);
+                sDir::removeDir(fldir);
+                if( !sDir::exists(fldir) && !sDir::makeDir(fldir) ) {
+                    delete obj;
+                    return ids[i];
+                }
+                sFilePath p, dst;
+                for(idx j = 0; j < xd.dimEntries(); ++j) {
+                    const char * src = xd.getEntryAbsPath(j);
+                    const char * nm = p.makeName(src, "%%flnm");
+                    dst.makeName(fldir, "%%dir/%s", nm);
+                    if( sFile::exists(dst) && !sFile::remove(dst) ) {
+                        delete obj;
+                        return ids[i];
+                    }
+                    if( sFile::symlink(src, dst) ) {
+                        printer.addValue(p.printf("%" DEC "/%s", c, nm));
+                    } else {
+                        delete obj;
+                        return ids[i];
+                    }
+                }
+                printer.endArray();
+            }
+        }
         bool have_grp_perm = false;
         for(idx ir = 0; ir < perm_tbl.rows; ir++) {
             sHiveId perm_id(perm_tbl.uval(ir, 0), perm_tbl.uval(ir, 1), 0);
             if( perm_id == ids[i] ) {
-                // special handling for _prop for ION json format compatibility
                 const char * grp = perm_tbl.val(ir, 6);
-                if( grp && grp[sLen(grp) - 1] == '/' ) {
+                if( (grp && permissions == ePermExportGroups && grp[sLen(grp) - 1] == '/') || (permissions == ePermExportAll) ) {
                     if( !have_grp_perm ) {
                         printer.addKey("_perm");
                         printer.startArray();
@@ -1448,48 +1823,116 @@ sHiveId sUsr::propExport(sVec<sHiveId>& ids, sJSONPrinter & printer, bool permis
         if( have_grp_perm ) {
             printer.endArray();
         }
-
         printer.endObject();
+        delete obj;
     }
     printer.endObject();
     return sHiveId();
 }
 
-sHiveId sUsr::objFilesExport(sVec<sHiveId>& ids, sVarSet & v, const char * dstdir) const
+bool sUsr::objFilesExport(sVec<sHiveId> & ids, sVarSet & v, const char * dstdir, const char * mask) const
 {
-    sFilePath p,dst;
-    if(!dstdir) return 0;
-    for(idx i = 0; i < ids.dim(); ++i) {
-        std::auto_ptr<sUsrObj> obj(objFactory(ids[i]));
-        if( !obj.get() ) {
-            return ids[i];
-        }
-
-        sDir fileList00;
-        obj->files(fileList00, sFlag(sDir::bitFiles)|sFlag(sDir::bitSubdirs));
-        idx flcnt = 0;
-        sStr fldir("%s/%s/",dstdir,obj->IdStr());
-        sDir::removeDir(fldir);
-        for( idx i=0 ; i < fileList00.dimEntries(); ++i){
-            const char * src=fileList00.getEntryAbsPath(i);
-            p.cut(0);p.makeName(src,"%%flnm");
-            if( !sDir::exists(fldir) ) {
-                sDir::makeDir(fldir);
-            }
-            dst.cut(0);dst.makeName(fldir,"%%dir/%s",p.ptr());
-            sFile::remove(dst);
-            if( sFile::symlink(src,dst) ) {
-                v.addRow().addCol(obj->IdStr()).addCol("_file").addCol(++flcnt).printCol("%s/%s",obj->IdStr(),p.ptr());
-            }
-        }
+    if( !dstdir || !dstdir[0] ) {
+        return false;
     }
-    return sHiveId();
+    sFilePath p, dst;
+    for(idx i = 0; i < ids.dim(); i++) {
+        sUsrObj * obj = objFactory(ids[i]);
+        if( !obj ) {
+            return false;
+        }
+        sDir xd;
+        obj->files(xd, sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs), mask);
+        idx flcnt = 0;
+        sStr fldir("%s/%s/", dstdir, obj->Id().print());
+        sDir::removeDir(fldir);
+        if( !sDir::exists(fldir) && !sDir::makeDir(fldir) ) {
+            delete obj;
+            return false;
+        }
+        for(idx i = 0; i < xd.dimEntries(); i++) {
+            const char * src = xd.getEntryAbsPath(i);
+            p.cut(0);
+            p.makeName(src, "%%flnm");
+            dst.cut(0);
+            dst.makeName(fldir, "%%dir/%s", p.ptr());
+            if( sFile::exists(dst) && !sFile::remove(dst) ) {
+                delete obj;
+                return false;
+            }
+            if( sFile::symlink(src, dst) ) {
+                v.addRow().addCol(obj->IdStr()).addCol("_file").addCol(++flcnt).printCol("%s/%s", obj->IdStr(), p.ptr());
+            } else {
+                delete obj;
+                return false;
+            }
+        }
+        delete obj;
+    }
+    return true;
+}
+
+sRC sUsr::objHivepack(sVec<sHiveId>& ids, const char * dstName, sPipe::callbackFuncType callback, void * callbackParam) const
+{
+    sRC rc;
+    if( ids.dim() ) {
+        sStr dst("%s.tmp/", dstName ? dstName : "");
+        if( !sDir::exists(dst) && !sDir::makeDir(dst) ) {
+            rc = RC(sRC::eCreating, sRC::eDirectory, sRC::eOperation, sRC::eFailed);
+        } else {
+            const sHiveId * domid = getDomainIdDescr(ids[0].domainId());
+            if( domid ) {
+                const bool domMode = sHiveId::setDomainUrlPrintMode(true);
+                sJSONPrinter printer;
+                sStr prop("%shivepack-%03u.json", dst.ptr(), 1);
+                if( !sFile::exists(prop) || sFile::remove(prop) ) {
+                    sFil ofil(prop);
+                    if( ofil.ok() ) {
+                        printer.init(&ofil);
+                        printer.startObject();
+                        sHiveId oerr = propExport(ids, printer, ePermExportGroups, dst,
+        #if _DEBUG
+                            false
+        #else
+                            true
+        #endif
+                                , false, 0, 0, 0);
+                        if( oerr ) {
+                            rc = RC(sRC::eWriting, sRC::eProperty, sRC::eObject, sRC::eNotFound);
+                        } else {
+                            printer.endObject();
+                            printer.finish();
+                            ofil.destroy();
+                            sStr hpack("%s%s", strchr("/\\", dst[0]) ? "" : "../", dstName);
+                            sStr tmp("cd \"%s\" && zip -rp \"%s\" *", dst.ptr(), hpack.ptr());
+                            sFilePath cbpath(hpack, "%%dir");
+                            const idx res = sPipe::exeFS(0, tmp, 0, callback, callbackParam, cbpath.ptr());
+                            if( res != 0 ) {
+                                rc = RC(sRC::eExecuting, sRC::eCommandLine, sRC::eOperation, res < 0 ? sRC::eInterrupted : sRC::eFailed);
+                            }
+                        }
+                    } else {
+                        rc = RC(sRC::eWriting, sRC::eFile, sRC::eOperation, sRC::eFailed);
+                    }
+                } else {
+                    rc = RC(sRC::eRemoving, sRC::eFile, sRC::eOperation, sRC::eFailed);
+                }
+                sHiveId::setDomainUrlPrintMode(domMode);
+            } else {
+                rc = RC(sRC::eWriting, sRC::eObject, sRC::eDomain, sRC::eNotFound);
+            }
+        }
+        sDir::removeDir(dst);
+    } else {
+        rc = RC(sRC::eCreating, sRC::eFile, sRC::eList, sRC::eEmpty);
+    }
+    return rc;
 }
 
 void sUsr::permPrettyScanf(const char * group, const char * view, const char* sperm, const char* sflags, const sUsrType2 * type, udx * groupId, sHiveId * viewId, udx * perm, udx * flags) const
 {
     if( (group && group[0] && groupId) || (view && view[0] && type && viewId) ) {
-        std::auto_ptr<sSql::sqlProc> p(getProc("sp_obj_perm_scanf"));
+        std::unique_ptr<sSql::sqlProc> p(getProc("sp_obj_perm_scanf"));
         p->Add(group).Add(type ? type->name() : 0).Add(view);
         sVarSet tbl;
         p->getTable(&tbl);
@@ -1519,33 +1962,49 @@ void sUsr::permPrettyScanf(const char * group, const char * view, const char* sp
     }
 }
 
-bool sUsr::setPermission(udx groupId, const sHiveId & objHiveId, udx permission, udx flags, sHiveId * viewId /* = 0 */, const char * forObjID) const
+bool sUsr::objSetHidden(const sHiveId & id, const bool hidden)
+{
+    bool ok = isAllowed(id, ePermCanAdmin);
+    if( ok ) {
+        std::unique_ptr<sSql::sqlProc> p(getProc("sp_obj_perm_flip"));
+        p->Add(id.domainId()).Add(id.objId()).Add(hidden).Add((idx)ePermCanBrowse);
+        ok = p->uvalue(0) > 0;
+        if( ok ) {
+            cacheRemove(id);
+        }
+    }
+    audit(eUserAuditAdmin, __func__, "obj='%s'; result='%s'", id.print(), ok ? "ok" : "failed");
+    return ok;
+}
+
+bool sUsr::setPermission(udx groupId, const sHiveId & objHiveId, udx permission, udx flags, sHiveId * viewId, const char * forObjID) const
 {
     bool ok = m_SuperUserMode, admin = false, share = false;
     if( !ok ) {
-        admin = isAllowed(objHiveId, ePermCanAdmin);
-        share = isAllowed(objHiveId, ePermCanShare);
-        ok = admin | share;
+        if( getProject() ) {
+            ok = false;
+        } else {
+            admin = isAllowed(objHiveId, ePermCanAdmin);
+            share = isAllowed(objHiveId, ePermCanShare);
+            ok = (admin | share);
+        }
     }
     if( ok ) {
-        std::auto_ptr<sUsrObj> obj(objFactory(objHiveId));
+        std::unique_ptr<sUsrObj> obj(objFactory(objHiveId));
         if( obj.get() ) {
             const char * tpnm = obj->getTypeName();
-            if( !m_SuperUserMode && groupId != m_PrimaryGroup && (strcasecmp(tpnm, "folder") == 0 || strcasecmp(tpnm, "sysfolder") == 0 ) ) {
+            if( !m_SuperUserMode && !getProject() && groupId != m_PrimaryGroup && tpnm && (strcasecmp(tpnm, "folder") == 0 || strcasecmp(tpnm, "sysfolder") == 0) ) {
                 permission &= (ePermCanBrowse | ePermCanRead | ePermCanShare);
             }
             if( admin || m_SuperUserMode ) {
                 if( groupId == m_PrimaryGroup && !m_SuperUserMode ) {
-                    // ensure it is visible to self
                     permission |= ePermCanBrowse | ePermCanAdmin;
-                    // and cannot be altered or inherited since it is your own access not a group!
                     flags = eFlagDefault;
                 }
             } else if( share ) {
                 sObjPerm * op = m_ObjPermission.get() ? m_ObjPermission->get(&objHiveId, sizeof(sHiveId)) : 0;
                 ok = op;
                 if( op ) {
-                    // do not elevate permissions
                     if( flags & eFlagRestrictive ) {
                         permission |= op->deny;
                     } else {
@@ -1553,15 +2012,15 @@ bool sUsr::setPermission(udx groupId, const sHiveId & objHiveId, udx permission,
                     }
                 }
             }
+            if( ok && !m_SuperUserMode ) {
+                sVarSet res;
+                db().getTable(&res, "SELECT groupID FROM UPGroup WHERE groupPath like '/HIVEPROJ/%%' AND groupID=%" UDEC, groupId);
+                ok = res.rows < 1;
+            }
             if( ok ) {
-                static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
-                std::auto_ptr<sSql::sqlProc> p(getProc(use_type_upobj ? "sp_obj_perm_set_v2" : "sp_obj_perm_set"));
+                std::unique_ptr<sSql::sqlProc> p(getProc("sp_obj_perm_set_v2"));
                 p->Add(groupId);
-                if( use_type_upobj ) {
-                    p->Add(objHiveId.domainId()).Add(objHiveId.objId()).Add(viewId ? viewId->domainId() : (udx)0).Add(viewId ? viewId->objId() : (udx)0);
-                } else {
-                    p->Add(objHiveId.objId()).Add(viewId ? viewId->objId() : (udx)0);
-                }
+                p->Add(objHiveId.domainId()).Add(objHiveId.objId()).Add(viewId ? viewId->domainId() : (udx)0).Add(viewId ? viewId->objId() : (udx)0);
                 p->Add(permission).Add(flags).Add(true);
                 ok = p->uvalue(0) > 0;
                 if( ok ) {
@@ -1587,14 +2046,8 @@ bool sUsr::copyPermission(const sHiveId & objHiveIdFrom, const sHiveId & objHive
     bool ok = isAllowed(objHiveIdFrom, ePermCanAdmin) &&
               isAllowed(objHiveIdTo, ePermCanAdmin);
     if( ok ) {
-        static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
-        std::auto_ptr<sSql::sqlProc> p(getProc(use_type_upobj ? "sp_obj_perm_copy_v2" : "sp_obj_perm_copy"));
-        // TODO support domain_id and ion_id
-        if( use_type_upobj ) {
-            p->Add(objHiveIdFrom.domainId()).Add(objHiveIdFrom.objId()).Add(objHiveIdTo.domainId()).Add(objHiveIdTo.objId());
-        } else {
-            p->Add(objHiveIdFrom.objId()).Add(objHiveIdTo.objId());
-        }
+        std::unique_ptr<sSql::sqlProc> p(getProc("sp_obj_perm_copy_v2"));
+        p->Add(objHiveIdFrom.domainId()).Add(objHiveIdFrom.objId()).Add(objHiveIdTo.domainId()).Add(objHiveIdTo.objId());
         ok = p->uvalue(0) > 0;
         if( ok ) {
             cacheRemove(objHiveIdTo);
@@ -1639,7 +2092,7 @@ class TPropCtx
         {
             return log && sString::searchSubstring(log.ptr(pos), 0, "\nerr." __, sNotIdx, 0, false) != 0;
         }
-        std::auto_ptr<sUsrQueryEngine> qengine;
+        std::unique_ptr<sUsrQueryEngine> qengine;
         const sUsr & user;
         sStr & log;
 };
@@ -1647,12 +2100,9 @@ class TPropCtx
 
 #define RM_TRAIL_SPACE(v,l) {{ while(strchr("\n\r\t ", v[--l]) != 0 ) {} ++l; }}
 
-// Check that a path is (1) non-empty, (2) non-absolute, (3) has no .. elements, (4) exists.
-// If everything looks good, print to outbuf.
 static const char * printRelativeFilePath(sStr & outbuf, const char * path, idx len, sFilePath & tmp)
 {
     if( !path || !len ) {
-        // empty path
         return 0;
     }
 
@@ -1661,16 +2111,13 @@ static const char * printRelativeFilePath(sStr & outbuf, const char * path, idx 
     tmp.shrink00();
 
     if( !tmp.length() || !tmp[0] ) {
-        // empty path after simplification
         return 0;
     }
     if( tmp[0] == '/' ) {
-        // absolute path
         return 0;
     }
     for(idx i = 0; i + 1 < len; i++) {
         if( path[i] == '.' && path[i + 1] == '.' && (i == 0 || path[i - 1] == '/') && (i + 2 == len || path[i + 2] == '/') ) {
-            // path equals "..", or starts with "../", or ends with "/..", or contains "/../"
             return 0;
         }
     }
@@ -1678,7 +2125,6 @@ static const char * printRelativeFilePath(sStr & outbuf, const char * path, idx 
     outbuf.addString("./", 2);
     outbuf.addString(tmp.ptr(), tmp.length());
     if( outbuf[outbuf.length() - 1] == '/' ) {
-        // clean up terminal '/' to avoid breaking nextToSlash()
         outbuf.cut0cut(outbuf.length() - 1);
     }
     if( !sFile::exists(outbuf.ptr(outbuf_start)) ) {
@@ -1705,7 +2151,6 @@ class TPropObj
             idx len;
         };
         static const PrefixStr prefixes[];
-        //! find first "\rprop." or similar in buf; returns pointer to start of prefix string in buf, or 0 if not found
         static const char * scanPrefix(const char * buf, idx buf_len, idx scan_len = sIdxMax, bool no_newline = false, TPropObj::EPrefix * out_prefix = 0, idx * out_prefix_len = 0);
 
         struct TVecPair
@@ -1736,7 +2181,6 @@ class TPropObj
                 {
                 }
                 bool append;
-                // path/value pairs and their lengths
                 TVecPair path;
                 TVecPair value;
                 sVec<EPrefix> prefix;
@@ -1750,8 +2194,9 @@ class TPropObj
                 }
         };
 
-        sDic<TPropVals> prop; // prop_name => values
-        sHiveId id; // object id, if available
+        sDic<TPropVals> prop;
+        sHiveId id;
+        udx in_domain_id;
         sStr del;
         sStr file;
         sFilePath tmp_file_buf;
@@ -1766,6 +2211,7 @@ class TPropObj
             : del(sMex::fExactSize), file(sMex::fExactSize)
         {
             prop.mex()->flags |= sMex::fSetZero | sMex::fExactSize;
+            in_domain_id = 0;
         }
         bool isEmpty() const
         {
@@ -1780,8 +2226,6 @@ class TPropObj
                 if( val_len < sizeof(buf) ) {
                     bool no_prefetch_types = false;
                     if( val_len == 4 && strncasecmp(val, "type", 4) == 0 ) {
-                        // special case: for type objects, fetch only type "type", no other types - otherwise,
-                        // that could spuriously break "make install" when installing types out of order
                         no_prefetch_types = true;
                     }
                     const sUsrType2 * utype = sUsrType2::ensure(user, val, val_len, no_prefetch_types);
@@ -1796,6 +2240,18 @@ class TPropObj
                 }
             }
             return "empty type name";
+        }
+        const char * setInDomainId(const char * val, udx val_len)
+        {
+            in_domain_id = 0;
+            RM_TRAIL_SPACE(val, val_len);
+            if( val && val_len ) {
+                in_domain_id = sHiveId::encodeDomainId(val, val_len);
+                if( !in_domain_id ) {
+                    return "invalid domain";
+                }
+            }
+            return 0;
         }
         const sUsrType2 * getType() const
         {
@@ -1824,8 +2280,7 @@ class TPropObj
         {
             const char * err = 0;
             if( pnm[0] == '_' ) {
-                ++pnm; --pnm_len;
-                if( strncasecmp(pnm, "id", pnm_len) == 0 ) {
+                if( strncasecmp(pnm, "_id", pnm_len) == 0 ) {
                     sHiveId _id;
                     if( val_len >= 8 && strncasecmp(val, "query://", 8) == 0 ) {
                         if( !ctx.qengine.get() ) {
@@ -1866,33 +2321,42 @@ class TPropObj
                             id = _id;
                         }
                     }
-                } else if( strncasecmp(pnm, "type", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_domain", pnm_len) == 0 ) {
+                    err = setInDomainId(val, val_len);
+                } else if( strncasecmp(pnm, "_type", pnm_len) == 0 ) {
                     err = setType(val, val_len, ctx.user);
-                } else if( strncasecmp(pnm, "delete", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_delete", pnm_len) == 0 ) {
+                    if( del ) {
+                        del.shrink00();
+                        del.add0();
+                    }
                     del.printf("%.*s", (int)val_len, val);
-                    del.add0();
-                } else if( strncasecmp(pnm, "file", pnm_len) == 0 ) {
+                    del.add0(2);
+                } else if( strncasecmp(pnm, "_file", pnm_len) == 0 ) {
                     RM_TRAIL_SPACE(val, val_len);
                     tmp_file_buf.cut0cut();
-                    if( printRelativeFilePath(file, val, val_len, tmp_file_buf) ) {
+                    if( file ) {
+                        file.shrink00();
                         file.add0();
+                    }
+                    if( printRelativeFilePath(file, val, val_len, tmp_file_buf) ) {
+                        file.add0(2);
                     } else {
                         err = not_for_db ? 0 : "invalid filename or path";
                     }
-                } else if( strncasecmp(pnm, "comment", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_comment", pnm_len) == 0 ) {
                     err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : 0;
-                } else if( strncasecmp(pnm, "dir", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_dir", pnm_len) == 0 ) {
                     err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : 0;
-                } else if( strncasecmp(pnm, "brief", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_brief", pnm_len) == 0 ) {
                     err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : 0;
-                } else if( strncasecmp(pnm, "summary", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_summary", pnm_len) == 0 ) {
                     err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : 0;
-                } else if( strncasecmp(pnm, "info", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_info", pnm_len) == 0 ) {
                     err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : 0;
-                } else if( strncasecmp(pnm, "action", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_action", pnm_len) == 0 ) {
                     err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : 0;
-                    // these prop are ignored now
-                } else if( strncasecmp(pnm, "perm", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_perm", pnm_len) == 0 ) {
                     sMex::Pos * pos = perms.add();
                     if( pos ) {
                         pos->pos = (idx)val;
@@ -1900,11 +2364,13 @@ class TPropObj
                     } else {
                         err = "insufficient resources (6)";
                     }
-                } else if( strncasecmp(pnm, "info", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_effperm", pnm_len) == 0) {
                     err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : 0;
-                } else if( strncasecmp(pnm, "warn", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_info", pnm_len) == 0 ) {
                     err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : 0;
-                } else if( strncasecmp(pnm, "err", pnm_len) == 0 ) {
+                } else if( strncasecmp(pnm, "_warn", pnm_len) == 0 ) {
+                    err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : 0;
+                } else if( strncasecmp(pnm, "_err", pnm_len) == 0 ) {
                     err = not_for_db ? addPropLowLevel(prefix, pnm, pnm_len, path, path_len, val, val_len, ctx) : "file contains _err";
                 } else {
                     err = "unrecognized '_' (underscore) directive";
@@ -1918,7 +2384,7 @@ class TPropObj
         const char * addPropLowLevel(EPrefix prefix, const char * pnm, udx pnm_len, const char * path, udx path_len, const char * val, udx val_len, TPropCtx & ctx)
         {
             const char * err = 0;
-            char buf[256]; // see name column size from UPObjField
+            char buf[256];
             bool append = pnm[pnm_len - 1] == '+';
             if( append ) {
                 pnm_len--;
@@ -1937,7 +2403,7 @@ class TPropObj
                     err = "mixed append and overwrite";
                 }
                 if( !err ) {
-                    if( val_len > 16 * 1024 * 1024 ) { // see UPObjField table: MEDIUMTEXT -> 2^24
+                    if( val_len > 16 * 1024 * 1024 ) {
                         err = "value too long";
                     } else if( path_len > 255 ) {
                         err = "path too long";
@@ -1955,7 +2421,6 @@ class TPropObj
         sHiveId type_id;
 };
 
-//static
 const TPropObj::PrefixStr TPropObj::prefixes[] = {
     { ePrefixProp, "prop.", 5 },
     { ePrefixInfo, "info.", 5 },
@@ -1964,7 +2429,6 @@ const TPropObj::PrefixStr TPropObj::prefixes[] = {
     { ePrefixDbg, "dbg.", 4 },
 };
 
-//static
 const char * TPropObj::scanPrefix(const char * buf, idx buf_len, idx scan_len, bool no_newline, TPropObj::EPrefix * out_prefix, idx * out_prefix_len)
 {
     if( buf ) {
@@ -2015,13 +2479,12 @@ class TProp
             TPropObj::EPrefix prefix = TPropObj::ePrefixProp;
             idx prefix_len = 0;
             if( !TPropObj::scanPrefix(nm, nm_len, 1, true, &prefix, &prefix_len) ) {
-                return true; // skip random http / env values in pForm
+                return true;
             }
             const char * err = 0, *nm_end = nm + nm_len;
             do {
                 const char * id = &nm[prefix_len];
                 const char * id_end = id;
-                // initial element might be domainId if true, go on till parts are numeric
                 while(true) {
                     id_end = (const char *) memchr(id_end, '.', nm_end - id);
                     if(id_end < nm_end && !isdigit(id_end[1])) {
@@ -2069,10 +2532,10 @@ class TProp
                 const char * oid = (const char *) all.id(o);
                 TPropObj * pobj = all.ptr(o);
                 if( !pobj->prop.dim() ) {
-                    continue; // skip empty object
+                    continue;
                 }
                 if( pobj->id ) {
-                    std::auto_ptr<sUsrObj> obj(ctx.user.objFactory(pobj->id));
+                    std::unique_ptr<sUsrObj> obj(ctx.user.objFactory(pobj->id));
                     if( !obj.get() ) {
                         ctx.log.printf("\nerr.%s._id=object not found ", oid);
                         pobj->id.print(ctx.log);
@@ -2093,7 +2556,6 @@ class TProp
                     continue;
                 }
                 if( pobj->del ) {
-                    pobj->del.add0();
                     for(const char * p = pobj->del; p; p = sString::next00(p)) {
                         if( pobj->getType()->getFieldType(ctx.user, p) == sUsrTypeField::eInvalid ) {
                             ctx.log.printf("\nerr.%s._delete=invalid property name '%s'", oid, p);
@@ -2101,8 +2563,6 @@ class TProp
                     }
                 }
                 if( pobj->file ) {
-                    pobj->file.add0();
-                    /// TODO validation here might see if anything is returned by the mask
                 }
                 if( pobj->perms.dim() ) {
                     sStr tmp;
@@ -2152,7 +2612,6 @@ class TProp
         }
         void purgeNewObjs(sDic<sHiveId> * new_ids_map)
         {
-            // cleanup obj directories for new objects only
             for(idx o = 0; o < new_ids_map->dim(); ++o) {
                 sUsrObj * obj = ctx.user.objFactory(*(new_ids_map->ptr(o)));
                 if( obj ) {
@@ -2170,16 +2629,15 @@ class TProp
                 bool is_our_transaction = !ctx.user.getUpdateLevel();
                 if( ctx.user.updateStart() ) {
                     new_ids_map = new_ids_map ? new_ids_map : &local_map;
-                    // create objects if needed
                     for(idx o = 0; o < all.dim(); ++o) {
                         TPropObj * pobj = all.ptr(o);
                         if( pobj->isEmpty() ) {
-                            continue; // skip empty object
+                            continue;
                         }
                         const char * oid = (const char *)all.id(o);
                         if( !pobj->id ) {
                             if( const sUsrType2 * otype = all.ptr(o)->getType() ) {
-                                sRC rc = ctx.user.objCreate(pobj->id, otype->name());
+                                sRC rc = ctx.user.objCreate(pobj->id, otype->name(), pobj->in_domain_id);
                                 if( !rc ) {
                                     sHiveId * u = new_ids_map->set(oid);
                                     if( u ) {
@@ -2205,15 +2663,15 @@ class TProp
                             }
                         }
                     }
-                    //save properties
                     sStr valueSubstituteBuffer;
-                    sStr objFiles00; // obj files to copy, in triplets: dst, src, objid
+                    sStr objFiles00;
                     for(idx o = 0; !ctx.hasError() && o < all.dim(); ++o) {
                         TPropObj * pobj = all.ptr(o);
                         if( !pobj->id ) {
                             continue;
                         }
-                        sUsrObj * obj = ctx.user.objFactory(pobj->id);
+                        const sUsrType2 * tp = pobj->getType();
+                        sUsrObj * obj = ctx.user.objFactory(pobj->id, tp ? &tp->id() : 0, ePermCanWrite);
                         if( obj ) {
                             if( pobj->del ) {
                                 for(const char * p = pobj->del; p; p = sString::next00(p)) {
@@ -2223,7 +2681,6 @@ class TProp
                             for(idx p = 0; p < pobj->prop.dim(); ++p) {
                                 valueSubstituteBuffer.cut(0);
                                 TPropObj::TPropVals * pp = pobj->prop.ptr(p);
-                                // perform value to id substitution
                                 for(idx ipp = 0; ipp < pp->value.ptr.dim(); ++ipp) {
                                     const char * value = pp->value.ptr[ipp];
                                     if( strncmp(value, "${", 2) == 0 ) {
@@ -2255,7 +2712,7 @@ class TProp
                                 for(const char * p = pobj->file; p; p = sString::next00(p)) {
                                     const char * nm = sFilePath::nextToSlash(p);
                                     if( obj->addFilePathname(objFiles00, false, "%s", nm) ) {
-                                        if( !ctx.log ) { // do not add if there were errors before
+                                        if( !ctx.log ) {
                                             objFiles00.add0();
                                             objFiles00.printf("%s", p);
                                             objFiles00.add0();
@@ -2300,27 +2757,22 @@ class TProp
                                 }
                             }
                             if( !ctx.hasError() ) {
-                                // return new obj ids mapping
                                 for(idx i = 0; i < new_ids_map->dim(); ++i) {
                                     idx sz = 0;
                                     const void * p = new_ids_map->id(i, &sz);
                                     ctx.log.printf("\nprop.%.*s._id=%s", (int) sz, (const char *)p, new_ids_map->ptr(i)->print());
                                 }
-                                isok = true; // since now log contains new ids;
+                                isok = true;
                             }
                         }
                     } else {
                         if( ctx.user.hadDeadlocked() && is_our_transaction ) {
-                            // DB deadlock detected, and our own ctx.user.updateStart() call had
-                            // started the current DB transaction. Wait a bit and retry.
                             ctx.user.updateAbandon();
                             isok = false;
-                            // Reset id in elements of all dictionary for newly created objects
-                            // (to ensure objCreate will be re-run on next retry iteration)
                             for(idx o = 0; o < all.dim(); ++o) {
                                 TPropObj * pobj = all.ptr(o);
                                 if( pobj->isEmpty() ) {
-                                    continue; // skip empty object
+                                    continue;
                                 }
                                 const char * oid = (const char *)all.id(o);
                                 sHiveId * pnew_id = new_ids_map->get(oid);
@@ -2346,7 +2798,6 @@ class TProp
                 break;
             }
             if( !isok ) {
-                // cleanup obj directories for new objects only
                 purgeNewObjs(new_ids_map);
             }
             return isok;
@@ -2377,27 +2828,56 @@ class TProp
             return ctx.hasError();
         }
 private:
-        sDic<TPropObj> all; // idstr -> props
+        sDic<TPropObj> all;
         TPropCtx ctx;
 };
 
-bool sUsr::propSet(const char * propFileName, sStr& log, sVec<sHiveId>* new_ids /* = 0 */, sVec<sHiveId>* updated_ids /* = 0 */, sDic<sHiveId> * new_ids_map /* = 0 */)
+bool sUsr::propSet(const char * propFileName, sStr& log, sVec<sHiveId>* new_ids, sVec<sHiveId>* updated_ids, sDic<sHiveId> * new_ids_map)
 {
-    sFil propFile(propFileName, sMex::fReadonly);
     bool ret = false;
-    if( !propFile.ok() ) {
-        log.printf("err.null._err=prop file not found '%s'", propFileName);
+    sFilePath curr, ext(propFileName, "%%ext"), dir(propFileName, "%%dir");
+    if( strcasecmp(ext, "prop") == 0 ) {
+        sFil propFile(propFileName, sMex::fReadonly);
+        if( !propFile.ok() ) {
+            log.printf("err.null._err=prop file not found '%s'", propFileName);
+        } else {
+            if( dir ) {
+                curr.curDir();
+                sDir::chDir(dir);
+            }
+            ret = propFile.length() ? propSet(propFile.ptr(), propFile.length(), log, new_ids, updated_ids, new_ids_map) : true;
+            if( dir && curr ) {
+                sDir::chDir(curr);
+            }
+        }
+    } else if( strcasecmp(ext, "json") == 0 ) {
+        sDic<sUsrPropSet::Obj> modified_objs;
+        sUsrPropSet upropset(*this);
+        upropset.setSrcFile(propFileName);
+        upropset.setFileRoot(dir.ptr());
+        sJSONPrinter printer(&log);
+        printer.startObject();
+        if( !(ret = upropset.run(&modified_objs, sUsrPropSet::fInvalidUserGroupNonFatal | sUsrPropSet::fOverwriteExistingSameType)) ) {
+            printer.addKeyValue("error", upropset.getErr());
+        }
+        const char * p = upropset.getWarn00();
+        if( p ) {
+            printer.addKey("warning");
+            printer.startArray();
+            for(; p; p = sString::next00(p) ) {
+                if( *p ) {
+                    printer.addValue(p);
+                }
+            }
+        }
+        for(idx imod = 0; imod < modified_objs.dim(); imod++) {
+            sHiveId * id = (modified_objs.ptr(imod)->is_new ? new_ids : updated_ids)->add();
+            if( id ) {
+                *id = modified_objs.ptr(imod)->id;
+            }
+        }
     } else {
-        // _file props are relative to prop file location to avoid security breaches
-        sFilePath dir(propFileName, "%%dir"), curr;
-        if( dir ) {
-            curr.curDir();
-            sDir::chDir(dir);
-        }
-        ret = propFile.length() ? propSet(propFile.ptr(), propFile.length(), log, new_ids, updated_ids, new_ids_map) : true;
-        if( dir && curr ) {
-            sDir::chDir(curr);
-        }
+        ret = false;
     }
     return ret;
 }
@@ -2421,7 +2901,7 @@ static bool propBufParse(const char * srcbuf, idx len, sStr & log, TProp & prop,
         const char * val = nm_end + 1;
         const char * val_end = TPropObj::scanPrefix(val, lastpos - val);
         if( !val_end ) {
-            val_end = lastpos; // till end of buffer
+            val_end = lastpos;
         }
         if( !prop.parse(nm, nm_end - nm, val, val_end - val, not_for_db) ) {
             break;
@@ -2431,7 +2911,7 @@ static bool propBufParse(const char * srcbuf, idx len, sStr & log, TProp & prop,
     return !prop.hasError();
 }
 
-bool sUsr::propSet(const char * srcbuf, idx len, sStr & log, sVec<sHiveId> * new_ids, sVec<sHiveId> * updated_ids, sDic<sHiveId> * new_ids_map /* = 0 */)
+bool sUsr::propSet(const char * srcbuf, idx len, sStr & log, sVec<sHiveId> * new_ids, sVec<sHiveId> * updated_ids, sDic<sHiveId> * new_ids_map)
 {
     TProp prop(*this, log);
     if( propBufParse(srcbuf, len, log, prop, false) && prop.validate() ) {
@@ -2469,10 +2949,10 @@ bool sUsr::propSet(const char * srcbuf, idx len, sStr & log, sVarSet & result, b
     return false;
 }
 
-bool sUsr::propSet(const sVar & form, sStr & log, sVec<sHiveId>* new_ids /* = 0 */, sVec<sHiveId>* updated_ids /* = 0 */, sDic<sHiveId> * new_ids_map /* = 0 */) const
+bool sUsr::propSet(const sVar & form, sStr & log, sVec<sHiveId>* new_ids, sVec<sHiveId>* updated_ids, sDic<sHiveId> * new_ids_map) const
 {
     TProp prop(*this, log);
-    if( propFormParse(form, prop, false) ) {
+    if( propFormParse(form, prop, false)  && prop.validate() ) {
         return prop.db(new_ids, updated_ids, new_ids_map);
     }
     return false;
@@ -2493,13 +2973,12 @@ const sUsrType2 * sUsr::objType(const sHiveId & objHiveId, sHiveId * out_objType
             out_objTypeId->reset();
         }
     }
-    return op ? sUsrType2::ensure(*this, op->type) : 0;
+    return op ? sUsrType2::ensure(*this, op->type, false, false, true) : 0;
 }
 
 void sUsr::cacheRemove(const sHiveId & objHiveId) const
 {
     if( m_ObjPermission.get() ) {
-        // remove this id from cache
         TPermCache old(m_ObjPermission.release());
         m_ObjPermission.reset(new TPermCache::element_type);
         if( m_ObjPermission.get() ) {
@@ -2561,7 +3040,7 @@ bool sUsr::cacheObj(const sHiveId & id, const sHiveId * type, udx flags, udx bit
 bool sUsr::cacheObjPerm(const sVarSet& tbl) const
 {
     enum
-    { // expected first 4 columns in that order:
+    {
         eColObjId = 0, eColType, eColPermission, eColFlags, eColViewName
     };
     for(idx r = 0; r < tbl.rows; ++r) {
@@ -2569,7 +3048,6 @@ bool sUsr::cacheObjPerm(const sVarSet& tbl) const
         if( flags & (eFlagOnHold | eFlagRevoked) ) {
             continue;
         }
-        // TODO: support domain_id and ion_id
         sHiveId objHiveId(tbl.uval(r, eColObjId), 0);
         const sUsrType2 * utype = sUsrType2::ensure(*this, tbl.val(r, eColType));
         if( utype ) {
@@ -2592,7 +3070,6 @@ bool sUsr::cacheObjPerm(const sVarSet& tbl) const
 
 bool sUsr::copy2res(sUsrObjRes & res) const
 {
-    static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
     sStr tmp;
     while( db().resultNext() ) {
         idx pid = 0;
@@ -2605,31 +3082,21 @@ bool sUsr::copy2res(sUsrObjRes & res) const
                     if( nm && nm[0] == '_' ) {
                         if( strcasecmp(&nm[1], "type") == 0 ) {
                             sHiveId tid;
-                            if( use_type_upobj ) {
-                                tid.set(db().resultUValue(4), db().resultUValue(5), 0);
-                            } else {
-                                tid.set(&nm[1], db().resultUValue(7), 0);
-                            }
+                            tid.set(db().resultUValue(4), db().resultUValue(5), 0);
                             if( tid && !cacheObj(id, &tid, eFlagNone, ePermNone) ) {
                                 return false;
                             }
                         } else if( strcasecmp(&nm[1], "acl") == 0 ) {
-                            if( !cacheObj(id, 0, db().resultUValue(4), db().resultUValue(5)) ) { // TODO cols 6,7 are view ID
+                            if( !cacheObj(id, 0, db().resultUValue(4), db().resultUValue(5)) ) {
                                 return false;
                             }
                         } else if( strcasecmp(&nm[1], "perm") == 0 ) {
                             const char * path = tmp.printf(0, "1.%" DEC, ++pid);
                             tmp.add0(2);
                             const char * val;
-                            if( use_type_upobj ) {
-                                sHiveId vw(db().resultUValue(7), db().resultUValue(8));
-                                val = tmp.printf("%" UDEC ",%s,", db().resultUValue(4), vw ? vw.print() : "");
-                                permPrettyPrint(tmp, db().resultUValue(6), db().resultUValue(5));
-                            } else {
-                                const udx vw = db().resultUValue(5);
-                                val = tmp.printf("%" UDEC ",%s,", db().resultUValue(4), vw ? db().resultValue(5) : "");
-                                permPrettyPrint(tmp, db().resultUValue(7), db().resultUValue(6));
-                            }
+                            sHiveId vw(db().resultUValue(7), db().resultUValue(8));
+                            val = tmp.printf("%" UDEC ",%s,", db().resultUValue(4), vw ? vw.print() : "");
+                            permPrettyPrint(tmp, db().resultUValue(6), db().resultUValue(5));
                             res.add(*p, nm, path, sLen(path), val, sLen(val));
                         }
                     } else {
@@ -2657,32 +3124,33 @@ bool sUsr::copy2res(sUsrObjRes & res) const
     return true;
 }
 
-udx sUsr::objsLowLevel(const char * type_names, const char * obj_filter_sql, const char * prop_filter_sql, const char * prop_name_csv, bool permissions, const udx start, const udx count, sUsrObjRes * res /* = 0 */, udx * total_qty /* = 0 */) const
+udx sUsr::objsLowLevel(const char * type_names, const char * obj_filter_sql, const char * prop_filter_sql, const char * prop_name_csv,
+                       bool permissions, const udx start, const udx count, sUsrObjRes * res, udx * total_qty, bool allowSysInternal, bool withTrash) const
 {
     if( !res && !total_qty ) {
         return 0;
     }
-    static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
     SRCHDBG("SEARCH QUERY %s%s FROM type(s): '%s' WHERE [[%s]] AND [[%s]] LIMIT %" UDEC ", %" UDEC " with%s total\n", prop_name_csv ? prop_name_csv : "NULL", permissions ? " +flag:_perm" : "", type_names, obj_filter_sql ? obj_filter_sql : "", prop_filter_sql ? prop_filter_sql : "", start, count, total_qty ? "" : "out");
-    std::auto_ptr<sSql::sqlProc> p(getProc(use_type_upobj ? "sp_obj_get_v4_1" : "sp_obj_get_v3"));
+    std::unique_ptr<sSql::sqlProc> p(getProc("sp_obj_get_v5"));
     if( total_qty ) {
         *total_qty = 0;
     }
     if( p.get() ) {
-        // unique-ified lists
         sStr filter00, typeids;
         sVec<const sUsrTypeField*> fields;
         sDic<bool> props;
-        if( use_type_upobj && type_names && type_names[0] && strcmp(type_names, "*") != 0 ) {
+        if( type_names == 0 || strcmp(type_names, "*") != 0 ) {
             sVec<const sUsrType2 *> tout;
             sVec< sHiveId > tids;
-            sUsrType2::find(*this, & tout, type_names, 0, 0, 0, true); // fetch types lazily - we only need their IDs
+            sUsrType2::find(*this, & tout, type_names && type_names[0] ? type_names : 0, 0, 0, 0, true);
             tids.resize(tout.dim());
             for(idx i = 0; i < tout.dim(); ++i ) {
                 tids[i] = tout[i]->id();
             }
             if( tids.dim() ) {
                 sSql::exprInList(typeids, "o.objTypeDomainID", "o.objTypeID", tids, false);
+            } else {
+                return 0;
             }
         }
         if( prop_name_csv ) {
@@ -2699,30 +3167,24 @@ udx sUsr::objsLowLevel(const char * type_names, const char * obj_filter_sql, con
                 }
             }
         }
-        if( permissions ) {
-            filter00.printf("%s", "_perm");
-            filter00.add0(1);
+        if( filter00 ) {
+            if( permissions ) {
+                filter00.printf("%s", "_perm");
+                filter00.add0(1);
+            }
+            filter00.add0(2);
         }
-        filter00.add0(filter00 ? 2 : 0);
-        if( use_type_upobj ) {
-            p->Add(typeids.length() ? typeids.ptr() : "");
-        } else {
-            p->Add(type_names);
-        }
-        p->Add(obj_filter_sql).Add(prop_filter_sql);
+        p->Add(typeids.length() ? typeids.ptr() : "").Add(obj_filter_sql).Add(prop_filter_sql);
         if( m_AllowExpiredObjects ) {
             if( m_SuperUserMode ) {
-                p->Add((idx)-1); // any (expired or unexpired)
+                p->Add((idx)-1);
             } else {
-#if _DEBUG
-                fprintf(stderr, "WARNING: sUsr API misuse: fetching expired objects is permitted only in superuser mode\n");
-#endif
-                p->Add((idx)0); // unexpired only
+                p->Add(idx(withTrash ? 2 : 0));
             }
         } else {
-            p->Add((idx)0); // unexpired only
+            p->Add(idx(withTrash ? 2 : 0));
         }
-        p->Add(start).Add(count).Add(total_qty != 0).Add(permissions);
+        p->Add(start).Add(count).Add(permissions);
         if( p->resultOpen() && db().resultNext() ) {
             db().resultNextRow();
             if( total_qty ) {
@@ -2752,19 +3214,20 @@ udx sUsr::objsLowLevel(const char * type_names, const char * obj_filter_sql, con
                         }
                     }
                     sStr propsSql;
+                    bool has_virtual_props = permissions;
                     for(idx i = 0; i < props.dim(); ++i) {
                         const char * nm = (const char*)props.id(i);
-                        if( nm && nm[0] != '_' ) {
-                            propsSql.printf(",%s", nm);
+                        if( nm ) {
+                            if( nm[0] == '_' ) {
+                                has_virtual_props = true;
+                            } else {
+                                propsSql.printf(",%s", nm);
+                            }
                         }
                     }
-                    p.reset(getProc(use_type_upobj ? "sp_obj_prop_v2_2" : "sp_obj_prop_v1_1"));
+                    p.reset(getProc("sp_obj_prop_v2_2"));
                     if( p.get() ) {
-                        if( !use_type_upobj ) {
-                            p->Add((char*)0);
-                        } else {
-                            p->Add(sid);
-                        }
+                        p->Add(sid);
                         p->Add(propsSql ? propsSql.ptr(1) : "");
                         if( !p->resultOpen() || !copy2res(*res) ) {
                             res->empty();
@@ -2773,10 +3236,10 @@ udx sUsr::objsLowLevel(const char * type_names, const char * obj_filter_sql, con
                     }
                     for(sUsrObjRes::IdIter it = res->first(); res->has(it); res->next(it)) {
                         const sHiveId * id = res->id(it);
-                        std::auto_ptr<sUsrObj> obj(objFactory(*id));
+                        std::unique_ptr<sUsrObj> obj(objFactory(*id));
                         if( obj.get() ) {
-                            if( propsSql ) {
-                                obj->propEval(*res, filter00);
+                            if( propsSql || has_virtual_props ) {
+                                obj->propEval(*res, filter00, allowSysInternal);
                             }
                         } else {
                             res->del(it);
@@ -2789,11 +3252,11 @@ udx sUsr::objsLowLevel(const char * type_names, const char * obj_filter_sql, con
     return res ? res->dim() : 0;
 }
 
-udx sUsr::objs2(const char* type_names, sUsrObjRes & res, udx * total_qty, const char* prop, const char* value, const char * prop_name_csv, bool permissions, const udx start, const udx count) const
+udx sUsr::objs2(const char* type_names, sUsrObjRes & res, udx * total_qty, const char* prop, const char* value, const char * prop_name_csv, bool permissions, const udx start, const udx count, bool allowSysInternal, bool withTrash) const
 {
     SRCHDBG("SEARCH QUERY type(s): '%s' --> '%s'[%s]\n", type_names, value ? value : "", prop ? prop : "");
-    sStr v00(sMex::fExactSize), p00(sMex::fExactSize);
-    sStr o_flt(sMex::fExactSize), v_flt(sMex::fExactSize);
+    sStr v00, p00, o_flt, v_flt;
+    sVec<sHiveId> id_incl, id_excl;
     sString::searchAndReplaceSymbols(&v00, value, 0, ",", 0, 0, true, true, true, true);
     sString::searchAndReplaceSymbols(&p00, prop, 0, ",", 0, 0, true, true, true, true);
     p00.add0(p00 ? 1 : 0);
@@ -2813,11 +3276,17 @@ udx sUsr::objs2(const char* type_names, sUsrObjRes & res, udx * total_qty, const
         if( pn && pn[0] && strcmp(pn, "*") != 0 ) {
             if( (strcmp(pn, "id") == 0 || strcmp(pn, "_id") == 0) ) {
                 if( pv && pv[0] ) {
-                    sHiveId objid(pv);
-                    // if obj is 0, we still want to print it to o_flt (if we are filtering by _id == 0, we want to retrieve no objects, not all objects)
-                    o_flt.printf(o_flt ? (not_pn ? "AND NOT" : "OR") : "(");
-                    objid.printSQL(o_flt, "o");
+                    sHiveId * objid = not_pn ? id_excl.add(1) : id_incl.add(1);
+                    if( objid ) {
+                        objid->parse(pv);
+                    }
                 }
+            } else if( (strcmp(pn, "_creator") == 0) ) {
+                o_flt.printf(o_flt ? " AND (" : "(");
+                o_flt.printf("o.creatorID %s ", (not_pn || not_pv) ? "!=" : "=");
+                db().protect(o_flt, pv);
+                o_flt.shrink00();
+                o_flt.printf(")");
             } else {
                 if( v_flt ) {
                     v_flt.addString(" OR ");
@@ -2835,26 +3304,34 @@ udx sUsr::objs2(const char* type_names, sUsrObjRes & res, udx * total_qty, const
                 v_flt.printf(")");
             }
         } else if( pv && pv[0] && strcmp(pv, "*") != 0 && strcmp(pv, ".*") != 0 ) {
-            // !* in prop list means value != ...
             if( v_flt ) {
                 v_flt.addString(" OR ");
             }
             v_flt.printf("((f.value %s" OBJCMP " '", not_pv ? OBJNOT : "");
             db().protect(v_flt, pv);
             v_flt.shrink00();
-            v_flt.printf("') OR (CHAR(o.domainID USING ASCII) %s" OBJCMP " '", not_pv ? OBJNOT : "");
+            v_flt.printf("') OR (CHAR(f.domainID USING ASCII) %s" OBJCMP " '", not_pv ? OBJNOT : "");
             db().protect(v_flt, pv);
             v_flt.shrink00();
-            v_flt.printf("') OR (o.objID %s" OBJCMP " '", not_pv ? OBJNOT : "");
+            v_flt.printf("') OR (f.objID %s" OBJCMP " '", not_pv ? OBJNOT : "");
             db().protect(v_flt, pv);
             v_flt.shrink00();
             v_flt.printf("'))");
         }
     }
-    o_flt.printf(o_flt ? ")" : "");
+    if( id_incl ) {
+        o_flt.printf(o_flt ? " AND (" : "(");
+        sSql::exprInList(o_flt, "o.domainID", "o.objID", id_incl, false);
+        o_flt.printf(")");
+    }
+    if( id_excl ) {
+        o_flt.printf(o_flt ? " AND (" : "(");
+        sSql::exprInList(o_flt, "o.domainID", "o.objID", id_excl, true);
+        o_flt.printf(")");
+    }
 #undef OBJCMP
 #undef OBJNOT
-    return objsLowLevel(type_names, o_flt, v_flt.ptr(0), prop_name_csv, permissions, start, count, &res, total_qty);
+    return objsLowLevel(type_names, o_flt, v_flt.ptr(0), prop_name_csv, permissions, start, count, &res, total_qty, allowSysInternal, withTrash);
 }
 
 udx sUsr::objs(const sHiveId * ids, const udx cnt_ids, sVec<sHiveId>& out) const
@@ -2879,25 +3356,15 @@ udx sUsr::objs(const sHiveId * ids, const udx cnt_ids, sVec<sHiveId>& out) const
     return out.dim();
 }
 
-void sUsr::propBulk(sVec<sHiveId> & ids, sVarSet & list, const char* view_name, const char* filter00) const
+void sUsr::propBulk(sVec<sHiveId> & ids, sVarSet & list, const char* view_name, const char* filter00, bool allowSysInternal) const
 {
     if( ids.dim() ) {
-        static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
-        sStr idcsv;
-        if( use_type_upobj ) {
-            idcsv.printf(",");
-            sSql::exprInList(idcsv, "domainID", "objID", ids, false);
-        } else {
-            // truncate list to fit into MEDIUMTEXT storeproc param
-            for(idx i = 0; i < ids.dim() && idcsv.length() < ((2 << 24) - 20); ++i) {
-                idcsv.printf(",%" UDEC, ids[i].objId());
-            }
-        }
+        sStr idcsv(",");
+        sSql::exprInList(idcsv, "domainID", "objID", ids, false);
         const bool hasBrief = filter00 && (sString::compareChoice("_brief", filter00, 0, true, 0, true) != sNotIdx);
         const bool hasSummary = filter00 && (sString::compareChoice("_summary", filter00, 0, true, 0, true) != sNotIdx);
         sStr prp, pkey;
         if( hasBrief || hasSummary ) {
-            // expand filter00 with _brief and/or _summary props for given id types
             sDic<bool> uniq;
             for(const char * f = filter00; f; f = sString::next00(f)) {
                 uniq.set(f, sLen(f) + 1);
@@ -2909,24 +3376,22 @@ void sUsr::propBulk(sVec<sHiveId> & ids, sVarSet & list, const char* view_name, 
             pp[1] = hasSummary ? "_summary" : 0;
             sVarSet props;
             for(idx i = 0; i < ids.dim() ; ++i) {
-                std::auto_ptr<sUsrObj> obj(objFactory(ids[i]));
+                std::unique_ptr<sUsrObj> obj(objFactory(ids[i]));
                 if( obj.get() ) {
                     for(idx p = 0; p < sDim(pp); ++p) {
                         if( pp[p] ) {
                             props.empty();
                             if( const sUsrType2 * utype = obj->getType() ) {
-                                //utype->props(*this, props, view_name, pp[p]);
                                 utype->props(*this, props, pp[p]);
                             }
                             idx cnm = props.colId("name");
                             idx cvrt = props.colId("is_virtual_fg");
                             for(idx r = 0; r < props.rows; ++r) {
-                                // skip virtual columns
                                 const char * nm = props.val(r, cnm);
                                 if( !props.uval(r, cvrt) ) {
                                     uniq.set(nm, sLen(nm) + 1);
                                 }
-                                if( p > 0 ) { // not _brief (fields for _brief excluded from output unless requested directly
+                                if( p > 0 ) {
                                     pkey.printf("%s", nm);
                                     pkey.add0();
                                 }
@@ -2945,19 +3410,14 @@ void sUsr::propBulk(sVec<sHiveId> & ids, sVarSet & list, const char* view_name, 
         } else {
             sString::glue00(&prp, filter00, "%s", ",");
         }
-        std::auto_ptr<sSql::sqlProc> p(getProc(use_type_upobj ? "sp_obj_prop_list_v2" : "sp_obj_prop_list"));
-        if( use_type_upobj ) {
-            p->Add(idcsv.ptr(1)).Add(prp);
-        } else {
-            p->Add(idcsv.ptr(1)).Add(prp).Add((udx) (ePermCanRead | ePermCanBrowse));
-        }
+        std::unique_ptr<sSql::sqlProc> p(getProc("sp_obj_prop_list_v2"));
+        p->Add(idcsv.ptr(1)).Add(prp);
         sVarSet vtmp;
         p->getTable(&vtmp);
-        // TODO fix data in memory duplication
         for(idx i = 0; i < ids.dim(); ++i) {
-            std::auto_ptr<sUsrObj> obj(objFactory(ids[i]));
+            std::unique_ptr<sUsrObj> obj(objFactory(ids[i]));
             if( obj.get() ) {
-                obj->propBulk(vtmp, list, view_name, filter00);
+                obj->propBulk(vtmp, list, view_name, filter00, allowSysInternal);
             }
         }
     }
@@ -2967,12 +3427,11 @@ udx sUsr::all(sDic<udx> & list, const char* types) const
 {
     sUsrObjRes out;
     if( objs2(types, out, 0, 0, 0, "") ) {
-        removeTrash(out);
         list.mex()->flags |= sMex::fSetZero;
         for(sUsrObjRes::IdIter it = out.first(); out.has(it); out.next(it)) {
             const sHiveId * id = out.id(it);
             if( id ) {
-                std::auto_ptr<sUsrObj> obj(objFactory(*id));
+                std::unique_ptr<sUsrObj> obj(objFactory(*id));
                 if( obj.get() ) {
                     const char * tnm = obj->getTypeName();
                     if( tnm ) {
@@ -2988,60 +3447,16 @@ udx sUsr::all(sDic<udx> & list, const char* types) const
     return list.dim();
 }
 
-udx sUsr::removeTrash(sUsrObjRes & res, bool return_total_count /* = false */) const
-{
-    static sDic<idx> inTrashObjects;
-    if( !inTrashObjects.dim() ) {
-        // determine trash objects
-        sUsrObjRes trash;
-        objs2("sysfolder", trash, 0, "name", "Trash", "child");
-        // TODO recurr into trashed folders too, but might be too heavy
-        if( trash.dim() ) {
-            const sUsrObjRes::TObjProp * obj = trash.getFirst();
-            const sUsrObjRes::TPropTbl * tbl = trash.get(*obj, "child");
-            sVec<sHiveId> ids, out;
-            while( tbl ) {
-                const char * s = trash.getValue(tbl);
-                if( s ) {
-                    sHiveId id(s), * idp = 0;
-                    if( id ) {
-                        idp = ids.add(1);
-                        if( idp ) {
-                            *idp = id;
-                        }
-                    }
-                }
-                tbl = trash.getNext(tbl);
-            }
-            objs(ids, out);
-            for(idx i = 0; i < out.dim(); ++i) {
-                inTrashObjects.set(out.ptr(i), sizeof(sHiveId));
-            }
-        }
-    }
-    udx total_qty = 0;
-    if( inTrashObjects.dim() ) {
-        for(sUsrObjRes::IdIter it = res.first(); res.has(it); res.next(it)) {
-            const sHiveId * id = res.id(it);
-            if( inTrashObjects.find(id, sizeof(*id)) ) {
-                res.del(it);
-                ++total_qty;
-            }
-        }
-    }
-    return return_total_count ? inTrashObjects.dim() : total_qty;
-}
-
 sUsrObj* sUsr::objFactory(const sHiveId & id) const
 {
-    std::auto_ptr<sUsrObj> obj;
+    std::unique_ptr<sUsrObj> obj;
     obj.reset(id ? new sUsrObj(*this, id) : 0);
     if( !obj.get() || !obj->Id() ) {
-        obj.reset(); // miss
+        obj.reset();
     } else {
-        const char * tpnm = obj->getTypeName();
-        const sUsrType2 * typ = tpnm ? sUsrType2::ensure(*this, tpnm) : 0;
-        if( typ ) {
+        const sUsrType2 * typ = obj->getType();
+        const char * tpnm = typ ? typ->name() : 0;
+        if( typ && tpnm ) {
             if( typ->isDescendentOf("process") ) {
                 obj.reset(new sUsrProc(const_cast<sUsr&>(*this), id));
             } else if( typ->isDescendentOf("file") ) {
@@ -3056,17 +3471,16 @@ sUsrObj* sUsr::objFactory(const sHiveId & id) const
         } else if( !m_AllowExpiredObjects ) {
             obj.reset();
         }
-        // ... but if m_AllowExpiredObjects == true, then we allow objects of unknown/removed type - so we can purge them
     }
     return obj.release();
 }
 
 sUsrObj* sUsr::objFactory(const sHiveId & id, const sHiveId * ptypeId, udx permission) const
 {
-    std::auto_ptr<sUsrObj> obj;
+    std::unique_ptr<sUsrObj> obj;
     obj.reset(id ? new sUsrObj(*this, id, ptypeId, permission) : 0);
     if( !obj.get() || !obj->Id() ) {
-        obj.reset(); // miss
+        obj.reset();
     } else {
         const sUsrType2 * typ = ptypeId ? sUsrType2::ensure(*this, *ptypeId) : obj->getType();
         const char * tpnm = typ ? typ->name() : 0;
@@ -3085,7 +3499,6 @@ sUsrObj* sUsr::objFactory(const sHiveId & id, const sHiveId * ptypeId, udx permi
         } else if( !m_AllowExpiredObjects ) {
             obj.reset();
         }
-        // ... but if m_AllowExpiredObjects == true, then we allow objects of unknown/removed type - so we can purge them
     }
     return obj.release();
 }
@@ -3102,17 +3515,20 @@ bool sUsr::allowExpiredObjects(bool allowed)
     return true;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ User Info Handling
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-idx sUsr::listUsr(sVec < sStr > * userList, idx isgrp, bool allUsr, bool active, const char * search, bool primaryGrpOnly) const
+idx sUsr::listUsr(sVec < sStr > * userList, idx isgrp, bool allUsr, bool active, const char * search, bool primaryGrpOnly, bool billable, bool with_system) const
 {
     sStr sql("SELECT IF(`type` = 'group', last_name, CONCAT(first_name, ' ', last_name)), groupPath, u.userID"
-            " FROM UPUser u JOIN UPGroup g USING(userID) where `type` NOT IN ('system','service')");
+            " FROM UPUser u JOIN UPGroup g USING(userID) WHERE");
+    if( with_system ) {
+        sql.addString(" (`type` NOT IN ('system','service') OR groupPath NOT LIKE '%/')");
+    } else {
+        sql.addString(" `type` NOT IN ('system','service')");
+    }
     if( active ) {
         sql.printf(" AND u.is_active_fg = TRUE AND g.is_active_fg = TRUE");
+    }
+    if( billable ) {
+        sql.printf(" AND u.is_billable_fg = TRUE");
     }
     if( !allUsr && !primaryGrpOnly ) {
         sql.printf(" AND g.groupPath NOT LIKE '/everyone/%%'");
@@ -3128,7 +3544,6 @@ idx sUsr::listUsr(sVec < sStr > * userList, idx isgrp, bool allUsr, bool active,
     if( primaryGrpOnly ) {
         sql.addString(" AND (g.flags = -1)");
     }
-    // sort groups by ID, but humans by their names
     sql.printf(" ORDER BY IF(u.`type` = 'group', '', u.last_name), IF(u.`type` = 'group', '', u.first_name), u.userID");
     sVarSet tbl;
     db().getTable(sql,&tbl);
@@ -3146,7 +3561,7 @@ idx sUsr::listUsr(sVec < sStr > * userList, idx isgrp, bool allUsr, bool active,
     return userList->dim();
 }
 
-idx sUsr::listGrp(sVec < sStr > * userList, idx isgrp, idx usrOnly, const char * search, bool with_system/* = false*/, bool with_service/* = false */) const
+idx sUsr::listGrp(sVec < sStr > * userList, idx isgrp, idx usrOnly, const char * search, bool with_system, bool with_service) const
 {
     sStr sql("SELECT IF(u.`type` = 'group', u.last_name, CONCAT(u.first_name, ' ', u.last_name)), g.groupPath, g.groupID"
             " FROM UPGroup g JOIN UPUser u USING(userID) WHERE u.is_active_fg = TRUE AND g.is_active_fg = TRUE");
@@ -3177,7 +3592,6 @@ idx sUsr::listGrp(sVec < sStr > * userList, idx isgrp, idx usrOnly, const char *
         tmp.printf("%%");
         sql.printf(" AND (u.first_name LIKE '%s' OR u.last_name LIKE '%s')", tmp.ptr(), tmp.ptr());
     }
-    // sort groups by ID, but humans by their names
     sql.printf(" ORDER BY IF(u.`type` = 'group', '', u.last_name), IF(u.`type` = 'group', '', u.first_name), u.userID");
     sVarSet tbl;
     db().getTable(sql,&tbl);
@@ -3192,6 +3606,194 @@ idx sUsr::listGrp(sVec < sStr > * userList, idx isgrp, idx usrOnly, const char *
         }
     }
     return userList->dim();
+}
+
+static idx groupPathPrefixLen(const char * group_path)
+{
+    const char * email = sFilePath::nextToSlash(group_path);
+    return email > group_path ? email - group_path : 0;
+}
+
+idx sUsr::printUserInfo(sJSONPrinter & out, bool into_object, const sVec<udx> * user_ids, bool without_current, const char * path_prefix, bool with_inactive, bool with_system)
+{
+    if( !Id() || isGuest() ) {
+        user_ids = 0;
+        path_prefix = 0;
+        with_inactive = false;
+    }
+    sStr sql("SELECT u.userID, u.is_active_fg, u.is_admin_fg, u.is_email_valid_fg, u.email, u.first_name, u.last_name, u.createTm, u.modifTm, u.loginTm, u.max_sessions, u.is_billable_fg, "
+        "g.groupID, g.flags, g.is_active_fg AS group_is_active_fg, g.groupPath, g.createTm FROM UPUser u JOIN UPGroup g USING(userID)");
+
+    if( path_prefix ) {
+        sql.addString(" JOIN UPGroup g2 USING(userID)");
+    }
+    sql.addString(" WHERE (u.type = 'user' OR (u.type = 'system' AND u.email = 'guest')");
+    if( with_system ) {
+        sql.addString(" OR g.groupPath NOT LIKE '%/'");
+    }
+    sql.addString(")");
+
+    if( !with_inactive ) {
+        sql.addString(" AND u.is_active_fg AND g.is_active_fg");
+        if( path_prefix ) {
+            sql.addString("  AND g2.is_active_fg");
+        }
+    }
+
+    bool disjunct = false;
+    if( user_ids && user_ids->dim() ) {
+        if( disjunct ) {
+            sql.addString(" OR ");
+        } else {
+            sql.addString(" AND (");
+            disjunct = true;
+        }
+        sSql::exprInList(sql, "u.userID", *user_ids);
+    }
+    if( !without_current ) {
+        if( disjunct ) {
+            sql.addString(" OR ");
+        } else {
+            sql.addString(" AND (");
+            disjunct = true;
+        }
+        sql.printf("u.userID = %" UDEC, this->Id());
+    }
+    if( path_prefix ) {
+        if( disjunct ) {
+            sql.addString(" OR ");
+        } else {
+            sql.addString(" AND (");
+            disjunct = true;
+        }
+        sql.addString("g2.groupPath LIKE '");
+        db().protect(sql, path_prefix);
+        sql.shrink00();
+        sql.addString("%'");
+    }
+
+    if( disjunct ) {
+        sql.addString(")");
+    }
+
+    if( path_prefix ) {
+        sql.addString(" GROUP BY g.groupID");
+    }
+    sql.addString(" ORDER BY u.userID ASC, g.flags ASC;");
+    sVarSet tbl;
+    db().getTable(sql, &tbl);
+    sDic<idx> seen_ids;
+
+    if( !into_object ) {
+        out.startObject();
+    }
+    if( tbl.rows ) {
+        const idx user_id_icol = tbl.colId("userID");
+        const idx email_icol = tbl.colId("email");
+        const idx first_name_icol = tbl.colId("first_name");
+        const idx last_name_icol = tbl.colId("last_name");
+        const idx user_is_active_fg_icol = tbl.colId("is_active_fg");
+        const idx group_is_active_fg_icol = tbl.colId("group_is_active_fg");
+        const idx group_id_icol = tbl.colId("groupID");
+        const idx group_path_icol = tbl.colId("groupPath");
+        const idx group_flags_icol = tbl.colId("flags");
+        if( !without_current ) {
+            out.addKey("current_user");
+            out.startObject();
+            out.addKey("_id");
+            out.addValue(Id());
+            out.addKeyValue("email", Email());
+            out.addKeyValue("first_name", firstName());
+            out.addKeyValue("last_name", lastName());
+            for (idx ir = 0; ir < tbl.rows; ir++) {
+                udx user_id = tbl.uval(ir, user_id_icol);
+                if( user_id == Id() ) {
+                    out.addKeyValue("is_active_fg", tbl.boolval(ir, user_is_active_fg_icol));
+                    break;
+                }
+            }
+            if( isAdmin() ) {
+                out.addKeyValue("is_admin_fg", isAdmin());
+            }
+            if( isGuest() ) {
+                out.addKeyValue("_is_guest_fg", isGuest());
+            }
+            out.addKeyValue("_primary_group_id", groupId());
+            out.addKey("_groups");
+            out.startArray();
+            for (idx ir = 0; ir < tbl.rows; ir++) {
+                udx user_id = tbl.uval(ir, user_id_icol);
+                if( user_id == Id() ) {
+                    seen_ids.set(&user_id, sizeof(user_id));
+                    out.startObject();
+                    out.addKeyValue("_id", tbl.uval(ir, group_id_icol));
+                    const char * group_path = tbl.val(ir, group_path_icol);
+                    out.addKeyValue("path", group_path);
+                    out.addKeyValue("_path_prefix", group_path, groupPathPrefixLen(group_path));
+                    out.addKeyValue("is_active_fg", tbl.boolval(ir, group_is_active_fg_icol));
+                    out.endObject();
+                }
+            }
+            out.endArray();
+            out.endObject();
+        }
+
+        for (idx ir = 0; ir < tbl.rows; ir++) {
+            udx user_id = tbl.uval(ir, user_id_icol);
+            if( seen_ids.get(&user_id, sizeof(user_id)) ) {
+                continue;
+            }
+            seen_ids.set(&user_id, sizeof(user_id));
+            out.addKey(tbl.val(ir, user_id_icol));
+            out.startObject();
+            out.addKeyValue("_id", user_id);
+            out.addKeyValue("first_name", tbl.val(ir, first_name_icol));
+            out.addKeyValue("last_name", tbl.val(ir, last_name_icol));
+            out.addKeyValue("is_active_fg", tbl.boolval(ir, user_is_active_fg_icol));
+            if( isAdmin() ) {
+                out.addKeyValue("email", tbl.val(ir, email_icol));
+            }
+
+            if( sIsExactly(tbl.val(ir, email_icol), "guest") ) {
+                out.addKeyValue("_is_guest_fg", true);
+            }
+            if( tbl.ival(ir, group_flags_icol) == -1 ) {
+                out.addKeyValue("_primary_group_id",  tbl.ival(ir, group_id_icol));
+            }
+            out.addKey("_groups");
+            out.startArray();
+            while(ir < tbl.rows) {
+                out.startObject();
+                out.addKeyValue("_id", tbl.uval(ir, group_id_icol));
+                const char * group_path = tbl.val(ir, group_path_icol);
+                out.addKeyValue("_path_prefix", group_path, groupPathPrefixLen(group_path));
+                out.addKeyValue("is_active_fg", tbl.boolval(ir, group_is_active_fg_icol));
+                out.endObject();
+                if( ir + 1 < tbl.rows && tbl.uval(ir + 1, user_id_icol) == user_id ) {
+                    ir++;
+                } else {
+                    break;
+                }
+            }
+
+            out.endArray();
+            out.endObject();
+        }
+    }
+    if( !into_object ) {
+        out.endObject();
+    }
+    return seen_ids.dim();
+}
+
+idx sUsr::listUserGroups(sVarSet & tbl, udx user_id, bool active) const
+{
+    sStr sql("SELECT groupID, userID, flags, is_active_fg, groupPath, createTm FROM UPGroup WHERE userID = %" UDEC, user_id);
+    if( active ) {
+        sql.addString(" AND is_active_fg");
+    }
+    sql.addString(" ORDER BY groupID");
+    return db().getTable(sql, &tbl);
 }
 
 idx sUsr::listInactive(sVec<sStr> * userList, idx isgrp)
@@ -3280,7 +3882,7 @@ idx sUsr::exportUsrGrp4Ion(sJSONPrinter & out)
             out.addKey("pswd_prv");
             out.startArray();
             while( 1 ) {
-                pswd_prev_list += strspn(pswd_prev_list, hash_seps); // skip any whitespace
+                pswd_prev_list += strspn(pswd_prev_list, hash_seps);
                 idx len = strcspn(pswd_prev_list, hash_seps);
                 if( !len ) {
                     break;
@@ -3324,7 +3926,6 @@ idx sUsr::exportUsrGrp4Ion(sJSONPrinter & out)
             continue;
         }
         if( path[path_len - 1] != '/' ) {
-            // skip leaf groups - we express them as direct membership of user in group
             continue;
         }
         const char * name = path;
@@ -3359,14 +3960,11 @@ idx sUsr::exportUsrGrp4Ion(sJSONPrinter & out)
             const char * next_slash = strchr(subpath + path_len, '/');
             if( next_slash ) {
                 if( next_slash[1] ) {
-                    // grandchild - skip
                     continue;
                 } else {
-                    // branch child
                     out.addValue(buf.printf(0, "$root.groups.g%" DEC, gtbl.ival(jr, gtbl.colId("groupID"))));
                 }
             } else {
-                // leaf child
                 out.addValue(buf.printf(0, "$root.users.u%" DEC, gtbl.ival(jr, gtbl.colId("userID"))));
             }
         }
@@ -3385,6 +3983,36 @@ idx sUsr::exportUsrGrp4Ion(sJSONPrinter & out)
     out.endObject();
 
     return utbl.rows + gtbl.rows;
+}
+
+udx sUsr::getGroupId(const char * grp_name, bool reset_cache) const
+{
+    sStr case_buf;
+    static sDic<udx> group_ids;
+    if( reset_cache ) {
+        group_ids.empty();
+    }
+    if( !group_ids.dim() ) {
+        sVec<sStr> table;
+        listGrp(&table, 0, 0, 0, true, true);
+        for(idx i = 0; i < table.dim(); i++) {
+            const char * user_name = table[i].ptr();
+            const char * group_path = sString::next00(user_name);
+            const char * group_id_str = sString::next00(group_path);
+            udx group_id = group_id_str ? atoudx(group_id_str) : 0;
+            if( group_id && group_path ) {
+                case_buf.cut(0);
+                *group_ids.set(canonicalCase(case_buf, group_path)) = group_id;
+            }
+        }
+    }
+
+    case_buf.cut(0);
+    grp_name = canonicalCase(case_buf, grp_name);
+    if( const udx * pgroup_id = group_ids.get(grp_name) ) {
+        return *pgroup_id;
+    }
+    return 0;
 }
 
 bool sUsrObjRes::del(TObjProp & obj, const char * name) const
@@ -3450,23 +4078,47 @@ void sUsrObjRes::prop(const sUsrObjRes::IdIter & it, sStr & buf) const
     }
 }
 
-void sUsrObjRes::json(const sUsr & user, const sUsrObjRes::IdIter & it, sJSONPrinter & printer, bool into_object, bool flatten/* = false */, bool upsert/* = false */, const char * upsert_qry/* = 0 */) const
+static void jsonPerm(sJSONPrinter & printer, const sUsrObjRes * res, const sUsrObjRes::TObjProp * prop, const char * key)
+{
+    printer.addKey(key);
+    printer.startArray();
+
+    const sUsrObjRes::TPropTbl * tbl = res->get(*prop, key);
+    while( tbl ) {
+        const char * grp_perm_pretty_print = res->getValue(tbl);
+        udx num_group = 0;
+        int num_group_nbytes = 0;
+        if( sscanf(grp_perm_pretty_print, "%" UDEC ",,%n", &num_group, &num_group_nbytes) ) {
+            permPretty2JSON(printer, num_group, 0, grp_perm_pretty_print + num_group_nbytes);
+        }
+        tbl = res->getNext(tbl);
+    }
+    printer.endArray();
+}
+
+void sUsrObjRes::json(const sUsr & user, const sUsrObjRes::IdIter & it, sJSONPrinter & printer, bool into_object, bool flatten, bool upsert, const char * upsert_qry, const char * prop_filter00, const char * prop_exclude00) const
 {
     const sHiveId * oid = id(it);
     if( oid ) {
         if( !into_object ) {
             printer.startObject();
         }
-        // FIXME this is inefficient; need a way to generate tree without intermediate varset (and better yet, skip the tree too)
         sVarSet tree_table;
         sStr upsert_qry_buf;
         const TObjProp * prop = get(it);
-        idx iprop_perm = sIdxMax;
+        idx iprop_perm = sIdxMax, iprop_effperm = sIdxMax;
         for(idx p = 0; prop && p < prop->dim(); ++p) {
             const char * prop_name = (const char *) prop->id(p);
+            if( prop_name && prop_filter00 && sString::compareChoice(prop_name, prop_filter00, 0, false, 0, true) < 0 ) {
+                continue;
+            }
+            if( prop_name && prop_exclude00 && sString::compareChoice(prop_name, prop_exclude00, 0, false, 0, true) >= 0 ) {
+                continue;
+            }
             if( prop_name && strcmp(prop_name, "_perm") == 0 ) {
-                // special handling for _prop for ION json format compatibility
                 iprop_perm = sMin<idx>(iprop_perm, p);
+            } else if( prop_name && strcmp(prop_name, "_effperm") == 0 ) {
+                iprop_effperm = sMin<idx>(iprop_effperm, p);
             } else {
                 const TPropTbl * tbl = get(*prop, prop_name);
                 while( tbl ) {
@@ -3479,12 +4131,9 @@ void sUsrObjRes::json(const sUsr & user, const sUsrObjRes::IdIter & it, sJSONPri
             printer.addKey("_id");
             if( upsert ) {
                 if( upsert_qry && upsert_qry[0] ) {
-                    // $upsert_qry(<query language expression that specifies the object uniquely>)
-                    // we assume that the object will be uniquely specified by its type and is_key_fg properties
                     upsert_qry_buf.printf(0, "$upsert_qry(%s)", upsert_qry);
                     printer.addValue(upsert_qry_buf.ptr());
                 } else {
-                    // $upsert() - upsert object uniquely specified by type name and globally single-valued key fields
                     printer.addValue("$upsert()");
                 }
             } else {
@@ -3498,21 +4147,10 @@ void sUsrObjRes::json(const sUsr & user, const sUsrObjRes::IdIter & it, sJSONPri
                 tree.printJSON(printer, true, flatten);
             }
             if( iprop_perm < sIdxMax ) {
-                // special handling for _prop for ION json format compatibility
-                printer.addKey("_perm");
-                printer.startArray();
-
-                const TPropTbl * tbl = get(*prop, "_perm");
-                while( tbl ) {
-                    const char * grp_perm_pretty_print = getValue(tbl);
-                    udx num_group = 0;
-                    int num_group_nbytes = 0;
-                    if( sscanf(grp_perm_pretty_print, "%" UDEC ",,%n", &num_group, &num_group_nbytes) ) {
-                        permPretty2JSON(printer, num_group, 0, grp_perm_pretty_print + num_group_nbytes);
-                    }
-                    tbl = getNext(tbl);
-                }
-                printer.endArray();
+                jsonPerm(printer, this, prop, "_perm");
+            }
+            if( iprop_effperm < sIdxMax ) {
+                jsonPerm(printer, this, prop, "_effperm");
             }
         }
         if( !into_object ) {
@@ -3527,7 +4165,6 @@ sUsrObjRes::TObjProp * sUsrObjRes::add(const sHiveId & id)
     idx index = 0;
     Optional<TObjProp> * opt = _table.set(&id, sizeof(id), &index);
     if( index == prev_table_dim || !opt->exists ) {
-        // don't double-count if the table was already added (and not yet deleted)
         _table_cnt++;
         resetFirstLast();
     }
@@ -3536,50 +4173,298 @@ sUsrObjRes::TObjProp * sUsrObjRes::add(const sHiveId & id)
 }
 bool sUsrObjRes::add(TObjProp & obj, const char * prop, const char * path, const idx path_len, const char * value, const idx value_len)
 {
-    // allocate new element
     const idx vnew_offset = _buf.mex()->add((const char*) 0, sizeof(TPropTbl));
     if( vnew_offset != sNotIdx ) {
-        TPropTbl * vnew = (TPropTbl *) _buf.mex()->ptr(vnew_offset);
-        vnew->next = 0; // tail
-        idx vp, vv;
-        sStr t(sMex::fExactSize);
-        if( path && path_len ) {
-            t.add(path, path_len);
-        }
-        t.add0(2);
-        idx * q = _buf.setString(t, path_len, &vp);
+        idx vp, vv, * q = 0;
+        q = _buf.setString(path, path_len, &vp);
         if( q ) {
-            *q = *q + 1;
-            t.cut0cut(0);
-            if( value && value_len ) {
-                t.add(value, value_len);
+            *q = 1;
+        }
+        q = _buf.setString(value, value_len, &vv);
+        if( q ) {
+            *q = 1;
+        }
+        TPropTbl * tbl = (TPropTbl *) _buf.mex()->ptr(vnew_offset);
+        tbl->path = vp;
+        tbl->value = vv;
+        tbl->next = 0;
+        const idx nmlen = sLen(prop) + 1;
+        idx * tail = obj.get(prop, nmlen);
+        if( tail ) {
+            do {
+                tbl = (TPropTbl *) _buf.mex()->ptr(*tail);
+                tail = &(tbl->next);
+            } while( *tail > 0 );
+        } else {
+            tail = obj.set(prop, nmlen);
+        }
+        if( tail ) {
+            *tail = vnew_offset;
+            return true;
+        }
+    }
+    return false;
+}
+
+sRC sUsr::createProject(sHiveId & outId, const char * name, const char * description, const char * typeName) {
+    if( m_IsGuest ) {
+        return RC(sRC::eCreating, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+    }
+    const sUsrType2 * type = sUsrType2::ensure(*this, typeName);
+    if( !type || !type->nameMatch("project+") ) {
+        return RC(sRC::eCreating, sRC::eObject, sRC::eType, sRC::eInvalid);
+    }
+    if( sRC rc = objCreate(outId, typeName) ) {
+        return rc;
+    }
+    const udx oldProject = m_currProj.projectId;
+    if( sRC rc = setProject(outId.objId()) ) {
+        return rc;
+    }
+    sUsrObj newProject(*this, outId);
+    if( !newProject.Id().valid() ) {
+        return RC(sRC::eAccessing, sRC::eObject, sRC::eID, sRC::eInvalid);
+    }
+    udx propSetSuccess = 0;
+    propSetSuccess |= newProject.propSet("Title", name);
+    propSetSuccess |= newProject.propSet("Description_full", description);
+    if( propSetSuccess == 0 ) {
+        setProject(oldProject);
+        return RC(sRC::eSetting, sRC::eProperty, sRC::eOperation, sRC::eFailed);
+    }
+    if( sRC rc = setProject(oldProject) ) {
+        return rc;
+    }
+    return sRC::zero;
+}
+
+sRC sUsr::setProject(udx projectId) const {
+    bool foundProject = false;
+    if( !projectId ) {
+        m_currProj.projectId = 0;
+        m_projMembership.cut(0);
+        foundProject = true;
+    } else {
+        sVec<Project> projects;
+        if( sRC rc = availableProjects(projects) ) {
+            return rc;
+        }
+        for (idx i = 0; i < projects.dim(); i++) {
+            if( projects[i].projectId == projectId ) {
+                m_currProj = projects[i];
+                char roleChar = projRoleToChar(m_currProj.role);
+                m_projMembership.printf("(  ( (g.groupPath in ('/HIVEPROJ/%" UDEC "-%c/')) AND ((p.flags & 6) = 0) )  OR ( (g.groupPath in ('/HIVEPROJ/%" UDEC "-%c/', '/everyone/users/', '/everyone/')) AND ((p.flags & 2) != 0) ) )", m_currProj.projectId, roleChar, m_currProj.projectId, roleChar);
+                foundProject = true;
+                break;
             }
-            t.add0(2);
-            q = _buf.setString(t, value_len, &vv);
-            if( q ) {
-                *q = *q + 1;
-                // set() calls may have moved vnew in memory
-                vnew = (TPropTbl *) _buf.mex()->ptr(vnew_offset);
-                vnew->path = vp;
-                vnew->value = vv;
-                const idx nmlen = sLen(prop) + 1;
-                idx * tail = obj.get(prop, nmlen);
-                if( tail ) {
-                    // find linked list end
-                    do {
-                        TPropTbl * tbl = (TPropTbl *) _buf.mex()->ptr(*tail);
-                        tail = &tbl->next;
-                    } while( *tail > 0);
-                } else {
-                    // make new head node
-                    tail = obj.set(prop, nmlen);
-                }
-                if( tail ) {
-                    *tail = vnew_offset;
-                    return true;
+        }
+    }
+    if( !foundProject ) {
+        return RC(sRC::eSearching, sRC::eGroup, sRC::eGroup, sRC::eNotFound);
+    }
+    return sRC::zero;
+}
+
+sRC sUsr::availableProjects(sVec<Project> & outProjects) const
+{
+    sRC rc;
+    sVarSet res;
+    const sStr query("SELECT groupID, groupPath FROM UPGroup WHERE is_active_fg = true AND userID = %" UDEC " AND groupPath like '/HIVEPROJ/%%';", m_Id);
+    db().getTable(&res, query.ptr());
+    for (idx i = 0; i < res.rows; ++i) {
+        const char * projPath = res.val(i, res.colId("groupPath"));
+        udx projId;
+        char roleChar;
+        const idx varsFilled = sscanf(projPath, "/HIVEPROJ/%" UDEC "-%c/", &projId, &roleChar);
+        if( varsFilled == 2 ) {
+            Project *newProj = outProjects.add();
+            newProj->projectId = projId;
+            newProj->userId = m_Id;
+            newProj->role = projCharToRole(roleChar);
+            const sStr parentIds("SELECT groupID FROM UPGroup WHERE is_active_fg=true AND groupPath='/HIVEPROJ/%" UDEC "-%c/';", projId, roleChar);
+            sVarSet idRes;
+            db().getTable(&idRes, parentIds.ptr(0));
+            if( idRes.rows == 1 ) {
+                newProj->groupId = idRes.uval(0, res.colId("groupID"));
+            } else if( idRes.rows < 1 ) {
+                RCSET(rc, sRC::eSelecting, sRC::eGroup, sRC::eList, sRC::eTooShort);
+            } else if( idRes.rows > 1 ) {
+                RCSET(rc, sRC::eSelecting, sRC::eGroup, sRC::eList, sRC::eTooLong);
+            }
+        } else {
+            RCSET(rc, sRC::eScanning, sRC::eString, sRC::eItem, sRC::eIncomplete);
+        }
+    }
+    return rc;
+}
+
+sRC sUsr::projectMembers(sVec<ProjectMember> &outMembers) const
+{
+    const sStr sqlQry("SELECT userID, groupPath FROM UPGroup WHERE is_active_fg=true AND flags=0 AND groupPath like '/HIVEPROJ/%" UDEC "-_/%%';", m_currProj.projectId);
+    sVarSet res;
+    db().getTable(&res, sqlQry.ptr(0));
+    for (idx i = 0; i < res.rows; i++) {
+        const char * projPath = res.val(i, res.colId("groupPath"));
+        udx projId;
+        char roleChar;
+        const idx varsFilled = sscanf(projPath, "/HIVEPROJ/%" UDEC "-%c/", &projId, &roleChar);
+        if( varsFilled != 2 ) {
+            return RC(sRC::eScanning, sRC::eString, sRC::eItem, sRC::eIncomplete);
+        }
+        ProjectMember *newProj = outMembers.add();
+        newProj->userId = res.uval(i, res.colId("userID"));
+        newProj->role = projCharToRole(roleChar);
+    }
+    return sRC::zero;
+}
+
+sRC sUsr::allProjectRoles(sVec<Project> & out, udx projectId) const
+{
+    sVarSet res;
+    db().getTable(&res, "SELECT groupID, userID, is_active_fg, groupPath FROM UPGroup WHERE is_active_fg=true AND groupPath like '/HIVEPROJ/%" UDEC "-_/';", projectId);
+    if( res.rows != 4 ) {
+        return RC(sRC::eSelecting, sRC::eGroup, sRC::eList, sRC::eUnexpected);
+    }
+    for (idx i = 0; i < res.rows; i++) {
+        const char * projPath = res.val(i, res.colId("groupPath"));
+        udx projId;
+        char roleChar;
+        const idx varsFilled = sscanf(projPath, "/HIVEPROJ/%" UDEC "-%c/", &projId, &roleChar);
+        if( varsFilled == 2 ) {
+            Project *newProj = out.add();
+            newProj->projectId = projId;
+            newProj->role = projCharToRole(roleChar);
+            newProj->groupId = res.uval(i, res.colId("groupID"));
+            newProj->userId =  res.uval(i, res.colId("userID"));
+        } else {
+            return RC(sRC::eScanning, sRC::eString, sRC::eItem, sRC::eIncomplete);
+        }
+    }
+
+    return sRC::zero;
+}
+
+
+sRC sUsr::removeFromProject(udx userId)
+{
+    if( m_currProj.role != eProjectAdmin ) {
+        return RC(sRC::eRemoving, sRC::eGroup, sRC::eUser, sRC::eNotAuthorized);
+    }
+    if( userId == m_Id ) {
+        return RC(sRC::eRemoving, sRC::eGroup, sRC::eID, sRC::eProhibited);
+    }
+    const sStr query("SELECT groupID FROM UPGroup WHERE is_active_fg=true AND userID=%" UDEC " AND groupPath like '/HIVEPROJ/%" UDEC "-_/%%';", userId, m_currProj.projectId);
+    sVarSet res;
+    db().getTable(&res, query.ptr(0));
+    if( res.rows < 1 ) {
+        return RC(sRC::eSearching, sRC::eGroup, sRC::eGroup, sRC::eNotFound);
+    } else if ( res.rows > 1 ) {
+        return RC(sRC::eSearching, sRC::eGroup, sRC::eList, sRC::eTooLong);
+    }
+    const udx groupId = res.uval(0, res.colId("groupID"));
+    db().execute("UPDATE UPGroup SET is_active_fg=false WHERE groupID=%" UDEC ";", groupId);
+    return sRC::zero;
+}
+
+sRC sUsr::addToProject(udx userId, sUsr::EProjectRole role) const
+{
+    if( m_currProj.role != eProjectAdmin ) {
+        return RC(sRC::eUpdating, sRC::eGroup, sRC::eUser, sRC::eNotAuthorized);
+    }
+    sVarSet res;
+    const sStr usrSqlQry("SELECT email FROM UPUser WHERE is_active_fg=true AND userID=%" UDEC " AND type='user';", userId);
+    db().getTable(&res, usrSqlQry.ptr(0));
+    sStr emailBuf;
+    if( res.rows != 1 ) {
+        return RC(sRC::eSearching, sRC::eUser, sRC::eID, sRC::eNotFound);
+    }
+    db().protect(emailBuf, res.val(0, res.colId("email")));
+    const char roleChar = projRoleToChar(role);
+    res.empty();
+    db().getTable(&res, "SELECT groupID FROM UPGroup WHERE is_active_fg=true AND userID=%" UDEC " AND groupPath like '/HIVEPROJ/%" UDEC "-_/%%';", userId, m_currProj.projectId);
+    if( res.rows > 0 ) {
+        return RC(sRC::eCreating, sRC::eGroup, sRC::eGroup, sRC::eExists);
+    }
+    res.empty();
+    db().getTable(&res, "SELECT groupID FROM UPGroup WHERE is_active_fg=false AND userID=%" UDEC " AND groupPath like '/HIVEPROJ/%" UDEC "-%c/%%';", userId, m_currProj.projectId, roleChar);
+    if( res.rows > 1 ) {
+        return RC(sRC::eSelecting, sRC::eGroup, sRC::eList, sRC::eTooLong);
+    } else if( res.rows == 1 ) {
+        const udx groupId = res.uval(0, res.colId("groupID"));
+        db().execute("UPDATE UPGroup SET is_active_fg=true WHERE groupID=%" UDEC ";", groupId);
+    } else if( res.rows == 0 ) {
+        db().execute("INSERT INTO UPGroup (userID, flags, is_active_fg, groupPath) values(%" UDEC ", 0, 1, '/HIVEPROJ/%" UDEC "-%c/%s');", userId, m_currProj.projectId, roleChar, emailBuf.ptr(0));
+    }
+    return sRC::zero;
+}
+
+bool sUsr::moveCheck(const sVec<sHiveId> & inIds, sVec<sHiveId> & outIds, sStr & err) const
+{
+
+
+
+
+
+
+    return false;
+}
+
+bool sUsr::moveToProject(sVec<sHiveId> & ids, sStr & err) {
+
+
+
+
+    return false;
+}
+
+bool sUsr::moveToHome(sVec<sHiveId> & ids, sStr & err) {
+
+
+
+    return false;
+}
+
+sRC sUsr::clearAndSetPermissions(const sHiveId & objID, sDic<udx> & groupPermissions) const
+{
+    sRC rc;
+    if( !updateStart() ) {
+        RCSET(rc, sRC::eStarting, sRC::eSequence, sRC::eDatabase, sRC::eFailed);
+    }
+
+    if( !rc ) {
+        for(idx i = 0; i < groupPermissions.dim(); i++) {
+            const udx * groupId = static_cast<const udx *>(groupPermissions.id(i));
+            const udx perms = *groupPermissions.ptr(i);
+            if( !setPermission(*groupId, objID, perms, eFlagNone) ) {
+                RCSET(rc, sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
+                break;
+            }
+        }
+    }
+    if( !rc ) {
+        sVarSet res;
+        sVec<sHiveId> ids;
+        *ids.add() = objID;
+        objPermAll(ids, res);
+        for(idx i = 0; i < res.rows; i++) {
+            const udx grp = res.uval(i,  res.colId("grp"));
+            if( !groupPermissions.get(&grp, sizeof(udx), 0) ) {
+                if( !setPermission(grp, objID, ePermNone, eFlagNone) ) {
+                    RCSET(rc, sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
+                    break;
                 }
             }
         }
     }
-    return false;
+
+    if( !rc ) {
+        if( !updateComplete() ) {
+            RCSET(rc, sRC::eCommitting, sRC::eSequence, sRC::eDatabase, sRC::eFailed);
+        }
+    } else {
+        if( !updateAbandon() ) {
+            RCSET(rc, sRC::eCleaningUp, sRC::eSequence, sRC::eDatabase, sRC::eFailed);
+        }
+    }
+    return rc;
 }

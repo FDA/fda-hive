@@ -28,9 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #ifdef WIN32
-    #include <direct.h> // for _getcwd
+    #include <direct.h>
 #else
-    //#include <unistd.h>
 #endif
 #include <sys/stat.h>
 #include <limits.h>
@@ -52,7 +51,7 @@ char * sFilePath::vmakeName(idx cutlen, const char * tmplt, const char * formatD
     idx len=sLen(tmplt),llen;
     #define mIs(_v_type)    !strncmp(fmt+is,"%" _v_type,(llen=sLen("%" _v_type)))
 
-    idx is=0; // destination and source position
+    idx is=0;
     struct stat fst;sSet(&fst);
 
     const char * fmt=fmtAfterVsPrintf.vprintf(formatDescriptor,ap);
@@ -65,7 +64,7 @@ char * sFilePath::vmakeName(idx cutlen, const char * tmplt, const char * formatD
             const char * first=tmplt;
             const char * last=tmplt+len;
 
-            if( mIs("st_") && fst.st_atime==0)  { // if the first time something with st_ is required we stat the file
+            if( mIs("st_") && fst.st_atime==0)  {
                 if( tmplt[len-1]=='/' || tmplt[len-1]=='\\' ) {
                     tbuf.add(tmplt,len-1); tbuf.add0();
                     stat(tbuf,&fst);
@@ -77,24 +76,24 @@ char * sFilePath::vmakeName(idx cutlen, const char * tmplt, const char * formatD
             llen=0;
             if(funcall)
                 llen = funcall(tbuf,fmt+is,tmplt);
-            if(llen) { // if this already has been treated
+            if(llen) {
 
-            } else if( mIs("pathx") ) // the complete path without extension
+            } else if( mIs("pathx") )
                 {if(lastDot)last=lastDot;}
-            else if( mIs("path") ) // the complete path
+            else if( mIs("path") )
                 {last=tmplt+len;}
-            else if( mIs("dirx") ) // directory name only
+            else if( mIs("dirx") )
                 {
                 if(lastSlash){
                     for(first=lastSlash-1; first>tmplt && !strchr("/\\",*(first-1)); --first) ;
                     last=lastSlash+1;
                 }
             }
-            else if( mIs("dir") ) // directory name only
-                {last=lastSlash ? lastSlash : first;} // last slash or no dirname given in tmplt
-            else if( mIs("flnmx") ) // filename without extension
+            else if( mIs("dir") )
+                {last=lastSlash ? lastSlash : first;}
+            else if( mIs("flnmx") )
                 {if(lastSlash)first=lastSlash+1;if(lastDot)last=lastDot; }
-            else if( mIs("flnm") ) // filename with extension
+            else if( mIs("flnm") )
                 {if(lastSlash)first=lastSlash+1;}
             else if( mIs("ext") )
                 {first=lastDot ? lastDot+1 : last;}
@@ -116,24 +115,20 @@ char * sFilePath::vmakeName(idx cutlen, const char * tmplt, const char * formatD
             else skip=1;
 
             if(tbuf.length()){
-                // for( const char * ptr=tbuf; *ptr && *ptr!='\n' && *ptr!='\r' ; ++ptr) buf[id++]=*ptr;
                 sString::copyUntil(this, tbuf.ptr(), tbuf.length(),sString_symbolsEndline);
                 is+=llen;
             }
             else if(!skip) {
                 is+=llen;
-                //for( const char * ptr=first;  ptr<last; ++ptr)buf[id++]=*ptr;
                 if(last!=first)
                     add(first,(idx)(last-first));
             }
             else ++is;
             continue;
         }
-        //buf[id++]=fmt[is++];
         add(&fmt[is++],1);
     }
 
-    //buf[id++]=0;
     add0();
     return ptr();
 }
@@ -143,27 +138,23 @@ char * sFilePath::simplifyPath(eSimplifyPath spacehandle, const char * srcBuf)
 {
     if(!srcBuf) srcBuf=ptr();
     else resize(sLen(srcBuf)+1);
-    const char * src;//,*srcPrv=srcBuf;
+    const char * src;
     char * dstBuf=ptr(), * prv=dstBuf, * lastNew=dstBuf, *dst=dstBuf;
 
     for( src=srcBuf; *src; ++src) {
 
-        // drives ?
-        if(*(src)==':' && src>srcBuf ){//&& strchr("/\\",*(src-1)) ) {
+        if(*(src)==':' && src>srcBuf ){
             lastNew=prv;
         }
 
-        // the repeat slash // or \\ or /\ or \/
         if( strchr( "/\\",*src) && *(src+1) && strchr( "/\\",*(src+1)) )
             continue;
 
-        // the same dir ? ./ or /./
         if( *src == '.' && (*(src + 1) == 0 || strchr("/\\", *(src + 1))) && (src == srcBuf || strchr("/\\", *(src - 1))) ) {
             for(; src[1] == '/' || src[1] == '\\'; src++);
             continue;
         }
 
-        // the above dir ? ../ or /../
         if( *src == '.' && *(src + 1) == '.' && (!*(src + 2) || strchr("/\\", *(src + 2))) && (src > srcBuf && strchr("/\\", *(src - 1))) ) {
             if( src[2] ) {
                 src += 2;
@@ -177,7 +168,7 @@ char * sFilePath::simplifyPath(eSimplifyPath spacehandle, const char * srcBuf)
             continue;
         }
 
-        if(spacehandle==eSimplifySpaceRemove && strchr(sString_symbolsBlank,*src) ) // completely remove space
+        if(spacehandle==eSimplifySpaceRemove && strchr(sString_symbolsBlank,*src) )
             continue;
 
         *dst=*src;
@@ -185,7 +176,7 @@ char * sFilePath::simplifyPath(eSimplifyPath spacehandle, const char * srcBuf)
             prv=dst;
             *dst='/';
         }
-        else if(spacehandle==eSimplifySpaceReplaceWithUnderscore && strchr(sString_symbolsBlank,*dst) ) // replace space by underscore
+        else if(spacehandle==eSimplifySpaceReplaceWithUnderscore && strchr(sString_symbolsBlank,*dst) )
             *dst='_';
 
         ++dst;
@@ -202,9 +193,9 @@ char * sFilePath::composeWinStyleFileListPaths(const char * flnmlst, bool iszero
     char * ptr, *first;
     for( ptr=first=sString::next00(flnmlst,1); ptr ; ptr=sString::next00(ptr,1) )
         sStr::printf( "%s%s/%s", ptr==first ? "" : " " , flnmlst, ptr );
-    if(!first)sStr::printf( "%s", flnmlst);    // a single file
+    if(!first)sStr::printf( "%s", flnmlst);
 
-    add(__,2); // double zero
+    add(__,2);
     char * pp=sStr::ptr();
     for(char * p=pp; *p; ++p) {
             if(*p=='\\' ) *p='/';

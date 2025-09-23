@@ -28,20 +28,23 @@
 # * DEALINGS IN THE SOFTWARE.
 # */
 
-PROGRAMS += dna-parserproc dna-ionparser
+PROGRAMS += dna-parserproc
 
-PROGRAMS_LIBS = -lviolib -lqpsvc -ldmlib $(VLIB_LIB)
+PROGRAMS_LIBS = -lviolib -lqpsvc $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
+OBJECT_TYPES=nuc-read genome
+
+ACTIONS = TreatAssra convert2sam convert2fasta convert2fastq convert2genome cast2genome cast2nuc-read
+
 dna-parserproc_SRCS = dna-parserproc.cpp
-dna-ionparser_SRCS = dna-ionparser.cpp
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-parser,Sequence File Indexing,/Sequencing/, \
         maxJobs=4 \
@@ -53,7 +56,3 @@ dist::
         screeningActiveShannon='0' \
     )
 	$(call dist-app,dna-parser,dna-parserproc)
-	$(call dist-service-register,dna-ionparser,Sequence File ION-Indexing,/Sequencing/)
-	$(call dist-app,dna-ionparser,dna-ionparser)
-	
-	

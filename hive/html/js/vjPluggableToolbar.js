@@ -34,7 +34,7 @@ function vjPluggableToolbar(viewer) {
     if (viewer.notToOpenArgs) this.notToOpen = viewer.notToOpenArgs;
     else this.notToOpen = {};
     
-    vjPanelView.call(this, viewer); // inherit default behaviors of the PanelView
+    vjPanelView.call(this, viewer);
     
     function findInArray(array, elem, value, substring)
     {
@@ -61,10 +61,6 @@ function vjPluggableToolbar(viewer) {
     }
     else
     {
-        //this else is used for the way the new playout manager is structured. 
-        //all of the %PANNELCLASS% strings in the url will be replaced with the object class
-        //and the %TABLECLASS% will be relaced with the object class of the table that will be located below the pannel
-        
         for (var plugin in this.plugins)
         {
             var pluginArr = this.plugins[plugin].rows;
@@ -79,7 +75,7 @@ function vjPluggableToolbar(viewer) {
                 while (res >= 0)
                 {
                     var pluginName = this.plugins.general.rows[res].name;
-                    delete this.plugins[name];
+                    delete this.plugins[pluginName];
                     this.plugins.general.rows.splice(res, 1);
                     res = findInArray(this.plugins.general.rows, "path", plugin, true);
                 }
@@ -90,7 +86,7 @@ function vjPluggableToolbar(viewer) {
             {
                 var aaa = pluginArr[i].url;
                 
-                if (aaa)
+                if (aaa && typeof aaa === "string")
                 {
                     var index = aaa.indexOf ("%PANNELCLASS%");
                     if (index > 0)
@@ -131,12 +127,14 @@ function vjPluggableToolbar(viewer) {
         if (this.tbl_data.indexOf("%PANNELCLASS%") > 0)
         {
             var aaa = this.tbl_data;
-            var index = aaa.indexOf("%PANNELCLASS%");
-            if (index > 0)
-                this.tbl_data = aaa.substring (0, index)+this.objCls + aaa.substring(index + "%PANNELCLASS%".length);
+            if(aaa && typeof aaa === "string"){
+                var index = aaa.indexOf("%PANNELCLASS%");
+                if (index > 0)
+                    this.tbl_data = aaa.substring (0, index)+this.objCls + aaa.substring(index + "%PANNELCLASS%".length);
+            }            
         }
 
-        vjDS.add("List of loadable files", this.tbl_data, "static://",
+        vjDS.add("List of loadable files", this.tbl_data, "static:
                 [{obj: this, func: this.tbl_dataCallback}]);
     }
         
@@ -150,7 +148,6 @@ function vjPluggableToolbar(viewer) {
         var redrawing = this.currentPlugin;
         if (other && this.plugins[other])
             redrawing = other;
-        
         this.rebuildPlugins(this.getData(0).data);
         this.rows = this.plugins[redrawing].rows;
         this.tree = this.plugins[redrawing].tree;
@@ -170,13 +167,14 @@ function vjPluggableToolbar(viewer) {
         this.rows = this.plugins[redrawing].rows;
         this.tree = this.plugins[redrawing].tree;
         var ret = _super_redrawMenuView.call(this, node);
+
         this.plugins[redrawing].rows = this.rows;
         this.plugins[redrawing].tree = this.tree;
+
         return ret;
     };
     
     this.rebuildPlugins = function(data) {
-        // data is JSON stringification of array of objects
         var panelsObj;
         if (data.indexOf("error: ") != 0) {
             try {
@@ -189,7 +187,6 @@ function vjPluggableToolbar(viewer) {
         this.additionalPanels = [];
         this.predefinedCategories = [];
         
-        //later, will probably have to deal with url (that will get put in the dataCmd parameter)
         for (var i = 0; i < panelsObj.length; i++)
         {
             var currentPanel = panelsObj[i];
@@ -221,7 +218,6 @@ function vjPluggableToolbar(viewer) {
                     {name:'clear', align:'left', icon:'refresh', order:99, title:'Clear', url: "javascript:vjObjEvent(\"onClearAll\", \"" + this.objCls+ "\",\""+sanitizeStringJS(currentPanel.panelName)+"\");" }
                 ],
                 tree: null,
-                //icon: currentPanel.panelIcon,
                 title: currentPanel.panelTitle,
                 order: i
             };
@@ -230,7 +226,6 @@ function vjPluggableToolbar(viewer) {
                 this.plugins[currentPanel.panelName].toPrint = toPrint;
             if (tqsToUse){
                 this.plugins[currentPanel.panelName].tqsToUse = tqsToUse;
-                //this.plugins[currentPanel.panelName].tqsToUse = JSON.parse(tqsToUse);
             }
             
             if (currentPanel.argument == 0 || currentPanel.argument.length == 0)
@@ -256,23 +251,23 @@ function vjPluggableToolbar(viewer) {
                     if (currentPanel.panelObjQry)
                         this.plugins.general.rows.push({name:currentPanel.panelName, align:'left', path:currentPanel.panelPath, value: currentPanel.panelObjQry,title: (currentPanel.panelTitle ? currentPanel.panelTitle : currentPanel.panelName) , url: "javascript:vjObjEvent(\"onChangeObjQry\", \"" + this.objCls + "\",\""+sanitizeStringJS(currentPanel.panelObjQry)+"\");"});    
                     else
-                        this.plugins.general.rows.push({name:currentPanel.panelName, path:currentPanel.panelPath, align:'left', order:-1 ,title: (currentPanel.panelTitle ? currentPanel.panelTitle : currentPanel.panelName) , /*icon:currentPanel.panelIcon,*/ url: "javascript:vjObjEvent(\"onPanelOpen\",\"" + this.objCls + "\", \""+sanitizeStringJS(currentPanel.panelName)+"\");"});
+                        this.plugins.general.rows.push({name:currentPanel.panelName, path:currentPanel.panelPath, align:'left', order:-1 ,title: (currentPanel.panelTitle ? currentPanel.panelTitle : currentPanel.panelName) ,url: "javascript:vjObjEvent(\"onPanelOpen\",\"" + this.objCls + "\", \""+sanitizeStringJS(currentPanel.panelName)+"\");"});
                 }
                 else
                 {
                     if (currentPanel.panelObjQry)
                         this.plugins.general.rows.push({name:currentPanel.panelName, path:"/analyze/"+currentPanel.panelName, align:'left',  value: currentPanel.panelObjQry, title: (currentPanel.panelTitle ? currentPanel.panelTitle : currentPanel.panelName), url: "javascript:vjObjEvent(\"onChangeObjQry\", \"" + this.objCls + "\",\""+sanitizeStringJS(currentPanel.panelObjQry)+"\");"});
                     else
-                        this.plugins.general.rows.push({name:currentPanel.panelName, path:"/analyze/"+currentPanel.panelName, align:'left', order:-1 ,title: (currentPanel.panelTitle ? currentPanel.panelTitle : currentPanel.panelName) , /*icon:currentPanel.panelIcon,*/ url: "javascript:vjObjEvent(\"onPanelOpen\",\"" + this.objCls + "\", \""+sanitizeStringJS(currentPanel.panelName)+"\");"});
+                        this.plugins.general.rows.push({name:currentPanel.panelName, path:"/analyze/"+currentPanel.panelName, align:'left', order:-1 ,title: (currentPanel.panelTitle ? currentPanel.panelTitle : currentPanel.panelName) ,url: "javascript:vjObjEvent(\"onPanelOpen\",\"" + this.objCls + "\", \""+sanitizeStringJS(currentPanel.panelName)+"\");"});
                 }
-                
+
                 continue;
             }
             
             var currentPlugin = this.plugins[currentPanel.panelName];
             var advanced = false;
-            
-            for (var ia = 0 ; ia < currentPanel.argument.length; ia++)
+
+            for (var ia = 0 ; currentPanel.argument && ia < currentPanel.argument.length; ia++)
             {
                 var button = currentPanel.argument[ia].argumentButton;
                 var name = currentPanel.argument[ia].argumentName;
@@ -288,6 +283,18 @@ function vjPluggableToolbar(viewer) {
                 var descToPut = "";
                 if (description)
                     descToPut = description;
+
+                let argToRow = {
+                    name: name, 
+                    order:ia*2, 
+                    align:'left', 
+                    description: descToPut, 
+                    type:'select', 
+                    readonly:false , 
+                    showTitleForInputs: true , 
+                    title: button, 
+                    isSubmitable:true
+                }
                 
                 if (type=="select")
                 {
@@ -295,7 +302,7 @@ function vjPluggableToolbar(viewer) {
                     while(value.indexOf("|") >= 0)
                     {
                         var a=value.substring(0,value.indexOf("|"));
-                        var slashes = a.indexOf("///");
+                        var slashes = a.indexOf("
                         
                         var pos = a.substring(0,slashes);
                         var str = a.substring(slashes+3);
@@ -303,37 +310,50 @@ function vjPluggableToolbar(viewer) {
                         value = value.substring (value.indexOf("|")+1);
                         selectArray.push([pos,str]);
                     }
-                    var slashes = value.indexOf("///");
+                    var slashes = value.indexOf("
                     
                     var pos = value.substring(0,slashes);
                     var str = value.substring(slashes+3);
-                    if (pos.length)
-                        selectArray.push([pos,str]);
+                    if (pos.length) selectArray.push([pos,str]);
+
+                    argToRow.options = selectArray
+                    argToRow.value = 0
                     
-                    if (path && path == "/")
-                    {
-                        currentPlugin.rows.push({name: name, order:ia*2, align:'left', description: descToPut, value:0, options: selectArray, type:'select', readonly:false , showTitleForInputs: true , title: button, isSubmitable:true});
+                    if (path && path == "/"){
+                        currentPlugin.rows.push(argToRow);
                         continue;
-                    }
-                    else if (path && path.indexOf ("/") == 0)
-                    {
-                        currentPlugin.rows.push({name: name, order:ia*2, align:'left', description: descToPut, value:0, options: selectArray, type:'select', readonly:false , showTitleForInputs: true , title: button, isSubmitable:true, path:path });
+                    }else if(path && path.indexOf ("/") == 0) {
+                        argToRow.path = path
+
+                        currentPlugin.rows.push({ argToRow });
                         continue;
                     }
                     
                     if (advanced == false)
                     {
-                        currentPlugin.rows.push({name:"advanced", align:'left', order:ia*2, description: descToPut, value:0, type:'button', readonly:false , showTitleForInputs: false , title: "Advanced", isSubmitable:true , path:"/advanced"});
+                        currentPlugin.rows.push({
+                            name:"advanced", 
+                            align:'left', 
+                            order:ia*2, 
+                            description: descToPut, 
+                            value:0, 
+                            type:'button', 
+                            readonly:false , 
+                            showTitleForInputs: false , 
+                            title: "Advanced", 
+                            isSubmitable:true , 
+                            path:"/advanced"
+                        });
                         advanced = true;
                     }
-                    currentPlugin.rows.push({name: name, order:ia*2, align:'left', description: descToPut, value:0, options: selectArray, type:'select', readonly:false , showTitleForInputs: true , title: button, isSubmitable:true, path:"/advanced/" + name });
+                    argToRow.path = "/advanced/" + name 
+                    currentPlugin.rows.push(argToRow);
                 }
                 else if (type == "string")
                 {
-                    if (size)
-                        currentPlugin.rows.push({name: name, align:'left', description: descToPut, order:ia*2, size: size, type:'text', readonly:false , showTitleForInputs: true , title: button, isSubmitable:true});
-                    else
-                        currentPlugin.rows.push({name: name, align:'left', description: descToPut, order:ia*2, type:'text', readonly:false , showTitleForInputs: true , title: button, isSubmitable:true});
+                    argToRow.type = 'text'
+                    if (size) argToRow.size = size
+                    currentPlugin.rows.push(argToRow);
                 }
                 else if (type == "checkbox")
                 {
@@ -341,19 +361,41 @@ function vjPluggableToolbar(viewer) {
                     if (value)
                         val = value;
                     
-                    if (path && path.indexOf ("/") == 0)
-                        currentPlugin.rows.push({name: name, align:'left', value: val, description: descToPut, order:ia*2, type:'checkbox', readonly:false , showTitleForInputs: true , title: button, isSubmitable:true, path: path});
-                    else        
-                        currentPlugin.rows.push({name: name, align:'left', value: val, description: descToPut, order:ia*2, type:'checkbox', readonly:false , showTitleForInputs: true , title: button, isSubmitable:true});                    
+                    argToRow.value = val
+                    argToRow.type = 'checkbox'
+
+                    if (path && path.indexOf ("/") == 0){
+                            argToRow.path = path
+                    }    
+                    currentPlugin.rows.push(argToRow);
                 }
                 else {
-                    currentPlugin.rows.push({name: name, align:'left', group:type, readonly:true, path: "/"+name, order:ia*2, value:value, description: descToPut, type:'color', showTitleForInputs: true , title: button, url: "javascript:vjObjEvent(\"startColorCategorizer\",\"" + this.objCls+ "\",\""+sanitizeStringJS(currentPanel.panelName)+"\", \""+sanitizeStringJS(name)+"\",\""+sanitizeStringJS(value)+"\",\""+sanitizeStringJS(type)+"\");" });
+                    argToRow.group = type
+                    argToRow.value = value
+                    argToRow.path = "/" + name
+                    argToRow.readonly = true
+                    argToRow.type = 'color'
+                    argToRow.url = "javascript:vjObjEvent(\"startColorCategorizer\",\"" + this.objCls+ "\",\""+sanitizeStringJS(currentPanel.panelName)+"\", \""+sanitizeStringJS(name)+"\",\""+sanitizeStringJS(value)+"\",\""+sanitizeStringJS(type)+"\");" 
+                    currentPlugin.rows.push(argToRow);
                 }
             }
-            if (!currentPanel.panelPath)
-                this.plugins.general.rows.push({name:currentPanel.panelName, order: i, align:'left', path:"/analyze/"+currentPanel.panelName, align:'left', title: (currentPanel.panelTitle ? currentPanel.panelTitle : currentPanel.panelName) , /*icon:currentPanel.panelIcon ,*/ url: "javascript:vjObjEvent(\"onPanelOpen\", \"" + this.objCls+ "\",\""+sanitizeStringJS(currentPanel.panelName)+"\");" });
-            else
-                this.plugins.general.rows.push({name:currentPanel.panelName, order: i, path: currentPanel.panelPath, align:'left', title: (currentPanel.panelTitle ? currentPanel.panelTitle : currentPanel.panelName) , /*icon:currentPanel.panelIcon ,*/ url: "javascript:vjObjEvent(\"onPanelOpen\", \"" + this.objCls+ "\",\""+sanitizeStringJS(currentPanel.panelName)+"\");" });
+
+            let generalrow = {
+                name: currentPanel.panelName, 
+                order: i, 
+                align:'left', 
+                path:"/analyze/"+ currentPanel.panelName, 
+                align:'left', 
+                title: (currentPanel.panelTitle ? currentPanel.panelTitle : currentPanel.panelName) ,
+                url: "javascript:vjObjEvent(\"onPanelOpen\", \"" + this.objCls+ "\",\""+sanitizeStringJS(currentPanel.panelName)+"\");" 
+            }
+
+            generalrow.path = !currentPanel.panelPath ? `/analyze/${currentPanel.panelName}`: currentPanel.panelPath
+            let foundrow = false
+            this.plugins.general.rows.forEach(function(row){
+                if(row.path === generalrow.path) foundrow =true
+            })
+            if(!foundrow) this.plugins.general.rows.push(generalrow);
         }
         this.rebuildPluginTrees();
     };
@@ -467,4 +509,3 @@ function vjPluggableToolbar(viewer) {
    
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjPluggableToolbar.js"

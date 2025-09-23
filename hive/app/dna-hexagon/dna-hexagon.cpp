@@ -28,30 +28,30 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <slib/std.hpp>
-#include <qlib/QPrideProc.hpp>
+#include <qpsvc/qpsvc-dna-hexagon.hpp>
 
 #include <slib/utils.hpp>
 
 #include <ssci/bio.hpp>
 #include <violin/violin.hpp>
+#include <violin/hiveproc.hpp>
+#include <violin/alignparse.hpp>
 
 
-class DnaHexagon : public sQPrideProc
+class DnaHexagon : public sHiveProc
 {
     public:
-        DnaHexagon(const char * defline00,const char * srv) : sQPrideProc(defline00,srv)
+        DnaHexagon(const char * defline00,const char * srv) : sHiveProc(defline00,srv)
         {
         }
         virtual idx OnExecute(idx);
-//        virtual idx OnCollect(idx);
 
         idx getTheFlags( void )
         {
-            //idx isDoubleHash = formIValue("doubleHash") ? true : false;
             idx reverseEngine=formIValue("reverseEngine",0);
             idx keepAllMatches=formIValue("keepAllMatches",1);
             idx flagSet=sBioseqAlignment::fAlignForward;
-            if( formIValue("isglobal") ) flagSet|=sBioseqAlignment::fAlignGlobal;//else flagSet|=sBioseqAlignment::fAlignLocal;
+            if( formIValue("isglobal") ) flagSet|=sBioseqAlignment::fAlignGlobal;
             if( formIValue("isbackward", 1) ) {
                 flagSet|=sBioseqAlignment::fAlignBackward|sBioseqAlignment::fAlignBackwardComplement;
                 if( formIValue("isbackward", 1) == 2 ) flagSet &= ~sBioseqAlignment::fAlignForward;
@@ -60,9 +60,19 @@ class DnaHexagon : public sQPrideProc
             if( formIValue("isextendtails") ) flagSet|=sBioseqAlignment::fAlignMaxExtendTail;
             if( formIValue("isCircular") ) flagSet|=sBioseqAlignment::fAlignCircular;
             if( formIValue("doubleHash") ) flagSet|=sBioseqAlignment::fAlignOptimizeDoubleHash;
-            if( formIValue("alignmentEngine",1) ==0 )flagSet|=sBioseqAlignment::fAlignIdentityOnly; //keep SW as default
+            if( formIValue("alignmentEngine",1) ==0 )flagSet|=sBioseqAlignment::fAlignIdentityOnly;
 
-            if( formBoolValue("keepMarkovnikovMatches", false) ) flagSet |= sBioseqAlignment::fAlignKeepMarkovnikovMatch;
+            idx resolveConflicts = formIValue("keepResolveConflicts", false);
+            if( resolveConflicts ) {
+                if(resolveConflicts == 1) flagSet |= sBioseqAlignment::fAlignKeepResolveMarkovnikov;
+                if(resolveConflicts == 2) flagSet |= sBioseqAlignment::fAlignKeepResolveBalanced;
+
+                idx resolveConflictsScore = formIValue("keepResolveConflicts", false);
+                if( resolveConflictsScore == 1 ) flagSet |= sBioseqAlignment::fAlignKeepResolvedHits;
+                if( resolveConflictsScore == 2 ) flagSet |= sBioseqAlignment::fAlignKeepResolvedSymmetry;
+                if( formBoolValue("resolveConfictsUnique", false) ) flagSet |= sBioseqAlignment::fAlignKeepResolveUnique;
+            }
+
 
             if( formBoolValue("keepPairedOnly", false) ) flagSet |= sBioseqAlignment::fAlignKeepPairedOnly;
             if( formBoolValue("keepPairOnSameSubject", false) ) flagSet |= sBioseqAlignment::fAlignKeepPairOnSameSubject;
@@ -84,6 +94,8 @@ class DnaHexagon : public sQPrideProc
             if(searchRepeatsAndTrans==2)flagSet|=sBioseqAlignment::fAlignSearchTranspositions|sBioseqAlignment::fAlignSearchRepeats;
             return flagSet;
         }
+
+        bool getChunkRanges(idx &subStart, idx &subEnd, idx &qryStart, idx &qryEnd);
 };
 
 
@@ -109,58 +121,47 @@ class DnaHexagon : public sQPrideProc
 
 
 extern idx cntHashLookup, cntBloomLookup, cntAlignmentSW, cntExtension, cntSuccessSW;
+#if defined(scanHitsMethodNEW) && defined(scanHitsMethodOLD)
+    #ifdef printMethodComparisonHits
+extern sStr cmpMethodsOutput;
+    #endif
+extern idx cntAlignmentsNEWonly, cntAlignmentsOLDonly, cntAlignmentsBOTH, cntAlignmentsNONE, cntFilteredNEWonly, cntFilteredOLDonly, cntFilteredBOTH, cntFilteredNONE;
+
+extern bool cmpMethodsOutputISDIFF;
+#endif
+
 
 idx DnaHexagon::OnExecute(idx req)
 {
     sStr errS;
+    const int progressIntervalBases = 1000000;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ initialize the parameters
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     idx maxNumberQuery=formIValue("maxNumberQuery");
     idx seed=formIValue("seed",11);
 
     idx isDoubleHash = formIValue("doubleHash") ? true : false;
     if(seed<0) {seed=-seed; isDoubleHash=true;}
     idx reverseEngine=formIValue("reverseEngine",0);
-    //idx subjectChunkOverlap=formIValue("subjectChunkOverlap",100);
-//    idx saveSeedHash=formIValue("saveSeedHash",0);
 
-    //idx keepAllMatches=formIValue("keepAllMatches",1);
 
-    idx slice=formIValue("slice",sHiveseq::defaultSliceSizeI);
-    //idx reportZeroHits=formIValue("reportZeroHits");
     idx maxHashBin=formIValue("maxHashBin",50); if(!maxHashBin)maxHashBin=50;
     idx complexityWindow=formIValue("complexityWindow",0);if(complexityWindow<0)complexityWindow=seed;
     real complexityEntropy=formRValue("complexityEntropy",0);
-    //idx acceptNNNRead=formRValue("acceptNNNRead",1);
     idx complexityRefWindow=formIValue("complexityRefWindow",0);if(complexityRefWindow<0)complexityRefWindow=seed;
     real complexityRefEntropy=formRValue("complexityRefEntropy",0);
     idx acceptNNNQuaTrheshold=formRValue("acceptNNNQuaTrheshold",1);
     real maximumPercentLowQualityAllowed=formRValue("maximumPercentLowQualityAllowed",0);
     idx doubleStagePerfect=formIValue("doubleStagePerfect",1);
     idx quabit=0;
-    //doubleStagePerfect=2;
 
     idx maxSubjectBasesToCompile=formIValue("maxSubjectBasesToCompile",0); if(!maxSubjectBasesToCompile)maxSubjectBasesToCompile=1024*1024*128;
 
-    idx hashExpectation=maxSubjectBasesToCompile/(((idx)1)<<(2*seed));//sub->dim()*sub->len(0)/(((idx)1)<<(2*seed));
+    idx hashExpectation=maxSubjectBasesToCompile/(((idx)1)<<(2*seed));
     if(!hashExpectation)hashExpectation=1;
     hashExpectation=(maxHashBin<0) ? hashExpectation*(-maxHashBin) : maxHashBin ;
 
 
     idx flagSet=getTheFlags( );
-    /*idx flagSet=sBioseqAlignment::fAlignForward;
-    if( formIValue("isglobal") ) flagSet|=sBioseqAlignment::fAlignGlobal;//else flagSet|=sBioseqAlignment::fAlignLocal;
-    if( formIValue("isbackward", 1) ) flagSet|=sBioseqAlignment::fAlignBackward|sBioseqAlignment::fAlignBackwardComplement;
-    if( formIValue("isoptimize", 1) ) flagSet|=sBioseqAlignment::fAlignOptimizeDiagonal;
-    if( formIValue("isextendtails") ) flagSet|=sBioseqAlignment::fAlignMaxExtendTail;
-    if( formIValue("isCircular") ) flagSet|=sBioseqAlignment::fAlignCircular;
-
-    if( formIValue("alignmentEngine") ==0 )flagSet|=sBioseqAlignment::fAlignIdentityOnly;
-     */
     if( isDoubleHash ) flagSet|=sBioseqAlignment::fAlignOptimizeDoubleHash;
     sVec <sVioAnnot> annotList;
 
@@ -179,74 +180,47 @@ idx DnaHexagon::OnExecute(idx req)
         sHiveId::parseRangeSet(annotIds, referenceAnnot);
         sHiveannot::InitAnnotList(user,annotList,&annotIds);
     }
-/*
-    if(keepAllMatches==0)flagSet|=sBioseqAlignment::fAlignKeepFirstMatch;
-    if(keepAllMatches==1)flagSet|=sBioseqAlignment::fAlignKeepBestFirstMatch;
-    if(keepAllMatches==3)flagSet|=sBioseqAlignment::fAlignKeepAllBestMatches;
-    if(keepAllMatches==4)flagSet|=sBioseqAlignment::fAlignKeepRandomBestMatch;
-    if(reverseEngine)flagSet|=sBioseqAlignment::fAlignReverseEngine;
-*/
-    //idx searchRepeatsAndTrans=formIValue("searchRepeatsAndTrans",0);
-/*    if(searchRepeatsAndTrans==1)flagSet|=sBioseqAlignment::fAlignSearchRepeats;
-    if(searchRepeatsAndTrans==2)flagSet|=sBioseqAlignment::fAlignSearchTranspositions|sBioseqAlignment::fAlignSearchRepeats;
-*/
 
     idx qStart,qEnd,sStart,sEnd;
     idx cntFound=0;
 
-    sVec < idx > alignmentMap;//(0,pathT.ptr()); // flat formatted list of sBioseqAlignment::Alignments for query mappings to Amplicons
+    sVec < idx > alignmentMap;
 
     sBioseq * sub, * qry;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ load the subject and query sequences
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    const char * subject = formValue("subject");
+    sStr subject;
+    QPSvcDnaHexagon::getSubject00(objs[0],subject);
     sHiveseq Sub(user, subject, sBioseq::eBioModeShort, false, false, &errS);
-    //Sub.reindex();
     if( Sub.dim() == 0 ) {
-        reqSetInfo(req, eQPInfoLevel_Error, "Reference '%s' sequences are missing or corrupted%s%s", subject ? subject : "unspecified", errS.length() ? ": " : "", errS.length() ? errS.ptr() : "");
+        reqSetInfo(req, eQPInfoLevel_Error, "dna-hexagon: Reference '%s' sequences are missing or corrupted%s%s", subject.length() ? subject.ptr() : "unspecified", errS.length() ? ": " : "", errS.length() ? errS.ptr() : "");
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
     errS.cut0cut();
 
-    /*
-    sStr singleSubPath;
-    sVec<idx> rgSub;sString::scanRangeSet(subject,0,&rgSub,0,0,0);
-    if(rgSub.dim()==1) {
-        sUsrFile obj(rgSub[0],user); // todo : get the best way of getting paths
-//        obj.getPath(&singleSubPath);
-    }
-    */
 
-    // load the subject and query sequences
-    const char * query=formValue("query");
-    sHiveseq Qry(sQPride::user, query, sBioseq::eBioModeShort, false, false, &errS);//Qry.reindex();
+    sStr query;
+    QPSvcDnaHexagon::getQuery00(objs[0],query);
+    sHiveseq Qry(sQPride::user, query, sBioseq::eBioModeShort, false, false, &errS);
     if(Qry.dim()==0) {
-        reqSetInfo(req, eQPInfoLevel_Error, "Query '%s' sequences are missing or corrupted%s%s", query ? query : "unspecified", errS.length() ? ": " : "", errS.length() ? errS.ptr() : "");
+        reqSetInfo(req, eQPInfoLevel_Error, "dna-hexagon: Query '%s' sequences are missing or corrupted%s%s", query.length() ? query.ptr() : "unspecified", errS.length() ? ": " : "", errS.length() ? errS.ptr() : "");
         reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0; // error
+        return 0;
     }
     errS.cut0cut();
     sub=&Sub;
     qry=&Qry;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ prepare the Alignment Engine
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     bool doBreak = false;
 
     {
-        sBioseqAlignment masterAl; // alignment classes for master and for amplicons
-        masterAl.MatSW.addM(4*1024*1024);// reserve few megs at the beginning
+        sBioseqAlignment masterAl;
+        masterAl.MatSW.addM(4*1024*1024);
         masterAl.MatBR.addM(4*1024*1024);
 
+        masterAl.costMatchFirst=formIValue("costMatchFirst",5 ) ;
+        masterAl.costMatchSecond=formIValue("costMatchSecond",5);
         masterAl.costMatch=formIValue("costMatch",5);
         masterAl.costMismatch=formIValue("costMismatch",-4);
         masterAl.costMismatchNext=formIValue("costMismatchNext",-6);
@@ -254,41 +228,43 @@ idx DnaHexagon::OnExecute(idx req)
         masterAl.costGapNext=formIValue("costGapNext",-4);
         masterAl.computeDiagonalWidth=formIValue("computeDiagonalWidth",0);
         masterAl.maxMissQueryPercent=formRValue("maxMissQueryPercent",15);
-        masterAl.minMatchLen=formIValue("minMatchLen",75);masterAl.localBitMatch.resize(1+( (masterAl.minMatchLen<=0?1:masterAl.minMatchLen))/(sizeof(idx)*8));
+        masterAl.minMatchLen=formIValue("minMatchLen",75);
+        masterAl.isMinMatchPercentage=(bool)formIValue("minMatchUnit",0);
         masterAl.considerGoodSubalignments=formIValue("considerGoodSubalignments",1);
 
         masterAl.scoreFilter=formIValue("scoreFilter",0);
-        masterAl.considerGoodSubalignments=formIValue("considerGoodSubalignments",1);
-        masterAl.allowShorterEnds=formIValue("allowShorterEnds",0);if(!masterAl.allowShorterEnds)masterAl.allowShorterEnds=masterAl.minMatchLen;
+        masterAl.trimLowScoreEnds=formIValue("trimLowScoreEndsWindow",0);
+        if(masterAl.trimLowScoreEnds<0)
+            masterAl.trimLowScoreEnds = seed;
+        masterAl.trimLowScoreEndsMaxMM=formIValue("trimLowScoreEndsMaxMismatches",0);
+        if(masterAl.trimLowScoreEndsMaxMM<0)
+            masterAl.trimLowScoreEndsMaxMM = masterAl.maxMissQueryPercent;
+        masterAl.trimLowScoreEndsMaxMM = 100 - masterAl.trimLowScoreEndsMaxMM;
+        masterAl.allowShorterEnds=formIValue("allowShorterEnds",0);
+        if(!masterAl.allowShorterEnds)masterAl.allowShorterEnds=masterAl.minMatchLen;
         masterAl.maxExtensionGaps=formIValue("maxExtensionGaps",0);
-        //masterAl.maxExtensionGaps=1;
         masterAl.hashStp=formIValue("hashStp",reverseEngine ? seed : 1 );
         masterAl.bioHash.hashStp=formIValue("hashCompileStp",1 );
-    //masterAl.hashStp=1;
-    //masterAl.bioHash.hashStp=1;
         masterAl.looseExtenderMismatchesPercent=formIValue("looseExtenderMismatchesPercent",25);
         masterAl.looseExtenderMinimumLengthPercent=formIValue("looseExtenderMinimumLengthPercent",66);
-    //masterAl.looseExtenderMismatchesPercent=15;
-    //masterAl.looseExtenderMinimumLengthPercent=75;
 
         masterAl.maxHitsPerRead=formIValue("maxHitsPerRead",50);
-        masterAl.compactSWMatrix=formIValue("compactSWMatrix",1);
-        masterAl.maxSeedSearchQueryPos=formIValue("maxSeedSearchQueryPos",512);
-        //masterAl.selfSubjectPosJumpInNonPerfectAlignment=formIValue("selfSubjectPosJumpInNonPerfectAlignment",searchRepeatsAndTrans ? 0 : 1);
-        masterAl.selfSubjectPosJumpInNonPerfectAlignment=formIValue("selfSubjectPosJumpInNonPerfectAlignment",1);
-        masterAl.selfQueryPosJumpInNonPerfectAlignment=formIValue("selfQueryPosJumpInNonPerfectAlignment",1);
+        masterAl.maxSeedSearchQueryPos=formIValue("maxSeedSearchQueryPos",0);
+        masterAl.ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment=formIValue("selfSubjectPosJumpInNonPerfectAlignment",1);
+        masterAl.ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment=formIValue("selfQueryPosJumpInNonPerfectAlignment",1);
 
 
-        //masterAl.callbackFunc=(sBioseqAlignment::callbackReport)reportProgress;
-        //masterAl.callbackParam=this;
         masterAl.bioHash.init(seed,4ll);
-        idx isBloom = (seed <= 16) ? sBioseqHash::eCompileBloom  : 0 ; // ( ((udx)1<<(2*seed))/8/1024/1024/1024 <= 2 )  ? sBioseqHash::eCompileBloom  : 0 ;// the size neede for bloom in GB
+        masterAl.hashHits.init(seed);
+        idx isBloom = (seed <= 16) ? sBioseqHash::eCompileBloom  : 0 ;
         if(!isBloom)masterAl.bioHash.collisionReducer=4;
 
 
-        // determine the thread specific parameters for this slice of the total request
         sub = reverseEngine ? &Qry : &Sub;
         qry = reverseEngine ? &Sub : &Qry;
+
+        idx slice = (qry->dim() - 1) / reqSliceCnt + 1;
+
         qStart = reverseEngine ? 0 : slice * reqSliceId;
         qEnd = reverseEngine ? Sub.dim() : qStart + slice;
         if( qEnd>qry->dim() || qEnd <= 0){
@@ -305,10 +281,6 @@ idx DnaHexagon::OnExecute(idx req)
         masterAl.QHitBitmask=QhitBM.addM((qEnd-qStart)/8+1);
         masterAl.SHitBitmask=ShitBM.addM((sEnd-sStart)/8+1);
 
-        /*masterAl.selfSimilairityBufferSize=100;
-        if(masterAl.selfSimilairityBufferSize) {
-            masterAl.SimilarityBuf.addM( Sub.dim() * masterAl.selfSimilairityBufferSize);
-        }*/
 
 
         sVec < idx > randomQueries;
@@ -326,15 +298,8 @@ idx DnaHexagon::OnExecute(idx req)
 
 
 
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ align queries and subjects
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
-        //sVec<idx> tmpFailed;tmpFailed.add(qEnd-qStart);tmpFailed.set(0);
-        // compute cumulative size of subject sequences
         idx curSub;
         idx curSubAnnotFile=0, curSubAnnotRange=0, curSubAnnotPos=0, curSubAnnotRangeSection=0;
 
@@ -349,7 +314,7 @@ idx DnaHexagon::OnExecute(idx req)
             }
         }
         curSubAnnotFile=0, curSubAnnotRange=0, curSubAnnotPos=0, curSubAnnotRangeSection=0;
-        idx stDim=0;//sEnd-sStart;
+        idx stDim=0;
         idx curSubPos=0;
         curSub=0;
 
@@ -359,17 +324,13 @@ idx DnaHexagon::OnExecute(idx req)
         idx subjectIn=0;
         idx chunkSub=0;
 
-//goto dodo;
-        //for( idx is=sStart ; is<sEnd ; is=curS, ++stDim) {
         for( idx subTotalDone=0; !doBreak && subTotalDone<subTotalLen ; subTotalDone+=subjectIn) {
             subjectIn=0;
             idx curSubSave=curSub, curSubPosSave=curSubPos;
             idx curSubAnnotFileSave=curSubAnnotFile, curSubAnnotRangeSave=curSubAnnotRange, curSubAnnotPosSave=curSubAnnotPos, curSubAnnotRangeSectionSave=curSubAnnotRangeSection;
 
-            //logOut(eQPLogType_Debug,"Processing next subject range from %" DEC " position %" DEC " \n"  , curSubSave, curSubPos);
 
     PERF_START("KMERE_SEEDING");
-            // estimate how many bases from current sequence are are getting into this bunch
 
             for ( ; curSub<sEnd  ; ++curSub, curSubPos=0, curSubAnnotFile=0) {
 
@@ -397,13 +358,11 @@ idx DnaHexagon::OnExecute(idx req)
                         break;
                 }
             }
-    //if(chunkSub==4)break;
             ++stDim;
 
             masterAl.bioHash.reset();
             ++chunkSub;
 
-            //logOut(eQPLogType_Debug,"... to subject range %" DEC " position %" DEC " \n"  , curSub, curSubPos);
 
             curSub=curSubSave;
             curSubPos=curSubPosSave;
@@ -429,7 +388,7 @@ idx DnaHexagon::OnExecute(idx req)
                             doContinue=false;
                         }
 
-                        idx posToStartHash=sen[curSubAnnotRangeSection].start;//-seed;
+                        idx posToStartHash=sen[curSubAnnotRangeSection].start;
                         if(posToStartHash<0)posToStartHash=0;
                         idx cntCompiled=masterAl.bioHash.compile(curSub, sub->seq(curSub), sub->len(curSub), sBioseqHash::eCompileDic|isBloom, hashExpectation,  posToStartHash, howMuchToPutIn , complexityRefWindow, complexityRefEntropy, acceptNNNQuaTrheshold ? sub->qua(curSub) :0 , true, acceptNNNQuaTrheshold );
                         logOut(eQPLogType_Debug,"\t reference %" DEC " [%" DEC "- %" DEC "] ... %" DEC " out of %" DEC " in! %s\n",curSub, posToStartHash, posToStartHash+howMuchToPutIn , cntCompiled , howMuchToPutIn ,sub->id(curSub));
@@ -459,16 +418,11 @@ idx DnaHexagon::OnExecute(idx req)
             logOut(eQPLogType_Debug,"Aligning %" DEC " query sequences to %" DEC " subject Mega-Bases in the range %" DEC "-%" DEC " out of %" DEC " Mega-Bases\n"  , qEnd-qStart, subjectIn/1024/1024 , (subTotalDone)/1024/1024, (subTotalDone+subjectIn)/1024/1024, subTotalLen/1024/1024);
 
             idx qriesHit=0;
-            for(idx iqry=qStart; !doBreak && iqry<qEnd ; ++iqry ) { //curQ=iq;
+            real minMatchLenPerc = formRValue("minMatchLen",75)/100;
+            idx totalQryLen = 0, progressMod = 0;
+            for(idx iqry=qStart; !doBreak && iqry<qEnd ; ++iqry ) {
                 idx iq=(randomQueries.dim ()) ? randomQueries[iqry-qStart] : iqry;
                 idx iqx=iq-qStart;
-
-                /*const char * dbgid=qry->id(iq);
-                if(strstr(dbgid,"12 pos=556911 len=50 REV ori=vargi|330443590")==dbgid) {
-                    ::printf(":------------------------%s-------------%" DEC "    %" DEC "--\n",dbgid,req,iq);
-                   // exit(0);
-                }*/
-                //continue;
 
 
                 if( ((flagSet & sBioseqAlignment::fAlignKeepFirstMatch) && (flagSet & sBioseqAlignment::fAlignReverseEngine) == 0) && masterAl.QHitBitmask && (masterAl.QHitBitmask[iqx / 8] & (((idx) 1) << (iqx % 8))) ) {
@@ -481,6 +435,10 @@ idx DnaHexagon::OnExecute(idx req)
 
                 idx qlen=qry->len(iq);
                 const char * seq=qry->seq(iq);
+                if(masterAl.isMinMatchPercentage) {
+                    masterAl.minMatchLen = minMatchLenPerc * qlen;
+                    if(!formIValue("allowShorterEnds",0))masterAl.allowShorterEnds=masterAl.minMatchLen;
+                }
 
     PERF_START("CPLX");
                 bool isok=(complexityWindow!=0) ? (sFilterseq::complexityFilter( seq, qlen, complexityWindow, complexityEntropy )==0 ? true:false ): true ;
@@ -492,15 +450,14 @@ idx DnaHexagon::OnExecute(idx req)
                     const char * qua=qry->qua(iq);
                     if(qua) {
 
-    //                    isok=(complexityWindow!=0) ? sFilterseq::complexityFilter( qry->seq(iq), qry->len(iq), complexityWindow, complexityEntropy ) : true ;
 
                         idx lowqua=0;
                         for( idx i=0 ; i<qlen; ++i) {
                             if( quabit ) {
-                                if( (qua[i/8]&(((idx)1)<<(i%8))) ==0 ) // quality bit is not set
-                                ++lowqua; // ignore the bases with low Phred score
-                            }else if( (qua[i]) < 20 ) // quality bit is not set
-                                ++lowqua; // ignore the bases with low Phred score
+                                if( (qua[i/8]&(((idx)1)<<(i%8))) ==0 )
+                                ++lowqua;
+                            }else if( (qua[i]) < 20 )
+                                ++lowqua;
                         }
                         if( lowqua*100 > qlen*maximumPercentLowQualityAllowed )
                             isok=false;
@@ -515,13 +472,9 @@ idx DnaHexagon::OnExecute(idx req)
 
 
     PERF_START("ALIGNMENTS");
-                //if( iq==5559 )
-                //    ::printf("POTENTIAL PROBLEM %" DEC "\n",iq);
-                //idx ofsAA=alignmentMap.dim();
                 if(isok) {
                     idx qsim=qry->sim(iq);
                     ++cntComplex;
-
                     PERF_START("ALIGNMENTS-FAST");
                     if(doubleStagePerfect) {
 
@@ -531,24 +484,23 @@ idx DnaHexagon::OnExecute(idx req)
                         idx rem_flagset=flagSet;
                         idx rem_maxExtensionGaps=masterAl.maxExtensionGaps;
                         idx rem_minMatchLen=masterAl.minMatchLen;
-                        idx rem_selfSubjectPosJumpInNonPerfectAlignment=masterAl.selfSubjectPosJumpInNonPerfectAlignment;
-                        idx rem_selfQueryPosJumpInNonPerfectAlignment=masterAl.selfQueryPosJumpInNonPerfectAlignment;
-                        //idx rem_maxHitsPerRead=masterAl.maxHitsPerRead;
+                        idx rem_isMinMatchPercentage=masterAl.isMinMatchPercentage;
+                        idx rem_ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment=masterAl.ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment;
+                        idx rem_ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment=masterAl.ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment;
 
 
                         flagSet|=(sBioseqAlignment::fAlignOptimizeDoubleHash|sBioseqAlignment::fAlignIdentityOnly);
-                        //flagSet|=(sBioseqAlignment::fAlignOptimizeDoubleHash|sBioseqAlignment::fAlignSearchRepeats);
                         masterAl.looseExtenderMismatchesPercent=0;
                         masterAl.maxExtensionGaps=0;
                         masterAl.minMatchLen=qlen;
+                        masterAl.isMinMatchPercentage=false;
                         masterAl.looseExtenderMinimumLengthPercent=100;
-                        masterAl.selfSubjectPosJumpInNonPerfectAlignment=0;
-                        masterAl.selfQueryPosJumpInNonPerfectAlignment=1;
+                        masterAl.ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment=0;
+                        masterAl.ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment=1;
 
-                        //masterAl.maxHitsPerRead=rem_maxHitsPerRead;
 
                         PERF_START("ALIGNMENTS-VERY-FAST");
-                        found=masterAl.alignSeq(&alignmentMap, sub, seq, qlen, sNotIdx, iq-qStart ,  flagSet, qsim);//, sFos, sBioseqHash::fos(qFos,iq) ); // , reverseEngine
+                        found=masterAl.alignSeq(&alignmentMap, sub, seq, qlen, sNotIdx, iq-qStart ,  flagSet, qsim);
                         PERF_END();
 
                         if(found)
@@ -558,36 +510,32 @@ idx DnaHexagon::OnExecute(idx req)
 
                         else if(doubleStagePerfect>1)  {
                             flagSet|=(sBioseqAlignment::fAlignSearchRepeats);
-                            masterAl.selfSubjectPosJumpInNonPerfectAlignment=0;
-                            masterAl.selfQueryPosJumpInNonPerfectAlignment=1;
+                            masterAl.ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment=0;
+                            masterAl.ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment=1;
                             PERF_START("ALIGNMENTS-JUST-FAST");
-                            found=masterAl.alignSeq(&alignmentMap, sub, seq, qlen, sNotIdx, iq-qStart ,  flagSet, qsim);//, sFos, sBioseqHash::fos(qFos,iq) ); // , reverseEngine
+                            found=masterAl.alignSeq(&alignmentMap, sub, seq, qlen, sNotIdx, iq-qStart ,  flagSet, qsim);
                             PERF_END();
                             if(found)
                                 ++cntFast;
                         }
 
 
-                        //if(found && (alignmentMap[ofsAA+6]!=-50 || alignmentMap[ofsAA+5]!=0 || alignmentMap[ofsAA+4]!=0 ) ){
-                        //    ::printf("::::::::::::::::::::: idQry=%" DEC " %s\n",iq, qry->id(iq) );
-                        //    exit(0);
-                        //}
 
                         masterAl.looseExtenderMismatchesPercent=rem_looseExtenderMismatchesPercent;
                         flagSet=rem_flagset;
                         masterAl.maxExtensionGaps=rem_maxExtensionGaps;
                         masterAl.minMatchLen=rem_minMatchLen;
+                        masterAl.isMinMatchPercentage=rem_isMinMatchPercentage;
                         masterAl.looseExtenderMinimumLengthPercent=rem_looseExtenderMinimumLengthPercent;
-                        masterAl.selfSubjectPosJumpInNonPerfectAlignment=rem_selfSubjectPosJumpInNonPerfectAlignment;
-                        masterAl.selfQueryPosJumpInNonPerfectAlignment=rem_selfQueryPosJumpInNonPerfectAlignment;
+                        masterAl.ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment=rem_ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment;
+                        masterAl.ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment=rem_ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment;
 
-                        //masterAl.maxHitsPerRead=rem_maxHitsPerRead;
                     }
                     PERF_END();
 
                     if(!found) {
                         PERF_START("ALIGNMENTS-SLOW");
-                        found=masterAl.alignSeq(&alignmentMap, sub, seq, qlen, sNotIdx, iq-qStart ,  flagSet, qsim);//, sFos, sBioseqHash::fos(qFos,iq) ); // , reverseEngine
+                        found=masterAl.alignSeq(&alignmentMap, sub, seq, qlen, sNotIdx, iq-qStart ,  flagSet, qsim);
                         if(found)
                             ++cntSlow;
                         PERF_END();
@@ -595,6 +543,14 @@ idx DnaHexagon::OnExecute(idx req)
 
                     if(!found)
                         ++cntNotFound;
+
+#if defined(scanHitsMethodNEW) && defined(scanHitsMethodOLD) && defined(printMethodComparisonHits)
+                    if(cmpMethodsOutputISDIFF) {
+                        ::printf("%s",cmpMethodsOutput.ptr());
+                    }
+                    cmpMethodsOutputISDIFF = false;
+                    cmpMethodsOutput.cut0cut();
+#endif
 
                 }
                 else if(subTotalDone==0){
@@ -606,14 +562,12 @@ idx DnaHexagon::OnExecute(idx req)
                 if(found) {
                     ++qriesHit;
                     cntFound+=qry->rpt(iq)*found;
-                    //if(alignmentMap[ofsAA+6]!=-100)
-                    //    ::printf("Oo! %" DEC "\n",iq);
                 }
 
-                //curWork=(is*(qEnd-qStart)+(curS-is)*(iq-qStart));
                 curWork=((subTotalDone)*(qEnd-qStart)+(subjectIn)*(iq-qStart));
-
-                if ( (iqry%10000)==0 ){
+                totalQryLen+=qlen;
+                if ( totalQryLen > progressMod * progressIntervalBases ){
+                    progressMod = ((totalQryLen-1)/progressIntervalBases)+1;
                     if(!reqProgress(cntFound, curWork, totWork) ){
                         subTotalDone=subTotalLen;
                         doBreak = true;
@@ -625,11 +579,18 @@ idx DnaHexagon::OnExecute(idx req)
                 }
                 if(maxNumberQuery!=0 && iqry>qStart+maxNumberQuery)
                     break;
-                    //{subTotalDone=subTotalLen;break;}
 
             }
             logOut(eQPLogType_Debug,"\n\tnotfound %" DEC ",foundfast %" DEC ",foundveryfast %" DEC ",foundslow %" DEC "\n\tcomplex %" DEC " simple %" DEC "\n\tlowqaul %" DEC "\n\tlookups: hash %" DEC " bloom%" DEC " extension %" DEC " SW %" DEC " SW-success %" DEC " \n\n"  , cntNotFound,  cntFast, cntVeryFast, cntSlow, cntComplex, cntSimple, cntLowQua, cntHashLookup,cntBloomLookup,cntExtension,cntAlignmentSW,cntSuccessSW);
 
+#if defined(scanHitsMethodNEW) && defined(scanHitsMethodOLD)
+            ::printf("\n\n\n"
+                "COMPARE METHODS:\n"
+                "\tFiltering stage"
+                "\t\tBOTH %" DEC ",NEW %" DEC ",OLD %" DEC ",NONE %" DEC ""
+                "\n\tAlignments "
+                "\t\tBOTH %" DEC ",NEW %" DEC ",OLD %" DEC ",NONE %" DEC "\n"  , cntFilteredBOTH, cntFilteredNEWonly, cntFilteredOLDonly, cntFilteredNONE, cntAlignmentsBOTH, cntAlignmentsNEWonly, cntAlignmentsOLDonly, cntAlignmentsNONE);
+#endif
             if(qriesHit>=qEnd-qStart )
                 break;
 
@@ -646,104 +607,49 @@ idx DnaHexagon::OnExecute(idx req)
         }
 
 
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ Analyze results
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         logOut(eQPLogType_Debug,"Analyzing results\n");
-        const char * const altPath = "file://alignment-slice.vioalt";
-        if( alignmentMap.dim() ) {
-            sStr pathT;
-            sFil ff;
-            if( !reqSetData(req, altPath, 0, 0) || !reqDataPath(req, &altPath[7], &pathT) || !ff.init(pathT.ptr()) || !ff.ok() ) {
-                reqSetInfo(req, eQPInfoLevel_Error, "Failed to save alignment result part");
-                reqSetStatus(req, eQPReqStatus_ProgError);
-                return 0;
-            }
-            sBioseqAlignment::filterChosenAlignments(&alignmentMap, qStart, flagSet, &ff);
-        } else {
-            // FIXME: replace line below with reqDelData() when it's added
-            reqSetData(req, &altPath[7], 0, 0); // magic combination of arguments to delete file and wipe from db; 7 matters
+
+        AlignMapParser alignParser(*this, Sub, Qry);
+        idx countAls = 0;
+        sStr errmsg;
+        if (sRC rc = alignParser.writeAls(alignmentMap, qStart, flagSet, countAls, errmsg)) {
+            reqSetInfo(req, eQPInfoLevel_Error, "Failed to save alignment result part: %s", rc.print());
+            reqSetStatus(req, eQPReqStatus_ProgError);
+            return 0;
         }
-    }
-//dodo:
-    /*
-PERF_START("ANALYSIS");
-    if (isLastInGroup()){
-        logOut(eQPLogType_Info,"Concatenating results\n");
-
-        progress100Start=50;
-        progress100Count=50;
-
-        sStr srcAlignmentsT;grpDataPaths(grpId, "alignment-slice.vioalt", &srcAlignmentsT, vars.value("serviceName"));
-
-        const char * resultFileTemplate =  formValue("resultFileTemplate", 0);
-        if(!resultFileTemplate)resultFileTemplate = "";
-        sStr resultFileName("%salignment.hiveal",resultFileTemplate);
-
-        sStr dstAlignmentsT;sQPrideProc::reqAddFile(dstAlignmentsT, resultFileName.ptr());
-        sVioal vioAltAAA(0,sub,qry);
-        vioAltAAA.myCallbackFunction=sQPrideProc::reqProgressStatic;
-        vioAltAAA.myCallbackParam=this;
-
-
-        sDic < sBioal::LenHistogram > lenHistogram;
-        sStr coverT;sQPrideProc::reqAddFile(coverT, "coverage_dict");
-        sVec< idx > subCoverage(coverT.ptr());
-//        subCoverage.init(coverT.ptr());
-
-        vioAltAAA.DigestCombineAlignmentsRaw(dstAlignmentsT,srcAlignmentsT, 4000000, false, flagSet ,0,&lenHistogram,&subCoverage);
-        if(lenHistogram.dim()){
-            resultFileName.printf(0,"%shistogram.csv",resultFileTemplate);
-            dstAlignmentsT.cut(0);sQPrideProc::reqAddFile(dstAlignmentsT, resultFileName.ptr()); // "histogram.csv"
-            sFile::remove(dstAlignmentsT);
-            sFil hist(dstAlignmentsT);
-            if(hist.ok())
-                sBioal::printAlignmentHistogram(&hist, &lenHistogram );
-        }
-//        if(subCoverage.dim()){
-//            dstAlignmentsT.cut(0);sQPrideProc::reqAddFile(dstAlignmentsT, "summary.csv");
-//            sFile::remove(dstAlignmentsT);
-//            sFil cover(dstAlignmentsT);
-//            if(cover.ok())
-//                sBioal::printAlignmentCoverage(&cover, &subCoverage );
-//        }
 
     }
 
-PERF_END();
-*/
     if( doBreak ) {
         return 0;
     }
-    if( isLastInMasterGroup() ) {
+
+    if( isLastInMasterGroupWithLock() ) {
+        reqSetStatus(req, eQPReqStatus_Running);
+        logOut(eQPLogType_Debug,"Submitting collector req\n");
         idx reqCollector = reqSubmit("dna-hexagon-collector");
-        //grpAssignReqID(reqCollector, grpId, reqSliceCnt) ;
-        grpAssignReqID(reqCollector, grpId, reqSliceCnt);
+
+        reqSetData(reqCollector, "hexagonMasterId", "%lld", masterId ? masterId : grpId);
+
+        grpAssignReqID(reqCollector, masterId ? masterId : grpId, reqSliceCnt);
         reqSetAction(reqCollector, eQPReqAction_Run);
     }
+
     reqSetProgress(req, cntFound, 100);
     reqSetStatus(req, eQPReqStatus_Done);
+
 
     PERF_PRINT();
 
     return 0;
 }
-/*
-idx DnaHexagon::OnExecute(idx req)
-{
-    idx reqCollector=reqSubmit( "dna-hexagon-collector");
-    grpAssignReqID(reqCollector, grpId, reqSliceCnt) ;
-    reqSetAction(reqCollector,eQPReqAction_Run);
-}*/
 
 int main(int argc, const char * argv[])
 {
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     DnaHexagon backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-hexagon",argv[0]));
     return (int)backend.run(argc,argv);

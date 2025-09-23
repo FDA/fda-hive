@@ -30,10 +30,9 @@
 
 LIBRARIES += ssql
 
-# to privide default db connection information
 CXXFLAGS=$(HIVE_DB_CXXFLAGS)
 
-ssql_SRCS = mysql.cpp
+ssql_SRCS = mysql.cpp qusql.cpp
 
 ifeq ($(devdir),)
     devdir = $(abspath ../..)

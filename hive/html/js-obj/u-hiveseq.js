@@ -27,17 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//
-// $Id$
-/*
- *  Copyright (c) 2005 Dr. Vahan Simonyan and Dr. Raja Mazumder.
- * This software is protected by U.S. Copyright Law and International
- * Treaties. Unauthorized use, duplication, reverse engineering, any
- * form of redistribution, use in part or as a whole, other than by
- * prior, express, written and signed agreement is subject to penalties.
- * If you have received this file in error, please notify copyright
- * holder and destroy this and any other copies. All rights reserved.
- */
 
 var a=7;
 
@@ -49,10 +38,9 @@ javaScriptEngine.include("d3js/sunburst_hierarchy.js");
 vjHO.register('u-hiveseq').Constructor=function ()
 {
 
-    if(this.objCls)return;         //stupid chrome loads from both cached file and the one coming from server.
+    if(this.objCls)return;
     this.resolution=200;
 
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.node=node;
@@ -62,7 +50,6 @@ vjHO.register('u-hiveseq').Constructor=function ()
 
     this.preview = function(node,dv)
     {
-//        this.parent.preview('svc',node,dv);
         this.mode='preview';
         this.node=node;
         this.hideQCLauncher = true;
@@ -71,7 +58,6 @@ vjHO.register('u-hiveseq').Constructor=function ()
         this.hideProg_Screen = true;
         this.keyStorage_QC = "" + node.id + "_QC_request";
         this.keyStorage_Screen = "" + node.id + "_Screen_request";
-      //  this.create(dv,node.id);
         this.checkQC(this.objCls, dv, node.id);
     };
 
@@ -92,52 +78,51 @@ vjHO.register('u-hiveseq').Constructor=function ()
 
     this.urlSet ={
             'sequences' :{
-                active_url:"http://?cmd=seqList&out=num|id|len&ids=0",   //for both hitpie and hitlist
+                active_url:"http:
                 objs:"ids"
             },
             'histograms' : {
-                //active_url:"http://?cmd=seqQC&split=query&query=0&qc=countsAtPositionTable.csv",
-                active_url:"qpbg_tblqryx4://.qc2.countsAtPositionTable.csv//resolution="+this.resolution
+                active_url:"qpbg_tblqryx4:
 
             },
             'ATGC' :{
-                //active_url: "http://?cmd=seqQC&split=query&query=0&qc=sumLetterTable.csv",
-                active_url:"http://?cmd=objFile&filename=.qc2.sumLetterTable.csv",
+                active_url:"http:
                 objs:"ids"
 
             },
             'codonQC' :{
-                active_url:"http://?cmd=objFile&filename=.qc2.codonQCTable.csv",
+                active_url:"http:
                 objs:"ids"
 
             },
             'complexity' :{
-                active_url:"http://?cmd=objFile&filename=.qc2.ComplexityTable.csv",
+                active_url:"http:
                 objs:"ids"
-
+            },
+            'Ncount' :{
+                active_url:"static:
+                objs:"ids"
             },
             'lengthwise' : {
                 loadInactive:true,
-                //active_url:"http://?cmd=seqQC&split=query&query=0&qc=sumPositionTable.csv",
-                active_url:"qpbg_tblqryx4://.qc2.sumPositionTable.csv//resolution="+this.resolution
+                active_url:"qpbg_tblqryx4:
             },
             'blastNTset': {
-                active_url:"http://dna.cgi?cmd=ionncbiTax&percentage=1&screenType=dna-alignx_screenResult.csv&screenId=0",
+                active_url:"http:
                 isSeries:true,
                 title : 'retrieve data taxonomy tree',
                 objs:"screenId"
              },
              'dsProgressV_QC':{
-                 active_url:"http://?cmd=-qpRawCheck&raw=1&req="
+                 active_url:"http:
              },
              'dsProgressV_Screen':{
-                 active_url:"http://?cmd=-qpRawCheck&raw=1&req="
+                 active_url:"http:
              }
     };
     
-    // check the QC and Screen files
     this.checkQC = function(objCls,dv,id) {
-        var qcCheckUrl = "http://dna.cgi?cmd=propget&ids="+ id +"&files={_.qc2.*,dna-*}&raw=1&mode=csv&perm=1";
+        var qcCheckUrl = "http:
         if ( !vjDS["dsQCdataCheck"] ){ 
             vjDS.add("check QC data","dsQCdataCheck",qcCheckUrl);
         }    
@@ -149,7 +134,7 @@ vjHO.register('u-hiveseq').Constructor=function ()
         vjDS["dsQCdataCheck"].parser = function (ds,text) {
             var tbl = new vjTable(text,0,vjTable_propCSV);
             var parentObj = vjObj[this.parentObjCls];
-            if (tbl.rows.length && tbl.rows[0]["_file"] != undefined) // have all needed files 
+            if (tbl.rows.length && tbl.rows[0]["_file"] != undefined)
             {
                 var match_num = 0;
                 var f_arr = tbl.rows[0]["_file"];
@@ -180,10 +165,10 @@ vjHO.register('u-hiveseq').Constructor=function ()
                 }
             }
             else {
-                parentObj.hideQCLauncher = false; // nope
-                parentObj.hideScreenLauncher = false; // nope
+                parentObj.hideQCLauncher = false;
+                parentObj.hideScreenLauncher = false;
             }
-            if (typeof(storage) !== undefined) { // chekc if the request is stored in the local storage or not
+            if (typeof(storage) !== undefined) {
                 var stored_req_QC = localStorage[parentObj.keyStorage_QC];
                 var stored_req_Screen = localStorage[parentObj.keyStorage_Screen];
                 if (stored_req_QC) {
@@ -227,7 +212,6 @@ vjHO.register('u-hiveseq').Constructor=function ()
         if(this.onRender){
             funcLink(this.onRender, this, this.viewers);
         }
-//        alert("second create");
     };
 
     this.load = function(dvORtab, id, geometry,formName){
@@ -268,8 +252,10 @@ vjHO.register('u-hiveseq').Constructor=function ()
             hidden: this.node._type=='genome' ? true: false
         }));
 
-        this.addviewer('ATGCCount', new vjHiveseqACGTCountView ({
-            data:'ATGC'
+        this.addviewer('ATGCCountPanel,ATGCCount', new vjHiveseqACGTCountViewControl ({
+            data:'ATGC',
+            showN:false,
+            formName: this.formName
         }));
 
         this.addviewer('ATGCQuality',  new vjHiveseqACGTQualityView ({
@@ -283,6 +269,10 @@ vjHO.register('u-hiveseq').Constructor=function ()
         
         this.addviewer('Complexity', new vjHiveseqComplexityView ({
             data:'complexity'
+        }));
+
+        this.addviewer('Ncount', new vjHiveseqNCountView ({
+            data:'Ncount'
         }));
 
         this.addviewer('lengthwiseCount', new vjHiveseqLengthwiseCountView ({
@@ -330,12 +320,31 @@ vjHO.register('u-hiveseq').Constructor=function ()
             data:'blastNTset',
             formName:this.formName
         }));
+        
+        vjDS[this.makeDSName("Ncount")].parser = function(ds,text) {
+            
+            var table = new vjTable(text, undefined, vjTable_propCSV);
+            
+            var total = 0;
+            for(var i=0; i < table.rows.length; i++){
+                total += parseInt(table.rows[i].count);
+            }            
+            var final = "percentage,total_percentage\n";
+            var acumul = 0;
+            for(var i=0; i < table.rows.length; i++){
+                if (table.rows[i].percentage != 0){
+                    final += table.rows[i].percentage + "," +  ((acumul + parseInt(table.rows[i].count))/total * 100) + "\n";
+                    acumul += parseInt(table.rows[i].count);
+                }
+            }
+            return final;
+        } 
+        vjDS[this.makeDSName("Ncount")].reload ("http:
     };
 
 
     this.construct=function(stickytabs){
 
-//        alert("start of construct");
         if(!this.loaded || !this.current_dvORtab)return;
 
         this.constructed=true;
@@ -343,23 +352,20 @@ vjHO.register('u-hiveseq').Constructor=function ()
         if(this.current_dvORtab.tabs){
             if (this.hideQCLauncher) 
                 this.getDS("lengthwise").reload(this.urlSet['lengthwise'].active_url + "&objs=" + this.loadedID,true);
-            this.current_dvORtab.addTab("ACGT","graph",[this.viewers['ATGCCount'],this.viewers['ATGCQuality']]);
+            this.current_dvORtab.addTab("ACGT","graph",[this.viewers['ATGCCountPanel'],this.viewers['ATGCCount'],this.viewers['ATGCQuality']]);
             this.current_dvORtab.addTab("sequences","dna",[this.viewers['content_panel'],this.viewers['content']]);
             this.current_dvORtab.addTab("histogram","area",[this.viewers['positionalCount_panel'],this.viewers['positionalCount'],this.viewers['positionalQuality']]);
             this.current_dvORtab.addTab("positionalQC","length",[this.viewers['QCLauncherPanel'],this.viewers['progressV_QC'],this.viewers['lengthwiseCount'],this.viewers['lengthwiseQuality']]);
             this.current_dvORtab.addTab("taxonomy","img/scope.png",[this.viewers['blastPanel'],this.viewers["progressV_Screen"],this.viewers['blastNTset']]);
             this.current_dvORtab.addTab("sunburst","img/scope.png",[this.viewers['sunburstPanel']]);
-            this.current_dvORtab.addTab("codonQC","length",[this.viewers['CodonQuality'],this.viewers['Complexity']]);
+            this.current_dvORtab.addTab("codonQC","length",[this.viewers['CodonQuality'],this.viewers['Complexity'],this.viewers['Ncount']]);
         }
         else{
             this.current_dvORtab.remove();
             this.viewersToAdd=this.current_dvORtab.add(this.viewersToAdd).viewers;
         }
-//        alert("after rendering");
-        //this.current_dvORtab.selected=2;
         this.current_dvORtab.render();
         this.current_dvORtab.load('rerender');
-//        alert("after load");
     };
 
 
@@ -367,9 +373,9 @@ vjHO.register('u-hiveseq').Constructor=function ()
     {
         if(!node) node = viewer;
         var hdr = "id,name,path,value\n";
-        var newUrl="static://";
+        var newUrl="static:
         if(node.taxid){
-            newUrl = "http://taxTree.cgi?whatToPrint=taxid|allname|parentid|bioprojectID|path|rank&taxid="+node.taxid+"&depth=1&cmd=ncbiTaxBrowseCurrent&recordViewFromat=1";
+            newUrl = "http:
         }
 
         vjDS[this.viewers['taxDetailViewer'].data[1]].reload(newUrl, true);

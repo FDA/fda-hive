@@ -34,6 +34,7 @@
 
 #include <ssci/bio.hpp>
 #include <violin/violin.hpp>
+#include <qpsvc/qpsvc-dna-hexagon.hpp>
 
 class DnaTNSeq: public sQPrideProc
 {
@@ -58,9 +59,7 @@ class DnaTNSeq: public sQPrideProc
         idx generateHeatMap(sStr & pathToTable, const char * baseName);
 };
 
-//
 idx DnaTNSeq::generateHeatMap(sStr & pathToTable, const char * baseName) {
-        // Table has the top header and left header
         sTxtTbl * tbl = new sTxtTbl();
         tbl->setFile(pathToTable);
         tbl->parseOptions().flags = sTblIndex::fSaveRowEnds|sTblIndex::fTopHeader|sTblIndex::fLeftHeader|sTblIndex::fColsep00;
@@ -68,8 +67,6 @@ idx DnaTNSeq::generateHeatMap(sStr & pathToTable, const char * baseName) {
            ::printf("Failed to parse the table");
            return 1;
         }
-        // benchmarking of Hierarchical Tree Generation shows
-        // - Fast NeighborJoining Algo : 100 rows - 1000 cols => 20 secs
 
         sVec <idx> colSetTree; colSetTree.add(tbl->cols());
         for (idx i=0; i < tbl->cols();++i) { colSetTree[i]=i;}
@@ -81,7 +78,6 @@ idx DnaTNSeq::generateHeatMap(sStr & pathToTable, const char * baseName) {
         sTree::neighborJoiningMethods njM = sTree::FAST;
 
 
-        // Create Horizontal tree
         sStr hTreePath; reqAddFile(hTreePath,"%s_horizontal.tre",baseName);
         sFil horizontalTree(hTreePath);
 
@@ -89,14 +85,12 @@ idx DnaTNSeq::generateHeatMap(sStr & pathToTable, const char * baseName) {
 
         sTree::generateTree(horizontalTree, &colSetTree, &rowSetTree,tbl,&actualRowOrder,1,0,method,njM);
 
-        // Create Vertical tree
         sStr vTreePath; reqAddFile(vTreePath,"%s_vertical.tre",baseName);
         sFil verticalTree(vTreePath);
 
         sVec <idx> actualColOrder; actualColOrder.add(tbl->cols());
         sTree::generateTree(verticalTree, &colSetTree, &rowSetTree,tbl,&actualColOrder,0,0,method,njM);
 
-        // Create Heatmap
         sVec < sVec< real > > vals;
 
         sHeatmap::generateRangeMap( &vals, tbl, &actualColOrder,  &actualRowOrder, 0);
@@ -128,20 +122,20 @@ idx DnaTNSeq::generateHeatMap(sStr & pathToTable, const char * baseName) {
         return 0;
 }
 
-idx * tryAlternativeWay (sHiveIon & hion, sIonWander * myWander, const char * orignal_id, idx & recDim, idx resSet=6) {
+idx * tryAlternativeWay (sIonWander * myWander, const char * orignal_id, idx & recDim, idx resSet=6) {
 
     const char * nxt;
     nxt = orignal_id+sLen(orignal_id);
     idx sizeSeqId=nxt-orignal_id;
-    for( const char * p=orignal_id; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){ // scan until pipe | separated types and ids are there
-               nxt=strpbrk(p,"| "); // find the separator
+    for( const char * p=orignal_id; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){
+               nxt=strpbrk(p,"| ");
                if(!nxt || *nxt==' ')
                    break;
 
                const char * curId=nxt+1;
-               nxt=strpbrk(nxt+1," |"); // find the separator
-               if(!nxt) // if not more ... put it to thee end of the id line
-                   nxt=orignal_id+sizeSeqId;/// nxt=seqid+id1Id[1];
+               nxt=strpbrk(nxt+1," |");
+               if(!nxt)
+                   nxt=orignal_id+sizeSeqId;
                if(*nxt==' ')
                    break;
 
@@ -173,11 +167,6 @@ idx * tryAlternativeWay (sHiveIon & hion, sIonWander * myWander, const char * or
 idx DnaTNSeq::OnExecute(idx req)
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ prepare parameters
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     sStr cbuf;
     bool doBreak = false;
 
@@ -201,59 +190,40 @@ idx DnaTNSeq::OnExecute(idx req)
     sHiveIon hionAnnot(user,refAnnot,0,"ion");
 
     const char * refType = formValue("referenceType",0);
-    sStr refFeature; formValue("referenceFeature",&refFeature,0); // use for genbank annot
+    sStr refFeature; formValue("referenceFeature",&refFeature,0);
 
 
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Compute
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     sDic < sDic < PosDef > > subList;
-    sVec < idx > uncompressMM;
 
-    // Looping through list of alignments
     for(idx iAli=0; iAli<alIds.dim(); ++iAli) {
 
         sUsrObj alo(*user, alIds[iAli]);if(!alo.Id())continue;
-
-        alo.propGet00("subject",&cbuf,";");
+        QPSvcDnaHexagon::getSubject00(alo,cbuf);
         sHiveseq sub(user,cbuf.ptr()); cbuf.cut(0);
 
-        alo.propGet00("query",&cbuf,";");
+        QPSvcDnaHexagon::getQuery00(alo,cbuf);
         sHiveseq qry(user,cbuf.ptr()); cbuf.cut(0);
 
         alIds[iAli].print(cbuf);
         sHiveal als(user,cbuf.ptr());cbuf.cut(0);
 
 
-        // looping through list of Subject from each alignment
-        for ( idx isub=0, cntAl, cntSub=als.dimSub(); isub<cntSub; ++isub ){
+        for ( idx isub=0, cntAl, cntSub=sub.dim(); isub<cntSub; ++isub ){
 
             als.listSubAlIndex(isub, &cntAl);
-            // Looping through hive aligment object
             for ( idx ia=0; ia<cntAl; ++ia ){
                 sBioseqAlignment::Al * hdr=als.getAl(ia);
                 idx * m=als.getMatch(ia), len=hdr->lenAlign(), refPos, dir;
 
-                /*
-                uncompressMM.resizeM(2*len);
-                sBioseqAlignment::uncompressAlignment(hdr,m,uncompressMM.ptr());
-                m=uncompressMM.ptr();
-                */
-                // add to a dictionary of subjects
                 sDic < PosDef > * pSubject=subList.set(sub.id(hdr->idSub()));
                 pSubject->flagOn(sMex::fSetZero);
 
                 if((hdr->flags()&(sBioseqAlignment::fAlignBackward))) {
                     dir=-1;
-                    //refPos=hdr->subStart()+m[(len-1)*2+0]+1;
-                    //refPos=hdr->subStart()+len;//-1+1;
                     refPos=hdr->getSubjectEnd(m);
                 } else {
-                    //refPos=hdr->subStart()+m[0]+1;
                     refPos = hdr->getSubjectStart(m)+1;
                     dir=1;
                 }
@@ -293,22 +263,17 @@ idx DnaTNSeq::OnExecute(idx req)
 
     logOut(eQPLogType_Debug, "Analyzing results\n");
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Output position specific info
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     sDic < sDic < GeneSpecInfo > > gsi;
 
     sDic < idx > geneList;
 
     sStr cov_heatMap_path;
     sFil cov_heatMap_out(reqAddFile(cov_heatMap_path, "cov_heatMapData.csv"));
-    cov_heatMap_out.printf("AlignerID"); // alignerID, gene1, gene2
+    cov_heatMap_out.printf("AlignerID");
 
     sStr ins_heatMap_path;
     sFil ins_heatMap_out(reqAddFile(ins_heatMap_path, "ins_heatMapData.csv"));
-    ins_heatMap_out.printf("AlignerID"); // alignerID, gene1, gene2
+    ins_heatMap_out.printf("AlignerID");
 
     if (alIds.dim() < 2){
         sFile::remove(cov_heatMap_path);
@@ -319,29 +284,27 @@ idx DnaTNSeq::OnExecute(idx req)
 
         sStr genebuf;
         sIonWander * wander=0;
-        /*if(refAnnot) {
-            if(refType)
-                wander=hionAnnot.addIonWander("myion","r=find.annot(#range=possort-max,$seqID1,$start,$seqID2,$end);unique.1(r.pos);b=find.annot(seqID=r.seqID,record=r.record,id=\"%s\");blob(b.pos,b.type,b.id);",refType);
-            else
-                wander=hionAnnot.addIonWander("myion","r=find.annot(#range=possort-max,$seqID1,$start,$seqID2,$end);unique.1(r.pos);blob(r.pos,r.type,r.id);");
-        }*/
         if(refAnnot) {
             if(refType){
-                if (refFeature && *refFeature.ptr(0)) { // require to filter by feature type from Genbank
+                if (refFeature && *refFeature.ptr(0)) {
                     wander=hionAnnot.addIonWander("myion","r=find.annot(#range=possort-max,$seqID1,$start,$seqID2,$end);\
                                                                         b=find.annot(seqID=r.seqID,record=r.record,type=FEATURES);\
                                                                         c=find.annot(seqID=b.seqID,record=b.record,id=\"%s\");\
                                                                         d=find.annot(seqID=c.seqID,record=c.record,type=\"%s\");unique.1(d.pos);\
-                                                                        blob(d.pos,d.type,d.id);",refFeature.ptr(),refType);
+                                                                        check_off;itraverse(\"this\",\"this\");\
+                                                                        e=find.annot(seqID=d.seqID,record=d.record,type=strand);\
+                                                                        blob(d.pos,d.type,d.id,e.id);",refFeature.ptr(),refType);
                 }
                 else {
                     wander=hionAnnot.addIonWander("myion","r=find.annot(#range=possort-max,$seqID1,$start,$seqID2,$end);\
                                                            d=find.annot(seqID=r.seqID,record=r.record,type=\"%s\");unique.1(d.pos);\
-                                                           blob(d.pos,d.type,d.id);",refType);
+                                                           check_off;itraverse(\"this\",\"this\");\
+                                                           e=find.annot(seqID=d.seqID,record=d.record,type=strand);\
+                                                           blob(d.pos,d.type,d.id,e.id);",refType);
                 }
             }
             else{
-                wander=hionAnnot.addIonWander("myion","r=find.annot(#range=possort-max,$seqID1,$start,$seqID2,$end);unique.1(r.pos);blob(r.pos,r.type,r.id);");
+                wander=hionAnnot.addIonWander("myion","r=find.annot(#range=possort-max,$seqID1,$start,$seqID2,$end);unique.1(r.pos);check_off;itraverse(\"this\",\"this\");e=find.annot(seqID=r.seqID,record=r.record,type=strand);blob(r.pos,r.type,r.id,e.id);");
             }
         }
         char szStart[128],szEnd[128];szEnd[0]='0';szEnd[1]=':';
@@ -349,7 +312,7 @@ idx DnaTNSeq::OnExecute(idx req)
 
 
         sStr path;
-        sFil out(destPath(&path, "tnseq.csv"));
+        sFil out(destPath(&path, "tnseq.csv"),sMex::fMapRemoveFile);
         out.printf("AlignerID,Reference,Start-Position,Direction,Coverage,Length");
         #ifdef _DEBUG
             ::printf("AlignerID,ref,pos,dir,coverage,len");
@@ -357,9 +320,9 @@ idx DnaTNSeq::OnExecute(idx req)
 
         if(wander) {
             if (refType) {
-                out.printf(",%s-pos,%s,range",refType,refType);
+                out.printf(",%s-pos,%s,range,strand",refType,refType);
             }
-            else out.printf(",type,range");
+            else out.printf(",type,range,strand");
             #ifdef _DEBUG
                 ::printf(",type,id,range");
             #endif
@@ -370,26 +333,23 @@ idx DnaTNSeq::OnExecute(idx req)
             ::printf("\n");
         #endif
 
-        // Looping through subList[subject][refPos]
 
-        const char * listOfTypesToSkip[] ={"FEATURES","strand","accession","gi","organism"}; // those are the annotation for the full length of the organism
+        const char * listOfTypesToSkip[] ={"FEATURES","accession","gi","organism"};
 
         for(idx iSub=0, lenId; iSub<subList.dim(); ++iSub) {
             sDic < PosDef > * pSubject=subList.ptr(iSub);
             const char * id=(const char *)subList.id(iSub);
-            for(lenId=0;(!strchr("." sString_symbolsSpace,id[lenId]));++lenId);
+            for(lenId=0;(!strchr(sString_symbolsSpace,id[lenId]));++lenId);
 
             if(wander) {
                 wander->setSearchTemplateVariable("$seqID1",7,id,lenId);
                 wander->setSearchTemplateVariable("$seqID2",7,id,lenId);
             }
 
-            // looping through each recorded position
             for( idx ii=0; ii<pSubject->dim() ; ++ii ){
                 PosDef * pd=pSubject->ptr(ii);
                 idx * pRefPos=(idx*)pSubject->id(ii);
                 idx refPos=((*pRefPos)&0xFFFFFFFFll);
-                //idx iAli=(((*pRefPos)>>32)&0xFFFFFFFFll);
                 if(window && pd->len<window*pd->cnt)
                     continue;
                 if(coverage && pd->cntRpt<coverage)
@@ -398,7 +358,6 @@ idx DnaTNSeq::OnExecute(idx req)
 
                 out.printf("%" DEC ",\"%.*s\",%" DEC ",%" DEC ",%" DEC ",%" DEC "",pd->alid,(int)lenId,id,refPos,pd->dir,pd->cntRpt,pd->len/pd->cnt);
                 #ifdef _DEBUG
-                    ::printf("%" DEC ",\"%.*s\",%" DEC ",%" DEC ",%" DEC ",%" DEC "",pd->alid,(int)lenId,id,refPos,pd->dir,pd->cntRpt,pd->len/pd->cnt);
                 #endif
 
 
@@ -415,8 +374,7 @@ idx DnaTNSeq::OnExecute(idx req)
                     idx *p=recDim ? (idx * )wander->traverseBuf.ptr(0) : 0 ;
 
                     if (!p) {
-                        //p = tryAlternativeWay(hionAnnot,wander,id);
-                        p = tryAlternativeWay(hionAnnot,wander,id, recDim,resSet);
+                        p = tryAlternativeWay(wander,id, recDim,resSet);
                     }
 
                     for( idx iRec=0; iRec<recDim; ++iRec ){
@@ -436,44 +394,46 @@ idx DnaTNSeq::OnExecute(idx req)
                         if (isContinue){
                             continue;
                         }
-                        /*if(memcmp(type,"FEATURES",lenType)==0)
-                            continue;
-*/
                         if (start < ((pos)>>32) || start > ((pos)&0xFFFFFFFF)) {
                         #ifdef _DEBUG
-                            //::printf(" out of range \"%" DEC ":%" DEC "\" ",(pos)>>32,((pos)&0xFFFFFFFF));
                         #endif
                             continue;
                         }
-                        if ( ( (pos) & 0xFFFFFFFF) == 0xFFFFFFFF){  // when the pos end == 0xFFFFFFFF which is set in ion for unknown length
+                        if ( ( (pos) & 0xFFFFFFFF) == 0xFFFFFFFF){
                             continue;
                         }
-                        //genebuf.printf("\"%.*s\",\"%.*s\",\"%" DEC ":%" DEC "\"",(int)lenType,type,(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF));
 
-                        //idx posWithRelationToGene=(*pRefPos)-((pos)>>32)+1;
                         idx posWithRelationToGene=refPos-((pos)>>32)+1;
-                        genebuf.printf(0,"\"%.*s\"",(int)lenId,id); // genename
-                        //genebuf.printf(",\"%" DEC "->%" DEC ":%" DEC "\"",posWithRelationToGene,(pos)>>32,((pos)&0xFFFFFFFF)); // start:end
-                        genebuf.printf(",\"%" DEC ":%" DEC "\"",(pos)>>32,((pos)&0xFFFFFFFF)); // start:end
+
+                        idx lenStrand=p[6+iRec*resSet];
+                        const char * strand=sConvInt2Ptr(p[7+iRec*resSet],const char );
+                        if (strand && *strand && strncmp(strand,"-",lenStrand)==0) {
+                            posWithRelationToGene=((pos)&0xFFFFFFFF) - refPos +1;
+                        }
+
+
+                        genebuf.printf(0,"\"%.*s\"",(int)lenId,id);
+                        genebuf.printf(",\"%" DEC ":%" DEC "\"",(pos)>>32,((pos)&0xFFFFFFFF));
                         genebuf.add0(2);
 
                         if ( alIds.dim() > 1 && !geneList.find(genebuf.ptr(),genebuf.length())) {
                             *geneList.set(genebuf.ptr(),genebuf.length())=1;
-                            cov_heatMap_out.printf(",\"%.*s %" DEC ":%" DEC "\"",(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF)); //preparing header
-                            ins_heatMap_out.printf(",\"%.*s %" DEC ":%" DEC "\"",(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF)); //preparing header
+                            cov_heatMap_out.printf(",\"%.*s %" DEC ":%" DEC "\"",(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF));
+                            ins_heatMap_out.printf(",\"%.*s %" DEC ":%" DEC "\"",(int)lenId,id,(pos)>>32,((pos)&0xFFFFFFFF));
                         }
 
-                        if (printedGene.find(genebuf.ptr(0),genebuf.length())) { // prevent from printing the same gene over and over
+                        if (printedGene.find(genebuf.ptr(0),genebuf.length())) {
                             continue;
                         }
                         *printedGene.set(genebuf.ptr(0),genebuf.length())=1;
-                        out.printf(",%" DEC,posWithRelationToGene); // start:end
+                        out.printf(",%" DEC"",posWithRelationToGene);
                         out.printf(",%s",genebuf.ptr());
+                        out.printf(",%.*s",(int)lenStrand,strand);
+
                         #ifdef _DEBUG
-                           // ::printf(",%s",genebuf.ptr());
                         #endif
                         sDic < GeneSpecInfo > * pGSI=gsi.set(&(sMex::_zero),sizeof(sMex::_zero));pGSI->flagOn(sMex::fSetZero);
-                        GeneSpecInfo * g0=pGSI->set(genebuf.ptr(),genebuf.length());
+                            pGSI->set(genebuf.ptr(),genebuf.length());
                         pGSI=gsi.set(&pd->alid,sizeof(pd->alid));pGSI->flagOn(sMex::fSetZero);
                         GeneSpecInfo * g=pGSI->set(genebuf.ptr(),genebuf.length());
                         g->inserts++;
@@ -483,7 +443,7 @@ idx DnaTNSeq::OnExecute(idx req)
 
                         if(!g->histogOffset) {
                             g->histogOffset=allHistograms.dim();
-                            g->histogLen= ((pos)&0xFFFFFFFF) - ((pos)>>32);
+                            g->histogLen= ((pos)&0xFFFFFFFF) - ((pos)>>32)+1;
                             g->histogOffsetStart=((pos)>>32);
                             allHistograms.add(g->histogLen);
                         }
@@ -497,7 +457,6 @@ idx DnaTNSeq::OnExecute(idx req)
 
                 out.printf("\n");
                 #ifdef _DEBUG
-                    ::printf("\n");
                 #endif
 
             }
@@ -511,38 +470,34 @@ idx DnaTNSeq::OnExecute(idx req)
     }
 
     logOut(eQPLogType_Debug, "Generating Gene Specific Information \n");
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Output gene specific info
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         sStr gsi_path;
         sFil gsi_out(reqAddFile(gsi_path, "geneSpecInfo.csv"));
-        gsi_out.printf("AlignerID,%s,Range,Coverage,Insert,Forward,Reverse,Entropy\n",refType);
+        gsi_out.printf("AlignerID,%s,Range,Coverage,Insert,Forward,Reverse,Entropy,Center of Balance\n",refType);
 
 
-        //  sDic < sDic < GeneSpecInfo > > gsi;
-        // first elemtn iA=0 (no key value) => total
         for ( idx iA=1; iA < gsi.dim() ; ++iA )
         {
-            //gsi_out.printf("%" DEC ",",*((idx *)gsi.id(iA)));
             sDic < GeneSpecInfo > * pGSI = gsi.ptr(iA);
             for (idx iGene=0; iGene < pGSI->dim(); ++iGene) {
                 GeneSpecInfo * g = pGSI->ptr(iGene);
 
                 idx * histog=allHistograms.ptr(g->histogOffset);
+                real sumRelPosToHalf=0; idx totPos=0;
                 real sumPlogP=0;
                 for( idx l=0; l< g->histogLen; ++l) {
-                    if( *(histog+l)==0 ) continue; // skip the empty position
+                    if( *(histog+l)==0 ) continue;
                     real p= *(histog+l)/((real)g->coverage);
                     sumPlogP+=p*log(p);
+                    sumRelPosToHalf+=((l+1)-(g->histogLen/2));
+                    totPos+=1;
                 }
                 real shannon = -sumPlogP/log(g->histogLen);
+                real momentum = sumRelPosToHalf/(totPos*(g->histogLen/2));
                 if (shannon <= 0) {
                     shannon = 0 ;
                 }
-                gsi_out.printf("%" DEC ",%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%.3lf\n",*((idx *)gsi.id(iA)),(const char *)pGSI->id(iGene),g->coverage,g->inserts,g->forward,g->reverse,shannon);
+                gsi_out.printf("%" DEC ",%s,%" DEC ",%" DEC ",%" DEC ",%" DEC ",%.3lf,%.3lf\n",*((idx *)gsi.id(iA)),(const char *)pGSI->id(iGene),g->coverage,g->inserts,g->forward,g->reverse,shannon,momentum);
             }
             if (alIds.dim()>1) {
                 idx len=0;
@@ -570,20 +525,12 @@ idx DnaTNSeq::OnExecute(idx req)
         }
 
 
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ Output top phyloTree, left phyloTree and heatMap Table
-        // _/   For Coverage and Inserts
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         {
-            // For coverage
             logOut(eQPLogType_Debug, "Generating Coverage Heatmap tables \n");
             if (sFile::exists(cov_heatMap_path)){
                 generateHeatMap(cov_heatMap_path, "cov");
             }
-            // For insert
             logOut(eQPLogType_Debug, "Generating Insert Heatmap tables \n");
             if (sFile::exists(ins_heatMap_path)){
                 generateHeatMap(ins_heatMap_path, "ins");
@@ -605,105 +552,11 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     DnaTNSeq backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-tnseq", argv[0]));
     return (int) backend.run(argc, argv);
 }
 
-/*
-
-    sIonWander wander;
-    const char * heptagons= formValue("heptagons");
-    if(!heptagons) {
-        reqSetInfo(req, eQPInfoLevel_Error, "No variant calling (heptagon) information available\n" );
-        reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0;
-    }
-    sDic <idx > genomes;
-    {
-        sVec<sHiveId> heptagIds;
-        sHiveId::parseRangeSet(heptagIds, heptagons);
-
-        sStr path;
-        char * p;
-        for(idx ia = 0; ia < heptagIds.dim(); ++ia) {
-            sUsrObj uo(*user, heptagIds[ia]);
-            if(!uo.Id())
-                continue;
-            uo.getFilePathname(path, "ion.ion");
-            if( path.length() && (p = strrchr(path.ptr(0), '.')) ) {
-                *p = 0;
-                wander.attachIons(path);
-            } else {
-                path.cut(0);
-                uo.getFilePathname(path, "ion");
-                if(path.length())
-                    wander.attachIons(path);
-            }
-            path.cut(0);
-            uo.propGet00("parent_proc_ids",&path);
-            for(p=path.ptr(0); p; p=sString::next00(p)) {
-                sHiveId hi(p);
-                sUsrObj al(*user, hi);
-                if(!al.Id())
-                    continue;
-                al.propGet00("subject",&cbuf);
-                for(const char * c=cbuf.ptr(0); c; c=sString::next00(c)) {
-                    sHiveseq hs(user,c);
-                    for(idx ih=0; ih<hs.dim(); ++ih) {
-                        genomes[hs.id(ih)]=hs.len(ih);
-                    }
-                }
-           }
-        }
-    }
-
-    idx window=formIValue("window",50);
-
-// ~/code/debug-Linux-x86_64/bin/ionapp -ionRead ion#0# -ionDebug 0 -ionTraverse 'k=foreach.seqID(1);r=find.annot(#range,k.1,1:1,k.1,125:125); unique.1(r.record);a=find.annot(record=r.record);print(a.pos,a.type,a.id)'
-
-    wander.setSepar("~", "~");
-    wander.traverseCompile(cbuf.printf(0,"r=find.annot(#range,k.1,$start,k.1,$end);unique.1(r.record);a=find.annot(record==r.record);z=blob(b.pos,b.type,b.id);"));
-    PARSTRUC ps;ps.qp=this;
-    wander.callbackFuncParam=&ps;
-    wander.callbackFunc=DnaTNSeq::traverserCallback;
-
-
-
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Prepare alignments and estimate amount of work
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-
-    idx cntFound = 0, iq = 0, totWork = 100, curWork = 0;
-
-    {
-        for( idx l,ig=0; ig<genomes.dim() ; ig++){
-            const char * id=(const char * ) genomes.id(ig,&l);
-            wander.setSearchTemplateVariable("$seqID", 6, id,l);
-            l=genomes[ig];
-
-
-        }
-    }
-
-
-        struct PARSTRUC {
-                DnaTNSeq * qp;
-                idx cnt;
-        };
-        static idx traverserCallback(sIon * ion, sIonWander * ts, sIonWander::StatementHeader * traverserStatement, sIon::RecordResult * curResults);
-};
-
-idx DnaTNSeq::traverserCallback(sIon * ion, sIonWander * ts, sIonWander::StatementHeader * traverserStatement, sIon::RecordResult * curResults)
-{
-    PARSTRUC * ps=(PARSTRUC *)ts->callbackFuncParam;
-}
-
-// ~/code/debug-Linux-x86_64/bin/ionapp -ionRead ion#0# -ionDebug 0 -ionTraverse 'k=foreach.seqID(1);r=find.annot(#range,k.1,1:1,k.1,125:125); unique.1(r.record);a=find.annot(record=r.record);print(a.pos,a.type,a.id)'
-
- */
 
 

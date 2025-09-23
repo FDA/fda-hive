@@ -85,20 +85,18 @@ class sRangeTree
         sRangeNode * _vStart;
         sVec<sRangeNode> _vec;
 
-//    sRangeTree(const char * flnm)  { nil=0;root=0;if(flnm) _vec.init(flnm);}
 
         void init (){
             _vec.mex()->flags |= sMex::fSetZero;
-            _vec.cut(0); // set at the beginning of the buffer
+            _vec.cut(0);
             _Color.mex()->flags |= sMex::fSetZero;
-            _Color.cut(0); // set at the beginning of the buffer
+            _Color.cut(0);
             _Color.vadd(1, 0);
             _BFactors.mex()->flags |= sMex::fSetZero;
-            _BFactors.cut(0); // set at the beginning of the buffer
+            _BFactors.cut(0);
             root = 0;
             _vStart = 0;
 
-//        _BFactors.vadd(1,0);
 
         }
 
@@ -137,27 +135,28 @@ class sRangeTree
             }
         }
 
-        idx search(sVec<Kobj> &results, Nobj start, Nobj end, Kobj * value = 0)
+        idx search(sVec<Kobj> &results, Nobj start, Nobj end, Kobj * value = 0, sVec<sRangeNode*> * external_stack = 0)
         {
             idx prevResults = results.dim();
-            sRangeNode* curr = root ? root : 0;
-
-            sVec<sRangeNode *> stack;
-            stack.vadd(1, root);
-            while( stack.dim() ) {
-                curr = *stack.ptr(stack.dim() - 1);
-                stack.cut(stack.dim() - 1);
-                if( sOverlap(start,end,curr->start,curr->end) && ((value) ? *value == curr->value : 1) ) {
-                    results.vadd(1, curr->value);
-                }
-                if( curr->left != NIL ) {
-                    if( start <= (_vStart + curr->left)->max ) {
-                        stack.vadd(1, _vStart + curr->left);
+            if( sRangeNode* curr = root ) {
+                sVec<sRangeNode *> local_stack;
+                sVec<sRangeNode *> & stack = external_stack ? *external_stack : local_stack;
+                stack.vadd(1, root);
+                while( stack.dim() ) {
+                    curr = *stack.ptr(stack.dim() - 1);
+                    stack.cut(stack.dim() - 1);
+                    if( sOverlap(start,end,curr->start,curr->end) && ((value) ? *value == curr->value : 1) ) {
+                        results.vadd(1, curr->value);
                     }
-                }
-                if( curr->right != NIL ) {
-                    if( start <= (_vStart + curr->right)->max && end >= curr->start ) {
-                        stack.vadd(1, _vStart + curr->right);
+                    if( curr->left != NIL ) {
+                        if( start <= (_vStart + curr->left)->max ) {
+                            stack.vadd(1, _vStart + curr->left);
+                        }
+                    }
+                    if( curr->right != NIL ) {
+                        if( start <= (_vStart + curr->right)->max && end >= curr->start ) {
+                            stack.vadd(1, _vStart + curr->right);
+                        }
                     }
                 }
             }
@@ -193,46 +192,35 @@ class sRangeTree
             return search(t_res, start, end, value);
         }
 
-        idx exactSearch(sVec<Kobj> &results, Nobj start, Nobj end, Kobj * value = 0)
+        idx exactSearch(sVec<Kobj> &results, Nobj start, Nobj end, Kobj * value = 0, sVec<sRangeNode*> * external_stack = 0)
         {
             idx prevResults = results.dim();
-            sRangeNode* curr = root ? root : 0;
-
-            if (root == 0){
-                return 0;
-            }
-            sVec<sRangeNode *> stack;
-            stack.vadd(1, root);
-            while( stack.dim() ) {
-                curr = *stack.ptr(stack.dim() - 1);
-                stack.cut(stack.dim() - 1);
-                if( start == curr->start && end == curr->end && ((value) ? *value == curr->value : 1) ) {
-                    results.vadd(1, curr->value);
-                }
-                if( curr->left != NIL ) {
-                    if( start <= (_vStart + curr->left)->max ) {
-                        stack.vadd(1, _vStart + curr->left);
+            if( sRangeNode* curr = root ) {
+                sVec<sRangeNode *> local_stack;
+                sVec<sRangeNode *> & stack = external_stack ? *external_stack : local_stack;
+                stack.vadd(1, root);
+                while( stack.dim() ) {
+                    curr = *stack.ptr(stack.dim() - 1);
+                    stack.cut(stack.dim() - 1);
+                    if( start == curr->start && end == curr->end && ((value) ? *value == curr->value : 1) ) {
+                        results.vadd(1, curr->value);
                     }
-                }
-                if( curr->right != NIL ) {
-                    if( start <= (_vStart + curr->right)->max && end >= curr->start ) {
-                        stack.vadd(1, _vStart + curr->right);
+                    if( curr->left != NIL ) {
+                        if( start <= (_vStart + curr->left)->max ) {
+                            stack.vadd(1, _vStart + curr->left);
+                        }
+                    }
+                    if( curr->right != NIL ) {
+                        if( start <= (_vStart + curr->right)->max && end >= curr->start ) {
+                            stack.vadd(1, _vStart + curr->right);
+                        }
                     }
                 }
             }
             return results.dim() - prevResults;
         }
 
-//                   *sub->set(t,0,&subIDtemp)=(idx)(ptr0-fileContent);
 
-//    idx search(sVec<Kobj> &results, Nobj position, Kobj * value =0) {
-//        return search(results,position,position,value);
-//    }
-//
-//    idx search(Nobj position, Kobj * value =0) {
-//        sVec<Kobj> t_res;
-//        return search(t_res,position,value);
-//    }
         sRangeNode * getRoot()
               {
                   return root;
@@ -285,37 +273,30 @@ class sRangeTree
 
             while( xParent ) {
 
-                // Get Parent's BF
                 idx iParent = xParent - _vStart;
                 idx parentBF = getBFactors (iParent);
 
-                // Adjusting BF's
                 if( isLeft(xParent, x) ) {
                     --parentBF;
                 } else {
                     ++parentBF;
                 }
 
-                // Check if we go outbounds -2 or +2 in the Balance Factors
                 if( parentBF < -1 ) {
-                    //LEFT LEFT
                     idx leftBF = getBFactors (x - _vStart);
                     if( leftBF == -1 ) {
                         SimpleRightRotate(xParent);
                     }
-                    //LEFT RIGHT
                     else {
                         LeftRightRotate(x, xParent);
                     }
                 }
                 else if( parentBF > 1 ) {
-                    //RIGHT RIGHT
                     idx rightBF = getBFactors (x - _vStart);
                     if( rightBF == 1 ) {
                         SimpleLeftRotate(xParent);
                     }
-                    //RIGHT LEFT
-                    else { // equal to double left
+                    else {
                         RightLeftRotate(x, xParent);
                     }
                 }
@@ -326,22 +307,19 @@ class sRangeTree
                 else {
                     setBFactors (iParent, parentBF);
                 }
-                // Update the value of the node for the next check
                 if (x->parent == xParent-_vStart){
                     x = xParent;
                 }
                 else if (x->parent == xParent->parent){
                     x = x->parent + _vStart;
                 }
-                // Update the parent
                 xParent = x->parent != NIL ? x->parent + _vStart : 0;
-                // If the current balance factor is 0, we must finish
                 if (getBFactors(x-_vStart) == 0){
                     break;
                 }
 
             }
-            root->parent = root - _vStart;  // might not be necessary
+            root->parent = root - _vStart;
         }
 
         void insertRB(Nobj start, Nobj end, Kobj value)
@@ -413,7 +391,7 @@ class sRangeTree
             idx res = RightRotate(y);
             if( res ){
                 idx yLeftBFactor = getBFactors(yLeft);
-                idx yBFactor = -2;//getBFactors(y - _vStart);
+                idx yBFactor = -2;
                 yBFactor = yBFactor + 1 + RangeMax (0, -yLeftBFactor);
                 yLeftBFactor = yLeftBFactor + 1 + RangeMax (0, yBFactor);
                 setBFactors(yLeft, yLeftBFactor);
@@ -427,7 +405,7 @@ class sRangeTree
             idx xRight = x->right;
             idx res = LeftRotate(x);
             if( res ){
-                idx xBFactor = 2;//getBFactors(x - _vStart);
+                idx xBFactor = 2;
                 idx xRightBFactor = getBFactors(xRight);
                 xBFactor = xBFactor - 1 + RangeMin (0, -xRightBFactor);
                 xRightBFactor = xRightBFactor - 1 + RangeMin (0, xBFactor);
@@ -451,7 +429,7 @@ class sRangeTree
                 idx xRight = x->right;
                 res = LeftRotate(x);
                 if( res ) {
-                    idx xBFactor = 2;//getBFactors(x - _vStart);
+                    idx xBFactor = 2;
                     idx xRightBFactor = yLeftBFactor;
                     xBFactor = xBFactor - 1 + RangeMin (0, -xRightBFactor);
                     xRightBFactor = xRightBFactor - 1 + RangeMin (0, xBFactor);
@@ -478,7 +456,7 @@ class sRangeTree
                 res = RightRotate(y);
                 if( res ) {
                     idx yLeftBFactor = xRightBFactor;
-                    idx yBFactor = -2;//getBFactors(y - _vStart);
+                    idx yBFactor = -2;
                     yBFactor = yBFactor + 1 + RangeMax (0, -yLeftBFactor);
                     yLeftBFactor = yLeftBFactor + 1 + RangeMax (0, yBFactor);
                     setBFactors(yLeft, yLeftBFactor);
@@ -584,6 +562,7 @@ class sRangeTree
             else {
                 setBFactors (z - _vStart, 0);
             }
+            FixUpMax(z);
             return zParent;
         }
 
@@ -634,7 +613,6 @@ class sRangeTree
         {
             idx halfByteSizeUDX = (sizeof(udx) * 4);
             if( ((pos / halfByteSizeUDX) + 1) > _BFactors.dim() ) {
-                //udx initB = 0x2222222222222222ull;
                 udx initB = 0xAAAAAAAAAAAAAAAAull;
                 _BFactors.vadd(1, initB);
             }

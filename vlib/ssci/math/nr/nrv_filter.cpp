@@ -36,17 +36,14 @@ void sMathNR::fftCutoff(real * src, real * dst , idx cnt, idx daubNum, idx cutMi
     
     idx k,is;
     
-    // determine a size which is bigger than cnt and is degree of 2
     for(k=1; k<cnt; k<<=1) ;
     real * coef=(real *)sNew(2*(k+1)*sizeof(real));
     memset(coef,0,2*(k+1)*sizeof(real));
-    memcpy((void *)(coef+1),src,sizeof(real)*cnt); // make a copy of the array  shifted by one beacuse of NR 
+    memcpy((void *)(coef+1),src,sizeof(real)*cnt);
 
-    // perform wavelett analysis 
     if(daubNum)sMathNR::wt1(coef,k,1,sMathNR::pwt);
     else sMathNR::realft(coef,k,1);
     
-    // now find the portion of the coefficients we do nullify
     for(is=0; is<cutMin; ++is) coef[is] = 0;
     for(is=cutMax; is<k; ++is) coef[is] = 0;
 

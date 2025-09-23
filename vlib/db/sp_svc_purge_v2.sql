@@ -47,6 +47,16 @@ BEGIN
     CREATE TEMPORARY TABLE IF NOT EXISTS tempSpSvcPurge_reqs (reqID BIGINT, PRIMARY KEY (reqID));
     CREATE TEMPORARY TABLE IF NOT EXISTS tempSpSvcPurge_jobs (jobID BIGINT, PRIMARY KEY (jobID));
     IF p_qpsvc IS NULL OR NOT p_qpsvc THEN
+
+        -- find type type id
+        SELECT domainID, objID FROM UPObj WHERE objTypeDomainID = domainID AND objTypeID = objID
+        INTO @tdid, @toid;
+
+        -- find type named 'qpsvc'
+        SELECT o.domainID, o.objID FROM UPObj o JOIN UPObjField f ON (f.domainID = o.domainID OR (f.domainID IS NULL AND o.domainID = 0)) AND o.objID = f.objID
+        WHERE o.objTypeDomainID = @tdid AND o.objTypeID = @toid AND f.name = 'name' AND f.value = 'qpsvc'
+        INTO @tdid_qpsvc, @toid_qpsvc;
+
         SET p_qpsvc    = FALSE;
         CREATE TEMPORARY TABLE IF NOT EXISTS tempSpSvcPurge_qpsvc (
             svcID BIGINT,
@@ -62,9 +72,8 @@ BEGIN
             SELECT o.objID AS svcID,
                    IF(f.`name` = 'name', f.`value`, NULL) AS `name`,
                    IF(f.`name` = 'cleanUpDays', f.`value`, NULL) AS `cleanUpDays`
-                FROM UPObj o JOIN UPType t ON (o.objTypeDomainID IS NOT NULL AND o.objTypeID = t.type_id)
-                    JOIN UPObjField f ON (o.domainID = f.domainID OR (o.domainID = 0 AND f.domainID IS NULL)) AND o.objID = f.objID
-                WHERE t.`name` = 'qpsvc' AND f.`name` IN ('name', 'cleanUpDays')
+                FROM UPObj o JOIN UPObjField f ON (o.domainID = f.domainID OR (o.domainID = 0 AND f.domainID IS NULL)) AND o.objID = f.objID
+                WHERE o.objTypeDomainID = @tdid_qpsvc AND o.objTypeID = @toid_qpsvc AND f.`name` IN ('name', 'cleanUpDays')
         ) x GROUP BY svcID;
     END IF;
 
@@ -159,6 +168,8 @@ BEGIN
         DELETE QPLog FROM QPLog INNER JOIN tempSpSvcPurge_reqs USING (reqID);
         DELETE QPLog FROM QPLog INNER JOIN tempSpSvcPurge_jobs USING (jobID);
         DELETE QPLock FROM QPLock INNER JOIN tempSpSvcPurge_reqs USING(reqID);
+        DELETE FROM QPLock WHERE NOW() > purgeTm LIMIT p_limit;
+
     END IF;
 
     IF p_mode = 'delete' OR p_mode = 'cleanup' THEN

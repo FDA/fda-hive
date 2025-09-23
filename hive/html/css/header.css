@@ -27,61 +27,57 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#header
-{
-    background: url('../img/topBarBlue_cobalt.png');    
+#header {
+    background-color: #1056A5;
+    font-size: 16px;
 }
 
-#header .top
-{
+#header .top {
     min-height: 80px;
 }
 
-#header .top .hive
-{
+#header .top .hive {
     float: left;
     margin: 1em 1em 0 1em;
 }
 
-#header.minimized .top
-{
+#header.minimized .top {
     display: none;
 }
 
-#header .top .hive .albinoni
-{
+#header .top .hive .albinoni {
     font-size: x-small;
     color: #ffff9f;
     margin-left: 1em;
 }
 
-#header .top .institution
-{
+#header .top .institution {
     float: left;
-    margin: 1em 1em 0 1em;
-    height: 40px;
+    margin: 1.2em 1em 0 1em;
+    height: 50px;
 }
 
-#header .top:after
-{
+#header .top .institution img {
+    float: left;
+    height: 50px;
+}
+
+#header .top:after {
     content: "";
     display: table;
     clear: both;
 }
 
-#header .top .hive .logo img
-{
+#header .top .hive .logo img {
     height: 40px;
 }
 
-#header .bottom
-{
+#header .bottom {
     position: relative;
     min-height: 40px;
 }
 
-#header .bottom .hive
-{
+#header .bottom .hive {
     display: none;
     margin: .5em;
     position: absolute;
@@ -89,70 +85,70 @@
     left: 0px;
 }
 
-#header.minimized .bottom .hive
-{
+#header.minimized .bottom .hive {
     display: block;
 }
 
 
-#header .bottom .menu
-{
-    min-height: 25px;
-    margin-top: .5em;
+#header .bottom .menu {
+    height: 32px;
+    /*    min-height: 25px;*/
+    margin-top: 4px;
     position: absolute;
     top: 0px;
     left: 0px;
     right: 50px;
 }
 
-#header.minimized .bottom .menu
-{
+#header .menu .active__link, #header .menu .active__link span {
+    font-weight: 600;
+    color: #e8d544;
+}
+
+
+#header.minimized .bottom .menu {
     left: 75px;
 }
 
-#header .bottom .hive .logo img
-{
+
+
+#header .bottom .hive .logo img {
     height: 25px;
 }
 
-#header .bottom .control
-{
+#header .bottom .control {
     margin: .5em;
     position: absolute;
     right: 0px;
     top: 0px;
 }
 
-#header .bottom .control a
-{
+#header .bottom .control a {
     display: block;
     background: url('../img/48/arrow-up.png');
     background-size: 24px 24px;
-    background-repeat: no-repeat;    
+    background-repeat: no-repeat;
     width: 24px;
     height: 24px;
     opacity: 0.5;
 }
 
-#header .bottom .control a:hover
-{
+#header .bottom .control a:hover {
     opacity: 1;
 }
 
-#header.minimized .bottom .control a
-{
+#header.minimized .bottom .control a {
     background: url('../img/48/arrow-down.png');
     background-size: 24px 24px;
-    background-repeat: no-repeat;    
+    background-repeat: no-repeat;
 }
 
 /* GWU */
-#header.gwu
-{
+
+#header.gwu {
     background: #004065;
 }
 
-#header.gwu .top .hive
-{
+#header.gwu .top .hive {
     float: right;
 }

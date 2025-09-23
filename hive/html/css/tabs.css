@@ -28,7 +28,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 .layout-infobox-tabs a.home {
-    background: url("/img/home.png") no-repeat left;
+    background: url("../img/addBlue.svg") no-repeat left;
     background-size: 24px 24px;
     background-position: 5px 5px;
 }
@@ -113,6 +113,29 @@
 
 .layout-infobox-panel .details {
     background: url("/img/rec.gif") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+    padding-left: 30px !important;
+}
+
+
+
+
+
+.layout-infobox-tabs a.parameters {
+    background: url("../img/parameters_comp.svg") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+    padding-left: 30px !important;
+}
+.layout-infobox-tabs a.progress {
+    background: url("../img/progress_comp.svg") no-repeat left;
+    background-size: 24px 24px;
+    background-position: 5px 5px;
+    padding-left: 30px !important;
+}
+.layout-infobox-tabs a.results {
+    background: url("../img/results_comp.svg") no-repeat left;
     background-size: 24px 24px;
     background-position: 5px 5px;
     padding-left: 30px !important;

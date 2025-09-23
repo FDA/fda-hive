@@ -30,7 +30,7 @@
 function vjD3JS_ForceNetwork ( viewer )
 {
     loadCSS("d3js/css/forceNetwork.css");
-    vjD3View.call(this,viewer); // inherit default behaviors of the DataViewer
+    vjD3View.call(this,viewer);
     
     this.data = viewer.data;
     viewer.marin ? this.margin = viewer.margin : this.margin = {top:30, right:30, bottom:30, left:30};
@@ -48,7 +48,6 @@ function vjD3JS_ForceNetwork ( viewer )
     this.d3Compose=function(content, parsedTree)
     {
         var tThis = this;
-        //just in case there are some errors. to avoid the page from crashing
         if (!content  || content.indexOf("error") == 0)
             return;
         
@@ -58,14 +57,11 @@ function vjD3JS_ForceNetwork ( viewer )
         eval("jsonStruct="+content+";");        
         var allLinks = this.iterateJSON (jsonStruct, "root", [], "root", 1);
         
-        //var root1 = this.iterateJSON2 (jsonStruct, "root", [], "root", 1);
-        //this.actualRoot = {name:"root", x:this.width/2, y:this.height/2, children:root1};
         
         var node, link, root;
         
         var nodes = {};
 
-        // Compute the distinct nodes from the links.
         allLinks.forEach(function(link) {
             link.source = nodes[link.source] || (nodes[link.source] = {
                     name: link.source, 
@@ -79,14 +75,10 @@ function vjD3JS_ForceNetwork ( viewer )
                     actualNode: link.actualNode});
         });
         
-//        var aa = this.concatinateNodes (this.nodes, d3.values(nodes));
-//        var bb = this.concatinateLinks (this.links, allLinks);
         var aa = d3.values(nodes);
         var bb = allLinks;
         
 
-//        this.links = bb;
-//        this.nodes = aa;
         
         var force = d3.layout.force()
             .nodes(aa)
@@ -105,7 +97,6 @@ function vjD3JS_ForceNetwork ( viewer )
             .append("g")
                 .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     
-        // Per-type markers, as they don't inherit styles.
         svg.append("defs").selectAll("marker")
                 .data(["suit", "licensing", "resolved"])
             .enter().append("marker")
@@ -130,7 +121,6 @@ function vjD3JS_ForceNetwork ( viewer )
             .enter().append("circle")
                 .attr("r", 6)
                 .on("click", function (node, index, fixed){
-                    //the default behaviour will be to collapse on click, but it can be overriden.
                     if (node.name == "root") node.actualNode = jsonStruct;
                     if (tThis.onClickCallback){
                         tThis.onClickCallback (node, index, fixed);
@@ -167,7 +157,6 @@ function vjD3JS_ForceNetwork ( viewer )
     
     
     
-        // Use elliptical arc path segments to doubly-encode directionality.
         function tick() {
             path.attr("d", linkArc);
             circle.attr("transform", transform);
@@ -204,13 +193,6 @@ function vjD3JS_ForceNetwork ( viewer )
         return toAccumulate;
     };
     
-    /*
-     * node: current node
-     * parent: string name of the parent (fake name generated to maintain uniqueness
-     * whereToAdd: place where to put all the children
-     * realParent: the real name of the parent
-     * depth: current depth of the child (not sure if this is needed)
-     */
     this.iterateJSON2 = function (node, parent, whereToAdd, realParent, depth){
         for( var key in node){
             var random = parseInt(Math.random()*1000000);
@@ -220,7 +202,6 @@ function vjD3JS_ForceNetwork ( viewer )
                 if (key.indexOf(this.uniqueKeyStart) == 0) keyToUse = key;
                 
                 whereToAdd.push({name: key, type: "licensing", children:[]});
-                //toAccumulate.push ({source: parent, target: keyToUse, type: "licensing", realSource:realParent, realTarget: key, depth: depth, actualNode: node});
             }
             
             if (node[key] instanceof Object) this.iterateJSON2 (node[key], keyToUse, whereToAdd[whereToAdd.length-1].children, key, depth+1);
@@ -284,7 +265,7 @@ function vjD3JS_ForceNetworkIonController ( viewer )
 {
     loadCSS("d3js/css/forceNetwork.css");
 
-    vjD3View.call(this,viewer); // inherit default behaviors of the DataViewer
+    vjD3View.call(this,viewer);
     
     jTHis = this;
     
@@ -306,11 +287,10 @@ function vjD3JS_ForceNetworkIonController ( viewer )
     this.data = viewer.data;
     if (this.differentDS){
         this.data += "_viewerDS";
-        vjDS.add ("", this.data, "static://");        
+        vjDS.add ("", this.data, "static:
         
         this.onRefreshIonCallback = function (node){
-            //console.log ("helloi");
-            vjDS[jTHis.data].reload("static://"+JSON.stringify(this.root), true);
+            vjDS[jTHis.data].reload("static:
         }
     }
     

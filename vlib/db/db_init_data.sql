@@ -34,6 +34,4 @@ SET collation_connection = utf8_unicode_ci;
 
 source db_init_data_group.sql;
 source db_init_data_type.sql;
-source db_init_data_action.sql;
-source db_init_data_menuitem.sql;
-source db_init_data_algorithm.sql;
+source db_init_data_domain.sql;

@@ -43,18 +43,14 @@ enum enumIonCommands
     eIonTaxidByName,
     eIonCodonDB,
     eExtendCodonTable,
-    eIonWander
+    eIonWander,
+    eIonTaxidCollapseExt
 };
 
-//const char * listIonCommands=
-//    "ionncbiTax" _ "ionTaxInfo" _ "ionTaxDownInfo" _
-//    "ionAnnotInfo" _ "ionAnnotIdMap" _
-//    _;
 
 idx extractIonQueryfromTable(sIonWander &iWander, sTxtTbl &tbl, const char *ionQuery, const char *defaultValue = 0, bool parseiWander = true)
 {
 
-    // parse ionQuery to understand the dictionary
     idx cntRows = tbl.rows();
     idx cntCols = tbl.cols();
     sVec<idx> icols;
@@ -71,8 +67,6 @@ idx extractIonQueryfromTable(sIonWander &iWander, sTxtTbl &tbl, const char *ionQ
         idx colArg = sNotIdx;
 
         if( isdigit(param[0]) ) {
-            // It is a column
-            //char *end = (char *)param+plen;
             colArg = atoidx(param);
         } else {
             idx clen;
@@ -92,21 +86,16 @@ idx extractIonQueryfromTable(sIonWander &iWander, sTxtTbl &tbl, const char *ionQ
         cbuf.cut(0);
         bool need_unquote = false;
         for(idx j = 0; j < icols.dim(); ++j) {
-            // get the pointers of the dictionary
             idx plen;
             const char * pid = (const char *) iWander.parametricArguments.id(j, &plen);
             idx *toModify = (idx*) iWander.getSearchDictionaryPointer(pid, plen);
 
-            // get the value from the table
-            //cbuf.cut(0);
             idx cell_len = 0;
             const char * cell = tbl.cell(i, icols[j], &cell_len);
             if( cell && cell_len ) {
                 if( cell[0] == '"' ) {
-                    // temporary: cbuf can be realloced, so store offset and -123 guard value,
-                    // fix up in next pass
                     toModify[0] = cbuf.length();
-                    toModify[1] = -123; // fix up in next loop
+                    toModify[1] = -123;
                     need_unquote = true;
 
                     tbl.printCell(cbuf, i, icols[j]);
@@ -135,9 +124,7 @@ idx extractIonQueryfromTable(sIonWander &iWander, sTxtTbl &tbl, const char *ionQ
 
         iWander.traverse();
 
-        // Get the result in
         if( defaultValue && ((oldLength == iWander.traverseBuf.length()) || (iWander.traverseBuf.length() == 0)) ) {
-            // Check the filter:
             iWander.traverseBuf.addString(defaultValue);
             if( *iWander.traverseRecordSeparator == 0 ) {
                 iWander.traverseBuf.add0();
@@ -178,7 +165,6 @@ idx parseFilters(sTxtTbl &tbl, idx *colArg, const char *filterStr, const char *f
 
 }
 
-// Needed because objs2() only searches by meaning=x OR version=y
 static bool findDatabaseId(sHiveId & result, const sUsr & user, idx lookfordb = 0)
 {
     switch(lookfordb) {
@@ -196,7 +182,6 @@ static bool findDatabaseId(sHiveId & result, const sUsr & user, idx lookfordb = 
 namespace {
     class FilterList00 : public sStr {
         public:
-            //! inp is JSON array of strings or raw, unquoted string
             FilterList00(const char * inp)
             {
                 if( inp && inp[0] == '[' ) {
@@ -212,77 +197,65 @@ namespace {
                 }
                 add0(2);
             }
+
+            idx toColIDs(sVec<idx> & out, const sTabular & tbl, const char ** alternatives00 = 0, idx cnt_alternatives00 = 0)
+            {
+                idx cnt_found = 0;
+                for(const char * colname = ptr(); colname && colname[0]; colname = sString::next00(colname)) {
+                    idx col_id = tbl.colId(colname);
+                    while(col_id < 0) {
+                        for(idx ialt = 0; (col_id < 0) && (ialt < cnt_alternatives00); ialt++) {
+                            const char * altcolname0 = alternatives00[ialt];
+                            if( sIsExactly(colname, altcolname0) ) {
+                                for(const char * altcolname = sString::next00(altcolname0); col_id < 0 && altcolname && *altcolname; altcolname = sString::next00(altcolname)) {
+                                    col_id = tbl.colId(altcolname);
+                                }
+                            }
+                        }
+                    }
+
+                    if( col_id >= 0 ) {
+                        *out.add(1) = col_id;
+                        cnt_found++;
+                    }
+                }
+                return cnt_found;
+            }
     };
 };
 
-//static bool findcodonDBRecordsid(sHiveId & result, const sUsr & user)
-//{
-//    sUsrObjRes obj_res;
-//    user.objs2("special", obj_res, 0, "meaning,version", "^ncbiTaxonomy$,^2\\.", "meaning,version");
-//    for(sUsrObjRes::IdIter it = obj_res.first(); obj_res.has(it); obj_res.next(it)) {
-//        const sUsrObjRes::TObjProp * o = obj_res.get(it);
-//        const char * meaning = obj_res.getValue(obj_res.get(*o, "meaning"));
-//        const char * version = obj_res.getValue(obj_res.get(*o, "version"));
-//        if( meaning && version && !strcmp(meaning, "ncbiTaxonomy") && !strncmp(version, "2.", 2) ) {
-//            result = *obj_res.id(it);
-//            return true;
-//        }
-//    }
-//    result = sHiveId::zero;
-//    return false;
-//}
 
 idx DnaCGI::CmdIon(idx cmd)
 {
 
-    /********************************
-     *  CGI command for ionAnnot files
-     ********/
-//    const char * ionObjIDs = pForm->value("objs",0);
-//    const char * ionType=pForm->value("ionType","u-ionAnnot");
-//    const char * fileNameTemplate=pForm->value("file",0);
     sIonWander iWander;
-    /*
-     if( !sHiveIon::InitalizeIonWander(user, &iWander, ionObjIDs, ionType,fileName ))
-     return 0;  // {ops !}
-     */
     sStr statement;
-    // Read Database from TaxIon
     sStr myPath;
 
     sStr ionP, error_log;
-    if( !sviolin::SpecialObj::findTaxDbIonPath(ionP, *user, 0, 0, &error_log) ) {
+    const char *ver = pForm->value("version",0);
+    if( !sviolin::SpecialObj::findTaxDbIonPath(ionP, *user, ver, 0, &error_log) ) {
         error(error_log.ptr());
         outHtml();
         return 1;
     }
 
     iWander.addIon(0)->ion->init(ionP.ptr(), sMex::fReadonly);
-//    iWander.addIon(0)->ion->init("/home/vsim/data-stage/tax/dst/ncbiTaxonomy",sMex::fReadonly);
-    //    ionPath.printf(0,"/home/vsim/data-stage/tax/dst/ncbiTaxonomy");
 
     sIonWander genericWander;
     switch(cmd) {
 
-        /********************************
-         *  Developer Note:  javascript viewers are dependable of how the data is
-         *  generated by dna.cgi of eIonNcbiTax and eIonTaxPathogenInfo commands, they
-         *  need to have the same taxid information in the same row.
-         *  Any questions with Kate, thx
-         ********/
         case eIonWander :{
 
-            // open working ions if any
                sVec<sHiveId> ionObjs;
                sHiveId::parseRangeSet(ionObjs, pForm->value("objs"));
 
                const char * ionFile = pForm->value("ionfile","ion.ion");
                if (!sHiveIon::loadIonFile(user,ionObjs,genericWander, ionFile)) {
-                   error("Could not find the objects having this name [%s]",ionFile);
+                   error("Could not find the objects having given name");
                    outHtml();
                    return 1;
                }
-               // set query
                sDic < sMex::Pos  > bigD;
                idx qrylen;const char * query=pForm->value("query",0,&qrylen);
 
@@ -297,11 +270,10 @@ idx DnaCGI::CmdIon(idx cmd)
                genericWander.debug=pForm->ivalue("debug");
                genericWander.retrieveParametricWander(pForm,0);
 
-               genericWander.bigDicCumulator=&bigD; // ddict func
+               genericWander.bigDicCumulator=&bigD;
                genericWander.traverse();
                genericWander.traverseViewBigDic2D();
 
-               // reomve header of not
                idx hdr = pForm->ivalue("hdr",1);
                idx repos = 0;
                if (bigD.dim() && !hdr) {
@@ -313,21 +285,18 @@ idx DnaCGI::CmdIon(idx cmd)
                    }
                }
 
-               // Outputing
 
                dataForm.printf("%s", (genericWander.traverseBuf.length() == 0) ? "no result": genericWander.traverseBuf.ptr(repos));
                outHtml();
                return 1;
         }
         case eIonNcbiTax: {
-            // Read Parameters
             sHiveId screenId(pForm->value("screenId"));
             const char * screenType = pForm->value("screenType", 0);
             const char * screenResult = pForm->value("screenResult", 0);
             bool showPercentage = pForm->ivalue("percentage", 0) == 1 ? true : false;
             idx accession = pForm->ivalue("accession", 0);
 
-            // Load Table
             sTxtTbl tbl;
 
             sStr err, objname;
@@ -342,7 +311,6 @@ idx DnaCGI::CmdIon(idx cmd)
             const char *a = 0;
             iWander.traverseRecordSeparator = (const char *) &a;
             iWander.traverseFieldSeparator = ":";
-            // load first ionQuery
             sStr ionQuery;
             ionQuery.addString(
                 "\
@@ -353,7 +321,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 f=find.taxid_parent(taxid==e.taxid);\
                 print(e.name,e.taxid,f.rank,d.#,'//'); \
                 jump!.b(e.taxid,1); ");
-//            iWander.debug = true;
             extractIonQueryfromTable(iWander, tbl, ionQuery.ptr(), "NONE");
 
             sStr col2;
@@ -368,16 +335,14 @@ idx DnaCGI::CmdIon(idx cmd)
                 a=find.taxid_parent(taxid==o.taxid); \
                 printCSV(o.name,a.rank);");
 
-            extractIonQueryfromTable(iWander, tbl, ionQuery2.ptr(), "no match,no rank");
+            extractIonQueryfromTable(iWander, tbl, ionQuery2.ptr(), "no_match,no_rank");
             sStr col1;
             col1.addString(iWander.traverseBuf, iWander.traverseBuf.length());
 
-            // I should have all the results in col1 and col2 to produce the exit
             sStr preOut, cbuf, dst, tstr;
             sStr tablename;
             real percRatio;
             if( accession == 1 ) {
-                // printing the header
                 if( showPercentage ) {
                     preOut.printf("accession,taxid,matchname,rank,path,matchCnt,matchCnt_pct,min,min_pct,max,max_pct,mean,mean_pct,stddev,intval\n");
                 } else {
@@ -385,7 +350,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 }
                 tablename.addString("dnaAccessionBasedResult.csv");
             } else {
-                // printing the header
                 if( showPercentage ) {
                     preOut.printf("taxid,matchname,rank,path,matchCnt,matchCnt_pct,min,min_pct,max,max_pct,mean,mean_pct,stddev,intval\n");
                 } else {
@@ -399,17 +363,9 @@ idx DnaCGI::CmdIon(idx cmd)
             for(idx i = 0; i < tbl.rows(); i++) {
                 idx icols = 0;
                 if( accession == 1 ) {
-//                    // print accession
-//                    cbuf.cut(0);
-//                    tbl.printCell(cbuf, i, icols++);
-//                    if( strcmp(cbuf.ptr(), "-1") == 0 ) {
-//                        cbuf.printf(0, "\"n/a\"");
-//                    }
-//                    preOut.printf("%s,", cbuf.ptr());
-                    // print accession
                     cbuf.cut(0);
                     tbl.printCell(cbuf, i, icols++);
-                    if( strcmp(cbuf.ptr(), "-1") == 0 ) {
+                    if( strncmp(cbuf.ptr(), "-1", 2) == 0 ) {
                         cbuf.printf(0, "\"n/a\"");
                     }
                     preOut.printf("%s,", cbuf.ptr());
@@ -419,7 +375,7 @@ idx DnaCGI::CmdIon(idx cmd)
                     tbl.val(perc, i, 4, false);
                     percRatio = perc.asReal() / mean.asReal();
                     icols++;
-                    shiftCol = 2; // Skip second column as well
+                    shiftCol = 2;
                 } else {
                     sVariant mean, perc;
                     tbl.val(mean, i, 5, false);
@@ -427,27 +383,28 @@ idx DnaCGI::CmdIon(idx cmd)
                     percRatio = perc.asReal() / mean.asReal();
                     shiftCol = 0;
                 }
-                // taxid and matchname and rank
                 cbuf.cut(0);
                 tbl.printCell(cbuf, i, icols++);
+                bool unalignedReads = false;
                 if( strncmp(cbuf.ptr(), "-1", 2) == 0 ) {
-                    preOut.printf("n/a,unaligned reads,no rank,");
+                    preOut.printf("n/a,unaligned_reads,no_rank,");
+                    unalignedReads = true;
                 } else {
                     preOut.printf("%s,%s,", cbuf.ptr(), co1);
                 }
-                // path
                 if( co2 && (strncmp(co2, "NONE", 4) == 0) ) {
-                    preOut.addString("\"/no:1:no rank:0/\",");
+                    preOut.printf("\"/%s:1:no_rank:0/\",", unalignedReads ? "unaligned" : "no_match");
                 } else {
                     dst.cut(0);
                     tstr.cut(0);
-                    sString::searchandInvertStrings(&tstr, co2, 0, "://", "/");
-                    sString::searchAndReplaceStrings(&dst, tstr.ptr(0), tstr.length(), "root" _ "/:" __, "all" _ "/" __, 0, false);
-                    *(dst.ptr(0)) = '/';
-                    preOut.printf("\"%s/\",", dst.ptr(0));
+                    sString::searchandInvertStrings(&tstr, co2, 0, "://" __, "?" __);
+                    sString::searchAndReplaceStrings(&dst, tstr.ptr(0), tstr.length(), "/" __, "-" __, 0, false);
+                    tstr.cut(0);
+                    sString::searchAndReplaceStrings(&tstr, dst.ptr(0), dst.length(), "root" _ "?:" __, "all" _ "/" __, 0, false);
+                    *(tstr.ptr(0)) = '/';
+                    preOut.printf("\"%s/\",", tstr.ptr(0));
                 }
 
-                //matchcount and percentage
                 for(; icols < tbl.cols(); ++icols) {
                     if( icols == (7 + shiftCol) ) {
                         if( pForm->uvalue("downloadCSVFile", 0) ) {
@@ -468,7 +425,7 @@ idx DnaCGI::CmdIon(idx cmd)
                         preOut.add(",", 1);
                     }
                 }
-                preOut.cut(preOut.length() - 1); // Remove the last comma
+                preOut.cut(preOut.length() - 1);
                 preOut.add("\n", 1);
                 co1 = sString::next00(co1);
                 co2 = sString::next00(co2);
@@ -485,7 +442,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 dataForm.printf("1,parentid,,0\n");
                 dataForm.printf("1,rank,,no rank\n");
                 dataForm.printf("1,taxName,0,no name\n");
-//                dataForm.printf("1,bioprojectID,,0\n");
                 dataForm.printf("1,path,,no path\n");
                 outHtml();
                 return 1;
@@ -499,7 +455,7 @@ idx DnaCGI::CmdIon(idx cmd)
                     b=find.taxid_parent(taxid==o.taxid); \
                     d=count.taxid_parent(parent==b.parent); \
                     e=find.taxid_name(taxid==b.parent, tag='scientific name'); \
-                    printCSV(e.name,e.taxid, d.#,'//'); \
+                    print(e.name,e.taxid, d.#,'//'); \
                     jump!.b(e.taxid,1); ",
                 taxidInput);
             iWander.traverseFieldSeparator = ":";
@@ -510,9 +466,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 path.addString("/no path");
             } else {
                 sStr pdst;
-//                char *cont00 = path.ptr(0);
-//                while(*cont00){cont00++;}
-//                    *cont00 = '0';
                 sString::searchandInvertStrings(&pdst, path.ptr(0), 0, "://", "/");
                 path.cut(1);
                 sString::searchAndReplaceStrings(&path, pdst.ptr(0), pdst.length(), "root" _ "/:" __, "all" _ "/" __, 0, false);
@@ -542,8 +495,6 @@ idx DnaCGI::CmdIon(idx cmd)
             iWander.traverse();
             sString::searchAndReplaceStrings(&info, iWander.traverseBuf.ptr(0), iWander.traverseBuf.length(), "," __, 0, 0, false);
 
-            // Generate the Output
-            // taxid, parentid, rank, taxName, bioprojectID, path
             idx irow = 1;
             dataForm.printf("id,name,path,value\n");
             dataForm.printf("%" DEC ",taxid,,%s\n", irow, info.ptr(0));
@@ -553,10 +504,9 @@ idx DnaCGI::CmdIon(idx cmd)
             dataForm.printf("%" DEC ",rank,,%s\n", irow, rank);
             idx iname = 0;
             for(const char *p = altnames; p; p = sString::next00(p)) {
-                dataForm.printf("%" DEC ",taxName,%" DEC ",\"%s\"\n", irow, iname++, p);
+                dataForm.printf("%" DEC ",taxName,%" DEC ",%s\n", irow, iname++, p);
             }
-//            dataForm.printf("%" DEC ",bioprojectID,,0\n", irow);
-            dataForm.printf("%" DEC ",path,,%s/\n", irow, path.ptr(0));
+            dataForm.printf("%" DEC ",path,,\"%s/\"\n", irow, path.ptr(0));
             outHtml();
             return 1;
         }
@@ -582,7 +532,6 @@ idx DnaCGI::CmdIon(idx cmd)
             idx startCount = 0;
 
             for(char *tc = outInfo; tc && (printCount < cnt); tc = sString::next00(tc)) {
-                // extract taxid from tc
                 char *ptr = tc;
                 while( *ptr != ',' ) {++ptr;}
                 idx ptrlen = ptr - tc;
@@ -606,7 +555,7 @@ idx DnaCGI::CmdIon(idx cmd)
 
                 taxIon.getTaxTreeChildrenInfo(tc, ptrlen, &outInfo);
 
-                tc = outInfo.ptr(pos); // update tc, as the outInfo buffer changed it's location in memory
+                tc = outInfo.ptr(pos);
                 ++startCount;
                 if (startCount > start){
                     preOut.printf("%s\n", tc);
@@ -632,7 +581,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 sString::searchAndReplaceSymbols(&taxidList, taxidForm, 0, ",", 0, 0, true, true, true, true);
             }
             if (findParent){
-                // I will loop through all taxid's to find the common ancestor
                 const char * taxidstring = taxidList.ptr(0);
                 idx taxid = 0;
                 sscanf(taxidstring, "%" DEC, &taxid);
@@ -640,7 +588,6 @@ idx DnaCGI::CmdIon(idx cmd)
                     break;
                 }
                 taxIon.filterbyParent(1, taxid, &path, true);
-                // Path contains all the taxid's to the root of the first element
                 taxidstring = sString::next00(taxidstring);
                 const char *parentPath = path.ptr(0);
                 idx taxParent = 1;
@@ -653,13 +600,12 @@ idx DnaCGI::CmdIon(idx cmd)
                     bool success = taxIon.filterbyParent(taxParent, taxId, &tmpPath, true);
                     tmpPath.add0();
                     if (!success){
-                        // we will have to find the common taxid of: parentPath and tmpPath
                         parentPath = sString::next00(parentPath);
                         for(; parentPath; parentPath = sString::next00(parentPath)) {
                             idx result = sString::compareChoice(parentPath, tmpPath.ptr(0), 0, false, 0, true, 0);
                             if (result != -1){
                                 sscanf(parentPath, "%" DEC, &taxParent);
-                                break;// Look
+                                break;
                             }
                         }
                     }
@@ -676,10 +622,8 @@ idx DnaCGI::CmdIon(idx cmd)
                         continue;
                     }
                     path.cut(0);
-                    // Analyze path
                     taxIon.filterbyParent(parent, taxid, &path);
                     path.add0();
-                    // Invert the order of the taxonomy output
                     idx numRows = sString::cnt00(path.ptr());
                     idx offset = printFirstRow ? 0 : 1;
                     for(idx irow = numRows-(1+offset); irow >= 0; --irow) {
@@ -701,14 +645,11 @@ idx DnaCGI::CmdIon(idx cmd)
                 idx cnt = 0;
                 bool printFirstRow = true;
                 for(const char *tc = ionResults00.ptr(0); tc && cnt < limit; tc = sString::next00(tc)) {
-                    // Extract taxid, and find path to parent
                     idx localTaxid = atoidx(tc);
                     if (prevTaxid != localTaxid){
                         path.cut(0);
-                        // Analyze path
                         bool success = taxIon.filterbyParent(parent, localTaxid, &path);
                         if (success){
-                            // Invert the order of the taxonomy output
                             idx numRows = sString::cnt00(path.ptr());
                             idx offset = printFirstRow ? 0 : 1;
                             for(idx irow = numRows-(1+offset); irow >= 0; --irow) {
@@ -717,7 +658,6 @@ idx DnaCGI::CmdIon(idx cmd)
                                 dataForm.add("\n", 1);
                                 printFirstRow = false;
                             }
-//                            dataForm.addString(path.ptr(0), path.length());
                             ++cnt;
                         }
                         prevTaxid = localTaxid;
@@ -729,12 +669,10 @@ idx DnaCGI::CmdIon(idx cmd)
             return 1;
         }
         case eIonTaxPathogenInfo: {
-            // Read Parameters
             sHiveId screenId(pForm->value("screenId"));
             const char * screenType = pForm->value("screenType", 0);
             const char * screenResult = pForm->value("screenResult", 0);
 
-            // Load Table
             sTxtTbl tbl;
 
             sStr err, objname;
@@ -749,7 +687,6 @@ idx DnaCGI::CmdIon(idx cmd)
             const char *a = 0;
             iWander.traverseRecordSeparator = (const char *) &a;
             iWander.traverseFieldSeparator = ",";
-            // load first ionQuery
             sStr ionQuery;
             ionQuery.addString(
                 "\
@@ -758,14 +695,12 @@ idx DnaCGI::CmdIon(idx cmd)
             printCSV(o.taxid,a.name,o.pathogen,o.pathogenic,o.severity,o.transmission_food, o.transmission_air, o.transmission_blood, o.human_host); \
             ");
 
-//            iWander.debug = true;
             extractIonQueryfromTable(iWander, tbl, ionQuery.ptr(), "NONE");
 
             sStr col, buf;
             sStr preOut, tablename;
             col.addString(iWander.traverseBuf, iWander.traverseBuf.length());
 
-            // Table Header
             preOut.printf("taxid,name,pathogen,pathogenic,severity,transmission_food,transmission_air,transmission_blood,human_host\n");
             char * co1 = col.ptr(0);
             for(idx i = 0; i < tbl.rows(); i++) {
@@ -794,11 +729,8 @@ idx DnaCGI::CmdIon(idx cmd)
         }
             break;
         case eIonTaxidCollapse: {
-            // Read Parameters
-//            cmd=ionTaxidCollapse&svcType=svc-refseq-processor&fileSource=archaea_all_species.tab&taxid=2172&searchDeep=true
             sStr localBuf;
             localBuf.cut(0);
-//            sHiveId objId(pForm->value("objId", &localBuf));
 
             sVec <sHiveId> subIDs;
             sHiveId::parseRangeSet(subIDs, pForm->value("objId"));
@@ -820,7 +752,7 @@ idx DnaCGI::CmdIon(idx cmd)
                 }
 
                 if (subIDs.dim() == 0){
-                    error("can't find objId's based on svctype: %s", svcType);
+                    error("can't find objId's based on svctype");
                     outHtml();
                     return 1;
                 }
@@ -828,7 +760,6 @@ idx DnaCGI::CmdIon(idx cmd)
             }
             const char * sourceFile = pForm->value("fileSource", 0);
             const char * outFile = pForm->value("outputFile", 0);
-//            const char * ginumber = pForm->value("ginumber", 0);
             const char * accessionnumber = pForm->value("accessionnumber", 0);
             const char * taxidInput = pForm->value("taxid", 0);
             bool searchTree = pForm->boolvalue("searchDeep", false);
@@ -838,7 +769,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 taxidInput = taxIon.getTaxIdsByAccession(accessionnumber);
             }
 
-            // load first ionQuery
             sStr ionQuery;
             if (searchTree == false){
                 ionQuery.printf(0,"\
@@ -856,14 +786,12 @@ idx DnaCGI::CmdIon(idx cmd)
                     f=print(e.taxid);", taxidInput, taxidInput);
             }
 
-            // Iterate over sHiveIds
             sDic<idx> codonDict;
             idx plen = 3;
             idx collapseTaxids = 0;
             bool firstTime = true;
-
+            idx geneCount = 0;
             for (idx iter = 0; iter < subIDs.dim(); ++iter){
-                // Load Table
                 sTxtTbl tbl;
                 sStr err, objname;
 
@@ -883,13 +811,11 @@ idx DnaCGI::CmdIon(idx cmd)
                 extractIonQueryfromTable(iWander, tbl, ionQuery.ptr(), "NONE", firstTime);
 
                 firstTime = false;
-                // Parse traverseBuf for each row
                 sStr col, buf;
                 sStr tablename;
                 col.addString(iWander.traverseBuf, iWander.traverseBuf.length());
 
                 if (codonDict.dim() == 0){
-                    // Create a dictionary out of the codon's
                     idx clen = 0;
                     for(idx icol = 0; icol < tbl.cols(); ++icol) {
                         const char * hdr = tbl.cell(-1, icol, &clen);
@@ -904,7 +830,6 @@ idx DnaCGI::CmdIon(idx cmd)
                                 }
                             }
                             if( isvalid ) {
-                                // Create a dictionary out of the id
                                 idx *cnt = codonDict.set(hdr, plen);
                                 *cnt = 0;
                             }
@@ -921,20 +846,23 @@ idx DnaCGI::CmdIon(idx cmd)
                 FilterList00 filterOut(pForm->value("filterOut", 0));
                 FilterList00 filterOutCol(pForm->value("filterOutColName", 0));
                 sStr csv_buf;
+                const char *alternative_colnames00[2] = { "Organelle" _ "Organellar" __, "Species" _ "Species_taxid" __};
 
                 sVec<idx> icolInFilters, icolOutFilters;
                 for(const char * colname = filterInCol.ptr(); colname && colname[0]; colname = sString::next00(colname)) {
-                    *icolInFilters.add(1) = tbl.colId(colname);
+                      filterInCol.toColIDs(icolInFilters, tbl, alternative_colnames00, 2);
                 }
                 for(const char * colname = filterOutCol.ptr(); colname && colname[0]; colname = sString::next00(colname)) {
-                    *icolOutFilters.add(1) = tbl.colId(colname);
+                      filterOutCol.toColIDs(icolOutFilters, tbl, alternative_colnames00, 2);
                 }
+
+
+                idx cdsColumn = tbl.colId("# CDS", 5);
 
                 for(idx i = 0; i < tbl.rows(); i++) {
                     buf.cut(0);
                     lencolumn = sLen(co1);
                     if( co1 && (lencolumn == lentaxid) && (strncmp(co1, taxidInput, lencolumn) == 0) ) {
-                        // I found it and collapse
                         bool isValid = true;
                         const char * filt = 0;
                         idx ifilt = 0;
@@ -961,8 +889,10 @@ idx DnaCGI::CmdIon(idx cmd)
                             }
                         }
                         if (isValid){
-                            // Go for all the columns and find its id and value
                             ++collapseTaxids;
+                            if (cdsColumn != -sIdxMax){
+                                geneCount += tbl.ival(i, cdsColumn);
+                            }
                             for(idx icol = 0; icol < tbl.cols(); ++icol) {
                                 csv_buf.cut0cut();
                                 tbl.printCell(csv_buf, -1, icol);
@@ -975,20 +905,16 @@ idx DnaCGI::CmdIon(idx cmd)
                         }
                     }
                     else if( co1 && (strncmp(co1, "NONE", 4) == 0) ) {
-    //                    const char *ccell = tbl.cell(i, 2, &clen);
-    //                    ::printf("%.*s\n", clen, ccell);
                     }
                     co1 = sString::next00(co1);
                 }
             }
-            // We have everything accumulated in the dictionary
-            // Let's prepare the output table
             idx totCnt = 0;
             idx gcCnt = 0;
             idx gc[3] = {
                 0,
                 0,
-                0 }; // plen should be three
+                0 };
 
             for(idx i = 0; i < codonDict.dim(); ++i) {
                 idx codoncnt = *codonDict.ptr(i);
@@ -1006,11 +932,11 @@ idx DnaCGI::CmdIon(idx cmd)
                 }
                 gcCnt += (codoncnt * containsGC);
             }
-            // Generate the Output
             dataForm.printf("id,value\n");
             dataForm.printf("taxid,%s\n", taxidInput);
             dataForm.printf("collapse,%" DEC "\n", collapseTaxids);
             dataForm.printf("\"#codon\",%" DEC "\n", totCnt);
+            dataForm.printf("\"#CDS\",%" DEC "\n", geneCount);
             dataForm.printf("\"GC%%\",%0.2lf\n", totCnt ? (real)(gcCnt*100)/(3*totCnt) : 0);
             dataForm.printf("\"GC1%%\",%0.2lf\n", totCnt ? (real)(gc[0]*100)/(totCnt) : 0);
             dataForm.printf("\"GC2%%\",%0.2lf\n", totCnt ? (real)(gc[1]*100)/(totCnt) : 0);
@@ -1025,13 +951,13 @@ idx DnaCGI::CmdIon(idx cmd)
             outHtml();
             return 1;
         }
+
         case eIonTaxidByName:{
 
             const char * name = pForm->value("name", 0);
             idx parent = pForm->ivalue("parent", 0);
             idx limit = pForm->ivalue("limit", 20);
 
-//            bool filterbyParent =  ? true : false;
             sTaxIon taxIon(ionP.ptr());
             sStr ionResults00;
             ionResults00.cut(0);
@@ -1045,7 +971,6 @@ idx DnaCGI::CmdIon(idx cmd)
             }
             else {
                 taxIon.getTaxIdsByName(name, 0, &ionResults00);
-                // Filter by Parent
                 sStr aux1;
                 idx cnt = 0;
                 char *r00 = ionResults00.ptr(0);
@@ -1056,7 +981,6 @@ idx DnaCGI::CmdIon(idx cmd)
                     sString::copyUntil(&aux1, tc, 0, ",");
                     idx taxId = atoidx((const char *)aux1.ptr());
                     if (prevTaxid == taxId){
-                        // to prevent looking for repeated prevTaxid's from the original search
                         continue;
                     }
                     if (taxIon.filterbyParent(parent, taxId)){
@@ -1095,7 +1019,7 @@ idx DnaCGI::CmdIon(idx cmd)
                 return 1;
             }
             if( ioncodonPath.length() > 4 && sIsExactly(ioncodonPath.ptr(ioncodonPath.length() - 4), ".ion") ) {
-                ioncodonPath.cut0cut(ioncodonPath.length() - 4); // remove '.ion' extension from the string - sIonWander requires basename
+                ioncodonPath.cut0cut(ioncodonPath.length() - 4);
             }
             sIonWander cWander;
 
@@ -1109,8 +1033,6 @@ idx DnaCGI::CmdIon(idx cmd)
             const char *regex = boolRegex ? "regex:" : "";
 
 
-//            idx start = pForm->ivalue("start", 0);
-//            idx cnt = pForm->ivalue("cnt", 0);
 
             if (!type || !(name || taxid || assembly)){
                 error("can't find query to search");
@@ -1122,12 +1044,10 @@ idx DnaCGI::CmdIon(idx cmd)
             const char *column = taxid ? "taxid" : (name ? "name" : "assembly");
             const char *value = taxid ? taxid : name ? name : assembly;
 
-            // Validate column and value
             sStr t1val, tval, cval;
             sString::cleanEnds(&cval, column, 0, "\"" sString_symbolsBlank, true);
             column = cval.ptr(0);
             sString::cleanEnds(&tval, value, 0, "\"" sString_symbolsBlank, true);
-            // Protect single quotes from the value
             sString::searchAndReplaceStrings(&t1val, tval, tval.length(), "\'" __, "\\'" __, 0, true);
             value = t1val.ptr(0);
 
@@ -1175,7 +1095,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 outHtml();
                 return 1;
             }
-            // Get the output Filename
             sUsrFile sf(subIDs[0], user);
             sStr outfilePathname;
             if( sf.Id() ) {
@@ -1191,7 +1110,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 return 1;
             }
 
-            // Identify the right columns to work with:
             idx cntRows = tbl.rows();
             idx cntCols = tbl.cols();
             enum enumColumns
@@ -1217,7 +1135,7 @@ idx DnaCGI::CmdIon(idx cmd)
                     icols[cTaxid] = icol;
                 } else if( sIsExactly(colname.ptr(), "division") ) {
                     icols[cDivision] = icol;
-                } else if( sIsExactly(colname.ptr(), "type") || sIsExactly(colname.ptr(), "organellar") ) {
+                } else if( sIsExactly(colname.ptr(), "type") || sIsExactly(colname.ptr(), "organellar") || sIsExactly(colname.ptr(), "organelle") ) {
                     icols[cType] = icol;
                 } else if( sIsExactly(colname.ptr(), "assembly") ) {
                     icols[cAssembly] = icol;
@@ -1226,11 +1144,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 }
             }
 
-            // We need to collapse the parent nodes
-            // Each parent Node contains:
-            // - unique taxid
-            // - type, merge the different types under the node
-            // - division, merge different division types as well
             enum enumType
             {
                 genomic = 0x1,
@@ -1305,7 +1218,6 @@ idx DnaCGI::CmdIon(idx cmd)
             for (idx irow = 0; irow < cntRows; ++irow){
                 taxCurrent.cut(0);
                 tbl.printCell(taxCurrent, irow, icols[cTaxid]);
-                // Construct typedivision idx
                 const char * stringtype = tbl.printCell(tbuf, irow, icols[cType]);
                 idx type1 = 0;
                 idx typeID;
@@ -1318,7 +1230,7 @@ idx DnaCGI::CmdIon(idx cmd)
                 const char * stringdivision = tbl.printCell(dbuf, irow, icols[cDivision]);
                 idx aux2;
                 sString::compareChoice(stringdivision, listDivision, &aux2, false, 0, true, 0);
-                udx typedivision = (divisions[aux2] == genbank) ?(udx)type1 << 32 : (udx) type1 && 0xFFFFFFFF; //((udx) types[aux1] << 32) | (divisions[aux2]);
+                udx typedivision = (divisions[aux2] == genbank) ?(udx)type1 << 32 : (udx) type1 && 0xFFFFFFFF;
 
 
                 if ((divisions[aux2] == refseq)){
@@ -1341,27 +1253,21 @@ idx DnaCGI::CmdIon(idx cmd)
                 do {
 
                     taxId = atoidx((const char *)taxCurrent.ptr());
-                    // Check the current taxid in the dictionary
                     idx *value = parents.get(taxCurrent, taxCurrent.length());
                     if (!value){
-                       // Add the taxid
                         value = parents.set(taxCurrent, taxCurrent.length());
                         *value = typedivision;
                     }
                     else {
-                        // Check if the value changes
                         udx locValue = (divisions[aux2] == genbank) ? (udx)*value&0xFFFFFFFF00000000 : (udx)*value&0xFFFFFFFF;
                         udx result = locValue | typedivision ;
                         if (result == locValue){
-                            // We don't update
                             taxId = 1;
                         }
                         else {
-                            // we must update
                             *value = (divisions[aux2] == genbank) ? (result)|(*value&0xFFFFFFFF) : (*value&0xFFFFFFFF00000000)|(result&0xFFFFFFFF);
                         }
                     }
-                    // Get the next Parent
                     taxParent.cut(0);
                     taxIon.getParentTaxIds(taxCurrent.ptr(0), &taxParent);
                     taxCurrent.cut(0);
@@ -1370,7 +1276,6 @@ idx DnaCGI::CmdIon(idx cmd)
                 while (taxId > 1);
             }
 
-            // Prepare a new ionquery to extract the name based on taxid
             sStr ionQuery;
             ionQuery.printf(0, "\
                     o=find.taxid_name(taxid=='$Taxid', tag='scientific name');\
@@ -1383,18 +1288,14 @@ idx DnaCGI::CmdIon(idx cmd)
             const char * pid = (const char *) iWander.parametricArguments.id(0, &plen);
             idx *toModify = (idx*) iWander.getSearchDictionaryPointer(pid, plen);
 
-            // Add the information to the new table
-            // We should have everything in the dictionary
             idx keylen;
             sFil outTable(outfilePathname);
             outTable.empty();
             if (!outTable.ok()){
-                // Complain
                 error("can't write in the output filename");
                 outHtml();
                 return 1;
             }
-            // construct table header
             for(idx idiv = 0; idiv < 2; ++idiv) {
                 char letDivision = idiv == 0 ? 'G' : 'R';
                 for(idx typeID = 0; typeID < numtypes; ++typeID) {
@@ -1428,17 +1329,15 @@ idx DnaCGI::CmdIon(idx cmd)
                         }
                         outTable.add(",", 1);
                     }
-//                    outTable.addNum(typeGenbank);   // typeGenbank
                     for(idx typeID = 0; typeID < numtypes; ++typeID) {
                         if ((c_types[typeID].eType & typeRefseq)){
                             outTable.add("1", 1);
                         }
                         outTable.add(",", 1);
                     }
-//                    outTable.addNum(typeRefseq);   // typeRefseq
-                    outTable.add(key, keylen); // taxid
+                    outTable.add(key, keylen);
                     outTable.add(",",1);
-                    outTable.add(iWander.traverseBuf.ptr(0), iWander.traverseBuf.length()); // name
+                    outTable.add(iWander.traverseBuf.ptr(0), iWander.traverseBuf.length());
                     outTable.add(",0\n",3);
                 }
             }
@@ -1446,21 +1345,278 @@ idx DnaCGI::CmdIon(idx cmd)
             outTable.add0cut();
             return 1;
         }
+        case eIonTaxidCollapseExt: {
+            sStr localBuf;
+            localBuf.cut(0);
+
+            sVec <sHiveId> subIDs;
+            sHiveId::parseRangeSet(subIDs, pForm->value("objId"));
+
+            if (subIDs.dim() == 0){
+                const char * svcType = pForm->value("svcType", "svc-refseq-processor");
+                if (!svcType){
+                    error("can't find objId's to get the source files in ionTaxidCollapse");
+                    outHtml();
+                    return 1;
+                }
+                sUsrObjRes subIDList;
+                user->objs2(svcType, subIDList, 0, 0, 0, 0, false, 0, 0);
+
+                subIDs.add(subIDList.dim());
+                idx i = 0;
+                for(sUsrObjRes::IdIter it = subIDList.first(); subIDList.has(it); subIDList.next(it)) {
+                    subIDs[i++] = *subIDList.id(it);
+                }
+
+                if (subIDs.dim() == 0){
+                    error("can't find objId's based on svctype");
+                    outHtml();
+                    return 1;
+                }
+
+            }
+            const char * sourceFile = pForm->value("fileSource", 0);
+            const char * outFile = pForm->value("outputFile", 0);
+            const char * accessionnumber = pForm->value("accessionnumber", 0);
+            const char * taxidInput = pForm->value("taxid", 0);
+            bool searchTree = pForm->boolvalue("searchDeep", false);
+
+            const char * sourceIndex = strstr(sourceFile, "genbank") ? "genbank_index.tsv" : "Refseq_index.tsv";
+
+            sTaxIon taxIon(ionP.ptr());
+            if (!taxidInput && accessionnumber){
+                taxidInput = taxIon.getTaxIdsByAccession(accessionnumber);
+            }
+
+            sStr ionQuery;
+            if (searchTree == false){
+                ionQuery.printf(0,"\
+                    o=find.taxid_name(taxid=='$Taxid', tag='scientific name');\
+                    f=print(o.taxid);");
+            }
+            else {
+                ionQuery.printf(0,"\
+                    o=find.taxid_name(taxid=='$Taxid', tag='scientific name'); \
+                    e=jump.f(o.taxid, '%s'); \
+                    b=find.taxid_parent(taxid==o.taxid); \
+                    e=find.taxid_name(taxid==b.parent, tag='scientific name'); \
+                    jump.f(e.taxid, '%s'); \
+                    jump!.b(e.taxid,1); \
+                    f=print(e.taxid);", taxidInput, taxidInput);
+            }
+
+            sDic<idx> codonDict;
+
+            idx plen = 0;
+            if (strstr(sourceFile, "Dinuc")){
+                plen = 2;
+            }
+            else if (strstr(sourceFile, "species")){
+                plen = 3;
+            }
+            else if (strstr(sourceFile, "Bicod")){
+                plen = 6;
+            }
+
+            idx collapseTaxids = 0;
+            bool firstTime = true;
+            idx geneCount = 0;
+            for (idx iter = 0; iter < subIDs.dim(); ++iter){
+                sTxtTbl tbl, tblindex;
+                sStr err, objname;
+                tbl.parseOptions().absrowCnt = 2;
+                bool success = loadScreeningFile(&tbl, subIDs[iter], sourceFile, outFile ? outFile : 0, &err, &objname, true);
+                success &= loadScreeningFile(&tblindex, subIDs[iter], sourceIndex, outFile ? outFile : 0, &err, &objname, true);
+
+                if( !success ) {
+                    continue;
+                    error("%s", err.ptr(0));
+                    outHtml();
+                    return 1;
+                }
+                const char *a = 0;
+                iWander.traverseRecordSeparator = (const char *) &a;
+                iWander.traverseFieldSeparator = ",";
+                iWander.traverseBuf.cut(0);
+
+                extractIonQueryfromTable(iWander, tblindex, ionQuery.ptr(), "NONE", firstTime);
+
+                firstTime = false;
+                sStr col, buf;
+                sStr tablename;
+                col.addString(iWander.traverseBuf, iWander.traverseBuf.length());
+
+                if (codonDict.dim() == 0){
+                    idx clen = plen;
+                    for(idx icol = 0; icol < tbl.cols(); ++icol) {
+                        const char * hdr = tbl.cell(-1, icol, &clen);
+                        if( plen == clen ) {
+                            idx isvalid = true;
+                            const char *codon = hdr;
+                            unsigned char let;
+                            for(idx ilet = 0; ilet < plen; ++codon, ++ilet) {
+                                let = sBioseq::mapATGC[(idx) (*codon)];
+                                if( let < 0 || let > 3 ) {
+                                    isvalid = false;
+                                }
+                            }
+                            if( isvalid ) {
+                                idx *cnt = codonDict.set(hdr, plen);
+                                *cnt = 0;
+                            }
+                        }
+                    }
+                }
+
+                char * co1 = col.ptr(0);
+                idx lencolumn = 0;
+                idx lentaxid = sLen (taxidInput);
+
+                FilterList00 filterIn(pForm->value("filterIn", 0));
+                FilterList00 filterInCol(pForm->value("filterInColName", 0));
+                FilterList00 filterOut(pForm->value("filterOut", 0));
+                FilterList00 filterOutCol(pForm->value("filterOutColName", 0));
+                sStr csv_buf;
+                const char *alternative_colnames00[2] = { "Organelle" _ "Organellar" __, "Species" _ "Species_taxid" __};
+
+                sVec<idx> icolInFilters, icolOutFilters;
+                for(const char * colname = filterInCol.ptr(); colname && colname[0]; colname = sString::next00(colname)) {
+                      filterInCol.toColIDs(icolInFilters, tbl, alternative_colnames00, 2);
+                }
+                for(const char * colname = filterOutCol.ptr(); colname && colname[0]; colname = sString::next00(colname)) {
+                      filterOutCol.toColIDs(icolOutFilters, tbl, alternative_colnames00, 2);
+                }
+
+
+                idx cdsColumn = tbl.colId("# CDS", 5);
+
+                sTxtTbl temptbl;
+                temptbl.setBuf(tbl.getFile(0));
+                temptbl.parseOptions() = tbl.parseOptions();
+                temptbl.parseOptions().absrowCnt = 1;
+
+                for(idx i = 0; i < tblindex.rows(); i++) {
+                    buf.cut(0);
+                    lencolumn = sLen(co1);
+                    if( co1 && (lencolumn == lentaxid) && (strncmp(co1, taxidInput, lencolumn) == 0) ) {
+                        bool isValid = true;
+                        const char * filt = 0;
+                        idx ifilt = 0;
+                        for(ifilt = 0, filt = filterIn.ptr(); ifilt < icolInFilters.dim(); ifilt++, filt = filt && filt[0] ? sString::next00(filt) : 0) {
+                            csv_buf.cut0cut();
+                            tblindex.printCell(csv_buf, i, icolInFilters[ifilt]);
+                            if( strcmp(filt ? filt : sStr::zero, csv_buf.ptr()) == 0 ) {
+                                isValid = true;
+                            } else {
+                                isValid = false;
+                                break;
+                            }
+                        }
+                        if( isValid ) {
+                            for(ifilt = 0, filt = filterOut.ptr(); ifilt < icolOutFilters.dim(); ifilt++, filt = filt && filt[0] ? sString::next00(filt) : 0) {
+                                csv_buf.cut0cut();
+                                tblindex.printCell(csv_buf, i, icolOutFilters[ifilt]);
+                                if( strcmp(filt ? filt : sStr::zero, csv_buf.ptr()) == 0 ) {
+                                    isValid = false;
+                                    break;
+                                } else {
+                                    isValid = true;
+                                }
+                            }
+                        }
+                        if (isValid){
+                            ++collapseTaxids;
+
+                            idx locColumn = 0;
+                            if (strstr(sourceFile, "species")){
+                                locColumn = tblindex.colId("codon",5);
+                            }
+                            else if (strstr(sourceFile, "Junc")){
+                                locColumn = tblindex.colId("juncdinuc",9);
+                            }
+                            else if (strstr(sourceFile, "Dinuc")){
+                                locColumn = tblindex.colId("dinuc",5);
+                            }
+                            else if (strstr(sourceFile, "Bicod")){
+                                locColumn = tblindex.colId("bicod",5);
+                            }
+
+                            idx offset = tblindex.ival(i, locColumn);
+                            temptbl.parseOptions().initialOffset = offset;
+                            temptbl.parse();
+
+                            if (cdsColumn != -sIdxMax){
+                                geneCount += temptbl.ival(-1, cdsColumn);
+                            }
+                            for(idx icol = 0; icol < tbl.cols(); ++icol) {
+                                csv_buf.cut0cut();
+                                tbl.printCell(csv_buf, -1, icol);
+                                idx * isCodon = codonDict.get(csv_buf.ptr(), csv_buf.length());
+                                if( isCodon ) {
+                                    idx resultCount = temptbl.ival(-1, icol);
+                                    (*isCodon) = (*isCodon) + resultCount;
+                                }
+                            }
+                        }
+                    }
+                    else if( co1 && (strncmp(co1, "NONE", 4) == 0) ) {
+                    }
+                    co1 = sString::next00(co1);
+                }
+            }
+            idx totCnt = 0;
+            idx gcCnt = 0;
+            idx gc[plen];
+            for (idx i = 0; i < plen; i++){
+                gc[i] = 0;
+            }
+
+            for(idx i = 0; i < codonDict.dim(); ++i) {
+                idx codoncnt = *codonDict.ptr(i);
+                const char * key = (const char *) (codonDict.id(i));
+                totCnt += codoncnt;
+                const char *codon = key;
+                unsigned char let;
+                idx containsGC = 0;
+                for(idx ilet = 0; ilet < plen; ++codon, ++ilet) {
+                    let = sBioseq::mapATGC[(idx) (*codon)];
+                    if( let == 1 || let == 2 ) {
+                        gc[ilet] += codoncnt;
+                        ++containsGC;
+                    }
+                }
+                gcCnt += (codoncnt * containsGC);
+            }
+            dataForm.printf("id,value\n");
+            dataForm.printf("taxid,%s\n", taxidInput);
+            dataForm.printf("collapse,%" DEC "\n", collapseTaxids);
+            dataForm.printf("\"#codon\",%" DEC "\n", totCnt);
+            dataForm.printf("\"#CDS\",%" DEC "\n", geneCount);
+            dataForm.printf("\"GC%%\",%0.2lf\n", totCnt ? (real)(gcCnt*100)/(plen*totCnt) : 0);
+            for (idx i = 0; i < plen; i++){
+                dataForm.printf("\"GC%d%%\",%0.2lf\n", (int)i+1, totCnt ? (real)(gc[i]*100)/(totCnt) : 0);
+            }
+
+            idx idlen;
+            for(idx i = 0; i < codonDict.dim(); ++i) {
+                const char *id = (const char *) (codonDict.id(i, &idlen));
+                dataForm.printf("%.*s,%" DEC "\n", (int)idlen, id, *codonDict.ptr(i));
+            }
+
+            outHtml();
+            return 1;
+        }
+
             break;
         default: {
-            //outPutLine.printf("Nothing found");
         }
             break;
     }
 
-    //iWander.debug=1;
     iWander.traverseCompile(statement.ptr());
-    //sStr t;iWander.printPrecompiled(&t);//::printf("%s\n\n",t.ptr());
     iWander.traverse();
 
-    //sStr outPutLine;
-    //outBin(outPutLine.ptr(), outPutLine.length(), 0, true, dtaBlobName.ptr(0));
-    return 1; // let the underlying Management code to deal with untreated commands
+    return 1;
 }
 
 enum enumIonBioCommands
@@ -1474,16 +1630,15 @@ idx lookForAlternativeSeqID(const char * seqID, sHiveIonSeq & hiWander, const ch
 
     sIonWander * iWander = &hiWander.wanderList[wandername];
     const char * nxt;
-    for( const char * p=seqID; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){ // scan until pipe | separated types and ids are there
-        //const char * curType=p;
-        nxt=strpbrk(p,"| "); // find the separator
+    for( const char * p=seqID; p && *p && !strchr(sString_symbolsSpace,*p); p=nxt+1 ){
+        nxt=strpbrk(p,"| ");
         if(!nxt || *nxt==' ')
             break;
 
         const char * curId=nxt+1;
-        nxt=strpbrk(nxt+1," |"); // find the separator
-        if(!nxt) // if not more ... put it to thee end of the id line
-            nxt=seqID+sLen(seqID);/// nxt=seqid+id1Id[1];
+        nxt=strpbrk(nxt+1," |");
+        if(!nxt)
+            nxt=seqID+sLen(seqID);
         if(*nxt==' ')
             break;
         iWander->setSearchTemplateVariable("$seqid",6, curId, nxt-curId);
@@ -1520,8 +1675,8 @@ idx DnaCGI::CmdIonBio(idx cmd)
     idx iSub = formIValue("mySubID", -1) -1;
     idx fromComputation = formIValue("fromComputation", 1);
     idx sequenceLength = 0;
-    std::auto_ptr < sUsrObj > al;
-    if( !seqID && fromComputation ) { // used from alignment or heptagon
+    std::unique_ptr < sUsrObj > al;
+    if( !seqID && fromComputation ) {
         if( !objs.dim() ) {
             return 1;
         }
@@ -1545,7 +1700,6 @@ idx DnaCGI::CmdIonBio(idx cmd)
         sHiveal hiveal(user, parentAlignmentPath);
 
         sHiveseq Sub(user, al->propGet00("subject", 0, ";"), hiveal.getSubMode());
-        //seqID = Sub.id(iSub-1); // because iSub (retrieved from front-end is 1 based)
         seqID.printf(0, "%s", Sub.id(iSub));
         sequenceLength = Sub.len(iSub);
     }
@@ -1620,7 +1774,7 @@ idx DnaCGI::CmdIonBio(idx cmd)
             sHiveal mutAl(user, mutualAlignmentPath);
 
             const sBioseq::EBioMode mutualAlMode = sBioseq::eBioModeLong;
-            sHiveseq Sub_mut(sQPride::user, isMutAl ? al->propGet00("subject", 0, ";") : 0 ,mutualAlMode);//Sub.reindex();
+            sHiveseq Sub_mut(sQPride::user, isMutAl ? al->propGet00("subject", 0, ";") : 0 ,mutualAlMode);
 
             if( isMutAl ) {
                 multipleAl=&mutAl;
@@ -1651,10 +1805,8 @@ idx DnaCGI::CmdIonBio(idx cmd)
             sHiveIonSeq hi(user, ionObjIDs, ionType, fileNameTemplate);
 
             sStr ionQry1;
-            //ionQry1.printf(0, "seq=foreach($id);a=find.annot(#range,seq.1,%" DEC ":%" DEC ",seq.1,%" DEC ":%" DEC ");", pos_start, pos_start, pos_end, pos_end); // #range=possort-max
             ionQry1.printf(0, "seq=foreach($id);a=find.annot(#range=possort-max,seq.1,%" DEC ":%" DEC ",seq.1,%" DEC ":%" DEC ");", pos_start, pos_start, pos_end, pos_end);
             ionQry1.printf("unique.1(a.record);f=%s;c=find.annot(seqID=a.seqID,record=a.record,id=f.1);", featureStatement.ptr(0));
-            //ionQry1.printf("d=find.annot(record=c.record);printCSV(d.seqID,d.pos,d.type,d.id);");
             ionQry1.printf("printCSV(c.seqID,c.pos,c.type,c.id);");
 
             if (pos_start==-1) {
@@ -1663,10 +1815,8 @@ idx DnaCGI::CmdIonBio(idx cmd)
             hi.addIonWander("seqPositionLookUp", ionQry1.ptr(0));
 
             sStr ionQry2;
-            // ionQry2.printf(0, "seq=foreach($id);a=find.annot(#range,seq.1,%" DEC ":%" DEC ",seq.1,%" DEC ":%" DEC ");", pos_start, pos_start, pos_end, pos_end); // #range=possort-max
             ionQry2.printf(0, "seq=foreach($id);a=find.annot(#range=possort-max,seq.1,%" DEC ":%" DEC ",seq.1,%" DEC ":%" DEC ");", pos_start, pos_start, pos_end, pos_end);
             ionQry2.printf("unique.1(a.record);f=%s;c=find.annot(seqID=a.seqID,record=a.record,type=f.1);", featureStatement.ptr(0));
-            //ionQry2.printf("unique.1(c.id);printCSV(c.seqID,c.pos,c.type,c.id);");
             ionQry2.printf("printCSV(c.seqID,c.pos,c.type,c.id);");
             hi.addIonWander("seqPositionLookUp_1", ionQry2.ptr(0));
 
@@ -1676,7 +1826,10 @@ idx DnaCGI::CmdIonBio(idx cmd)
             hi.addIonWander("idTypePositionLookUp", ionQry3.ptr(0));
 
             sDic < sStr > dic;
-            hi.annotMapPosition(&outPutContent, &dic, seqID.ptr(0), pos_start, pos_end, cnt, cntStart,0,multipleAl);
+            idx tmpLen=0;
+            idx seqIdStartPos=sHiveIonSeq::locateSeqId(seqID.ptr(),&tmpLen);
+            seqID.cut0cut(seqIdStartPos+tmpLen,2);
+            hi.annotMapPosition(&outPutContent, &dic, seqID.ptr(seqIdStartPos), pos_start, pos_end, cnt, cntStart,0,multipleAl);
 
         }
             break;
@@ -1697,15 +1850,13 @@ idx DnaCGI::CmdIonBio(idx cmd)
             if (ref.dim())
             {
 
-                //sDic < idx > idList;
                 sStr wandername, tmpOut;
                 idx curIndex = 0, tmpStart =0;
-                sStr mySeqID;
+                sStr mySeqID, accNum;
 
                 ionQry1.printf(0, "relation=find.annot(seqID=$seqid);p=print(relation.seqID,relation.pos,relation.type,relation.id);");
                 if (searchId && searchType)
                 {
-                    //ionQry1.printf(0,"a=search.annot(id=%s,type=%s);relation=find.annot(seqID=$seqid,record=a.record,id=a.id);p=print(relation.seqID,relation.pos,relation.type,relation.id);",searchId,searchType);
                     ionQry1.printf(0,"a=search.annot(id='regex:%s',type=%s);relation=find.annot(seqID=$seqid,type=a.type,id=a.id);p=print(relation.seqID,relation.pos,relation.type,relation.id);",searchId,searchType);
                 }
                 else if (searchId)
@@ -1719,15 +1870,16 @@ idx DnaCGI::CmdIonBio(idx cmd)
                 wandername.printf(0,"lookUp");
                 sIonWander * hiWander = hi.addIonWander(wandername.ptr(), ionQry1.ptr(0));
 
-                for ( idx iSub=0 ; iSub<ref.dim() ; ++iSub ) {  /* Start loop for the iSub*/
+                for ( idx iSub=0 ; iSub<ref.dim() ; ++iSub ) {
                     tmpStart = cntStart - curIndex;
                     const char * mySeqID=ref.id(iSub);
-                  //  mySeqID.printf(0,"%s",ref.id(iSub));
                     tmpOut.cut(0);
-                    //*idList.set(mySeqID)=num;
-                    //if(mySeqID[0]=='>')++mySeqID;
+
+                    sString::extractNCBIInfoSeqID(0, &accNum,mySeqID, sLen(mySeqID));
+                    accNum.shrink00();
+
                     hiWander->resetResultBuf();
-                    hiWander->setSearchTemplateVariable("$seqid",6, mySeqID, sLen(mySeqID));
+                    hiWander->setSearchTemplateVariable("$seqid",6, accNum.ptr(0), accNum.length());
 
                     if (tmpStart<=0) tmpStart=0;
 
@@ -1752,7 +1904,6 @@ idx DnaCGI::CmdIonBio(idx cmd)
                     ionQry1.printf(0, "seq=foreach.seqID('');relation=find.annot(seqID=seq.1);p=print(relation.seqID,relation.pos,relation.type,relation.id);");
                     if (searchId && searchType)
                     {
-                        //ionQry1.printf(0,"seq=foreach.seqID('');a=search.annot(id=%s,type=%s);relation=find.annot(seqID=seq.1,record=a.record,id=a.id);p=print(relation.seqID,relation.pos,relation.type,relation.id);",searchId,searchType);
                         ionQry1.printf(0,"seq=foreach.seqID('');a=search.annot(id=%s,type=%s);relation=find.annot(seqID=seq.1,type=a.type,id=a.id);p=print(relation.seqID,relation.pos,relation.type,relation.id);",searchId,searchType);
                     }
                     else if (searchId)
@@ -1763,7 +1914,7 @@ idx DnaCGI::CmdIonBio(idx cmd)
                     {
                         ionQry1.printf(0,"seq=foreach.seqID('');a=search.annot(type=%s);relation=find.annot(seqID=seq.1,record=a.record,type=a.type);p=print(relation.seqID,relation.pos,relation.type,relation.id);",searchType);
                     }
-                } else { // by default: TYPE
+                } else {
                     ionQry1.printf(0, "type=foreach.type('');printLimit=print(type.1);");
                 }
                 hi.addIonWander("lookUp", ionQry1.ptr(0));
@@ -1779,6 +1930,3 @@ idx DnaCGI::CmdIonBio(idx cmd)
     outBin(outPutContent.ptr(), outPutContent.length(), 0, true, blobName.ptr(0));
     return 1;
 }
-
-
-

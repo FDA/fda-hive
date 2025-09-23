@@ -57,7 +57,7 @@ using namespace slib;
         } \
     } while(false) \
 
-bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
+bool sMultipartParser::parse(const char * boundary, udx boundaryLen)
 {
     sStr bnd;
     if( boundary ) {
@@ -114,7 +114,6 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
                 multipart_log("%s", "s_start");
                 index = 0;
                 state = s_start_boundary;
-                /* no break */
 
             case s_start_boundary:
                 if( index == boundaryLen ) {
@@ -128,7 +127,7 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
                         return false;
                     }
                     index = 0;
-                    NOTIFY_CB(part_data_begin);
+                    NOTIFY_CB(part_begin);
                     state = s_header_field_start;
                     multipart_log("%s", "s_header_field_start");
                     break;
@@ -142,7 +141,6 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
             case s_header_field_start:
                 mark = i;
                 state = s_header_field;
-                /* no break */
 
             case s_header_field:
                 if( c == CR ) {
@@ -164,7 +162,7 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
                     return false;
                 }
                 if( isLast ) {
-                    buf = &buf[mark]; // shift buff to start of file name
+                    buf = &buf[mark];
                     len -= mark;
                     EMIT_DATA_CB(next_chunk, &buf, len);
                     mark = i = 0;
@@ -178,16 +176,14 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
                 mark = i;
                 state = s_header_value;
                 multipart_log("%s", "s_header_value_start");
-                /* no break */
 
             case s_header_value:
-                //multipart_log("%s", "s_header_value");
-                if( c == CR ) { // final piece
+                if( c == CR ) {
                     multipart_log("header value '%.*s'", (int)(i - mark), buf + mark);
                     EMIT_DATA_CB(header_value, buf + mark, i - mark);
                     state = s_header_value_almost_done;
                 }
-                if( isLast ) { // intermediate piece
+                if( isLast ) {
                     multipart_log("header value (last) '%.*s'", (int)(i - mark + 1), buf + mark);
                     EMIT_DATA_CB(header_value, buf + mark, (i - mark) + 1);
                 }
@@ -214,7 +210,6 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
                 NOTIFY_CB(headers_complete);
                 mark = i;
                 state = s_part_data;
-                /* no break */
 
             case s_part_data:
                 if( c == CR ) {
@@ -295,7 +290,7 @@ bool sMultipartParser::parse(const char * boundary, udx boundaryLen /* = 0 */)
                 multipart_log("%s", "s_part_data_end");
                 if( c == LF ) {
                     state = s_header_field_start;
-                    NOTIFY_CB(part_data_begin);
+                    NOTIFY_CB(part_begin);
                     break;
                 }
                 return false;

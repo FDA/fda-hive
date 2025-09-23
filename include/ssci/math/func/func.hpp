@@ -37,7 +37,7 @@
 
 namespace slib {
     class sFunc
-    { // lower level functions
+    {
         public:
             class special
             {
@@ -46,10 +46,10 @@ namespace slib {
                     static real betaContinuedFraction(real a, real b, real x);
                     static real betaIncomplete(real a, real b, real x);
 
-                    static real gser(real a, real x); // Returns the incomplete gamma function P(a; x) evaluated by its series representation as gamser.
-                    static real gcf(real a, real x); // Returns the incomplete gamma function Q(a; x) evaluated by its continued fraction representation as gammcf.
+                    static real gser(real a, real x);
+                    static real gcf(real a, real x);
                     static real gammap(real a, real x);
-                    static real errf(real x); // Returns the error function erf(x).
+                    static real errf(real x);
                     static real errfinv(real p);
 
             };
@@ -88,8 +88,7 @@ namespace slib {
 
 }
 
-#endif // sMath_func_hpp
-
+#endif 
 
 
 

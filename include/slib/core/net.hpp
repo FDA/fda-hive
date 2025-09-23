@@ -35,11 +35,6 @@
 
 namespace slib
 {
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ class sKnot
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     template < class Tobj > class sKnot
     {
@@ -91,17 +86,9 @@ namespace slib
 
         ~sNet()
         {
-            // destroy all of the subjects
-            /*
-            for(idx iref=0 ; iref<dim(); ++iref) {
-                sNetObj * o=usrPtr(iref);
-                o->destroy();
-                //o->~sNetObj();
-            }*/
             del(0,dim());
         }
 
-        // object management functions
         private:
             idx lastRef,serialObj;
             sVec < idx > objStack;
@@ -110,18 +97,16 @@ namespace slib
 
 
         enum eObjLinkType{
-            eLinkNone=-2, // no links
-            eLinkLastParent=-1, // use the default parent object from the top of the objStack
-            eLinkParent2Child=0x00000001, // link from a parent to a child
-            eLinkChild2Parent=0x00000002, // link from a child to a parent
-            eLinkIn=0x00000004, // self is a parent of others following it
+            eLinkNone=-2,
+            eLinkLastParent=-1,
+            eLinkParent2Child=0x00000001,
+            eLinkChild2Parent=0x00000002,
+            eLinkIn=0x00000004,
             eLinkCross=eLinkChild2Parent|eLinkParent2Child
         };
         protected:
-        //sNetObj * objAdd( void * usrbuf, idx usrsize=0, idx linkType=eLinkCross, idx parRef=eLinkLastParent)
         sNetObj * doAdd( void * usrbuf, idx usrsize=0)
         {
-            //idx * pofs=sDic< idx >::add(); // we maintain offsets of objects in dictionary
             sMex * mex=sDic< idx >::mex();
             idx ofs;
 
@@ -129,31 +114,26 @@ namespace slib
             if(netFlags&fMemObject){
                 p=(sNetObj*)sNew(usrsize);
                 if(p && usrbuf)memmove((void*)p,(void*)usrbuf,usrsize);
-                ofs=mex->add(&p,sizeof(p));  // now we add the space for object which must be derived from sNetObj
+                ofs=mex->add(&p,sizeof(p));
             }else {
-                ofs=mex->add(usrbuf,usrsize);  // now we add the space for object which must be derived from sNetObj
+                ofs=mex->add(usrbuf,usrsize);
                 p=(sNetObj * )mex->ptr(ofs);
             }
-            idx * pofs=sDic< idx >::add(); // we maintain offsets of objects in dictionary
+            idx * pofs=sDic< idx >::add();
             *pofs=ofs;
 
-            /*
-            dict(dim()-1,(const void *)&serialObj,sizeof(serialObj));
-            if(!(netFlags&fMemObject))
-                p=usrPtr(serialObj); // we do this because dict-ing can reallocate the memory
-            */
             p->size=usrsize;
-            lastRef=p->ref=dim()-1;//serialObj; //
+            lastRef=p->ref=dim()-1;
             ++serialObj;
 
             return p;
         }
         sNetObj * doLink( sNetObj * p, idx linkType=eLinkCross, idx parRef=eLinkLastParent)
         {
-            if(parRef==eLinkNone || linkType==eLinkNone ) // if no linking required
+            if(parRef==eLinkNone || linkType==eLinkNone )
                 return p;
 
-            if(parRef==eLinkLastParent){ // if the last parent link is required take it from parent stack
+            if(parRef==eLinkLastParent){
                 idx cnt=objStack.dim();
                 if(cnt==0){
                     if(linkType&eLinkIn)objIn(lastRef);
@@ -168,18 +148,8 @@ namespace slib
             return p;
         }
 
-        /*idx objAdd(const char * usr,idx usrsize, idx linkType=eLinkCross, idx parRef=eLinkLastParent) {
-            return objAdd((void * )usr, usrsize ? usrsize : sLen(usr) , linkType, parRef);
-        }*/
-        /*
-        template < class Tusr > Tusr & objAdd(const Tusr & usr,idx linkType=eLinkCross, idx parRef=eLinkLastParent) {
-            idx ref=objAdd((void * )&usr, sizeof(Tusr), linkType, parRef);
-            Tusr *o=susrPtr(ref);
-            new (o) Tusr;
-            return (Tusr &)*o;
-        }*/
 
-        void del( idx posDel, idx cntDel=1) // delete <cntDel> items from dictionary starting from <posDel> position
+        void del( idx posDel, idx cntDel=1)
         {
             for(idx i=posDel  ; i < cntDel ; ++i) {
                 sNetObj *p = (sNetObj*)(sDic<idx>::mex()->ptr(*ptr(i)));
@@ -194,7 +164,7 @@ namespace slib
 
         template < class Tusr > Tusr & objAdd(Tusr * usr,idx linkType=eLinkCross, idx parRef=eLinkLastParent) {
             Tusr  * p=(Tusr *)doAdd( (void * )usr, sizeof(Tusr));
-            if(!usr){new (p) Tusr; } // call the constructor if not a copy
+            if(!usr){new (p) Tusr; }
             doLink(p, linkType, parRef);
             return (Tusr &)*p;
         }
@@ -207,8 +177,7 @@ namespace slib
         }
 
         idx refIdx(idx ref) { return ref;}
-        //idx refIdx(idx ref) { idx num; find((const void *)&ref, sizeof(ref),&num); return num;}
-        void objIn(idx ref=-1) { // -1 means the last object
+        void objIn(idx ref=-1) {
             if(ref==-1)ref=lastRef;
             ref=refIdx(ref);
             objStack.vadd(1,ref);
@@ -231,7 +200,6 @@ namespace slib
             sNetObj *p = (sNetObj*)(sDic<idx>::mex()->ptr(*pofs));
             if(netFlags&fMemObject){ return *((sNetObj **)p);}
             return p;
-            //return (sNetObj *)(sDic<idx>::mex()->ptr(ofs));
         }
 
         sNetObj * usrPtr(const char * id){
@@ -257,8 +225,7 @@ namespace slib
 
 }
 
-#endif //  sLib_core_net.hpp
-
+#endif 
 
 
 

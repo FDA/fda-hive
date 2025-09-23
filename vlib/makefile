@@ -34,16 +34,17 @@ endif
 
 include $(devdir)/build/makefile.meta
 
-DIST_LIST = qlib db xlib
-BUILD_LIST = slib ssql ssci qlang ulib xlib ion qlib db
+DIST_LIST = db ulib qlib install
+BUILD_LIST = slib ssql ssci ion qlang xlib $(DIST_LIST)
+SYNC_LIST = ulib qlib # do not sync DB by default until formatting issues are fixed
 DLL_NAME = hive-vlib
-DLL_DEP_LIST = slib ssql ssci qlang ulib xlib qlib ion
+DLL_DEP_LIST = slib ssql ssci qlang ulib xlib qlib
 DLL_FILE = $(libdir)/lib$(DLL_NAME).so
 VLIB_STAMP = $(libdir)/vlib.stamp
 
-.PHONY: all makefile
+.PHONY: makefile
 
-all:: $(VLIB_STAMP) $(DLL_FILE)
+all: $(VLIB_STAMP) $(DLL_FILE)
 
 $(VLIB_STAMP):: makefile
 	$(call make-list,all,$(BUILD_LIST))
@@ -54,12 +55,16 @@ $(DLL_FILE):: $(VLIB_STAMP)
 	@echo "================ $(MAKE_MODE) - SHARED LIB - lib$(DLL_NAME).so"
 	$(CXX) -pthread -shared -o $@ $(LDFLAGS) -Wl,--whole-archive $(foreach tgt,$(DLL_DEP_LIST),$(libdir)/lib$(tgt).a) -Wl,--no-whole-archive $(IMAGEMAGICK_LIB) $(LIBXLS_LIB) $(PCRE_LIB) $(TOP_LDFLAGS)
 
-.PHONY: clean
-clean::
-	$(call make-list,$@,$(BUILD_LIST))
+.PHONY: lc
+clean: lc
+lc::
 	rm -f $(DLL_FILE)
 	rm -f $(VLIB_STAMP)
 
 .PHONY: dist
 dist::
 	$(call make-list,$@,$(DIST_LIST))
+
+.PHONY: sync
+sync::
+	$(call make-list,$@,$(SYNC_LIST))

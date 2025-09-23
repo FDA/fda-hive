@@ -34,11 +34,6 @@
 using namespace slib;
 
 
-//    modifies the string <TextStr>[MaxLen] according to hungarian
-//    notation if <IsName>==1 and CaseType==0.  Otherwise changes the case
-//    ( CaseType = 1 -> Translate To UperCase CaseType = 2 -> Translate To LowerCase)
-//    and removes the internal and external blanks.
-//    returns the length of the new string
 
 idx sString::hungarianText(const char * TextStr,char * TextDest,idx sizeDest,sString::eCase CaseType,bool IsName,bool IsRemIntBlanks)
 {
@@ -47,40 +42,39 @@ idx sString::hungarianText(const char * TextStr,char * TextDest,idx sizeDest,sSt
     bool SkipBlank=true;
     idx UpCasechar=1;
 
-    if(!sizeDest)sizeDest=sIdxMax;// Correct MaxLen 
+    if(!sizeDest)sizeDest=sIdxMax;
 
-    for(iScan=0,iWrite=0;iWrite<sizeDest && TextStr[iScan]!=0;iScan++){   // Scan the original string 
+    for(iScan=0,iWrite=0;iWrite<sizeDest && TextStr[iScan]!=0;iScan++){
 
-        chR=TextStr[iScan]; // read the next character 
-        chW=0;  // remember that do not transfer anything as default 
+        chR=TextStr[iScan];
+        chW=0;
 
-        if(strchr((sString_symbolsBlank),chR)){   // if blank character occured 
-            if(!SkipBlank){ // if blank must not be skipped 
-                chW=(sString_symbolsBlank)[0];    // remember to write SPC character 
-                SkipBlank=true;    // One blank character already written and skip other 
+        if(strchr((sString_symbolsBlank),chR)){
+            if(!SkipBlank){
+                chW=(sString_symbolsBlank)[0];
+                SkipBlank=true;
             }
         }
-        else    {   // if Not blank character 
-            chW=chR;    // remember to transfer not blank character 
-            if(!IsRemIntBlanks)SkipBlank=false; // if internal blanks mest be reminded set that do not skip next blank 
+        else    {
+            chW=chR;
+            if(!IsRemIntBlanks)SkipBlank=false;
         }
 
-        if(CaseType==eCaseHi)chW=(char)toupper((int)chW);  // revert to that case is need 
+        if(CaseType==eCaseHi)chW=(char)toupper((int)chW);
         if(CaseType==eCaseLo)chW=(char)tolower((int)chW);
-        if(IsName && UpCasechar)chW=(char)toupper((int)chW);  // if Upper Case is need in the names 
+        if(IsName && UpCasechar)chW=(char)toupper((int)chW);
 
-        if(chW!=0)TextDest[iWrite++]=chW;    // write transferring character 
+        if(chW!=0)TextDest[iWrite++]=chW;
 
-        //(chW>='A' && chW>='Z') || (chW>='a' && chW>='z')
-        if( isalpha((unsigned char)chW) )UpCasechar=0;  // if ascii character do not uppercase the next character in the names 
+        if( isalpha((unsigned char)chW) )UpCasechar=0;
 
-        else UpCasechar=1; // else the next must be uppercased in the names 
+        else UpCasechar=1;
     }
 
-    if(iWrite>0)if(strchr((sString_symbolsBlank),TextDest[iWrite-1]))iWrite--;     // if last character is blank 
-    TextDest[iWrite]=0;  // finalizing the string 
+    if(iWrite>0)if(strchr((sString_symbolsBlank),TextDest[iWrite-1]))iWrite--;
+    TextDest[iWrite]=0;
 
-    return iWrite;  // return the length of the string 
+    return iWrite;
 }
 
 
@@ -89,14 +83,14 @@ idx sString::hungarianText(const char * TextStr,char * TextDest,idx sizeDest,sSt
 idx sString::cStyle(sStr * dst, const char * src, idx len)
 {
     #define addS(_v_sym)          dst->add(&(ch=_v_sym),1)
-    idx levelCnt=4,i,k,j;
+    idx levelCnt=4,i,j;
     char ch;
     bool isSep=false;
     idx level=0;
     
     #define lvlS()              for(j=0;j<level*levelCnt;j++){addS(' ');}
 
-    for(i=0,k=0;i<len && src[i] ;i++){
+    for(i=0;i<len && src[i] ;i++){
         if(src[i]=='{'){
             addS('{');
             addS('\n');
@@ -113,7 +107,7 @@ idx sString::cStyle(sStr * dst, const char * src, idx len)
             continue;
         }
         else if(src[i]==',' || src[i]==';'){
-            if(!isSep) addS(' ');addS(src[i]);addS(' ');//lvlS();
+            if(!isSep) {addS(' ');addS(src[i]);addS(' ');}
             isSep=true;
             continue;
         }
@@ -125,9 +119,7 @@ idx sString::cStyle(sStr * dst, const char * src, idx len)
             if(!isSep){for(idx t=0; t<levelCnt; ++t) addS(' ');}
             isSep=true;
         }
-        //else if(src[i]=='\n'){
 
-        //}
         else {
             addS(src[i]);
             isSep=false;
@@ -157,20 +149,19 @@ idx sString::wrap(sStr * str,const char * src,const char * separ,idx charrayLen,
         if((separ && strchr(separ,ch)) || strchr(sString_symbolsEndline,ch) ){
             lastspace = k; lastpos = i;anySpace=1;
         }
-        /* put endline and printf the piece */
         if(strchr(sString_symbolsEndline,ch) || k>=charrayLen){
             if(anySpace)dst[lastspace]=0;
             else dst[k]=0;
 
             str->printf("%s\n",dst);
             
-            if(!anySpace){ // there were no places to break inside of the line 
+            if(!anySpace){
                 i--;lastpos=i;
             }else {
                 i=lastpos;
             }
             
-            lastspace=k=0; // and reset the destination 
+            lastspace=k=0;
             iy++;
             anySpace=0;
             continue;

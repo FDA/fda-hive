@@ -1,4 +1,3 @@
-
 /*
  *  ::718604!
  * 
@@ -29,30 +28,26 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-//Non-standard methods added to built-in objects for convenience
 
-//  Checks that string starts with the specific string...
+
 if (typeof String.prototype.startsWith != 'function') {
     String.prototype.startsWith = function (str) {
         return this.slice(0, str.length) == str;
     };
 }
 
-//  Checks that string ends with the specific string...
 if (typeof String.prototype.endsWith != 'function') {
     String.prototype.endsWith = function (str) {
         return this.slice(-str.length) == str;
     };
 }
 
-//  Right trim of the specific string...
 if (typeof String.prototype.rtrim != 'function') {
     String.prototype.rtrim = function (s) {
         return this.replace(new RegExp(s + "*$"), '');
     };
 }
 
-//  Left trim of the specific string...
 if (typeof String.prototype.ltrim != 'function') {
     String.prototype.ltrim = function (s) {
         return this.replace(new RegExp("^" + s + "*"), '');
@@ -65,7 +60,6 @@ if (typeof String.prototype.random != 'function') {
             len = 10;
 
         var text = "";
-        //var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
         for (var i = 0; i < len; i++)
             text += this.charAt(Math.floor(Math.random() * this.length));
@@ -74,7 +68,6 @@ if (typeof String.prototype.random != 'function') {
     };
 }
 
-//Parse function string and convert it to real javascript function...
 if (typeof String.prototype.parseFunction != 'function') {
     String.prototype.parseFunction = function () {
         var funcReg = /function *[a-zA-Z0-9_]* *\(([^()]+)\)[ \n\t]*{(.*)}/gmi;
@@ -88,21 +81,19 @@ if (typeof String.prototype.parseFunction != 'function') {
     };
 }
 
-//  Capitalize first letter of each word
 if (typeof String.prototype.capitalize != 'function') {
     String.prototype.capitalize = function () {
         return this.replace(/(^|\s)([a-z])/g, function (m, p1, p2) { return p1 + p2.toUpperCase(); });
     };
 }
 
-//  clear array and remove all items
 if (typeof Array.prototype.clear != 'function') {
     Array.prototype.clear = function () {
         this.length = 0;
     };
+    Object.defineProperty(Array.prototype, "clear", { enumerable: false });
 }
 
-//  split array on chunks and returns array of chunks' specified size
 if (typeof Array.prototype.chunks != 'function') {
     Array.prototype.chunks = function (size) {
         var array = this;
@@ -112,16 +103,16 @@ if (typeof Array.prototype.chunks != 'function') {
             })
         );
     }
+    Object.defineProperty(Array.prototype, "chunks", { enumerable: false });
 }
 
-//  clone array and return the copy
 if (typeof Array.prototype.clone != 'function') {
     Array.prototype.clone = function () {
         return this.slice(0);
     }
+    Object.defineProperty(Array.prototype, "clone", { enumerable: false });
 }
 
-//  remove duplicates from the array
 if (typeof Array.prototype.unique != 'function') {
     Array.prototype.unique = function () {
         var a = this.concat();
@@ -134,35 +125,29 @@ if (typeof Array.prototype.unique != 'function') {
 
         return a;
     };
+    Object.defineProperty(Array.prototype, "unique", { enumerable: false });
 }
 
-// compare two arrays
 if (typeof Array.prototype.equals != 'function') {
     Array.prototype.equals = function (array) {
-        // if the other array is a falsy value, return
         if (!array)
             return false;
 
-        // compare lengths - can save a lot of time 
         if (this.length != array.length)
             return false;
 
         for (var i = 0, l = this.length; i < l; i++) {
-            // Check if we have nested arrays
             if (this[i] instanceof Array && array[i] instanceof Array) {
-                // recurse into the nested arrays
                 if (!this[i].equals(array[i]))
                     return false;
             }
             else if (this[i] != array[i]) {
-                // Warning - two different object instances will never be equal: {x:20} != {x:20}
                 return false;
             }
         }
         return true;
     }
 
-    // Hide method from for-in loops
     Object.defineProperty(Array.prototype, "equals", { enumerable: false });
 }
 
@@ -188,7 +173,6 @@ if (typeof String.prototype.isJsObject != 'function') {
     };
 }
 
-//Non-standard method, available only in IE
 if (typeof Boolean.parse != 'function') {
     Boolean.parse = function(val) {
         var falsy = /^(?:f(?:alse)?|no?|0+)$/i;
@@ -245,9 +229,12 @@ jQuery.loadCSS = function(url) {
         $('head').append('<link rel="stylesheet" type="text/css" href="' + url + '">');
 }
 
-jQuery.loadScript = function(url) {
+jQuery.loadScript = function(url, callback_txt) {
     if (!$('script[src="' + url + '"]').length) {
         document.write('<script type="text/javascript" src="' + url + '"></script>');
+        if (callback_txt) {
+            document.write('<script type="text/javascript">' + callback_txt + '</script>');
+        }
     }
 }
 
@@ -260,7 +247,6 @@ jQuery.loadScriptAsync = function(url, callback) {
 jQuery.loadScripts = function(scripts, success) {
     var newScripts = [];
 
-    //    check if scripts already loaded to the page...
     $(scripts).each(function(index, url) {
         if (!$('script[src="' + url + '"]').length) {
             newScripts.push(url);
@@ -286,7 +272,7 @@ jQuery.loadScripts = function(scripts, success) {
 $.fn.loadScript = function (url, callback) {
 
     if (location.protocol == 'https:') {
-        url = url.replace('http://', 'https://');
+        url = url.replace('http:
     }
 
     var scripts = $('script[src="' + url + '"]');
@@ -300,7 +286,6 @@ $.fn.loadScript = function (url, callback) {
             });
         }
         else {
-            //  script already loaded
             if (callback != null) {
                 callback();
 
@@ -315,7 +300,7 @@ $.fn.loadScript = function (url, callback) {
         script.type = "text/javascript";
         $(script).attr({loading: true});
 
-        if (script.readyState) {  //IE
+        if (script.readyState) {
             script.onreadystatechange = function () {
                 if (script.readyState == "loaded" || script.readyState == "complete") {
                     script.onreadystatechange = null;
@@ -325,7 +310,7 @@ $.fn.loadScript = function (url, callback) {
                 }
             };
         }
-        else {  //Others
+        else {
             script.onload = function () {
                 callback();
 
@@ -378,8 +363,15 @@ jQuery.getLayoutManager = function() {
         return $('.layout-manager').first().layoutmanager('instance');
 }
 
+jQuery.getDataSource = function() {
+    if($('.dataSource').length == 0)
+        console.log('ERROR: cannot find Data Source!');
+    else
+        return $('.dataSource').first().dataSource('instance');
+}
+
 jQuery.queryString = function (key) {
-    key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&"); // escape RegEx control chars
+    key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&");
     var match = location.search.match(new RegExp("[?&]" + key + "=([^&]+)(&|$)"));
     return match && decodeURIComponent(match[1].replace(/\+/g, " "));
 }
@@ -390,19 +382,25 @@ jQuery.log = function(msg) {
     DEBUG && console.log(msg, arguments);
 }
 
-jQuery.loadLayoutManager = function(success) {
-    $.loadCSS('jquery/bootstrap/3.3.1/css/bootstrap.min.css');
+jQuery.fixBootstrapNamespaceConflicts = function() {
+    if ($.fn.button && $.fn.button.noConflict) {
+        var btn = $.fn.button.noConflict()
+        $.fn.btn = btn
+    }
+}
 
-    $.loadCSS('css/flexible_layout.css');
+jQuery.loadLayoutManager = function(success) {
+    $.loadCSS('jquery/bootstrap/3.3.7/css/bootstrap.min.css');
+
     $.loadCSS('css/slideout-menu.css');
 
-    //    load main jQuery layout widgets
     $.loadCSS('jsx/widgets/css/layout.master.css');
 
-    $.loadScript('jquery/bootstrap/3.3.1/js/bootstrap.min.js');
+    $.loadScript('jquery/bootstrap/3.3.7/js/bootstrap.min.js', '$.fixBootstrapNamespaceConflicts();');
     $.loadScript('jquery/3rd/watch/jquery-watch.js');
     
     $.loadScript('jsx/widgets/jquery/layout/jquery.layout.area.js');
+    $.loadScript('jsx/widgets/jquery/layout/jquery.layout.gridstackArea.js');
     $.loadScript('jsx/widgets/jquery/layout/jquery.layout.infobox.js');
     $.loadScript('jsx/widgets/jquery/layout/jquery.layout.manager.js');
     $.loadScript('jsx/widgets/jquery/layout/jquery.layout.tabs.js');
@@ -416,16 +414,14 @@ jQuery.loadLayoutManager = function(success) {
 }
 
 jQuery.loadLayoutManagerAsync = function(success) {
-    $.loadCSS('jquery/bootstrap/3.3.1/css/bootstrap.min.css');
+    $.loadCSS('jquery/bootstrap/3.3.7/css/bootstrap.min.css');
 
-    $.loadCSS('css/flexible_layout.css');
     $.loadCSS('css/slideout-menu.css');
 
-    //    load main jQuery layout widgets
     $.loadCSS('jsx/widgets/css/layout.master.css');
     
     var scripts = [
-       'jquery/bootstrap/3.3.1/js/bootstrap.min.js',
+       'jquery/bootstrap/3.3.7/js/bootstrap.min.js',
        'jquery/3rd/watch/jquery-watch.js',
        'jsx/widgets/jquery/layout/jquery.layout.area.js',
        'jsx/widgets/jquery/layout/jquery.layout.infobox.js',
@@ -438,8 +434,11 @@ jQuery.loadLayoutManagerAsync = function(success) {
        'jsx/widgets/jquery/view/jquery.dataviews.js',
        'jsx/widgets/jquery/view/jquery.areastats.js'
     ];
-    
-    $.loadScripts(scripts, success);
+
+    $.loadScripts(scripts, function() {
+        $.fixBootstrapNamespaceConflicts();
+        success && success();
+    });
 }
 
 $.urlParam = function(name, url) {

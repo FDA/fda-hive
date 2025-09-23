@@ -31,8 +31,7 @@
 function vjGoogleGraphView( viewer )
 {
 
-    //vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
-    vjTableView.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjTableView.call(this,viewer);
     this.refreshAsTable=this.refresh;
     this.originalSeries = [];
 
@@ -45,7 +44,6 @@ function vjGoogleGraphView( viewer )
     this.switchToTextMode=2;
     if(!this.type)this.type='scatter';
     if (!this.scaleTo) this.scaleTo = 0;
-    //if (!this.graphData) this.graphData = new google.visualization.DataTable();
     this.delayedEventHandler=1;
 
     this.exclusionObjRegex = verarr(this.exclusionObjRegex);
@@ -61,6 +59,27 @@ function vjGoogleGraphView( viewer )
     }
     if (this.downloadLinkManage === undefined) {
         this.downloadLinkManage = true;
+    }
+    
+    if (viewer.nonSticky === undefined) this.nonSticky = false;
+
+    this.defaultInitTblArr = function(content, parsemode) {
+        this.tblArr = new vjTable(content, 0, parsemode, undefined, undefined, undefined, undefined, this.cntHeaderRows);
+        if (!(parsemode & vjTable_hasHeader)) {
+            var numCols = 0;
+            for (var ir=0; ir<this.tblArr.rows.length; ir++)
+                numCols = Math.max(numCols, this.tblArr.rows[ir].cols.length);
+            this.tblArr.hdr = [];
+            for (var ic=0; ic<numCols; ic++)
+                this.tblArr.hdr.push({name: ""});
+            for (var ir=0; ir<this.tblArr.rows.length; ir++)
+                if (this.tblArr.rows[ir].cols.length)
+                    this.tblArr.rows[ir][""] = this.tblArr.rows[ir].cols[0];
+        }
+    };
+
+    if (!this.initTblArr || !viewer.initTblArr) {
+        this.initTblArr = this.defaultInitTblArr;
     }
 
     this.composerFunction=function( viewer , content, ds )
@@ -79,8 +98,10 @@ function vjGoogleGraphView( viewer )
             return;
         }
 
-        this.tblArr=new vjTable(content, 0, this.parsemode, undefined, undefined, undefined, undefined, this.cntHeaderRows);
-        this.tblArr.mangleRows(this.exclusionObjRegex, "delete");
+        this.initTblArr(content, this.parsemode);
+        if(this.tblArr){
+            this.tblArr.mangleRows(this.exclusionObjRegex, "delete");
+        }
         
         if (this.rows)
         {
@@ -97,13 +118,7 @@ function vjGoogleGraphView( viewer )
             this.tblArr.rows = tmpRows;
         }
 
-//        if(this.minRowsToAvoidRendering ) {
-//            if( this.tblArr.rows.length<this.minRowsToAvoidRendering)
-//                {this.div.className='sectHid'; return;}
-//            else this.div.className='sectVis';
-//        }
 
-        //alert("aaa "+jjj(this.tblArr.hdr))
 
         if(this.precompute)
             this.tblArr.enumerate(this.precompute);
@@ -130,47 +145,25 @@ function vjGoogleGraphView( viewer )
         if(!this.options.vAxis )
             this.options.vAxis=new Object();
 
-        //if(this.options.vAxis.title)
         {
             if(this.logGraph)
                 this.options.vAxis.logScale=true;
             else
                 this.options.vAxis.logScale=false;
-            /*if ( this.options.vAxis.title.indexOf("log")==0 ){
-                var pos=this.options.vAxis.title.indexOf(" ");
-                if(pos!=-1)
-                    this.options.vAxis.title=this.options.vAxis.title.substr(pos);
-            }
-
-            if(this.logGraph==10)
-                this.options.vAxis.title="log10 "+this.options.vAxis.title;
-            else if(this.logGraph==2)
-                this.options.vAxis.title="log2"+this.options.vAxis.title;
-            else  if(this.logGraph)
-                this.options.vAxis.title="logN"+this.options.vAxis.title;
-                */
         }
 
 
 
-        // determine which columns are to be shown
         this.graphData = new google.visualization.DataTable();
-        // graphData_irow_cols[ir][ic] is the tblArr row that
-        // had been used to generate the value in graphData(ir, ic).
         this.graphData2tblArr_row = [];
 
         var maxRows=this.tblArr.rows.length; if(this.maxRowPerSeries)maxRows=this.maxRowPerSeries;
 
-        //series:[ {label:true, name:'Reference', title: 'Identifier of the reference gene'}, {name: 'Hits', title: 'Hits to reference genome' } ];
 
            var islabel;
            var firstColumnLabel = (this.type== "column-area") ?  (maxRows<this.switchToColumnMode ? true : false) : (this.series && this.series.length > 0) ? this.series[0].label : undefined;
-        //alerJ( ic + " " + islabel+ "---"+this.type + " //  " + firstColumnLabel +" max "+ m, viewer)
 
-//        var fndCols=new Array();
-//        var colSeries=new Array();
 
-        //if(this.debug)alert(jjj(this.tblArr.hdr)+"\n---------------\n"+jjj(this.series));
 
         for ( var ic=0; ic< this.series.length; ++ic ) {
             if(!this.series[ic].name && this.tblArr.hdr && this.tblArr.hdr.length>0){
@@ -189,14 +182,17 @@ function vjGoogleGraphView( viewer )
                 this.series[ic].type = coltype;
             }
             var role = this.series[ic].role ? this.series[ic].role : "";
-            if (role.length >0){ // role could be : tooltip or annotation or annotationText
-                // allows to use the column as a tooltip or annotationText
+            if (role.length > 0 && role != "interval"){
                 this.series[ic].type = "string";
                 this.graphData.addColumn({
                                 type:"string"
                                 ,role: role
-                                , p: {'html': true} // when options: {isHtml: true} 
+                                , p: {'html': true}
                 });
+            }
+            else if(role == "interval"){
+                this.series[ic].type = "number";
+                this.graphData.addColumn({ type:"number", role: "interval", p: {'html': true} , color:"black"});
             }
             else this.graphData.addColumn(coltype, title);
         }
@@ -279,17 +275,13 @@ function vjGoogleGraphView( viewer )
                     posSum+=parseFloat(this.tblArr.rows[ir+shiftRow][this.series[ic].name]);
                 }
             }
-            //if(this.debug && (ir>10 && ir<200 ))
-            //    continue;
 
 
-            //alerJ(ir, this.tblArr.rows[ir])
 
-            if( this.type== "stepped-area") { // before and after
+            if( this.type== "stepped-area") {
                 this.graphData.addRows(1);
                 this.graphData.addRows(1);
             } else if (this.type == "stepped-area-right" && iRR) {
-                // before current row, insert row with current x value and previous y values
                 this.graphData.addRows(1);
             }
             this.graphData.addRows(1);
@@ -299,7 +291,6 @@ function vjGoogleGraphView( viewer )
 
 
             for ( var ic=0; ic< this.series.length; ++ic ){
-                //islabel=( ic==0 ? firstColumnLabel : this.series[ic].label);
 
                 var shiftRow=(this.series[ic].shiftRow) ?this.series[ic].shiftRow : 0 ;
                 var value;
@@ -307,7 +298,6 @@ function vjGoogleGraphView( viewer )
                     var node=this.tblArr.rows[ir+shiftRow];
                     var row=node;
                     value = eval(this.series[ic].eval);
-                    // stringify weird eval results except for js Date objects - google graph can handle them
                     if (typeof value != "number" && !(value instanceof Date)) {
                         value = "" + value;
                     }
@@ -316,39 +306,22 @@ function vjGoogleGraphView( viewer )
 
                 
                 if(!value){
-                    //alert("DEVELOPER ALERT: vjGoogleGraph column '"+ this.series[ic].name + "' is not in dataset <"+value+"> \n "+"row " + ir + " = " + jjj(this.tblArr.rows[ir+shiftRow])  );
-                    //return ;
                     value= (this.series[ic].type == "number") ? 0 : "";
                 }
-                if(this.series[ic].type=="number")  // if(!this.series[ic].label)
+                if(this.series[ic].type=="number")
                     value=parseFloat(value);
 
                 if(this.scaleTo && (this.series[ic].type=="number") && (!this.series[ic].notScaled) ) {
 
                     value=totSum ? (this.scaleTo*value)/totSum : 0 ;
-                    //value=parseFloat(value.toPrecision(2));
                     value=Number(Math.round(parseFloat(value) + "e+2") + "e-2")
                 }
                 
                 if(this.positionalScaleTo && (this.series[ic].type=="number") && (!this.series[ic].notScaled) ) {
 
                     value=posSum ? (this.positionalScaleTo*value)/posSum : 0 ;
-                    //value=parseFloat(value.toPrecision(2));
                     value=Number(Math.round(parseFloat(value) + "e+2") + "e-2")
                 }
-/*
-                if(this.logGraph && ic!=0 ) {
-                    value=parseFloat(value);
-                    if(value)
-                        value=Math.log(value);
-                    if(this.logGraph==10)
-                        value/=Math.log(10.);
-                    else if(this.logGraph==2)
-                        value/=Math.log(2.);
-                    if((islabel))
-                        value=""+value;
-                }
-    */
                 if(this.doIntegral && ic!=0 && (this.series[ic].type=="number")) { 
                     cumulator[ic]+=value;
                     value=cumulator[ic];
@@ -367,7 +340,6 @@ function vjGoogleGraphView( viewer )
                     if (!this.graphData2tblArr_row[iRR + 2]) this.graphData2tblArr_row[iRR + 2] = [];
                     this.graphData2tblArr_row[iRR + 2][ic] = ir + shiftRow;
                 } else if (this.type == "stepped-area-right" && iRR) {
-                    // before current row, insert row with current x value and previous y values
                     irshift = 1;
                     this.graphData.setValue(iRR, ic , ic ? this.graphData.getValue(iRR - 1, ic) : value);
                     this.graphData.setFormattedValue(iRR, ic, "");
@@ -401,7 +373,6 @@ function vjGoogleGraphView( viewer )
             funcLink(this.onGraphDataReady, this);
         }
 
-        //alert(this.maxRenderedValue+"-"+this.minRenderedValue + " < " + this.minimumChangeAllowed );
         var useType=this.type;
         if( (this.minRowsToAvoidRendering && this.tblArr.rows.length<this.minRowsToAvoidRendering) || (this.minimumChangeAllowed && Math.abs(this.maxRenderedValue-this.minRenderedValue<=this.minimumChangeAllowed ))){
             if (this.cols)
@@ -431,7 +402,6 @@ function vjGoogleGraphView( viewer )
             if (this.rows)
                 this.tblArr.customizeRows(this.rows);
             useType='table';
-//            return ;
         }
 
         for (var ik = 0; ik < this.series.length; ik++)
@@ -474,6 +444,8 @@ function vjGoogleGraphView( viewer )
             this.obj  = new google.visualization.AreaChart(this.chart_div);
         }else if(useType== "map") {
             this.obj  = new google.visualization.Map(this.chart_div);
+        } else if (useType == "timeline") {
+            this.obj = new google.visualization.Timeline(this.chart_div);
         }
         else if(useType== "table") {
             if (this.downloadLinkManage && this.downloadLink) {
@@ -489,36 +461,23 @@ function vjGoogleGraphView( viewer )
 
         if (this.downloadLink) {
             var a = (typeof(this.downloadLink) === "string") ? gObject(this.downloadLink) : this.downloadLink;
-            // google's svg element doesn't have xmlns etc. tags as required for external viewers
             var svg = this.chart_div.getElementsByTagName("svg")[0];
             if (!svg)
                 return;
-            svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            svg.setAttribute("xmlns", "http:
             svg.setAttribute("version", "1.1");
-            svg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+            svg.setAttribute("xmlns:xlink", "http:
             a.href = "data:image/svg+xml," + encodeURIComponent(svg.parentNode.innerHTML);
         }
 
         var funcname=vjObjEventGlobalFuncName("onSelectHandler",this.objCls);
-        window[funcname]= eval(vjObjEventGlobalFuncBody("onSelectHandler",this.objCls, this.delayedHandler )); // vjObjEvent(a[0],a[1]);
+        window[funcname]= eval(vjObjEventGlobalFuncBody("onSelectHandler",this.objCls, this.delayedHandler ));
         google.visualization.events.addListener( this.obj , 'select', eval(funcname));
-        /*var dctrl=gObject(this.container+"-controls");
-        if(dctrl) {
-            dctrl.innerHTML="<a href='javascript:vjObjEvent(\"onControlClick\", \"" + this.objCls + "\",this,'log');' >"+
-            "log"+
-            "</a>";
-        }*/
         return;
 
     };
+    
     this.selectCaptureCallback=this.onSelectHandler;
-
-/*
-    this.onControlClick= function(container, thisobject, operation )
-    {
-        alerJ("operation="+operation,this);
-    }
-*/
     this.onSelectHandler = function ()
     {
         var irow = -1;
@@ -528,7 +487,6 @@ function vjGoogleGraphView( viewer )
         if (this.obj.getSelection().length != 0) {
             icol = parseInt(this.obj.getSelection()[0].column);
             if (isNaN(icol)) icol = -1;
-            // this.obj.getSelection()[0].row is the graphData row - map it to corresponding tblArr row.
             irow = this.graphData2tblArr_row[this.obj.getSelection()[0].row][icol >= 0 ? icol : 0];
             node = this.tblArr.rows[irow];
             if (node) {
@@ -588,12 +546,9 @@ function vjGoogleGraphPanelView(viewer)
         ,{ name: 'stepped-area', icon: 'img/graph2.gif', title: 'Stepped area', path:'/type/stepped-area', align:'left', description: "Stepped area" ,  url: "javascript:thisObj.graphObject.type=args[1].name;thisObj.graphObject.refresh();"}
         ];
 
-        //{ name: 'scalelog2', title: 'log 2 scale', path:'/scale/log2', align:'left', description: 'Log 2 scale', url: "javascript:thisObj.graphObject.logGraph=2;thisObj.graphObject.refresh();" }
-        //]);
 
     var howmanyadded=0;
     for( var i=0; i<possibleGraphs.length;++i){
-        //alert("comparing "+possibleGraphs[i].name + " against " + possibleGraphs[i]);
         if(viewer.possibleGraphs && viewer.possibleGraphs.indexOf(possibleGraphs[i].name)==-1)
             continue;
         if(howmanyadded==0)
@@ -618,8 +573,6 @@ function vjGoogleGraphPanelView(viewer)
             dataIndex: viewer.data.indexOf(viewer.dataHelp)
         });
     }
-    //for( var ii=0; ii<this.rows.length; ++ii )
-        //alerJ(777,this.rows[ii]);
 }
 
 
@@ -635,16 +588,9 @@ function vjGoogleGraphControl(viewer)
     this.googleViewer = new vjGoogleGraphView(viewer);
     if(viewer.noToolbar)return  [this.googleViewer];
 
-//    if( viewer.minRowsToAvoidRendering) {
-//        this.tableViewer = new vjTableView(
-//                { data:viewer.data,
-//                  maxRowsToAvoidRendering: viewer.minRowsToAvoidRendering+2 ,
-//                  isok:true});
-//    }else
-//        this.tableViewer = new vjHTMLView( {data:'dsVoid'} );
 
     this.panelViewer = new vjGoogleGraphPanelView({
-        data: viewer.dataHelp ? ["dsVoid", "dsVoid", viewer.dataHelp] : ["dsVoid"], // ,this.panel_data
+        data: viewer.dataHelp ? ["dsVoid", "dsVoid", viewer.dataHelp] : ["dsVoid"],
         width:this.width,
         formObject: viewer.formObject,
         possibleGraphs:viewer.possibleGraphs,
@@ -652,64 +598,10 @@ function vjGoogleGraphControl(viewer)
         dataHelp: viewer.dataHelp
     });
 
-    return [this.panelViewer,this.googleViewer/*, this.tableViewer*/ ];
+    return [this.panelViewer,this.googleViewer];
 }
 
 
 
 
-/*
-    this.refresh = function () {
-        // determine which columns are to be shown
-       this.graphData = new google.visualization.DataTable();
 
-        //series:[ {label:true, name:'Reference', title: 'Identifier of the reference gene'}, {name: 'Hits', title: 'Hits to reference genome' } ];
-
-
-
-        var fndCols=new Array();
-        var colSeries=new Array();
-
-
-        for ( var ir=0; ir< this.tblArr.rows.length; ++ir ) {
-            if(ir>10)break;
-            var node = this.tblArr.rows[ir];
-
-            this.graphData.addColumn("number", node.locustag );
-
-            //alerJ(ir, this.tblArr.rows[ir])
-            this.graphData.addRows(1);
-            this.graphData.setValue(0, ir , parseFloat(node.start)) ;
-            this.graphData.addRows(1);
-            this.graphData.setValue(1, ir , parseFloat(node.end)) ;
-
-        }
-
-        if(this.type== "column") {
-            this.obj = new google.visualization.ColumnChart(this.chart_div);
-        }else if(this.type== "scatter") {
-            this.obj  = new google.visualization.ScatterChart(this.chart_div);
-        }else if(this.type== "line") {
-            this.obj  = new google.visualization.LineChart(this.chart_div);
-        }else if(this.type== "area") {
-            this.obj  = new google.visualization.AreaChart(this.chart_div);
-        }else if(this.type== "pie") {
-            this.obj  = new google.visualization.PieChart(this.chart_div);
-        }else if(this.type== "candlestick") {
-            this.obj  = new google.visualization.CandlestickChart(this.chart_div);
-        }
-        //alerJ('sometext',this.options)
-        this.obj.draw(this.graphData, this.options);
-
-        var funcname=vjObjEventGlobalFuncName("onSelectHandler",this.objCls);
-        window[funcname]= eval(vjObjEventGlobalFuncBody("onSelectHandler",this.objCls, this.delayedHandler )); // vjObjEvent(a[0],a[1]);
-        google.visualization.events.addListener( this.obj , 'select', eval(funcname));
-
-        return;
-
-    }
-
-
-*/
-
-//# sourceURL = getBaseUrl() + "/js/vjGoogleGraphView.js"

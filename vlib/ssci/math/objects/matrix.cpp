@@ -28,6 +28,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+
+
+
 #include <math.h>
 #include <ssci/math/objects/matrix.hpp>
 #include <ssci/math/algebra/algebra.hpp>
@@ -37,13 +40,6 @@
 
 using namespace slib;
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/ Matrix outpts
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
 inline void titleOutput(sStr * out, const char * title,idx plen, bool forCSV)
 {
@@ -58,7 +54,7 @@ inline void titleOutput(sStr * out, const char * title,idx plen, bool forCSV)
     }
 }
 
-void sMatrix::matOutput(sStr * out, void * opr, real * , idx row, idx col, bool forCSV)//param pVal
+void sMatrix::matOutput(sStr * out, void * opr, real * , idx row, idx col, bool forCSV)
 {
     MatrixDicHeaders * op= (MatrixDicHeaders * )opr;
     idx plen;
@@ -86,17 +82,6 @@ void sMatrix::matOutput(sStr * out, void * opr, real * , idx row, idx col, bool 
 
     return ;
 }
-/*
-
-void sMatrix::matOutput(sStr * out, void * , real * , idx row, idx col)//param pVal
-{
-    if(row==-1 && col==-1) out->printf("/");
-    else if(col==-1){out->printf("row_%" DEC "",row);}
-    else if(row==-1){out->printf("col_%" DEC "",col);}
-    //else out->printf("%lf",*pVal);
-    return ;
-}
-*/
 
 void sMatrix::out(sStr * ot, void * param, bool transpose, bool header, const char * fmt, MatrixOutput ho, idx colstart, idx colend, idx rowstart, idx rowend) const
 {
@@ -123,7 +108,6 @@ void sMatrix::out(sStr * ot, void * param, bool transpose, bool header, const ch
 
             for(idx ic=colstart; ic< colend; ++ic ) {
                 if(ic || header)ot->printf(",");
-                //ho(ot,param,ptr(ir,ic),ir,ic);
                 ot->printf(fmt,val(ir,ic));
             }
             ot->printf("\n");
@@ -143,13 +127,11 @@ void sMatrix::out(sStr * ot, void * param, bool transpose, bool header, const ch
 
             for( idx ir=rowstart; ir<rowend; ++ir){
                 if(ic || header)ot->printf(",");
-                //ho(ot,param,ptr(ir,ic),ir,ic);
                 ot->printf(fmt,val(ir,ic));
             }
             ot->printf("\n");
         }
     }
-    // output the transpose of activity matrix
 }
 void sMatrix::out(const char * flnm, void * param, bool transpose, bool header, const char * fmt, MatrixOutput ho, idx colstart, idx colend, idx rowstart, idx rowend) const
 {
@@ -159,7 +141,7 @@ void sMatrix::out(const char * flnm, void * param, bool transpose, bool header, 
 
 
 
-void sMatrix::outSingleEvecSrt(sStr * out, real * evals, idx col, sDic < idx > * ids, sStr * outshort ) const// cntpeaks
+void sMatrix::outSingleEvecSrt(sStr * out, real * evals, idx col, sDic < idx > * ids, sStr * outshort ) const
 {
     idx cls=cols();
     sVec < idx > ind;ind.resize(cls);
@@ -171,13 +153,11 @@ void sMatrix::outSingleEvecSrt(sStr * out, real * evals, idx col, sDic < idx > *
     out->printf("%" DEC "-vec,%lf,(%.2lf),",col+1,evals[col],prctl);
     if(outshort)
         outshort->cut(0);
-    //if(prctl<1)topPeaks=0;
     real sum=0,sum2=0;
     for( idx ir=0,ip=0; ir<cls; ++ir) {
         real vv=val(ind[ir],col);
         sum+=vv;sum2+=vv*vv;
         if(vv*vv<0.01)continue;
-        //real * pmass=(real *)peaks.id(ind[ir]);
         const char * pid=ids ? (const char * ) ids->id(ind[ir]) : 0;
         if(ip) {
             out->printf(" + ");
@@ -193,20 +173,12 @@ void sMatrix::outSingleEvecSrt(sStr * out, real * evals, idx col, sDic < idx > *
 
         ++ip;
     }
-    //out->printf("   [ %lf %lf ]",sum, sum2);
     out->printf("\n");
 
 }
 
 
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/ extraction routines
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 void sMatrix::copy(sMatrix & newmat, bool transpose) const
 {
     if(transpose)newmat.resize(cols(),rows());
@@ -231,7 +203,7 @@ void sMatrix::extractRowset(sMatrix & newmat, sVec < idx> & rowset) const
         if(iir<0)
             continue;
 
-        for(idx ic=0; ic<cols(); ++ic) { // for every column
+        for(idx ic=0; ic<cols(); ++ic) {
             newmat[orirows+ireal][ic]=val(iir,ic);
         }
         ++ireal;
@@ -250,7 +222,7 @@ void sMatrix::extractColset(sMatrix & newmat, sVec < idx> & colset) const
     newmat.resize(rows(),colset.dim());
 
     for ( idx ic=0; ic<colset.dim(); ++ic) {
-        for(idx ir=0; ir<rows(); ++ir) { // for every column
+        for(idx ir=0; ir<rows(); ++ir) {
             idx iic=colset[ic];
             newmat[ir][ic]=val(ir,iic);
         }
@@ -285,11 +257,10 @@ void sMatrix::squareRoot(sMatrix & result) const
     for(idx i=0; i<ccols-1; ++i) {
         real val=eVals[i];val=sAbs(val);
         if(val<1e-10)val=0;
-        diag(i,i)=sqrt(val); // the very last one should be zeroo anyway
+        diag(i,i)=sqrt(val);
     }
     sMatrix stp1; stp1.multiplyMatrixes(diag,eVecs,true);
     result.multiplyMatrixes(eVecs, stp1);
-    ///sMatrix stp3; stp3.multiplyMatrixes(stp2,stp2,false);
 }
 
 
@@ -308,7 +279,7 @@ void sMatrix::statisticsRowset( DistrRowSetStruc * ds, sDic < sVec < idx > > & r
     ds->dPerColArm=0;
 
     if(ds->distributionPerCol ) {
-        ds->distributionPerCol->resize(2*cols() *( 1 + rowsToUseDic.dim()) + cols()*( 1 + rowsToUseDic.dim())*2 ); // need space for distribution STDEV and means for each measurement 1 for all rows and for each class and more for arms and delat-arms
+        ds->distributionPerCol->resize(2*cols() *( 1 + rowsToUseDic.dim()) + cols()*( 1 + rowsToUseDic.dim())*2 );
         ds->distributionPerCol->set(0);
         ds->dPerColStdDev=ds->distributionPerCol->ptr(0);
         ds->dPerColStdDevCls=ds->dPerColStdDev+cols();
@@ -318,17 +289,15 @@ void sMatrix::statisticsRowset( DistrRowSetStruc * ds, sDic < sVec < idx > > & r
     }
 
     if( ds->distributionPerRow ) {
-        ds->distributionPerRow->resize(2*( rows()) + 2*rows() ); // need space for distribution STDEV and means per row and one more for arms and delta arms
+        ds->distributionPerRow->resize(2*( rows()) + 2*rows() );
         ds->distributionPerRow->set(0);
         ds->dPerRowStdDev=ds->distributionPerRow->ptr(0);
         ds->dPerRowMean=ds->distributionPerRow->ptr(ds->distributionPerRow->dim()/2);
         ds->dPerRowArm=ds->dPerRowMean+rows();
     }
 
-    // if we are checking the distributions
     if(ds->dPerColMean || ds->dPerRowMean) {
 
-        //accumulate the values
         for(idx iCls=0; iCls<rowsToUseDic.dim(); ++iCls) {
             idx cntR=rowsToUseDic.ptr(iCls)->dim();
             idx * ptrR=rowsToUseDic.ptr(iCls)->ptr(0);
@@ -347,7 +316,6 @@ void sMatrix::statisticsRowset( DistrRowSetStruc * ds, sDic < sVec < idx > > & r
             }
         }
 
-        // compute the means
         idx totCnt=0;
         if(ds->dPerColMean) {
             for(idx iCls=0; iCls<rowsToUseDic.dim(); ++iCls) {totCnt+=rowsToUseDic.ptr(iCls)->dim();}
@@ -367,7 +335,6 @@ void sMatrix::statisticsRowset( DistrRowSetStruc * ds, sDic < sVec < idx > > & r
 
         real delta=0;
 
-        //accumulate the variance
         for(idx iCls=0; iCls<rowsToUseDic.dim(); ++iCls) {
             idx cntR=rowsToUseDic.ptr(iCls)->dim();
             idx * ptrR=rowsToUseDic.ptr(iCls)->ptr(0);
@@ -386,16 +353,16 @@ void sMatrix::statisticsRowset( DistrRowSetStruc * ds, sDic < sVec < idx > > & r
                         ds->dPerColArm[iCls*cols()+2*ic]+=v*d;
                         ds->dPerColArm[iCls*cols()+2*ic+1]+=v*delta;
                     }
-                    if(ds->dPerRowMean)
+                    if(ds->dPerRowMean) {
                         d=v-ds->dPerRowMean[ir];
                         ds->dPerRowStdDev[ir]+=d*d;
                         ds->dPerRowArm[2*ir]+=v*d;
                         ds->dPerRowArm[2*ir+1]+=v*delta;
+                    }
                 }
             }
         }
 
-        // compute the stdDev values
         if(ds->dPerColMean) {
             for(idx ic=0; ic<cols(); ++ic) {
                 ds->dPerColStdDev[ic]=sqrt(ds->dPerColStdDev[ic]/totCnt);
@@ -415,31 +382,19 @@ void sMatrix::statisticsRowset( DistrRowSetStruc * ds, sDic < sVec < idx > > & r
 
 
 }
-/*
-
-idx sMatrix::parseMAFasta(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> * colIds, sVec < sMex::Pos> * rowIds)
-{
-    sVax v(idx flagSet, src, len );
-
-    while( v.ensureRecordBuf()) {
-
-    }
-
-    return (ir+1)*(ic+1);
-}
-
-*/
 
 
 
 
 idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> * colIds, sVec < sMex::Pos> * rowIds,
-        const char * ignoresym, idx dicMode, real binThreshold, bool readNumsAsNums, bool transpose/*=false*/, bool supportquote/*=false*/,
+        const char * ignoresym, idx dicMode, real binThreshold, bool readNumsAsNums, bool transpose, bool supportquote,
         const char * filterRows00, const char * filterCols00
         , idx nonzeroMin, idx zeroMax
         )
 {
 
+
+    if(transpose ) {const char * t=filterCols00; filterCols00=filterRows00;filterRows00=t;}
     sVec < sText::SearchStruc > fltRows;
     if(filterRows00) sText::compileSearchStrings(filterRows00, &fltRows);
     sVec < sText::SearchStruc > fltCols;
@@ -447,11 +402,9 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
     if(zeroMax==-1)zeroMax=0x7FFFFFFFFFFFFFFFll;
 
 
-    //if(!src || !len)return 0;
     if(!src )return 0;
     sString::searchAndReplaceSymbols(flbuf,src, len, sString_symbolsEndline,",,",0,true,true,true);
     flbuf->add0(4);
-    //sString::searchAndReplaceSymbols(flbuf->ptr(),flbuf->length(), ",;",0,0,true,false,true);
     sString::searchAndReplaceSymbols(flbuf->ptr(),flbuf->length(), ",",0,0,true,false,true);
     const char* fp0=flbuf->ptr();
     sVec< sDic <idx> > adic;
@@ -472,12 +425,11 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
 
             if(irow_src==0 && fltCols.dim() ) {
                 if( sText::matchSearchToString(pcol+quot, pl-quot*2 , fltCols.ptr(), fltCols.dim() , 1) )
-                    *colsToRemove.add()=icol_src;//-(rowIds ? 1 : 0 );
+                    *colsToRemove.add()=icol_src;
             }
             if(fltRows.dim() && icol_src==0) {
                 if( sText::matchSearchToString(pcol+quot, pl-quot*2 , fltRows.ptr(), fltRows.dim() , 1) ) {
-                    *rowsToRemove.add()=irow_src;//-(colIds ? 1 : 0 );
-                    //printf("::%.*s david david davinci",10,pcol);
+                    *rowsToRemove.add()=irow_src;
                 }
             }
             prow=pcol+pl+1;
@@ -498,8 +450,6 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
         icol = icol_src;
     }
 
-    colIds->add(icol);
-    rowIds->add(irow);
     if(colIds && irow)--irow;
     if(rowIds && icol)--icol;
     resize(irow, icol);
@@ -508,7 +458,6 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
 
     for ( irow_src=0, irow_digested=0,  prow=fp0; prow; prow=sString::next00(prow) , ++irow_src) {
 
-        // scan if this is one of our removed rows
         while ( iRowRemoveFinder < rowsToRemove.dim() && rowsToRemove[iRowRemoveFinder]<irow_src ) {
             ++iRowRemoveFinder;
         }
@@ -519,12 +468,10 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
         }
 
         idx iColRemoveFinder=0;
-        // Vahan: lastImple
         idx cntNonZeros=0;
         bool counting=false;
         for ( icol_src=0, icol_digested=0, pcol=prow; pcol; pcol=sString::next00(pcol) , ++icol_src) {
 
-            // scan if this is one of our removed columns
             while ( iColRemoveFinder < colsToRemove.dim() && colsToRemove[iColRemoveFinder]<icol_src ) {
                 ++iColRemoveFinder;
             }
@@ -533,13 +480,6 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
                 continue;
             }
 
-        /*    if( transpose ) {
-                irow = icol_src;
-                icol = irow_src;
-            } else {
-                irow = irow_src;
-                icol = icol_src;
-            }*/
             if( transpose ) {
                 irow = icol_digested;
                 icol = irow_digested;
@@ -550,7 +490,6 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
 
             ic=icol;
             ir=irow;
-            //slen=sLen(pcol)+1;
             slen=sLen(pcol);
             if(supportquote) {
                 char quot=*pcol;
@@ -560,12 +499,14 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
             }
             if(colIds){
                 if( irow==0 ) {
+                    colIds->resize(icol+1);
                     (*colIds)[icol].pos=(idx)(pcol-fp0);(*colIds)[icol].size=slen;
                 }
                 --ic;
             }
             if(rowIds){
                 if( icol==0 ) {
+                    rowIds->resize(irow+1);
                     (*rowIds)[irow].pos=(idx)(pcol-fp0);(*rowIds)[irow].size=slen;
                 }
                 --ir;
@@ -593,17 +534,12 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
                             ival=0;
                         else ival=1;
                         val(ir,ic)=(real)(ival);
-                    }else {// if(dicMode==0){
-                        //if(!sscanf(pcol,"%lf",ptr(ir,ic)))
+                    }else {
                         if( !couldReadAsNumber )
                             val(ir,ic)=0;
                     }
                 }
-                // Vahan: lastImple
-                //if(nonZeroMin<zeroMax)
                 counting=true;
-                //if(val(ir,ic)!=0)
-                //    ++cntNonZeros;
             }
 
             if(counting) {
@@ -625,62 +561,53 @@ idx sMatrix::parseCsv(sStr * flbuf, const char* src, idx len, sVec < sMex::Pos> 
             ++icol_digested;
         }
 
-        // Vahan: lastImple
         if(counting && (cntNonZeros<nonzeroMin || (icol-cntNonZeros)>zeroMax) )
             --irow_digested;
         ++irow_digested;
     }
 
-    // Vahan: lastImple
-    resize(irow_digested, icol);
+    if(transpose) {
+        resize(irow,irow_digested-1);
+    } else {
+        resize(irow_digested-1, icol);
+    }
 
     return (ir+1)*(ic+1);
 }
 
 
-/*
- * dicMode= 0 is
- * dicMode= 1 is for strings. If equal to the first cell, 0, otherwise 1
- * dicMode= 2 is for strings. If equal to the first cell, 0, otherwise i, i++
- */
 idx sMatrix::parseTabular(sTabular * tbl, sVec< idx > * rowSet, sVec< idx > * colSet, sDic <idx > * colIds, sDic <idx> * rowIds, const char * ignoresym, idx dicMode, real binThreshold, bool readNumsAsNums, sVec< idx > * revertColSet, idx forceRowID)
 {
     if(rowSet && !rowSet->dim())rowSet=0;
-    //if(!src || !len)return 0;
     sVec< sDic <idx> > adic;
     idx ival;
 
 
-    //const char * b;
     idx irow=0, icol=0;
 
-    //rowIds->add(tbl->rows());
 
 
     idx cntCols = (colSet && colSet->dim()) ? colSet->dim() : tbl->cols(), excludedCols=0;
     idx cntRows = (rowSet && rowSet->dim()) ? rowSet->dim() : tbl->rows();
     resize(cntRows,cntCols);
-    //colIds->add(cntCols);
 
     idx iCol;
     sStr cellResult;
     for ( idx icol=0, irc,serial=0; icol<cntCols; ++serial) {
         iCol= (colSet && colSet->dim()) ? (*colSet)[serial] : serial;
         if( revertColSet ) {
-            for ( irc=0; irc<revertColSet->dim() && iCol!=(*revertColSet)[irc]; ++irc){} // try finding it in a revert colset
-            if(irc<revertColSet->dim() ) { // found in exclusion list
+            for ( irc=0; irc<revertColSet->dim() && iCol!=(*revertColSet)[irc]; ++irc){}
+            if(irc<revertColSet->dim() ) {
                 ++excludedCols;
                 continue;
             }
         }
 
         if(colIds ){
-            //do printCell instead of cell here
 
             cellResult.cut(0);tbl->printTopHeader(cellResult, iCol);
             if (cellResult && ::strcmp(cellResult.ptr(), ""))
                 *colIds->set(cellResult.ptr())=icol;
-            //else ::printf("\nERRRRRRRRRRRR %" DEC " %" DEC " \n",icol,iCol);
         }
         ++icol;
     }
@@ -688,7 +615,6 @@ idx sMatrix::parseTabular(sTabular * tbl, sVec< idx > * rowSet, sVec< idx > * co
         resize(cntRows,cntCols-excludedCols);
     }
 
-    //idx cntCols = (colSet && colSet->dim()) ? colSet->dim() : tbl->cols();
 
     for ( irow=0; irow<cntRows; ++irow) {
         idx iRow=rowSet ? (*rowSet)[irow] : irow;
@@ -700,13 +626,12 @@ idx sMatrix::parseTabular(sTabular * tbl, sVec< idx > * rowSet, sVec< idx > * co
         }
 
 
-        //idx cntCols = (colSet && colSet->dim()) ? colSet->dim() : tbl->cols();
 
         for ( idx icol=0, irc, serial=0; icol<cntCols; ++serial) {
             iCol= (colSet && colSet->dim()) ? (*colSet)[serial] : serial;
             if( revertColSet ) {
-                for ( irc=0; irc<revertColSet->dim() && iCol!=(*revertColSet)[irc]; ++irc){} // try finding it in a revert colset
-                if(irc<revertColSet->dim() ) { // found in exclusion list
+                for ( irc=0; irc<revertColSet->dim() && iCol!=(*revertColSet)[irc]; ++irc){}
+                if(irc<revertColSet->dim() ) {
                     ++excludedCols;
                     continue;
                 }

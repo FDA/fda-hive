@@ -27,25 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- * s = new vjSVG_TreeSeries({
- *  name: "dsFoo",
- *  url: "qpbg_html://cmd=popClones"
- * });
- *
- * // data fields
- * s.tree;
- * s.maxHeight;
- * s.maxTotalDistance;
- * s.numLeaves;
- * s.numNodes;
- * s.skipOnDataLoaded // if true, onDataLoaded() will exit immediately
- * // for each node in s.tree
- * node.height; // steps from root
- * node.totalDistance; // distance from root
- * node.leafCoord; // for leaves: order in a leaf traversal; for inner nodes: mean of leafCoord of children
- * It's assumed that node.leafnode is true iff node.children.length === 0.
- */
 
 function vjSankeyNode(nodeBase) {
     return vjTreeNode.call(this,nodeBase);
@@ -64,7 +45,6 @@ function vjSankey(tbl, columnDefinition, tile, excludeObjRegexp ) {
                 this._isTile = this._tile;
             }
         }
-//    }
 
     if( !columnDefinition ) {
         columnDefinition = {
@@ -87,7 +67,6 @@ function vjSankey(tbl, columnDefinition, tile, excludeObjRegexp ) {
     }
     this.columnDefinition = columnDefinition;
 
-//    var tbl = new vjTable(source);
     tbl.enumerate("node.name = node[params.name]; if(node[params.parent] && node[params.name]!=node[params.parent])node.parent = node[params.parent];",{name:this.columnDefinition.branchID,parent:this.columnDefinition.bifurcateID});
 
 
@@ -240,4 +219,3 @@ function vjSankey(tbl, columnDefinition, tile, excludeObjRegexp ) {
     }
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjSankey.js"

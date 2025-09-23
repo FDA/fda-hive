@@ -41,7 +41,6 @@ namespace slib {
             typedef sUsrObj TParent;
 
         public:
-            // we must have a default constructor for this object if we ever want to use it inside of containers
             sUsrProc()
                 : m_req(0)
             {
@@ -55,14 +54,13 @@ namespace slib {
                 : sUsrObj(usr, objId), m_req(0)
             {
             }
-            //! safe constructor for use in propset in case of write-only permissions
             sUsrProc(const sUsr& usr, const sHiveId & objId, const sHiveId * ptypeId, udx permission)
                 : sUsrObj(usr, objId, ptypeId, permission), m_req(0)
             {
             }
 
             virtual udx propSet(const char* prop, const char** groups, const char** values, udx cntValues, bool isAppend = false, const udx * path_lens = 0, const udx * value_lens = 0);
-            virtual udx propGet(const char* prop, sVarSet& res, bool sort=false) const;
+            virtual udx propGet(const char* prop, sVarSet& res, bool sort=false, bool allowSysInternal = false) const;
             bool propSync(void);
 
             idx reqID(void) const
@@ -147,7 +145,8 @@ namespace slib {
                 errHiveTools_last
             };
             static idx createProcesForsubmission(sQPrideBase * qp, sVar * pForm, sUsr * user, sVec<sUsrProc> & procObjs, sQPride::Service * pSvc, sStr * strObjList, sStr * log);
-            static idx standardizedSubmission(sQPrideBase * qp, sVar * pForm, sUsr * user, sVec<sUsrProc> & procObjs, idx cntParallel, idx * pReq, sQPride::Service * pSvc, idx previousGrpSubmitCounter, sStr * strObjList, sStr * log);
+            static idx standardizedSubmission(sQPrideBase * qp, sVar * pForm, sUsr * user, sVec<sUsrProc> & procObjs, idx cntParallel, idx * pReq, sQPride::Service * pSvc, idx previousGrpSubmitCounter, sStr * strObjList, sStr * log, const sVec<sQPrideBase::PriorityCnt> * priority_cnts = 0, bool requiresGroupSubmission = false);
+            static bool isBackEndsplit(const sUsrObj * sobjs, idx nobjs, const sVar * pForm);
 
         protected:
             bool onDelete(void);
@@ -178,4 +177,4 @@ namespace slib {
     };
 }
 
-#endif // sLib_usrproc_h
+#endif 

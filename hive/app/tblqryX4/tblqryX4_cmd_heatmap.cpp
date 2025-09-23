@@ -158,7 +158,6 @@ bool HeatmapCommand::compute(sTabular * tbl)
         }
     }
 
-    //copy appropriately here
     if( colSetTree.dim() == 0 ) {
         idx ncols = colSetImg.dim();
         colSetTree.resize(ncols);
@@ -196,7 +195,6 @@ bool HeatmapCommand::compute(sTabular * tbl)
         sFil horizontalTree(t1);
 
 
-        //sTree::generateTree(horizontalTree, &treeColumnsToUse, &rowsToUse,tbl,&actualRowOrder,1,0,method);
         sTree::generateTree(horizontalTree, &(colSetTree), &(rowSet),tbl,&actualRowOrder,1,0,buildMethod);
     }
 
@@ -208,16 +206,13 @@ bool HeatmapCommand::compute(sTabular * tbl)
 
         sFil verticalTree(t2);
 
-        //sTree::generateTree(verticalTree, &imgColumnsToUse, &rowsToUse,tbl,&actualColOrder,0,0,method);
         sTree::generateTree(verticalTree, &(colSetImg), &(rowSet),tbl,&actualColOrder,0,0,buildMethod);
 
         sVec < sVec <sClr > > colors;
 
         sHeatmap::generateRangeMap( &vals, tbl, &actualColOrder,  &actualRowOrder,colorMethod);
         sImage::generateHeatmap (pathT, &vals, cx, cy , &limitsFullScale);
-        //sHeatmap::generatePNG(filename,  pvals, cx, cy , limits, &colors);
 
-       //sHeatmap::generatePNG(pathT,  &tbl, &actualColOrder, &actualRowOrder,colorMethod, cx, cy , &limitsFullScale,&vals);
     }
 
     if (!uid || uid.dim() == 0)

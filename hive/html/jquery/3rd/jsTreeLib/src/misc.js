@@ -27,14 +27,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/* global jQuery */
 
-// disable all events
 (function ($, undefined) {
     "use strict";
     $.jstree.plugins.trigger = function (options, parent) {
         this.init = function (el, options) {
-            // do not forget parent
             parent.init.call(this, el, options);
             this._data.trigger.disabled = false;
         };
@@ -48,30 +45,18 @@
     };
 })(jQuery);
 
-// mapping
 (function ($, undefined) {
     "use strict";
-    // use this if you need any options
     $.jstree.defaults.mapper = {
         option_key : "option_value"
     };
     $.jstree.plugins.mapper = function () {
         this._parse_model_from_json = function (d, p, ps) {
-            // d is the node from the server, it will be called recursively for children,
-            // so you do not need to process at once
-            /* // for example
-            for(var i in d) {
-                if(d.hasOwnProperty(i)) {
-                    d[i.toLowerCase()] = d[i];
-                }
-            }
-            */
             return parent._parse_model_from_json.call(this, d, p, ps);
         };
     };
 })(jQuery);
 
-// no hover
 (function ($, undefined) {
     "use strict";
     $.jstree.plugins.nohover = function () {
@@ -79,7 +64,6 @@
     };
 })(jQuery);
 
-// force multiple select
 (function ($, undefined) {
     "use strict";
     $.jstree.defaults.multiselect = {};
@@ -91,7 +75,6 @@
     };
 })(jQuery);
 
-// real checkboxes
 (function ($, undefined) {
     "use strict";
 
@@ -107,7 +90,6 @@
             this._data.realcheckboxes.uto = false;
             this.element
                 .on('changed.jstree uncheck_node.jstree check_node.jstree uncheck_all.jstree check_all.jstree move_node.jstree copy_node.jstree redraw.jstree open_node.jstree ready.jstree loaded.jstree', $.proxy(function () {
-                        // only if undetermined is in setting
                         if(this._data.realcheckboxes.uto) { clearTimeout(this._data.realcheckboxes.uto); }
                         this._data.realcheckboxes.uto = setTimeout($.proxy(this._realcheckboxes, this), 50);
                     }, this));
@@ -150,7 +132,6 @@
     };
 })(jQuery);
 
-// no state
 (function ($, undefined) {
     "use strict";
     $.jstree.plugins.nostate = function () {
@@ -161,7 +142,6 @@
     };
 })(jQuery);
 
-// no selected in state
 (function ($, undefined) {
     "use strict";
     $.jstree.plugins.noselectedstate = function (options, parent) {
@@ -173,11 +153,9 @@
     };
 })(jQuery);
 
-// additional icon on node (outside of anchor)
 (function ($, undefined) {
     "use strict";
     var img = document.createElement('IMG');
-    //img.src = "http://www.dpcd.vic.gov.au/__data/assets/image/0004/30667/help.gif";
     img.className = "jstree-questionmark";
 
     $.jstree.defaults.questionmark = $.noop;
@@ -207,7 +185,6 @@
     };
 })(jQuery);
 
-// auto numbering
 (function ($, undefined) {
     "use strict";
     var span = document.createElement('SPAN');
@@ -247,7 +224,6 @@
     };
 })(jQuery);
 
-// additional icon on node (inside anchor)
 (function ($, undefined) {
     "use strict";
     var _s = document.createElement('SPAN');
@@ -288,7 +264,6 @@
     };
 })(jQuery);
 
-// selecting a node opens it
 (function ($, undefined) {
     "use strict";
     $.jstree.plugins.selectopens = function (options, parent) {
@@ -299,7 +274,6 @@
     };
 })(jQuery);
 
-// object as data
 (function ($, undefined) {
     "use strict";
     $.jstree.defaults.datamodel = {};
@@ -318,7 +292,7 @@
                     children : nodes[i].hasChildren()
                 };
                 if(nodes[i].getExtra) {
-                    obj = nodes[i].getExtra(obj); // icon, type
+                    obj = nodes[i].getExtra(obj);
                 }
                 tmp.push(obj);
             }
@@ -337,46 +311,7 @@
         };
     };
 })(jQuery);
-/*
-    demo of the above
-    function treeNode(val) {
-        var id = ++treeNode.counter;
-        this.getID = function () {
-            return id;
-        };
-        this.getText = function () {
-            return val.toString();
-        };
-        this.getExtra = function (obj) {
-            obj.icon = false;
-            return obj;
-        };
-        this.hasChildren = function () {
-            return true;
-        };
-        this.getChildren = function () {
-            return [
-                new treeNode(Math.pow(val, 2)),
-                new treeNode(Math.sqrt(val)),
-            ];
-        };
-    }
-    treeNode.counter = 0;
-                
-    $('#jstree').jstree({
-        'core': {
-            'data': [
-                        new treeNode(2),
-                        new treeNode(3),
-                        new treeNode(4),
-                        new treeNode(5)
-                    ]
-        },
-        plugins : ['datamodel']
-    });
-*/
 
-// untested sample plugin to keep all nodes in the DOM
 (function ($, undefined) {
     "use strict";
     $.jstree.plugins.dom = function (options, parent) {

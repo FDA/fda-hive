@@ -49,155 +49,6 @@ using namespace slib;
 using namespace slib::qlang;
 using namespace slib::tblqryx4;
 
-/*
- tqs parameter / tqsId file object:
-
- { "op": "filter",
-     "arg": {
-         "col": 10,
-         "method": "range",
-         "value": { "min": 0, "max": 100, "exclusive": true } } }
- { "op": "filter",
-     "arg": {
-         "col": 123 // {"name": "ABC", "num": 1, "optional": true}, or "cols": [1,2,3] or "incol" / "incols"
-         "method": "equals" // or "range" or "regex" or "substring" or "formula" or "rowlist" (values is a list of output rows) or "inrowlist" (values is a list of input rows)
-         "value": "hello" // or 42 or {"min": 1, "max": 10, "exclusive": true // false by default}
-             // or "values": ["hello", "bye"] // or list of ranges
-         "negate": true // false by default
-         "caseSensitive": true // false by default
-         "colConjunction": true // false by default; used for multiple columns } }
- { "op": "colfilter",
-     "arg": {
-         "row": 123 // or "rows": [1,2,3], or "inrow" / "inrows"
-         "method": "equals" // same as for filter
-         "value": "hello" // same as for filter, except formulas operate on this == current cell
-         // etc same as filter } }
- { "op": "slice",
-     "arg": {
-         "start" : {
-             "col": 123,
-             "value": "ABC",
-             "method": "firstEquals" // or "firstLessThan" or "firstGreaterThan"; can replace "first with "last" }
-         },
-         "end": {
-             "col": 123,
-             "value": "ABC",
-             "method": "lastEquals"
-         } } }
- { "op": "predefine",
-     "arg": {
-         "name": "foo",
-         "formula": "$1 + $2 + $3" // or "value": 12345; "ask": "int" to instruct UI to ask user for an integer; will substitute for {"tmpl": "..."} constructions} }
- { "op": "definecol",
-     "arg": {
-         "col": 123,
-         "formula": "$1 + $2 + $3",
-         "type": "string" // "integer", "real",
-         "format": "0.3f" } }
- { "op": "insertcol",
-     "arg": {
-         "col": 123,
-         "name": "ABC", // or { "formula": "cat($123, ' copy')" } } ; default name is name of source column (if formula is of form $N or ${name}), else ""
-         formula: "$42" } }
- { "op": "appendcol",
-     "arg": {
-         "name": "ABC", // or { "formula": "cat($123, ' copy')" } } ; default name is name of source column (if formula is of form $N or ${name}), else ""
-         "formula": "$1" } }
- { "op": "hidecol",
-     "arg": {
-         "col": 123 // or "cols": [123, 456, {"name": "foo"}], or "cols": "*", or "cols": { "regex": "^blah", "caseSensitive": true, "negate": true } },
-         "negate": true // false by default }
- { "op": "renamecol",
-     "arg": {
-         "col": 123,
-         "to": "New Name" // or { "formula": "cat($123, ' renamed')" } }
- { "op": "movecol",
-     "arg": {
-         "col": 123,
-         "to": 124 } }
- { "op": "setcell",
-     "arg": {
-         "row": 0,
-         "col": 123,
-         "value": "hello world" } }
- { "op": "rowcategory",
-     "arg": {
-         "formula": "$1 > 10 && $2 == 'total'",
-         "name": "abc" },
-     "color": "#ff0000" }
- { "op": "rowcategory",
-     "color": "red",
-     "arg": {
-         "method": "inrowlist" // or any other filter method,
-         "values": [5, 10, 16], "name": "_selected" } }
- { "op": "colcategory", ... }
- { "op": "sort",
-     "arg": {
-         "formula": "$1", // or "formulas": [...]
-         "reverse": false.
-         "maxCountEach": 10 // max number of rows with any one formula result } }
- { "op": "transpose",
-     "arg": {
-         "topHeader": 1, // how many top header rows after transpose; default : same as in source table
-         "leftHeader": 1 // how many left header cols after transpose; default : 0
-    } }
- { "op": "glue",
-     "arg": {
-         "rhs" : {
-             "obj": 12345,
-             "req": 56789,
-             "tbl": "foo.csv",
-             "formula": "abs($2)",
-             "hidecol": 2 // or "*" or [1,2,3] or {"name" : "foo"} etc.
-          },
-          "lhs" : {
-              "formula": "$1"
-          }
-          // order is taken from left
-    } }
- { "op": "ionwander",
-     "arg": {
-         "ionId": 12345, // or [12345, 67890] or { "objQry": "alloftype('whatever').filter(...)" }
-         "ionFile": "foo*.ion", // "ion.ion" by default
-         // query can be specified as an ionql file in an object ...
-         "qryId": 12345,
-         "qryFile": "hello.ionql",
-         // ... or as an explicit text string
-         "qry": "o=find.taxid_name(taxid=9606, tag='scientific name'); printCSV(o.taxid, o.name)"
-         "cnt": 1, // 200 by default
-         "qryPrintsHdr": true // false by default (default assumption is ION queries don't print headers)
-    } }
- { "op": "addmissingrows",
-     "arg": {
-         "abscissa": {
-             "col": 0,
-             "maxGap": 1 // default: determine automagically
-             "minValue": { "formula": "2 + 2" }, // or 2 etc., default is automatic
-             "maxValue": { "formula": "min(100, blah())" }, // or 100 etc., default is automatic
-         },
-         "add": [
-             { "col": 0, "value": 1},
-             { "col": 1, "value": {"formula": "abc()"}},
-             { "col": "*", "value": 0 }
-         ]
-   } }
- { "op": "load",
-   "arg": {
-       "concat": [
-           {
-               "obj": 1234, // or "req" or "grp"
-               "tbl": "foobar.csv" // "_.csv" by default; or "glob": "*.csv"
-           },
-           {
-               "obj": 1235, tbl: "wombat.csv"
-           }
-       ]
-   } }
- { "op": "collapserows" // TODO }
-
- params: inputStart, inputCnt, parseCnt, resolution, search, searchRegExp, searchCols. tqsCnt
- dataCmd
- */
 
 const idx RowSorter::_hash_bits = 10;
 const idx RowSorter::_irow_mask = ((idx) 1 << RowSorter::_hash_bits) - 1;
@@ -380,7 +231,6 @@ class Builtin_colId: public BuiltinFunction
 
             if( const sTabular * tbl = ctx.getTable() ) {
                 if( nargs >= 2 && args[1].isString() && !strcmp(args[1].asString(), "*") ) {
-                    // get all ids
                     result.setList();
                     for(idx i = 0; 1; i++) {
                         idx id = tbl->colId(args[0].asString(), 0, i);
@@ -453,7 +303,6 @@ class Builtin_incoltype: public BuiltinFunction
 
             if( const sTabular * tbl = ctx.getTable() ) {
                 if( nargs >= 2 && args[1].isString() && !strcmp(args[1].asString(), "*") ) {
-                    // get all coltypes
                     result.setList();
                     for(idx i = 0; 1; i++) {
                         idx icol = tbl->colId(args[0].asString(), 0, i);
@@ -501,7 +350,6 @@ class Builtin_setincoltype: public BuiltinFunction
             sVariant::eType itype = sVariant::parseTypeName(nargs == 2 ? args[1].asString() : args[2].asString());
             if( sTabular * tbl = ctx.getTable() ) {
                 if( nargs >= 3 && args[1].isString() && !strcmp(args[1].asString(), "*") ) {
-                    // set all coltypes
                     idx i = 0;
                     while( 1 ) {
                         idx icol = tbl->colId(args[0].asString(), 0, i);
@@ -598,7 +446,6 @@ class BuiltinTaxFunction: public BuiltinFunction
             sStr tax_id_buf("%" UDEC, tax_id);
             const char * tax_info_txt = ctx.getTaxIon()->getTaxIdInfo(tax_id_buf.ptr(), tax_id_buf.length());
             if( !tax_info_txt || !tax_info_txt[0] ) {
-                // tax ID not found
                 result.setNull();
                 return true;
             }
@@ -648,10 +495,8 @@ class Builtin_refSeqLetter : public BuiltinFunction {
                     idx len = sub->len(isub - 1);
                     idx pos = args[1].asInt();
                     if( pos > 0 && pos <= len ) {
-                        // equivalent to sBioseq::uncompressATGC(s, sub->seq(isub - 1), pos, 1, true, 0);
-                        // low-level for efficiency
                         char s[2];
-                        s[0] = sBioseq::mapRevATGC[(int)sBioseqAlignment::_seqBits(sub->seq(isub - 1), pos, 0)];
+                        s[0] = sBioseq::mapRevATGC[(int)sBioseqAlignment::_seqBits(sub->seq(isub - 1), pos)];
                         s[1] = 0;
                         result.setString(s);
                     }
@@ -894,11 +739,10 @@ namespace {
             OutputBuffer out_buf;
 
             sVec<MinMaxCol> minmax_cols;
-            sVec<idx> out_col2imm; // map from output column # to index in minmax_cols
+            sVec<idx> out_col2imm;
 
             sVec<sVariant *> tqs_ops;
 
-            bool findCellPair(idx icol, idx in_row1, idx in_row2);
             bool getOutValue(sVariant & result, const sTabular * in_table, idx out_icol, idx in_row) const;
             bool initRowsCols(sTabular * in_table);
 
@@ -917,7 +761,7 @@ namespace {
             idx out_abscissa_col;
             const char * formstr_cols, *formstr_minmaxCols, *formstr_minmaxMainCol;
             const char * formstr_srch, *formstr_srchCols;
-            bool srchRegExp; //! formstr_srch is a regular expression (as opposed to substring search)
+            bool srchRegExp;
             bool print_top_header;
 
             PrintStage(ExecContext & ctx) :
@@ -934,7 +778,7 @@ namespace {
             }
 
             const char * getName() { return "print"; }
-            bool init(const char * op_name, sVariant * tqs_arg) { /* not used */ return false; }
+            bool init(const char * op_name, sVariant * tqs_arg) {return false; }
             void addOpArg(sVariant * tqs_arg, bool is_filter = false)
             {
                 *tqs_ops.add(1) = tqs_arg;
@@ -965,7 +809,7 @@ namespace {
 
             const char * getName() { return "reinterpret"; }
             bool wrapsInTable() { return true; }
-            bool init(const char * op_name, sVariant * tqs_arg) { /* not used */ return false; }
+            bool init(const char * op_name, sVariant * tqs_arg) {return false; }
             void init(const char * binary_cols_str)
             {
                 if( binary_cols_str ) {
@@ -980,58 +824,6 @@ namespace slib {
     namespace tblqryx4 {
         class TblQryX4: public sQPrideProc
         {
-            private:
-
-        #if 0
-                class ExecContext: public ErrorLogger, public InputLoader
-                {
-                    private:
-                        Parser _parser;
-                        TblQueryContext _query_ctx;
-                        idx _output_req;
-                        bool _top_header, _left_header;
-
-                        idx _waiting_for_req;
-                        sTabular *_out_table;
-
-                        sVariant _tqs;
-                        ast::Node * _root_objQry;
-                        sVariant _objQryResult;
-
-                        sDic<CommandPlugin> _cmdPlugins;
-
-                        sVec<ExecStage*> _stages;
-
-                        bool substituteTemplate(sVariant * arg);
-
-                        void pushInputTable(idx loader_handle, sTabular * tbl, bool owned = true);
-                        sTxtTbl * newCSVorVCF(const char * name, const char * tblIdxPath, const char * tblDataPath, sFil * tblFil, idx tblFilTime, sTxtTbl::ParseOptions & opts);
-                        bool loadFileObject(idx loader_handle, InputTableSource * source);
-                        bool loadRequestFile(idx loader_handle, InputTableSource * source);
-
-                        bool appendTqs(const char * tqs_string, idx len = 0, idx tqsMaxCnt = sIdxMax);
-
-                        void cleanupStageOutputs(idx start, idx cnt);
-
-                    public:
-                        ExecContext(sQPrideProc & proc, idx req);
-                        virtual ~ExecContext();
-                        // query stages
-                        bool parseForm();
-                        bool loadInput();
-                        bool prepareStages();
-                        bool processStages();
-                        bool saveResult();
-
-                        void addCommandPlugin(const char * name, initCmdCallback initCb, parseCmdCallback parseCb, runCmdCallback runCb, destroyCmdCallback destroyCb, bool outputsTable = false, bool needReinterpret=true, bool outTableUsesInTable=false);
-
-                        idx waitingForReq() const
-                        {
-                            return _waiting_for_req;
-                        }
-                };
-        #endif
-
             public:
                 TblQryX4(const char * defline00, const char * srv)
                     : sQPrideProc(defline00, srv)
@@ -1234,7 +1026,6 @@ bool PrintStage::op_hidecol(const sTabular * in_table, sVariant * arg)
         icols.borrow(&negated_icols);
     }
 
-    // we must go through deletion list from highest to lowest so each deletion does not invalidate following column numbers
     if( icols.dim() ) {
         sSort::sort<idx>(icols.dim(), icols.ptr());
         idx prev_icol = -sIdxMax;
@@ -1242,14 +1033,6 @@ bool PrintStage::op_hidecol(const sTabular * in_table, sVariant * arg)
             if( icols[i] == prev_icol ) {
                 continue;
             }
-#if 0
-            {
-                sStr buf;
-                out_cols.printDump(buf, false, "    ");
-                fprintf(stderr, "out_cols = %s\n", buf.ptr(0));
-                buf.cut(0);
-            }
-#endif
             _ctx.logTrace("hidecol operation: hiding column #%" DEC " (name \"%s\")", icols[i], out_cols.getName(icols[i]));
             if( !out_cols.validCol(icols[i]) ) {
                 _ctx.logError("Invalid %s argument for hidecol operation", argname);
@@ -1413,7 +1196,6 @@ bool ExecContext::prepareCommands()
     PrintStage * print_stage = 0;
     ReinterpretStage * reinterpret_stage = 0;
 
-    // before doing anything else - evaluate predefines, and substitute { "tmpl" : "..." }
     sStr name_buf, json_buf;
     for(idx i = 0; i < _tqs.dim(); i++) {
         sVariant * _tqs_op = _tqs.getListElt(i);
@@ -1484,11 +1266,17 @@ bool ExecContext::prepareCommands()
         if( !_tqs_op || !_tqs_op->isDic() )
             continue;
 
+        sVariant null_val;
         sVariant * op_name_val = _tqs_op->getDicElt("op");
+        if( !op_name_val ) {
+            op_name_val = &null_val;
+        }
         sVariant * arg_val = _tqs_op->getDicElt("arg");
+        if( !arg_val ) {
+            arg_val = &null_val;
+        }
         switch(parseOpName(op_name_val)) {
             case eOp_predefine:
-                // already handled done in previous pass
                 break;
             case eOp_load: {
                 LoadStage * stage = new LoadStage(*this);
@@ -1520,7 +1308,6 @@ bool ExecContext::prepareCommands()
             }
                 break;
             case eOp_collapserows:
-                // TODO
                 ENSURE_UNREINTERPRET_STAGE;
                 print_stage = 0;
                 break;
@@ -1568,7 +1355,6 @@ bool ExecContext::prepareCommands()
                 }
                 break;
             case eOp_filter:
-                // involves column names and formulas which will need to be parsed when print stage's input table becomes available
                 ENSURE_PRINT_STAGE;
                 print_stage->addOpArg(_tqs_op, true);
                 break;
@@ -1581,7 +1367,6 @@ bool ExecContext::prepareCommands()
             case eOp_movecol:
             case eOp_rowcategory:
             case eOp_colcategory:
-                // these all involve column names and formulas which will need to be parsed when print stage's input table becomes available
                 ENSURE_PRINT_STAGE;
                 print_stage->addOpArg(_tqs_op);
                 break;
@@ -1624,12 +1409,9 @@ bool ExecContext::prepareCommands()
     bool srchRegExp = _proc.pForm->boolvalue("searchRegExp", _proc.pForm->boolvalue("searchRegEx"));
     const char * formstr_srchCols = _proc.pForm->value("searchCols");
 
-    // start/cnt/resolution parameters go into the final print stage
     if( out_start || out_cnt || out_resolution || sLen(formstr_cols) || sLen(formstr_minmaxCols) || sLen(formstr_minmaxMainCol) || sLen(formstr_srch) || !_top_header ) {
-        // filtering must be done in a separate stage before resolution and minmaxing
         if( print_stage && print_stage->hasRowFilters() && out_resolution ) {
             if( sLen(formstr_srch) ) {
-                // search is another synonym for filter
                 ENSURE_PRINT_STAGE;
                 print_stage->formstr_srch = formstr_srch;
                 print_stage->srchRegExp = srchRegExp;
@@ -1682,13 +1464,14 @@ bool LoadStage::sub_init(sVariant * arg)
         tbl_name = "_.csv";
     }
     if( obj_id ) {
+        bool fallback_default_name = sLen(tbl_name) == 0 || sIsExactly(tbl_name, "_.csv");
         if( is_glob ) {
-            if( _ctx.allocateRequestLoadObjTables(loader_handles, obj_id, tbl_name) < 0 ) {
+            if( _ctx.allocateRequestLoadObjTables(loader_handles, obj_id, tbl_name, fallback_default_name) < 0 ) {
                 return false;
             }
         } else {
             idx loader_handle = *loader_handles.add(1) = _ctx.allocateLoaderHandle();
-            _ctx.requestLoadObjTable(loader_handle, obj_id, tbl_name);
+            _ctx.requestLoadObjTable(loader_handle, obj_id, tbl_name, 0, fallback_default_name);
         }
     } else if( req ) {
         if( is_glob ) {
@@ -1924,8 +1707,8 @@ bool IonWanderStage::compute(sTabular * in_table)
     tbl->borrowFile(csv_buf.mex());
     tbl->parseOptions().flags = sTblIndex::fSaveRowEnds;
     if( qry_prints_hdr ) {
-        tbl->parseOptions().flags |= sTblIndex::fTopHeader; // most queries do not print a header
-        tbl->parseOptions().dimTopHeader = 1; // ... and that header has 1 row
+        tbl->parseOptions().flags |= sTblIndex::fTopHeader;
+        tbl->parseOptions().dimTopHeader = 1;
     }
     if( !tbl->parse() ) {
         _ctx.logError("ionwander operation: failed to parse output of wander");
@@ -2023,7 +1806,6 @@ idx SliceStage::findRow(sTabular * in_table, SliceStage::EMethod method, sVarian
     }
     idx icol = parsed_colnums[0];
 
-    // is the column ascending or descending?
     sVariant rowval, rowval2;
     in_table->val(rowval, 0, icol);
     in_table->val(rowval2, in_table->rows() - 1, icol);
@@ -2093,7 +1875,6 @@ idx SliceStage::findRow(sTabular * in_table, SliceStage::EMethod method, sVarian
         }
 
         if( next_search == 0 ) {
-            // found!
             return imid;
         } else if( next_search < 0 ) {
             imax = imid - 1;
@@ -2254,7 +2035,8 @@ bool GlueStage::init(GlueStage::SourceDef & def, sVariant * arg)
         def.loader_handle = _ctx.allocateLoaderHandle();
         for(idx i = 0; i < data_reqs.dim(); i++) {
              for(idx j=0; j<tablename_pos.dim(); j++) {
-                 _ctx.requestLoadReqTable(def.loader_handle, data_reqs[i], false, tablename_pos[j] >= 0 ? tablename_buf.ptr(tablename_pos[j]) : 0);
+                 const char * tblname = tablename_pos[j] >= 0 ? tablename_buf.ptr(tablename_pos[j]) : 0;
+                 _ctx.requestLoadReqTable(def.loader_handle, data_reqs[i], false, tblname);
              }
          }
 
@@ -2263,7 +2045,9 @@ bool GlueStage::init(GlueStage::SourceDef & def, sVariant * arg)
                  continue;
              }
              for(idx j=0; j<tablename_pos.dim(); j++) {
-                 _ctx.requestLoadObjTable(def.loader_handle, obj_ids[i], tablename_pos[j] >= 0 ? tablename_buf.ptr(tablename_pos[j]) : 0);
+                 const char * tblname = tablename_pos[j] >= 0 ? tablename_buf.ptr(tablename_pos[j]) : 0;
+                 bool fallback_default_name = (sLen(tblname) == 0 || sIsExactly(tblname, "_.csv"));
+                 _ctx.requestLoadObjTable(def.loader_handle, obj_ids[i], tblname, 0, fallback_default_name);
              }
          }
     }
@@ -2300,7 +2084,6 @@ bool GlueStage::evalKey(sVariant & out_val, GlueStage::SourceDef & def, sTabular
         _ctx.qlangCtx().setInRow(ir);
         if( unlikely(!def.key_def.getFormula()->eval(out_val, _ctx.qlangCtx())) ) {
             sStr err_str;
-            // a formula failing is a non-fatal event; we log and continue
             _ctx.logInfo("Failed formula in glue operation: %s", _ctx.qlangCtx().printError(err_str));
             out_val.setNull();
             _ctx.qlangCtx().clearError();
@@ -2319,7 +2102,6 @@ bool GlueStage::makeColMap(sVec<idx> & out_col_map, GlueStage::SourceDef & def, 
 
     if( arg ) {
         if( arg->isString() && !strcmp(arg->asString(), "*") ) {
-            // no cols!
             out_col_map.cut(0);
             return true;
         } else if( arg->isList() ) {
@@ -2413,9 +2195,6 @@ bool GlueStage::compute(sTabular * in_table)
     for(idx ir=left_table->rows() - 1; ir >= 0; ir--) {
         idx absrow = ir + out_top_header;
         evalKey(key_val, left_def, left_table, ir);
-#if 0
-        fprintf(stderr, "Left ir=%" DEC " key=%s\n", ir, key_val.asString());
-#endif
         if( unlikely(key_val.isNull()) ) {
             null_key_absrow = absrow;
         } else if( key_val.isNumeric() ) {
@@ -2431,9 +2210,6 @@ bool GlueStage::compute(sTabular * in_table)
     for(idx ir=right_table->rows() - 1; ir >= 0; ir--) {
         idx absrow = -sIdxMax;
         evalKey(key_val, right_def, right_table, ir);
-#if 0
-        fprintf(stderr, "Right ir=%" DEC " key=%s\n", ir, key_val.asString());
-#endif
         if( unlikely(key_val.isNull()) ) {
             absrow = null_key_absrow;
         } else if( key_val.isNumeric() ) {
@@ -2459,7 +2235,7 @@ bool GlueStage::compute(sTabular * in_table)
         right_row_map.resize(unmatched_right_rows.dim() + left_row_map.dim());
         for(idx i=0; i<unmatched_right_rows.dim(); i++) {
             idx absrow = i + left_row_map.dim();
-            right_row_map[absrow] = unmatched_right_rows[unmatched_right_rows.dim() - 1 - i]; // unmatched_right_rows is in reversed order
+            right_row_map[absrow] = unmatched_right_rows[unmatched_right_rows.dim() - 1 - i];
         }
     }
 
@@ -2582,7 +2358,6 @@ bool PrintStage::initRowsCols(sTabular * in_table)
 
     out_cols.setMinMax(formstr_minmaxCols, formstr_minmaxMainCol);
 
-    // search is applied as the last filter
     if( sLen(formstr_srch) ) {
         if( unlikely(!rowfilters.add(1)->initSearch(formstr_srch, srchRegExp, formstr_srchCols, in_table, &out_cols, &out_buf, &_ctx)) ) {
             return false;
@@ -2599,7 +2374,6 @@ bool PrintStage::initRowsCols(sTabular * in_table)
         out_resolution = 0;
     }
 
-    // row filtering and resolution are incompatible
     return !rowfilters.dim() || !out_resolution;
 }
 
@@ -2607,7 +2381,6 @@ bool PrintStage::getOutValue(sVariant & result, const sTabular * in_table, idx o
 {
     if( const ast::Node * fmla = out_cols.getFormula(out_icol) ) {
         if( unlikely(!fmla->eval(result, _ctx.qlangCtx())) ) {
-            // a formula failing is a non-fatal event; we log and continue
             sStr err_buf;
             _ctx.logInfo("Failed formula on output column %" DEC ", input row %" DEC ": %s", out_icol, in_row, _ctx.qlangCtx().printError(err_buf));
 
@@ -2736,13 +2509,12 @@ bool PrintStage::compute(sTabular * in_table)
 
     idx minmax_main = -sIdxMax;
 
-    // For resolution calculation
     struct {
-        idx inrow_pre; // singleton first row - print without resampling
-        idx inrow_start_resample; // start of resample region
-        idx inrow_last_resample; // end of resampling region
-        idx cnt_resampled_bins; // number of resampling bins
-        idx inrow_post; // singleton last row - print without resampling
+        idx inrow_pre;
+        idx inrow_start_resample;
+        idx inrow_last_resample;
+        idx cnt_resampled_bins;
+        idx inrow_post;
 
         real start_resample_val;
         real last_resample_val;
@@ -2755,20 +2527,17 @@ bool PrintStage::compute(sTabular * in_table)
         assert(out_resolution < in_table->rows());
 
         if( out_resolution == 1 ) {
-            // resample the whole input table into 1 bin
             resolution_lim.inrow_pre = resolution_lim.inrow_post = -sIdxMax;
             resolution_lim.inrow_start_resample = 0;
             resolution_lim.inrow_last_resample = in_table->rows() - 1;
             resolution_lim.cnt_resampled_bins = 1;
         } else if( out_resolution == 2 ) {
-            // resample the whole input table except for last row into 1 bin, then print last row
             resolution_lim.inrow_pre = -sIdxMax;
             resolution_lim.inrow_post = in_table->rows() - 1;
             resolution_lim.inrow_start_resample = 0;
             resolution_lim.inrow_last_resample = sMax<idx>(0, in_table->rows() - 2);
             resolution_lim.cnt_resampled_bins = 1;
         } else {
-            // print first row, then resample rows 1...n-1 into out_resolution-2 bins, then print last row
             resolution_lim.inrow_pre = 0;
             resolution_lim.inrow_post = in_table->rows() - 1;
             resolution_lim.inrow_start_resample = 1;
@@ -2822,17 +2591,11 @@ bool PrintStage::compute(sTabular * in_table)
 #endif
     }
 
-    // intended order of operations to emulate
-    // 1. filters
-    // 2. resolution, minmax
-    // 3. start, cnt
 
     if( out_resolution > 0 ) {
-        // resample
         idx out_row = 0;
         idx out_row_ifno_start = 0;
 
-        // print first row
         if( resolution_lim.inrow_pre == 0 ) {
             if( out_row_ifno_start >= out_start && out_row < out_cnt ) {
                 _ctx.reportSubProgress(progress_items++, -1, progress_items_max);
@@ -2844,7 +2607,6 @@ bool PrintStage::compute(sTabular * in_table)
             out_row_ifno_start++;
         }
 
-        // resample resolution
 #ifdef _DEBUG_TBLQRY_RESOLUTION
         real abscissa_cur_bin = resolution_lim.start_resample_val;
 #endif
@@ -2854,13 +2616,11 @@ bool PrintStage::compute(sTabular * in_table)
             real abscissa_next_bin = HUGE_VAL;
             idx in_row_bin_start = in_row;
             idx in_row_next_bin_start = resolution_lim.inrow_last_resample + 1;
-            // last bin's one-past-end is always resolution_lim.inrow_last_resample + 1; earlier bins' one-past-end needs to be calculated
             if( ibin + 1 < resolution_lim.cnt_resampled_bins ) {
                 if( out_abscissa_col >= 0 ) {
                     real range_abscissa = resolution_lim.last_resample_val - resolution_lim.start_resample_val;
                     abscissa_next_bin = resolution_lim.start_resample_val + (ibin + 1) * range_abscissa / resolution_lim.cnt_resampled_bins;
                 } else {
-                    // cnt = sMax<idx>(1, ((i + 1) * (dim() - 1)) / (res - 1) + _input_start - _groups[i].start);
                     real cnt_resampled_in_rows = resolution_lim.inrow_last_resample - resolution_lim.inrow_start_resample + 1;
                     in_row_next_bin_start = sMax<idx>(in_row_bin_start + 1, (idx)(floor(resolution_lim.inrow_start_resample + (ibin + 1) * (cnt_resampled_in_rows / resolution_lim.cnt_resampled_bins))));
                     if( unlikely(in_row_next_bin_start > resolution_lim.inrow_last_resample) ) {
@@ -2875,7 +2635,6 @@ bool PrintStage::compute(sTabular * in_table)
 
             for(in_row = in_row_bin_start; in_row < in_row_next_bin_start; in_row++) {
                 _ctx.qlangCtx().setInRow(in_row);
-                // if binning by abscissa and this is not the last bin, check if curent row's abscissa value satisfies < abscissa_next_bin criterion
                 if( ibin + 1 < resolution_lim.cnt_resampled_bins && out_abscissa_col >= 0 ) {
                     _ctx.qlangCtx().setCol(out_abscissa_col);
                     getOutValue(result, in_table, out_abscissa_col, in_row);
@@ -2913,7 +2672,6 @@ bool PrintStage::compute(sTabular * in_table)
             }
 #endif
 
-            // fill table
             if( minmax_cols.dim() && in_row_next_bin_start > in_row_bin_start + 1 ) {
                 idx in_row1 = in_row_bin_start + (in_row_next_bin_start - in_row_bin_start) / 3;
                 idx in_row2 = in_row_bin_start + 2 * (in_row_next_bin_start - in_row_bin_start) / 3;
@@ -2957,7 +2715,6 @@ bool PrintStage::compute(sTabular * in_table)
 #endif
         }
 
-        // print final row
         if( resolution_lim.inrow_post > 0 ) {
             if( out_row_ifno_start >= out_start && out_row < out_cnt ) {
                 _ctx.reportSubProgress(progress_items++, -1, progress_items_max);
@@ -3052,8 +2809,6 @@ bool ReinterpretStage::compute(sTabular * in_table)
 {
     _out_table = in_table;
     if( !in_table ) {
-        // In theory, null input table might not be an error - e.g. if reinterpret was requested
-        // by a command that has an input table only optionally. However, the situation is unusual.
         _ctx.logInfo("Missing input table for reinterpret operation");
         return true;
     }
@@ -3182,7 +2937,6 @@ bool ExecContext::saveResult()
         if( !_proc.reqSetData(_out_req, "arch-req.txt", "%" DEC, arch_reqId) )
             return false;
     } else {
-        // repack _.csv only if not archiving to obj - otherwise, archiver won't pick up the file
         _proc.reqRepackData(_out_req, "_.csv");
     }
 
@@ -3197,7 +2951,6 @@ bool ExecContext::saveResult()
         metadata.printf("{\r\n    \"input\": ");
         printTableMetadata(metadata, getLoadedTable(0), 0, 0, "    ");
 
-        // use output categories from last print stage
         OutputCategories * rowcats = 0, *colcats = 0;
         for(idx icmd = _commands.dim() - 1; icmd >= 0; icmd--) {
             if( PrintStage * print_stage = dynamic_cast<PrintStage *>(_commands[icmd]) ) {
@@ -3231,14 +2984,11 @@ idx TblQryX4::OnExecute(idx req)
     }
 #endif
 
-    // FIXME : for debugging in release mode
-    // setupLog(true, sQPrideBase::eQPLogType_Trace);
 
     ExecContext exec_ctx(this);
 
     if( !exec_ctx.parseForm() ) {
         if( exec_ctx.waitingForReq() > 0 && exec_ctx.waitingForReq() != req ) {
-            // we need a subrequest's output to continue, so wait a bit
             reqReSubmit(req, 5);
             return 0;
         }
@@ -3253,7 +3003,6 @@ idx TblQryX4::OnExecute(idx req)
 
     if( !exec_ctx.loadInput() ) {
         if( exec_ctx.waitingForReq() > 0 && exec_ctx.waitingForReq() != req ) {
-            // another request is already parsing this table, so wait a bit
             reqReSubmit(req, 30);
             return 0;
         }
@@ -3279,7 +3028,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
     TblQryX4 backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "tblqryx4", argv[0]));
     return (int) backend.run(argc, argv);
 }

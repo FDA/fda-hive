@@ -37,6 +37,5 @@
 using namespace slib;
 
 
-#endif // sLib_chem_hpp
-
+#endif 
 

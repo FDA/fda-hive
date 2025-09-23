@@ -165,14 +165,12 @@ vjHO.register("svc-profiler-refcmp").Constructor = function() {
         if (formObject)
             this.formName = formObject.name;
 
-        var this_svc = this; // for use in closures;
+        var this_svc = this;
 
         this.addviewer("refcmp", new vjTableView({
             data: "refcmp",
             bgColors: [],
-//            cellColorCallback: this.coloringCells,
             cellColorCallback: "function:vjObjFunc('coloringCells','" + this.objCls + "')",
-//            selectCallback: "function:vjObjFunc('onSelectedHitListItem','" + this.objCls + "')",
 
             precompute: function(viewer, tbl, ir) {
                 var node = tbl.rows[ir];
@@ -224,7 +222,7 @@ vjHO.register("svc-profiler-refcmp").Constructor = function() {
     this.addUrlSet({
         "refcmp" : {
             title: "Retrieving match data",
-            active_url: "qpbg_tblqryx4://refcmp.csv//start=0&cnt=20",
+            active_url: "qpbg_tblqryx4:
             objs: "objs"
         }
     });

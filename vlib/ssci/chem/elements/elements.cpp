@@ -32,7 +32,6 @@
 using namespace slib;
 
 sChem::element sChem::element::chemTable[sChem::element::cntElements]={
-// atomic number     name    symbol     color (rgb)      covalrad vdWradius   atomic mass   freezing T   boiling T
     {    0,      "Unknown",    "X",     0.5,  0.5,  0.5,   3.0,        3  ,      1       ,     0      ,   0         },       
     {    1,      "Hydrogen",   "H",    0.85, 0.85, 0.95,   0.4,       1.2  ,  1.00794    ,  -259.34   ,   -252.87   },       
     {    2,        "Helium",  "He",     0.8, 0.37, 0.08,   0.4,       1.2  ,  4.002602   ,  -272.226  ,   -268.934  },       
@@ -157,10 +156,7 @@ sChem::element sChem::element::chemTable[sChem::element::cntElements]={
 
 
 
-// http://www.sisweb.com/referenc/source/exactmas.htm 
 
-// Name       Symbol        Mass     Abund.  Symbol       Mass     Abund.   Symbol     Mass     Abund.
-// ----------  ------  -----------  ------   ------  -----------  -------   ------  ----------  ------
 const char * sChem::element::isotopTableRaw=
 "\n"
 "Unknown     X(1)       1.000000  100.00\n"
@@ -249,14 +245,13 @@ const char * sChem::element::isotopTableRaw=
 "Uranium     U(234)   234.040947   0.006    U(235) 235.043925     0.72     U(238)  238.050786  99.27\n"
 "\n \n";
 
-/* array where two letters of symbol are enough to index any element */
 char sChem::element::_elementSymbolNum[1<<(2<<3)];
 sVec <sChem::isotop> sChem::element::isoTable;
 
 void sChem::element::initTable( void )
 {
 
-    if( _elementSymbolNum[0]!=-1 ){ /* initialize  symbol->num fast correspondence table */
+    if( _elementSymbolNum[0]!=-1 ){
         for(idx i=0;i<sDim(chemTable);i++){
             idx iNum = (((int)(chemTable[i].symbol[0]))<<8)+((int)chemTable[i].symbol[1]) ;
             _elementSymbolNum[ iNum ]=(char)i;
@@ -279,7 +274,6 @@ void sChem::element::initTable( void )
             
                 sscanf(p,"%" DEC ") %lf %lf", &iso->iMass,&iso->rMass,&iso->abundance);
                 e->cntIsotops++;
-                //++totCnt;
             }
 
             iso=isoTable.ptr(e->ofsIsotops);

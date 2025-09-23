@@ -31,15 +31,15 @@
 DROP TABLE IF EXISTS `UPPerm`;
 
 CREATE TABLE `UPPerm` (
-  `domainID` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `domainID` bigint(20) unsigned NOT NULL DEFAULT 0,
   `objID` bigint(20) unsigned NOT NULL,
   `ionID` bigint(20) unsigned DEFAULT NULL,
   `groupID` bigint(20) unsigned NOT NULL,
-  `view_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `view_id` bigint(20) unsigned NOT NULL DEFAULT 0,
   `flags` bigint(20) unsigned NOT NULL,
   `bits` bigint(20) unsigned NOT NULL,
   `createTm` datetime NOT NULL,
-  `viewDomainID` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `viewDomainID` bigint(20) unsigned NOT NULL DEFAULT 0,
   UNIQUE KEY `perm_unique` (`domainID`,`objID`,`viewDomainID`,`view_id`,`groupID`),
   KEY `view_idx` (`viewDomainID`,`view_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

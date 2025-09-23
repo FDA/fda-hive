@@ -37,29 +37,23 @@
 #include <assert.h>
 
 namespace slib {
-    /*! \brief Base class for an allocation pool to control the number of expensive object instances that exist simultaneously
-     * \tparam T An expensive class whose population of instances needs to be controlled */
     template <class T>
     class sAllocPool
     {
     protected:
-        //! Base class for a delayed allocator. See sFilPool::sFilAllocator for implementation example.
         template <class S>
         class sAllocator
         {
         public:
-            S* obj; //!< The allocated object
-            idx users; //!< Number of users (i.e. number of sAllocPool::request calls for this item)
-            idx allocOrder; //!< Of all alloc() calls for sAllocPool items, when was this item's last alloc() call made
-            idx unusageOrder; //!< Of all placements into sAllocPool::_unusedAllocated, when was this item last placed there
+            S* obj;
+            idx users;
+            idx allocOrder;
+            idx unusageOrder;
 
-            /*! \brief Initialize the allocator, but delay really allocating #obj until alloc() is called */
             sAllocator(): obj(NULL), users(0), allocOrder(-1), unusageOrder(-1) {}
 
             virtual ~sAllocator() { users = 0; dealloc(); }
-            /*! \brief This function should allocate #obj */
             virtual bool alloc() = 0;
-            /*! \brief Deallocate #obj */
             virtual void dealloc()
             {
                 if (obj) {
@@ -67,7 +61,6 @@ namespace slib {
                     obj = NULL;
                 }
             }
-            /*! \brief Decide whether this allocator is to be dealloc()-ed after rhs */
             virtual bool deallocAfter(sAllocator<S> *rhs)
             {
                 return allocOrder > rhs->allocOrder;
@@ -80,7 +73,6 @@ namespace slib {
 #endif
         };
 
-        //! binary comparison of sAllocator handles for deallocation queueing purposes
         template <class S>
         struct sAllocatorCmp {
             const sVec<sAllocator<T>*> *_pool;
@@ -92,12 +84,12 @@ namespace slib {
         typedef sAllocatorCmp<T> TallocCmp;
 
         sVec<Talloc*> _pool;
-        idx _dimPool; //!< number of allocators in _pool
-        idx _maxUsable; //!< max number of allocators we can have in use
-        idx _dimAllocated; //!< number of alloc()-ed allocators
+        idx _dimPool;
+        idx _maxUsable;
+        idx _dimAllocated;
 
         TallocCmp _unusedAllocatedCmp;
-        sHeap<idx, TallocCmp> _unusedAllocated; //!< queue of allocators that can be dealloc()-ed
+        sHeap<idx, TallocCmp> _unusedAllocated;
         idx _totalAllocs;
         idx _totalUnusages;
 
@@ -146,7 +138,6 @@ namespace slib {
         }
 
     public:
-        /*! \param maxsize Maximum number of pool items allowed to be in use at one time */
         sAllocPool<T>(idx maxUsable = 0): _unusedAllocated(NULL, eHeapFlags_DEFAULT|eHeapFlags_Pushy) { init(maxUsable); }
         virtual ~sAllocPool<T>()
         {
@@ -155,22 +146,12 @@ namespace slib {
             }
         }
 
-        /*! \brief Add a new delayed allocation declaration to the pool. See sFilPool::declare for implementation example.
-         * \warning Although declare() does not by itself allocate the item, storing the declaration does
-         *          take space, so each declare() call increases the pool's memory usage.
-         * \returns The new pool item declaration's handle */
         virtual idx declare() = 0;
 
-        /*! \brief Checks whether the handle points to a valid, declared pool item */
         virtual bool validHandle(idx handle) const { return handle >= 0 && handle < _dimPool; }
 
         static idx invalidHandle() { return -1; }
 
-        /*! \brief Request for the specified pool item to be allocated if it wasn't allocated already
-         * \warning request() increments the pool item's usage counter; ensure each request() call is
-         *          eventually followed by a release() to avoid leaks.
-         * \param handle Pool item handle
-         * \returns pointer to the specified pool item, or NULL on failure */
         virtual T* request(idx handle)
         {
             Talloc *a = _pool[handle];
@@ -186,11 +167,6 @@ namespace slib {
             return a->obj;
         }
 
-        /*! \brief Inform the pool that an object is not currently needed
-         * \note release() decrements the pool item's usage counter; the item will be deallocated only
-         *       after the counter reaches zero <em>and</em> the pool reaches its limit of allocated
-         *       items allowed at one time.
-         * \param handle Pool item handle */
         virtual void release(idx handle)
         {
             Talloc *a = _pool[handle];
@@ -205,18 +181,14 @@ namespace slib {
                 return;
             }
 
-            // a is allocated with exactly 1 user; that last user releases it, so we push it to unused-but-allocated queue
             a->users = 0;
             assert(a->unusageOrder < 0);
             _unusedAllocated.push(handle);
             a->unusageOrder = _totalUnusages++;
         }
 
-        /*! \brief Number of pool items that have been declared */
         virtual inline idx dim() const    { return _dimPool; }
-        /*! \brief Max number of pool items that can be allocated and in use */
         virtual inline idx maxUsable() const { return _maxUsable; }
-        /*! \brief Number of pool items that are allocated and in use */
         virtual inline idx dimUsed() const { return _dimAllocated - _unusedAllocated.dim(); }
 
 #ifdef _DEBUG_POOL
@@ -250,21 +222,16 @@ namespace slib {
 #endif
     };
 
-    //! Allocation pool for sFil objects
-    /*! Useful when no more than a certain fixed number of files must be open at any one time. */
     class sFilPool : public sAllocPool<sFil>
     {
     protected:
-        //! Allocates sFil objects
         class sFilAllocator : public sAllocPool<sFil>::sAllocator<sFil>
         {
         public:
             sStr _flnm;
             idx _flags;
-            /*! \brief Initialize the allocator, but delay really allocating the sFil #obj */
             sFilAllocator(const char * flnm=0, idx flags=sMex::fBlockDoubling):
                 sAllocPool<sFil>::sAllocator<sFil>(), _flnm("%s",flnm), _flags(flags) {}
-            /*! \brief Really allocate the sFil #obj */
             virtual bool alloc()
             {
                 this->obj = new sFil(_flnm.ptr(), _flags);
@@ -281,21 +248,15 @@ namespace slib {
         };
 
     public:
-        /*! \param maxUsable Maximum number of files allowed to be open at any time */
         sFilPool(idx maxUsable = 0): sAllocPool<sFil>(maxUsable) {}
         virtual ~sFilPool() {}
 
-        /*! \brief Add a new sFil delayed allocation declaration to the pool
-         * \param flnm Filename
-         * \param flags Flags parameter for sFil constructor
-         * \returns The new sFil declaration's handle */
         virtual idx declare(const char * flnm, idx flags=sMex::fBlockDoubling)
         {
             this->_pool.add();
             this->_pool[_dimPool] = new sFilAllocator(flnm, flags);
             return this->_dimPool++;
         }
-        //! Add a trivial sFil delayed allocation declaration to the pool; needed to override pure virtual base class method
         virtual inline idx declare() { return declare(0); }
     };
 }

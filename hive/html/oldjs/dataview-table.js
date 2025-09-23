@@ -27,37 +27,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
-sampleTableView={
-    type: 'checktable', // checktable or plain 
-    checkmarks: '+--+', // is a checkmark available for a particular row
-    checkcallback: functionname( row, col ), //  the function to call-backl when check status changes  (-1 means all)
-    selected:  '01100', // selection state for rows
-    colhide: '+--+-+', // columns to hide 
-    colscolor: '+--+', // columns which can or cannot be colored by the row colcolor
-    prefixHTML: 'text', // prefix text for table 
-    appendHTML: 'text', // psotfix tex for the table
-    appendCols: appendCols: [ {header:"title", cell:"body"} ] , // additional static columns to append 
-    colTypes: [ '','','','largenumber','','percent' ] , // additional types on columns
-    colAlign: [ 'center','left' ] , // additional types of alignment
-    skiprows : 0, // how many rows to skip from the beginning  
-    colors : ['black: 'blue' ], // list of colors for rows
-    checkdisabled : false, // defines checks clikability 
-    links : links:['javascript:function(row,col,value)', 'html://?' ],  // cell links 
-    autonumber:'none', // do we need to autonumber ... this is the starting number  
-    newSectionWord:'', // these start new sections
-    tblClass:'DV_table' //
-    isok: true
-};
-*/
 
     
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Table viewer constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 vDV.generateTableView=function( viewer , text) 
 {
@@ -186,12 +158,12 @@ vDV.generateTableViewText=function( viewer, arr )
 
                     var dolink="", docall="";
                     if( viewer.links && viewer.links.length>=ic && viewer.links[irealcol] && viewer.links[irealcol].length ){ 
-                        if(viewer.links[irealcol].indexOf("javascript:")==0)docall=viewer.links[irealcol];//.substring(11);
+                        if(viewer.links[irealcol].indexOf("javascript:")==0)docall=viewer.links[irealcol];
                         else dolink=viewer.links[irealcol];
                     }
                     
                     if( viewer.links && viewer.links.length>=ic && viewer.links[irealcol] && viewer.links[irealcol].length ){ 
-                        if(viewer.links[irealcol].indexOf("javascript:")==0)docall=viewer.links[irealcol];//.substring(11);
+                        if(viewer.links[irealcol].indexOf("javascript:")==0)docall=viewer.links[irealcol];
                         else dolink=viewer.links[irealcol];
                     }
                     
@@ -204,8 +176,6 @@ vDV.generateTableViewText=function( viewer, arr )
                         var realText="";
                         if(ic<arr[ir].length) realText=arr[ir][ic];
                         else realText=viewer.appendCols[ic-arr[ir].length].cell;
-                        //if(tag=="th" && ic==0) // this is possible only for the new section
-                        //    realText=realText; 
 
                         if( realText.indexOf("eval:")==0 ) {
                             realText=eval( realText.substring(5) );
@@ -248,11 +218,6 @@ vDV.generateTableViewText=function( viewer, arr )
     return tt;
 };
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Table viewer Event Handlers
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 vDV.enumerateItemsTableView=function( viewer , operation, ischecked ) 
 {
@@ -293,48 +258,5 @@ vDV.checkmarkSelTable=function(thisobject,cursel, maxel, prfx )
     vi.selected=checks;
 };
 
-/*
-function objview_TreeView_onclickNode(event, container, nodepath )
-{
-    var viewer=vDV.findviewByContainer(container);
-    var node=objView_TreeViewFindNode(viewer.tree, nodepath);
 
-    viewer.selectedNode=nodepath;
-
-    if(viewer.selectionObject && viewer.selectionObject.length!=0 ) {
-
-        var o=gObject(viewer.selectionObject);if(o && o.innerHTML )o.innerHTML=nodepath;
-        o=gObject(viewer.selectionObject+"_title");if(o && o.innerHTML )o.innerHTML=node.title ? node.title : node.name ;
-        if(viewer.formObject && document.forms[viewer.formObject]) {
-            o=document.forms[viewer.formObject].elements[viewer.selectionObject];
-            if(o)o.value=nodepath;
-            o=document.forms[viewer.formObject].elements[viewer.selectionObject+"_title"];
-            if(o)o.value=node.title ? node.title : node.name ;
-        }
-    }
-
-
-    var linkCB;
-    if(node.leaf && viewer.linkLeafCallback)linkCB=viewer.linkLeafCallback;
-    else if(viewer.linkBranchCallback)linkCB=viewer.linkBranchCallback;
-    
-    if(linkCB) {
-        if(linkCB.indexOf("javascript:")==0)
-            eval(linkCB.substring(11))(viewer,node) ;
-        else
-            document.location=linkLeafCallback; 
-    }
-
-    
-    if(viewer.selectionColor)
-        gObject(container).innerHTML=objView_TreeViewOutputTree(viewer,viewer.tree);
-    
-}
-*/
-
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Registration
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 vDV.registerViewer( "tableview", vDV.generateTableView) ;

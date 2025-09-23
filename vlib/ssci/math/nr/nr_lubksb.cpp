@@ -51,33 +51,6 @@ void sMathNR::lubksb(real **a, idx n, idx *indx, real b[])
         b[i]=sum/a[i][i];
     }
 }
-/*
-#define a(_v_1, _v_2)  (A[((_v_1)-1)*n+(_v_2)-1])
-
-void sMathNR::lubksbR(real *A, idx n, idx *indx, real * b)
-{
-    --b;
-    --indx;
-    idx i,ii=0,ip,j;
-    real sum;
-
-    for (i=1;i<=n;i++) {
-        ip=indx[i];
-        sum=b[ip];
-        b[ip]=b[i];
-        if (ii)
-            for (j=ii;j<=i-1;j++) sum -= a(i,j)*b[j];
-        else if (sum) ii=i;
-        b[i]=sum;
-    }
-    for (i=n;i>=1;i--) {
-        sum=b[i];
-        for (j=i+1;j<=n;j++) sum -= a(i,j)*b[j];
-        b[i]=sum/a(i,i);
-    }
-}
-#undef a
-*/
 
 
 

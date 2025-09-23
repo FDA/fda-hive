@@ -33,6 +33,6 @@ DROP TABLE IF EXISTS `QPPerform`;
 CREATE TABLE `QPPerform` (
   `svcName` varchar(128) DEFAULT NULL,
   `paramset` varchar(1024) DEFAULT NULL,
-  `amountOfWork` bigint(20) NOT NULL DEFAULT '0',
-  `timeSeconds` bigint(20) NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `amountOfWork` bigint(20) NOT NULL DEFAULT 0,
+  `timeSeconds` bigint(20) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

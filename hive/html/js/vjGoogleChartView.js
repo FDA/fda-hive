@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-///////////////////////////
 function drawAreaPlot(seriesData, colNames, divName, plotTitle, xTitle, yTitle, tickFreq) {
 
         var data = new google.visualization.DataTable();
@@ -54,7 +53,6 @@ function drawAreaPlot(seriesData, colNames, divName, plotTitle, xTitle, yTitle, 
 }
 
 
-///////////////////////////
 function drawScatterPlot(seriesData, divName, plotTitle, xTitle, yTitle, tickFreq) {
 
         var data = new google.visualization.DataTable();
@@ -83,18 +81,23 @@ function drawScatterPlot(seriesData, divName, plotTitle, xTitle, yTitle, tickFre
 }
 
 
-///////////////////////////
 function drawSingleSeries(seriesData, divName, xTitle, yTitle, tickFreq) {
 
+
         var data = new google.visualization.DataTable();
-        data.addColumn('number', 'x-values');
+    data.addColumn('number', 'x-values');
         data.addColumn('number', 'y-values');
-        data.addColumn({type: 'string', role: 'style'});
-    data.addColumn({type: 'string', role: 'annotation'});
+        data.addColumn({type: 'string', role: 'annotation'});
+    data.addColumn({type: 'string', role: 'style'});
     var rows = [];
         for (var i in seriesData){
-                rows.push([seriesData[i]["x"],  seriesData[i]["y1"], seriesData[i]["style"], 
-                seriesData[i]["annotation"]]);
+        seriesData[i]["annotation"] = (seriesData[i]["annotation"] == undefined ? null : seriesData[i]["annotation"]);
+        rows.push([
+                seriesData[i]["x"]  
+                ,seriesData[i]["y1"]
+                ,seriesData[i]["annotation"]
+                ,seriesData[i]["style"]
+            ]);
         }
         data.addRows(rows);
 
@@ -107,8 +110,10 @@ function drawSingleSeries(seriesData, divName, xTitle, yTitle, tickFreq) {
     var options = {'title':''
         ,titleTextStyle: titleTextStyle
         ,tooltip: toolTip
-            ,annotations: {textStyle:  {fontName: 'TimesNewRoman', fontSize: 10,bold: false}}
-            ,explorer: {actions:['dragToZoom','rightClickToReset']}
+        ,annotations: {
+            textStyle:  {fontName: 'TimesNewRoman', fontSize: 10,bold: false}
+        }
+        ,explorer: {actions:['dragToZoom','rightClickToReset']}
         ,vAxis:{title:yTitle, textStyle:yTextStyle, minValue:0}
         ,hAxis: {title: xTitle,textStyle:xTextStyle,slantedText:true,slantedTextAngle:45,showTextEvery:2}
         ,chartArea: { width: "100%", height: "50%", left:50, top:50}
@@ -116,17 +121,17 @@ function drawSingleSeries(seriesData, divName, xTitle, yTitle, tickFreq) {
         ,legend: 'none'
         ,width: "100%"
             ,height: "100%"
-        ,explorer: {actions:['dragToZoom','rightClickToReset']}
     };
-        var chart = new google.visualization.ColumnChart(document.getElementById(divName));
-        chart.draw(data, options);
+        
+    var my_div = document.getElementById(divName);
+    var my_chart = new google.visualization.ColumnChart(my_div);
+        my_chart.draw(data, options);
 
 
 
 }
 
 
-/////////////////////////////////////
 function drawToyChart(plotDivId) {
 
         var data = new google.visualization.DataTable();

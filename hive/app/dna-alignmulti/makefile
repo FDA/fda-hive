@@ -30,6 +30,7 @@
 
 PROGRAMS += dna-alignmulti
 
+
 PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
@@ -40,6 +41,6 @@ ifeq ($(devdir),)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-alignmulti,HIVE Alignment Multistage Pipeline,/Sequencing/)

@@ -34,8 +34,45 @@
 dmCompressor::dmCompressor(sQPride& qp, const char * file, const sHiveId & objId, dmLib::EPackAlgo algo)
     : TParent(qp)
 {
+    setFunction("objSetFile");
     setFile("%s", file);
-    setObjId(objId);
+    setObjs(objId);
+    setCompression(algo);
+}
+
+dmCompressor::dmCompressor(sQPride & qp, sVec<sHiveId> & objs, const char * hivepack_name)
+    : TParent(qp)
+{
+    setFunction("objHivePack");
+    setObjs(objs);
+    setContainerName(hivepack_name);
+}
+
+dmCompressor::dmCompressor(sQPride & qp, const char * query, const char * hivepack_name)
+    : TParent(qp)
+{
+    setFunction("objHivePack");
+    setObjs(query);
+    setContainerName(hivepack_name);
+}
+
+dmCompressor::dmCompressor(sQPride & qp, sVec<sHiveId> & objs, const char * mask, const char * arc_name, dmLib::EPackAlgo algo)
+    : TParent(qp)
+{
+    setFunction("objFiles2");
+    setObjs(objs);
+    setFiles2Mask(mask);
+    setContainerName(arc_name);
+    setCompression(algo);
+}
+
+dmCompressor::dmCompressor(sQPride & qp, const char * query, const char * mask, const char * arc_name, dmLib::EPackAlgo algo)
+    : TParent(qp)
+{
+    setFunction("objFiles2");
+    setObjs(query);
+    setFiles2Mask(mask);
+    setContainerName(arc_name);
     setCompression(algo);
 }
 
@@ -43,22 +80,74 @@ dmCompressor::~dmCompressor()
 {
 }
 
-void dmCompressor::setFile(const char * file, ...)
+void dmCompressor::setFunction(const char * function)
 {
-    sStr s;
-    s.cut0cut();
-    if( file ) {
-        sCallVarg(s.vprintf, file);
+    if( function ) {
+        setVar("function", "%s", function);
     }
-    setVar("inputFile", "%s", s.ptr());
 }
 
-void dmCompressor::setObjId(const sHiveId & objId)
+void dmCompressor::setFile(const char * file, ...)
 {
-    setVar("obj", "%s", objId.print());
+    if( file ) {
+        sStr s;
+        s.cut0cut();
+        sCallVarg(s.vprintf, file);
+        setVar("inputFile", "%s", s.ptr());
+    }
 }
 
 void dmCompressor::setCompression(dmLib::EPackAlgo algo)
 {
     setVar("compression", "%u", algo);
+}
+
+void dmCompressor::setContainerName(const char * filename, ...)
+{
+    if( filename ) {
+        sStr s;
+        s.cut0cut();
+        sCallVarg(s.vprintf, filename);
+        setVar("containerName", "%s", s.ptr());
+    }
+}
+
+void dmCompressor::setObjs(const sHiveId & objId, const bool with_dependences)
+{
+    if( objId ) {
+        if( with_dependences ) {
+            sVec<sHiveId> objs;
+            sHiveId * c = objs.add(1);
+            if( c ) {
+                *c = objId;
+                setObjs(objs, true);
+            }
+        } else {
+            setVar("objs", "%s", objId.print());
+        }
+    }
+}
+
+void dmCompressor::setObjs(sVec<sHiveId> & objs, const bool with_dependences)
+{
+    if( objs.dim() ) {
+        sStr s;
+        sHiveId::printVec(s, objs);
+        setVar("withDependencies", with_dependences ? "true" : "false");
+        setVar("objs", "%s", s.ptr());
+    }
+}
+
+void dmCompressor::setObjs(const char * query)
+{
+    if( query) {
+        setVar("objs", "%s%s", sIs("query://", query) ? "" : "query://", query);
+    }
+}
+
+void dmCompressor::setFiles2Mask(const char * mask)
+{
+    if( mask) {
+        setVar("files2mask", "%s", mask);
+    }
 }

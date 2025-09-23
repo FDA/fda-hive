@@ -93,10 +93,8 @@ BEGIN
 
     IF @id > 0 THEN
         CALL sp_obj_perm_set_v2(p_group_id, p_member_sql, p_group_id, p_obj_domainID, @id, NULL, NULL, p_permissions, p_flags, false);
-        IF p_objID = 0 THEN
-            INSERT INTO UPObjField (domainID, objID, `name`, `group`, `value`)
-                VALUES (IF(p_obj_domainID = 0, NULL, p_obj_domainID), @id, 'created', NULL, UNIX_TIMESTAMP(CURRENT_TIMESTAMP));
-        END IF;
+        INSERT INTO UPObjField (domainID, objID, `name`, `group`, `value`)
+            VALUES (IF(p_obj_domainID = 0, NULL, p_obj_domainID), @id, 'created', NULL, UNIX_TIMESTAMP(CURRENT_TIMESTAMP));
     END IF;
 
     SELECT p_obj_domainID AS domainID, @id AS id;

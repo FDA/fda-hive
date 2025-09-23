@@ -36,6 +36,16 @@ BEGIN
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+     -- find type type id
+    SELECT domainID, objID FROM UPObj WHERE objTypeDomainID = domainID AND objTypeID = objID
+    INTO @tdid, @toid;
+
+    -- find type named 'qpsvc'
+    SELECT o.domainID, o.objID FROM UPObj o JOIN UPObjField f ON (f.domainID = o.domainID OR (f.domainID IS NULL AND o.domainID = 0)) AND o.objID = f.objID
+    WHERE o.objTypeDomainID = @tdid AND o.objTypeID = @toid AND f.name = 'name' AND f.value = 'qpsvc'
+    INTO @tdid_qpsvc, @toid_qpsvc;
+
     DROP TEMPORARY TABLE IF EXISTS svc_maxTrials_restartSec;
     CREATE TEMPORARY TABLE svc_maxTrials_restartSec AS
         SELECT o.objID AS svcID, f1.`value` AS maxTrials, f2.`value` AS restartSec
@@ -43,7 +53,7 @@ BEGIN
                     ON ((f1.domainID = f2.domainID OR (f1.domainID IS NULL AND f2.domainID IS NULL)) AND f1.objID = f2.objID)
                 JOIN UPObj o ON ((f1.domainID = o.domainID OR (f1.domainID IS NULL AND o.domainID = 0)) AND f1.objID = o.objID)
             WHERE f1.`name` = 'maxTrials' AND f2.`name` = 'restartSec' AND
-                /* o.objTypeDomainID = 0 AND */ o.objTypeID = (SELECT type_id FROM UPType WHERE `name` ='qpsvc');
+                o.objTypeDomainID = @tdid_qpsvc AND o.objTypeID = @toid_qpsvc;
 
     DROP TEMPORARY TABLE IF EXISTS QP_recover_reqs;
     CREATE TEMPORARY TABLE QP_recover_reqs AS

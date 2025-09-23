@@ -34,17 +34,16 @@ using namespace slib;
 real sAlgebra::integral::calcUnispace(idx method, const real *y, idx n, real h)
 {
     static real methodList[4][10]={
-        {1./2,  0}, // trapezoid
-        {5./12, 13./12, 0}, // cubic
-        {3./8,  7./6,   23./24,  0}, // N4
-        {1./3,  0}, // simpson // 4./3,   2./3 alternation
+        {1./2,  0},
+        {5./12, 13./12, 0},
+        {3./8,  7./6,   23./24,  0},
+        {1./3,  0},
     };
     real * met=methodList[method];
 
     idx i, ord;
     real itgrl=0;
 
-    // we do the left tail first
     for( i=0, ord=0; i<n && met[ord]!=0 ; ++i, ++ord ) 
         itgrl+=y[i]*met[ord];
     

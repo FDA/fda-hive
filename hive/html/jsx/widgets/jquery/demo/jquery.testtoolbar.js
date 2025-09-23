@@ -144,19 +144,6 @@ $(function () {
                                                         class: 'images icon',
                                                         view: {
                                                             name: 'areastats'
-                                                            /*name: 'dataview',
-                                                            options: {
-                                                                dataViewer: 'vjGoogleGraphView',
-                                                                dataViewerOptions: {
-                                                                    data: "dsPieChart",
-                                                                    type:"pie",
-                                                                    series:[ {label:true, name:'letter', title: 'Nucleotides'}, {name: 'count', title: 'Count at position on a sequence' } ],
-                                                                    options: { title:'ACGT base count', legend: 'none',is3D:true,pieSliceText: 'label', focusTarget:'category', width: 600, height: 600, colors:vjPAGE.colorsACGT,  vAxis: { title: 'Letter Count', minValue:0}  },
-                                                                    cols:[{ name: 'letter', order:1, align:'center',title: 'Nucleobase', hidden: false },
-                                                                          { name: 'count', order:2,  title: 'Count', hidden: false },
-                                                                          { name: 'quality', hidden: true }]
-                                                                }
-                                                            }*/
                                                         }
                                                     }]
                                                 }

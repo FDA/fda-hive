@@ -33,14 +33,12 @@
 
 #include <qpsvc/qpsvc.hpp>
 
-//! Launch dna.cgi as a backend request from C++
 class dmDnaCgi: public sQPSvc
 {
 private:
     static const char * _svc_name;
 
 public:
-    /*! \param url_query_string e.g. cmd=foo&start=0&cnt=20 */
     dmDnaCgi(sQPride & qp, const char * url_query_string);
     virtual ~dmDnaCgi() {}
     virtual const char * getSvcName() const { return _svc_name; }

@@ -37,11 +37,6 @@
 namespace slib
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ class sHash
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     class sHash {
     public:
@@ -92,14 +87,11 @@ namespace slib
 
 
         typedef void * (* keyFuncType)(void * param, idx typeindex, idx recordindex,idx * sizeKey);
-        //typedef void * (* hashFuncType)(idx typeindex, idx recordindex,idx * sizeKey);
 
         keyFuncType keyfunc;
         void * keyParam;
 
         idx hashMemSize(void){
-            //return (((HashHeader *)hashPtr)->mapCount)*sizeof(HashRecord)+sizeof(HashHeader);
-            //return hashTableVec.dim(); //(((HashHeader *)hashPtr)->mapCount)*sizeof(HashRecord)+sizeof(HashHeader);
             if(hashPtr)
                 return  (((udx)1)<<(((HashHeader *)hashPtr)->bits))*sizeof(HashRecord)+sizeof(HashHeader);
             else return 0;
@@ -116,6 +108,6 @@ namespace slib
         }
 
     };
-} // namespace slib
+}
 
-#endif //  sLib_hash_h
+#endif 

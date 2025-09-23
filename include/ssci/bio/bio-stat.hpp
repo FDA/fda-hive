@@ -41,8 +41,7 @@ namespace slib
 
 }
 
-#endif // sBio_stat_hpp
-
+#endif 
 
 
 

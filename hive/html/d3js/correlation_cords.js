@@ -28,19 +28,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-//document.write('<link rel="stylesheet" type="text/css"  href="d3js/scatter_correlations.css">')
 
 function vjD3JS_CorrelationCord ( viewer )
 {
     loadCSS("d3js/css/correlation_cords.css");
-    vjD3CategoryView.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjD3CategoryView.call(this,viewer);
     var divElement;
     var that = this;
     
-    //this.margin={top: 40, right: 10, bottom: 20, left: 10};
     if (this.margin == undefined || !this.margin) {this.margin = 100;}
     if (this.showTicks == undefined) {this.showTicks=0;}
     if (this.showLabels == undefined) {this.showLabels=0;}
+    if (this.staticColor){
+        this.originalRandom = Math.random()*1000000;
+        this.tmpRandom = this.originalRandom;
+        this.addSeed = Math.random()*1000000;
+    }
     this.categToNumber=0;
     
     this.transformToMatrix = function (data){
@@ -48,38 +51,31 @@ function vjD3JS_CorrelationCord ( viewer )
         var leftHeader = [];
         var topHeader = Object.keys(data[0]);
         var topHeaderLength = topHeader.length;
-        //
         var intermediateMatrix = matrixCreateEmpty(data.length,topHeaderLength-1);
-        //before: [[0,0],[0,0],[0,0]]
-        for (var i=0; i< data.length; ++i){  // by rows
+        for (var i=0; i< data.length; ++i){
             var row = data[i];
-            for (var k=0; k < topHeaderLength; ++k){ // by columns
+            for (var k=0; k < topHeaderLength; ++k){
                 var hdr = topHeader[k];
                 if (k==0) leftHeader.push(row[hdr]);
                 else {
-                    //intermediateMatrix[i][k-1]= parseFloat(row[hdr]);
                     intermediateMatrix[i][k-1]= Math.abs(parseFloat(row[hdr]));
                 }
             }
         }
-        //after: [[1,2],[3,4],[5,6]]
         var matrixSquareLength = (topHeader.length-1) + data.length;
-        // [[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
         var generalMatrix = matrixCreateEmpty(matrixSquareLength,matrixSquareLength);        
-        for (var ir=0; ir< intermediateMatrix.length; ++ir){ // by rows
-            for (var ic=0; ic < intermediateMatrix[ir].length; ++ic){ // by column
+        for (var ir=0; ir< intermediateMatrix.length; ++ir){
+            for (var ic=0; ic < intermediateMatrix[ir].length; ++ic){
                 var value = intermediateMatrix[ir][ic];
                 generalMatrix[topHeaderLength-1+ir][ic] = value;
             }
         }
-        // [[0,0,0,0,0],[0,0,0,0,0],[1,2,0,0,0],[3,4,0,0,0],[5,6,0,0,0]]
-        for (var ir=0; ir< intermediateMatrix.length; ++ir){ // by rows
-            for (var ic=0; ic < intermediateMatrix[ir].length; ++ic){ // by column
+        for (var ir=0; ir< intermediateMatrix.length; ++ir){
+            for (var ic=0; ic < intermediateMatrix[ir].length; ++ic){
                 var value = intermediateMatrix[ir][ic];
                 generalMatrix[ic][topHeaderLength-1+ir] = value;
             }
         }
-        // [[0,0,1,3,5],[0,0,2,4,6],[1,2,0,0,0],[3,4,0,0,0],[5,6,0,0,0]]
         topHeader.splice(0,1)
         label = label.concat(topHeader);
         label = label.concat(leftHeader);
@@ -89,9 +85,8 @@ function vjD3JS_CorrelationCord ( viewer )
         };
     }
     
-    //   "#COLS[2:10]"
     function assignColListToColHdr(hdrArr, specialString) {
-        var value = specialString;  //"#COL[2:10]" 
+        var value = specialString;
         var start = value.match(/\[[0-9]*\:/)[0];
         start = parseInt(start.substring(1,start.length-1)) -1;
         var end = value.match(/\:-?[0-9]*\]/)[0];
@@ -109,7 +104,6 @@ function vjD3JS_CorrelationCord ( viewer )
         return myArr;
     }
     
-    // array:["colname1","#COL6"]
     function assignColNumToColHdr(arr, hdrArr) {
         var newArr = [];
         var len = arr.length;
@@ -137,12 +131,8 @@ function vjD3JS_CorrelationCord ( viewer )
     }
 
     
-    // 1 based column number from user input
     this.pairsTreatment = function(data) {
         var topHeaderArr = Object.keys(data[0]);
-        // Convention for this.pairs.array:
-        //         regular case: this.pairs = {array:[["colname1","colname9"],["#COL[4]","colname7"]] , eval:[]}
-        //         special case: this.paris = {array: "#COLS[1:-2]", eval: [] }
         if (typeof(this.pairs.array)!="string") {
             for (var iA=0; iA<this.pairs.array.length; ++iA) {
                 this.pairs.array[iA]= assignColNumToColHdr(this.pairs.array[iA], topHeaderArr);
@@ -151,7 +141,6 @@ function vjD3JS_CorrelationCord ( viewer )
         else {
             this.pairs.array= assignColNumToColHdr(verarr(this.pairs.array), topHeaderArr);
         }
-        // pairValue:["colName","#COL[1]","#COLS[2:4]"]
         this.pairValue= assignColNumToColHdr(this.pairValue, topHeaderArr);
         
         var elementToMap = [this.multiColor,this.singleColor];
@@ -172,7 +161,7 @@ function vjD3JS_CorrelationCord ( viewer )
     }
     
     this.transformToMatrixPairs = function(data)
-    { // 
+    {
         var generalMatrix=[];
         var labels={};
         var labels_length=0;
@@ -181,16 +170,11 @@ function vjD3JS_CorrelationCord ( viewer )
         this.multiColor = this.multiColor || {};
         this.multiColor.columns = this.multiColor.columns || [];
         
-        // pairs array
-        // Convention:
-        //         regular case: this.pairs = {array:[["colname1","colname9"],["#COL[4]","colname7"]] , eval:[]}
-        //         special case: this.paris = {array: "#COLS[1:-2]", eval: [] }
         this.pairsTreatment(data);
         
-        // Preparing Labels Object
         var lset=[];
         
-        for ( var i =0; i<data.length; ++i  ){ // going through rows
+        for ( var i =0; i<data.length; ++i  ){
             if (this.pairs.eval)
             {
                 var label1="", label2="";
@@ -210,9 +194,7 @@ function vjD3JS_CorrelationCord ( viewer )
             }
             else
             {
-                //for ( var ip=0; ip<this.pairs.array[0].length; ++ip) {if(label1.length)label1+=":"; label1+=data[i][this.pairs.array[0][ip]];}
-                //for ( var ip=0; ip<this.pairs.array[1].length; ++ip) {if(label2.length)label2+=":"; label2+=data[i][this.pairs.array[1][ip]];}
-                for (var iA=0; iA<this.pairs.array.length; ++iA) { // going through columns
+                for (var iA=0; iA<this.pairs.array.length; ++iA) {
                     var label = "";
                     var multiColorCol = -1;
                     var singleColorCol = -1;
@@ -264,7 +246,6 @@ function vjD3JS_CorrelationCord ( viewer )
                 var vLabel = "category_V||" + data[i][this.pairs.array[0][0]];
                 var dLabel = "category_D||" + data[i][this.pairs.array[1][0]];
                 var jLabel = "category_J||" + data[i][this.pairs.array[2][0]];
-                // v dict
                 if(!this.dict["V"][vLabel]){
                     this.dict["V"][vLabel]={};
                 }
@@ -275,7 +256,6 @@ function vjD3JS_CorrelationCord ( viewer )
                     this.dict["V"][vLabel][dLabel][jLabel]=1;
                 } 
                 
-                // d dict                         
                 if(!this.dict["D"][dLabel]){
                     this.dict["D"][dLabel]={};
                 }
@@ -286,7 +266,6 @@ function vjD3JS_CorrelationCord ( viewer )
                     this.dict["D"][dLabel][vLabel][jLabel]=1;
                 }
                 
-                // j dict
                 if(!this.dict["J"][jLabel]){
                     this.dict["J"][jLabel]={};
                 }
@@ -300,17 +279,7 @@ function vjD3JS_CorrelationCord ( viewer )
                 
             }
             
-            /*if(!labels[label1]){
-                lset.push(label1);
-                labels[label1]=1;
-            }
-            if(!labels[label2]) { 
-                lset.push(label2);
-                labels[label2]=1;
-            }*/
         }
-        // Sorting the label set array
-        // Assignment each unique label with a number
         var ss=lset.sort();
         labels={};
         
@@ -340,7 +309,6 @@ function vjD3JS_CorrelationCord ( viewer )
         }
         
         
-        // Fill up the matrix with values
         for ( var i =0; i<data.length; ++i  ){
             var labelList = [];
             if (this.pairs.eval)
@@ -366,8 +334,6 @@ function vjD3JS_CorrelationCord ( viewer )
             }
             else
             {
-                //for ( var ip=0; ip<this.pairs.array[0].length; ++ip) {if(label1.length)label1+=":"; label1+=data[i][this.pairs.array[0][ip]];}
-                //for ( var ip=0; ip<this.pairs.array[1].length; ++ip) {if(label2.length)label2+=":"; label2+=data[i][this.pairs.array[1][ip]];}
                 for (var iA=0; iA<this.pairs.array.length; ++iA) {
                     var label = "";
                     for ( var ip=0; ip<this.pairs.array[iA].length; ++ip){
@@ -388,27 +354,7 @@ function vjD3JS_CorrelationCord ( viewer )
             }
             
             
-            /*
-            var ilabel1= labels[label1];
-            var ilabel2= labels[label2];
             
-            if(!generalMatrix[ilabel1])
-                generalMatrix[ilabel1]=[];
-            if(!generalMatrix[ilabel2])
-                generalMatrix[ilabel2]=[];
-                    
-            if(!generalMatrix[ilabel1][ilabel2])
-                generalMatrix[ilabel1][ilabel2]=0;
-            if(!generalMatrix[ilabel2][ilabel1])
-                generalMatrix[ilabel2][ilabel1]=0;
-            
-            generalMatrix[ilabel1][ilabel2]+=value;
-            generalMatrix[ilabel2][ilabel1]+=value;
-            
-            if(ilabel1>maxRows)maxRows=ilabel1+1;
-            if(ilabel2>maxCols)maxCols=ilabel2+1;*/
-            
-            // 
             for (var iL=0; iL < labelList.length; ++iL) {
                 var label1 = labelList[iL];
                 var ilabel1= labels[label1];
@@ -440,19 +386,15 @@ function vjD3JS_CorrelationCord ( viewer )
                     
                     if(ilabel1>maxRows)maxRows=ilabel1+1;
                     if(ilabel2>maxCols)maxCols=ilabel2+1;
-                    if (this.forVDJ){/*
-                        if (!this.colorMat[ilabel1]) this.colorMat[ilabel1]=[];
-                        if (!this.colorMat[ilabel2]) this.colorMat[ilabel2]=[];
-                        if (!this.colorMat[ilabel1][ilabel2]) this.colorMat[ilabel1][ilabel2] = */
+                    if (this.forVDJ){
                     }
                 }
             }
             
         }
         
-        var dim=labelArr.length;//maxRows; if(dim<maxCols) dim=maxCols;
+        var dim=labelArr.length;
         
-        // fill up the empty cell in matrix with 0
         for( var ir=0; ir<dim; ++ir  ) {
             if(!generalMatrix[ir])
                 generalMatrix[ir]=[];
@@ -472,7 +414,7 @@ function vjD3JS_CorrelationCord ( viewer )
     
     
     this.d3Compose=function(data){       
-        
+        this.tmpRandom = this.originalRandom;
         this.d3Compose_prv(data);
         var thiSS=this;
         var svg=this.d3svg;
@@ -499,7 +441,6 @@ function vjD3JS_CorrelationCord ( viewer )
         if (!this.wrapLength)
             this.wrapLength = (Math.min(this.width, this.height) - 2 * (radius + 10))/2;
         
-        //var innerRadius = Math.min(width, height) * .41;
         var innerRadius = radius;
         var outerRadius = innerRadius * 1.08;
 
@@ -521,8 +462,14 @@ function vjD3JS_CorrelationCord ( viewer )
                 if (this.categorizeByColumn) {
                     category = curLabel.split("||")[0];
                 }
-                if (!this.categToNumber[category])
-                    this.categToNumber[category] = Math.round((Math.random()*1000000)%(fill.length-4))+3;
+                if (!this.categToNumber[category]){
+                    if(this.staticColor){
+                        this.categToNumber[category] = Math.round((this.tmpRandom + this.addSeed) % (fill.length-4))+3;
+                        this.tmpRandom += this.addSeed;
+                    }
+                    else
+                        this.categToNumber[category] = Math.round((Math.random()*1000000) % (fill.length-4))+3;
+                }                    
             }
         }
         
@@ -538,9 +485,9 @@ function vjD3JS_CorrelationCord ( viewer )
                 
             }
         }
-        
+        const chordWidth = that.fontOptions && that.fontOptions.cordWidth ? parseFloat(that.fontOptions.cordWidth)  : .015;
         var chord = d3.layout.chord()
-            .padding(.05)
+            .padding(chordWidth)
             .sortSubgroups(d3.descending)
             .matrix(matrixObj.matrix);
 
@@ -550,14 +497,11 @@ function vjD3JS_CorrelationCord ( viewer )
         var gg = svg.append("g")
             .attr("transform", "translate(" + this.width/2  + "," + this.height/2  + ")");
         
-        // =============================
-        // arc around the circle
-        // =============================
         gg.append("g")
             .selectAll("path")
             .data(chord.groups)
             .enter().append("path")
-            .style("fill", function(d) { // d.index <=> row index from the matrix 
+            .style("fill", function(d) {
                 if (that.categToNumber != 0){
                     var elementLabel = matrixObj.labels[d.index];
                     if (that.forVDJ) {
@@ -580,7 +524,7 @@ function vjD3JS_CorrelationCord ( viewer )
                                 }
                             }
                         }
-                        return pastelColor(fill[that.categToNumber[elementLabel.split("||")[0]]],0.6); // error with empty string
+                        return pastelColor(fill[that.categToNumber[elementLabel.split("||")[0]]],0.6);
                     }
                     return pastelColor(fill[that.categToNumber[matrixObj.labels[d.index].split(":")[0]]],0.6);
                 }    
@@ -620,14 +564,12 @@ function vjD3JS_CorrelationCord ( viewer )
             .attr("index", function(d) { return d.index})
             .attr("labelFull", function (d){ return matrixObj.labels[d.index];});
 
-        // =============================
-        // Composing text around the arc
-        // =============================
           gg.append("g").selectAll(".arc")
             .data(chord.groups)
             .enter().append("svg:text")
             .attr("dy", ".35em")
             .attr("font-weight", "bold")
+            .style("font-family", "sans-serif")
             .attr("text-anchor", function(d) { return ((d.startAngle + d.endAngle) / 2) > Math.PI ? "end" : null; })
             .attr("transform", function(d) {
               return "rotate(" + (((d.startAngle + d.endAngle) / 2) * 180 / Math.PI - 90) + ")"
@@ -635,25 +577,21 @@ function vjD3JS_CorrelationCord ( viewer )
                   + (((d.startAngle + d.endAngle) / 2) > Math.PI ? "rotate(180)" : "");
             })
             .text(function(d) {
-                //if (matrixObj.labels[d.index].match(/category_[a-zA-Z0-9]+\|\|/)){
-                if (matrixObj.labels[d.index].match(/category_/)){
-                    return matrixObj.labels[d.index].split("||")[1];
-                }
-                return matrixObj.labels[d.index];
+                let text  = matrixObj.labels[d.index];
+                if (text.match(/category_/)) text = text.split("||")[1];
+                if (that.trimTextCallback) text = that.trimTextCallback(text)
+                return text;
             })
             .on("click", this.onClickCallback)
             .call(wrap, this.wrapLength, this.totalTextLength,this.fontOptions);
           
-        // =============================
-          // connected chord
-        // =============================
         gg.append("g")
             .attr("class", "chord")
             .selectAll("path")
             .data(chord.chords)
             .enter().append("path")
             .attr("d", d3.svg.chord().radius(innerRadius))
-            .style("fill", function(d) {  // d.source and d.target: ( index <=> row index ) and ( subindex <=> column index from the matrix )
+            .style("fill", function(d) {
                 var elementLabel = matrixObj.labels[d.target.index];
                 if (that.forVDJ) {
                     return that.colorArr[d.target.index];
@@ -713,7 +651,6 @@ function vjD3JS_CorrelationCord ( viewer )
                     return d.label; 
                 });
     
-            // Returns an array of tick angles and labels, given a group.
             
             function groupTicks(d) {
               var k = (d.endAngle - d.startAngle) / d.value;
@@ -727,53 +664,15 @@ function vjD3JS_CorrelationCord ( viewer )
         };
         this.performTheFade = function (opacity, index)
         {
-            /*if (this.forVDJ) {
-                var notToHide=[];
-                var curLabel = matrixObj.labels[index];
-                var curLabelInd = matrixObj.labels.indexOf(curLabel);
-                if ( curLabelInd!=-1 && notToHide.indexOf(curLabelInd)==-1) {
-                    notToHide.push(curLabelInd);
-                }
-                var cate = curLabel.split("||")[0];
-                var label = curLabel.split("||")[1];
-                var dict = this.dict[cate.split("_")[1]];
-                if (dict[curLabel] && cate.indexOf("category_V")!=-1){
-                    var arr = Object.keys(dict[curLabel]);
-                    for (var i=0; i<arr.length; ++i){
-                        var curIdx = matrixObj.labels.indexOf(arr[i]);
-                        if (curIdx!=-1 && notToHide.indexOf(curIdx)==-1) {
-                            notToHide.push(curIdx);
-                        }
-                        var subArr = Object.keys(dict[curLabel][arr[i]]);
-                        for (var j=0; j<subArr.length; ++j) {
-                            var curcurIdx = matrixObj.labels.indexOf(subArr[j]);
-                            if (curcurIdx!=-1 && notToHide.indexOf(curcurIdx)==-1) {
-                                notToHide.push(curcurIdx);
-                            }    
-                        }
-                    }
-                }
-                console.log(notToHide);
-                svg.selectAll("g.chord path")
-                .filter(function(d) { 
-                    var a= notToHide.indexOf(d.source.index) == -1 || notToHide.indexOf(d.target.index) == -1;
-                    return a; 
-                 })
-                .transition()
-                .style("opacity", opacity);
-            }
-            else {*/
                 svg.selectAll("g.chord path")
                 .filter(function(d) { 
                     return d.source.index != index && d.target.index != index; 
                  })
                 .transition()
                 .style("opacity", opacity);
-            /*}*/
             
         }
         
-        // Returns an event handler for fading a given chord group.
         function fade(opacity) {
               return function(g, i) {
                     return that.performTheFade(opacity, i);

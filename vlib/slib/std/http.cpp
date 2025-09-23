@@ -33,17 +33,11 @@
 #include <fcntl.h>
 #include <slib/std/file.hpp>
 #include <slib/std/http.hpp>
+#include <slib/utils.hpp>
 
 using namespace slib;
 const char * sHtml::headerStartMarker="__headersStart";
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/                                          _/
-_/  HTTP/CGI BUFFER MANIPULATION            _/
-_/                                          _/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
 enum EHtmlCleanEscapesState {
     eDelim,
@@ -65,12 +59,10 @@ static void writeNameValue(sStr * dst, sVec <sMex::Pos> * ofs, sMex::Pos & name_
     switch( state ) {
         case eDelim:
         case eNullEquals:
-            // nothing to do: both name and value are missing
             resetPos(name_pos);
             resetPos(value_pos);
             return;
         case eName:
-            // bare "name" is interpreted as "name=1"
             dst->add(&sep, 1);
             value_pos.pos = dst->length();
             value_pos.size = 1;
@@ -78,14 +70,11 @@ static void writeNameValue(sStr * dst, sVec <sMex::Pos> * ofs, sMex::Pos & name_
             dst->add(&sep, 1);
             break;
         case eNameEquals:
-            // "name="
             resetPos(value_pos);
             break;
         case eNameEqualsValue:
-            // "name=val"
             break;
         case eNullEqualsValue:
-            // "=val"
             resetPos(name_pos);
             break;
     }
@@ -98,7 +87,6 @@ static void writeNameValue(sStr * dst, sVec <sMex::Pos> * ofs, sMex::Pos & name_
     resetPos(value_pos);
 }
 
-/* cleans escape symbols from CGI */
 char * sHtml::cleanEscapes(sStr * dst, sVec <sMex::Pos> * ofs, const char * src, idx len, bool issplit, bool is_http_header)
 {
     if(!len)len=sLen(src);
@@ -126,7 +114,6 @@ char * sHtml::cleanEscapes(sStr * dst, sVec <sMex::Pos> * ofs, const char * src,
                 break;
             case '&':
                 if( !is_http_header ) {
-                    // delimits var/val pair in url query strings
                     state = eDelim;
                     in_name_or_value = false;
                     ch = sep;
@@ -134,7 +121,6 @@ char * sHtml::cleanEscapes(sStr * dst, sVec <sMex::Pos> * ofs, const char * src,
                 break;
             case ';':
                 if( is_http_header && src[i+1] == ' ') {
-                    // delimits var/val pair in HTTP headers
                     state = eDelim;
                     in_name_or_value = false;
                     ch = sep;
@@ -154,12 +140,10 @@ char * sHtml::cleanEscapes(sStr * dst, sVec <sMex::Pos> * ofs, const char * src,
                         ch = sep;
                         break;
                     default:
-                        // treat as normal character, fall through
                         break;
                 }
                 break;
             case '%':
-                // interpret the following two caracters as the hexadecimal symbol number
                 ch = 0;
                 if( i + 2 < len ) {
                     if( src[i + 1] >= 'A' && src[i + 1] <= 'F' ) {
@@ -181,39 +165,32 @@ char * sHtml::cleanEscapes(sStr * dst, sVec <sMex::Pos> * ofs, const char * src,
                 i += 2;
                 break;
             default:
-                // normal character, fall through
                 break;
         }
 
         if( in_name_or_value ) {
-            // so is it a name or a value?
             switch( prev_state ) {
                 case eDelim:
-                    // start of name string
                     state = eName;
                     name_pos.pos = dst->length();
                     name_pos.size = 1;
                     break;
                 case eName:
-                    // middle of name string
                     state = prev_state;
                     name_pos.size++;
                     break;
                 case eNameEquals:
-                    // start of value string
                     state = eNameEqualsValue;
                     value_pos.pos = dst->length();
                     value_pos.size = 1;
                     break;
                 case eNullEquals:
-                    // start of value string
                     state = eNullEqualsValue;
                     value_pos.pos = dst->length();
                     value_pos.size = 1;
                     break;
                 case eNameEqualsValue:
                 case eNullEqualsValue:
-                    // middle of value string
                     state = prev_state;
                     value_pos.size++;
                     break;
@@ -225,24 +202,19 @@ char * sHtml::cleanEscapes(sStr * dst, sVec <sMex::Pos> * ofs, const char * src,
         dst->add(&ch, 1);
     }
 
-    // write out final name & value
     writeNameValue(dst, ofs, name_pos, value_pos, state, sep);
 
     dst->add(__,2);
     return dst->ptr();
 }
 
-// this function parses direct POST data and splits into pieces.
 idx sHtml::readCGIPost(sVec < sMex::Pos> * ofs, char * post, idx len)
 {
     sMex::Pos * ppos = 0;
-    //char * post=(char *)postM->ptr();
-    //idx len=postM->pos();
     if(!len)len=sLen(post);
     const char * dispos="Content-Disposition: form-data; name=\"";
     idx lendisp=sLen(dispos);
 
-    //read the first line : the separator
     char * blockstart=post, * blockend=strchr(blockstart,'\n');
     if(!blockend)return 0;
     --blockend; if(*(blockend-1)=='\r')blockend--;
@@ -267,15 +239,13 @@ idx sHtml::readCGIPost(sVec < sMex::Pos> * ofs, char * post, idx len)
                 if(filename) {
                     char * filenameend=strpbrk(filename+10,"\"\r\n");
                     if(filenameend) {
-                        sMex::Pos namepos=*ppos; // rememeber the pos elemenet for the name
+                        sMex::Pos namepos=*ppos;
 
-                        // push the word "filename"
                         *(filename+9)=0;
                         ppos->pos=filename-post;
                         ppos->size=9;
 
                         filename+=10;
-                        // push the filename itself
                         *filenameend=0;ptr=filenameend+1;
                         ppos=ofs->add(1);
                         ppos->pos=(idx )(filename-post);
@@ -288,12 +258,11 @@ idx sHtml::readCGIPost(sVec < sMex::Pos> * ofs, char * post, idx len)
 
             }
 
-            // position to the empty line
             ptr=sString::searchSubstring(ptr,0,"\n\r\n" _ "\n\n" __,1,0,0);
 
             for(idx inew=0;inew<2 && ptr && ptr<post+len && (*ptr=='\n' || *ptr=='\r') ;){
                 if(*ptr=='\n')++inew;
-                ++ptr; // skip the empty line
+                ++ptr;
             }
             valpos=ptr;
         }
@@ -304,11 +273,9 @@ idx sHtml::readCGIPost(sVec < sMex::Pos> * ofs, char * post, idx len)
             if(*(ptr-2)=='\r')valend--;
             *valend=0;
             ++ptr;
-            //cmd->add(valpos,(idx )(valend-valpos)+1);
             ppos=ofs->add();
             ppos->pos=(idx )(valpos-post);
             ppos->size=(idx )(valend-valpos);
-//            valpos=0;
         }
 
     }
@@ -320,17 +287,21 @@ idx sHtml::inputCGI(sStr * bfr, sVec <sMex::Pos> * ofs, FILE * fp, idx argc, con
 {
     if(!method && !no_env)method=getenv("REQUEST_METHOD");
     const char * data=0;
-//    if(!method)method="GET";
     bool ispost=false;
     sStr bfrDa;
+
+    if( method && !strcmp(method, "OPTIONS") ) {
+        ispost=true;
+        variables->inp("cmd","OPTIONS");
+    }
     if( fp && method && !strcmp(method, "POST") ) {
         ispost=true;
         ioModeBin(fp);
         idx bfrL=bfr->length();
-        bfr->readIO(fp); // we stream it with the stream-accumulator, not to consume too much memory
+        bfr->readIO(fp);
         if( bfr->pos() ) {
             if( !readCGIPost(ofs, bfr->ptr(), bfr->length())) {
-                ispost=false; // not multipart
+                ispost=false;
                 method="GET";
                 bfrDa.add(bfr->ptr(0),bfr->length());
                 bfrDa.add0();
@@ -361,7 +332,6 @@ idx sHtml::inputCGI(sStr * bfr, sVec <sMex::Pos> * ofs, FILE * fp, idx argc, con
     }
     idx cntRealFormParameters=ofs->dim();
 
-    //add cookies
     struct {
             const char* src;
             const char* dst;
@@ -374,10 +344,15 @@ idx sHtml::inputCGI(sStr * bfr, sVec <sMex::Pos> * ofs, FILE * fp, idx argc, con
         { "HTTP_HOST", "HOST" },
         { "HTTP_USER_AGENT", "USER_AGENT" },
         { "HTTPS", "HTTPS" },
+        { "HTTP_X_FORWARDED_HOST", "X_FORWARDED_HOST" },
+        { "HTTP_X_FORWARDED_SERVER", "X_FORWARDED_SERVER" },
+        { "HTTP_X_FORWARDED_FOR", "X_FORWARDED_FOR" },
         { "REMOTE_ADDR", "ADDR" },
         { "REQUEST_URI", "URI" },
         { "SERVER_PORT", "PORT" },
-        { "SCRIPT_NAME", "SCRIPT_NAME" }
+        { "SCRIPT_NAME", "SCRIPT_NAME" },
+        { "HMI_BC_TOKEN", "HMI_BC_TOKEN" },
+        {"HTTP_RANGE","HTTP_RANGE"}
     };
     for(idx i = 0; i < sDim(env) && !no_env; ++i) {
         if(env[i].src && (data = getenv(env[i].src)) != 0) {
@@ -396,6 +371,7 @@ idx sHtml::inputCGI(sStr * bfr, sVec <sMex::Pos> * ofs, FILE * fp, idx argc, con
             }
             bfr->add(__, 2);
         }
+
     }
 
 
@@ -410,7 +386,6 @@ idx sHtml::inputCGI(sStr * bfr, sVec <sMex::Pos> * ofs, FILE * fp, idx argc, con
             const char * var0 = varO->pos >= 0 ? bfr->ptr(varO->pos) : sStr::zero;
             if(mangleNameChar)var=strrchr(var0,*mangleNameChar);
             if(!var)var=var0;else ++var;
-            //var=var0;
             const char * val = valO->pos >= 0 ? bfr->ptr(valO->pos) : sStr::zero;
 
             if(strcmp(var,"filename=")==0 ) {
@@ -418,7 +393,7 @@ idx sHtml::inputCGI(sStr * bfr, sVec <sMex::Pos> * ofs, FILE * fp, idx argc, con
                 continue;
             }
 
-            if(variables->out(var))continue; // we never reset the same variable
+            if(variables->out(var))continue;
 
             if( i==cntRealFormParameters ) {
                 variables->inp(headerStartMarker,"1",2);
@@ -429,19 +404,8 @@ idx sHtml::inputCGI(sStr * bfr, sVec <sMex::Pos> * ofs, FILE * fp, idx argc, con
                 variables->inp(filenameVar.printf(0,"%s-filename",var), bfr->ptr(valOFileName->pos), valOFileName->size+1);
                 valOFileName=0;
             }
-            //const char * pop = variables->value("imgStructure");
         }
-#if 0
-        fprintf(stderr, "sHtml::inputCGI() result:\n");
-        for(idx i=0; i<variables->dim(); i++) {
-            const char * key = static_cast<const char*>(variables->id(i));
-            idx value_size = 0;
-            const char * value = variables->value(key, 0, &value_size);
-            fprintf(stderr, "%s=%s (val strlen = %" DEC ", size = %" DEC ")\n", key, value, sLen(value), value_size);
-        }
-#endif
     }
-    //const char * lop= variables->value("imgStructure");
     return ofs->dim();
 }
 
@@ -492,7 +456,6 @@ idx sHtml::outFieldList(sStr * str, sVar * form, const char * fieldlist00, idx d
                 str->addString(quoteSymb);
         }
     }
-    //str->add0();
     return cntout;
 }
 
@@ -711,7 +674,85 @@ const char * sHtml::contentTypeByExt(const char * flnm)
     return types[0].mime;
 }
 
-void sHtml::outFormData(sVar * form, const char * formflnm, bool truncate) // this is to debug the list of variable value pairs in HTML
+sHtml::sPartPair::TParts sHtml::parseRange(char * rangeHeader,udx max){
+    char *start = strchr(rangeHeader, '=');
+
+    if (start == NULL)
+    {
+        return sHtml::sPartPair::TParts();
+    }
+
+    *start = '\0';
+    if(strstr(rangeHeader, "bytes") == NULL){
+        return sHtml::sPartPair::TParts();
+    }
+    start++;
+
+    sStr noSpace;
+    sStr final;
+    sString::searchAndReplaceSymbols(&noSpace,start,0," ","",0,true,true,false,true);
+    sString::searchAndReplaceSymbols(&final,noSpace,0, ",", 0, 0, true, true, false, true);
+
+    sHtml::sPartPair::TParts ranges;
+    for(char * it = final.ptr(); it; it = sString::next00(it)) {
+        char * dash = strchr(it,'-');
+
+        if(dash == NULL){
+            return sHtml::sPartPair::TParts();
+        }
+        *dash = '\0';
+
+        sHtml::sPartPair * r = ranges.add(1);
+        if(r == NULL){
+            return sHtml::sPartPair::TParts();
+        }
+        if(dash == it){
+            if(!sString::convertStrToUdx(dash + 1,&(r -> start)) || r -> start > max){
+                return sHtml::sPartPair::TParts();
+            }
+            r -> start = max - r -> start;
+            r -> end = max - 1;
+        }
+        else if(*(dash + 1) == '\0'){
+            if(!sString::convertStrToUdx(it,&(r -> start))){
+                return sHtml::sPartPair::TParts();
+            }
+            r -> end = max - 1;
+        }
+        else{
+            if(!sString::convertStrToUdx(it,&(r -> start)) || !sString::convertStrToUdx(dash + 1,&(r -> end))){
+                return sHtml::sPartPair::TParts();
+            }
+        }
+
+        if(r -> start > r -> end){
+            sSwap<udx>(r -> start,r -> end);
+        }
+
+        if(r -> start < 0 || r -> end >= max){
+            return sHtml::sPartPair::TParts();
+        }
+        *dash = '-';
+    }
+
+    slib::sSort::sortSimpleCallback<sHtml::sPartPair>((slib::sSort::sCallbackSorterSimple)sHtml::sPartPair::comparator, 0, ranges.dim(), ranges.ptr());
+    if (ranges.dim() > 1)
+    {
+        for (idx i = ranges.dim() - 2; i >= 0; --i)
+        {
+            if ((ranges)[i].neighbour((ranges)[i + 1]) || (ranges)[i].overlaps((ranges)[i + 1]))
+            {
+                (ranges)[i].merge((ranges)[i + 1]);
+                ranges.del(i + 1);
+                i = ranges.dim() - 1;
+            }
+        }
+    }
+
+    return ranges;
+}
+
+void sHtml::outFormData(sVar * form, const char * formflnm, bool truncate)
 {
     if(!formflnm)formflnm="/tmp/__form.html";
     if(truncate) sFile::remove(formflnm);
@@ -729,42 +770,19 @@ void sHtml::outFormData(sVar * form, const char * formflnm, bool truncate) // th
     }
     frm.printf("</table>\n");
 
-    frm.printf("######################### TERMINE #############\n"); // </body></html>
+    frm.printf("######################### TERMINE #############\n");
 }
 
-FILE * sHtml::grabInData(FILE * readfrom, const char * * envp, const char  * postFile) // this is to debug the list of variable value pairs in HTML
+FILE * sHtml::grabInData(FILE * readfrom, const char * * envp, const char  * postFile)
 {
     char * method=getenv("REQUEST_METHOD");
-    //const char  * data=getenv("QUERY_STRING");
-    /*::printf("Content-type: text/plain\r\n\r\n");
-    ::printf("method=<%s>\n",method);
-*/
     if(method && strcasecmp(method,"POST")==0) {
         if(!postFile)postFile="/tmp/__post.in";
         sFile::remove(postFile);
         sMex pst;pst.init(postFile); pst.readIO(stdin);
-        //::printf("postFileFlags=%" DEC "\n",(pst.flags>>(sMex_FileHandleShift)) & 0xFFFF); // this is where file handles are kept);
         readfrom=fopen(postFile,"r");
-        //::printf("postFile= %s\n--------------------\n%.*s\n-------------------\n",postFile,(int)pst.pos(),pst.ptr());
-    } /*else {
-        ::printf("NOT post\n");
-    }*/
-#if 0 // _DEBUG
-    if(envp){
-        const char * envFile="/tmp/__env.in";
-        sFile::remove(envFile);
-        sFil fEnv(envFile);
-        for ( idx ie=0; envp[ie]; ++ie){
-            fEnv.printf("%" DEC " %s\n",ie, envp[ie]);
-            ::fprintf(stderr, "%" DEC " %s\n",ie, envp[ie]);
-        }
     }
-#endif
-    //exit(0);
 
-    //else if( data ) {
-        //sFil pst(postFile); pst.addString(data);
-    //}
 
     return readfrom;
 }

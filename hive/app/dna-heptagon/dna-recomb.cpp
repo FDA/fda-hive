@@ -30,10 +30,10 @@
 #include <qlib/QPrideProc.hpp>
 #include <ssci/bio.hpp>
 #include <violin/violin.hpp>
+#include <qpsvc/qpsvc-dna-hexagon.hpp>
 
 
 extern sPerf bioPerf;
-#define QIDX(_v_iq, _v_len)    ((flags&sBioseqAlignment::fAlignBackward) ? ((_v_len)-1-(_v_iq)) : (_v_iq))
 
 class DnaRecomb:public sQPrideProc
 {
@@ -46,11 +46,10 @@ class DnaRecomb:public sQPrideProc
 
         struct RecombData {
             idx * simil,* simcov;
-            idx * acgt_indel; // 6x * length of the total reference frame
-            sVec <idx> uncompressMM;
+            idx * acgt_indel;
             sBioal * mutAl;
-            idx startAl,endAl,req; //needed to report progress
-            void * obj; //needed to report progress
+            idx startAl,endAl,req;
+            void * obj;
             idx alignLen;
         };
         virtual idx OnExecute(idx);
@@ -59,7 +58,7 @@ class DnaRecomb:public sQPrideProc
 idx DnaRecomb::parseMultipleAlignments(sHiveId &mutualAlignmentID, sHiveal & mutAl)
 {
     sUsrFile mutualAlignmentObj(mutualAlignmentID, sQPride::user);
-    progress100Count=1;
+    progress100Last=1;
     idx mutualAlMode =1;
     sStr mutualAlignmentFilePath;
     if( mutualAlignmentObj.Id() ) {
@@ -80,7 +79,7 @@ idx DnaRecomb::parseMultipleAlignments(sHiveId &mutualAlignmentID, sHiveal & mut
         sBioseqAlignment::readMultipleAlignment(&alignmentMap, fl.ptr(),fl.length(), sBioseqAlignment::eAlRelativeToMultiple, 0, false);
 
         sStr pathT;
-        reqSetData(reqId, "file://alignment-slice.vioal", 0, 0); // create and empty file for this request
+        reqSetData(reqId, "file://alignment-slice.vioal", 0, 0);
         reqDataPath(reqId, "alignment-slice.vioal", &pathT);
         sFile::remove(pathT);
         {
@@ -95,7 +94,11 @@ idx DnaRecomb::parseMultipleAlignments(sHiveId &mutualAlignmentID, sHiveal & mut
         vioAltAAA.progress_CallbackFunction = sQPrideProc::reqProgressStatic;
         vioAltAAA.progress_CallbackParam = (void *)this;
 
-        vioAltAAA.DigestCombineAlignmentsRaw(dstAlignmentsT,pathT, 1000000, false, flagSet, mutualAlMode );
+        sVioal::digestParams params;
+        params.flags= flagSet;
+        params.countHiveAlPieces = 1000000;
+        params.combineFiles = false;
+        vioAltAAA.DigestCombineAlignmentsRaw(dstAlignmentsT,pathT, params);
         mutAl.parse(dstAlignmentsT);
     }
     else{
@@ -110,44 +113,30 @@ idx DnaRecomb::similCumulator(sBioal * bioal, sBioal::ParamsAlignmentIterator * 
 {
     RecombData  * SPData=(RecombData *)param->userPointer;
 
-    //idx idSub=hdr->idSub();
-    //idx idQry=hdr->idQry();
+    m = sBioseqAlignment::uncompressAlignment(hdr,m);
 
-
-    SPData->uncompressMM.resize(hdr->lenAlign()*2);
-    sBioseqAlignment::uncompressAlignment(hdr,m,SPData->uncompressMM.ptr());
-    m=SPData->uncompressMM.ptr();
-
-    // remap to the alignment mutual alignment of subjects
     idx iSub = SPData->mutAl->Qry->getmode()? SPData->mutAl->Qry->short2long(hdr->idSub()) : hdr->idSub();
     sBioseqAlignment::Al * hdrTo= SPData->mutAl->getAl(iSub);
     idx * mTo=SPData->mutAl->getMatch(iSub);
 
-    sBioseqAlignment::Al hdrToWrite=*hdr; // because *hdr might be readonly
+    sBioseqAlignment::Al hdrToWrite=*hdr;
     hdr=&hdrToWrite;
     sBioseqAlignment::remapAlignment(&hdrToWrite, hdrTo, m, mTo ) ;
     const char * qrybits=bioal->Qry->seq(hdr->idQry());
     char ch=0;
     idx qrybuflen=bioal->Qry->len(hdr->idQry());
 
-    // accumulate the similarity map
-    idx ishift=iSub*SPData->alignLen; // hdrTo->idQry is the sequential number of the subject on the map it is aligned to
+    idx ishift=iSub*SPData->alignLen;
     idx lastSubOK=0;
-    idx flags=hdr->flags();
-    //for (idx ipp=hdr->subStart+m[0]; ipp<hdr->subEnd; ++ipp){
-    for (idx ipp=0; ipp< hdr->lenAlign() ; ipp+=2){
-        idx is=hdr->subStart()+m[ipp];
-        idx iq=hdr->qryStart()+m[ipp+1];
-        idx iqx=-1;
-        if(is>=0 && iq>=0)
-            iqx=QIDX( hdr->qryStart()+iq, qrybuflen );
+    for (idx ipp=0; ipp< hdr->lenAlign() ; ipp++){
+        idx is=hdr->getSubjectPosition(m,ipp);
+        idx iq=hdr->getQueryPosition(m,ipp,qrybuflen);
 
-        if(is<0){ ch=4; is=lastSubOK;}  // we remember inserts on the last mapped position
-        else if(iq<0)ch=5; // deletions
+        if(is<0){ ch=4; is=lastSubOK;}
+        else if(iq<0)ch=5;
         else {
-            ch=sBioseqAlignment::_seqBits(qrybits, iqx , flags ) ;  // mapped ok
+            ch=hdr->getQueryLetterByPosition(iq,qrybits);
         }
-
 
         if(is>=0 ){
             SPData->simil[ishift+is]+=hdr->score();
@@ -168,30 +157,20 @@ idx DnaRecomb::OnExecute(idx req)
 {
     sStr errS;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ initialize the parameters
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sBioal::ParamsAlignmentIterator PA;
     RecombData RD;
     sVec < idx > SimilStack(sMex::fSetZero);
     PA.userPointer=(void*)&RD;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ prepare the Alignment files
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sHiveId alignerID(formValue("parent_proc_ids"));
     sUsrObj aligner(*sQPride::user, alignerID);
 
     sStr subject;
-    aligner.propGet00("subject", &subject, ";");
+    QPSvcDnaHexagon::getSubject00(aligner,subject);
     sStr query;
-    aligner.propGet00("query", &query, ";");
+    QPSvcDnaHexagon::getQuery00(aligner,query);
 
     sStr path;
     aligner.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __);
@@ -205,7 +184,7 @@ idx DnaRecomb::OnExecute(idx req)
         reqSetInfo(req, eQPInfoLevel_Error, "%s",errS.ptr());
         reqSetStatus(req, eQPReqStatus_ProgError);
 
-        return 0; // error
+        return 0;
     }
 
     sHiveId mutualAlignmentID(formValue("mutualAligmentID"));
@@ -218,12 +197,12 @@ idx DnaRecomb::OnExecute(idx req)
         logOut(eQPLogType_Error,"%s",errS.ptr());
         reqSetInfo(req, eQPInfoLevel_Error, "%s",errS.ptr());
         reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0; // error
+        return 0;
     }
 
     sHiveal mutAl(user, mutualAlignmentPath);
     sBioseq::EBioMode mutualAlMode = sBioseq::eBioModeLong;
-    sHiveseq Sub_mut(sQPride::user, subject ,mutualAlMode);//Sub.reindex();
+    sHiveseq Sub_mut(sQPride::user, subject ,mutualAlMode);
     mutAl.Qry = &Sub_mut;
     if(!mutAl.isok() && !parseMultipleAlignments(mutualAlignmentID,mutAl) ) {
         return 0;
@@ -235,37 +214,13 @@ idx DnaRecomb::OnExecute(idx req)
     for( idx iMutAl = 0, is =0 , *m =0  ; iMutAl < RD.mutAl->dimAl() ; ++iMutAl ) {
         m = RD.mutAl->getMatch(iMutAl);
         hdr = RD.mutAl->getAl(iMutAl);
-        mutual_uncompressMM.resize(hdr->lenAlign()*2);
-        sBioseqAlignment::uncompressAlignment(hdr,m,mutual_uncompressMM.ptr());
-        m=mutual_uncompressMM.ptr();
-        hdr = RD.mutAl->getAl(iMutAl);
-        is = hdr->subStart() + m[2*(hdr->lenAlign()-1)];
+        is = hdr->getQueryEnd(m);
         if ( RD.alignLen < is) {
             RD.alignLen = is;
         }
     }
 
-//    sFil fal(mutualAlignmentPath, sMex::fReadonly);
-//    sVec < idx > alSub;
-//    if(fal.length())sBioseqAlignment::readMultipleAlignment(&alSub,fal.ptr(),fal.length(),sBioseqAlignment::eAlRelativeToMultiple, &RD.alignLen,false);
-//    if(alSub.dim()==0) {
-//        errS.printf("Multiple alignments are missing or corrupted\n");
-//        logOut(eQPLogType_Error,"%s",errS.ptr());
-//        reqSetInfo(req, eQPInfoLevel_Error, "%s",errS.ptr());
-//        reqSetStatus(req, eQPReqStatus_ProgError);
-//        return 0; // error
-//    }
-//    sBioseqAlignment::Al * hdr, * hdrs=(sBioseqAlignment::Al *)(alSub.ptr(0)), * hdre=sShift(hdrs,alSub.dim()*sizeof(idx));
-//    idx iN;
-//    for ( hdr=hdrs, iN=0; hdr<hdre; hdr=sShift(hdr,hdr->sizeofFlat()) , ++iN)
-//        RD.subAlList.vadd(1,hdr);
 
-
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ load the subject and query sequences
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sHiveseq Sub(sQPride::user, subject.ptr());Sub.reindex();
     if(Sub.dim()==0) {
@@ -273,11 +228,10 @@ idx DnaRecomb::OnExecute(idx req)
         logOut(eQPLogType_Error,"%s",errS.ptr());
         reqSetInfo(req, eQPInfoLevel_Error, "%s",errS.ptr());
         reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0; // error
+        return 0;
     }
     RD.mutAl->Qry = &Sub;
 
-    // load the subject and query sequences
 
     sHiveseq Qry(sQPride::user, query.ptr());Qry.reindex();
     if(Qry.dim()==0) {
@@ -285,25 +239,28 @@ idx DnaRecomb::OnExecute(idx req)
         logOut(eQPLogType_Error,"%s",errS.ptr());
         reqSetInfo(req, eQPInfoLevel_Error, "%s",errS.ptr());
         reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0; // error
+        return 0;
     }
 
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ iterate through alignments
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     bioal->Sub=&Sub;
     bioal->Qry=&Qry;
 
     sVec < idx > subsetN;sString::scanRangeSet(formValue("subSet",0,""), 0, &subsetN, -1, 0, 0);
     idx numAlChunks=subsetN.dim() ? subsetN.dim() : Sub.dim() ;
     idx totalAls=0,cntFound=0,dimAl;
-    idx slice=formIValue("slice",sHiveseq::defaultSliceSizeI);
+    if( !subsetN.dim() ) {
+        totalAls = bioal->dimAl();
+    } else {
+        for( idx is=0; is<numAlChunks; ++is ) {
+            bioal->listSubAlIndex(subsetN.dim() ? subsetN[is] : is, &dimAl);
+            totalAls+=dimAl;
+        }
+    }
+    idx slice = (totalAls - 1) /reqSliceCnt + 1;
 
-    sStr recombName,recombPath;;
+    sStr recombName,recombPath;
     for( idx is=0; is<numAlChunks; ++is) {
         idx iSub= subsetN.dim() ? subsetN[is] : is;
 
@@ -320,17 +277,16 @@ idx DnaRecomb::OnExecute(idx req)
         RD.startAl = start;RD.endAl = end;RD.req = req; RD.obj = (void *)this;
         if(!SimilStack.dim()) {
             recombName.printf(0,"file://recomb-slice-%" DEC ".vioprof",reqSliceId);
-            reqSetData(req,recombName,0,0); // create and empty file for this request
+            reqSetData(req,recombName,0,0);
             reqDataPath(req,recombName.ptr(7),&recombPath);
             sFile::remove(recombPath);
             SimilStack.init(recombPath,sMex::fSetZero|sMex::fExactSize);
-            RD.simil=SimilStack.add(RD.alignLen*Sub.dim()*2+RD.alignLen*6); // for scores and for coverages and 6 for acgts and indels
+            RD.simil=SimilStack.add(RD.alignLen*Sub.dim()*2+RD.alignLen*6);
             RD.simcov=RD.simil+RD.alignLen*Sub.dim();
             RD.acgt_indel=RD.simcov+RD.alignLen*Sub.dim();
 
         }
 
-//        logOut(eQPLogType_Error,"Computing recombinants %s from \n\tsubject %" DEC " %" DEC " alignments from %" DEC " to %" DEC " \n",recombPath.ptr(0),iSub, end-start, start, end );
         cntFound+=bioal->iterateAlignments(0, start, end-start, iSub, (sBioal::typeCallbackIteratorFunction)&similCumulator, (sBioal::ParamsAlignmentIterator *) &PA);
 
         totalAls+=dimAl;
@@ -338,33 +294,22 @@ idx DnaRecomb::OnExecute(idx req)
 
     SimilStack.destroy();
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Analyze results
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     logOut(eQPLogType_Info,"Analyzing results\n");
-    reqProgress(cntFound, 100);
+    reqProgress(cntFound, 100, 100);
 
     if ( !isLastInMasterGroup() ) {
-        reqSetStatus(req, eQPReqStatus_Done);// change the status
+        reqSetStatus(req, eQPReqStatus_Done);
         logOut(eQPLogType_Info,"Done processing %" DEC " request for execution\n",req);
         return 0;
     }
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Accumulate the blobs from all
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     PERF_START("Output");
     sVec < idx > reqList; grp2Req(grpId, &reqList, vars.value("serviceName"));
 
     sVec < idx > AllSimilVec(sMex::fExactSize|sMex::fSetZero);
     AllSimilVec.addM(RD.alignLen*Sub.dim()*2+RD.alignLen*6);
-    //SimilStack.init(dstRecombPath,sMex::fSetZero|sMex::fExactSize);
-    idx * AllSimil=AllSimilVec.ptr(); // for scores and for coverages
+    idx * AllSimil=AllSimilVec.ptr();
     idx * AllSimcov=AllSimil+RD.alignLen*Sub.dim();
     idx * AllAcgt_indel=AllSimcov+RD.alignLen*Sub.dim();
 
@@ -373,12 +318,12 @@ idx DnaRecomb::OnExecute(idx req)
         recombPath.cut(0);
         reqDataPath(reqList[ir],recombName.ptr(0),&recombPath);
         sVec <idx > stack(sMex::fReadonly|sMex::fExactSize,recombPath);
-        idx * simil=stack.ptr(); // for scores and for coverages
+        idx * simil=stack.ptr();
         idx * simcov=simil+RD.alignLen*Sub.dim();
         idx * acgt_indel=simcov+RD.alignLen*Sub.dim();
 
         for( idx is=0; is<Sub.dim(); ++is ){
-            idx ishift=is*RD.alignLen; // hdrTo->idQry is the sequential number of the subject on the map it is aligned to
+            idx ishift=is*RD.alignLen;
 
             for( idx il=0; il<RD.alignLen; ++il ){
                 AllSimil[ishift+il]+=simil[ishift+il];
@@ -398,12 +343,11 @@ idx DnaRecomb::OnExecute(idx req)
     PERF_PRINT();
 
 
-    // output the coverage
     sStr bufPath, failedPath00;
     const char * dstPath = sQPrideProc::reqAddFile(bufPath, "RecombPolyplotSimilarity.csv");
     bufPath.add0();
     if ( dstPath ) {
-        sFil str(reqAddFile);
+        sFil str(dstPath);
         str.printf("position");
         for( idx is=0; is<Sub.dim(); ++is ){
             const char * id=Sub.id(is);
@@ -417,14 +361,13 @@ idx DnaRecomb::OnExecute(idx req)
             max_simil = 0;most_simil_Sub=0;
             str.printf("%" DEC,il+1);
             for( idx is=0; is<Sub.dim(); ++is ){
-                idx ishift=is*RD.alignLen; // hdrTo->idQry is the sequential number of the subject on the map it is aligned to
+                idx ishift=is*RD.alignLen;
 
                 if( AllSimil[ishift+il] > max_simil ) {
                     max_simil = AllSimil[ishift+il];
                     most_simil_Sub = is;
                 }
                 str.printf(",%" DEC,AllSimil[ishift+il]);
-                //AllSimcov[ishift+il]+=simcov[ishift+il];
             }
             str.printf(",%s\n",Sub.id(most_simil_Sub) );
         }
@@ -450,7 +393,7 @@ idx DnaRecomb::OnExecute(idx req)
             max_cover = 0;most_cover_Sub=0;
             str.printf("%" DEC,il+1);
             for( idx is=0; is<Sub.dim(); ++is ){
-                idx ishift=is*RD.alignLen; // hdrTo->idQry is the sequential number of the subject on the map it is aligned to
+                idx ishift=is*RD.alignLen;
 
                 if( AllSimil[ishift+il] > max_cover ) {
                     max_cover = AllSimil[ishift+il];
@@ -466,7 +409,6 @@ idx DnaRecomb::OnExecute(idx req)
 
 
 
-    // output the coverage
     dstPath = sQPrideProc::reqAddFile(bufPath, "RecombSNPProfile.csv");
     bufPath.add0();
     if( dstPath ){
@@ -512,14 +454,9 @@ idx DnaRecomb::OnExecute(idx req)
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Finita La comedia
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    reqSetStatus(req, eQPReqStatus_Done);// change the status
-    reqProgress(cntFound, 100);
+    reqSetStatus(req, eQPReqStatus_Done);
+    reqProgress(cntFound, 100, 100);
     logOut(eQPLogType_Info,"Found %" DEC " hits\n",cntFound);
 
 return 0;
@@ -531,7 +468,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eATGC);
 
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     DnaRecomb backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-recomb",argv[0]));
     return (int)backend.run(argc,argv);

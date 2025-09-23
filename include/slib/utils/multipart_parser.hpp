@@ -51,9 +51,12 @@ namespace slib {
 
             bool parse(const char * boundary, udx boundaryLen = 0);
 
-            // all on_* return false on error
-            virtual bool on_next_chunk(const char ** buf, udx & length) = 0;
 
+            virtual bool on_next_chunk(const char ** buf, udx & length) = 0;
+            virtual bool on_part_begin()
+            {
+                return true;
+            }
             virtual bool on_header_field(const char *at, udx length)
             {
                 return true;
@@ -66,11 +69,6 @@ namespace slib {
             {
                 return true;
             }
-
-            virtual bool on_part_data_begin()
-            {
-                return true;
-            }
             virtual bool on_part_data(const char *at, udx length)
             {
                 return true;
@@ -79,7 +77,6 @@ namespace slib {
             {
                 return true;
             }
-
             virtual bool on_body_end()
             {
                 return true;
@@ -88,4 +85,4 @@ namespace slib {
 
 }
 
-#endif //sLib_std_mutipart_parser_hpp
+#endif 

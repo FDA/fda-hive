@@ -32,7 +32,8 @@
 #define sLib_sql_h
 
 #include <ssql/mysql.hpp>
+#include <ssql/qusql.hpp>
 
 using namespace slib;
 
-#endif // sLib_sql_h
+#endif 

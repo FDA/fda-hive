@@ -52,6 +52,8 @@ ExecContext::ExecContext(sQPrideProc * proc) :
     _left_header = false;
     _root_objQry = 0;
 
+    _missing_tbl_nonfatal = false;
+
     _cur_icmd = -1;
 
     allocateLoaderHandle();
@@ -104,7 +106,6 @@ idx ExecContext::reportSubProgress(idx items, idx progress, idx progressMax)
     }
 }
 
-// static
 idx ExecContext::reportSubProgressStatic(void * param, idx items, idx progress, idx progressMax)
 {
     if (ExecContext * self = static_cast<ExecContext*>(param)) {
@@ -153,7 +154,6 @@ bool ExecContext::parseForm()
 
     _waiting_for_req = 0;
 
-    // dataCmd: need to launch dna.cgi backend
     if( const char * dataCmd = pForm->value("dataCmd", 0) ) {
         sVariant dataInfo;
         buf.cut(0);
@@ -197,11 +197,9 @@ bool ExecContext::parseForm()
                 case sQPrideBase::eQPReqStatus_Processing:
                 case sQPrideBase::eQPReqStatus_Running:
                 case sQPrideBase::eQPReqStatus_Suspended:
-                    // suspend and wait
                     logInfo("Still waiting for dna.cgi subrequest %" DEC, _waiting_for_req);
                     return false;
                 case sQPrideBase::eQPReqStatus_Done:
-                    // subrequest is done, we can continue!
                     buf.printf(0, "%" DEC, _waiting_for_req);
                     _proc.pForm->inp("dataID", buf.ptr());
                     pval = json_parser.result().getDicElt("tbl");
@@ -210,7 +208,6 @@ bool ExecContext::parseForm()
                     _waiting_for_req = 0;
                     break;
                 default:
-                    // some sort of error or unknown code
                     logError("dna.cgi subrequest %" DEC " failed or was killed", _waiting_for_req);
                     _waiting_for_req = 0;
                     return false;
@@ -252,7 +249,6 @@ bool ExecContext::parseForm()
         _proc.reqSetData(_out_req, "tqs.json", tqs_file.mex());
     }
 
-    // static inputs declaration
 
     if( const char * obj_qry_string = pForm->value("objQry") ) {
         if( obj_qry_string[0] ) {
@@ -269,10 +265,13 @@ bool ExecContext::parseForm()
         }
     }
 
+    if( sIsExactly(pForm->value("missing-tbl"), "nonfatal") ) {
+        _missing_tbl_nonfatal = true;
+    }
+
     sStr tblnames00;
     sString::searchAndReplaceSymbols(&tblnames00, _proc.pForm->value("tbl"), 0, "\n", 0, 0, true, true, false, false);
     tblnames00.add0cut(2);
-    bool fallback_default_name = sString::cnt00(tblnames00.ptr()) < 2;
 
     bool isgrp;
     idx dataID = _proc.pForm->ivalue("dataGrpID");
@@ -303,6 +302,7 @@ bool ExecContext::parseForm()
             continue;
         }
         for(const char * tblname = tblnames00.ptr(); tblname; tblname = sString::next00(tblname)) {
+            bool fallback_default_name = !sLen(tblname) || sIsExactly(tblname, "_.csv");
             requestLoadObjTable(0, objIDs[i], tblname, 0, fallback_default_name, colsep, commentPrefix, parseStart, parseCnt, 0, -1);
         }
     }
@@ -312,7 +312,6 @@ bool ExecContext::parseForm()
 
 bool ExecContext::loadInput()
 {
-    // count the number of progress-reporting stages
     _subProgressNum = _commands.dim();
     for(idx i=0; i<_commands.dim(); i++) {
         if( _commands[i]->hasProgress() ) {
@@ -354,7 +353,6 @@ bool ExecContext::loadInput()
                         logError("Object query did not produce a table");
                         return false;
                     }
-                    // the table is owned by _in_table_qry_results
                     pushInputTable(ii, &tbld->getTable(), false);
             }
             endSubProgress();

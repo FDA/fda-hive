@@ -85,7 +85,7 @@ namespace Xls {
 
         xls_parseWorkSheet(pWS);
 
-        auto_ptr<Worksheet> pws(new Worksheet(pWS, m_pWB->sheets.sheet[wsNum].name));
+        unique_ptr<Worksheet> pws(new Worksheet(pWS, m_pWB->sheets.sheet[wsNum].name));
         const_cast<Workbook *>( this )->m_Worksheets.insert(make_pair(wsNum, pws.get()));
         return pws.release();
     }
@@ -126,31 +126,22 @@ namespace Xls {
         return m_WorksheetsMap.size();
     }
 
-    int Workbook::ExportCsvs(const char *dir, const char *reSheetNameFilter) const
+    int Workbook::ExportCsvs(const char *dir,) const
     {
-        // TODO: implement
-        if ( reSheetNameFilter )
-            return 0;
-
         char *buf = (char *)alloca(strlen(dir) + 1024);
-
         int counter = 0;
-
         const list<std::string> &sheets = GetWorksheets();
-        for ( list<std::string>::const_iterator it=sheets.begin(); it!=sheets.end(); it++ ) {
+        for( list<std::string>::const_iterator it = sheets.begin(); it != sheets.end(); it++ ) {
             strcpy(buf, dir);
-            if ( buf[strlen(buf)-1] != '/' )
+            if( buf[strlen(buf) - 1] != '/' ) {
                 strcat(buf, "/");
-
-            const char *sheetName = it->c_str();
+            }
+            const char * sheetName = it->c_str();
             strcat(buf, sheetName);
             strcat(buf, ".csv");
-
             GetWorksheet(sheetName)->ExportCsv(buf);
-
-            counter++;
+            ++counter;
         }
-
         return counter;
     }
 }

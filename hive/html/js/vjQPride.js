@@ -40,7 +40,6 @@ function vjQPride ()
 
     vjObj.register(this.objCls,this);
 
-//    this.ds_load = vjDS.add("waiting for request","dsQPrideDatasource","static:// ");
 
     this.killRequest=function(lreq)
     {
@@ -52,14 +51,8 @@ function vjQPride ()
     {
         if(!lreq)lreq=this.req;
         if (isgrp === undefined) isgrp = this.reqIsGrp;
-        // this is broken since: 1. action is not read from from; 2. grpSetAction cmd do not exists in CGI
         linkCmd("req="+lreq+"&cmd=-"+(isgrp ? "grp" : "req")+"SetAction&action="+act);
     };
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Request Submission on Background
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     this.backgroundCheckFail = function(params, txt)
     {
         var tbl=new vjTable(txt, 0, vjTable_hasHeader);
@@ -74,11 +67,13 @@ function vjQPride ()
             alert("Error: " + errTxt);
         } else {
             console.error(errTxt);
+            if( params.callbackParams && params.callbackParams.RQ)
+                params.callbackParams.RQ.err = errTxt
             vjObjAjaxCallback(params.callbackParams, "");
         }
     };
 
-    this.backgroundCheckRequest=function(params, txt) // we use container here as a function name
+    this.backgroundCheckRequest=function(params, txt)
     {
         var tbl=new vjTable(txt, 0, vjTable_hasHeader);
         var RQ=tbl.rows[0];
@@ -127,16 +122,13 @@ function vjQPride ()
                 delete vjDS[nm_ds];
             }
             if(RQ.stat>5 && qp_params.loadmode!="retrieveUrl") {
-                //level Error: 500
                 var url="?cmd=-qpReqInfo&req="+RQ.dataID+"&raw=1&level=500";
                 ajaxDynaRequestPage(url, this, function(this_, responseText){ this_.backgroundCheckFail(qp_params, responseText); });
             } else {
-                //alerJ(RQ.reqID,qp_params)
                 if(!isok(qp_params.blob) && (qp_params.loadmode!="download" && qp_params.loadmode!="retrieveURL") )
                     vjObjAjaxCallback(qp_params.callbackParams,RQ);
                 else {
                     var url="?cmd=-qpData&req="+RQ.dataID+"&raw=1&grp=1&dname="+qp_params.blob+"&default=error:%20"+RQ.dataID+"%20"+qp_params.blob+"%20not%20found";
-                    //var url="?cmd=-qpData&req="+RQ.dataID+"&raw=1&grp=1&dname="+blobname+"&default=error:%20"+RQ.dataID+"%20"+blobname+"%20not%20found";
                     if (isok(qp_params.saveas)) {
                         url += "&dsaveas=" + qp_params.saveas;
                     }
@@ -155,7 +147,7 @@ function vjQPride ()
             if(RQ.rootID){
                 if(!cur_ds) {
                     var ds_title = params.callbackParams.title?params.callbackParams.title:'preparing requested data ' + RQ.rootID;
-                    cur_ds = vjDS.add(ds_title,nm_ds,"static://",vjObjAjaxCallback);
+                    cur_ds = vjDS.add(ds_title,nm_ds,"static:
                 }
                 cur_ds.RQ = RQ;
                 if(!params.QP_params) {
@@ -163,9 +155,8 @@ function vjQPride ()
                     params.QP_params = cpyObj(t);
                     params.loadmode = undefined;
                 }
-                setTimeout(function(){cur_ds.reload("http://?cmd=-qpRawCheck&raw=1&req="+RQ.rootID,true,params);}, (params.delay ? params.delay : this.delayCheckBG));
+                setTimeout(function(){cur_ds.reload("http:
 
-//                setTimeout("linkCmd('-qpRawCheck&raw=1&req="+RQ.rootID +"',"+JSON.stringify(params)+",vjObjAjaxCallback)", (params.delay ? params.delay : this.delayCheckBG) );
                 if( this.delayCheckBG < this.delayCheckBG_max ) {
                     this.delayCheckBG += this.delayCheckDB_step;
                 }
@@ -177,7 +168,6 @@ function vjQPride ()
     {
         var params = { objCls: this.objCls , callback: "backgroundCheckRequest", callbackParams: callbackAjax};
         linkCmd(cmd+"&raw=1", params ,vjObjAjaxCallback);
-        //linkCmd(cmd+"&raw=1",JSON.stringify(params),QPride_backgroundCheckRequest);
     };
 
     this.backgroundRetrieveBlob=function(cmd, callbackAjax, namefetch, dataReq, delay, loadmode, saveas)
@@ -189,24 +179,26 @@ function vjQPride ()
         linkCmd(cmd+"&raw=1", params ,vjObjAjaxCallback);
 
     };
-
-
-    /*
-
-    this.retrieveEmptyReqID=function(param, content)
-    {
-        this.cachedReqIDs[param.nametag]={svc:param.svc, req:parseInt(content)};
-        if(param.callbackFunc){
-            funcLink(param.callbackFunc, param, content , this.cachedReqIDs[param.nametag] );
+    
+    this.parseQProcSubmitResponse = function(response, doAlertOnFailure) {
+        var reqID=0, objID=0;
+        var nums=isok(response) ? response.split(",") : new Array();
+        if(nums.length>=2) {
+               reqID=parseInt(nums[0]);
+               objID=parseInt(nums[1]);
         }
-
+        if(!reqID || !objID) {
+            if(doAlertOnFailure) {
+                alertI("Error: could not submit the computation request!\n"+response);
+                var a = gObject( this.dvname+"SubmitterInput");
+                if( a) { a.disabled = false; }
+            }
+            return ;
+        }
+        return [reqID,objID];
     }
 
-    this.generateEmptyReqID=function(svc, nametag, callbackFunc)
-    {
-        var params = { objCls: this.objCls , callback: "retrieveEmptyReqID", svc: svc, nametag: nametag , callbackFunc : callbackFunc };
-        linkCmd("-qpProcSubmit&svc="+svc+"&raw=1",params,vjObjAjaxCallback);
-    }*/
+
 
 
 }
@@ -214,4 +206,3 @@ function vjQPride ()
 var vjQP = new vjQPride();
 var req=0;
 
-//# sourceURL = getBaseUrl() + "/js/vjQPride.js"

@@ -60,18 +60,21 @@ BEGIN
     CALL sp_permission_check_v2(p_group_id, p_member_sql, p_auth_obj_domainID, p_auth_obj_id, p_auth_permissions, @allowed);
 
     IF IFNULL(@allowed, 0) != 0 AND p_obj_domainID > 0 THEN
-        SELECT objID FROM UPObj WHERE domainID = p_obj_domainID
-            ORDER BY objID DESC LIMIT 1
-            INTO @obj_id;
-        SET @obj_id = IFNULL(@obj_id, 0) + 1;
         SET l_err = 0;
         INSERT INTO UPObj (`domainID`, `objID`, `objTypeDomainID`, `objTypeID`, `creatorID`)
-            VALUES (p_obj_domainID, @obj_id, p_type_domainID, p_typeID, p_group_id);
-        IF l_err != 0 THEN
-            SET @obj_id = 0; -- error should occur here only on duplicate key
+            SELECT p_obj_domainID, MAX(objID) + 1, p_type_domainID, p_typeID, p_group_id
+                FROM UPObj WHERE domainID = p_obj_domainID;
+
+        IF l_err != 0 OR ROW_COUNT() != 1 THEN
+            SET @obj_id = 0;
             SET @mt = CONCAT('Failed to create object in non-local domain: ', l_err);
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @mt;
         END IF;
+
+        SELECT MAX(objID) FROM UPObj
+            WHERE domainID = p_obj_domainID AND creatorID = p_group_id AND
+                objTypeDomainID = p_type_domainID AND objTypeID = p_typeID
+            INTO @obj_id;
 
         IF @obj_id > 0 THEN
             CALL sp_obj_perm_set_v2(p_group_id, p_member_sql, p_group_id, p_obj_domainID, @obj_id, NULL, NULL, p_permissions, p_flags, FALSE);

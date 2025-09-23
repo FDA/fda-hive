@@ -27,51 +27,19 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/// <reference path="jquery.js" />
-/*
-jquery-watcher 
-Version 1.16 - 4/29/2015
-© 2014-2015 Rick Strahl, West Wind Technologies 
-www.west-wind.com
-Licensed under MIT License
-http://en.wikipedia.org/wiki/MIT_License
-*/
+
 (function ($, undefined ) {
     $.fn.watch = function (options) {
-        /// <summary>
-        /// Allows you to monitor changes in a specific
-        /// CSS property of an element by polling the value.
-        /// You can also monitor attributes (using attr_ prefix)
-        /// or property changes (using prop_ prefix).
-        /// when the value changes a function is called.
-        /// The callback is fired in the context
-        /// of the selected element (ie. this)
-        ///
-        /// Uses the MutationObserver API of the DOM and
-        /// falls back to setInterval to poll for changes
-        /// for non-compliant browsers (pre IE 11)
-        /// </summary>            
-        /// <param name="options" type="Object">
-        /// Option to set - see comments in code below.
-        /// </param>        
-        /// <returns type="jQuery" /> 
 
         var opt = $.extend({
-            // CSS styles or Attributes to monitor as comma delimited list
-            // For attributes use a attr_ prefix
-            // Example: "top,left,opacity,attr_class"
             properties: null,
 
-            // interval for 'manual polling' (IE 10 and older)            
             interval: 100,
 
-            // a unique id for this watcher instance
             id: "_watcher_" + new Date().getTime(),
 
-            // flag to determine whether child elements are watched            
             watchChildren: false,
 
-            // Callback function if not passed in callback parameter   
             callback: null
         }, options);
 
@@ -86,13 +54,12 @@ http://en.wikipedia.org/wiki/MIT_License
                 id: opt.id,
                 props: opt.properties.split(','),
                 vals: [opt.properties.split(',').length],
-                func: opt.callback, // user function
-                fnc: fnc, // __watcher internal
+                func: opt.callback,
+                fnc: fnc,
                 origProps: opt.properties,
                 interval: opt.interval,
                 intervalId: null
             };
-            // store initial props and values
             $.each(data.props, function (i) {
                 var propName = data.props[i];
                 if (data.props[i].startsWith('attr_'))
@@ -161,13 +128,10 @@ http://en.wikipedia.org/wiki/MIT_License
                 }
             }
             if (changed) {
-                // unbind to avoid recursive events
                 el$.unwatch(id);
 
-                // call the user handler
                 w.func.call(el, w, i, mRec, mObs);
 
-                // rebind the events
                 hookChange(el$, id, w);
             }
         }
@@ -186,7 +150,6 @@ http://en.wikipedia.org/wiki/MIT_License
                 } else
                     clearInterval(data.intervalId);
             }
-            // ignore if element was already unbound
             catch (e) {
             }
         });

@@ -30,13 +30,9 @@
 #include <ssci/math/nr/nrutil.h>
 #include <math.h>
 
-//#define SQR(a) ((sqrarg=(a)) == 0.0 ? 0.0 : sqrarg*sqrarg)
 
 void sMathNR::convlv(real data[], udx n, real respns[], udx m, idx isign, real ans[])
 {
-  //  real sqrarg;
-    //void realft(real data[], unsigned idx n, idx isign);
-        //void twofft(real data1[], real data2[], real fft1[], real fft2[],unsigned idx n);
         udx i,no2;
         real dum,mag2,*fft;
 

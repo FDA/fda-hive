@@ -37,13 +37,10 @@ using namespace slib;
 #define HASHAVAILABLE   ((idx)0xFFFFFFFF)
 
 
-//idx sHash::hashfun(idx typeindex, const void * mem, idx len, idx bits, idx iNum)
 idx sHash::hashfun( idx typeindex, const void * key, idx len, idx bits, idx iNum )
-// algo_murmurHash64
 {
 
     udx seed=(udx)typeindex;
-    // 64-bit hash for 64-bit platforms
 
     {
         const udx m = 0xc6a4a7935bd1e995;
@@ -85,7 +82,6 @@ idx sHash::hashfun( idx typeindex, const void * key, idx len, idx bits, idx iNum
         h *= m;
         h ^= h >> r;
 
-        // compress down to given number of bits
         idx j,x=h,i;
         for (j = x, i = bits ; i < (idx)(sizeof(idx)) ; i += bits)j ^= (x >> i) ;
         j &= (((idx)1) << bits) - 1 ;
@@ -112,15 +108,13 @@ idx sHash::find(idx typeindex, const void * key, idx lenKey, idx slotType, idx *
         hd=hashPtr+(h+1);
 
         iidx = hd->recordindex;
-        if (iidx==HASHNONE) // never occupied hash slot
+        if (iidx==HASHNONE)
             break;
-        if(iidx==HASHAVAILABLE ) { // deleted item
-            if(slotType==HASHAVAILABLE ) // and we are searching for available slots.
+        if(iidx==HASHAVAILABLE ) {
+            if(slotType==HASHAVAILABLE )
                 break;
-        } else if(slotType==HASHID) { // not a deleted item check for identity
+        } else if(slotType==HASHID) {
 
-            //idx bodysize=0;
-            //void * keyid=sVioDB::Getbody(hd->typeindex, hd->recordindex, &bodysize);
             idx keyIdx, keysize;
             if(bucketContainer)keyIdx=*sAlgo::lix_ptr<idx>(bucketContainer,0,(sAlgo::lix )(hd->recordindex));
             else keyIdx=hd->recordindex-1;
@@ -130,10 +124,9 @@ idx sHash::find(idx typeindex, const void * key, idx lenKey, idx slotType, idx *
                 break;
         }
 
-        // collision
-        if(!dh)dh = hashfun(typeindex, key,lenKey,h0->bits,1); // double hashing resolution of collisions
+        if(!dh)dh = hashfun(typeindex, key,lenKey,h0->bits,1);
         h += dh;
-        if(h >= (idx)(((idx)1)<<(h0->bits)) ) // over the limits ? rebound !
+        if(h >= (idx)(((idx)1)<<(h0->bits)) )
             h -=(idx)(((idx)1)<<(h0->bits)) ;
     }
 
@@ -144,8 +137,6 @@ idx sHash::find(idx typeindex, const void * key, idx lenKey, idx slotType, idx *
     return iidx;
 }
 
-// adds the <index>-th item <key><lenKey> into the hash. returns 0 if the item is already in
-// otherwise returns index+1. Also initializes pFnd by the hash slot number for that key
 idx sHash::map(idx recordindex, idx typeindex, const void * key,idx lenKey, idx * pFnd )
 {
     idx  h=0, oldbits,iidx=0,bits=defaultInitialBitness;
@@ -155,18 +146,18 @@ idx sHash::map(idx recordindex, idx typeindex, const void * key,idx lenKey, idx 
         h0=(HashHeader * )hashPtr+(0);
 
         iidx=find( typeindex, key, lenKey, HASHID, &h);
-        if ( iidx ) {// is it in the dictionary
+        if ( iidx ) {
 
             if(bucketContainer) {
                 HashRecord * hd=hashPtr+(h+1);
                 idx * pref=sAlgo::lix_add<idx>(bucketContainer,1,(sAlgo::lix *)(&hd->recordindex),bucket_lstBits);
                 *pref=recordindex;
             }
-            if(pFnd)  // yes it is ... return
+            if(pFnd)
                 *pFnd=iidx-1;
-            return 0; // already the item is inside
+            return 0;
         }
-        for( oldbits=h0->bits; (idx) (((idx)1)<<(h0->bits)) <= h0->mapCount*collisionReducer; ++(h0->bits));// compute the new _bit-ness of the hash table neccessary to hold so much
+        for( oldbits=h0->bits; (idx) (((idx)1)<<(h0->bits)) <= h0->mapCount*collisionReducer; ++(h0->bits));
         bits=h0->bits;
     }else {
         bits=defaultInitialBitness;
@@ -175,15 +166,12 @@ idx sHash::map(idx recordindex, idx typeindex, const void * key,idx lenKey, idx 
 
 
 
-    // see if hash table needs reallocation
-    if( bits != oldbits ) // in case if the size was changed : reserve enough space for dictionary and rehash all
+    if( bits != oldbits )
     {
-        //if(hashTable.dim() && oldbits)
-        rehash( bits ); // rehash all the previous items
+        rehash( bits );
         h=0;
     }
 
-    // find an available spot in the hash table and add the item into it
     if(!h)
         find(typeindex,key, lenKey, HASHAVAILABLE, &h);
 
@@ -197,20 +185,18 @@ idx sHash::map(idx recordindex, idx typeindex, const void * key,idx lenKey, idx 
 
     h0=(HashHeader * )hashPtr+(0);
     ++h0->mapCount;
-    if(pFnd)  // return
+    if(pFnd)
         *pFnd=recordindex;
 
-    //_doCollisions=0;
     return recordindex+1;
 }
 
 
-// rehashes items in the dictionary
 void sHash::rehash(idx bits)
 {
     sVec < HashRecord > tmpTable;
 
-    for(idx i=1 ; i<hashTableVec.dim(); ++i )  // scan all items but the header
+    for(idx i=1 ; i<hashTableVec.dim(); ++i )
     {
         HashRecord * hd=hashPtr+(i);
         if(!hd->recordindex)
@@ -227,18 +213,14 @@ void sHash::rehash(idx bits)
     h0->bits=bits;
 
 
-    // rehash to the reserv
-    for(idx i=0 ; i<tmpTable.dim(); ++i )  // scan all items
+    for(idx i=0 ; i<tmpTable.dim(); ++i )
     {
         HashRecord * hd=tmpTable.ptr(i);
-        //if(hd->recordindex<0)
-        //    continue;
 
         idx keysize,keyIdx;
         if(bucketContainer)keyIdx=*sAlgo::lix_ptr<idx>(bucketContainer,0,(sAlgo::lix )(hd->recordindex));
         else keyIdx=hd->recordindex-1;
         void* keyid=keyfunc(keyParam,hd->typeindex, keyIdx, &keysize);
-        //map(hd->recordindex, hd->typeindex, keyid, keysize, 0);
 
         idx h;
         find( hd->typeindex, keyid, keysize, HASHID, &h);

@@ -36,7 +36,6 @@ google.load("visualization", "1", {packages:["corechart"]});
 vjHO.register('svc-dna-refClust').Constructor=function ()
 {
     
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         console.log("Constructing Full view from svc-dna-refClust.js");
@@ -44,8 +43,8 @@ vjHO.register('svc-dna-refClust').Constructor=function ()
         
         
         
-        vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files=*.{fasta}&mode=csv&prop=none&ids="+algoProcessID, 0, "id,name,path,value");
-        vjDS.add("", "dsSeq","http://?cmd=seqList&out=num|id|len&ids=" + id);
+        vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http:
+        vjDS.add("", "dsSeq","http:
         
         var hiveseqControl= new vjHiveseqControl({
             data: 'dsSeq',

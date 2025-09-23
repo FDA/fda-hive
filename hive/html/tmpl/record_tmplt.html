@@ -15,10 +15,10 @@
          var readonly=docLocValue("readonly");
         
         var types=docLocValue("types");
-        //if( !types.length )
-        //    return;
-        if(types.length)
+        types = sanitizeInnerHTML(types); // sanitizeInnerHTML doesn't encode "," so we can do this before splitting
+        if(types.length) {
             types = types.split(",");
+        }
         
         var ids=docLocValue("ids");
         if( ids.length ) ids = ids.split(",");

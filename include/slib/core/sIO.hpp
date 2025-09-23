@@ -45,7 +45,6 @@ namespace slib {
             callbackFun _funcAccumulator;
             void * _funcCallbackParam;
 
-            // construction
             sIO(idx flags = sMex::fBlockDoubling, callbackFun funcCallback = 0, void * funcCallbackParam = 0, callbackFun funcAccumulator = 0)
                 : sStr(flags)
             {
@@ -59,7 +58,6 @@ namespace slib {
                 fDualOutput = sMex::fLast<<1,
                 fNoAutoCallback= sMex::fLast<<2,
                 fLast = sMex::fLast<<3
-            // upper sixteen bits are for filehandles
             };
 
         public:
@@ -97,19 +95,8 @@ namespace slib {
                 return ret;
             }
 
-            //char * readIO(FILE * fp, idx chunks);
 
         public:
-            /*
-             inline void _sOutf( void ) {
-             _sOutDw;
-             sStr::_sOutf();
-             sOut((sCallbackUniversal)_funcCallback);
-             sOut((sCallbackUniversal)_funcAccumulator);
-             sOut(_funcCallbackParam);
-             _sOutUp;
-             }
-             */
     };
 }
-#endif // sLib_core_sIO_hpp
+#endif 

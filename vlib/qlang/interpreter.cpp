@@ -40,7 +40,6 @@
 using namespace slib;
 using namespace slib::qlang;
 
-//! \cond 0
 
 bool SourceLocation::print(sStr &s) const
 {
@@ -54,25 +53,24 @@ bool SourceLocation::print(sStr &s) const
     return false;
 }
 
-// keep in sync with qlang::eEvalStatus
 static const char *ContextEvalStatusNames[] = {
-    "success", // EVAL_SUCCESS = 1
-    "error", // EVAL_OTHER_ERROR = 0,
-    "not implemented", //EVAL_NOT_IMPLEMENTED
-    "index out of range", // EVAL_RANGE_ERROR
-    "invalid data type", // EVAL_TYPE_ERROR
-    "expected list value", // EVAL_WANTED_LIST
-    "expected dic value", // EVAL_WANTED_DIC
-    "expected subscriptable value (list, dic, object, or string)", // EVAL_WANTED_SUBSCRIPTABLE
-    "expected callable value (function or method)", // EVAL_WANTED_CALLABLE
-    "expected object value", // EVAL_WANTED_OBJECT
-    "wrong number of arguments", // EVAL_BAD_ARGS_NUMBER
-    "permission error", // EVAL_PERMISSION_ERROR
-    "attempted to write a read-only value", // EVAL_READ_ONLY_ERROR
-    "syntax error", // EVAL_SYNTAX_ERROR
-    "property not defined", // EVAL_NO_SUCH_PROP
-    "invalid variable", // EVAL_VARIABLE_ERROR
-    "system error", // EVAL_SYSTEM_ERROR
+    "success",
+    "error",
+    "not implemented",
+    "index out of range",
+    "invalid data type",
+    "expected list value",
+    "expected dic value",
+    "expected subscriptable value (list, dic, object, or string)",
+    "expected callable value (function or method)",
+    "expected object value",
+    "wrong number of arguments",
+    "permission error",
+    "attempted to write a read-only value",
+    "syntax error",
+    "property not defined",
+    "invalid variable",
+    "system error",
     NULL
 };
 
@@ -104,7 +102,7 @@ Context::~Context()
 
 void Context::reset()
 {
-    _returnValue.setInt();
+    _returnValue.setNull();
     _errorStr.cut(0);
 
     _rootScope.empty();
@@ -200,8 +198,8 @@ protected:
     Context::BuiltinRawCallback _func;
     void * _param;
 public:
-    RawCallbackWrapper(const char *s, Context::BuiltinRawCallback func, void * param): _func(func), _param(param) { _name.printf(s); }
-    RawCallbackWrapper(const RawCallbackWrapper &rhs): _func(rhs._func), _param(rhs._param) { _name.printf(rhs._name.ptr()); }
+    RawCallbackWrapper(const char *s, Context::BuiltinRawCallback func, void * param): _func(func), _param(param) { _name.printf("%s", s); }
+    RawCallbackWrapper(const RawCallbackWrapper &rhs): _func(rhs._func), _param(rhs._param) { _name.printf("%s", rhs._name.ptr()); }
     virtual ~RawCallbackWrapper() {}
     virtual bool call(sVariant &result, Context &ctx, sVariant *topic, sVariant *args, idx nargs) const
     {
@@ -300,7 +298,7 @@ void Context::clearBreakContinue()
         _mode = MODE_NORMAL;
 }
 
-void Context::clearReturn(bool resetReturnValue/*=true*/)
+void Context::clearReturn(bool resetReturnValue)
 {
     if (_mode == MODE_RETURN) {
         _mode = MODE_NORMAL;
@@ -381,7 +379,6 @@ bool Context::getVarValue(const char *name, sVariant &outval)
 
 bool Context::addVarValue(const char *name, sVariant &val)
 {
-    // do not allow builtin values to be redefined
     if (_builtins.get(name))
         return false;
 
@@ -421,7 +418,6 @@ bool Context::setVarValue(const char *name, sVariant &val)
             *(b->val.pvar) = val;
             return true;
         }
-        // Do not allow builtin functions to be redefined
         return false;
     }
 
@@ -595,7 +591,7 @@ eEvalStatus Context::evalSetSubscript(sVariant &lhs, sVariant &index, sVariant &
         return EVAL_WANTED_SUBSCRIPTABLE;
 
     idx i = index.asInt();
-    checkIndex(i, lhs.dim()); // ignore return value, let sVariant handle things
+    checkIndex(i, lhs.dim());
 
     return lhs.setElt(i, rhs) ? EVAL_SUCCESS : EVAL_OTHER_ERROR;
 }
@@ -609,8 +605,8 @@ eEvalStatus Context::evalGetSlice(sVariant &outval, sVariant &lhs, sVariant &rhs
 
     idx i1 = rhs1.asInt();
     idx i2 = rhs2.asInt();
-    checkIndex(i1, lhs.dim()); // ignore return value, let sVariant handle things
-    checkIndex(i2, lhs.dim()); // ignore return value, let sVariant handle things
+    checkIndex(i1, lhs.dim());
+    checkIndex(i2, lhs.dim());
 
     idx step = i1 <= i2 ? 1 : -1;
 
@@ -627,7 +623,6 @@ eEvalStatus Context::evalGetSlice(sVariant &outval, sVariant &lhs, sVariant &rhs
             outval.push(v);
         }
     } else {
-        // lhs is string
         const char *s = lhs.asString();
         idx dim = lhs.dim();
         sStr slice;
@@ -719,11 +714,11 @@ eEvalStatus Context::evalHas(sVariant &outval, sVariant &lhs, sVariant *rhs, idx
     } else if (lhs.isDic()) {
         for (idx j=0; j<dimrhs; j++) {
             if (lhs.getDicElt(rhs[j].asString())) {
-                outval.setInt(1);
+                outval.setBool(true);
                 return EVAL_SUCCESS;
             }
         }
-        outval.setInt(0);
+        outval.setBool(false);
         return EVAL_SUCCESS;
     } else if (lhs.isList()) {
         for (idx i=0; i<lhs.dim(); i++) {
@@ -731,12 +726,12 @@ eEvalStatus Context::evalHas(sVariant &outval, sVariant &lhs, sVariant *rhs, idx
             lhs.getElt(i, lhsi);
             for (idx j=0; j<dimrhs; j++) {
                 if (lhsi == rhs[j]) {
-                    outval.setInt(1);
+                    outval.setBool(true);
                     return EVAL_SUCCESS;
                 }
             }
         }
-        outval.setInt(0);
+        outval.setBool(false);
         return EVAL_SUCCESS;
     }
     return EVAL_TYPE_ERROR;
@@ -755,10 +750,10 @@ eEvalStatus Context::evalMatch(sVariant &outval, sVariant &val, const regex_t *r
                 outval.push(len ? sval + pmatch[i].rm_so : 0, len);
             }
         } else {
-            outval.setInt(1);
+            outval.setBool(true);
         }
     } else {
-        outval.setInt(0);
+        outval.setBool(false);
     }
     return EVAL_SUCCESS;
 }
@@ -767,7 +762,7 @@ eEvalStatus Context::evalNMatch(sVariant &outval, sVariant &val, const regex_t *
 {
     eEvalStatus status = evalMatch(outval, val, re, 0, NULL);
     if (status == EVAL_SUCCESS) {
-        outval.setInt(!outval.asInt());
+        outval.setBool(!outval.asBool());
     }
     return status;
 }
@@ -869,7 +864,6 @@ eEvalStatus Context::evalSetProperty(const char *name, sVariant &val)
     return evalSetProperty(obj, name, val);
 }
 
-/* Default builtins */
 
 bool BuiltinFunction::checkTopicNone(Context &ctx, sVariant *topic) const
 {
@@ -961,6 +955,39 @@ bool BuiltinFunction::checkNArgs(Context &ctx, idx nargs, idx min, idx max) cons
     return true;
 }
 
+idx BuiltinFunction::getArgAsHiveIds(const idx arg_num, sVariant *args, const idx &nargs, sVec<sHiveId> &out) const
+{
+    if( args && (nargs > arg_num) && !args[arg_num].isNull() ) {
+        return args[arg_num].asHiveIds(out);
+    }
+    return 0;
+}
+
+const sHiveId* BuiltinFunction::getArgAsHiveId(const idx arg_num, sVariant *args, const idx &nargs) const
+{
+    return (args && (nargs > arg_num)) ? args[arg_num].asHiveId() : 0;
+}
+
+const char* BuiltinFunction::getArgAsString(const idx arg_num, sVariant *args, const idx &nargs, const char *dflt) const
+{
+    return (args && (nargs > arg_num) && !args[arg_num].isNull()) ? args[arg_num].asString() : dflt;
+}
+
+idx BuiltinFunction::getArgAsInt(const idx arg_num, sVariant *args, const idx &nargs, const idx dflt) const
+{
+    return (args && (nargs > arg_num) && !args[arg_num].isNull()) ? args[arg_num].asInt() : dflt;
+}
+
+udx BuiltinFunction::getArgAsUInt(const idx arg_num, sVariant *args, const idx &nargs, const udx dflt) const
+{
+    return (args && (nargs > arg_num) && !args[arg_num].isNull()) ? args[arg_num].asUInt() : dflt;
+}
+
+bool BuiltinFunction::getArgAsBool(const idx arg_num, sVariant *args, const idx &nargs, const bool dflt) const
+{
+    return (args && (nargs > arg_num) && !args[arg_num].isNull()) ? args[arg_num].asBool() : dflt;
+}
+
 #define BASIC_BUILTIN(name, numargs, code) \
 class sQLangBuiltin_ ## name : public BuiltinFunction { \
 public: \
@@ -1019,14 +1046,7 @@ public: \
     } \
 }
 
-//! \endcond
 
-/*! \page qlang_builtin_aa1letter aa1letter()
-Finds the NCBI 1-letter code for an amino acid name or 3-letter code (case-insensitive)
-\code
-    aa1letter("Glutamine") // returns "Q"
-    aa1letter("Gln") // returns "Q"
-\endcode */
 BASIC_BUILTIN(aa1letter, 1,
     {
         const char * name = args[0].asString();
@@ -1042,12 +1062,6 @@ BASIC_BUILTIN(aa1letter, 1,
         result.setNull();
     });
 
-/*! \page qlang_builtin_aa3letter aa3letter()
-Finds the standard 3-letter code for an amino acid name or NCBI 1-letter code (case-insensitive)
-\code
-    aa1letter("Q") // returns "Gln"
-    aa1letter("Glutamine") // returns "Gln"
-\endcode */
 BASIC_BUILTIN(aa3letter, 1,
     {
         const char * name = args[0].asString();
@@ -1063,11 +1077,6 @@ BASIC_BUILTIN(aa3letter, 1,
         result.setNull();
     });
 
-/*! \page qlang_builtin_abs abs()
-Calculates the absolute value of a numeric argument
-\code
-    abs(-10) // returns 10
-\endcode */
 BASIC_BUILTIN(abs, 1,
     {
         sVariant numericVal;
@@ -1075,12 +1084,6 @@ BASIC_BUILTIN(abs, 1,
         result = (numericVal.asReal() < 0) ? (numericVal *= (idx)(-1), numericVal) : numericVal;
     });
 
-/*! \page qlang_builtin_append append()
-Appends to a list; if topic is provided, it will be modified in place
-\code
-    [1, 2, 3].append([4, 5], [6, [7]]); // returns [1, 2, 3, 4, 5, 6, [7]]
-\endcode
-\see \ref qlang_builtin_push */
 class sQLangBuiltin_append : public BuiltinFunction {
 public:
     sQLangBuiltin_append() { _name.printf("builtin append() function"); }
@@ -1113,17 +1116,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_apply apply()
-Apply a function to a list of arguments.
-
-Can be called as apply($FUNC, [$THIS], [$ARG_LIST]) or $ARG_LIST.apply($FUNC, [$THIS]).
-
-Takes an optional callback argument which takes each value as topic, and the returns are counted.
-\code
-    some_list.apply(f, t); // equivalent to t.f(some_list[0], some_list[1], ...)
-    apply(f, t, some_list); // same as above
-    [[1, 2], [3, 4]].apply(concat); // returns [1, 2, 3, 4]
-\endcode */
 class sQLangBuiltin_apply : public BuiltinFunction {
     public:
         sQLangBuiltin_apply() { _name.printf("builtin apply() function"); }
@@ -1161,13 +1153,6 @@ class sQLangBuiltin_apply : public BuiltinFunction {
         }
 };
 
-/*! \page qlang_builtin_cat cat()
-Concatenates strings. Used frequently, since in the HIVE query language, the \a + operator is purely numeric.
-\code
-    cat("hello", " ", "world"); // returns "hello world"
-    [1, 2, 3].cat(); // returns "123"
-\endcode
-\see \ref qlang_builtin_join */
 class sQLangBuiltin_cat : public BuiltinFunction {
 public:
     sQLangBuiltin_cat() { _name.printf("builtin cat() function"); }
@@ -1190,22 +1175,8 @@ public:
     }
 };
 
-/*! \page qlang_builtin_ceil ceil()
-Finds the ceiling of a numerical argument (i.e. rounds up)
-\code
-    ceil(1.5); // returns 2.0
-\endcode
-\see \ref qlang_builtin_floor */
 BASIC_BUILTIN(ceil, 1, { result.setInt((idx)ceil(args[0].asReal())); } );
 
-/*! \page qlang_builtin_clamp clamp()
-Clamp a value (or list of values) within a range
-\code
-    clamp(-2, -1, 1); // returns -1
-    clamp([0, 1, 2], -1, 1); // returns [0, 1, 1]
-    [1, 2, 3, 4].clamp(2, 3); // returns [2, 2, 3, 3]
-\endcode
-\see \ref qlang_builtin_min, \ref qlang_builtin_max */
 class sQLangBuiltin_clamp : public BuiltinFunction {
 public:
     sQLangBuiltin_clamp() { _name.printf("builtin clamp() function"); }
@@ -1254,7 +1225,6 @@ public:
     }
 };
 
-//! \cond 0
 class HierarchicalClusteringData : public sVariant::sVariantData
 {
 protected:
@@ -1268,7 +1238,7 @@ protected:
         sVariant * labels = static_cast<sVariant*>(param);
         if (x < labels->dim()) {
             sStr tmp;
-            tmp.printf(labels->getListElt(x)->asString());
+            tmp.printf("%s", labels->getListElt(x)->asString());
             sString::searchAndReplaceSymbols(&out, tmp, tmp.length(), "(),: \t\r\n", "_", 0, true, false, false, false);
             out.shrink00();
         } else {
@@ -1293,6 +1263,7 @@ public:
     virtual void decrementRefCount() { _refCount--; }
     virtual bool hasRefs() const { return _refCount > 0; }
     virtual bool asBool() const { return asInt(); }
+    virtual bool isNullish() const { return asInt() == 0; }
     virtual idx asInt() const { return _clust ? _clust->dim() : 0; }
     virtual real asReal() const { return asInt(); }
     virtual void getNumericValue(sVariant &numeric) const { numeric.setInt(asInt()); }
@@ -1374,7 +1345,6 @@ public:
         return isnan(val) ? 0 : val;
     }
 };
-//! \endcond
 
 class sQLangBuiltin_clust : public BuiltinFunction {
 public:
@@ -1396,7 +1366,6 @@ public:
                 return new sCosineDist<real,Titer>();
             }
         }
-        // "euclidean" is the default
         return new sEuclideanDist<real,Titer>();
     }
 
@@ -1411,7 +1380,6 @@ public:
                 return new sFastNeighborJoining();
             }
         }
-        // "neighbor-joining" is the default
         return new sNeighborJoining();
     }
 
@@ -1437,7 +1405,6 @@ public:
         HierarchicalClusteringData * clustdata = new HierarchicalClusteringData(clust, labels);
         result.setData(*clustdata);
 
-        // Do we already have a distance matrix?
         if (distance && distance->isList()) {
             dim = distance->dim();
             for (idx i=0; i<distance->dim(); i++)
@@ -1448,15 +1415,13 @@ public:
                 for (idx j=i+1; j<dim; j++) {
                     sVariant * prow = distance->getListElt(i);
                     sVariant * pcell = prow ? prow->getListElt(j) : 0;
-                    // Do not allow NAN values to avoid possible fp exceptions
                     real d =  pcell ? pcell->asReal() : 0;
                     clust->setDist(i, j, isnan(d) ? 0 : d);
                 }
             }
         } else if (activity && activity->isList()) {
-            // Calculate distances from the activity matrix
             dim = activity->dim();
-            std::auto_ptr<Tdist> dist(makeDist(distalgo));
+            std::unique_ptr<Tdist> dist(makeDist(distalgo));
             sVec<Titer> iters;
             iters.resize(dim);
 
@@ -1483,14 +1448,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_counts counts()
-Counts the number of times each value occurs.
-
-Takes an optional callback argument which takes each value as topic, and the returns are counted.
-\code
-    ["a", "b", "c", "a"].counts(); // returns {"a": 2, "b": 1, "c": 1}
-    [5, 10, -5].counts({abs(this)}); // returns {"5": 2, "10": 1}
-\endcode */
 class sQLangBuiltin_counts : public BuiltinFunction {
 public:
     sQLangBuiltin_counts() { _name.printf("builtin counts() function"); }
@@ -1532,14 +1489,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_dic dic()
-Creates a dictionary.
-
-\code
-    dic(); // returns an empty dictionary
-    ["a", "b", "c", "d"].dic(); // returns {"a": "b", "c": "d"}
-    (12345 as obj).dic(); // returns {"id": 12345, "_type": "foo", "created": 1366648266, ...}
-\endcode */
 class sQLangBuiltin_dic : public BuiltinFunction {
 public:
     sQLangBuiltin_dic() { _name.printf("builtin dic() function"); }
@@ -1587,31 +1536,10 @@ public:
     }
 };
 
-/*! \page qlang_builtin_dim dim()
-Finds the number of elements in a list, keys in a dictionary, or symbols in a string. \a dim() of a non-string scalar value is zero. If given a topic, treats it as the argument.
-
-\code
-    "hello".dim(); // returns 5
-    dim("hello"); // returns 5
-    ["a", "b", "c"].dim(); // returns 3
-    {"a": 0, "b": 0}.dim(); // returns 2
-    dim(123.4); // returns 0
-\endcode */
 BASIC_UNARY_BUILTIN(dim, { result.setInt(topic->dim()); });
 
-/*! \page qlang_builtin_exp exp()
-Calculates exponentials
-\code
-    exp(1) // returns 2.718282
-\endcode */
 BASIC_BUILTIN(exp, 1, { result.setReal(exp(args[0].asReal())); });
 
-/*! \page qlang_builtin_filter filter()
-Filters a list by running a callback on each element as a topic.
-\code
-    [1, 2, -3, 4].filter({this > 0}); // returns [1, 2, 4]
-\endcode
-\see \ref qlang_builtin_foreach, \ref qlang_builtin_map, \ref qlang_builtin_reduce */
 class sQLangBuiltin_filter : public BuiltinFunction {
 public:
     sQLangBuiltin_filter() { _name.printf("builtin filter() function"); }
@@ -1640,20 +1568,8 @@ public:
     }
 };
 
-/*! \page qlang_builtin_floor floor()
-Finds the floor of a numerical argument (i.e. rounds down)
-\code
-    floor(1.5); // returns 1.0
-\endcode
-\see \ref qlang_builtin_ceil */
 BASIC_BUILTIN(floor, 1, { result.setInt((idx)floor(args[0].asReal())); } );
 
-/*! \page qlang_builtin_foreach foreach()
-Runs a callback on each element of a list as a topic.
-\code
-    a = dic(); [1,2,3].foreach({a[this] = this}); // a == {"1": 1, "2": 2, "3": 3}
-\endcode
-\see \ref qlang_builtin_filter, \ref qlang_builtin_map, \ref qlang_builtin_reduce */
 class sQLangBuiltin_foreach : public BuiltinFunction {
 public:
     sQLangBuiltin_foreach() { _name.printf("bultin foreach() function"); }
@@ -1674,7 +1590,6 @@ public:
     }
 };
 
-// list.histogram(numBins, min?, max?) OR histogram(list, numBins, min?, max?)
 class sQLangBuiltin_histogram : public BuiltinFunction {
 public:
     sQLangBuiltin_histogram() { _name.printf("builtin histogram() function"); }
@@ -1750,12 +1665,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_intersect intersect()
-Finds the intersection of lists
-\code
-    intersect([1, 2, 3, 4], [2, 4], [4, 2, 42]); // returns [2, 4]
-\endcode
-\see \ref qlang_builtin_union */
 class sQLangBuiltin_intersect : public BuiltinFunction {
 public:
     sQLangBuiltin_intersect() { _name.printf("builtin intersect() function"); }
@@ -1773,122 +1682,30 @@ public:
     }
 };
 
-/*! \page qlang_builtin_isnull isnull()
-Checks if topic or argument is the special \a null value, which is normally interpreted as
-zero in numeric context and to the empty string in string context.
-\code
-    null.isnull(); // returns true
-    isnull(null); // returns true
-    isnull(false); // returns false
-    isnull(0); // returns false
-    isnull(""); // returns false
-\endcode */
-BASIC_UNARY_BUILTIN(isnull, { result.setInt(topic->isNull()); });
+BASIC_UNARY_BUILTIN(isnull, { result.setBool(topic->isNull()); });
 
-/*! \page qlang_builtin_isnumeric isnumeric()
-Checks if topic or argument is a numeric scalar
-\code
-    PI.isnumeric(); // returns true
-    isnumeric(PI); // returns true
-    isnumeric("3.14"); // returns false
-\endcode */
-BASIC_UNARY_BUILTIN(isnumeric, { result.setInt(topic->isNumeric()); });
+BASIC_UNARY_BUILTIN(isnumeric, { result.setBool(topic->isNumeric()); });
 
-/*! \page qlang_builtin_isstring isstring()
-Checks if topic or argument is a string scalar
-\code
-    s = "hello"; s.isstring(); // returns true
-    isstring("hello"); // returns true
-    ["hello", "bye"].isstring(); // returns false
-\endcode */
-BASIC_UNARY_BUILTIN(isstring, { result.setInt(topic->isString()); });
+BASIC_UNARY_BUILTIN(isstring, { result.setBool(topic->isString()); });
 
-/*! \page qlang_builtin_isobj isobj()
-Checks if topic or argument is an object ID
-\code
-    (12345 as obj).isobj(); // returns true
-    isobj(12345 as obj); // returns true
-    isobj(12345); // returns false
-\endcode
+BASIC_UNARY_BUILTIN(isobj, { result.setBool(topic->isHiveId()); });
 
-\note \a isobj() does not check whether the object ID is a \em valid object.
-For that, use \ref qlang_uquery_builtin_validobj, which is only available in
-slib::qlang::sUsrContext and subclasses. */
-BASIC_UNARY_BUILTIN(isobj, { result.setInt(topic->isHiveId()); });
+BASIC_UNARY_BUILTIN(isdatetime, { result.setBool(topic->isDateTime()); });
 
-/*! \page qlang_builtin_isdatetime isdatetime()
-Checks if topic or argument is a date-time
-\code
-    isdatetime("2014-01-01 12:45" as datetime); // returns true
-\endcode */
-BASIC_UNARY_BUILTIN(isdatetime, { result.setInt(topic->isDateTime()); });
+BASIC_UNARY_BUILTIN(isdate, { result.setBool(topic->isDate()); });
 
-/*! \page qlang_builtin_isdate isdate()
-Checks if topic or argument is a date-time
-\code
-    isdate("2014-01-01" as date); // returns true
-\endcode */
-BASIC_UNARY_BUILTIN(isdate, { result.setInt(topic->isDate()); });
+BASIC_UNARY_BUILTIN(istime, { result.setBool(topic->isTime()); });
 
-/*! \page qlang_builtin_istime istime()
-Checks if topic or argument is a date-time
-\code
-    istime("12:34:56-01:00" as time); // returns true
-\endcode */
-BASIC_UNARY_BUILTIN(istime, { result.setInt(topic->isTime()); });
+BASIC_UNARY_BUILTIN(isdateortime, { result.setBool(topic->isDateOrTime()); });
 
-/*! \page qlang_builtin_isdateortime isdateortime()
-Checks if topic or argument is a date-time, or date, or time
-\code
-    isdateortime("2014-01-01T12:45:00" as datetime); // returns true
-    isdateortime("12:34:56+07:00" as time); // returns true
-\endcode */
-BASIC_UNARY_BUILTIN(isdateortime, { result.setInt(topic->isDateOrTime()); });
+BASIC_UNARY_BUILTIN(iscallable, { result.setBool(ctx.isCallable(*topic)); });
 
-/*! \page qlang_builtin_iscallable iscallable()
-Checks if topic or argument is a callable function (built-in or defined at runtime)
-\code
-    iscallable.iscallable(); // returns true
-    iscallable(function(x,y){x > y}); // returns true
-    iscallable("iscallable"); // returns false
-\endcode */
-BASIC_UNARY_BUILTIN(iscallable, { result.setInt(ctx.isCallable(*topic)); });
+BASIC_UNARY_BUILTIN(isscalar, { result.setBool(topic->isScalar()); });
 
-/*! \page qlang_builtin_isscalar isscalar()
-Checks if topic or argument is a scalar value
-\code
-    PI.isscalar(); // returns true
-    isscalar("3.14"); // returns true
-    isscalar(["3.14"]); // returns false
-\endcode */
-BASIC_UNARY_BUILTIN(isscalar, { result.setInt(topic->isScalar()); });
+BASIC_UNARY_BUILTIN(islist, { result.setBool(topic->isList()); });
 
-/*! \page qlang_builtin_islist islist()
-Checks if topic or argument is a list
-\code
-    [].islist(); // returns true
-    islist([1,2,3]); // returns true
-    islist("123"); // returns false
-\endcode */
-BASIC_UNARY_BUILTIN(islist, { result.setInt(topic->isList()); });
+BASIC_UNARY_BUILTIN(isdic, { result.setBool(topic->isDic()); });
 
-/*! \page qlang_builtin_isdic isdic()
-Checks if topic or argument is a dictionary
-\code
-    {"a": 1, "b": 2}.isdic(); // returns true
-    isdic(dic()); // returns true
-    isdic(["a", 1, "b", 2]); // returns false
-\endcode */
-BASIC_UNARY_BUILTIN(isdic, { result.setInt(topic->isDic()); });
-
-/*! \page qlang_builtin_join join()
-Joins a list using a given string (a space by default)
-\code
-    [1, 2, 3].join(); // returns "1 2 3"
-    join(["a", "bc"]); // returns "a bc"
-    join(["a", "bc"], "*"); // returns "a*bc"
-\endcode
-\see \ref qlang_builtin_cat, \ref qlang_builtin_split */
 class sQLangBuiltin_join : public BuiltinFunction {
 public:
     sQLangBuiltin_join() { _name.printf("builtin join() function"); }
@@ -1923,14 +1740,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_keys keys()
-Retrieves the list of keys of a dictionary, array, or object topic
-\code
-    {"a": 1, "b": 2}.keys(); // returns ["a", "b"]
-    (12345 as obj).keys(); // returns ["id", "_type", "created", ... ]
-    ["a", "Z"].keys(); // returns [0, 1]
-\endcode
-\see \ref qlang_builtin_kv */
 class sQLangBuiltin_keys : public BuiltinFunction {
 public:
     sQLangBuiltin_keys() { _name.printf("builtin keys() function"); }
@@ -1952,14 +1761,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_kv kv()
-Retrieves key/value pairs of a dictionary, array, or object topic
-\code
-    {"a": 1, "b": 2}.kv(); // returns [["a", 1], ["b", 2]]
-    (12345 as obj).kv(); // returns [["id", 12345], ["_type", "svc-foo"], ...]
-    ["a", "Z"].kv(); // returns [[0, "a"], [1, "Z"]]
-\endcode
-\see \ref qlang_builtin_keys */
 class sQLangBuiltin_kv : public BuiltinFunction {
 public:
     sQLangBuiltin_kv() { _name.printf("builtin kv() function"); }
@@ -1981,32 +1782,10 @@ public:
     }
 };
 
-/*! \page qlang_builtin_log log()
-Calculates the natural logarithm
-\code
-    log(exp(3)); // returns 3.0
-\endcode */
 BASIC_BUILTIN(log, 1, { result.setReal(log(args[0].asReal())); } );
-/*! \page qlang_builtin_log2 log2()
-Calculates the base-2 logarithm
-\code
-    log(8); // returns 3.0
-\endcode */
 BASIC_BUILTIN(log2, 1, { result.setReal(log2(args[0].asReal())); } );
-/*! \page qlang_builtin_log10 log10()
-Calculates the base-10 logarithm
-\code
-    log(1000); // returns 3.0
-\endcode */
 BASIC_BUILTIN(log10, 1, { result.setReal(log10(args[0].asReal())); } );
 
-/*! \page qlang_builtin_map map()
-Runs a specified callback on each element of a list as topic, and returns the list of resulting values
-\code
-    [1, 2, 3, 4].map({sqrt(this)}; // returns [1, 1.414, 1.73, 2.0]
-    ([12345, 12346] as objlist).map({[.id, ._type]}); // returns [[12345, "foo"], [12346, "bar"]]
-\endcode
-\see \ref qlang_builtin_filter, \ref qlang_builtin_foreach, \ref qlang_builtin_reduce */
 class sQLangBuiltin_map : public BuiltinFunction {
 public:
     sQLangBuiltin_map() { _name.printf("bultin map() function"); }
@@ -2028,15 +1807,6 @@ public:
     }
 };
 
-// list.max() OR max(x1, x2, x3, ...) OR max(list)
-/*! \page qlang_builtin_max max()
-Finds the numeric maximum of a list. If multiple arguments are given, each argument is cast to a numeric value and their maximum is found.
-\code
-    [1, 5, -2].max(); // returns 5
-    max(["1", "5", "-2"]); // returns 5
-    max([1, 1, 1, 1], 2, 3); // returns 4 - each argument is cast to a numeric value, and a list cast to a numeric value is interpreted as the number of elements in the list
-\endcode
-\see \ref qlang_builtin_min, \ref qlang_builtin_clamp */
 BASIC_NUMERIC_LIST_BUILTIN(max,
     {
         if (!dim) return true;
@@ -2047,17 +1817,9 @@ BASIC_NUMERIC_LIST_BUILTIN(max,
             result = numericVal;
     },
     {
-        /* nothing */
     }
 );
 
-/*! \page qlang_builtin_mean mean()
-Finds the numeric mean of a list. If multiple arguments are given, each argument is cast to a numeric value and their mean is found.
-\code
-    [1, 2, 4].mean(); // returns 2.333
-    mean([1, 2, 4]); // returns 2.333
-    mean([1, 2], 4); // returns 3.0 - each argument is cast to a numeric value, and a list cast to a numeric value is interpreted as the number of elements in the list
-\endcode */
 BASIC_NUMERIC_LIST_BUILTIN(mean,
     {
         if (!dim) return true;
@@ -2071,14 +1833,6 @@ BASIC_NUMERIC_LIST_BUILTIN(mean,
     }
 );
 
-/*! \page qlang_builtin_min min()
-Finds the numeric minimum of a list. If multiple arguments are given, each argument is cast to a numeric value and their minimum is found.
-\code
-    [1, 5, -2].min(); // returns -2
-    min(["1", "5", "-2"]); // returns -2
-    min([], 2, 3); // returns 0 - each argument is cast to a numeric value, and a list cast to a numeric value is interpreted as the number of elements in the list
-\endcode
-\see \ref qlang_builtin_max, \ref qlang_builtin_clamp */
 BASIC_NUMERIC_LIST_BUILTIN(min,
     {
         if (!dim) return true;
@@ -2089,15 +1843,9 @@ BASIC_NUMERIC_LIST_BUILTIN(min,
             result = numericVal;
     },
     {
-        /* nothing */
     }
 );
 
-/*! \page qlang_builtin_now now()
-Returns current time as a datetime value
-\code
-    now(); // returns "2014-12-28 12:34:56-05:00"
-\endcode */
 class sQLangBuiltin_now : public BuiltinFunction {
 public:
     sQLangBuiltin_now() { _name.printf("builtin now() function"); }
@@ -2112,11 +1860,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_pow pow()
-Raises to a power
-\code
-    pow(2, 3) // returns 8.0
-\endcode */
 BASIC_BUILTIN(pow, 2, { result.setReal(pow(args[0].asReal(), args[1].asReal())); });
 
 class sQLangBuiltin_props : public BuiltinFunction {
@@ -2143,12 +1886,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_push push()
-Pushes arguments to the end of a list; without a topic, creates a new list
-\code
-    [1, 2].push(3, 4); // returns [1, 2, 3, 4]
-\endcode
-\see \ref qlang_builtin_append */
 class sQLangBuiltin_push : public BuiltinFunction {
 public:
     sQLangBuiltin_push() { _name.printf("builtin push() function"); }
@@ -2172,18 +1909,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_range range()
-Creates a list with a range of numeric values.
-
-When run on a list argument or topic, returns the list's list of indices. With a single integer argument as value, calculates the range from 0 to this value. Given two integer arguments, calculates the range from the first to the second; an optional third argument specifies the step size.
-\code
-    ["a", "b", "c"].range(); // returns [0, 1, 2]
-    range(["a", "b", "c"]); // retutns [0, 1, 2]
-    range(8); // returns [0, 1, 2, 4, 5, 6, 7]
-    range(2, 8); // returns [2, 3, 4, 5, 6, 7]
-    range(2, 8, 4); // returns [2, 4, 6]
-    range(2, -8, -2); // returns [2, 0, -2, -4, -6]
-\endcode */
 class sQLangBuiltin_range : public BuiltinFunction {
 public:
     sQLangBuiltin_range() { _name.printf("bultin range() function"); }
@@ -2231,19 +1956,13 @@ public:
     }
 };
 
-/*! \page qlang_builtin_reduce reduce()
-Repeatedly runs a 2-argument callback on the next list value and the result of the previous callback call.
-\code
-    [1, 2, 3, 4].reduce(function(x, y) {x + y}); // returns 10 - equivalent to ((1 + 2) + 3) + 4, or to [1, 2, 3, 4].sum()
-\endcode
-\see \ref qlang_builtin_filter, \ref qlang_builtin_foreach, \ref qlang_builtin_map */
 class sQLangBuiltin_reduce : public BuiltinFunction {
 public:
     sQLangBuiltin_reduce() { _name.printf("bultin reduce() function"); }
     virtual bool call(sVariant &result, Context &ctx, sVariant *topic, sVariant *args, idx nargs) const
     {
         if (!topic) {
-            result.setInt();
+            result.setNull();
             return true;
         }
 
@@ -2251,7 +1970,7 @@ public:
             return false;
 
         if (topic->dim() == 0) {
-            result.setInt();
+            result.setNull();
             return true;
         }
 
@@ -2273,15 +1992,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_sort sort()
-Sorts a list numerically by default, or using a given two-argument callback whose return value is interpreted as "greater than" if positive, "less than" if negative, or "equal" if zero.
-
-\code
-    ["10", 2.0, "1"].sort(); // returns ["1", "2", "10"]
-    sort(["1", "10", 2.0], function(x, y) {y - x}); // returns ["10", 2.0, "1"]
-\endcode
-
-\note a separate function, \ref qlang_builtin_strsort, is provided for conveniently sorting by string comparison. */
 class sQLangBuiltin_sort : public BuiltinFunction {
 protected:
     struct CallbackSorterParam
@@ -2372,15 +2082,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_split split()
-Splits a string using a specified string or list of strings. Splitting by "" means retrieves a string's list of characters. By default, splits by "," and ";"
-\code
-    a = "hello;world"; a.split(); // returns ["hello", "world"]
-    split("123,456 789;0", [",", ";", " "]); // returns ["123", "456", "789", "0"]
-    split("a*b**c", "*"); // returns ["a", "b", "", "c"]
-    split("hello", ""); // returns ["h", "e", "l", "l", "o"]
-\endcode
-\see \ref qlang_builtin_join */
 class sQLangBuiltin_split : public BuiltinFunction {
 public:
     sQLangBuiltin_split() { _name.printf("builtin split() function"); }
@@ -2418,16 +2119,10 @@ public:
         find00.add0(2);
         result.setList();
 
-        // We cannot use sString::searchAndReplaceStrings because we don't want
-        // to replace two consecutive separators by \0\0 and then not know where
-        // the result 00-terminated string really terminates
 
         sStr buf("%s", topic->asString());
         idx curpos = 0;
         for (idx i=0; i<buf.length(); i++) {
-            // splitting by "" is special : we need to omit the first empty value
-            // (so "ab".split([""]) is ["a", "b"] not ["", "a", "b"]) and "" cannot
-            // be a non-first element of find00 since "a"_""__ equals "a"___
 
             if (by_char) {
                 char c[2];
@@ -2457,18 +2152,8 @@ public:
     }
 };
 
-/*! \page qlang_builtin_sqrt sqrt()
-Calculates the square root
-\code
-    sqrt(25) // returns 5.0
-\endcode */
 BASIC_BUILTIN(sqrt, 1, { result.setReal(sqrt(args[0].asReal())); } );
 
-/*! \page qlang_builtin_strip strip()
-Removes leading and trailing whitespace (including newlines) from a string
-\code
-    a = " hello\t\n "; a.strip(); // returns "hello"
-\endcode */
 class sQLangBuiltin_strip : public BuiltinFunction {
 public:
     sQLangBuiltin_strip() { _name.printf("builtin strip() function"); }
@@ -2488,30 +2173,16 @@ public:
     }
 };
 
-/*! \page qlang_builtin_sum sum()
-Finds the numeric sum of a list. If multiple arguments are given, each argument is cast to a numeric value and their sum is found.
-\code
-    [1, 2, 3].sum(); // returns 6
-    sum([1, 2, 3]); // returns 6
-    mean([1, 2], 3); // returns 5 - each argument is cast to a numeric value, and a list cast to a numeric value is interpreted as the number of elements in the list
-\endcode */
 BASIC_NUMERIC_LIST_BUILTIN(sum,
     {
-        /* nothing */
     },
     {
         result += numericVal;
     },
     {
-        /* nothing */
     }
 );
 
-/*! \page qlang_builtin_strsort strsort()
-Like \ref qlang_builtin_sort, but uses case-sensitive string comparison by default.
-\code
-    ["10", 2.0, "1"].sort(); // returns ["1", "10", 2.0]
-\endcode */
 class sQLangBuiltin_strsort : public sQLangBuiltin_sort {
 public:
     sQLangBuiltin_strsort() {
@@ -2520,18 +2191,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_strftime strftime()
-Convert date/time/datetime values into human-readable strings. See
-<a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/strftime.html">the C strftime() function documentation</a> for format string details.
-
-If the argument is not a date/time/datetime, it will be parsed (if a string)
-or interpreteted as a Unix timestamp (if a numeric value). If a format is not
-provided, the value will be printed in modified RFC 3330 form.
-\code
-    strftime(1412817512); // returns "2014-10-08 21:18:32-04:00"
-    strftime("2014-08-10 12:34 PM", "%d/%m/%Y"); // returns "10/08/2014"
-\endcode
-\see \ref qlang_builtin_strptime */
 class sQLangBuiltin_strftime : public BuiltinFunction {
 public:
     sQLangBuiltin_strftime() { _name.printf("builtin strftime() function"); }
@@ -2569,15 +2228,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_strptime strptime()
-Explicitly parse time strings into datetime values; useful for date/time formats
-which are not automatically detected by "foo as datetime". See
-<a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html">the C strptime() function documentation</a> for format string details.
-\code
-    strptime("08.10.2014 21:18", "%d.%m.%Y %H:%M"); // returns "2014-10-08 21:18:00-04:00"
-    strptime("08.10.2014 21:18", "%d.%m.%Y %H:%M") as int; // returns 1412817480
-\endcode
-\see \ref qlang_builtin_strftime */
 class sQLangBuiltin_strptime : public BuiltinFunction {
 public:
     sQLangBuiltin_strptime() { _name.printf("builtin strptime() function"); }
@@ -2608,12 +2258,6 @@ public:
     }
 };
 
-/*! \page qlang_builtin_union union()
-Finds the union of lists
-\code
-    union([1, 2, 3, 4], [4, 3, 5], [67]); // returns [1, 2, 3, 4, 5, 67]
-\endcode
-\see \ref qlang_builtin_intersect */
 class sQLangBuiltin_union : public BuiltinFunction {
 public:
     sQLangBuiltin_union() { _name.printf("builtin union() function"); }
@@ -2635,69 +2279,6 @@ public:
 static sQLangBuiltin_ ## name builtin_ ## name; \
 registerBuiltinFunction(#name, builtin_ ## name)
 
-/*! \page qlang_builtins Basic builtin functions
-
-These are available in the basic slib::qlang::Context and all of its child classes.
-
-- \subpage qlang_builtin_aa1letter
-- \subpage qlang_builtin_aa3letter
-- \subpage qlang_builtin_abs
-- \subpage qlang_builtin_append
-- \subpage qlang_builtin_apply
-- \subpage qlang_builtin_cat
-- \subpage qlang_builtin_ceil
-- \subpage qlang_builtin_clamp
-- \subpage qlang_builtin_clust
-- \subpage qlang_builtin_counts
-- \subpage qlang_builtin_dic
-- \subpage qlang_builtin_dim
-- \subpage qlang_builtin_exp
-- \subpage qlang_builtin_filter
-- \subpage qlang_builtin_floor
-- \subpage qlang_builtin_foreach
-- \subpage qlang_builtin_histogram
-- \subpage qlang_builtin_intersect
-- \subpage qlang_builtin_isnull
-- \subpage qlang_builtin_isnumeric
-- \subpage qlang_builtin_isstring
-- \subpage qlang_builtin_isobj
-- \subpage qlang_builtin_isdatetime
-- \subpage qlang_builtin_isdate
-- \subpage qlang_builtin_istime
-- \subpage qlang_builtin_isdateortime
-- \subpage qlang_builtin_iscallable
-- \subpage qlang_builtin_isscalar
-- \subpage qlang_builtin_islist
-- \subpage qlang_builtin_isdic
-- \subpage qlang_builtin_join
-- \subpage qlang_builtin_keys
-- \subpage qlang_builtin_kv
-- \subpage qlang_builtin_log
-- \subpage qlang_builtin_log2
-- \subpage qlang_builtin_log10
-- \subpage qlang_builtin_map
-- \subpage qlang_builtin_max
-- \subpage qlang_builtin_mean
-- \subpage qlang_builtin_min
-- \subpage qlang_builtin_now
-- \subpage qlang_builtin_pow
-- \subpage qlang_builtin_props
-- \subpage qlang_builtin_push
-- \subpage qlang_builtin_range
-- \subpage qlang_builtin_reduce
-- \subpage qlang_builtin_sort
-- \subpage qlang_builtin_split
-- \subpage qlang_builtin_sqrt
-- \subpage qlang_builtin_strip
-- \subpage qlang_builtin_strsort
-- \subpage qlang_builtin_strftime
-- \subpage qlang_builtin_strptime
-- \subpage qlang_builtin_sum
-- \subpage qlang_builtin_union
-
-In addition, the mathematical constants \a E and \a PI are built in.
-
-*/
 
 void Context::registerDefaultBuiltins()
 {

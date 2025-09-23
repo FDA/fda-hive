@@ -50,7 +50,7 @@ class sVioDBseq
     public:
         sVioDBseq (sVioDB *database){
             db = database;
-            mode = 0;    // This means that the sorted and short list is reference by default
+            mode = 0;
         };
         void setmode(idx mod){
             mode = mod;
@@ -74,5 +74,4 @@ class sVioDBseq
         const char *getID(idx i);
         
 };  
-#endif // sBio_sVioDBseq_hpp
-
+#endif 

@@ -9,7 +9,7 @@ CREATE PROCEDURE `sp_obj_prop_init_v2`(
     IN p_obj_domainID BIGINT UNSIGNED,
     IN p_obj_id BIGINT UNSIGNED,
     IN p_permissions BIGINT UNSIGNED,
-    IN p_keep_prop_names_csv VARCHAR(65535)
+    IN p_keep_prop_names_csv VARCHAR(21844)
 )
     MODIFIES SQL DATA
 BEGIN

@@ -35,43 +35,33 @@ using namespace slib;
 
 const sRC sRC::zero;
 
-struct SlibRcEntryStrings
-{
+struct SlibRcEntryStrings {
         const char * enum_name;
         const char * description;
 };
 
 #undef SLIB_RC_ENTRY
 #undef SLIB_RC_ENTRY_WITH_VAL
-#define SLIB_RC_ENTRY(id, description) { #id, description }
-#define SLIB_RC_ENTRY_WITH_VAL(id, val, description) { #id, description }
+#define SLIB_RC_ENTRY(id, description) {#id, description}
+#define SLIB_RC_ENTRY_WITH_VAL(id, val, description) {#id, description}
 
-//static
 const char * sRC::operation2string(sRC::EOperation op, bool asEnumName)
 {
-    static SlibRcEntryStrings strings[] = {
-        SLIB_RC_OPERATION_ENTRIES
-    };
+    static SlibRcEntryStrings strings[] = {SLIB_RC_OPERATION_ENTRIES};
     int index = (op == 255) ? sDim(strings) - 1 : (int)op;
     return asEnumName ? strings[index].enum_name : strings[index].description;
 }
 
-//static
 const char * sRC::entity2string(sRC::EEntity entity, bool asEnumName)
 {
-    static SlibRcEntryStrings strings[] = {
-        SLIB_RC_ENTITY_ENTRIES
-    };
+    static SlibRcEntryStrings strings[] = {SLIB_RC_ENTITY_ENTRIES};
     int index = (entity == 255) ? sDim(strings) - 1 : (int)entity;
     return asEnumName ? strings[index].enum_name : strings[index].description;
 }
 
-//static
 const char * sRC::state2string(sRC::EState state, bool asEnumName)
 {
-    static SlibRcEntryStrings strings[] = {
-        SLIB_RC_STATE_ENTRIES
-    };
+    static SlibRcEntryStrings strings[] = {SLIB_RC_STATE_ENTRIES};
     int index = (state == 255) ? sDim(strings) - 1 : (int)state;
     return asEnumName ? strings[index].enum_name : strings[index].description;
 }
@@ -90,6 +80,9 @@ const char * sRC::print(sStr * out, bool asEnumNames) const
     const char * bad_entity_string = entity2string((EEntity)val.parts.bad_entity, asEnumNames);
     const char * state_string = state2string((EState)val.parts.state, asEnumNames);
 
+    if( file && line ) {
+        out->printf("%s:%" UDEC ": ", file ? file : "", line);
+    }
     if( op_string ) {
         out->addString(op_string);
         out->addString(" ");
@@ -103,6 +96,8 @@ const char * sRC::print(sStr * out, bool asEnumNames) const
         out->addString(" ");
     }
     out->addString(state_string);
-
+    if( ctx && ctx.ptr()[0] ) {
+        out->printf(": %s", ctx.ptr());
+    }
     return out->ptr(len);
 }

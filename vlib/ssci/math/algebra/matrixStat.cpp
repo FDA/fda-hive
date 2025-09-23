@@ -77,7 +77,7 @@ void sAlgebra::matrix::covariance(const real * src, idx rows, idx cols, real * c
 
     for( ic1=0; ic1<cols; ++ic1) {
         for( ic2=ic1; ic2<cols; ++ic2) {
-            for(coef=0,ir=0; ir<rows; ++ir)coef+=val(ir,ic1)*val(ir,ic2);  // compute the covariance matrix 
+            for(coef=0,ir=0; ir<rows; ++ir)coef+=val(ir,ic1)*val(ir,ic2);
             coef/=scl;
             cov(ic1,ic2)=coef;
             if(ic1!=ic2)cov(ic2,ic1)=coef;

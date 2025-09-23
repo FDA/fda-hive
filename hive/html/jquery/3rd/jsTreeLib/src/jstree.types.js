@@ -27,12 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/**
- * ### Types plugin
- *
- * Makes it possible to add predefined types for groups of nodes, which make it possible to easily control nesting rules and icon for each group.
- */
-/*globals jQuery, define, exports, require */
 (function (factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
@@ -49,22 +43,6 @@
 
     if($.jstree.plugins.types) { return; }
 
-    /**
-     * An object storing all types as key value pairs, where the key is the type name and the value is an object that could contain following keys (all optional).
-     *
-     * * `max_children` the maximum number of immediate children this node type can have. Do not specify or set to `-1` for unlimited.
-     * * `max_depth` the maximum number of nesting this node type can have. A value of `1` would mean that the node can have children, but no grandchildren. Do not specify or set to `-1` for unlimited.
-     * * `valid_children` an array of node type strings, that nodes of this type can have as children. Do not specify or set to `-1` for no limits.
-     * * `icon` a string - can be a path to an icon or a className, if using an image that is in the current directory use a `./` prefix, otherwise it will be detected as a class. Omit to use the default icon from your theme.
-     *
-     * There are two predefined types:
-     *
-     * * `#` represents the root of the tree, for example `max_children` would control the maximum number of root nodes.
-     * * `default` represents the default node - any settings here will be applied to all nodes that do not have a type specified.
-     *
-     * @name $.jstree.defaults.types
-     * @plugin types
-     */
     $.jstree.defaults.types = {
         'default' : {}
     };
@@ -204,13 +182,6 @@
             }
             return true;
         };
-        /**
-         * used to retrieve the type settings object for a node
-         * @name get_rules(obj)
-         * @param {mixed} obj the node to find the rules for
-         * @return {Object}
-         * @plugin types
-         */
         this.get_rules = function (obj) {
             obj = this.get_node(obj);
             if(!obj) { return false; }
@@ -220,25 +191,10 @@
             if(tmp.valid_children === undefined) { tmp.valid_children = -1; }
             return tmp;
         };
-        /**
-         * used to retrieve the type string or settings object for a node
-         * @name get_type(obj [, rules])
-         * @param {mixed} obj the node to find the rules for
-         * @param {Boolean} rules if set to `true` instead of a string the settings object will be returned
-         * @return {String|Object}
-         * @plugin types
-         */
         this.get_type = function (obj, rules) {
             obj = this.get_node(obj);
             return (!obj) ? false : ( rules ? $.extend({ 'type' : obj.type }, this.settings.types[obj.type]) : obj.type);
         };
-        /**
-         * used to change a node's type
-         * @name set_type(obj, type)
-         * @param {mixed} obj the node to change
-         * @param {String} type the new type
-         * @plugin types
-         */
         this.set_type = function (obj, type) {
             var t, t1, t2, old_type, old_icon;
             if($.isArray(obj)) {
@@ -260,6 +216,4 @@
             return true;
         };
     };
-    // include the types plugin by default
-    // $.jstree.defaults.plugins.push("types");
 }));

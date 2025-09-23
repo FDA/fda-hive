@@ -41,9 +41,9 @@ namespace slib {
                 sStr _name_buf;
                 sVariant * _tqs_arg;
                 struct OpDesc {
-                    const char * op_name; //! tool name (must match "op" in TQS)
-                    const char * cmdline00; //! 0-delimited, 00-terminated list of the initial part of the tool command line
-                    bool computes_out_table; //! true if this tool computes an output table
+                    const char * op_name;
+                    const char * cmdline00;
+                    bool computes_out_table;
                 };
                 static const OpDesc _ops[];
                 idx _iop;
@@ -76,9 +76,8 @@ namespace slib {
     };
 };
 
-// To add a new generic command: describe here and add an entry to TBLQRYX4_EXT_FACTORIES in tblqryX4_cmdlist.hpp
 const CmdGeneric::OpDesc CmdGeneric::_ops[] = {
-    { "generic-cmd-test", "python-run.os" SLIB_PLATFORM _"2.7" _ "tblqry-generic-cmd-test.py" __, true },
+    { "generic-cmd-test", "python" _ "tblqry-generic-cmd-test.py" __, true },
 };
 
 bool CmdGeneric::init(const char * op_name, sVariant * tqs_arg)

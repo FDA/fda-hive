@@ -31,54 +31,29 @@
 
 using namespace slib;
 
-// launcher
-// qapp -user 111 -reqSubmit generic-launcher -reqSetData commandLine 'actual command line goes here in single quotes' -reqSetAction run
 
 
 
 idx sQPrideGenericLauncher::OnExecute(idx req)
 {
-    // example Command Line template
-    //cmdLine = "$(name) $(.name) $(.commandLine)";
-    //cmdLineTemplate.printf("cat $(path(.query as string,\"*\"))");
-    //cmdLineTemplate.printf("cat $(path(.query as intlist ,\"*\"))");
-    //cmdLineTemplate.printf("cat $(.query as string)");
-    //cmdLineTemplate.printf("echo $(path(\"13512\"))");
 
-    /*
-     _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-     _/
-     _/ Check to see if a template exists, if not, retrieve it from the algorithm script object.
-     _/
-     _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    */
 
     sStr scriptDriver;
 
     if( !cmdLineTemplate ) {
-        //
-        // If cmdLineTemplateFile is not filled, grab shell code from the algorithm script object
-        //
         if( !cmdLineTemplateFile ) {
             const char * algorithmScript = formValue("algo");
             if(algorithmScript) {
                 sUsrFile algorithmScriptFile(sHiveId(algorithmScript),user);
-                algorithmScriptFile.getFile(cmdLineTemplateFile); // fills cmdLineTemplateFile with file path, not content
+                algorithmScriptFile.getFile(cmdLineTemplateFile);
                 algorithmScriptFile.propGet("script_driver", &scriptDriver);
 
-                //
-                // If provided by the algorithm script properties, get the files that should
-                // be copied into the object directory after the tool runs
-                //
                 if(!regExpResultList00) {
                     algorithmScriptFile.propGet00("result_files_regex",&regExpResultList00);
                 }
             }
         }
 
-        //
-        // Transfer the algorithm script into the cmdLineTemplate variable from cmdLineTemplateFile
-        //
         if(cmdLineTemplateFile) {
             sFil f(cmdLineTemplateFile.ptr(), sMex::fReadonly);
             cmdLineTemplate.add(f.ptr(), f.length());
@@ -86,24 +61,13 @@ idx sQPrideGenericLauncher::OnExecute(idx req)
         }
     }
 
-    //
-    // Check to make sure that the cmdLineTemplate variable was filled if it wasn't already
-    //
     if( !cmdLineTemplate ) {
         reqSetInfo(req, eQPInfoLevel_Error, "No valid command line template specified");
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/ Prepare working directory
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
-    // Update progress to the user
     reqProgress(1, 5, 100);
     reqSetInfo(req, eQPInfoLevel_Info, "Copying Files into the Working Directory.");
 
@@ -120,34 +84,16 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         }
     }
 
-    //
-    //
-    //
     sStr sessionID;
     formValue("sessionID", &sessionID);
     idx maxIterMinutes = formIValue("maxIterMinutes", 4 * 60);
     idx resubmitMode = formBoolValue("resubmitMode", false);
 
 
-/*
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-_/
-_/ Prepare progress filenames in working directory
-_/
-_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-*/
 
     sStr progressFlnm("%sqp-Progress.txt", launcherDir.ptr());
     sStr triggerFlnm("%sqp-Trigger.txt", launcherDir.ptr());
 
-    /*
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    _/
-    _/ preparation of the command line
-    _/
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-     */
-    // Update progress to user
     reqProgress(2, 6, 100);
     reqSetInfo(req, eQPInfoLevel_Info, "Preparing third party tool.");
 
@@ -157,19 +103,12 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     if( strcmp(requestStage, "init") == 0 ) {
         logOut(eQPLogType_Debug, "Request Stage: [ %s ] in Get realCommandLine", requestStage.ptr());
         realCommandLine.printf("cd %s;", launcherDir.ptr());
-        /*
-         _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-         _/
-         _/ retrieve some predefined and some metadata based variables for query engine
-         _/
-         _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-         */
-        sUsrInternalQueryEngine sQLanLocal(*user); // use global overloaded sQLan or local (default)
+        sUsrInternalQueryEngine sQLanLocal(*user);
         if( !sQLan ) {
             sQLan = &sQLanLocal;
         }
         if( objs.dim() != 0 ) {
-            sQLan->registerBuiltinThis(objs[0].Id()); // register metadata of this object as variables in the QLanguage
+            sQLan->registerBuiltinThis(objs[0].Id());
         } else if( serviceToRegister ) {
             sQLan->registerBuiltinThisPropertiesForm(serviceToRegister.ptr(), *pForm);
         }
@@ -186,7 +125,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         cfgStr(&url, 0, "internalWWW");
         sQLan->registerBuiltinStringPtr("url", &url);
 
-        // associate path relevant dispatcher functions with a callback
         registerCallbackFunctions("path" _ "dirPath" _ "spObjPath" __);
         if( addDispatchedFunctions00 ) {
             registerCallbackFunctions(addDispatchedFunctions00);
@@ -194,13 +132,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         sStr scriptFileName("%sqp-script.sh", launcherDir.ptr());
         sQLan->registerBuiltinStringPtr("script", &scriptFileName);
 
-        /*
-         _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-         _/
-         _/ Compose actual command line by parsing the variables from the Query Engine
-         _/
-         _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-         */
         sStr errorMsg;
         sVariant evaledCommandLine, evaledScriptDriver;
         sQLan->parseTemplate(cmdLineTemplate, 0, &errorMsg);
@@ -214,7 +145,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
             sQLan = 0;
             return 0;
         }
-        sQLan->reset(); // reset the engine .. .the eval'ed command line is ready now
+        sQLan->reset();
         if( scriptDriver ) {
             sQLan->parseTemplate(scriptDriver, 0, &errorMsg);
             if( !errorMsg ) {
@@ -227,14 +158,10 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
                 sQLan = 0;
                 return 0;
             }
-            sQLan->reset(); // reset the engine .. .the script Driver is ready now
+            sQLan->reset();
         }
         sQLan = 0;
 
-        // Limit Memory use vi Ulimit - uncomment below
-        //if( defaultMemUlimit ) {
-        //    realCommandLine.printf("ulimit -m %" DEC "; ", defaultMemUlimit);
-        //}
         if( prepareForLaunch(&realCommandLine, &errorMsg, &actually_inside_prepareForLaunch) ) {
             logOut(eQPLogType_Error, "%s", errorMsg.ptr());
             return 0;
@@ -256,31 +183,16 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         }
     }
 
-    /*
-     _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-     _/
-     _/ execute the prepared command line in background mode
-     _/
-     _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-     */
     logOut(eQPLogType_Debug, "Request Stage: [ %s ]", requestStage.ptr(0));
     if( strcmp(requestStage.ptr(), "init") == 0 ) {
 
         logOut(eQPLogType_Debug, "Launching command line: '%s'", realCommandLine.ptr());
         reqSetInfo(req, eQPInfoLevel_Info, "Launching third party tool.");
-        //reqSetProgress(req,2, 10);
         reqProgress(2, 10, 100);
         idx res = system(realCommandLine);
 
-        // Record the command line being launched to the Log
-        //sIO log;
-        //
-        // Use exec command (QPrideProc function) that will launch the command line
-        // and monitor for it to finish.
-        // CAN'T USE THAT FUNCTION SINCE ITS NOT MONITORING progress.txt FILE
-        //idx res = exec(realCommandLine, 0, progressFlnm, &log, 1);
 
-        if( res ) { // it might have failed ... check errors
+        if( res ) {
             reqSetInfo(req, eQPInfoLevel_Error, "Could not launch application");
             reqSetStatus(req, eQPReqStatus_ProgError);
             return 0;
@@ -289,15 +201,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         }
     }
 
-    /*
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    _/
-    _/ monitor the progress and report back to the QPride system
-    _/
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    */
-    // If we are going into the monitoring we should see 15% finished on the user interface
-    //reqSetProgress(req, 3, 15);
     reqProgress(3, 15, 100);
     reqSetInfo(req, eQPInfoLevel_Info, "Monitoring the application while it works.");
     reqSetStatus(req, eQPReqStatus_Running);
@@ -305,10 +208,8 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     sStr buf, errmsg;
     idx prgCount = 0, prgPercent = 0, status = 0;
     for(idx iter = 0; iter < maxIterMinutes; ++iter) {
-        // check for progress file if any ... report progress from there
         sFil prg(progressFlnm, sMex::fReadonly);
         if( prg ) {
-            // read the progress and status information from progress file
             buf.cut(0);
             sString::searchAndReplaceSymbols(&buf, prg.ptr(), prg.length(), ",", 0, 0, true, false, true, false);
             prg.destroy();
@@ -337,7 +238,6 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
                 }
                 break;
             }
-            // To keep alive the process!!! Do not touch
             if( !reqProgress(prgCount, prgPercent, 100) ) {
                 logOut(eQPLogType_Debug, "Interrupted by user");
                 break;
@@ -345,7 +245,7 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
             reqSetStatus(req, status);
         } else {
             logOut(eQPLogType_Warning, "Oops no progress file found [iter: %" DEC "]\n",iter );
-            reqProgress(0, 0, 100); // To keep alive the process!!! Do not touch
+            reqProgress(0, 0, 100);
         }
         if(resubmitMode) {
             reqReSubmit(req, 60);
@@ -357,30 +257,22 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 
-    /*
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    _/
-    _/ copy the destination files by regex
-    _/
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    */
 
-    // always copy result files from launcher directory to the computation object directory
     if( regExpResultList00 ) {
         sFilePath flnm;
         sStr dst;
         for(const char * regExpResultList = regExpResultList00; regExpResultList; regExpResultList = sString::next00(regExpResultList)) {
             sDir results;
-            results.list(sFlag(sDir::bitFiles) | sFlag(sDir::bitRecursive), launcherDir, regExpResultList, 0, 0); // |sFlag(sDir::bitOpenable)
+            results.list(sFlag(sDir::bitFiles) | sFlag(sDir::bitRecursive), launcherDir, regExpResultList, 0, 0);
             if( results ) {
                 for(const char * ptr = results; ptr; ptr = sString::next00(ptr)) {
                     flnm.cut(0);dst.cut(0);
                     flnm.makeName(ptr,"%%flnm");
                     reqAddFile(dst, "%s", flnm.ptr());
-                    if( deleteWhenFinish && (!errmsg || !errmsg.length()) ) { // if not error, move to the computation folder
+                    if( deleteWhenFinish && (!errmsg || !errmsg.length()) ) {
                         sFile::rename(ptr, dst.ptr());
                     } else {
-                        sFile::copy(ptr, dst.ptr()); // if error, copy over computation folder
+                        sFile::copy(ptr, dst.ptr());
                     }
                     logOut(eQPLogType_Debug, "moving %s to %s\n", ptr, dst.ptr());
                 }
@@ -388,38 +280,20 @@ _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         }
     }
 
-    /*
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    _/
-    _/  error report
-    _/
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    */
 
     if( errmsg ) {
-         // sDir::removeDir(launcherDir); // if error, we still want to go to the launcher folder to look at what happened
         reqSetInfo(req, eQPInfoLevel_Error, "%s", errmsg.ptr());
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
 
 
-    /*
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    _/
-    _/ final report and exit
-    _/
-    _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    */
 
     if( deleteWhenFinish ) {
-        sDir::removeDir(launcherDir); // remove Directory
+        sDir::removeDir(launcherDir);
     }
 
-    //reqSetProgress(req,prgCount, 100);
     reqProgress(prgCount, prgPercent, 100);
-    //reqSetStatus(req, eQPReqStatus_Running);
-    //if(startProgPercent + lenProgPercent==100)
     reqSetStatus(req, eQPReqStatus_Done);
 
 

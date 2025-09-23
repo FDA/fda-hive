@@ -32,17 +32,13 @@ if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
 
 vjHO.register('svc-viral-mutation-comp').Constructor=function ()
 {                    
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         var id = docLocValue("id");
-        //vjDS.add("", "dsTNseq", "qpbg_tblqryx4://tnseq.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200&objs="+id);
-        //vjDS.add("", "dsResult", "http://?cmd=objFile&rows=20&filename=results.csv&ids="+id);
-        vjDS.add("", "dsResult", "qpbg_tblqryx4://results.csv//cnt=100&raw=1&cols=0-200&objs="+id);
-        vjDS.add("", "dsInputResult", "qpbg_tblqryx4://input.csv//cnt=100&raw=1&cols=0-200&objs="+id);
-        vjDS.add("", "dsFilter_InputResult", "qpbg_tblqryx4://f_input.csv//cnt=100&raw=1&cols=0-200&objs="+id);
-        vjDS.add("", "dsFilteredResult", "qpbg_tblqryx4://filtered.csv//cnt=100&raw=1&cols=0-200&objs="+id);
-        //vjDS.add("loading Fake Data for pie Chart","dsPieChart","http://?cmd=objFile&filename=.qc2.sumLetterTable.csv&ids=3018859&raw=1&bust=1412200888504");
+        vjDS.add("", "dsResult", "qpbg_tblqryx4:
+        vjDS.add("", "dsInputResult", "qpbg_tblqryx4:
+        vjDS.add("", "dsFilter_InputResult", "qpbg_tblqryx4:
+        vjDS.add("", "dsFilteredResult", "qpbg_tblqryx4:
         
         var tableController1 = new vjTableControlX2 ({
             data: "dsResult",

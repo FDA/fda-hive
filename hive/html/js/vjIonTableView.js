@@ -28,59 +28,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*
-    var sdtmViewers = new vjIonTableView({
-        tbl_Cfg: [
-                      {
-                      tbl:"dm",
-                      title: "Demographics",
-                      shortListHeaders:["STUDYID","SEX","AGE","AGEU"],
-                     // longListHeaders:["USUBJID","AGE","AGEU","COUNTRY","RACE","BRTHDTC"],
-                      key:"USUBJID" //key should not be in shortListHeaders or will be repeated in columns
-                    },{
-                          tbl:"ae",
-                          title: "Adverse Events",
-                          shortListHeaders:["STUDYID","AETERM","AESEV"],
-                         // longListHeaders:["USUBJID","AGE","AGEU","COUNTRY","RACE","BRTHDTC"],
-                          key:"AEDECOD" //key should not be in shortListHeaders or will be repeated in columns
-                    },{
-                          tbl:"mh",
-                          title: "Medical History",
-                          shortListHeaders:["STUDYID","MHTERM","MHBODSYS","MHENRF"],
-                         // longListHeaders:["USUBJID","AGE","AGEU","COUNTRY","RACE","BRTHDTC"],
-                          key:"MHDECOD" //key should not be in shortListHeaders or will be repeated in columns
-                    }
-        ], 
-        joinTbl_Cfg:[
-                     {
-                            tbl:"dm",
-                            columnName:"USUBJID",
-                            whatToPrint:["AGE","AGEU","SEX"]
-                      },{
-                            tbl:"ae",
-                            columnName:"USUBJID",
-                            whatToPrint:["AETERM","AESEV"]
-                      },{
-                            tbl:"mh",
-                            columnName:"USUBJID",
-                            whatToPrint:["MHTERM","MHBODSYS"]
-                       }
-        ],
-        ionObject: "384545",
-        formObject: document.forms["formName"]
-    });
-
-*/
 function vjIonTableView ( viewer )
 {    
     
 
-    //vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
 
     
-    var shortListViewers=[]; // an array of tables
-    var longListViewers=[];  //  an array of tables
-    var joinTableViewers=[]; // // an array of tables, for now, just need one table
+    var shortListViewers=[];
+    var longListViewers=[];
+    var joinTableViewers=[];
     
     var ionObj = viewer.ionObject;
     var tbl_Cfg = viewer.tbl_Cfg;
@@ -107,16 +63,13 @@ function vjIonTableView ( viewer )
         if (noHeader==undefined)
             noHeader = true;
         
-//        var cmd = "http://?cmd=ionWander";
-        var cmd = "qpbg_tblqryx4://_.csv//";
+        var cmd = "qpbg_tblqryx4:
         
-        //var url=  cmd + "&objs=" + ionObj + "&ionfile=" + encodeURIComponent(ionfile) + "&query=" + encodeURIComponent(ionQry);
         var url = cmd + "tqs=[{\"op\":\"ionwander\",\"arg\":{\"ionId\":\""+ ionObj + "\",\"ionFile\":\"sdtmIon.ion\",\"qry\":\"" + encodeURIComponent(ionQry) + "\"}}]";
         if (noHeader){
-        //    url = urlExchangeParameter(url, "hdr", 0); // urlExchangeParameter(url, parname, newvalue, doNotForce)
-            url =  urlExchangeParameter(url, "qryPrintsHdr", 0);//  qryPrintsHdr
+            url =  urlExchangeParameter(url, "qryPrintsHdr", 0);
         }    
-        url =  urlExchangeParameter(url, "cnt", "20");//  qryPrintsHdr
+        url =  urlExchangeParameter(url, "cnt", "20");
         return url;
     }
     
@@ -146,25 +99,12 @@ function vjIonTableView ( viewer )
         
         
         var url = this.constructIonUrl(this.ionObject, ionQry,0,false);
-        url = urlExchangeParameter(url, "maxCnt", 100000); // urlExchangeParameter(url, parname, newvalue, doNotForce)
+        url = urlExchangeParameter(url, "maxCnt", 100000);
         return {url: url};
     }
     
-    //config[0].tbl --> string
-    //config[0].title --> string
-    //config[0].shortListHeaders --> array
     
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Construction of shortList viewers:
-    // _/    - list of tables based on how many elements in the config parameters
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
     
-    // - loop through each element from config
-    //      . create a datasource which is the url to retrieve the input table
-    //       . create table viewer
-    //      . restrain the columns to show based on whatever users give
     
     
     for (var is=0; is< tbl_Cfg.length; ++is) {
@@ -179,26 +119,23 @@ function vjIonTableView ( viewer )
         
         startEnd="";
         
-        var ionQry = "a=find.row(tbl=" + cur_element.tbl+ ",name=" + cur_element.key + ")"+ startEnd +";m=foreach("+ cur_element.shortListHeaders.join(",") +");c=find.row(tbl=" + cur_element.tbl + ",#R=a.#R,name=m.1);ddict.2(a.value,c.name,c.value)"; // printCSV(a.value,c.name,c.value)
+        var ionQry = "a=find.row(tbl=" + cur_element.tbl+ ",name=" + cur_element.key + ")"+ startEnd +";m=foreach("+ cur_element.shortListHeaders.join(",") +");c=find.row(tbl=" + cur_element.tbl + ",#R=a.#R,name=m.1);ddict.2(a.value,c.name,c.value)";
         
-    //    var query_tmpl = ionQry.replace(/\[0\:20\]/,"[REPLACEME]");
         
         var url = mainV_config.constructIonUrl(ionObj,ionQry);
         
         var tblHeader = "" + cur_element.key + "," + cur_element.shortListHeaders.join(",") + "\n";
         
-        vjDS.add("Loading " + cur_element.title + " :) ",dsname,url,0,tblHeader); // (title of the datasource,name of your datasource,url)
-    //    vjDS[dsname].query_tmpl = query_tmpl;
+        vjDS.add("Loading " + cur_element.title + " :) ",dsname,url,0,tblHeader);
         
         var panel = new vjBasicPanelView({
             data:["dsVoid",dsname],
             rows:[
                     {name:'refresh', title: 'Refresh' ,order:-1, icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS['$(dataname)'].reload(null,true);"},
                     {name: 'search', align: 'right', type: 'search', prefix:"Search : ", title: 'Search a value', description: 'search field', order:'1', isSubmitable:true},
-                    {name:'pager', icon:'page' ,align:'right', title:'per page', order:1, description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']/*, url: customPagerFunc*/}
+                    {name:'pager', icon:'page' ,align:'right', title:'per page', order:1, description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']}
             ],
             configToRetrieve: cur_element,
-            /*isNpagerUpdate:true,*/
             mainV_config: mainV_config,
             ionObj: ionObj,
             formObject: viewer.formObject
@@ -219,28 +156,19 @@ function vjIonTableView ( viewer )
         viewer_obj.viewers.push(tbl);
         
         shortListViewers.push(viewer_obj);
-        /*vjDS[dsname].parser = function (ds,data) {
-            //return dictionarizeTable(data,0,1,2);
-            return data;
-        }*/
     }
     
         
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Construction of longList viewer
-    // _/    - one table with 2 columns: name, value
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     var longLDS = mainV_config.dsname.longList;
-    vjDS.add("Loading details table",longLDS,"static://",0,"name,value\n");
+    vjDS.add("Loading details table",longLDS,"static:
     
     var detail_panel = new vjBasicPanelView({
         data:["dsVoid",longLDS],
         rows:[
                 {name:'refresh', title: 'Refresh' ,order:-1, icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS['$(dataname)'].reload(null,true);"},
                 {name: 'search', align: 'right', type: 'search', title: 'Search a value', description: 'search field', order:'1', isSubmitable:true},
-                {name:'pager', icon:'page' ,align:'right', title:'per page', order:1, description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']/*, url: customPagerFunc*/}
+                {name:'pager', icon:'page' ,align:'right', title:'per page', order:1, description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']}
         ],
         configToRetrieve: cur_element,
         mainV_config: mainV_config,
@@ -257,11 +185,6 @@ function vjIonTableView ( viewer )
     longListViewers.push(detail_panel);
     longListViewers.push(detailTable);    
     
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Construction of ionJoinList viewer
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     var joinUrl = mainV_config.constructJoinTblUrl(joinTbl_Cfg);
     
@@ -277,11 +200,6 @@ function vjIonTableView ( viewer )
     });
     joinTableViewers.push(joinTbl);
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Callback function
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     
     function populateLongListView (viewer,rowNode,ir,ic) {
@@ -295,7 +213,7 @@ function vjIonTableView ( viewer )
     
         var ionQry = "";
         if (!hdrToDisplay) {
-            ionQry= "a=find.row(tbl=" + tblToSearch+ ",name=" + keyToQry + ",value=\'" + value + "\');b=find.row(tbl=" + tblToSearch + ",#R=a.#R);"; // printCSV(b.name,b.value);
+            ionQry= "a=find.row(tbl=" + tblToSearch+ ",name=" + keyToQry + ",value=\'" + value + "\');b=find.row(tbl=" + tblToSearch + ",#R=a.#R);";
         }
         else ionQry = "a=find.row(tbl=" + tblToSearch+ ",name=" + keyToQry + ",value=\"" + value+ "\");headers=foreach("+ hdrToDisplay.join(",") +");b=find.row(tbl=" + tblToSearch + ",#R=a.#R,name=headers.1);";
         
@@ -317,55 +235,48 @@ function vjIonTableView ( viewer )
 
 
 function dictionarizeTable(data,keyCol,colToCollapse,valueOfColToCollapse,keyColumnRename) {
-    // put your fucntion here which will refresh the table
     if (!data) {
         return data;
     }
     var myData = data;
     
-    var splitData = myData.split("\n"); // array of 130some lines
+    var splitData = myData.split("\n");
     var totalLines = splitData.length;
     
-    var myDictionary = {}; // global dictionary
+    var myDictionary = {};
     var headerDictionary={};
-    // Loop through lines
     for (var i = 0; i < totalLines; i++) {
         if (i==0)
             continue;
         if (!splitData[i].length) {
             continue;
         }
-        var myCellArr = splitData[i].split(","); // get all cells within 1 line
-        var totCols = myCellArr.length; // total nubmer of columns
-        // Loop through columns
+        var myCellArr = splitData[i].split(",");
+        var totCols = myCellArr.length;
         var myKey ="";
         for (var ic=0; ic<totCols; ic++) {
-            var myCell = quoteForCSV(myCellArr[ic]); // actual value of the cell
-            if (ic==keyCol) { // start putting in to big dictionary
+            var myCell = quoteForCSV(myCellArr[ic]);
+            if (ic==keyCol) {
                 if (!(myCell in myDictionary)) {
                     myDictionary[myCell]={};
                 }
                 myKey=myCell;
             }
             if (ic==colToCollapse) {
-                if (!(myCell in myDictionary[myKey])) {        //subdictionary
+                if (!(myCell in myDictionary[myKey])) {
                     myDictionary[myKey][myCell]=myCellArr[valueOfColToCollapse];
                 }
-                if (!(myCell in headerDictionary)) {    //header dictionary
+                if (!(myCell in headerDictionary)) {
                     headerDictionary[myCell]=1;                    
                 }
             }
         }
     }
     
-    // Now, have data organized in the dictionary
-    // prepare the header, header is the list of keys at the 2nd layer of dictionary, 
-    // knowing that the 1st column is PATIENTS id. 
-// output = "PATIENTID,STUDYID,SITEID...\nAD654654,"
     var arrayOfHeaderKeys = Object.keys(headerDictionary);
     var lengthArrayOfHeaderKeys = arrayOfHeaderKeys.length;
     
-    var output = ""; // 
+    var output = "";
     
     if (!keyColumnRename) {
         var keyRow = splitData[0];
@@ -388,15 +299,14 @@ function dictionarizeTable(data,keyCol,colToCollapse,valueOfColToCollapse,keyCol
     var length = arrayOfUSUBJIDKeys.length;
     
     for (var i=0; i<length; i++) {
-        var a = arrayOfUSUBJIDKeys[i]; //a is a key at position i
-        var b = myDictionary[a]; //value of myDictionary at key a (subdictionary in this case)
+        var a = arrayOfUSUBJIDKeys[i];
+        var b = myDictionary[a];
         output += a + ",";
         
         for (var j=0; j < lengthArrayOfHeaderKeys; j++) {
             var c = arrayOfHeaderKeys[j];
-            var value = b[c]; //value of subdictionary at key c
+            var value = b[c];
             if (!value) {
-                //output += ",";
                 output += "\"\"";
             } else {
                 output += value;
@@ -411,4 +321,3 @@ function dictionarizeTable(data,keyCol,colToCollapse,valueOfColToCollapse,keyCol
     return output;
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjIonTableView.js"

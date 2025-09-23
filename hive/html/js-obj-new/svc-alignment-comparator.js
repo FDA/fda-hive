@@ -83,12 +83,12 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
     
     var myHeatmapPlot = new vjSVG_HeatMap({
         color: {min: "blue", max: "#ffc200", mid:"white"},
-        heat_image_url: "http://?cmd=-qpData&req="+latestReqID+"&dname=heatmap.png",
+        heat_image_url: "http:
         heat_image_min_cells: 10000
     });
     
     myHeatmapPlot.add(new vjDataSeries({
-        url: "static://",
+        url: "static:
         name: "dsHeatmapMap",
         id: "heat",
         type: "raw",
@@ -96,13 +96,13 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
         isok: true
     }));
     var leftSeries = new vjTreeSeries({
-        url: "static://",
+        url: "static:
         name: "dsHeatmapLeft",
         id: "left",
         isok: true
     });
     var topSeries = new vjTreeSeries({
-        url: "static://",
+        url: "static:
         name: "dsHeatmapTop",
         id: "top",
         isok: true
@@ -127,11 +127,9 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
         selectedCallback: parCoordsSelectFunc
     });
     
-    // venn diagram
     vennDiagram_viewer =  new vjD3JS_vennDiagram({
         data: 'dsForVenn',
         csvTbl : true,
-        //json:true,
         threshold: 1,
         toSearch:"",
         toExclude: false 
@@ -142,7 +140,7 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
          formObject: document.forms[formName],
          menuUpdateCallback: function(panel, newurl) {
              modifyThresholdAndRefreshViewer(panel);
-             return false; // to prevent submission of menu url
+             return false;
          },
          prevSearch:"",
          iconSize: 24,
@@ -215,15 +213,14 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
      
      var chord_viewer=new vjD3JS_CorrelationCord({
             data: 'dsCombMap'
-            ,pairs: {array: "#COLS[1:-2]"} // 1 based
-             ,pairValue: ["#COL[-1]"]//["count"]
+            ,pairs: {array: "#COLS[1:-2]"}
+             ,pairValue: ["#COL[-1]"]
              ,oneColorPerCateg: true
              ,sortLables: false
             ,formObject:document.forms[formName]
     });
     
     
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         var tqs = [{
@@ -231,27 +228,24 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
                         arg: {rowSet:"0-100", uid:"0"}
                    }];
         var id = docLocValue("id");
-        //what is the DS supposed to be?? Do not see the transpose csv
-        vjDS.add("", "dsActivityHitsTmp", "qpbg_tblqryx4://activity-Hits.csv//cnt=100&raw=1&cols=0-200&objs="+id);
-        //vjDS.add("", "dsActivityHits", "qpbg_tblqryx4://activity-Hits.csv//cnt=100&raw=1&cols=0-200&objs="+id+"&tqs="+JSON.stringify(tqs));
-        vjDS.add("", "dsActivityHits", "static://");
-        vjDS.add("", "dsActivityRPKM", "qpbg_tblqryx4://activity-RPKM.csv//cnt=100&raw=1&cols=0-200&objs="+id);
-        vjDS.add("", "dsHeat", "qpbg_tblqryx4://activity-RPKM.csv//cnt=100&raw=1&cols=0-200&objs="+id);
-        vjDS.add("", "dsRefMap", "qpbg_tblqryx4://refmap.csv//cnt=2000&objs="+id);
-        vjDS.add("", "dsCombMap", "qpbg_tblqryx4://combmap.csv//cnt=2000&objs="+id);
-        vjDS.add("", "dsGraphDS", "qpbg_tblqryx4://refmap.csv//cnt=2000&objs="+id);
-        vjDS.add("", "dsHeatmapMap","static:// ");
-        vjDS.add("", "dsHeatmapTop","static:// ");
-        vjDS.add("", "dsHeatmapLeft","static:// ");
+        vjDS.add("", "dsActivityHitsTmp", "qpbg_tblqryx4:
+        vjDS.add("", "dsActivityHits", "static:
+        vjDS.add("", "dsActivityRPKM", "qpbg_tblqryx4:
+        vjDS.add("", "dsHeat", "qpbg_tblqryx4:
+        vjDS.add("", "dsRefMap", "qpbg_tblqryx4:
+        vjDS.add("", "dsCombMap", "qpbg_tblqryx4:
+        vjDS.add("", "dsGraphDS", "qpbg_tblqryx4:
+        vjDS.add("", "dsHeatmapMap","static:
+        vjDS.add("", "dsHeatmapTop","static:
+        vjDS.add("", "dsHeatmapLeft","static:
         
 
         
         vjDS["dsGraphDS"].register_callback(function(viewer, data){
-            //console.log(data);
             var tbl = new vjTable(data);
             
             parCoordsViewer[1].colSet = [];
-            for (var i = 1; i < tbl.rows[0].cols.length-1; i++){
+            for (var i = 1; tbl.rows[0] && i < tbl.rows[0].cols.length-1; i++){
                 parCoordsViewer[1].colSet.push ({colIndex:i, strings:true});
             }
             parCoordsViewer[1].refresh();
@@ -264,18 +258,11 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
                 op: "heatmap",
                 arg: {rowSet:"0-"+(tbl.rows.length-2), uid:"0"}
             }];
-            vjDS["dsActivityHits"].reload("qpbg_tblqryx4://activity-Hits.csv//cnt=100&raw=1&cols=0-200&objs="+id+"&tqs="+JSON.stringify(tqs), true);
+            vjDS["dsActivityHits"].reload("qpbg_tblqryx4:
         });
         
 
-        if (docLocValue('debug')!=0){
-            vjDS.add("", "dsForVenn", "qpbg_tblqryx4://activity-Hits.csv//raw=1&cols=0-200&objs="+id + "&cnt=2000");
-            console.log("debug mode activated !");
-        }    
-        else {
-            vjDS.add("", "dsForVenn", "qpbg_tblqryx4://activity-Hits.csv//raw=1&cols=0-200&objs="+id);
-        }
-        //vjDS["dsActivity"].reload("qpbg_tblqryx4://activity-Hits.csv//cnt=100&raw=1&cols=0-200&objs="+id+"&tqs="+JSON.stringify(tqs), true);
+        vjDS.add("", "dsForVenn", "qpbg_tblqryx4:
         vjDS["dsActivityHits"].register_callback(tableRendered);
                 
         var filesStructureToAdd = [{
@@ -365,9 +352,9 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
         if (latestReqID == -1)
             latestReqID = vjQP.req;
 
-        vjDS["dsHeatmapMap"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=heatmap.csv",true);
-        vjDS["dsHeatmapTop"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=vertical.tre",true);
-        vjDS["dsHeatmapLeft"].reload("http://?cmd=-qpData&req="+latestReqID+"&dname=horizontal.tre",true);
+        vjDS["dsHeatmapMap"].reload("http:
+        vjDS["dsHeatmapTop"].reload("http:
+        vjDS["dsHeatmapLeft"].reload("http:
     };
     
     var oldTableIndex = -1;
@@ -405,7 +392,6 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
     
     function combTableSelected(viewer, node )
     {
-        //alerJ('a',node);
         var t="";
         for(var ih=0; ih<viewer.tblArr.hdr.length; ++ih ) {
             var cname=viewer.tblArr.hdr[ih].name;
@@ -424,8 +410,6 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
         }
     }
     function modifyThresholdAndRefreshViewer(viewer,node,ir){
-        //console.log('submit new threshold')
-        // collect value from the panel and set to the venn diagram viewer
         var v=viewer.tree.findByName("threshold").value;
         vennDiagram_viewer.threshold=v;
         
@@ -434,7 +418,6 @@ vjHO.register('svc-alignment-comparator').Constructor=function ()
         var toExclude = viewer.tree.findByName("toExclude").value ? true : false;
         var toSearch= viewer.tree.findByName("toSearch").value ? viewer.tree.findByName("toSearch").value : "";
         
-        // reload the viewer
         var dataname=viewer.tree.findByName("dataname").value;        
         var url = vjDS["dsForVenn"].url;
         var requireBackend = (url.indexOf(dataname)==-1) ? 1 : 0 ;

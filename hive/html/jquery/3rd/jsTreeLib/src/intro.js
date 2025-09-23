@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*globals jQuery, define, module, exports, require, window, document, postMessage */
 (function (factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {

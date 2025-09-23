@@ -28,6 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 World rotating 
-https://www.jasondavies.com/maps/rotate/
+https:
 
-http://christopheviau.com/d3list/
+http:

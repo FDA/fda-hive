@@ -32,18 +32,32 @@ PROGRAMS += dna-profx
 PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
+OBJECT_TYPES = svc-profx \
+    svc-profx-samtools \
+    svc-profx-cuffdiff
+
 dna-profx_SRCS = dna-profx.cpp dna-profx-samtools.cpp dna-profx-cuffdiff.cpp dna-profx-varscan.cpp
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-profx,HIVE-optimized External Profiling,/Sequencing/)
 	$(call dist-app,dna-profx,dna-profx)
 	$(call dist-src,dna-profx,dna-profx.sh.os$(SLIB_PLATFORM),dna-profx.sh)
+	
+	
 	$(call dist-src,dna-profx,dna-profx-samtools.sh.os$(SLIB_PLATFORM),dna-profx-samtools.sh)
+	$(call dist-adoption,dna-profx,samtools-0.1.18.os$(SLIB_PLATFORM).tar.gz,samtools-0.1.18.os$(SLIB_PLATFORM).tar.gz)
+	$(call dist-adoption,dna-profx,\>samtools_unpack.os$(SLIB_PLATFORM),samtools_unpack)
+
 	$(call dist-src,dna-profx,dna-profx-varscan.sh.os$(SLIB_PLATFORM),dna-profx-varscan.sh)
+
 	$(call dist-src,dna-profx,dna-profx-cuffdiff.sh.os$(SLIB_PLATFORM),dna-profx-cuffdiff.sh)
+	$(call dist-adoption,dna-profx,cufflinks-2.0.2.os$(SLIB_PLATFORM).tar.gz,cufflinks-2.0.2.os$(SLIB_PLATFORM).tar.gz)
+	$(call dist-adoption,dna-profx,\>cufflinks_unpack.os$(SLIB_PLATFORM),cufflinks_unpack)
+	

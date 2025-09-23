@@ -33,12 +33,11 @@ function vjSVG_SOM(source)
     
     vjSVG_Plot.call(this, source);
     if (!this.name) this.name = this.objID;
-    var plot = this; // for use in closures
+    var plot = this;
 
     if (!this.minCellSize) this.minCellSize = 10;
     if (this.squareCells === undefined) this.squareCells = true;
 
-    // determine this experimentally based on leaf label font size
     if (!this.glyphHeight) this.glyphHeight = 0.03;
 
     this.geometry = { width: 1, height: 1};
@@ -67,8 +66,8 @@ function vjSVG_SOM(source)
             this.geometry.height = min/chartarea.height;
         }
 
-        this.geometry.cellWidth = this.geometry.width / serie_dim.columns; // change depending on chartarea to get squares
-        this.geometry.cellHeight = this.geometry.height / serie_dim.rows; // change depending on chartarea to get squares
+        this.geometry.cellWidth = this.geometry.width / serie_dim.columns;
+        this.geometry.cellHeight = this.geometry.height / serie_dim.rows;
 
 
         var map_group = new vjSVG_group({

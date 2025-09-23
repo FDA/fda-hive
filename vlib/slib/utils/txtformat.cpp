@@ -43,7 +43,6 @@ void sText::fmtParseLeftTag(sVar * flist, const char * src, idx len,const char *
     sString::searchAndReplaceSymbols(&tmp,src,len, sString_symbolsEndline, 0,0,true,true,false);
     
     for ( const char * p = tmp.ptr(); p ; p=sString::next00(p) ) { 
-        //const char * cont=sString::extractSubstring(&id,p,0, 1,sString_symbolsBlank, caseSensitive,true);
         if(!(*p))continue;
         const char * cont=sString::skipWords( p, 0, 1,separsvar);
         if(!constid || !idlen)idlen=(idx)(cont-p);
@@ -59,8 +58,6 @@ void sText::fmtParseLeftTag(sVar * flist, const char * src, idx len,const char *
 
     for( idx i=0 ; i< fldist.dim(); ++i) { 
         sStr * pstr=fldist.ptr(i);pstr->add0(1);
-//        const char * nm=(const char * )fldist.id(i);
-//        const char * p=pstr->ptr(0);
         if( pstr->length() ) flist->inp((const char * )fldist.id(i), pstr->ptr(0), pstr->length()) ;
         else flist->inp((const char * )fldist.id(i), __, 2) ;
     }
@@ -89,6 +86,7 @@ idx sText::compileSearchStrings(const char * cmp00, sVec < SearchStruc > * ssv)
         }
         else ss->rex.allocated=0;
     }
+    return 0;
 }
 
 idx sText::matchSearchToString(const char * str, idx len0, sText::SearchStruc * ss, idx cnt, idx maxmatch)
@@ -122,7 +120,7 @@ idx sText::matchSearchToString(const char * str, idx len0, sText::SearchStruc * 
                         len = 0;
                     else
                         --len;
-                } // do not compare
+                }
                 else {
                     is = len - pl;
                 }

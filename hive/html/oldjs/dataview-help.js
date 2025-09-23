@@ -27,11 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Help viewer
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 vDV.generateHelpView=function( viewer , text) 
 {
@@ -49,7 +44,6 @@ vDV.generateHelpViewText=function( viewer, text)
         title=text.substring(0,pos);
         text=text.substring(pos);
     }else title="Documentation";
-    //alert(pos + "="+title+"\n--"+text);
 
     var t="";
     
@@ -75,11 +69,6 @@ vDV.generateHelpViewText=function( viewer, text)
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Registration
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 vDV.registerViewer( "helpview", vDV.generateHelpView) ;
 

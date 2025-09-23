@@ -29,7 +29,8 @@
  */
 #include <ssci/bio.hpp>
 #include <ulib/ulib.hpp>
-#include <violin/violin.hpp>
+#include <violin/hiveseq.hpp>
+
 #include "common.hpp"
 
 using namespace sviolin;
@@ -58,7 +59,6 @@ bool sHiveseq::parse(const char * filename, EBioMode mode, bool allowDigestFailu
 
     EBioMode tmode = mode;
     if (!isVioseqlist){
-        //sString::searchAndReplaceStrings(&dst,filename,0, sString_symbolsEndline, 0,0,false );
         sString::searchAndReplaceSymbols(&dst,filename,0,";" sString_symbolsEndline,0,0,true,true,false, false);
         for ( const char * ff=dst; ff ; ff=sString::next00(ff) ) {
             idx isValid = expandHiveseq( &list, ff);
@@ -83,10 +83,10 @@ bool sHiveseq::parse(const char * filename, EBioMode mode, bool allowDigestFailu
     else{
         sString::searchAndReplaceSymbols(&list,filename,0,";" sString_symbolsEndline,0,0,true,true,false, false);
         list.add0(2);
-        setDimVioseqlist((idx)-2);  // Initialize to -2 to identify a vioseqlist in short mode
+        setDimVioseqlist((idx)-2);
     }
     if (isVioseqlist && mode == eBioModeLong){
-        setDimVioseqlist((idx)-1);  // Initialize to -1 to identify a vioseqlist in long mode
+        setDimVioseqlist((idx)-1);
         tmode = eBioModeLong;
         mode = eBioModeShort;
     }
@@ -137,18 +137,12 @@ bool sHiveseq::digestFile( const char * filename , idx seqStart, idx seqEnd, idx
     if(strncmp(flnm,"./",2)==0 ){
         flnm.printf(0,"%s",flnm.ptr(2));
     }
-    // first make sure this is not a gzip file name
-    // if it is - strip the .gz suffix before looking for filename
     char * ext=strrchr(flnm,'.');
 
-    // now try to deduce the final sequence
-    // file name from the given filename
     idx fileType=sNotIdx;
     if( ext ) {
         sString::compareChoice(ext, typeList00, &fileType, true, 0, true);
     }
-    // if not a recognized file format
-    // try to find one in the same directory
     if( fileType == sNotIdx ) {
         sFilePath path(flnm, "%%pathx.vioseq");
         if( sFile::exists(path) && sFile::size(path) > 0 ) {
@@ -187,9 +181,6 @@ bool sHiveseq::digestFile( const char * filename , idx seqStart, idx seqEnd, idx
         } else {
             delete subhiveseq;
         }
-    /*} else (fileType==eFileSRAseq){
-        bioseq=new sVioseq2(flnm);
-        */
     }
     if( !bioseq ) {
         if( log ) {
@@ -235,21 +226,6 @@ void sHiveseq::registerBioseq (sBioseq * bioseq, const char * filename, idx seqS
 
 
 
-/*
-sHiveseq::Bios * sHiveseq::exposeBioseq (idx * inum )
-{
-    sBioseq * bioseq=ref(inum);
-
-    for( idx i=0; i<bioseqlist.dim(); ++i) {
-        if(bioseqlist[i].bioseq==bioseq)
-            return bioseqlist.ptr(i);
-
-    }
-    return 0;
-}
-
-
-*/
 
 idx sHiveseq::expandHiveseq(sStr * buf, const char * filename, idx seqStart, idx seqEnd, idx partialRangeStart, idx partialRangeLen, const char * separ, const char * sourceFilePath)
 {
@@ -270,20 +246,15 @@ idx sHiveseq::expandHiveseq(sStr * buf, const char * filename, idx seqStart, idx
         }
         return 0;
     }
-    // Should remove prefix of file
     if( sourceFilePath && strncmp(flnm, "file://", 7) == 0 ) {
         sFilePath tmpfile(sourceFilePath, "%%dir%s", flnm.ptr(7));
         flnm.printf(0, "%s", tmpfile.ptr());
     }
 
-    // first make sure this is not a gzip file name
-    // if it is - strip the .gz suffix before looking for filename
     char * ext = strrchr(flnm, '.');
     if( ext && strncmp(ext, ".gz", 3) == 0 )
         *ext = 0;
     ext = strrchr(flnm, '.');
-    // if not a recognized file format
-    // try to find one in the same directory
     if( !ext || strcmp(ext, ".hiveseq") != 0 ) {
         sStr d;
         sString::searchAndReplaceSymbols(&d, filename, 0, ",", 0, 0, true, true, false, false);
@@ -300,7 +271,6 @@ idx sHiveseq::expandHiveseq(sStr * buf, const char * filename, idx seqStart, idx
         }
 
         buf->printf("%s,%" DEC ",%" DEC ",%" DEC ",%" DEC, flnm.ptr(0), seqStart, seqEnd, partialRangeStart, partialRangeLen);
-        //fprintf(stderr,"%s,%" DEC ",%" DEC ",%" DEC ",%" DEC,flnm.ptr(0),seqStart,seqEnd,partialRangeStart, partialRangeLen);
         buf->addSeparator(separ);
         return 1;
     }
@@ -314,7 +284,6 @@ idx sHiveseq::expandHiveseq(sStr * buf, const char * filename, idx seqStart, idx
         return 0;
     }
 
-    //sString::searchAndReplaceStrings(&dst,hiveseqcontent.ptr(),hiveseqcontent.length(), sString_symbolsEndline, 0,0,false );
     sString::searchAndReplaceSymbols(&dst, hiveseqcontent.ptr(), hiveseqcontent.length(), ";" sString_symbolsEndline, 0, 0, true, false, false, false);
 
     idx cntParsed = 0, firstShift = seqStart - 1;
@@ -330,11 +299,9 @@ idx sHiveseq::expandHiveseq(sStr * buf, const char * filename, idx seqStart, idx
         s = sString::next00(s);
         sscanf(s, "%" DEC, &locEnd);
 
-        //idx rStart=locStart-shift;
-        //rStart+=firstShift;
         idx rStart = locStart + firstShift;
 
-        idx rEnd = seqEnd ? rStart + (seqEnd - seqStart) : locEnd;        //: rStart+(locEnd-locStart); // -shift
+        idx rEnd = seqEnd ? rStart + (seqEnd - seqStart) : locEnd;
 
         bool isInRange = (rEnd < locStart || rStart > locEnd) ? false : true;
 
@@ -343,17 +310,12 @@ idx sHiveseq::expandHiveseq(sStr * buf, const char * filename, idx seqStart, idx
         if( rEnd > locEnd )
             rEnd = locEnd;
 
-        //if(firstShift>=locStart-locEnd)
 
-        // check if this range overlaps with the required range
         if( isInRange )
             cntParsed += expandHiveseq(buf, locFilename, rStart, rEnd, partialRangeStart, partialRangeLen, 0, flnm);
 
-        //shift+=rEnd-rStart+1;
         firstShift -= locEnd - locStart + 1;
 
-        //seqStart-=shift;
-        //if(seqEnd)seqEnd-=shift;
 
     }
     if( !cntParsed && log ) {

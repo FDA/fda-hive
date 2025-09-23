@@ -1,13 +1,7 @@
-<script type="text/javascript" language="JavaScript1.1"
-    src="js/vjDirectoryView.js"></script>
 
-<!--     <script type="text/javascript" language="JavaScript1.1" -->
-<!--     src="js/vjObjType_u-hiveseq.js"></script> -->
-<script type="text/javascript" language="JavaScript1.1"
-    src="js/vjJavaScript.js"></script>
-<!--     <script type="text/javascript" language="JavaScript1.1"
-<script type="text/javascript" language="JavaScript1.1"
-    src="js-obj/svc-spectraPeakDetection.js"></script> -->
+    <script type="text/javascript" src="d3js/sunburst_hierarchy.js"> </script>  
+    <script src="js/vjHiveseqView.js" > </script>
+    <script type="text/javascript" src="js-pdf/pdf.js"></script>
 
 
 <script>
@@ -50,7 +44,7 @@
         
         var home_GFolderGeomX=400;//0.25*width-5;
         var home_GlistGeomY=gPgH - getElementAbsolutePos(gObject('element_toget_metrics_1')).y -100;
-        var home_GObjectGeomX=width-home_GFolderGeomX-20;
+        var home_GObjectGeomX=width-home_GFolderGeomX-80;
         var previewHeight=0.4*home_GlistGeomY-50;
         vjDS.add("composing preview intro", "dsEmpty" , "static://"); 
         vjDS.add("composing preview intro", "dsPreviewIntro" , "static://preview:Select a hive object to see details"); 
@@ -60,7 +54,7 @@
 
         var valgoGenomeColors = new Array();
         for (var it = 0; it < gClrTable.length; ++it) valgoGenomeColors[it] = pastelColor(gClrTable[(it + 1) % (gClrTable.length)]); // make colors for those
-
+        
         var viewerFSTree;
         var folderURL = "http://?cmd=objList&type=folder&prop=name,childs&mode=csv";
         
@@ -134,7 +128,7 @@
                     <span id="dvExplorer_Folders"></span>
                 </form>
             </td>
-            <td id='element_toget_metrics_2' class="HIVE_sect1" valign=top>
+            <td id='element_toget_metrics_2' class="HIVE_sect1" valign=top width = "99%">
                 <form name="form-dvExplorer_Tables" action="dmUploader.cgi"
                     method="post" enctype="multipart/form-data">
                     <span id="dvExplorer_Tables"></span>

@@ -34,6 +34,8 @@
 #include <qlib/QPrideClient.hpp>
 #include <dna-denovo/dna-denovoextension.hpp>
 #include <qpsvc/archiver.hpp>
+#include <violin/alignparse.hpp>
+
 
 #define posMatrix( _v_i, _v_j, _v_len, _v_mat) _v_mat[(((_v_i)+1) * ((_v_len)+1)) + ((_v_j)+1)]
 
@@ -61,7 +63,9 @@ class DnaHiveseqProc: public sQPrideProc
             eSeqQuaFilter = 0x00010000,
             eHiveseq = 0x00020000,
             eRemoveFilter = 0x00040000,
-            eAppendLength = 0x00080000
+            eAppendLength = 0x00080000,
+            eSeqNegateFiltersOutput = 0x00100000,
+            eSeqFilterNs = 0x00200000
         };
         idx seqFlags;
     public:
@@ -76,22 +80,21 @@ class DnaHiveseqProc: public sQPrideProc
         {
             idx option = (2 * iscomp) + isrev;
             idx rev = 0, comp = 0;
-//            bool invert = false;
             switch(option) {
                 case 0: {
-                    rev = 0, comp = 0; //, invert = false;
+                    rev = 0, comp = 0;
                     break;
                 }
                 case 1: {
-                    rev = iteration, comp = 0; //, invert = true;
+                    rev = iteration, comp = 0;
                     break;
                 }
                 case 2: {
-                    rev = 0, comp = iteration; //, invert = false;
+                    rev = 0, comp = iteration;
                     break;
                 }
                 case 3: {
-                    rev = iteration % 2, comp = iteration / 2; //, invert = true;
+                    rev = iteration % 2, comp = iteration / 2;
                     break;
                 }
             }
@@ -102,7 +105,6 @@ class DnaHiveseqProc: public sQPrideProc
 
         bool parseDicFile(sStr *idlistContainer, const char * idlistObjId, sStr *errmsg)
         {
-            // Open the file
             sStr flnm, idtemp;
             sUsrFile obj(idlistObjId, user);
             if( !obj.Id() ) {
@@ -114,18 +116,10 @@ class DnaHiveseqProc: public sQPrideProc
                 errmsg->printf("Can't access File or it doesn't exist: %s", flnm.ptr());
                 return false;
             }
-//            dmLib dm;
-//            sStr parserLog, parserMsg;
-//            dm.unpack(flnm, 0, &parserLog, &parserMsg);
-//            if( !dm.dim() ) {
-//                errmsg.printf("No data for sequence file %s : %s; terminating\n", idlistObjId, parserLog.ptr());
-//            }
-//            sFil idlistFile(dm.first()->location(), sMex::fReadonly);
             sFil idlistFile(flnm, sMex::fReadonly);
             if( !idlistFile ) {
                 errmsg->printf("No data for sequence file %s; terminating\n", idlistObjId);
             }
-//            sString::searchAndReplaceStrings(&idtemp, idlistFile, 0, ".1" __ ".2" __ ".3" __ ".4" __ ".5" __ ".6" __ ".7" __ ".8" __ ".9", ";" __, 0, 0);
             sString::searchAndReplaceSymbols(idlistContainer, idlistFile, 0, ";" sString_symbolsEndline, 0, 0, true, true, false, false);
             return true;
         }
@@ -146,8 +140,8 @@ class DnaHiveseqProc: public sQPrideProc
             if( end > seqlen ) {
                 end = seqlen;
             }
-            sStr idstr((seqFlags & eSeqFastQ) ? "@" : ">"); //!checking is fastq or FASTA
-            bool quaBit = Sub.getQuaBit(row); //! check the quality of FASTQ sequence , it will return zero if given is FASTA
+            sStr idstr((seqFlags & eSeqFastQ) ? "@" : ">");
+            bool quaBit = Sub.getQuaBit(row);
 
             const char * seqid = Sub.id(row);
             if( seqid[0] == '>' || seqid[0] == '@' ) {
@@ -155,11 +149,9 @@ class DnaHiveseqProc: public sQPrideProc
             }
             idx subrpt = 1;
             if( Sub.getmode() == 0 ) {
-                // short mode, rpt count is printed
                 subrpt = Sub.rpt(row);
             }
             if( keepOriginalId == false ) {
-                // short mode, a number is going to print
                 idstr.printf("%" DEC, row);
             } else {
                 idstr.printf("%s", seqid);
@@ -170,7 +162,6 @@ class DnaHiveseqProc: public sQPrideProc
             finalseq.cut(0);
             const char * seqs = Sub.seq(row);
             sBioseq::uncompressATGC(&seqstr, seqs, 0, seqlen, true, 0, (seqFlags & eSeqRev), (seqFlags & eSeqComp));
-            // restore N based on quality 0
             const char * seqqua = Sub.qua(row);
 
             if( seqqua) {
@@ -196,7 +187,6 @@ class DnaHiveseqProc: public sQPrideProc
                         quastr.printf("%c", seqqua[i] + 33);
                     }
                 } else {
-                    // fake qualities
                     for(idx i = start; i < end; ++i) {
                         quastr.printf("%c", 30 + 33);
                     }
@@ -233,7 +223,6 @@ class DnaHiveseqProc: public sQPrideProc
                 idstr.printf(" len=%" DEC, newseqlen);
             }
 
-            // In case revCmp, we are printing at the start position given.
             Sub.printFastXData(outFile, newseqlen, idstr.ptr(), finalseq.ptr(start), finalqua.ptr(0), subrpt);
             return true;
         }
@@ -249,6 +238,27 @@ class DnaHiveseqProc: public sQPrideProc
             dnv.setInitialParameters(sizem, sizef, rptf, firstStage, limit);
             dnv.setMissmatchesPercent(100 - missperc);
         }
+
+        const char * getQuery00(sUsrObj & obj, sStr & query, const char * alSeparator = 0){
+            if(!alSeparator)alSeparator=";";
+            idx qpos = query.length();
+            const char * hqry = obj.propGet("hiveseqQry", &query);
+            query.add0();
+            const char * objqry = obj.propGet00("objQry", &query, alSeparator);
+            query.add0();
+            if (hqry && objqry){
+                return 0;
+            }
+            if (hqry){
+                return hqry;
+            }
+            else if (objqry){
+                return objqry;
+            }
+            query.cut(qpos);
+            return 0;
+        }
+
 };
 
 bool isReversePrimerID(const char *idseq)
@@ -257,29 +267,17 @@ bool isReversePrimerID(const char *idseq)
     id.printf("%s", idseq);
     const char *revString = "rev" __;
     char *pos;
-//    pos=sString::compareChoice(idseq, revString, 0, true, 0);
-    pos = sString::searchSubstring(id.ptr(), id.length(), revString, 1, __, true); // ,idx lenSrc
+    pos = sString::searchSubstring(id.ptr(), id.length(), revString, 1, __, true);
     if( pos ) {
         return true;
     } else
         return false;
 }
 
-/*
- Influenza primers:
- forward primer Universal_F: 5� GACTAATACGACTCACTATAGGGAGCAAAAGCAGG 3�
- Reverse primer Universal_R: 5� GACATTTAGGTGACACTATAGAAGTAGAAACAAGG 3�
-
- Polio primers:
- Reverse primer A-Sabin13: 5� ACGCGTTAATACGACTCACTATAGGCCTCCGAATTAAAGAAAAATT 3�
- Reverse primer A-Sabin2:  5� ACGCGTTAATACGACTCACTATAGGCCCCGAATTAAAGAAAAATTT 3�
- forward primer U-S7:      5� ACCGGACGATTTAGGTGACACTATAGTTAAAACAGCTCTGGGGTTG 3�
- */
 
 idx DnaHiveseqProc::OnExecute(idx req)
 {
     sStr form_buf;
-    const char * hqry = formValue("hiveseqQry", &form_buf);
     idx algorithms = formIValue("AlgorithmsName", 0);
     sBioseq::EBioMode mode = sBioseq::eBioModeLong;
     const idx modearg = formIValue("inputMode", mode);
@@ -295,37 +293,28 @@ idx DnaHiveseqProc::OnExecute(idx req)
     if( algorithms && (algorithms == 7) ) {
         mode = sBioseq::eBioModeLong;
     }
+    if( algorithms && (algorithms == 9) ) {
+        mode = sBioseq::eBioModeLong;
+    }
+    const char * hqry = getQuery00(objs[0], form_buf);
+    if( !hqry ) {
+        logOut(eQPLogType_Error, "Hiveseq query is empty or there is a conflict with the input");
+        reqSetStatus(req, eQPReqStatus_ProgError);
+        return 0;
+    }
     sHiveseq hs(user, hqry, mode);
-//    hs.reindex();
     if( hs.dim() == 0 ) {
         logOut(eQPLogType_Error, "Hiveseq query is empty or not accessible: %s", hqry);
-        reqSetStatus(req, eQPReqStatus_ProgError); // set the error status
-        return 0; // error
+        reqSetStatus(req, eQPReqStatus_ProgError);
+        return 0;
     }
+
     logOut(eQPLogType_Debug, "hiveseq query requested for execution: %s", hqry);
     sBioseq &Sub = hs;
     bool isQ = false;
     if( Sub.getQuaBit(0) == false ) {
         isQ = true;
     }
-//    if( algorithms != 7 ) {
-//        idx minLength = Sub.len(0);
-//
-//        for(idx i = 1; i < Sub.dim(); ++i) {
-//            if( Sub.len(i) < minLength ) {
-//                minLength = Sub.len(i);
-//            }
-//            const char * seqqua = Sub.qua(i);
-//            if( !isQ && ((seqqua != 0) && *seqqua) && (Sub.getQuaBit(i) == false) ) {
-//                isQ = true;
-//            }
-//        }
-//    }
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ initialize the parameters
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     seqFlags |= (formBoolValue("primersactive", 0) ? eSeqPrimers : eSeqNone);
     seqFlags |= (formBoolValue("lowcomplexityactive", 0) ? eSeqLowComplexity : eSeqNone);
@@ -339,17 +328,24 @@ idx DnaHiveseqProc::OnExecute(idx req)
     seqFlags |= (formBoolValue("isHiveseq", 0) ? eHiveseq : eSeqNone);
     seqFlags |= ((formBoolValue("isFastQFile", 0) && isQ && (algorithms != 2)) ? eSeqFastQ : eSeqNone);
     seqFlags |= (formBoolValue("appendLength", 0) ? eAppendLength : eSeqNone);
+    seqFlags |= (formBoolValue("negateOutput", 0) ? eSeqNegateFiltersOutput : eSeqNone);
+    seqFlags |= (formBoolValue("filternsactive", 0) ? eSeqFilterNs : eSeqNone);
+    sBioseq::ESeqDirection revCompFlag = static_cast<sBioseq::ESeqDirection>(formIValue("isRevComp", (idx)sBioseq::eSeqForward));
+    idx filterNsperc = formIValue("filterseqns", 0);
 
-    idx revCompFlag = formIValue("isRevComp", 0);
+
     switch(revCompFlag) {
-        case 1:
+        case sBioseq::eSeqReverse:
             seqFlags |= eSeqRev;
             break;
-        case 2:
+        case sBioseq::eSeqForwardComplement:
             seqFlags |= eSeqComp;
             break;
-        case 3:
+        case sBioseq::eSeqReverseComplement:
             seqFlags |= (eSeqRev | eSeqComp);
+            break;
+        case sBioseq::eSeqForward:
+        default:
             break;
     };
     {
@@ -362,7 +358,6 @@ idx DnaHiveseqProc::OnExecute(idx req)
             seqFlags |= (eSeqKeepMid | eSeqKeepEnd);
         }
     }
-//    idx maxNumberQueryForHiveseq = formIValue("maxNumberQueryForHiveseq", sIdxMax);
 
     idx threshold = formIValue("qualityThreshold", 50);
     idx percentage = formIValue("qualityPercentage", 100);
@@ -399,28 +394,20 @@ idx DnaHiveseqProc::OnExecute(idx req)
     idx randmaxValue = formIValue("randomizerMaxLength", 100);
     real randNoise = formRValue("randomizerNoise", 0);
     bool randLengthNorm = formBoolValue("randLengthNorm", false);
-//    idx randstartRange = formIValue("randomizerStartRange", 0);
-//    idx randendRange = formIValue("randomizerEndRange", minLength);
     const char * randmutations = formValue("randomizerMutations", &form_buf);
     const char * randsettings = formValue("randomizerSettings", &form_buf);
 
-    /* // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-     *
-     * Adapters Parameters
-     *
-     */ // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     idx adaptersmismatches = formIValue("adaptersMaxmissmatches", 1);
     idx adaptersminLength = formIValue("adaptersMinLength", 100);
     sBioseq *adapters = 0;
     sVec<idx> isReverseAdapter;
-    if( seqFlags & eSeqAdapters ) {  // Adapters objId check
-        // Validate adapters file
+    if( seqFlags & eSeqAdapters ) {
         const char * adaptersObjId = formValue("adaptersObjId", &form_buf);
         adapters = new sHiveseq(user, adaptersObjId);
         if( adapters->dim() == 0 ) {
             logOut(eQPLogType_Error, "Incorrect Adapters object Id:\n%s", adaptersObjId);
-            reqSetStatus(req, eQPReqStatus_ProgError); // set the error status
-            return 0; // error
+            reqSetStatus(req, eQPReqStatus_ProgError);
+            return 0;
         }
         isReverseAdapter.cut(0);
         for(idx i = 0; i < adapters->dim(); i++) {
@@ -431,24 +418,18 @@ idx DnaHiveseqProc::OnExecute(idx req)
 
     }
 
-    /* // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-     *
-     * Primers Parameters
-     *
-     */ // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     idx primersmismatches = formIValue("primersMaxmissmatches", 2);
     idx primersminLength = formIValue("primersMinLength", 10);
     sBioseq *primers = 0;
     sVec<idx> isReversePrimer;
 
-    if( seqFlags & eSeqPrimers ) {  // Primers objId check
-        // Validate primers file
+    if( seqFlags & eSeqPrimers ) {
         const char * primersObjId = formValue("primersObjId", &form_buf);
         primers = new sHiveseq(user, primersObjId);
         if( primers->dim() == 0 ) {
             logOut(eQPLogType_Error, "Incorrect Primers object Id:\n%s", primersObjId);
-            reqSetStatus(req, eQPReqStatus_ProgError); // set the error status
-            return 0; // error
+            reqSetStatus(req, eQPReqStatus_ProgError);
+            return 0;
         }
         isReversePrimer.cut(0);
         for(idx i = 0; i < primers->dim(); i++) {
@@ -458,13 +439,10 @@ idx DnaHiveseqProc::OnExecute(idx req)
         }
 
     }
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ We configure the output file
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
     logOut(eQPLogType_Debug, "\n Hiveseq is running fine and we have: %" DEC " sequences\n", Sub.dim());
     sStr errmsg;
+    sStr warningmsg;
 
     sStr hsLocation, extension, hsOutfile;
     cfgStr(&hsLocation, 0, "user.download");
@@ -484,11 +462,6 @@ idx DnaHiveseqProc::OnExecute(idx req)
 
     hsOutfile.printf("%shs%" DEC ".%s", hsLocation.ptr(), req, extension.ptr());
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Obtain the namefile from the process name or construct a new one
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     sStr namefile;
     const char *nmfile = formValue("name", &form_buf);
     if( !nmfile && *nmfile ) {
@@ -520,6 +493,8 @@ idx DnaHiveseqProc::OnExecute(idx req)
             namefile.printf("-contigext");
         } else if( algorithms == 7 ) {
             namefile.printf("-idFilter");
+        } else if( algorithms == 9 ) {
+            namefile.printf("-dupidFilter");
         }
     } else {
         namefile.printf("%s", nmfile);
@@ -534,13 +509,11 @@ idx DnaHiveseqProc::OnExecute(idx req)
     if( fp.ok() ) {
         fp.cut(0);
         if( seqFlags & eHiveseq ) {
-            // We must ignore everything and create a new vioseqlist file
             fp.printf("%s", hqry);
             seqCount = 1;
         }
-        else if( algorithms == 0 ) {   // Filters Only
+        else if( algorithms == 0 ) {
             for(idx iq = 0; iq < Sub.dim(); ++iq) {
-//           for(idx iq = 0; iq < 100000; ++iq) {
                 idx len = Sub.len(iq);
                 idx startlen = 0;
                 idx endlen = len;
@@ -552,7 +525,18 @@ idx DnaHiveseqProc::OnExecute(idx req)
                 const char * qua = Sub.qua(iq);
                 bool isQual = qua ? true : false;
 
-                if( (validSeq) && (seqFlags & eSeqTrimming) ) {   // Trimming Filter
+
+                if( (validSeq) && (seqFlags & eSeqFilterNs) ) {
+                        idx nCount = Sub.countNs(iq);
+                        if (!filterNsperc && nCount){
+                            validSeq = false;
+                        }
+                        else if ( filterNsperc && (nCount >= (idx)((len * filterNsperc * 10) / 1000)) ) {
+                            validSeq = false;
+                        }
+                    }
+
+                if( (validSeq) && (seqFlags & eSeqTrimming) ) {
                     if( trimMin > 0 ) {
                         startlen = trimMin;
                     }
@@ -560,10 +544,10 @@ idx DnaHiveseqProc::OnExecute(idx req)
                         endlen = trimMax;
                     }
                 }
-                if( (validSeq) && (seqFlags & eSeqQuaFilter) && isQual ) { // Quality Filter
+                if( (validSeq) && (seqFlags & eSeqQuaFilter) && isQual ) {
                     validSeq = sFilterseq::qualityFilter(qua, len, threshold, percentage);
                 }
-                if( (validSeq) && (seqFlags & eSeqLowComplexity) ) {  // Low Complexity Filter
+                if( (validSeq) && (seqFlags & eSeqLowComplexity) ) {
 
                     if (cfOption == 0){
                         idx res = sFilterseq::complexityFilter(seq, len, complexityWindow, complexityEntropy);
@@ -572,19 +556,13 @@ idx DnaHiveseqProc::OnExecute(idx req)
                         }
                     }
                     if (cfOption == 1 || cfOption == 3){
-                        // modify the start of the read
                         startlen = sFilterseq::complexityFilter(seq, len, complexityWindow, complexityEntropy, true, 1);
                     }
                     if (cfOption == 2 || cfOption == 3){
-                        // modify the end of the read
-//                        if (iq == 131){
-//                            cfOption = 1;
-//                        }
                         endlen = sFilterseq::complexityFilter(seq, len, complexityWindow, complexityEntropy, true, 2);
                     }
                 }
-                if( (validSeq) && adapters && (seqFlags & eSeqAdapters) ) {  // Primers Filter
-                    //bool reverse = (seqFlags & ePrimReverse) ? true : false;
+                if( (validSeq) && adapters && (seqFlags & eSeqAdapters) ) {
                     bool keepIfMid = true;
                     bool keepIfEnd = true;
 
@@ -604,10 +582,10 @@ idx DnaHiveseqProc::OnExecute(idx req)
                         do {
                             adapter.cut(0);
                             sBioseq::uncompressATGC(&adapter, adap, 0, adlen, true, 0);
-                            /* bool inv = */getPrimerSequence(&adapter, adap, 0, adlen, iprim, isReverse, isComplement);
+getPrimerSequence(&adapter, adap, 0, adlen, iprim, isReverse, isComplement);
 
                             idx res = sFilterseq::primersFilter(t, len, adapter, adlen, (adaptersminLength > adlen) ? adlen : adaptersminLength, adaptersmismatches, reverse, keepIfMid, keepIfEnd, adlen + 1);
-                            if( res == 0 ) { //  If adapter was found, or the end of sequence is located before startlen
+                            if( res == 0 ) {
                                 validSeq = false;
                                 break;
                             } else if( res > 0 ) {
@@ -622,8 +600,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
                         } while( iprim < numChecks );
                     }
                 }
-                if( (validSeq) && primers && (seqFlags & eSeqPrimers) ) {  // Primers Filter
-                    //bool reverse = (seqFlags & ePrimReverse) ? true : false;
+                if( (validSeq) && primers && (seqFlags & eSeqPrimers) ) {
                     bool keepIfMid = (seqFlags & eSeqKeepMid) ? true : false;
                     bool keepIfEnd = (seqFlags & eSeqKeepEnd) ? true : false;
                     idx isReverse = (seqFlags & ePrimReverse) ? 1 : 0;
@@ -644,15 +621,13 @@ idx DnaHiveseqProc::OnExecute(idx req)
                         sStr primer;
                         do {
                             primer.cut(0);
-                            //sBioseq::uncompressATGC(&primer, pr, 0, prlen, true, 0);
                             bool inv = getPrimerSequence(&primer, pr, 0, prlen, iprim, isReverse, isComplement);
 
                             reverse = (reverse ^ inv);
 
                             idx res = sFilterseq::primersFilter(t, len, primer, prlen, (primersminLength > prlen) ? prlen : primersminLength, primersmismatches, reverse, keepIfMid, keepIfEnd, 0);
-                            if( res == 0 ) { //  If primer was found, or the end of sequence is located before startlen
+                            if( res == 0 ) {
                                 validSeq = false;
-//                                sFilterseq::primersFilter(t, len, primer, prlen, (primersminLength > prlen) ? prlen : primersminLength, primersmismatches, reverse, keepIfMid, keepIfEnd, 0);
                                 break;
                             } else if( res > 0 ) {
                                 if( !reverse ) {
@@ -666,7 +641,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
                         } while( iprim < numChecks );
                     }
                 }
-                if( (validSeq) && (seqFlags & eSeqLengthFilter) ) {  // Length Filter
+                if( (validSeq) && (seqFlags & eSeqLengthFilter) ) {
                     if( (endlen - startlen) < (idx) minSeqLen ) {
                         validSeq = false;
                     }
@@ -674,6 +649,10 @@ idx DnaHiveseqProc::OnExecute(idx req)
                 if( endlen <= startlen ) {
                     validSeq = false;
                 }
+                if (seqFlags & eSeqNegateFiltersOutput){
+                    validSeq = !validSeq;
+                }
+
                 if( validSeq ) {
                     if (iq % 5000){
                         reqProgress(iq, iq, Sub.dim());
@@ -682,16 +661,14 @@ idx DnaHiveseqProc::OnExecute(idx req)
                     if( seqFlags & eRemoveFilter ) {
                         printSequenceformat(Sub, &fp, iq, startlen, endlen - startlen, keepOriginalID, &removeMinVec, &removeMaxVec);
                     } else {
-//                        Sub.printFastXRow(&fp, (seqFlags & eSeqFastQ) ? true : false, iq, startlen, endlen - startlen, 0, keepOriginalID, (seqFlags & eAppendLength), 0, 0, revCompFlag);
                         Sub.printFastXRow(&fp, (seqFlags & eSeqFastQ) ? true : false, iq, startlen, endlen - startlen, 0, keepOriginalID, (seqFlags & eAppendLength), 0, 0, revCompFlag);
                     }
                     PERF_END();
 
-                    //Sub.printFastXRow(0, (seqFlags & eSeqFastQ)?true:false, iq, startlen, endlen - startlen, 0, true);
                     ++seqCount;
                 }
             }
-        } else if( algorithms == 1 ) { // Randomizer Algorithm
+        } else if( algorithms == 1 ) {
             if( randminValue <= 0 ) {
                 randminValue = 1;
             }
@@ -701,7 +678,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
             sFilterseq::randomizer(fp, Sub, randcounter, ((real) randNoise / 100.), randminValue, randmaxValue, randNrevcomp, seqFlags & eSeqFastQ, randLengthNorm, randsettings, randmutations, complexityWindow, complexityEntropy, this,
                 reqProgressStatic);
             seqCount = randcounter;
-        } else if( algorithms == 2 ) {  // Denovo Extension Algorithm
+        } else if( algorithms == 2 ) {
 
             BioseqTree tree(&Sub, 0);
             DnaDenovoAssembly dnv(this);
@@ -714,19 +691,21 @@ idx DnaHiveseqProc::OnExecute(idx req)
             if( err ) {
                 errmsg.printf("contig extension error: %" DEC, err);
             }
-        } else if( algorithms == 3 ) {  // Paired End Read Collapse
+        } else if( algorithms == 3 ) {
 
-            // Validate paired end file
             idx minmatchlen = formIValue("pecMinMatchLen", 15);
-//            idx missmatchesallowed = formIValue("pecMissmatchesAllowed", 2);
             bool keepAlignments = formBoolValue("pecKeepAlignments", 0);
             idx qualityOption = formIValue("pecQualities", 0);
             const char * secondObjId = formValue("pecPairEndFile", &form_buf);
+            idx filterNsOption = formIValue("pairEndColFilterNs", 0);
+            bool concatenateReads = formBoolValue("pairEndColExtendReads", 0);
+
+
             sHiveseq Sub2(user, secondObjId, sBioseq::eBioModeLong);
             if( Sub2.dim() == 0 ) {
                 logOut(eQPLogType_Error, "Paired end file is invalid:%s\n", secondObjId);
-                reqSetStatus(req, eQPReqStatus_ProgError); // set the error status
-                return 0; // error
+                reqSetStatus(req, eQPReqStatus_ProgError);
+                return 0;
             }
             idx subdim = Sub.dim();
             if( Sub2.dim() < subdim ) {
@@ -738,20 +717,14 @@ idx DnaHiveseqProc::OnExecute(idx req)
             idx * matchTrain = 0;
             sBioseqAlignment::Al * hdr=0;
 
-//            sStr t1, t2;
-//            sStr tempfile;
-//            tempfile.printf("%stemp%" DEC ".%s", hsLocation.ptr(), req, extension.ptr());
-//            sFil fptemp(tempfile);
-//            fptemp.cut(0);
 
             sVec <idx> costMatrix;
             sVec <idx> dirMatrix;
             idx res[4];
             sStr seqstr, quastr;
 
-            sStr idstr; //!checking if is FASTQ or FASTA
+            sStr idstr;
             seqCount = 0;
-//            subdim = 10000;
             for(idx iq = 0; iq < subdim; ++iq) {
                 idx seqlen1 = Sub.len(iq);
                 idx seqlen2 = Sub2.len(iq);
@@ -761,21 +734,27 @@ idx DnaHiveseqProc::OnExecute(idx req)
                 }
                 const char * seq1 = Sub.seq(iq);
                 const char * seq2 = Sub2.seq(iq);
-//                t1.cut(0);
-//                sBioseq::uncompressATGC(&t1, seq1, 0, seqlen1, true, 0);
-//                t2.cut(0);
-//                sBioseq::uncompressATGC(&t2, seq2, 0, seqlen2, true, 0, true, true);
 
 
-//                t1.printf(0, "ATGCCATT");
-//                seqlen1 = 8;
-//                t2.printf(0, "ATGCATT");
-//                seqlen2 = 7;
-//                minmatchlen = 4;
+
+                idx diagonalFilter = 0;
+                if (filterNsOption >= 0){
+                    idx nCount = Sub.countNs(iq);
+                    if (((filterNsOption == 0) && nCount) || ( nCount >= ((seqlen1 * filterNsOption * 10) / 1000)) ) {
+                        continue;
+                    }
+                    nCount = Sub2.countNs(iq);
+                    if (((filterNsOption == 0) && nCount) || ( nCount >= ((seqlen2 * filterNsOption * 10) / 1000)) ) {
+                        continue;
+                    }
+                }
+
 
                 costMatrix.resize((seqlen1+1)*(seqlen2+1));
                 dirMatrix.resize((seqlen1+1)*(seqlen2+1));
-                idx lenalign = sFilterseq::adaptiveAlignment (seq1, seqlen1, seq2, seqlen2, 5, -4, -12, res, costMatrix, dirMatrix);
+
+
+                idx lenalign = sFilterseq::adaptiveAlignment (seq1, seqlen1, seq2, seqlen2, 5, -4, -12, res, costMatrix, dirMatrix, diagonalFilter);
 
 
                 if (lenalign > minmatchlen){
@@ -788,32 +767,39 @@ idx DnaHiveseqProc::OnExecute(idx req)
                         sSet(hdr);
                         hdr->setLenAlign(lenalign);
                         hdr->setIdSub(iq);hdr->setIdQry(iq);
-                        //hdr->setSubStart(0);hdr->setQryStart(0);
                         hdr->setFlags(sBioseqAlignment::fAlignBackwardComplement|sBioseqAlignment::fAlignBackward);
                         idx score= posMatrix (res[3],res[1] , seqlen1, costMatrix.ptr(0));
                         hdr->setScore(score);
                         hdr->setDimAlign(2*lenalign);
                     }
 
-                    // We need to merge both sequences
-                    // 1st copy the bases from the first file until res[0]
                     seqstr.cut(0);
                     quastr.cut(0);
                     idstr.cut(0);
-                    const char *id = Sub.id(iq);
+                    const char * id = Sub.id(iq);
                     const char * qua1 = Sub.qua(iq);
+                    bool quaBit1 = Sub.getQuaBit(iq);
                     const char * qua2 = Sub2.qua(iq);
+                    bool quaBit2 = Sub2.getQuaBit(iq);
                     idstr.printf("%s%s", (seqFlags & eSeqFastQ) ? "@" : ">", id);
 
                     if (res[0] != 0){
+                        idx seqposition = seqstr.length();
                         sBioseq::uncompressATGC(&seqstr, seq1, 0, res[0], true, 0);
+                        if(qua1) {
+                            char * seqpos = seqstr.ptr(seqposition);
+                            for(idx i = 0; i < res[0]; ++i) {
+                                if( Sub.Qua(qua1, i, quaBit1) == 0 ) {
+                                    seqpos[i] = 'N';
+                                }
+                            }
+                         }
                         if( seqFlags & eSeqFastQ ) {
-                            if( qua1) {
+                            if( qua1 && !quaBit1) {
                                 for(idx i = 0; i < res[0]; ++i) {
                                     quastr.printf("%c", qua1[i] + 33);
                                 }
                             } else {
-                                // fake qualities
                                 for(idx i = 0; i < res[0]; ++i) {
                                     quastr.printf("%c", 30 + 33);
                                 }
@@ -821,7 +807,6 @@ idx DnaHiveseqProc::OnExecute(idx req)
                         }
                     }
 
-                    // 2nd copy the merge region
                     idx direction;
 
                     idx si1 = res[1];
@@ -837,27 +822,26 @@ idx DnaHiveseqProc::OnExecute(idx req)
 
                         if (keepAlignments && matchTrain){
                             matchTrain[2*lenalign-1-(ii1*2)-1]=si1;
-                            matchTrain[2*lenalign-1-(ii1*2)]=si2;//seqlen2-1 - (res[3] + res[2]) + (si2);
+                            matchTrain[2*lenalign-1-(ii1*2)]=si2;
                             ++ii1;
                         }
-
                         direction = posMatrix (si2, si1, seqlen1, dirMatrix.ptr(0));
                         if (direction == 0){
                             if( seqFlags & eSeqFastQ) {
                                 idx diff = qua1[si1] - qua2[seqlen2-1 - si2];
-                                readbase = (diff > 0) ? sBioseqAlignment::_seqBits(seq1, si1, 0) : sBioseqAlignment::_seqBits(seq2, seqlen2-1-si2, sBioseqAlignment::fAlignForwardComplement | sBioseqAlignment::fAlignForward);
-                                if (qualityOption == 0) { // Avg. quality
+                                readbase = (diff > 0) ? sBioseqAlignment::_seqBits(seq1, si1) : sBioseqAlignment::_seqBits(seq2, seqlen2-1-si2, sBioseqAlignment::fAlignForwardComplement | sBioseqAlignment::fAlignForward);
+                                if (qualityOption == 0) {
                                     qbase = (qua1[si1] + qua2[seqlen2-1 - si2])/2;
                                 }
-                                else if (qualityOption == 1) { // use maximum quality
+                                else if (qualityOption == 1) {
                                     qbase = (diff > 0) ? qua1[si1] : qua2[seqlen2-1 -si2];
                                 }
-                                else { // use minimum quality
+                                else {
                                     qbase = (diff < 0) ? qua1[si1] : qua2[seqlen2-1 -si2];
                                 }
                             }
                             else {
-                                readbase = sBioseqAlignment::_seqBits(seq1, si1, 0);;
+                                readbase = sBioseqAlignment::_seqBits(seq1, si1);
                             }
                             --si1; --si2;
                         }
@@ -869,7 +853,7 @@ idx DnaHiveseqProc::OnExecute(idx req)
                             --si2;
                         }
                         else {
-                            readbase = sBioseqAlignment::_seqBits(seq1, si1, 0);
+                            readbase = sBioseqAlignment::_seqBits(seq1, si1);
                             if( seqFlags & eSeqFastQ ) {
                                 qbase = qua1[si1];
                             }
@@ -878,46 +862,115 @@ idx DnaHiveseqProc::OnExecute(idx req)
                         if( seqFlags & eSeqFastQ ) {
                             quastr[index] = qbase + 33;
                         }
-                        seqstr[index--] = sBioseq::mapRevATGC[(idx)readbase];
+                        seqstr[index] = ( ( seqFlags & eSeqFastQ ) && !qbase) ? 'N' : sBioseq::mapRevATGC[(idx)readbase];
+                        index--;
                     }
-                    // 3rd copy the bases from the second file
                     if ( (seqlen2-1 - res[3]) > 0){
                         idx ilen = seqstr.length();
+                        idx seqposition = ilen;
                         seqstr.add(0, (seqlen2-1 - res[3]));
                         idx is;
                         for(is = seqlen2-1-res[3]-1; is >= 0; --is) {
-                            seqstr[ilen++] = sBioseq::mapRevATGC[sBioseq::mapComplementATGC[(idx)((seq2[is/4]>>((is%4)*2)&0x3))]];
-//                            seqstr[ilen++] = sBioseq::mapRevATGC[(idx)sBioseqAlignment::_seqBits(seq2, seqlen2-1-i, sBioseqAlignment::fAlignForwardComplement | sBioseqAlignment::fAlignForward)];
+                            seqstr[seqposition++] = sBioseq::mapRevATGC[sBioseq::mapComplementATGC[(idx)((seq2[is/4]>>((is%4)*2)&0x3))]];
                         }
+                        if(qua2) {
+                            seqposition = ilen;
+                            for(idx i = seqlen2-1-res[3]-1; i >= 0; --i, ++seqposition) {
+                                if( Sub.Qua(qua2, i, quaBit2) == 0 ) {
+                                    seqstr[seqposition] = 'N';
+                                }
+                            }
+                         }
                         if( seqFlags & eSeqFastQ ) {
-                            if( qua2) {
-                                for(idx i = res[3]+1; i < seqlen2; ++i) {
-                                    quastr.printf("%c", qua2[seqlen2-1-i] + 33);
+                            if( qua2 && !quaBit2) {
+                                for(idx i = seqlen2-1-res[3]-1; i >= 0; --i) {
+                                    quastr.printf("%c", qua2[i] + 33);
                                 }
                             } else {
-                                // fake qualities
                                 for(idx i = 0; i < seqlen2-1-res[3]; ++i) {
                                     quastr.printf("%c", 30 + 33);
                                 }
                             }
                         }
                     }
-                    Sub.printFastXData(&fp, seqstr.length(), idstr, seqstr, quastr, 1);
+                    idstr.printf(" r1[%" DEC "-%" DEC "]:align=%" DEC ":r2[%" DEC "-%" DEC "]", (idx)1, (res[0]+1), lenalign, seqlen2, (res[3] + 1));
+
+                    if ( ( seqFlags & eSeqFastQ ) && (seqstr.length() != quastr.length()) ){
+                        logOut(eQPLogType_Error,"failed to generate correct qualities for read number: % " DEC , iq);
+                        reqSetInfo(req, eQPLogType_Error,"failed to generate correct qualities for read number: % " DEC , iq);
+                        return 0;
+                    }
+                    Sub.printFastXData(&fp, seqstr.length(), idstr, seqstr, (seqFlags & eSeqFastQ) ? quastr.ptr(0) : 0, 1);
                     seqCount++;
 
-//                    Sub.printFastXRow(&fptemp, 1, iq, 0, seqlen1, 0, true, true, 0, 0, 0, 0);
-//                    Sub2.printFastXRow(&fptemp, 1, iq, 0, seqlen2, 0, true, true, 0, 0, 3, 0);
-//                    fptemp.printf("After the alignment, we have the next information:\n");
-//                    fptemp.printf("read1: start: %" DEC ", and end: %" DEC "\n", res[0], res[1]);
-//                    fptemp.printf("read2: start: %" DEC ", and end: %" DEC "\n", res[2], res[3]);
-//                    fptemp.printf("lenAlignment: %" DEC "\n", lenalign);
-//                    Sub.printFastXData(&fptemp, seqstr.length(), idstr, seqstr, quastr, 1);
-//                    fptemp.printf("\n\n");
                     if (keepAlignments){
                         idx dimalign=sBioseqAlignment::compressAlignment(hdr,matchTrain,matchTrain);
                         hdr->setDimAlign(dimalign);
                         alignmentMap.cut(curAlignmentMapOfs+sizeof(sBioseqAlignment::Al)/sizeof(idx)+dimalign);
                     }
+                }
+                else if (concatenateReads){
+                    seqstr.cut(0);
+                    quastr.cut(0);
+                    idstr.cut(0);
+                    const char * id = Sub.id(iq);
+                    const char * qua1 = Sub.qua(iq);
+                    bool quaBit1 = Sub.getQuaBit(iq);
+                    const char * qua2 = Sub2.qua(iq);
+                    bool quaBit2 = Sub2.getQuaBit(iq);
+                    idstr.printf("%s%s", (seqFlags & eSeqFastQ) ? "@" : ">", id);
+
+                    idstr.printf(" r1[%" DEC "-%" DEC "]:align=%" DEC ":r2[%" DEC "-%" DEC "]", (idx)1, seqlen1, (idx)0, seqlen2, (idx)1);
+                    idx seqposition = seqstr.length();
+                    sBioseq::uncompressATGC(&seqstr, seq1, 0, seqlen1, true, 0);
+                    if(qua1) {
+                        char * seqpos = seqstr.ptr(seqposition);
+                        for(idx i = 0; i < seqlen1; ++i) {
+                            if( Sub.Qua(qua1, i, quaBit1) == 0 ) {
+                                seqpos[i] = 'N';
+                            }
+                        }
+                     }
+                    if( seqFlags & eSeqFastQ ) {
+                        if( qua1 && !quaBit1) {
+                            for(idx i = 0; i < seqlen1; ++i) {
+                                quastr.printf("%c", qua1[i] + 33);
+                            }
+                        } else {
+                            for(idx i = 0; i < seqlen1; ++i) {
+                                quastr.printf("%c", 30 + 33);
+                            }
+                        }
+                    }
+                    seqposition = seqstr.length();
+                    sBioseq::uncompressATGC(&seqstr, seq2, 0, seqlen2, true, 0, true, true);
+                    if(qua2) {
+                        char * seqpos = seqstr.ptr(seqposition);
+                        for(idx i = seqlen2-1; i >= 0; --i) {
+                            if( Sub.Qua(qua2, i, quaBit2) == 0 ) {
+                                seqpos[i] = 'N';
+                            }
+                        }
+                     }
+                    if( seqFlags & eSeqFastQ ) {
+                        if( qua2 && !quaBit2) {
+                            for(idx i = 0; i < seqlen2; ++i) {
+                                quastr.printf("%c", qua2[seqlen2-1-i] + 33);
+                            }
+                        } else {
+                            for(idx i = 0; i < seqlen2; ++i) {
+                                quastr.printf("%c", 30 + 33);
+                            }
+                        }
+                    }
+                    if ( ( seqFlags & eSeqFastQ ) && (seqstr.length() != quastr.length()) ){
+                        logOut(eQPLogType_Error,"failed to generate concatenated qualities for read number: % " DEC , iq);
+                        reqSetInfo(req, eQPLogType_Error,"failed to generate concatenated qualities for read number: % " DEC , iq);
+                        return 0;
+                    }
+
+                    Sub.printFastXData(&fp, seqstr.length(), idstr, seqstr, (seqFlags & eSeqFastQ) ? quastr.ptr(0) : 0, 1);
+                    seqCount++;
                 }
                 if (!reqProgressStatic(this, iq, iq, subdim)){
                     errmsg.printf("process needs to be killed; terminating...");
@@ -925,94 +978,96 @@ idx DnaHiveseqProc::OnExecute(idx req)
                 }
             }
             if(seqCount && keepAlignments) {
-                sUsrProc al_obj(*user, "svc-align");
+                sUsrProc al_obj(*user, "svc-align-pairwise");
                 al_obj.propSetHiveId("subject", hqry);
                 al_obj.propSetHiveId("query", secondObjId);
                 sUsrObj *alObj = &al_obj;
                 alObj->propSet("submitter","dna-hexagon");
                 alObj->propSet("name",namefile.ptr());
 
-                if( alignmentMap.dim() ) {
-                    sStr pathT;
-                    reqSetData(req, "file://alignment-slice.vioalt", 0, 0); // create and empty file for this request
-                    reqDataPath(req, "alignment-slice.vioalt", &pathT);
-                    sFile::remove(pathT);
-                    sFil ff(pathT);
-                    sBioseqAlignment::filterChosenAlignments(&alignmentMap, 0, 0, &ff );
-                }
-
-                sStr srcAlignmentsT;grpDataPaths(req, "alignment-slice.vioalt", &srcAlignmentsT, vars.value("serviceName"));
-                sStr dstAlignmentsT;
-                if( !al_obj.addFilePathname(dstAlignmentsT, true, "alignment.hiveal" ) ) {
-                    logOut(eQPLogType_Error,"failed to create destination");
-                    reqSetInfo(req, eQPLogType_Error,"failed to create destination");
+                AlignMapParser alignParser(*this, hs, Sub2);
+                idx countAls = 0;
+                sStr errmsg;
+                if (sRC rc = alignParser.writeAls(alignmentMap, 0, 0, countAls, errmsg)) {
+                    reqSetInfo(req, eQPLogType_Error, "Error writing alignment map: (Line %d): %s", __LINE__, rc.print());
                     return 0;
                 }
-                sVioal vioAltAAA(0, &Sub, &Sub2);
 
                 sVioal::digestParams params;
                 params.flags= 0;
                 params.countHiveAlPieces = 1000000;
                 params.combineFiles = false;
-                vioAltAAA.DigestCombineAlignmentsRaw(dstAlignmentsT,srcAlignmentsT, params);
+                if (sRC rc = alignParser.joinAls(params, alObj)) {
+                    reqSetInfo(req, eQPLogType_Error,"Failed to create hiveal from alignment map: (Line %d): %s", __LINE__, rc.print());
+                    return 0;
+                }
+
                 reqSetInfo(req, eQPInfoLevel_Info,"An alignment objId = %s was created", alObj->IdStr(0));
             }
         } else if( algorithms == 7 ) {
 
             sDic<idx> idlist;
+            sStr tempSubDir;
             bool listExclusion = false;
-            {
-                if( Sub.dim() > 1000000 ) {
-                    sStr tempSubDir;
-                    cfgStr(&tempSubDir, 0, "qm.tempDirectory");
+
+            if( Sub.dim() > 1000000 ) {
+                if (cfgStr(&tempSubDir, 0, "qm.tempDirectory")) {
                     tempSubDir.printf("%" DEC "-%s", reqId, "subids.dic");
                     idlist.init(tempSubDir);
+                    if ( !idlist.mex()->ok() ) {
+                        errmsg.printf("Unable to create subject id dictionary");
+                    }
+                } else {
+                    errmsg.printf("Unable to receive temporary directory");
                 }
+            }
 
+            if ( !errmsg ) {
                 const char * idlistObjId = formValue("idlistObjId", &form_buf);
 
                 sStr idlistContainer;
                 bool parseDicValidation = parseDicFile(&idlistContainer, idlistObjId, &errmsg);
-                idx end = idlistContainer.length();
-                while( idlistContainer[end - 1] == 0 ) {
-                    end--;
-                }
-                idlist.parse00(idlistContainer, end);
-                // include = false and exclude = true;
-                listExclusion = (formIValue("listExclusion", 0) == 0) ? false : true;
-                if( parseDicValidation && idlist.dim() == 0 ) {
-                    errmsg.printf("Dictionary is empty");
+                if ( parseDicValidation && idlistContainer.length() && !errmsg ) {
+                    idx end = idlistContainer.length();
+                    while( idlistContainer[end - 1] == 0 ) {
+                        end--;
+                    }
+                    idlist.parse00(idlistContainer, end);
+                    listExclusion = (formIValue("listExclusion", 0) == 0) ? false : true;
+                    if( parseDicValidation && idlist.dim() == 0 ) {
+                        errmsg.printf("Dictionary is empty");
+                    }
                 }
             }
+
             if( !errmsg ) {
+
                 sStr nonId;
                 seqCount = 0;
                 idx subdim = Sub.dim();
                 idx idlistdim = idlist.dim();
                 for(idx irow = 0; irow < subdim && ((seqCount < idlistdim) || (listExclusion)); ++irow) {
                     const char *id = Sub.id(irow);
-
-                    idx row = sFilterseq::getrownum(idlist, id);
+                    idx pNum = 0;
+                    idx row = sFilterseq::getrownum(idlist, id, 0, &pNum);
                     bool isValid = (row <= -1) ? false : true;
 
                     PERF_START("is Valid");
                     if( isValid ) {
-                        // if isValid == true, it means that the id is in the file
-                        if( row > 0 && (!listExclusion) ) { // To avoid redundancies
-                            *idlist.ptr(row) *= -1;// - *idlist.ptr();
+                        *idlist.ptr(pNum) = -1;
+                        if( !listExclusion ) {
                             Sub.printFastXRow(&fp, (seqFlags & eSeqFastQ) ? true : false, irow, 0, 0, 0, keepOriginalID, (seqFlags & eAppendLength));
                             ++seqCount;
                         }
                     } else if( listExclusion ) {
-                        // id is not in the file
                         Sub.printFastXRow(&fp, (seqFlags & eSeqFastQ) ? true : false, irow, 0, 0, 0, keepOriginalID, (seqFlags & eAppendLength));
-                        *idlist.ptr(row) *= (row > 0) ? -1 : 1;
                         ++seqCount;
                     } PERF_END();PERF_START("REPORT");
                     if( irow % 100000 == 0 ) {
                         reqProgress(irow, irow, (subdim * 2));
                     }PERF_END();
                 }
+                bool rmIdfile = false;
                 if( seqCount < idlist.dim() || listExclusion ) {
                     if( !listExclusion ) {
                         reqSetInfo(req, eQPInfoLevel_Info, "There are : %" DEC " Id's missing in the file\n", idlist.dim() - seqCount);
@@ -1020,30 +1075,43 @@ idx DnaHiveseqProc::OnExecute(idx req)
                     nonId.printf(0, "%shs-nonId%" DEC ".txt", hsLocation.ptr(), req);
                     sFil nId(nonId);
                     if( nId.ok() ) {
+                        idx idmatches = 0;
                         nId.cut(0);
-                        //  modify the outfile to merge the whole directory
                         hsOutfile.cut(0);
                         hsOutfile.printf("%s", hsLocation.ptr());
                         nId.printf("# List of Id's that were not found in Process: %" DEC " \n", req);
 
-                        idx idmatches = 0;
                         for(idx i = 0; i < idlist.dim(); ++i) {
                             if( idlist[i] >= 0 ) {
-                                // This idlist[i] is not in the file
                                 idx sizeID;
                                 const char * idl = (const char *) idlist.id(i, &sizeID);
                                 nId.printf("%.*s\n", (int) sizeID, idl);
                                 ++idmatches;
                             }
                         }
-                        if( listExclusion ) {
+                        if (!idmatches){
+                            rmIdfile = true;
+                            reqSetInfo(req, eQPInfoLevel_Info, "All the Id's were found in the file: %" DEC "\n", idlist.dim());
+                        }
+                        else if( listExclusion ) {
                             reqSetInfo(req, eQPInfoLevel_Info, "%" DEC " Id's were not found in the file\n", idmatches);
                         }
                     } else {
                         errmsg.printf("dna-hiveseq can not create Id destination file");
                     }
                 }
+                if (rmIdfile){
+                    sFile::remove(nonId);
+                }
             }
+
+            if ( tempSubDir.length() ) {
+                idlist.destroy();
+                if (!sFile::remove(tempSubDir)) {
+                    errmsg.printf("Unable to delete temporary subject id dictionary");
+                }
+            }
+
         } else if ( algorithms == 8){
             bool considerRevComp = (formBoolValue("seqExclusionRevComp", false) == false) ? false : true;
             bool seqExclusion = (formIValue("seqExclusionOption", 0) == 0) ? false : true;
@@ -1052,8 +1120,8 @@ idx DnaHiveseqProc::OnExecute(idx req)
             sHiveseq Qry(user, seqObjId, sBioseq::eBioModeShort);
             if( Qry.dim() == 0 ) {
                 logOut(eQPLogType_Error, "Query is not accessible:%s\n", seqObjId);
-                reqSetStatus(req, eQPReqStatus_ProgError); // set the error status
-                return 0; // error
+                reqSetStatus(req, eQPReqStatus_ProgError);
+                return 0;
             }
             BioseqTree bioseqtree(&Qry, 0);
 
@@ -1078,10 +1146,8 @@ idx DnaHiveseqProc::OnExecute(idx req)
                     unique = bioseqtree.addSequence(pos, len, rpt, 1);
                 }
             }
-            // At this point, all the Qry sequences are in the bioseqtree
             progress100Start = 25;
             progress100End = 50;
-            // We need to see if the Sub is contained in the bioseqtree or not
             for(idx pos = 0; pos < Sub.dim(); ++pos) {
                 const char *seq = Sub.seq(pos);
                 idx seqlen = Sub.len(pos);
@@ -1096,29 +1162,130 @@ idx DnaHiveseqProc::OnExecute(idx req)
             }
             progress100Start = 50;
             progress100End = 100;
+
+        } else if ( algorithms == 9){
+            idx seqExclusion = formIValue("deduplicationlistExclusion", 0);
+            const char * seqObjId = formValue("iddeduplicationlistObjId", &form_buf);
+
+            sDic<idx> idlist;
+
+
+            if (seqExclusion == 2){
+                sStr mergeString;
+                mergeString.add(hqry);
+                mergeString.shrink00();
+                if(*mergeString.ptr(mergeString.length()-1) == '\n'){
+                    mergeString.cut(-1);
+                }
+                mergeString.addString(";");
+                mergeString.addString(seqObjId);
+                sHiveseq Sub_and_Qry(user, mergeString, sBioseq::eBioModeLong);
+                if( Sub_and_Qry.dim() == 0 ) {
+                    logOut(eQPLogType_Error, "Query is not accessible:%s\n", mergeString.ptr(0));
+                    reqSetStatus(req, eQPReqStatus_ProgError);
+                    return 0;
+                }
+
+                sStr tempidseq;
+                for(idx iseq = 0; iseq < Sub_and_Qry.dim(); ++iseq) {
+                    const char *idseq = Sub_and_Qry.id(iseq);
+                    tempidseq.cut0cut(0);
+                    idx tempidseqlen = sString::copyUntil(&tempidseq, idseq, sLen(idseq), sString_symbolsBlank);
+
+                    *idlist.set(tempidseq.ptr(), tempidseqlen) = iseq;
+                }
+
+                for(idx i = 0; i < idlist.dim(); ++i) {
+                    if( idlist[i] >= 0 ) {
+                        idx irow = idlist[i];
+                        Sub_and_Qry.printFastXRow(&fp, (seqFlags & eSeqFastQ) ? true : false, irow, 0, 0, 0, keepOriginalID, (seqFlags & eAppendLength));
+                        seqCount += 1;
+                    }
+                }
+            }
+            else{
+                sHiveseq Qry(user, seqObjId, sBioseq::eBioModeLong);
+                if( Qry.dim() == 0 ) {
+                    logOut(eQPLogType_Error, "Query is not accessible:%s\n", seqObjId);
+                    reqSetStatus(req, eQPReqStatus_ProgError);
+                    return 0;
+                }
+                if( Qry.dim() > 1000000 ) {
+                    sStr tempSubDir;
+                    if (cfgStr(&tempSubDir, 0, "qm.tempDirectory")) {
+                        tempSubDir.printf("%" DEC "-%s", reqId, "qryids.dic");
+                        idlist.init(tempSubDir);
+                        if ( !idlist.mex()->ok() ) {
+                            errmsg.printf("Unable to create query id dictionary");
+                        }
+                    } else {
+                        errmsg.printf("Unable to receive temporary directory");
+                    }
+                }
+
+                sStr tempidseq;
+                if( !errmsg ) {
+                    for(idx iseq = 0; iseq < Qry.dim(); ++iseq) {
+                        const char *idseq = Qry.id(iseq);
+                        tempidseq.cut0cut(0);
+                        idx tempidseqlen = sString::copyUntil(&tempidseq, idseq, sLen(idseq), sString_symbolsBlank);
+
+                        *idlist.set(tempidseq.ptr(), tempidseqlen) = iseq;
+                    }
+                }
+
+                idx subdim = Sub.dim();
+                idx idlistdim = idlist.dim();
+
+                for(idx irow = 0; irow < subdim && ((seqCount < idlistdim) || (seqExclusion == 1)); ++irow) {
+                    const char *id = Sub.id(irow);
+                    tempidseq.cut0cut(0);
+                    idx tempidseqlen = sString::copyUntil(&tempidseq, id, sLen(id), sString_symbolsBlank);
+                    idx pNum = 0;
+                    idx row = sFilterseq::getrownum(idlist, tempidseq.ptr(), tempidseqlen, &pNum);
+                    bool isValid = (row == -1) ? false : true;
+
+                    PERF_START("is Valid");
+                    if( isValid ) {
+                        *idlist.ptr(pNum) = -2;
+                        if( seqExclusion == 0) {
+                            Sub.printFastXRow(&fp, (seqFlags & eSeqFastQ) ? true : false, irow, 0, 0, 0, keepOriginalID, (seqFlags & eAppendLength));
+                            ++seqCount;
+                        }
+                    } else if( seqExclusion == 1 ) {
+                        Sub.printFastXRow(&fp, (seqFlags & eSeqFastQ) ? true : false, irow, 0, 0, 0, keepOriginalID, (seqFlags & eAppendLength));
+                        ++seqCount;
+                    } PERF_END();PERF_START("REPORT");
+                    if( irow % 100000 == 0 ) {
+                        reqProgress(irow, irow, (subdim * 2));
+                    }PERF_END();
+                }
+            }
+            progress100Start = 50;
+            progress100End = 100;
         }
     } else {
         errmsg.printf("dna-hiveseq can not create destination file");
     }PERF_PRINT();
-    if( (algorithms == 0 || algorithms == 2 || algorithms == 3 || algorithms == 7 || algorithms == 8) && seqCount == 0 ) {
-        errmsg.printf("output sequence set is empty");
+    if( (algorithms == 0 || algorithms == 2 || algorithms == 3 || algorithms == 7 || algorithms == 8 || algorithms == 9) && seqCount == 0 ) {
+        warningmsg.printf("output sequence set is empty");
     }
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ We call dmArchiver to submit the new file
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-//    progress100Start = 70;
-//    progress100End = 100;
 
-    if( !errmsg ) {
+    if( !errmsg && !warningmsg) {
         if( !(seqFlags & eSkipArchiver) && fp.ok() ) {
             sStr src("hiveseq://%s", namefile.ptr());
             dmArchiver archHS(*this, hsOutfile.ptr(), src, 0, namefile.ptr());
+            archHS.setScreenFlag(formIValue("launchScreening",1));
+            archHS.setQCFlag(formIValue("launchQC",1));
             idx archReqId = archHS.launch(*user, grpId);
             logOut(eQPLogType_Info, "Launching dmArchiver request %" DEC " with %" DEC " sequences\n", archReqId, seqCount);
         }
-        if( reqProgress(-1, 100, 100) ) { //Do not change status if request was stopped.
+        if( reqProgress(-1, 100, 100) ) {
+            reqSetStatus(req, eQPReqStatus_Done);
+        }
+    } else if( warningmsg ) {
+        reqSetInfo(req, eQPInfoLevel_Warning, "%s\n", warningmsg.ptr());
+        if( reqProgress(-1, 100, 100) ) {
             reqSetStatus(req, eQPReqStatus_Done);
         }
     } else {
@@ -1133,7 +1300,7 @@ int main(int argc, const char *argv[], const char *envp[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     DnaHiveseqProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-hiveseq", argv[0]));
     return (int) backend.run(argc, argv);

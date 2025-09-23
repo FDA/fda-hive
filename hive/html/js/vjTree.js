@@ -27,55 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
-    nodes have the following mandatory variables
-
- vjTree:
-     { root: of type node }
-
-Node {
-    node.children array of nodes
-    node.name
-    node.path
-    node.parent
-    node.distance
-    node.leafnode
-    node.childrenCnt
-    node.title
-    and anything else
-
-    }
-
-
-     when constructing from vjTable object
-     we inherit all sub elements of tbl.rows[i]
-
-     and use
-     1. node.path to construct hieratrchy
-     2. if no path we use .. node.parent to construct hierarchy
-
-
-
-id,name,path
-1,name1,/home/dir1
-2,name2,/home/dir2
-1,name3,/home/dir1/dir3
-
-
-id,name,parent
-1,name1,
-2,name2,name1
-1,name3,name2
-
-
-id,name,children
-1,name1,
-2,name2
-3,name3,1
-3,name3,2
-
-
-*/
 
 function vjTreeNode(nodeBase)
 {
@@ -95,10 +46,18 @@ function vjTreeNode(nodeBase)
         if(indx == prnt.children.length-1)return true;
         else return false;
     };
+
+    this.push = function(child) {
+        this.children.push(child);
+        this.childrenCnt++;
+
+        child.parent = this;
+        child.depth = this.depth + 1;
+        child.path = this.path + (this.path[this.path.length-1] === "/" ? "" : "/") + child.name;
+    };
 }
 
 
-//function vjTree( content, parsemode, pathcolumn, excludeObjRegexp  )
 function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
 {
 
@@ -109,85 +68,94 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
     this.root = this.newNode({name:"root", expanded:true , path:"/"});
     this.debug=debug;
 
-    //this.rows=new Array();
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Tree parser: horizontal csv format
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
-    this.parseTable=function( tbl, rootNode, pathcolumn, excludeObjRegexp )
+    this.parseTable=function( tbl, rootNode, pathcolumn, excludeObjRegexp , isDropbox = false )
     {
         if(!pathcolumn)pathcolumn="path";
 
-        var hierarchyType=0;
+        var hierarchyType=1;
+        var t_node = '';
+        for ( var i=0; i<tbl.rows.length; ++i){
+            t_node = tbl.rows[i];
+            if(t_node.child){
+                if(!hierarchyType!=2) {
+                    hierarchyType=2;
+                    t_node.child_hash={}
+                }
+                var t_children = verarr(t_node.child);
+                for(var ic = 0 ; ic < t_children.length; ++ic ) {
+                    t_node.child_hash[t_children[ic]] = true;
+                }
+            }
+        }
         var curT;
         for ( var ia=0; ia<tbl.rows.length; ++ia){
-            // initialize values of a row node from the named columns provided in the header
             var fld=tbl.rows[ia];
+            
             if(fld.nonAutoNode!==false)fld.nonAutoNode=true;
 
-            // if no path is specified we have to assign one from the parent structure
             while ( !fld[pathcolumn] ) {
-                //alert("this " + fld.name + " doesn't have a path " );
 
-                if(!hierarchyType){
-                    hierarchyType=1; //'parent';
-                    for ( var iia=0; iia<tbl.rows.length; ++iia){
-                        if(tbl.rows[iia].child){
-                            hierarchyType=2; //'child';
-                            break;
-                        }
-                        else if(tbl.rows[iia].parent)break;
-                    }
-                }
                 if(hierarchyType==1){
-                    if(!fld.parent){ // get the path from root
-                        fld[pathcolumn]="/"+fld.name;
-                        //alert("this " + fld.name + " assined " + fld[pathcolumn] );
+                    if(!fld.parent){
+                        
+                        if(!isDropbox){
+                            fld[pathcolumn]="/"+fld.name;
+                        } else {
+                            fld[pathcolumn]= `/${fld.id}${fld.name}`;
+                        
+                            fld['cmdpath'] = `/${fld.name.split('/').slice(2).join('/')}`;
+                            fld['cmdid'] = fld.id;
+                            fld.id = fld[pathcolumn];
+
+                            fld.name = fld.name.indexOf('/') === 0 ? fld.name.slice(1) : fld.name;
+                            if(fld.name[fld.name.length - 1] === '/') {
+                                fld.name = fld.name.substring(0, fld.name.length - 1);
+                            };
+                            fld.name = `${fld.name.split('/').slice(-1)}`;
+                        }
+                        
                         break;
                     }
 
-                    // search for the parent in the tree
                     var parToLink=this.findByName( fld.parent, rootNode ) ;
                     if(parToLink){
                         fld[pathcolumn]=parToLink.path+"/"+fld.name;
-                        //alert("assiging " + fld[pathcolumn]);
                         break;
                     }
 
-                    // searching the parent in the rest of the table
-                    //alert("loooking to replace  " + fld.name  );
 
                     for( var ir=ia+1; ir<tbl.rows.length; ++ir) {
-                        if(tbl.rows[ir].name==fld.parent){ // if the parent follows , replace the parent with this node
-                            //alert(" found later in the table " + tbl.rows[ir].name  );
+                        if(tbl.rows[ir].name==fld.parent){
                             var tmpFld=fld;
                             fld=tbl.rows[ir];tbl.rows[ia]=fld;
                             tbl.rows[ir]=tmpFld;
                             break;
                         }
                     }
-                    if(ir==tbl.rows.length) // parent couldn't be found
+                    if(ir==tbl.rows.length)
                         {fld[pathcolumn]="/"+fld.name;break;}
                 }
                 else{
-                    var id=fld.id?'id':'_id';
-
-                    var params={result:fld[id]};
+                    var id = fld.id?'id':'_id';
+                    var params = {
+                            'result':fld[id]
+                    };
                     var path="";
+
                     while (isok(params.result)){
-//                        path+="/";
                         var t=params.result;
-                        tbl.enumerate(
-                                "if(node.child && !params.scannedPath && (verarr(node.child).indexOf(\""+ params.result+ "\")>=0) ){" +
-                                    "params.result=node['" + id + "'];" +
-                                    "params.name=node.name;" +
-                                    "if(node['" + pathcolumn + "']) { " +
-                                            "params.scannedPath=node['"+ pathcolumn + "'];" +
-                                    "}" +
-                                "}",
-                                params);
+                        tbl.enumerate(function (params, that, ir) {
+                            var node = that.rows[ir];
+                            if (node.child && !params.scannedPath && (t in node.child_hash) ) {
+                                params.result = node[id];
+                                params.name = node.name;
+                                if (node[pathcolumn]) {
+                                    params.scannedPath = node[pathcolumn];
+                                }
+                            }
+                        }, params);
+
                         if(t==params.result)
                             params.result='';
                         else {
@@ -209,9 +177,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
                     continue;
             }
 
-            //if(!fld[pathcolumn])
-            //    alerJ("dd",fld);
-
             curT=rootNode;
 
             var prvpos=1;
@@ -221,41 +186,56 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
             while( pos!=-1) {
                 var thisNode=fld[pathcolumn].substring(prvpos,pos);
 
-                var ifnd=0;for( ifnd=0; ifnd<curT.children.length && curT.children[ifnd].name!=thisNode; ++ifnd ) ; // find this node
-
-
+                var ifnd=0;
+                for( ifnd=0; ifnd<curT.children.length && curT.children[ifnd].name!=thisNode; ++ifnd );
+                
                 parNode=curT;
                 var newobj = this.newNode();
-
-                if(ifnd<curT.children.length){
+                
+                if(ifnd<curT.children.length ){
                     newobj=curT.children[ifnd];
                     if(pos>=fld[pathcolumn].length) {
                         if(!newobj.tree_cnt_table_rows){
                             newobj.tree_cnt_table_rows=1;
                         }
-                        else { 
+                        else {
                             ++newobj.tree_cnt_table_rows;
                             fld.tree_duplicate=newobj;
                         }
                     }
-                    if(fld[pathcolumn].length-pos<=1 ){
-                        for ( vfeat in fld )
-                            newobj[vfeat]=fld[vfeat];
+                    
+                    if(fld[pathcolumn].length-pos <= 1  && (curT.children[ifnd].hasOwnProperty('id') && fld.hasOwnProperty('id') && (curT.children[ifnd].id != fld.id) ) ){
+                        newobj = this.newNode();
+                        for ( vfeat in fld ) newobj[vfeat]=fld[vfeat];
                         newobj.path=fld[pathcolumn];
+                        
+                        newobj.children=new Array();
+                        newobj.parent=parNode;
+
+                        newobj.leafnode=newobj.path.charAt(newobj.path.length-1)=="/" ? false : true;
+
+                        if(!newobj.depth)newobj.depth=parNode.depth+1;
+                        if(!newobj.distance)newobj.distance=1 ;
+                        if(!newobj.childrenCnt)newobj.childrenCnt=(pos==fld[pathcolumn].length) ? fld.childrenCnt : 0;
+                        if(!newobj.title)newobj.title=newobj.name;
+                        if(!newobj.childId)newobj.childId=curT.children.length;
+                        curT.children.push(newobj);
+                        
+                    } else if(fld[pathcolumn].length-pos <= 1   ){
+                        for ( vfeat in fld ) newobj[vfeat]=fld[vfeat];
+                        newobj.path=fld[pathcolumn];
+                    } else { 
+                        newobj.leafnode=false;
                     }
-                    else
-                        newobj.leafnode=false;   //Needed for tree that is in child format
+                    
                     if(!fld.autoNode){
                         delete newobj.autoNode;
                     }
-                    //alert( "looking for " + thisNode + " found");
                 }
-                else if(ifnd==curT.children.length){
-                    //alert( "looking for " + thisNode + " new");
-                    newobj=this.newNode();
+                else if(ifnd==curT.children.length ){
+
                     newobj.path=fld[pathcolumn].substring(0,pos+1);
                     if(fld[pathcolumn].length-pos<=1) {
-                        //newobj=fld;
                         for ( vfeat in fld )
                             newobj[vfeat]=fld[vfeat];
                         newobj.path=fld[pathcolumn];
@@ -266,99 +246,61 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
                     if(!newobj.tree_cnt_table_rows){
                         newobj.tree_cnt_table_rows=1;
                     }
-                    
-
 
                     newobj.leafnode=newobj.path.charAt(newobj.path.length-1)=="/" ? false : true;
 
-                    //alert(newobj.id+ "-"+newobj.path + "=" + newobj.path.charAt(newobj.path.length-1) + " >> " + newobj.leafnode);
                     if(!newobj.depth)newobj.depth=parNode.depth+1;
                     if(!newobj.distance)newobj.distance=1 ;
                     if(!newobj.childrenCnt)newobj.childrenCnt=(pos==fld[pathcolumn].length) ? fld.childrenCnt : 0;
                     if(!newobj.title)newobj.title=newobj.name;
-                    if(!newobj.childId)newobj.childId=ifnd;//curT.children.length;
-                    //if(this.debug) {
-                        //alerJ("1234 = " + curT.children.length + "   " + newobj.title,curT);
-                        //alerJ(12345,curT.children);
-                    //}
-                    curT.children[ifnd]=newobj;
-
+                    if(!newobj.childId)newobj.childId=ifnd;
+               
+                    curT.children.push(newobj);
+                    
                     if(!fld.treenode)
                         fld.treenode=newobj;
                     if(!newobj.tablenode)
                         newobj.tablenode=fld;
-                    //++this.nodeCount;
-                    //this.rows[this.rows.length]=newobj;
-                    //if(this.debug)
-                    //    alerJ('adding ' + this.rows.length,newobj)
+
                 }
 
-                // link tree and table nodes
-                                    //newobj.tblnode=tbl.rows[ia];
-                                    //tbl.rows[ia].treenode=newobj;
 
-                //alert( newobj.name  + " child of " + parNode.name  + " who now has " + parNode.children.length + " children");
                 curT=newobj;
 
                 prvpos=pos+1;
-
+                
                 if(prvpos>=fld[pathcolumn].length)break;
 
                 pos=fld[pathcolumn].indexOf("/",prvpos);
                 if(pos==-1)pos=fld[pathcolumn].length;
             }
-            //fld.depth=newobj.depth;
-            //fld.distance=newobj.distance;
         }
         return rootNode;
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ JSon format parser
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
     this.parseJson=function( jsontxt, node )
     {
         var t;
         eval("t="+jsontxt+";");
-        //t=JSON.parse(jsontxt);
         if (!node)
             node = this.root;
         if(!node.children) {
             node.children=new Array();
             node.childrenCnt = 0;
         }
-        
-        for( var field in t ) { 
+
+        for( var field in t ) {
             node[field]=t[field];
             node.children[node.childrenCnt]=t[field];
             ++node.childrenCnt;
         }
-                        
+
         return node;
-    
+
     }
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Newick format parser
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
-    //
-    // Returns:
-    //  * null on error;
-    //  * new root node from parsed tree if rootNode is null;
-    //  * rootNode used as the parsed tree's root if rootNode is not null.
-    //
-    // In other words, to set tree.root to the parsed tree, you can use
-    // tree.parseNewick("(A,(B,C))D:0.5;", tree.root);
-    // or
-    // tree.root = tree.parseNewick("(A,(B,C))D:0.5;");
     this.parseNewick=function(newick, rootNode)
     {
-        // Allocate a childless copy of rootNode to use for parsing;
-        // don't modify rootNode until we know that parsing succeeded.
         var rootTemp = this.newNode(rootNode ? rootNode : {name:"root", expanded:true});
         rootTemp.children = new Array();
         rootTemp.childrenCnt = 0;
@@ -377,7 +319,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
         }
         return null;
 
-        // Parser subroutines
 
         function newickSkipSpace(pos)
         {
@@ -395,8 +336,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
             return false;
         }
 
-        // returns position within newick string at end of parsing, or 0 on error
-        // (note that "" is not a valid newick string!)
         function parseNewickWorker(start, node)
         {
             var atroot = (node === rootTemp);
@@ -405,7 +344,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
             if (newickEof(pos, atroot))
                 return 0;
 
-            // children
             if (newick[pos] === '(') {
                 node.leafnode = false;
                 do {
@@ -428,7 +366,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
             } else
                 node.leafnode = true;
 
-            // name
             pos = newickSkipSpace(pos);
             var name = "";
             if (pos < newick.length && (newick[pos] == "'" || newick[pos] == '"')) {
@@ -442,7 +379,7 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
                     }
                     name += newick[pos++];
                 }
-                pos = newickSkipSpace(++pos); // skip terminal quote and following space
+                pos = newickSkipSpace(++pos);
                 name = parseCString(name);
             } else {
                 while (pos < newick.length && newick[pos] !== ':' && newick[pos] !== ';' && newick[pos] !== '(')
@@ -451,7 +388,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
             }
             node.name = name;
 
-            // distance
             if (pos < newick.length && newick[pos] === ':') {
                 pos = newickSkipSpace(++pos);
                 var diststring = "";
@@ -466,11 +402,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
         }
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Deanonimization: ensure each node has a path and a name
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
     this.deanonymize=function(node, name)
     {
         if (!node.name)
@@ -485,32 +416,24 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
             this.deanonymize(node.children[i], i);
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Tree node enumerator
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
-    this.enumerate=function( operation, params , ischecked, leaforbranch , node) // leaforbranch==0 : all , =1 leafs , ==2 branches
+    this.enumerate=function( operation, params , ischecked, leaforbranch , node)
     {
         if (!node)
             node = this.root;
-//        var cntCh = node.children.length;
-//        if (node.childrenCnt > 0)
-//            cntCh = node.childrenCnt;
 
         if ((!ischecked) || node.checked) {
             if (!leaforbranch || (leaforbranch == 1 && node.leafnode) || (leaforbranch == 2 && !node.leafnode)){
-                //if(this.debug)alerJ(888,node)
                 if (typeof (operation) == "function")
                     operation(params, node, operation);
-                else if (operation.indexOf("javascript:") == 0)
+                else if (operation.indexOf("javascript:") == 0) {
                     eval(operation.substring(11))(params, this, node, operation);
-                else
+                } else {
                     eval(operation);
+                }
             }
         }
 
-        if (node.children && node.children.length) { // && node.expanded
+        if (node.children && node.children.length) {
             for ( var i = 0; i < node.children.length; ++i) {
                 this.enumerate(operation, params, ischecked, leaforbranch,
                         node.children[i]);
@@ -519,11 +442,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
 
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Tree browsing: find a node by path
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
     this.findByPath=function( path, node,attr  )
     {
         if(attr === undefined)
@@ -536,7 +454,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
         var pos=path.indexOf("/",1);
         if(pos==-1)pos=path.length;
         while( pos!=-1) {
-        //for ( var pos=path.indexOf("/",1); pos!=-1; ) {
             var thisNode=path.substring(prvpos,pos);
 
 
@@ -548,7 +465,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
 
             parNode=curT;
             curT=curT.children[ifnd];
-
             prvpos=pos+1;
 
             if(prvpos>=path.length)break;
@@ -559,11 +475,6 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
         return curT;
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Tree browsing: find a node by name
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
     this.findByName=function( nodename , node  )
     {
         if(!node)node=this.root;
@@ -575,10 +486,17 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
         return ;
     };
 
-    // _/
-    // _/ Tree browsing: find a node by attribute
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/
+    this.findByFieldName=function( fieldname , node  )
+    {
+        if(!node)node=this.root;
+        for( var i=0 ;i<node.children.length; ++i) {
+            if(node.children[i].fld.name==fieldname) return node.children[i];
+            var ret=this.findByFieldName( fieldname, node.children[i]) ;
+            if(ret)return ret;
+        }
+        return ;
+    };
+    
     this.findByAttribute=function( attribute, value , node  )
     {
         if(!node)node=this.root;
@@ -595,7 +513,7 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
         if(!params)params=new Object();
         params.findByOperList=new Array();
 
-        this.enumerate( "var res="+checker+";if(res)params.findByOperList.push("+collector+");", params, ischecked, leaforbranch , node ); // leaforbranch==0 : all , =1 leafs , ==2 branches
+        this.enumerate( "var res="+checker+";if(res)params.findByOperList.push("+collector+");", params, ischecked, leaforbranch , node );
         return params.findByOperList;
 
     };
@@ -640,14 +558,12 @@ function vjTree( tbl, pathcolumn, excludeObjRegexp, debug  )
         return ret;
     };
 
-    // if(!content || content.length==0)return ;
-    // var __tbl=new vjTable(content, 0, parsemode);
-    //this.root=this.parseTable(__tbl, this.root , pathcolumn, excludeObjRegexp );
-    //this.fld=__tbl.rows;
     if(tbl && tbl.rows && tbl.rows.length)
         this.root=this.parseTable(tbl , this.root , pathcolumn, excludeObjRegexp );
 
-
+    if (typeof(tbl) == "string"){
+        var tblNew = new vjTable(tbl, 0, vjTable_propCSV);
+        this.root=this.parseTable(tblNew , this.root , pathcolumn, excludeObjRegexp );
+    }
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjTree.js"

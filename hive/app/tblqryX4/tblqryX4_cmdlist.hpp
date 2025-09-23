@@ -33,18 +33,9 @@
 
 #include "tblqryX4_cmd.hpp"
 
-/* List of "external" commands.
-   Entries of form X("foobar", cmdFoobarFactory), where cmdFoobarFactory is defined as follows
-   in the appropriate .cpp file:
-
-namespace slib {
-    namespace tblqryx4 {
-        Command * cmdFoobarFactory(ExecContext * ctx) { return new cmdFoobar(ctx); }
-    };
-};
-*/
 #define TBLQRYX4_EXT_FACTORIES \
     X("som", cmdSomFactory) \
+    X("rlda", cmdRldaFactory) \
     X("fourier", cmdFourierFactory) \
     X("tree", cmdTreeFactory) \
     X("statTest", cmdStatTestFactory) \
@@ -58,13 +49,17 @@ namespace slib {
     X("cleaner", cmdCleanerFactory) \
     X("pearsonCorr", cmdPearsonCorrFactory) \
     X("data-trending", cmdDataTrendingFactory) \
+    X("u-usage", cmdUUsageFactory) \
     X("addMissingRows", cmdAddMissingRowsFactory) \
     X("load-SNPprofile", cmdLoadSNPprofileFactory) \
     X("fold_change", cmdFoldChangeFactory) \
     X("sdtm_summary", cmdSdtmSummaryFactory) \
     X("dictionaryTable", cmdDicTestFactory) \
     X("generic-cmd-test", cmdGenericFactory) \
-    X("variance", cmdVarianceFactory)
+    X("variance", cmdVarianceFactory) \
+    X("pca", cmdPcaFactory) \
+    X("geneOntology", cmdGeneOntology)\
+    X("rankCollapser", cmdRankCollapserFactory)
 
 
 #ifdef HAS_IMAGEMAGICK

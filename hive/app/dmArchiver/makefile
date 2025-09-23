@@ -29,9 +29,19 @@
 # */
 
 PROGRAMS += dmArchiverproc dmCompressor
-PROGRAMS_LIBS = -ldmlib -lqpsvc $(VLIB_LIB)
-PROGRAMS_XLIBS = $(MYSQL_LIB) $(LIBZIP_LIB)
+PROGRAMS_LIBS = -lqpsvc $(VLIB_LIB)
+PROGRAMS_XLIBS = $(MYSQL_LIB)
 
+OBJECT_TYPES= svc-archiver svc-compressor \
+    table csv-table tsv-table excel-file \
+    image system-image multimedia \
+    algorithm-script \
+    viodb u-hiveseq u-annot prot-seq \
+    u-ionExpress u-idList target_library
+
+ACTIONS = TreatAsAuto TreatAsbz2 TreatAstbz2 TreatAsgz TreatAstgz TreatAstar TreatAszip \
+          TreatAsbam convert2protein upload export_hivepack exportEx \
+		          
 dmArchiverproc_SRCS = dmArchiverproc.cpp
 dmArchiverproc_XLIBS = $(IMAGEMAGICK_LIB) $(LIBXLS_LIB)
 dmCompressor_SRCS = dmCompressorproc.cpp
@@ -45,6 +55,12 @@ include $(devdir)/build/makefile.meta
 dist::
 	$(call dist-service-register,dmArchiver,Data Archivation Engine,/Data Mining/)
 	$(call dist-service-register,dmCompressor,Data Compression Engine,/Data Mining/)
+	$(call dist-service-set-config,dmCompressor, \
+        selfExpirationDays='30' \
+    )
 	$(call dist-app,dmArchiver,dmArchiverproc)
+	$(call dist-adoption,dmArchiver,fastq-dump,fastq-dump)
+	$(call dist-adoption,dmArchiver,sra_prefetch,prefetch)
+	$(call dist-adoption,dmArchiver,samtools,samtools)
 	$(call dist-src,dmArchiver,sra2fastq.os$(SLIB_PLATFORM),sra2fastq.sh)
 	$(call dist-app,dmCompressor,dmCompressor)

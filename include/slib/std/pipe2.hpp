@@ -41,78 +41,81 @@
 namespace slib {
     class sPipe2 {
         public:
-            sPipe2();
+            class CmdLine {
+                public:
+                    CmdLine();
+                    CmdLine & operator=(const CmdLine & rhs);
+
+                    CmdLine & exe(const char * exe_name);
+                    CmdLine & vexe(const char * fmt, ...);
+                    CmdLine & arg(const char * arg_val, idx len = 0);
+                    CmdLine & varg(const char * fmt, ...);
+                    CmdLine & copyArgs(const CmdLine & rhs);
+                    CmdLine & cd(const char * dir);
+                    CmdLine & env(const char * name, const char * value, idx value_len = 0);
+                    CmdLine & venv(const char * name, const char * value, ...);
+                    CmdLine & unsetEnv(const char * pattern = "*");
+
+                    const char * printBash(sStr * out = 0) const;
+
+                private:
+                    friend class sPipe2;
+                    const char * getStr(idx pos) const
+                    {
+                        return pos >= 0 ? _buf.ptr(pos) : 0;
+                    }
+                    char * getStr(idx pos)
+                    {
+                        return pos >= 0 ? _buf.ptr(pos) : 0;
+                    }
+                    sStr _buf;
+                    sDic<idx> _env;
+                    sVec<idx> _argv_pos;
+                    idx _exe_pos;
+                    idx _dir_pos;
+            };
+
+            sPipe2(CmdLine * cmd_line = 0);
             ~sPipe2();
-            //! redirect command's standard input
+
+            CmdLine & cmdLine() { return *_cmd_line; }
+            const CmdLine & cmdLine() const { return *_cmd_line; }
+
             sPipe2 & setStdIn(sIO * io);
             sPipe2 & setStdIn(const char * file);
             sPipe2 & setStdIn(int file_desc);
-            //! redirect command's standard output
             sPipe2 & setStdOut(sIO * io);
             sPipe2 & setStdOut(const char * file, bool append = false);
             sPipe2 & setStdOut(int file_desc);
             sPipe2 & discardStdOut();
-            //! redirect command's standard error
             sPipe2 & setStdErr(sIO * io);
             sPipe2 & setStdErr(const char * file, bool append = false);
             sPipe2 & setStdErr(int file_desc);
             sPipe2 & discardStdErr();
-            //! redirect command's standard output and error to the same thing
             sPipe2 & setStdOutErr(sIO * io);
             sPipe2 & setStdOutErr(const char * file, bool append = false);
             sPipe2 & setStdOutErr(int file_desc);
 
-            //! set current working directory for command
-            sPipe2 & setDir(const char * dir);
-            //! (re)define an environment variable for the command
-            sPipe2 & setEnv(const char * name, const char * value, idx value_len = 0);
-            //! unset existing environment variables whose names match a glob pattern
-            sPipe2 & unsetEnv(const char * pattern = "*");
-
-            //! file or directory monitor callback; return true to continue, false to stop process
             typedef bool (*monCb)(idx pid, const char * path, struct stat * st, void * param);
-            //! define a file or directory monitor callback
-            /*! \param cb callback to call; runs in the foreground when executing in foreground mode, or in a new thread when executing in background or daemon mode
-                \param paths00 00-list of files or directories to monitor; cb will be called if these files' or directories' timestamps or sizes change; 0 to ignore
-                \param param parameter for cb
-                \param timeout_sec files will be monitored with this frequency; or if always_call is true, callback will always be called with this frequency
-                \param always_call always call the callback, even if no files/dirs changed */
             sPipe2 & setMonitor(monCb cb, const char * paths00, void * param = 0, real timeout_sec = 5, bool always_call = false);
 
-            //! limit total process run time
             sPipe2 & limitTime(idx sec);
-            //! limit max CPU time
             sPipe2 & limitCPU(idx sec);
-            //! soft-limit max CPU time
             sPipe2 & hardLimitCPU(idx sec);
-            //! limit max size of heap and data segment
             sPipe2 & limitMem(idx size);
-            //! soft-limit max size of heap and data segment
             sPipe2 & hardLimitMem(idx size);
 
-            //! specify name or path of the executable
-            sPipe2 & setExe(const char * exe);
-            //! add a command-line argument
-            sPipe2 & addArg(const char * arg, idx len = 0);
-
-            //! execute a command specified by setExe() / addArg(), and wait until it exits
             sRC execute(idx * out_retcode = 0);
 
             typedef void (*doneCb)(idx retcode, void * param);
 
-            //! execute a command specified by setExe() / addArg() in the background, and call a callback when it exits
             sRC executeBG(doneCb cb = 0, void * param = 0);
 
-            //! spawn a command specified by setExe() / addArg() as a detached daemon, and call a callback if it exits before our process finishes
             sRC executeDaemon(doneCb cb = 0, void * param = 0);
 
-            //! check if executed command is still running
             bool running() const { return _is_running; }
-            //! retrieve PID of command (former PID, if it is no longer running)
             idx pid() const { return _pid; }
-            //! retrieve return code (if process is finished)
             idx retcode() const { return _retcode; }
-            //! kill the command if it's still running
             bool kill(idx sig = 9);
 
         private:
@@ -122,12 +125,12 @@ namespace slib {
                 eDaemon
             };
 
+            CmdLine * _cmd_line;
+            CmdLine _local_cmd_line;
+
             sStr _buf;
             char * getStr(idx pos) { return pos >= 0 ? _buf.ptr(pos) : 0; }
-            sDic<idx> _env;
-            sVec<idx> _argv_pos;
-            idx _exe_pos;
-            idx _dir_pos;
+
             struct IO {
                 sIO * io;
                 idx path_pos;
@@ -175,7 +178,7 @@ namespace slib {
             void * priv;
 
             sRC execute(ExecMode mode, doneCb cb, void * param);
-            void handleCallbacks(bool in_thread);
+            void handleCallbacks(bool in_thread, sRC * out_rc = 0);
             void monitorFiles();
 
             static bool openPipeFDs(int pipe_fds[2], bool nonblock_read, bool nonblock_write);
@@ -184,9 +187,9 @@ namespace slib {
 
 #ifndef SLIB_WIN
             pthread_mutex_t _waiter_timer_mtx;
-            pthread_t _waiter_tid; // waits for process termination, reaps zombies; reaped in handleCallbacks()
-            pthread_t _timer_tid; // timer for file monitoring and CPU limit; reaped in handleCallbacks()
-            pthread_t _callback_tid; // handles callbacks if in background mode
+            pthread_t _waiter_tid;
+            pthread_t _timer_tid;
+            pthread_t _callback_tid;
             int _self_pipe_fds[2];
 
             void forkedChild() __attribute__ ((noreturn));

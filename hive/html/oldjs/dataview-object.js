@@ -27,16 +27,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Generator functions
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 vDV.generateObjView=function( form, content  ) 
 {
 
-    //var jsonObj = eval ('('+content+')');
     var jsonObj=objView_listToJSon( content );
     
     if(form.info) jsonObj.info=form.info;
@@ -57,10 +51,8 @@ vDV.generateObjView=function( form, content  )
     }        
     t+="<table width='100%'>";
          
-        // add the headers
         t+=objView_generateHeaderText(form, checkbox,jsonObj.fields,elemID);
             
-        // add the table content itself 
             
         for( var ir=0; ir<jsonObj.records.length ; ++ir) { 
             t+=objView_generateRowText(checkbox,jsonObj.records[ir], jsonObj.fields,elemID,jsonObj.recordActions,form,ir,jsonObj.info);
@@ -75,11 +67,6 @@ vDV.generateObjView=function( form, content  )
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Helper utility functions
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 function objView_listToJSon( content )
 {
@@ -110,7 +97,6 @@ function objView_listToJSon( content )
                     align: 'left',
                     fclass:'ColumnHeading',
                     dataClass:'RowRegular',
-                    // width: ??
                     typ: 'Column '+cols[ic]
                     };
             } 
@@ -146,11 +132,6 @@ function objView_jafar(form, field, tname, nameparam)
 }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ functions generating different coomponents
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 
 
@@ -183,7 +164,6 @@ function objView_generateHeaderText(form, checkbox,fields,objectID)
         t+="<td ";
         t+=" id='"+fld.id+"'";
         t+=" class="+fld.fclass+" ";
-        //t+=" width="+fld.width+"%";
         if(cellWD)t+=" width="+cellWD + (form.widthInPixels ? "" : "%");
         t+=" align="+fld.align;
         t+=" title="+fld.tip;
@@ -195,7 +175,6 @@ function objView_generateHeaderText(form, checkbox,fields,objectID)
     return t;
     
 }
-//-------------------------------------------------------------------------------
 function objView_generateRowText(checkbox,record,fields,objectID,recordActions,form,rowSequence,info)
 {
     var t="";
@@ -252,7 +231,6 @@ function objView_generateRowText(checkbox,record,fields,objectID,recordActions,f
     t+="</tr>";
     return t;
 }
-//-------------------------------------------------------------------------------
 function f_selectRecord(objectID,recordID,checkedFG){
     var rowID = objectID + "_" + recordID;
     if (checkedFG==true){
@@ -263,7 +241,6 @@ function f_selectRecord(objectID,recordID,checkedFG){
         
     }
 }
-//-------------------------------------------------------------------------------
 function objView_generateObjectActions(objectActions, objectID)
 {
     var t="";
@@ -288,7 +265,6 @@ function objView_generateObjectActions(objectActions, objectID)
     }
        return t;
 }
-//-------------------------------------------------------------------------------
 function objView_generateGroupActions(groupActions, objectID, messages){
 
     var t;
@@ -323,7 +299,6 @@ function objView_generateGroupActions(groupActions, objectID, messages){
     return t;
 }
 
-//-------------------------------------------------------------------------------
 function    selectGroupAction(groupActionField){
     var objectID = groupActionField.name.replace("ga_","");
     var groupActionFull = groupActionField.value;
@@ -351,7 +326,6 @@ function    selectGroupAction(groupActionField){
     }
 
 }
-// ----------------------------------------------------------------------////////////////////////////////////////////////////////////
 function f_submitGroupAction(objectID, msg_GA_Dropdown_Validate , msg_GA_Checkbox_Validate){
     var groupActionField = "ga_" + objectID;
     var selectedGroupActionFull = document.getElementById(groupActionField).value;
@@ -373,7 +347,6 @@ function f_submitGroupAction(objectID, msg_GA_Dropdown_Validate , msg_GA_Checkbo
         }
     }
 }
-//----------------------------------------------------------------------
 
 function f_checkSelection(objectID){
     var checkboxName = objectID + "_c_"; 
@@ -393,7 +366,6 @@ function f_checkSelection(objectID){
     }
     return selectionFound;
 }
-//----------------------------------------------------------------------
 function f_selectRecords(objectID){
     var checkboxName = objectID + "_c_"; 
     var all = document.getElementsByTagName("*");
@@ -414,7 +386,6 @@ function f_selectRecords(objectID){
     
     return selectedRecords;
 }
-//-----------------------------------------------------------------------
 function objView_generateObjectFilter(objectID, messages){
         var t="";
         t+="<input type=" + '"' + "text" + '"' 
@@ -430,19 +401,17 @@ function objView_generateObjectFilter(objectID, messages){
         + ">";
         return t;
 }
-//----------------------------------------------------------------------
 function f_search(objectID, msg_GA_Search_Validate){
     var searchFieldName = "search_" + objectID;
     var searchString = document.getElementById(searchFieldName).value;
     if (searchString==""){
-        alert (msg_GA_Search_Validate); ////////////////////////////////alert("Please enter a search criteria.");
+        alert (msg_GA_Search_Validate);
         document.getElementById(searchFieldName).focus();
     }
     else {
         alert(searchString);
     }
 }
-//----------------------------------------------------------------------
 function objView_generateGroupFilters(objectFilters, objectID){
 
     var t = "";
@@ -513,11 +482,9 @@ function objView_generateGroupFilters(objectFilters, objectID){
     }
     return t;
 }
-//--------------------------------------------------------------------------------------------------
 function f_filterByCheckbox(objectID,Filter_ID,Value_ID,Selection_FG){
     alert(objectID + ' ' + Filter_ID + ' ' + Value_ID + ' ' + Selection_FG);
 }
-//----------------------------------------------------------------------
 function selectObjectFilter(objectFilterField, objectID){
     var objectID = objectFilterField.name.replace("gf_","");
     var objectFilterFull = objectFilterField.value;
@@ -558,7 +525,6 @@ function selectObjectFilter(objectFilterField, objectID){
     }
 
 }
-// --------------------------------------------------------------------------------------------------
 function f_CheckUncheckButtons(objectID, messages, checkbox){ 
     var t="";
     if (checkbox==1){
@@ -578,7 +544,6 @@ function f_CheckUncheckButtons(objectID, messages, checkbox){
     } else {};
     return t;
 }
-//--------------------------------------------------------------------------------------------------
 function f_selectObjectCheckbox(objectID){
     var checkboxName = objectID + "_c_"; 
     var all = document.getElementsByTagName("*");
@@ -597,7 +562,6 @@ function f_selectObjectCheckbox(objectID){
         }
     }
 }
-//-------------------------------------------------------------------------------    
     function f_cellContent(form,field, fieldSequence,fieldValue,record,objectID,fieldType,recordActions,rowSequence){
         var val2return = "";
         var val_2show = "";
@@ -628,14 +592,11 @@ function f_selectObjectCheckbox(objectID){
             val_2show = fieldValue;
         }
         var lnkl=objView_jafar(form, field, field.tag, "link");
-        //if (form.linkList[fieldSequence] && fieldType!='actions'){
         if( lnkl && fieldType!='actions'){
-            //if (form.linkList[fieldSequence]!=''){
             if(lnkl!=''){
                 val_2show = "<a href=" 
                    + '"' 
                    + "javascript:"
-                   //+ form.linkList[fieldSequence]
                    + lnkl
                    + "('" + objectID + "','" + record.id + "')"
                    + '"'
@@ -653,12 +614,6 @@ function f_selectObjectCheckbox(objectID){
           cellBG = " bgcolor='" + form.colorbg[rowSequence%form.colorbg.length] + "'";
       }
     
-      //if (form.width){
-        //  if (form.width[rowSequence]){
-            //  cellWD = " width='" + form.width[rowSequence] + "'";
-          //}
-       //} else {
-       //}      
       
         val2return = "<td id='"+objectID+"_"+record.id+"_"+ fieldSequence +"' "
                      + " class='" + field.dataClass + "'" 
@@ -670,7 +625,6 @@ function f_selectObjectCheckbox(objectID){
    
         return val2return;
     }
-//-------------------------------------------------------------------------------
     function f_submitFilter(filterButton){
         alert(filterButton.name);
     }
@@ -680,11 +634,6 @@ function f_selectObjectCheckbox(objectID){
     }
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Registration
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 vDV.registerViewer( "objview", vDV.generateObjView) ;
 

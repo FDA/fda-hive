@@ -44,7 +44,6 @@ function vjUserUsageView(viewer)
     }
     var googleGraphView1= new vjGoogleGraphView ({
           name:viewer.name,
-         // formObject: document.forms['form-uusage'],
           data: viewer.data,
           precompute:precompute,
           options:{ height: '400', colors:['#a0a0ff','ffa0a0'] , legend: 'top' },
@@ -54,7 +53,6 @@ function vjUserUsageView(viewer)
 
     var googleGraphView2= new vjGoogleGraphView ({
         name:viewer.name,
-       // formObject: document.forms['form-uusage'],
         data: viewer.data,
         precompute:precompute + "if(ir>0){node.valueAcc=parseInt(this.rows[ir-1].valueAcc) + parseInt(node.value);}else{node.valueAcc = parseInt(node.value);} " ,
         options:{ height: '400', colors:['#a0a0ff','ffa0a0'] , legend: 'bottom'},
@@ -68,4 +66,3 @@ function vjUserUsageView(viewer)
 };
 
 
-//# sourceURL = getBaseUrl() + "/js/vjUserUsageView.js"

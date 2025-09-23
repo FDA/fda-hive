@@ -32,21 +32,18 @@ function vjSVG_Sankey(serie,source)
 {
 
     vjSVG_Plot.call(this, source);
-    // ------Normal formating----------//
     this.fillN='#D0D0D0 '
         ,this.strokeN='#D0D0D0 '
         ,this.fillOpacityN=1
         ,this.strokeWidthN=0.5
         ,this.strokeOpacityN=0.5
     ;
-    // ------Highlighted formating----------//
     this.fillH='#A8A8A8'
         ,this.strokeH='#A8A8A8'
         ,this.fillOpacityH=1
         ,this.strokeWidthH=0.7
         ,this.strokeOpacityH=0.7
     ;
-    // ------Selected formating----------//
     this.fillS='#566e7e'
         ,this.strokeS='#566e7e'
         ,this.fillOpacityS=1
@@ -141,22 +138,13 @@ function vjSVG_Sankey(serie,source)
 
     this.linkMouseClick = function(ir,svgObj,evt){
         var obj = this.getObjbySVG(svgObj);
-//        var svgChild=0;
 
         var clone=this.getSVGbySankeyNode( this.getSankeyNodebyObj( obj.cloneFrom ) );
-//        if(clone.children.length)
-//            clone=clone.children[0];
-//
-//        svgChild=this.getSVGbyObj(clone);
         if(clone){
             this.cloneMouseClick(null,clone,evt);
         }
 
         clone=this.getSVGbySankeyNode( this.getSankeyNodebyObj( obj.cloneTo ) );
-//        if(clone.children.length)
-//            clone=clone.children[0];
-//
-//        svgChild=this.getSVGbyObj(clone);
         if(clone){
             this.cloneMouseClick(null,clone,evt);
         }
@@ -349,7 +337,6 @@ function vjSVG_Sankey(serie,source)
         if (this.isMosaic() && !isSimilariyGap) {
             for(var it = 0, is = 0  ; it < coords.length ; ++it ){
                 is = parseInt(coords[it].iSim);
-//                if( !isNumber(is) ) continue;
                 legend_colors.push(colors[is]);
                 if(text.length)text+="\n";
                 text+=''+this.References[""+(is+1)]+": "+(pos_obj.sim[is]*100).toFixed(2)+"%";
@@ -392,13 +379,11 @@ function vjSVG_Sankey(serie,source)
             hgroup.parentElement.removeChild(hgroup);
         }
         if(!isok(radius)) radius=6;
-        var svgChd = document.createElementNS("http://www.w3.org/2000/svg","g"); // create
-                                                                                    // SVG
-                                                                                    // Element
+        var svgChd = document.createElementNS("http:
         svgChd.setAttribute("id","HighlightGroup");
 
         for(var ih = coordinates.length -1 ; ih >=0 ; --ih ){
-            var HighlightCircle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+            var HighlightCircle = document.createElementNS("http:
             HighlightCircle.setAttribute("cx",coordinates[ih].x);
             HighlightCircle.setAttribute("cy",coordinates[ih].y);
             HighlightCircle.setAttribute("r",radius);
@@ -417,7 +402,7 @@ function vjSVG_Sankey(serie,source)
     };
 
 
-    this.createCloneConnections=function(cloneA1,cloneB1,state){
+    this.createCloneConnections=function(cloneA1,cloneB1,state,isLink){
         var cordX1=0,cordY1=0,cordX2=0,cordY2=0,indY=0;
         var cloneA = this.getObjbySankeyNode(cloneA1);
         if(!cloneA)return ;
@@ -429,15 +414,9 @@ function vjSVG_Sankey(serie,source)
         var lengthB=cloneB.coordinates.length;
         var lengthBy=lengthB;
         
-//        var lengthA1=cloneA1._positions.length;
-//        var lengthB1=cloneB1._positions.length;
-//        var lengthAy1=lengthA1;
-//        var lengthBy1=lengthB1;
         
         var cloneAy=cloneA,cloneBy=cloneB;
         var cloneAy1=cloneA1,cloneBy1=cloneB1;
-
-        //Ensure that A will be lower than B
         if(cloneA.coordinates[0].y>cloneB.coordinates[0].y){
             cloneAy=cloneB;
             cloneBy=cloneA;
@@ -446,10 +425,8 @@ function vjSVG_Sankey(serie,source)
             
             cloneAy1=cloneB1;
             cloneBy1=cloneA1;
-//            lengthAy1=lengthB1;
-//            lengthBy1=lengthA1;
         }
-        if(!state){ //bifurcation
+        if(!state){
             if( cloneAy1.parent == cloneBy1 ) {
                 cordX1=cloneAy.coordinates[0].x;
                 cordY1=cloneAy.coordinates[0].y;
@@ -501,8 +478,10 @@ function vjSVG_Sankey(serie,source)
         linkSource.lineCmd='L';
         
         var link= new vjSVG_trajectory(linkSource);
-//        link.brush={fill:'grey',"fill-opacity":1};
-        link.pen={"stroke-opacity":0.2,"stroke-width":2,"stroke":"grey","stroke-linejoin":"round"};
+        var link_color = "grey";
+        if(isLink)
+            link_color = state?"red":"green";
+        link.pen={"stroke-opacity":0.2,"stroke-width":2,"stroke":link_color,"stroke-linejoin":"round"};
         link.svgID=link.objID;
         link.handler = {
                 'onmouseover' : "function:vjObjFunc('linkMouseOver','" + this.objID + "')",
@@ -518,9 +497,6 @@ function vjSVG_Sankey(serie,source)
         if(!node._positions || !node._positions.length) {
             return 0;
         }
-        /*--------------------
-             extract coverage
-         ---------------------*/
 
         var svgNode=new Object();
         svgNode.coordinates = 0;svgNode.children = new Array();
@@ -567,17 +543,14 @@ function vjSVG_Sankey(serie,source)
         };
         node._svgID = myTraj.objID;
         myTraj._branchID = node._branchID;
-//        if( !this.isMosaic() ) {
             myTraj.handler = {
                     'onmouseover' : "function:vjObjFunc('cloneMouseOver','" + this.objID + "')",
                     'onmouseout': "function:vjObjFunc('cloneMouseOut','" + this.objID + "')",
                     "onclick":"function:vjObjFunc('cloneMouseClick','" + this.objID + "')",
                     "onmousemove" : "function:vjObjFunc('cloneMouseMove','"+this.objID+"')"
             };
-//        }
         myTraj.pen={"stroke-opacity":this.strokeOpacityN};
 
-//        this.simLength=zoomlevel?this.simLength:0;
 
         if( this.isMosaic() ){
             myTraj.brush['fill-opacity']=1;
@@ -658,7 +631,7 @@ function vjSVG_Sankey(serie,source)
         simObjArray.children = new Array();
         if(!svgTraj.map) svgTraj.map = new Array() ;
 
-        var curCoordArr= new Array();//simObjArray.coordinates;
+        var curCoordArr= new Array();
         var shifts = new Array();
         var cur_ind , pos, sim, prev_pos = similArray.slice(-1)[0];
         for ( var ip = 0; ip < similArray.length; ++ip) {
@@ -757,7 +730,6 @@ function vjSVG_Sankey(serie,source)
 
     };
 
-    // REVERSE MATRIX MANIPULATIONS
     this.getRevI = function (arr,i){
         return arr.length-i-1;
     };
@@ -769,21 +741,18 @@ function vjSVG_Sankey(serie,source)
     };
 
 
-    // BOOLEAN PLOT isa MOSAIC
     this.isMosaic = function() {
         if(this.sankey._isMosaic && !this._hideMosaic)
             return true;
         return false;
     };
 
-    // BOOLEAN SVG isa SIMILARITY
     this.isSVGsimilarity = function (svg) {
         var obj = this.getObjbySVG(svg);
         if(!obj )return ;
         return this.isObjsimilarity(obj);
     };
 
-    // BOOLEAN Obj isa SIMILARITY
     this.isObjsimilarity = function (obj) {
         if(!obj)return ;
         if( obj._iSim != undefined )
@@ -792,7 +761,6 @@ function vjSVG_Sankey(serie,source)
     };
 
 
-    //              -> SANKEY node
     this.getSankeyNodebyObj = function (obj) {
         if(!obj)return;
         var id = obj._branchID;
@@ -806,7 +774,6 @@ function vjSVG_Sankey(serie,source)
         return this.getSankeyNodebyObj(obj);
     };
 
-    //SANKEY node ->
     this.getObjbySankeyNode = function (node) {
         if(!node || !node._svgID) return ;
         return vjObj[node._svgID];
@@ -818,7 +785,6 @@ function vjSVG_Sankey(serie,source)
         return this.getSVGbyObj(obj);
     };
 
-    //Object   <---->   SVG html elements
     this.getSVGbyObj = function (obj) {
         if(!obj || !obj.svgID) return ;
         var svgID = obj.svgID;
@@ -830,14 +796,12 @@ function vjSVG_Sankey(serie,source)
         return vjObj[svgObj.id.replace("_group","")];
     };
 
-    //ID        -> sankeyNode
     this.findCloneByID = function (cloneID){
         if( this.sankey )
             return this.sankey.findCloneByID(cloneID);
         else
             return;
     };
-    //ID        -> SVG element
     this.findSVGbyID = function (cloneID,array){
         var node = this.findCloneByID(cloneID);
         if(!node) return ;
@@ -851,7 +815,7 @@ function vjSVG_Sankey(serie,source)
     };
 
     this.getSimSVGDictbySimPos = function ( simObj, pos ) {
-        var cloneObj = simObj.getParent(); //sim->group->clone
+        var cloneObj = simObj.getParent();
         if( !cloneObj ) return ;
         return this.getSimCoordDictbyClonePos( cloneObj, simObj._start + pos );
     };
@@ -1232,7 +1196,6 @@ function vjSVG_Sankey(serie,source)
     
     this.constructLegend = function(serie) {
         if(serie.name != this.collection[0].name) return;
-//        var ref_tbl = new vjTable(vjDS[this.collection[1].name].data,0,vjTable_hasHeader);
         if(!this._constrcuted) {
             this.constructSankey(serie);
         }
@@ -1282,29 +1245,18 @@ function vjSVG_Sankey(serie,source)
         var boxArray=new Array();
         for(var iT=0; iT < trajArray.length ; ++iT){
             var clone=this.getSankeyNodebyObj(trajArray[iT]);
-//            if(!clone.merge)continue;
     
             var cloneM = clone.merge;
             var cloneB = clone.parent;
     
             var boxM,boxB;
-//            if( cloneM && clone._branchEnd <= cloneM._end ){
             if( cloneM && cloneM.depth>0 && !this.isNdrawMergeLines ){
-//                alert("merge");
-//                if( clone._branchEnd > cloneM._end ) {
-//                    alert("Something is wrong in "+clone._branchID+" end:"+clone._end+" merged to:"+cloneM._branchID+"("+cloneM._start+"-"+cloneM._end+") pos:"+clone._branchEnd);
-//                }
-                boxM=this.createCloneConnections(clone,cloneM,1);
+                boxM=this.createCloneConnections(clone,cloneM,1,cloneM!=cloneB);
                 if( boxM )
                     boxArray.push(boxM);
             }
-//            if( cloneB && clone._branchStart >=  cloneB._start){
             if( cloneB && cloneB.depth>0 && !this.isNdrawBifurcateLines ){
-//                alert("bif");
-//                if( clone._branchStart <  cloneB._start ) {
-//                    alert("Something is wrong in "+clone._branchID+" end:"+clone._start+" bifurcated from:"+cloneB._branchID+"("+cloneB._start+"-"+cloneB._end+") pos:"+clone._branchStart);
-//                }
-                boxB=this.createCloneConnections(clone,cloneB,0);
+                boxB=this.createCloneConnections(clone,cloneB,0,cloneM!=cloneB);
                 if( boxB )
                     boxArray.push(boxB);
             }

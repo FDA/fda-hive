@@ -30,18 +30,10 @@
 #include <ssci/math/nr/nrutil.h>
 #include <math.h>
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ prepare Savitsky Golay filter Coefficients
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 
-// savitsky golay noise filtering algorithms
 void sMathNR::SavGol::computeFilterCoef(real c[], idx np, idx nl, idx nr, idx ld, idx m)
 {
-    //void lubksb(real **a, idx n, idx *indx, real b[]);
-    //void ludcmp(real **a, idx n, idx *indx, real *d);
     idx imj,ipj,j,k,kk,mm,*indx;
     real d,fac,sum,**a,*b;
 
@@ -96,16 +88,16 @@ void sMathNR::SavGol::smooth( real * dst, real * src )
     sSet(dst,0,datadim);
     idx ii;
 
-    for(ii=0; ii<left; ++ii)dst[ii]=src[ii]; // leftmost poitns which have no 'left' neighbors 
+    for(ii=0; ii<left; ++ii)dst[ii]=src[ii];
 
     for(; ii<datadim-right; ++ii) {
-        dst[ii]=cSavGol[0+1]*src[ii]; // self 
-        for(idx il=0; il<left;++il)  // left points 
+        dst[ii]=cSavGol[0+1]*src[ii];
+        for(idx il=0; il<left;++il)
             dst[ii]+=cSavGol[il+1+1]*src[ii-il-1];
-        for(idx ir=0; ir<right;++ir) // right points 
+        for(idx ir=0; ir<right;++ir)
             dst[ii]+=cSavGol[np-ir-1+1]*src[ii+ir+1];
     }
-    for(; ii<datadim; ++ii)dst[ii]=src[ii]; // rightmost points which have no 'right' neighbors 
+    for(; ii<datadim; ++ii)dst[ii]=src[ii];
 }
 
 

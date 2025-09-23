@@ -36,26 +36,22 @@ sFileSorted * sFileSorted::init( const char * flnm, idx lbackuplength)
     backuplength=lbackuplength;
     sStr Buf; char * buf=Buf.resize(backuplength);
 
-    // open the file
     fl=fopen(flnm,"rb");if(!fl)return 0;
 
-    // read the first gi
     fscanf(fl,"%" DEC, &firstGI);
 
-    // position to the end and get the size 
     fseek(fl,0,SEEK_END);
     size=ftell(fl);
     
-    // position to somewhere before the end 
     if(size<backuplength)backuplength=size;
     fseek(fl,(long)(size-backuplength), SEEK_SET);
     
     
     
-    fgets(buf, (int)backuplength, fl) ; // skip a string 
+    fgets(buf, (int)backuplength, fl) ;
     
     idx pos;
-    while ( !feof(fl) ){ // read until it is readeable 
+    while ( !feof(fl) ){
         pos=ftell(fl);
         if( fscanf(fl,"%" DEC, &lastGI) >0)lastPos=pos;
         fgets(buf, (int)backuplength, fl ) ;
@@ -80,11 +76,9 @@ idx sFileSorted::search( idx gi)
     idx pos=sNotIdx, posS=0;
     idx posE=size;
     idx giS=firstGI;
-    idx giE=lastGI;
     idx guesspos;
 
     for ( i=0; posS!=posE ; ++i ){
-        //guesspos= (idx) (posS+1.*( gi - giS)*(posE-posS)/ (giE-giS) );
         guesspos= (idx) (1.*posS+posE)/2;
         fseek(fl,(long)guesspos, SEEK_SET);
         fgets(buf,sizeof(buf),fl);
@@ -95,13 +89,13 @@ idx sFileSorted::search( idx gi)
         if(gi == giCur) 
             {fseek(fl,(long)pos,SEEK_SET);return pos;}
         else if(gi<giCur) 
-            {if(posE==pos) break;posE=pos;giE=giCur;}
+            {if(posE==pos) break;posE=pos;}
         else if(gi>giCur) 
-            {if(posS==pos) break;posS=pos;giS=giCur;}
+            {if(posS==pos) break;posS=pos;}
     }
 
     fseek(fl,(long)posS, SEEK_SET);
-    for( giCur=giS; giCur<gi ; ){ // read until it is readeable 
+    for( giCur=giS; giCur<gi ; ){
         pos=ftell(fl);
         if( fscanf(fl,"%" DEC, &giCur )<1) break;
         fgets(buf,sizeof(buf),fl);
@@ -121,14 +115,11 @@ idx sFileSorted::search( const char * acc,const char * separ)
     idx i;
     idx pos=sNotIdx, posS=0;
     idx posE=size;
-    //idx giS=firstGI;
-    //idx giE=lastGI;
     idx guesspos;
     idx res=-1;
     char * p;
 
     for ( i=0; posS!=posE ; ++i ){
-        //guesspos= (idx) (posS+1.*( gi - giS)*(posE-posS)/ (giE-giS) );
         guesspos= (idx) ((1.*posS+posE)/2);
         fseek(fl,(long)guesspos, SEEK_SET);
         fgets(buf,sizeof(buf),fl);
@@ -142,12 +133,12 @@ idx sFileSorted::search( const char * acc,const char * separ)
             {fseek(fl,(long)pos,SEEK_SET);return pos;}
         else if(res<0) 
             {if(posE==pos) break;posE=pos;}
-        else //if(res>0) 
+        else
             {if(posS==pos) break;posS=pos;}
     }
 
     fseek(fl,(long)posS, SEEK_SET);
-    for( ; res<0  ; ){ // read until it is readeable 
+    for( ; res<0  ; ){
         pos=ftell(fl);
         fgets(accCur,sizeof(accCur)-1, fl);
         p=strpbrk(accCur,separ); if(p)*p=0;
@@ -167,23 +158,18 @@ idx sFileSorted::searchReverse( idx pos, idx gi)
     sStr Buf; char * buf=Buf.resize(backuplength);
         
     if(pos==0)return pos;
-    // backup until the gi is less than the one we look for
     while( gi==giCur ){
-        // position
         if(pos>backuplength)pos-=backuplength;else pos=0;
         fseek(fl,(long)pos,SEEK_SET);
         fgets(buf,sizeof(buf),fl);
         pos=ftell(fl);
         
-        // read 
         fscanf (fl, "%" DEC, &giCur);  
         fgets(buf,sizeof(buf),fl);
-        // compare
         if( giCur>gi)
             return (idx)(-1);
     }
-    //fseek(fl,pos,SEEK_SET);
-    for( ; giCur<gi ; ){ // read until we get the first line with the gi we want
+    for( ; giCur<gi ; ){
         pos=ftell(fl);
         if( fscanf(fl,"%" DEC, &giCur )<1) break;
         fgets(buf,sizeof(buf),fl);

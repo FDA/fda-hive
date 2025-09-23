@@ -58,6 +58,18 @@ SET @admins_membership = CONCAT('( ((g.groupPath in (\'', @system_group, '\',\''
 SET @admins_permission = 3; -- browse, read
 SET @admins_flags = 2; -- down
 
+SET @type_editors_group = '/system/type-editors/';
+SET @type_editors_group_id = NULL;
+INSERT INTO UPUser SET
+    is_admin_fg = FALSE, is_active_fg = TRUE, is_email_valid_fg = FALSE, `type` = 'system',
+    email = '', pswd = '--not an account--', first_name = @type_editors_group, last_name = 'Type editors', createTm = CURRENT_TIMESTAMP;
+SET @type_editors_group_id = LAST_INSERT_ID();
+INSERT INTO UPGroup SET userID = @type_editors_group_id, flags = -1, is_active_fg = TRUE, groupPath = @type_editors_group, createTm = CURRENT_TIMESTAMP;
+SET @type_editors_group_id = LAST_INSERT_ID();
+SET @type_editors_membership = CONCAT('( ((g.groupPath in (\'', @system_group, '\',\'', @type_editors_group, '\')) AND (p.flags & 2)) OR (( groupPath like \'', @type_editors_group, '%\') AND (p.flags & 4)) )');
+SET @type_editors_permission = 3; -- browse, read
+SET @type_editors_flags = 2; -- down
+
 -- anything accessing the system is automatic member of this group
 SET @everyone_group = '/everyone/';
 SET @everyone_group_id = NULL;
@@ -101,7 +113,7 @@ SET @users_flags = 2; -- down
 SET @guest_user = 'guest';
 INSERT INTO UPUser SET
     is_admin_fg = FALSE, is_active_fg = TRUE, is_email_valid_fg = FALSE, `type` = 'system', logCount = 1,
-    email = @guest_user, pswd = 'pbkdf2_sha256$100000$WZ98TEaE8jlu$bFXY8FRLCf00YKR7awUUtS88vpiN2jkGr5f85azqrnQ=', first_name = 'Guest', last_name = '', createTm = CURRENT_TIMESTAMP;
+    email = @guest_user, pswd = 'insert you password here, its an optional account', first_name = 'Guest', last_name = '', createTm = CURRENT_TIMESTAMP;
 SET @guest_id = LAST_INSERT_ID();
 INSERT INTO UPGroup SET userID = @guest_id, flags = -1, is_active_fg = TRUE, groupPath = CONCAT(@public_group, @guest_user), createTm = CURRENT_TIMESTAMP;
 

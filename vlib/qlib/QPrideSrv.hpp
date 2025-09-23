@@ -102,4 +102,4 @@ namespace slib {
 
 }
 
-#endif // _QPrideSrv_qLib_hpp
+#endif 

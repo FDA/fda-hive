@@ -35,7 +35,7 @@
 
 namespace slib
 {
-    class sRand { // lower level functions
+    class sRand {
         typedef idx idxlong;
     private:
         static idx randomFirstCall;
@@ -55,11 +55,11 @@ namespace slib
 
         static real expRand(real lambda);
         static void dirichletRand(real * p, real * rates, idx dim);
-        static void dirichletRand(real * p, idx dim); // Default rate = 1.0
+        static void dirichletRand(real * p, idx dim);
         static idx categoricalRand(real * cdf, idx dim);
 
         static inline udx rand_xorshf96(void)
-        {          //period 2^96-1
+        {
             static udx x=123456789, y=362436069, z=521288629;
             udx long t;
             x ^= x << 16;
@@ -114,8 +114,7 @@ namespace slib
     };
 }
 
-#endif // sMath_rand_hpp
-
+#endif 
 
 
 

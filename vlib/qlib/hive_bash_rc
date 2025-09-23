@@ -1,4 +1,3 @@
-
 HISTFILESIZE=10000
 HISTCONTROL=erasedups
 HISTTIMEFORMAT="%Y/%m/%dT%H:%M:%S "
@@ -27,7 +26,7 @@ hive_ssh2host() {
 }
 
 hive_cd2storage() {
-    d=`qapp -user qapp -qcd $*`
+    d=`qapp.os${os} -user qapp -qcd $*`
     if [ -d "$d" ]; then
         cd "$d"
     elif [ ! "x$d" = "x" ]; then
@@ -58,9 +57,9 @@ hive_qmon() {
         filter="$2"
     fi
     watch -n $secs "echo \"HOST %CPU ELAPSED  +CPUt IOlug mRES   mVRT %MEM COMMAND\"; \
-                    qa=\`which qapp\` && cd \`dirname \${qa}\` && ./qapp -shall psp \`dirname \${qa}\` | \
+                    qa=\`which qapp.os${os}\` && cd \`dirname \${qa}\` && ./qapp.os${os} -shall psp \`dirname \${qa}\` | \
                     awk -v LAG=3,4 -v POS=5,6 -v POWER=1,1 '$awk_b2hr' | \
-                    awk '{if(/^HOST/){h=substr(\$2,2)}else if(/^ ?[0-9]/&&\$0!~/$filter/){\$1=\"\";print h \" \" \$0}}' | sort -n -r -k 2,2 -k 4,4"
+                    awk '{if(/^HOST/){h=substr(\$2,2)}else if(/^ ?[0-9]/&&\$0!~/$filter/){\$1=\"\";print h \" \" \$0}}' | sort -n -r -k 3,3 -k 2,2"
 }
 
 hive_history_grep() {
@@ -123,16 +122,11 @@ alias psu="ps -u $user"
 alias hg='hive_history_grep'
 alias psp="hive_psp $user"
 alias ssh='ssh -X'
+alias qapp="qapp.os${os}"
 alias qssh='hive_ssh2host'
 alias qcd='hive_cd2storage'
 alias qmon='hive_qmon'
 alias makeall='make dbg && make && make rel && make'
-
-if [ -d "/home/$user/bin" ]; then
-    qp_home=/home/$user/bin
-    export PATH=$PATH:$qp_home
-    alias ldl="export LD_LIBRARY_PATH=$qp_home:$LD_LIBRARY_PATH"
-fi
 
 # read config file
 cfg_pfx=qapp_cfg_
@@ -158,10 +152,9 @@ export HIVE_DB_PORT=$port
 export HIVE_DB=`qapp_cfg_QPride db QPride`
 export HIVE_DB_USER=`qapp_cfg_QPride user qpride`
 export HIVE_DB_PWD=`qapp_cfg_QPride pass q666pride`
-
-# avoid passwords on command line, mysql will pick up the env var
+# avoid passwords on command line, mariadb will pick up the env var
 export MYSQL_PWD=$HIVE_DB_PWD
-alias qdb="mysql -h $HIVE_DB_HOST -P$HIVE_DB_PORT -u $HIVE_DB_USER $HIVE_DB"
+alias qdb="mariadb -h $HIVE_DB_HOST -P$HIVE_DB_PORT -u $HIVE_DB_USER $HIVE_DB"
 
 FG=`qapp_cfg_QPride shellPromptColorFG 31`
 BG=`qapp_cfg_QPride shellPromptColorBG --`
@@ -173,3 +166,24 @@ else
     PS1="\T \[\033[${FG};${BG}m\]\u@\h\[\033[0m\] \w>"
 fi
 
+# chicken/egg since resourceRoot in db and i need db to initialize paths, move resourceRoot to qapp.cfg!!!
+myss=`which mariadb 2>/dev/null`
+if [[ -z ${myss} ]]; then
+    # hope to find it in ~/bin
+    myss=`find ~ -maxdepth 2 -executable -name mariadb | head -1`
+fi
+if [[ ! -z ${myss} ]]; then
+    qp_bin=`echo "select val from QPCfg where par = 'qm.resourceRoot'" | ${myss} -h $HIVE_DB_HOST -P$HIVE_DB_PORT -u $HIVE_DB_USER $HIVE_DB | tail -1`
+fi
+if [ ! -d "${qp_bin}" ]; then
+    if [[ -x ${HOME}/bin/qapp.os${os} ]]; then
+        qp_bin="${HOME}/bin"
+    fi
+fi
+if [ -d "${qp_bin}" ]; then
+    export PATH=$PATH:${qp_bin}
+    alias ldl="export LD_LIBRARY_PATH=${qp_bin}:${LD_LIBRARY_PATH}"
+    alias qvar="export LD_LIBRARY_PATH=${qp_bin}:${LD_LIBRARY_PATH};export os=${os};export QPRIDE_BIN=${qp_bin}"
+else
+    echo "Warning: qm.resourceRoot not found"
+fi

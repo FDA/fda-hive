@@ -41,19 +41,15 @@ $(function () {
             },
             onAreaHide: function(params) {
             },
-            views: []    //    array of HIVE data views,
+            views: []
         },
 
         _create: function () {
             var oThis = this;
 
-            //    if we don't have anything to render...
             if(this.options.views == null || this.options.views.length == 0)
                 return;
 
-/*Commented out because tabs would not switch panels. Since the ID of the tab does not match the ID of panel           
- * if(this.options.id)
-                this.element.attr({ id: this.options.id });*/
 
             this.panel = $(document.createElement('div'))
                             .css({
@@ -66,7 +62,6 @@ $(function () {
 
             var items = [];
 
-            //    process views' size attribute and pre-calculate if necessary...
             this._processSizes();
 
             $(this.options.views).each(function(index, view) {
@@ -102,10 +97,8 @@ $(function () {
                 if(oThis.options.onAreaClose)
                     oThis.options.onAreaClose(params);
                     
-                //console.log('area closed', event, params);
             })
             .on('area-hide', function(event, params) {
-                //console.log('area hidden', event, params);
 
                 if(oThis.options.onAreaHide)
                     oThis.options.onAreaHide(params);
@@ -122,7 +115,6 @@ $(function () {
             var oThis = this;
             
             $(this.options.views).each(function(index, view) {
-                //    presume we got HIVE data view object and need to transfer it to the appropriate format...
                 if(view.constructor.name != 'Object') {
                     oThis.options.views[index] = { instance: view };
                 }

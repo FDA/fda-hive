@@ -41,6 +41,5 @@ namespace slib
     };
 }
 
-#endif // sMath_constants_h
-
+#endif 
 

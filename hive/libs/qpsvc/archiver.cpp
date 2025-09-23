@@ -28,23 +28,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <qpsvc/archiver.hpp>
-#include <dmlib/dmlib.hpp>
+#include <xlib/dmlib.hpp>
 #include <slib/std/file.hpp>
 #include <ulib/ufolder.hpp>
+#include <qlib/QPrideProc.hpp>
 
 dmArchiver::TKnownTypes dmArchiver::m_knownTypes[] = {
-    // files which can create multiple objects from its data
-    {
-        "prop-auto-detect" __,
-        dmLib::eNone,
-        "prop" __,
-        0 },
     {
         "hivepack" __,
         dmLib::eNone,
         "hivepack" __,
         0 },
-    // normal types
     {
         "nuc-read" __,
         dmLib::eZip,
@@ -55,11 +49,6 @@ dmArchiver::TKnownTypes dmArchiver::m_knownTypes[] = {
         dmLib::eNone,
         "vioseq2" _ "hiveseq" __,
         0 },
-    {
-        "nuc-read" _ "svc-align-dnaseq" __, // order is important for workflow!
-        dmLib::eZip,
-        "sam" __,
-        "" _ "status,5\nsubmitter,dna-hexagon&cmdMode=dna-hexagon" __ },
     {
         "image" __,
         dmLib::eNone,
@@ -76,7 +65,7 @@ dmArchiver::TKnownTypes dmArchiver::m_knownTypes[] = {
         "ash" __,
         0 },
     {
-        "genome" _ "svc-align-multiple" __, // order is important for workflow!
+        "genome" _ "svc-align-multiple" __,
         dmLib::eZip,
         "ma" __,
         "" _ "status,5\nsubmitter,dna-hexagon&cmdMode=mafft" __ },
@@ -122,18 +111,21 @@ dmArchiver::TKnownTypes dmArchiver::m_knownTypes[] = {
         0 },
     {
         "u-file" __,
-        dmLib::eNone, // dmLib::eUnspecified,
+        dmLib::eNone,
         0,
-        0 } // list terminator and default type!
+        0 }
 };
 
-dmArchiver::dmArchiver(sQPride& qp, const char * path, const char * dataSource, const char * formatHint /* = 0 */, const char * name /* = 0 */)
+dmArchiver::dmArchiver(sQPride& qp, const char * path, const char * dataSource, const char * formatHint, const char * name)
     : TParent(qp)
 {
     setInput("%s", path);
     setInputName(name && name[0] ? name : path);
     setDataSource(dataSource);
     setFormatHint(formatHint);
+    setDepth(0);
+    setQCFlag(true);
+    setScreenFlag(false);
 }
 
 dmArchiver::~dmArchiver()
@@ -183,79 +175,50 @@ void dmArchiver::setSubject(const char * subject)
 }
 
 static const char * const g_depth_name = "dissect";
-static const char * const g_run_index_name = "run_index";
 static const char * const g_run_qc_name = "run_qc";
 static const char * const g_run_screenname = "run_screen";
 
-//static
-void dmArchiver::setDepth(sQPrideBase & qp, udx max_depth)
+void dmArchiver::setDepth(udx max_depth)
 {
-    qp.reqSetData(qp.grpId, g_depth_name, "%" UDEC, max_depth);
+    setVar(g_depth_name, "%" UDEC, max_depth);
 }
-//static
 udx dmArchiver::getDepth(sQPrideBase & qp)
 {
-    sStr lvar;
-    qp.reqGetData(qp.grpId, g_depth_name, &lvar);
     udx dflt = ~0;
-    if(lvar) {
-        sscanf(lvar, "%" UDEC, &dflt);
-    }
-    return dflt;
-}
-
-//static
-void dmArchiver::setIndexFlag(sQPrideBase & qp, idx flag)
-{
-    qp.reqSetData(qp.grpId, g_run_index_name, "%" DEC, flag);
-}
-
-//static
-idx dmArchiver::getIndexFlag(sQPrideBase & qp)
-{
     sStr lvar;
-    qp.reqGetData(qp.grpId, g_run_index_name, &lvar);
-    idx dflt = 1;
-    if(lvar) {
+    qp.formValue(g_depth_name, &lvar);
+    if( lvar ) {
         sscanf(lvar, "%" DEC, &dflt);
     }
     return dflt;
 }
 
-//static
-void dmArchiver::setQCFlag(sQPrideBase & qp, idx flag)
+void dmArchiver::setQCFlag(const bool flag)
 {
-    qp.reqSetData(qp.grpId, g_run_qc_name, "%" DEC, flag);
+    setVar(g_run_qc_name, "%s", flag ? "true" : "false");
 }
-
-//static
-idx dmArchiver::getQCFlag(sQPrideBase & qp)
+bool dmArchiver::getQCFlag(sQPrideBase & qp)
 {
     sStr lvar;
-    qp.reqGetData(qp.grpId, g_run_qc_name, &lvar);
-    idx dflt = 1;
-    if(lvar) {
-        sscanf(lvar, "%" DEC, &dflt);
+    qp.formValue(g_run_qc_name, &lvar);
+    if( lvar ) {
+        return sString::parseBool(lvar);
     }
-    return dflt;
+    return false;
 }
 
-//static
-void dmArchiver::setScreenFlag(sQPrideBase & qp, idx flag)
+void dmArchiver::setScreenFlag(const bool flag)
 {
-    qp.reqSetData(qp.grpId, g_run_screenname, "%" DEC, flag);
+    setVar(g_run_screenname, "%s", flag ? "true" : "false");
 }
-
-//static
-idx dmArchiver::getScreenFlag(sQPrideBase & qp)
+bool dmArchiver::getScreenFlag(sQPrideBase & qp)
 {
     sStr lvar;
-    qp.reqGetData(qp.grpId, g_run_screenname, &lvar);
-    idx dflt = 1;
-    if(lvar) {
-        sscanf(lvar, "%" DEC, &dflt);
+    qp.formValue(g_run_screenname, &lvar);
+    if( lvar ) {
+        return sString::parseBool(lvar);
     }
-    return dflt;
+    return false;
 }
 
 bool dmArchiver::convertObj(const sHiveId & objId, const char * typeName)
@@ -285,24 +248,34 @@ void dmArchiver::addObjProperty(const char* name, const char * value, ...)
     }
 }
 
-sUsrProc * dmArchiver::makeObj(sUsr& user) const
+sUsrProc * dmArchiver::makeObj(sUsr& user, sUsrProc * p) const
 {
-    sUsrProc * p = new sUsrProc(user, "svc-archiver");
-    ((sUsrObj*) p)->propSet("svcTitle", "File Processing");
-    sStr objname("%s", getVar("convertObj"));
-    if( objname ) {
-        sHiveId id(objname);
-        objname.cut(0);
-        sUsrObj * o = user.objFactory(id);
-        if( o && o->Id() ) {
-            o->propGet("name", &objname);
+    sHiveId oid;
+    sRC rc = user.objCreate(oid, "svc-archiver");
+    if( !rc ) {
+        if(p) {
+            new(p) sUsrProc(user, oid);
+        } else{
+            p = new sUsrProc(user, oid);
         }
-        delete o;
-    }
-    if( !objname ) {
-        objname.printf(0, "%s", sFilePath::nextToSlash(getVar("inputName")));
-    }
-    ((sUsrObj*) p)->propSet("name", objname);
-    return p;
 
+        if( p ) {
+            ((sUsrObj*) p)->propSet("svcTitle", "File Processing");
+            sStr objname("%s", getVar("convertObj"));
+            if( objname ) {
+                sHiveId id(objname);
+                objname.cut(0);
+                sUsrObj * o = user.objFactory(id);
+                if( o && o->Id() ) {
+                    o->propGet("name", &objname);
+                }
+                delete o;
+            }
+            if( !objname ) {
+                objname.printf(0, "%s", sFilePath::nextToSlash(getVar("inputName")));
+            }
+            ((sUsrObj*) p)->propSet("name", objname);
+        }
+    }
+    return p;
 }

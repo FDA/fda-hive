@@ -37,11 +37,6 @@
 namespace slib
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ class sPerf
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     class sPerf : public sDic < idx, 8 >
     {
@@ -51,7 +46,7 @@ namespace slib
 
         sStr nodL;
 
-    public: // constructor/destructor
+    public:
         sPerf( ) { }
     public:
         inline void start (const char * node, bool closenext=false) {
@@ -77,7 +72,7 @@ namespace slib
         }
 
 
-       public: // serialization
+       public:
         const char * printf(sStr * out=0){
             if(!clkDic.dim() ) return 0;
             idx sum=0;
@@ -102,9 +97,8 @@ namespace slib
 
         static sPerf gPerf;
         static idx gDebugStart, gDebugEnd, gDebugCurrent;
-        static bool gPerfWallClock; // true if gPerf should measure wall clock time; false if gPerf should measure CPU time used by process
+        static bool gPerfWallClock;
     };
-    //sOutClass(sVec)
 
     #ifdef SLIB_PERF
         #define PERF_START(_v_nm) sPerf::gPerf.start((_v_nm))
@@ -122,20 +116,9 @@ namespace slib
         #define DEBUG_END()         }
     #endif
 
-    /*
-    #else
-        #define PERF_START(_v_nm) ::printf("PERF-%s\n",(_v_nm))
-        #define PERF_NEXT(_v_nm) ::printf("PERF-%s\n",(_v_nm))
-        #define PERF_END()
-        #define PERF_PRINT()
-        #define DEBUG_START(_v_cond) if(0){
-        #define DEBUG_END()         }
-    #endif
-*/
 
 }
 
 
-#endif // sLib_core_perf_h
-
+#endif 
 

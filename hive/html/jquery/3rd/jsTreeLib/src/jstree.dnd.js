@@ -27,12 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/**
- * ### Drag'n'drop plugin
- *
- * Enables dragging and dropping of nodes in the tree, resulting in a move or copy operations.
- */
-/*globals jQuery, define, exports, require, document */
 (function (factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
@@ -49,74 +43,18 @@
 
     if($.jstree.plugins.dnd) { return; }
 
-    /**
-     * stores all defaults for the drag'n'drop plugin
-     * @name $.jstree.defaults.dnd
-     * @plugin dnd
-     */
     $.jstree.defaults.dnd = {
-        /**
-         * a boolean indicating if a copy should be possible while dragging (by pressint the meta key or Ctrl). Defaults to `true`.
-         * @name $.jstree.defaults.dnd.copy
-         * @plugin dnd
-         */
         copy : true,
-        /**
-         * a number indicating how long a node should remain hovered while dragging to be opened. Defaults to `500`.
-         * @name $.jstree.defaults.dnd.open_timeout
-         * @plugin dnd
-         */
         open_timeout : 500,
-        /**
-         * a function invoked each time a node is about to be dragged, invoked in the tree's scope and receives the nodes about to be dragged as an argument (array) and the event that started the drag - return `false` to prevent dragging
-         * @name $.jstree.defaults.dnd.is_draggable
-         * @plugin dnd
-         */
         is_draggable : true,
-        /**
-         * a boolean indicating if checks should constantly be made while the user is dragging the node (as opposed to checking only on drop), default is `true`
-         * @name $.jstree.defaults.dnd.check_while_dragging
-         * @plugin dnd
-         */
         check_while_dragging : true,
-        /**
-         * a boolean indicating if nodes from this tree should only be copied with dnd (as opposed to moved), default is `false`
-         * @name $.jstree.defaults.dnd.always_copy
-         * @plugin dnd
-         */
         always_copy : false,
-        /**
-         * when dropping a node "inside", this setting indicates the position the node should go to - it can be an integer or a string: "first" (same as 0) or "last", default is `0`
-         * @name $.jstree.defaults.dnd.inside_pos
-         * @plugin dnd
-         */
         inside_pos : 0,
-        /**
-         * when starting the drag on a node that is selected this setting controls if all selected nodes are dragged or only the single node, default is `true`, which means all selected nodes are dragged when the drag is started on a selected node
-         * @name $.jstree.defaults.dnd.drag_selection
-         * @plugin dnd
-         */
         drag_selection : true,
-        /**
-         * controls whether dnd works on touch devices. If left as boolean true dnd will work the same as in desktop browsers, which in some cases may impair scrolling. If set to boolean false dnd will not work on touch devices. There is a special third option - string "selected" which means only selected nodes can be dragged on touch devices.
-         * @name $.jstree.defaults.dnd.touch
-         * @plugin dnd
-         */
         touch : true,
-        /**
-         * controls whether items can be dropped anywhere on the node, not just on the anchor, by default only the node anchor is a valid drop target. Works best with the wholerow plugin. If enabled on mobile depending on the interface it might be hard for the user to cancel the drop, since the whole tree container will be a valid drop target.
-         * @name $.jstree.defaults.dnd.large_drop_target
-         * @plugin dnd
-         */
         large_drop_target : false,
-        /**
-         * controls whether a drag can be initiated from any part of the node and not just the text/icon part, works best with the wholerow plugin. Keep in mind it can cause problems with tree scrolling on mobile depending on the interface - in that case set the touch option to "selected".
-         * @name $.jstree.defaults.dnd.large_drag_target
-         * @plugin dnd
-         */
         large_drag_target : false
     };
-    // TODO: now check works by checking for each node individually, how about max_children, unique, etc?
     $.jstree.plugins.dnd = function (options, parent) {
         this.bind = function () {
             parent.bind.call(this);
@@ -146,25 +84,23 @@
     };
 
     $(function() {
-        // bind only once for all instances
         var lastmv = false,
             laster = false,
             lastev = false,
             opento = false,
-            marker = $('<div id="jstree-marker">&#160;</div>').hide(); //.appendTo('body');
+            marker = $('<div id="jstree-marker">&#160;</div>').hide();
 
         $(document)
             .on('dnd_start.vakata.jstree', function (e, data) {
                 lastmv = false;
                 lastev = false;
                 if(!data || !data.data || !data.data.jstree) { return; }
-                marker.appendTo('body'); //.show();
+                marker.appendTo('body');
             })
             .on('dnd_move.vakata.jstree', function (e, data) {
                 if(opento) { clearTimeout(opento); }
                 if(!data || !data.data || !data.data.jstree) { return; }
 
-                // if we are hovering the marker image do nothing (can happen on "inside" drags)
                 if(data.event.target.id && data.event.target.id === 'jstree-marker') {
                     return;
                 }
@@ -175,7 +111,6 @@
                     off = false,
                     rel = false,
                     tmp, l, t, h, p, i, o, ok, t1, t2, op, ps, pr, ip, tm;
-                // if we are over an instance
                 if(ins && ins._data && ins._data.dnd) {
                     marker.attr('class', 'jstree-' + ins.get_theme() + ( ins.settings.core.themes.responsive ? ' jstree-dnd-responsive' : '' ));
                     data.helper
@@ -183,7 +118,6 @@
                         .find('.jstree-copy').first()[ data.data.origin && (data.data.origin.settings.dnd.always_copy || (data.data.origin.settings.dnd.copy && (data.event.metaKey || data.event.ctrlKey))) ? 'show' : 'hide' ]();
 
 
-                    // if are hovering the container itself add a new root node
                     if( (data.event.target === ins.element[0] || data.event.target === ins.get_container_ul()[0]) && ins.get_container_ul().children().length === 0) {
                         ok = true;
                         for(t1 = 0, t2 = data.data.nodes.length; t1 < t2; t1++) {
@@ -198,7 +132,6 @@
                         }
                     }
                     else {
-                        // if we are hovering a tree node
                         ref = ins.settings.dnd.large_drop_target ? $(data.event.target).closest('.jstree-node').children('.jstree-anchor') : $(data.event.target).closest('.jstree-anchor');
                         if(ref && ref.length && ref.parent().is('.jstree-closed, .jstree-open, .jstree-leaf')) {
                             off = ref.offset();
@@ -315,7 +248,6 @@
             });
     });
 
-    // helpers
     (function ($) {
         $.vakata.html = {
             div : $('<div />'),
@@ -326,7 +258,6 @@
                 return $.vakata.html.div.empty().append($.parseHTML(str)).text();
             }
         };
-        // private variable
         var vakata_dnd = {
             element    : false,
             target    : false,
@@ -402,16 +333,6 @@
                 vakata_dnd.scroll_e.scrollTop(i + vakata_dnd.scroll_t * $.vakata.dnd.settings.scroll_speed);
                 vakata_dnd.scroll_e.scrollLeft(j + vakata_dnd.scroll_l * $.vakata.dnd.settings.scroll_speed);
                 if(i !== vakata_dnd.scroll_e.scrollTop() || j !== vakata_dnd.scroll_e.scrollLeft()) {
-                    /**
-                     * triggered on the document when a drag causes an element to scroll
-                     * @event
-                     * @plugin dnd
-                     * @name dnd_scroll.vakata
-                     * @param {Mixed} data any data supplied with the call to $.vakata.dnd.start
-                     * @param {DOM} element the DOM element being dragged
-                     * @param {jQuery} helper the helper shown next to the mouse
-                     * @param {jQuery} event the element that is scrolling
-                     */
                     $.vakata.dnd._trigger("scroll", vakata_dnd.scroll_e);
                 }
             },
@@ -466,16 +387,6 @@
                             vakata_dnd.helper_w = vakata_dnd.helper.outerWidth();
                         }
                         vakata_dnd.is_drag = true;
-                        /**
-                         * triggered on the document when a drag starts
-                         * @event
-                         * @plugin dnd
-                         * @name dnd_start.vakata
-                         * @param {Mixed} data any data supplied with the call to $.vakata.dnd.start
-                         * @param {DOM} element the DOM element being dragged
-                         * @param {jQuery} helper the helper shown next to the mouse
-                         * @param {Object} event the event that caused the start (probably mousemove)
-                         */
                         $.vakata.dnd._trigger("start", e);
                     }
                     else { return; }
@@ -536,16 +447,6 @@
                         top        : ht + "px"
                     });
                 }
-                /**
-                 * triggered on the document when a drag is in progress
-                 * @event
-                 * @plugin dnd
-                 * @name dnd_move.vakata
-                 * @param {Mixed} data any data supplied with the call to $.vakata.dnd.start
-                 * @param {DOM} element the DOM element being dragged
-                 * @param {jQuery} helper the helper shown next to the mouse
-                 * @param {Object} event the event that caused this to trigger (most likely mousemove)
-                 */
                 $.vakata.dnd._trigger("move", e);
                 return false;
             },
@@ -556,16 +457,6 @@
                     e.target = document.elementFromPoint(e.originalEvent.changedTouches[0].pageX - window.pageXOffset, e.originalEvent.changedTouches[0].pageY - window.pageYOffset);
                 }
                 if(vakata_dnd.is_drag) {
-                    /**
-                     * triggered on the document when a drag stops (the dragged element is dropped)
-                     * @event
-                     * @plugin dnd
-                     * @name dnd_stop.vakata
-                     * @param {Mixed} data any data supplied with the call to $.vakata.dnd.start
-                     * @param {DOM} element the DOM element being dragged
-                     * @param {jQuery} helper the helper shown next to the mouse
-                     * @param {Object} event the event that caused the stop
-                     */
                     $.vakata.dnd._trigger("stop", e);
                 }
                 else {
@@ -580,6 +471,4 @@
         };
     }($));
 
-    // include the dnd plugin by default
-    // $.jstree.defaults.plugins.push("dnd");
 }));

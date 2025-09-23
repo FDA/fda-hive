@@ -57,16 +57,14 @@ function default_object_ui(inputList,proctype,qpservice,links,linkedProcList,vis
     else this.defaultProcParameters = new Array();
 
     if(algorithmicParameterIDPrefix)this.algorithmicParameterIDPrefix = algorithmicParameterIDPrefix;
-    else this.algorithmicParameterIDPrefix = "RV-"; /* Default prefix for RecordViewer's ids */
+    else this.algorithmicParameterIDPrefix = "RV-";
 
     if(qpServiceDefaultParams)this.qpServiceDefaultParams    = qpServiceDefaultParams;
     else this.qpServiceDefaultParams = new Array();
 
     if(procObject)this.procObject    = procObject;
-//    else this.procObject ;
 
     if(qpsvcObject)this.qpsvcObject    = qpsvcObject;
-//    else this.qpsvcObject =null;
 
 
     this.setInput            = function(input){
@@ -123,7 +121,6 @@ function default_object_ui(inputList,proctype,qpservice,links,linkedProcList,vis
     {
         if(!isok(arr)){
             if(!isok(this.defaultProcParameters)){
-//                alert("default proc parameters array is empty;")
                 return 0;
             }
             else
@@ -131,7 +128,6 @@ function default_object_ui(inputList,proctype,qpservice,links,linkedProcList,vis
         }
 
         if(this.procObject===undefined){
-//            alert("undefined proc Object");
             return 0;
         }
         if(prefix)
@@ -146,7 +142,6 @@ function default_object_ui(inputList,proctype,qpservice,links,linkedProcList,vis
     {
         if(!isok(arr)){
             if(!isok(this.visibleProcParameters)){
-//                alert("visible proc parameters array is empty;")
                 return 0;
             }
             else
@@ -169,7 +164,6 @@ function default_object_ui(inputList,proctype,qpservice,links,linkedProcList,vis
     {
         if(!isok(arr)){
             if(!isok(this.qpServiceDefaultParams)){
-//                alert("default qpService Parameters array is empty;")
                 return 0;
             }
             else

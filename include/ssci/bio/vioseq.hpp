@@ -37,11 +37,6 @@
 
 namespace slib
 {
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Working format Sequence Collection Class
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     class sVioseq : public sBioseq 
     {
@@ -49,13 +44,8 @@ namespace slib
         sFil baseFile;
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Construction/Destruction
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    public: // FILE based BioSeq
+    public:
         enum eParseFlags {
             eParseLazy=            0x00000001,
             eParseNoId=            0x00000002,
@@ -67,11 +57,11 @@ namespace slib
         };
 
         struct Hdr {
-            idx cntSeq; // count of sequences
-            idx ofsSeq; // offset in the file where those sequences are
-            idx ofsIdx; // offset to indexed elements in the file
+            idx cntSeq;
+            idx ofsSeq;
+            idx ofsIdx;
             idx flags;
-            idx ofsReserv[12]; // reserved for future usage
+            idx ofsReserv[12];
         };
         struct Rec{
             idx ofsSeq;
@@ -85,7 +75,6 @@ namespace slib
         idx complexityWindow;
         real complexityEntropy;
 
-        // here we cache the read content for current record
         idx lNumRec,lNumSeq,lNumQua,lNumId, maxId, maxFos;
         Rec lRec;
         sStr lSeq;
@@ -127,9 +116,8 @@ namespace slib
                 if(!fp)return 0;
 
                 rd(hdr,0);
-                //maxFos=1024;lFos.resize(maxFos);
             }
-            maxId=1024; lId.resize(maxId); // we support here IDs up to 4 KB
+            maxId=1024; lId.resize(maxId);
             return this;
         }
         void destroy (void) {
@@ -138,15 +126,10 @@ namespace slib
 
         
     public:
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ VioSeq filing operations
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
         idx parseFastaFile(const char * flnm, idx flags=eParseLazy, const char * outfile=0, const char * primers00=0);
         idx parseFastaFile2(const char * flnm, idx flags=eParseLazy, const char * outfile=0, const char * primers00=0);
-        idx parseFasta(const char * inp, idx len, idx flags=0, const char * primers00=0);//sDic < idx > * ofsdic=0, idx flags=0);
-        idx parseFasta2(const char * inp, idx len, idx flags=0, const char * primers00=0);//sDic < idx > * ofsdic=0, idx flags=0);
+        idx parseFasta(const char * inp, idx len, idx flags=0, const char * primers00=0);
+        idx parseFasta2(const char * inp, idx len, idx flags=0, const char * primers00=0);
         idx parseFastQ(const char * inp, idx len, idx flags=0, const char * primers00=0);
         idx parseFastQ2(const char * inp, idx len, idx flags=0, const char * primers00=0);
         void printFasta(idx start=0, idx cnt=0);
@@ -154,16 +137,10 @@ namespace slib
         idx primerCut(Rec & rec, idx ofsSeq, char * cpy, const char * primers00);
         sFil * base(void){ return &baseFile;}
     public:
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ VioSeq access functions
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         virtual idx dim(void)
         {
             return hdr ? hdr->cntSeq : 0 ;
-            //return ((Hdr * )ptr(0))->cntSeq;
         }
 
         virtual Rec * rec( idx inum ) {
@@ -182,8 +159,8 @@ namespace slib
                 if ( inum == lNumSeq) return lSeq.ptr(); else lNumSeq=inum;
                 if (!ilen)ilen=r->lenSeq;
                 ilen=(ilen-1)/4+1;
-                lSeq.resize(ilen);//lSeq.resize(r->lenSeq);
-                return rd( lSeq.ptr(), r->ofsSeq + hdr->ofsSeq+ipos , ilen );//r->lenSeq);
+                lSeq.resize(ilen);
+                return rd( lSeq.ptr(), r->ofsSeq + hdr->ofsSeq+ipos , ilen );
             } else {
                 return baseFile.ptr(  r->ofsSeq + hdr->ofsSeq+ipos );
             }
@@ -227,7 +204,6 @@ namespace slib
 
 
 
-} // namespace 
+}
 
-#endif // sBio_vioseq_hpp
-
+#endif 

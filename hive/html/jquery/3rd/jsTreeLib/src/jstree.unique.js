@@ -27,12 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/**
- * ### Unique plugin
- *
- * Enforces that no nodes with the same name can coexist as siblings.
- */
-/*globals jQuery, define, exports, require */
 (function (factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
@@ -49,23 +43,8 @@
 
     if($.jstree.plugins.unique) { return; }
 
-    /**
-     * stores all defaults for the unique plugin
-     * @name $.jstree.defaults.unique
-     * @plugin unique
-     */
     $.jstree.defaults.unique = {
-        /**
-         * Indicates if the comparison should be case sensitive. Default is `false`.
-         * @name $.jstree.defaults.unique.case_sensitive
-         * @plugin unique
-         */
         case_sensitive : false,
-        /**
-         * A callback executed in the instance's scope when a new node is created and the name is already taken, the two arguments are the conflicting name and the counter. The default will produce results like `New node (2)`.
-         * @name $.jstree.defaults.unique.duplicate
-         * @plugin unique
-         */
         duplicate : function (name, counter) {
             return name + ' (' + counter + ')';
         }
@@ -145,6 +124,4 @@
         };
     };
 
-    // include the unique plugin by default
-    // $.jstree.defaults.plugins.push("unique");
 }));

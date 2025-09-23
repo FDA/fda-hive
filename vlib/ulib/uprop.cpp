@@ -83,7 +83,7 @@ sUsrTypeField::EType sUsrObjPropsNode::type() const
     return fld->type();
 }
 
-const char * sUsrObjPropsNode::value(const char * fallback /* = 0 */) const
+const char * sUsrObjPropsNode::value(const char * fallback) const
 {
     if (!hasValue())
         return fallback;
@@ -97,7 +97,7 @@ bool sUsrObjPropsNode::value(sVariant &var) const
     return sUsrTypeField::parseValue(var, type(), value(0));
 }
 
-idx sUsrObjPropsNode::ivalue(idx fallback /* = 0 */) const
+idx sUsrObjPropsNode::ivalue(idx fallback) const
 {
     const char * svalue = value(0);
     if (!svalue)
@@ -107,7 +107,7 @@ idx sUsrObjPropsNode::ivalue(idx fallback /* = 0 */) const
     return var.asInt();
 }
 
-udx sUsrObjPropsNode::uvalue(udx fallback /* = 0 */) const
+udx sUsrObjPropsNode::uvalue(udx fallback) const
 {
     const char * svalue = value(0);
     if (!svalue)
@@ -117,7 +117,7 @@ udx sUsrObjPropsNode::uvalue(udx fallback /* = 0 */) const
     return var.asUInt();
 }
 
-bool sUsrObjPropsNode::boolvalue(bool fallback /* = false */) const
+bool sUsrObjPropsNode::boolvalue(bool fallback) const
 {
     const char * svalue = value(0);
     if (!svalue)
@@ -127,7 +127,7 @@ bool sUsrObjPropsNode::boolvalue(bool fallback /* = false */) const
     return var.asBool();
 }
 
-real sUsrObjPropsNode::rvalue(real fallback /* = 0 */) const
+real sUsrObjPropsNode::rvalue(real fallback) const
 {
     const char * svalue = value(0);
     if (!svalue)
@@ -280,8 +280,6 @@ public:
             _outer_list = prop;
         }
 
-        // multivalued nodes need to be merged with previous siblings of the same
-        // type into one list
         if (_stack_dim == _stack_done_dim &&
             _stack.dim() > _stack_done_dim &&
             is_list &&
@@ -399,13 +397,13 @@ static idx structuredRecurse(const sUsrObjPropsNode * prop, const char * field_n
     if (field && !field->isFlattenedDecor()) {
         sUsrTypeField::EType type = field->type();
         bool is_list, is_dic;
-        if( type == sUsrTypeField::eArray) {
+        if( type == sUsrTypeField::eArray || type == sUsrTypeField::eArrayTab ) {
             is_list = field->isMulti();
             const sUsrTypeField * array_row = field->getChild(0);
             is_dic = array_row && array_row->isArrayRow() && array_row->isFlattenedDecor();
         } else {
             is_list = field->isMulti();
-            is_dic = type == sUsrTypeField::eList;
+            is_dic = (type == sUsrTypeField::eList || type == sUsrTypeField::eListTab);
         }
 
         if (is_list || is_dic) {
@@ -434,7 +432,7 @@ static idx structuredRecurse(const sUsrObjPropsNode * prop, const char * field_n
     return total;
 }
 
-idx sUsrObjPropsNode::structured(const char * field_name, sVariant &out, const sUsrObjPropsNode ** out_outer_list/* = 0*/) const
+idx sUsrObjPropsNode::structured(const char * field_name, sVariant &out, const sUsrObjPropsNode ** out_outer_list) const
 {
     StructuredStack stack;
 
@@ -477,7 +475,6 @@ idx sUsrObjPropsNode::allStructured(sVariant &out) const
     return total;
 }
 
-// if a path has been used already, append '.' and an incrementing counter (because JSON requires unique keys in an object)
 static const char * ensureUniquifiedPath(sDic<idx> & path2cnt, const char * path)
 {
     if( !path ) {
@@ -498,12 +495,10 @@ static const char * ensureUniquifiedPath(sDic<idx> & path2cnt, const char * path
     }
 }
 
-bool sUsrObjPropsNode::printJSON(sJSONPrinter & out, bool into_object/*  = false*/, bool flatten/*  = false*/) const
+bool sUsrObjPropsNode::printJSON(sJSONPrinter & out, bool into_object, bool flatten) const
 {
-    // simple case : leaf node = json scalar value
     if( hasValue() ) {
         if( into_object ) {
-            // we cannot print a scalar without a key into the middle of a JSON object!
             fprintf(stderr, "sUsrObjPropsNode::printJSON() with into_object==true does not make sense for leaf nodes\n");
             return false;
         }
@@ -513,7 +508,6 @@ bool sUsrObjPropsNode::printJSON(sJSONPrinter & out, bool into_object/*  = false
         return ret;
     }
 
-    // complex case : inner node = json object, with names as first-level keys and paths as second-level
 
     sMex lst_mex;
     sDic< sLst<const sUsrObjPropsNode*> > by_name;
@@ -540,13 +534,13 @@ bool sUsrObjPropsNode::printJSON(sJSONPrinter & out, bool into_object/*  = false
         const sUsrTypeField * child_field = _tree->objType()->getField(_tree->_usr, child_name);
         bool is_array = child_field && child_field->isArrayRow();
         bool is_multi = !is_array && child_field && child_field->isMulti();
-        bool is_broken_multi = !is_array && !is_multi && lst->dim() > 1; // multiple nodes with different paths for a field that must be non-multi. Merge these manually.
+        bool is_broken_multi = !is_array && !is_multi && lst->dim() > 1;
         bool is_broken_multi_scalar = false;
         if( is_broken_multi ) {
             for(idx ic=0; ic<lst->dim(); ic++) {
                 const sUsrObjPropsNode * child = (*lst)[ic];
                 if( child->hasValue() ) {
-                    is_broken_multi_scalar = true; // multiple nodes with different paths for a *scalar* field that must be non-multi. This is really bad, but try to do something sane when printing
+                    is_broken_multi_scalar = true;
                 }
             }
         }
@@ -664,7 +658,7 @@ sUsrObjPropsNode::FindStatus sUsrObjPropsNode::find(const char * field_name, sUs
     return const_cast<const sUsrObjPropsNode&>(*this).find(field_name, const_cast<const sUsrObjPropsNode**>(firstFound), backwards, (FindConstCallback)callback, callbackParam);
 }
 
-const sUsrObjPropsNode * sUsrObjPropsNode::find(const char * field_name /* = 0 */, FindConstCallback callback /* = 0 */, void * callbackParam /* = 0 */) const
+const sUsrObjPropsNode * sUsrObjPropsNode::find(const char * field_name, FindConstCallback callback, void * callbackParam) const
 {
     const sUsrObjPropsNode * ret = 0;
     if (find(field_name, &ret, false, callback, callbackParam) == eFindError)
@@ -672,7 +666,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::find(const char * field_name /* = 0 *
     return ret;
 }
 
-sUsrObjPropsNode * sUsrObjPropsNode::find(const char * field_name /* = 0 */, FindCallback callback /* = 0 */, void * callbackParam /* = 0 */)
+sUsrObjPropsNode * sUsrObjPropsNode::find(const char * field_name, FindCallback callback, void * callbackParam)
 {
     sUsrObjPropsNode * ret = 0;
     if (find(field_name, &ret, false, callback, callbackParam) == eFindError)
@@ -680,7 +674,7 @@ sUsrObjPropsNode * sUsrObjPropsNode::find(const char * field_name /* = 0 */, Fin
     return ret;
 }
 
-const sUsrObjPropsNode * sUsrObjPropsNode::findBackwards(const char * field_name /* = 0 */, FindConstCallback callback /* = 0 */, void * callbackParam /* = 0 */) const
+const sUsrObjPropsNode * sUsrObjPropsNode::findBackwards(const char * field_name, FindConstCallback callback, void * callbackParam) const
 {
     const sUsrObjPropsNode * ret = 0;
     if (find(field_name, &ret, true, callback, callbackParam) == eFindError)
@@ -688,7 +682,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::findBackwards(const char * field_name
     return ret;
 }
 
-sUsrObjPropsNode * sUsrObjPropsNode::findBackwards(const char * field_name /* = 0 */, FindCallback callback /* = 0 */, void * callbackParam /* = 0 */)
+sUsrObjPropsNode * sUsrObjPropsNode::findBackwards(const char * field_name, FindCallback callback, void * callbackParam)
 {
     sUsrObjPropsNode * ret = 0;
     if (find(field_name, &ret, true, callback, callbackParam) == eFindError)
@@ -699,7 +693,7 @@ sUsrObjPropsNode * sUsrObjPropsNode::findBackwards(const char * field_name /* = 
 #define TREE_ELT(i) ( _tree ? ( (i) < 0 ? 0 : _tree->_nodes.ptr(i) ) : 0 )
 #define TREE_ELT_OR_ROOT(i) ( _tree ? ( (i) < 0 ? _tree : _tree->_nodes.ptr(i) ) : 0 )
 
-const sUsrObjPropsNode * sUsrObjPropsNode::firstChild(const char * field_name /* = 0 */) const
+const sUsrObjPropsNode * sUsrObjPropsNode::firstChild(const char * field_name) const
 {
     for (const sUsrObjPropsNode * child = TREE_ELT(_nav.first_child); child; child = child->nextSibling()) {
         if (!field_name || !child->namecmp(field_name))
@@ -708,7 +702,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::firstChild(const char * field_name /*
     return 0;
 }
 
-const sUsrObjPropsNode * sUsrObjPropsNode::lastChild(const char * field_name /* = 0 */) const
+const sUsrObjPropsNode * sUsrObjPropsNode::lastChild(const char * field_name) const
 {
     for (const sUsrObjPropsNode * child = TREE_ELT(_nav.last_child); child; child = child->previousSibling()) {
         if (!field_name || !child->namecmp(field_name))
@@ -717,7 +711,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::lastChild(const char * field_name /* 
     return 0;
 }
 
-const sUsrObjPropsNode * sUsrObjPropsNode::previousSibling(const char * field_name /* = 0 */) const
+const sUsrObjPropsNode * sUsrObjPropsNode::previousSibling(const char * field_name) const
 {
     for (const sUsrObjPropsNode * sibling = TREE_ELT(_nav.prev_sib); sibling; sibling = TREE_ELT(sibling->_nav.prev_sib)) {
         if (!field_name || !sibling->namecmp(field_name))
@@ -727,7 +721,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::previousSibling(const char * field_na
     return 0;
 }
 
-const sUsrObjPropsNode * sUsrObjPropsNode::nextSibling(const char * field_name /* = 0 */) const
+const sUsrObjPropsNode * sUsrObjPropsNode::nextSibling(const char * field_name) const
 {
     for (const sUsrObjPropsNode * sibling = TREE_ELT(_nav.next_sib); sibling; sibling = TREE_ELT(sibling->_nav.next_sib)) {
         if (!field_name || !sibling->namecmp(field_name))
@@ -742,7 +736,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::parentNode() const
     return TREE_ELT(_nav.parent);
 }
 
-const char * sUsrObjPropsNode::findValue(const char * field_name, const char * fallback /*=0*/) const
+const char * sUsrObjPropsNode::findValue(const char * field_name, const char * fallback) const
 {
     const sUsrObjPropsNode * node = find(field_name);
     return node ? node->value(fallback) : fallback;
@@ -754,25 +748,25 @@ bool sUsrObjPropsNode::findValue(const char * field_name, sVariant & val) const
     return node ? node->value(val) : false;
 }
 
-idx sUsrObjPropsNode::findIValue(const char * field_name, idx fallback /*=0*/) const
+idx sUsrObjPropsNode::findIValue(const char * field_name, idx fallback) const
 {
     const sUsrObjPropsNode * node = find(field_name);
     return node ? node->ivalue(fallback) : fallback;
 }
 
-udx sUsrObjPropsNode::findUValue(const char * field_name, udx fallback /*=0*/) const
+udx sUsrObjPropsNode::findUValue(const char * field_name, udx fallback) const
 {
     const sUsrObjPropsNode * node = find(field_name);
     return node ? node->uvalue(fallback) : fallback;
 }
 
-bool sUsrObjPropsNode::findBoolValue(const char * field_name, bool fallback /*=false*/) const
+bool sUsrObjPropsNode::findBoolValue(const char * field_name, bool fallback) const
 {
     const sUsrObjPropsNode * node = find(field_name);
     return node ? node->boolvalue(fallback) : fallback;
 }
 
-real sUsrObjPropsNode::findRValue(const char * field_name, real fallback /*=0.*/) const
+real sUsrObjPropsNode::findRValue(const char * field_name, real fallback) const
 {
     const sUsrObjPropsNode * node = find(field_name);
     return node ? node->rvalue(fallback) : fallback;
@@ -906,8 +900,7 @@ static const char * toValueString(sVariant &val, sUsrTypeField::EType type, sVar
         s = val.asString();
         break;
     case sUsrTypeField::eBool:
-        tmp.setInt(val.asBool());
-        s = tmp.asString();
+        s = val.asBool() ? "1" : "0";
         break;
     case sUsrTypeField::eInteger:
         if (val.isInt()) {
@@ -954,7 +947,6 @@ static const char * toValueString(sVariant &val, sUsrTypeField::EType type, sVar
         s = tmp.asString();
         break;
     default:
-        // Don't allow to set values of list, array, or invalid
         return 0;
     }
     return s;
@@ -974,7 +966,6 @@ static bool isValueType(const char * val, sUsrTypeField::EType type)
     case sUsrTypeField::eUrl:
     case sUsrTypeField::eText:
     case sUsrTypeField::ePassword:
-        // any string works
         return true;
     case sUsrTypeField::eBool:
         return sString::matchesBool(val);
@@ -1032,7 +1023,7 @@ bool sUsrObjPropsNode::set(sVariant &val)
     return _tree->_ptable->updateVal(_row, COL_VALUE, s);
 }
 
-bool sUsrObjPropsNode::set(const char * val /* = 0 */, idx len /* = 0 */)
+bool sUsrObjPropsNode::set(const char * val, idx len)
 {
     const sUsrTypeField * fld = field();
     if( !hasValue() || !fld || !fld->canHaveValue() )
@@ -1059,6 +1050,12 @@ bool sUsrObjPropsNode::set(const sHiveId & val)
     return false;
 }
 
+bool sUsrObjPropsNode::boolset(bool bval)
+{
+    sVariant tmp(bval);
+    return set(tmp);
+}
+
 bool sUsrObjPropsNode::iset(idx val)
 {
     sVariant tmp(val);
@@ -1083,7 +1080,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::push(const char * field_name, sVarian
     if (!_tree || !field_name)
         return 0;
 
-    sUsrObjPropsTree * tree = _tree; // after pushHelper, our node's allocation may move, so _tree may be invalid
+    sUsrObjPropsTree * tree = _tree;
     return tree->getNodeByIndex(tree->pushHelper(_nav.self, field_name, val));
 }
 
@@ -1092,7 +1089,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::push(const char * field_name, const c
     if (!_tree || !field_name)
         return 0;
 
-    sUsrObjPropsTree * tree = _tree; // after pushHelper, our node's allocation may move, so _tree may be invalid
+    sUsrObjPropsTree * tree = _tree;
     return tree->getNodeByIndex(tree->pushHelper(_nav.self, field_name, val));
 }
 
@@ -1103,8 +1100,18 @@ const sUsrObjPropsNode * sUsrObjPropsNode::push(const char * field_name, const s
 
     sStr tmp;
     val.print(tmp);
-    sUsrObjPropsTree * tree = _tree; // after pushHelper, our node's allocation may move, so _tree may be invalid
+    sUsrObjPropsTree * tree = _tree;
     return tree->getNodeByIndex(tree->pushHelper(_nav.self, field_name, tmp.ptr()));
+}
+
+const sUsrObjPropsNode * sUsrObjPropsNode::boolpush(const char * field_name, bool bval)
+{
+    if (!_tree || !field_name)
+        return 0;
+
+    sVariant tmp(bval);
+    sUsrObjPropsTree * tree = _tree;
+    return tree->getNodeByIndex(tree->pushHelper(_nav.self, field_name, tmp));
 }
 
 const sUsrObjPropsNode * sUsrObjPropsNode::ipush(const char * field_name, idx ival)
@@ -1113,7 +1120,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::ipush(const char * field_name, idx iv
         return 0;
 
     sVariant tmp(ival);
-    sUsrObjPropsTree * tree = _tree; // after pushHelper, our node's allocation may move, so _tree may be invalid
+    sUsrObjPropsTree * tree = _tree;
     return tree->getNodeByIndex(tree->pushHelper(_nav.self, field_name, tmp));
 }
 
@@ -1124,7 +1131,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::upush(const char * field_name, udx uv
 
     sVariant tmp;
     tmp.setUInt(uval);
-    sUsrObjPropsTree * tree = _tree; // after pushHelper, our node's allocation may move, so _tree may be invalid
+    sUsrObjPropsTree * tree = _tree;
     return tree->getNodeByIndex(tree->pushHelper(_nav.self, field_name, tmp));
 }
 
@@ -1134,7 +1141,7 @@ const sUsrObjPropsNode * sUsrObjPropsNode::rpush(const char * field_name, real r
         return 0;
 
     sVariant tmp(rval);
-    sUsrObjPropsTree * tree = _tree; // after pushHelper, our node's allocation may move, so _tree may be invalid
+    sUsrObjPropsTree * tree = _tree;
     return tree->getNodeByIndex(tree->pushHelper(_nav.self, field_name, tmp));
 }
 
@@ -1348,20 +1355,15 @@ bool sUsrObjPropsTree::linkNode(idx cur_index)
 
     const sUsrTypeField * cur_fld = _nodes[cur_index].field();
 
-    // generate inner nodes as needed ...
     while (const sUsrTypeField * parent_fld = cur_fld->parent()) {
-        // array row pseudo-nodes use the same path as their children
         if (!parent_fld->isArrayRow()) {
             while (path_end > path.ptr() && *path_end >= '0' && *path_end <= '9') {
                 path_end--;
             }
-            // defend against weird malformed paths
             if (path_end > path.ptr()) {
                 *path_end-- = 0;
             } else {
                 if (_nodes[cur_index].field()->isGlobalMulti()) {
-                    // warn developers that there can be multiple instances of this node, so a valid path is expected
-                    // TODO: proper logging API
                     fprintf(stderr, "%s:%u: ERROR: sUsrObjPropsNode of type '%s' value '%s' has a malformed or missing path '%s'; a path of at least %" DEC " elements was expected\n", __FILE__, __LINE__, _nodes[cur_index].name(), _nodes[cur_index].value(), _nodes[cur_index].path(), countExpectedPathElts(_nodes[cur_index].field()));
                 }
                 path_end = path.cut0cut();
@@ -1385,7 +1387,6 @@ bool sUsrObjPropsTree::linkNode(idx cur_index)
         cur_fld = parent_fld;
     }
 
-    // ... and then link the top-level node to top-level siblings, if it wasn't linked already
     if (_nodes[cur_index]._nav.prev_sib == -1 && _nodes[cur_index]._nav.next_sib == -1 && _nav.first_child != cur_index)
         linkNodeParentSiblings(cur_index, -1);
 
@@ -1426,7 +1427,6 @@ static idx sortPathsCallback(void *param, void *arr_param, idx i1, idx i2)
     while (i<dim1 && i<dim2 && split_path1[i] == split_path2[i])
         i++;
 
-    // use field order and then names to break ties
     idx ret = 0;
     if (i == dim1 && i == dim2) {
         if( utype ) {
@@ -1451,26 +1451,12 @@ static idx sortPathsCallback(void *param, void *arr_param, idx i1, idx i2)
         ret = split_path1[i] - split_path2[i];
     }
 
-#if 0
-    if (i == dim1 && i == dim2) {
-        if (ret == 0)
-            fprintf(stderr, "%s == %s\n", name1, name2);
-        else
-            fprintf(stderr, "%s < %s\n", ret<0 ? name1 : name2, ret<0 ? name2 : name1);
-    } else {
-        if (ret == 0)
-            fprintf(stderr, "'%s' == '%s'\n", path1, path2);
-        else
-            fprintf(stderr, "'%s' < '%s'\n", ret<0 ? path1 : path2, ret<0 ? path2 : path1);
-    }
-#endif
 
     return ret;
 }
 
 bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx> * rows_pushable, const char * filter)
 {
-    // does the table already include type information?
     const char * parsed_type_name = "";
     if (!objType()) {
         for (idx ir=first_row; ir<table.rows; ir++) {
@@ -1499,7 +1485,6 @@ bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx
         }
     }
 
-    // sort rows by path to ensure correct sibling node order in tree
     sVec<idx> rows_sorted;
     sStr first_id;
     for (idx ir=first_row; ir<table.rows; ir++) {
@@ -1512,7 +1497,6 @@ bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx
         }
 
         idx row = ir;
-        // if we are not parsing _ptable, append the row to _ptable
         if (&table != _ptable) {
             row = _ptable->rows;
             _ptable->addRow();
@@ -1525,7 +1509,6 @@ bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx
     SortPathsCallbackParam sort_paths_callback_param = { _ptable, objType(), &_usr };
     sSort::sortSimpleCallback<idx>(sortPathsCallback, &sort_paths_callback_param, rows_sorted.dim(), rows_sorted.ptr());
 
-    // load leaf nodes from table rows
     for (idx i=0; i<rows_sorted.dim(); i++) {
         idx row = rows_sorted[i];
 
@@ -1535,10 +1518,8 @@ bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx
         const char * node_name = _ptable->val(row, COL_NAME);
         const char * node_path = _ptable->val(row, COL_PATH);
 
-        // do not add nodes with invalid/deprecated types
         if (!objType()->getField(_usr, node_name)) {
 #ifdef _DEBUG
-            // TODO: replace with proper log API
             fprintf(stderr, "%s:%u: WARNING: failed to insert node of field type '%s' value '%s' - no field type '%s' in object type '%s'\n", __FILE__, __LINE__, node_name, _ptable->val(row, COL_VALUE), node_name, objTypeName());
 #endif
             continue;
@@ -1553,7 +1534,6 @@ bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx
         }
     }
 
-    // then try to add those pushable rows which can be added trivially
     sVec<idx> rows_push_recalcitrant;
     for (idx i=0; rows_pushable && i<rows_pushable->dim(); i++) {
         idx row = *(rows_pushable->ptr(i));
@@ -1574,7 +1554,6 @@ bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx
         }
     }
 
-    // generate inner nodes as needed and link together
     idx leaves = _nodes.dim();
     for (idx ir=0; ir<leaves; ir++) {
         if (!linkNode(ir)) {
@@ -1583,7 +1562,6 @@ bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx
         }
     }
 
-    // individually push the recalcitrant pushable rows
     for (idx i=0; i<rows_push_recalcitrant.dim(); i++) {
         idx row = rows_push_recalcitrant[i];
         const char * node_name = _ptable->val(row, COL_NAME);
@@ -1598,7 +1576,7 @@ bool sUsrObjPropsTree::parseTable(const sVarSet & table, idx first_row, sVec<idx
 }
 
 struct pushFinderData {
-    sVec<const sUsrTypeField *> target_ancestry; // ancestors of target field (target field is last)
+    sVec<const sUsrTypeField *> target_ancestry;
     const sUsrObjPropsNode * best_node;
     idx best_depth;
     idx target_depth;
@@ -1619,7 +1597,6 @@ struct pushFinderData {
 
     const sUsrTypeField * ancestorAtDepth(idx i) const
     {
-        // top-level non-root nodes have depth 1; top-level ancestor has index 0
         if (i < 1 || i > target_depth)
             return 0;
         return target_ancestry[i - 1];
@@ -1631,7 +1608,6 @@ static sUsrObjPropsNode::FindStatus pushFinder(const sUsrObjPropsNode& node, voi
     pushFinderData * pdata = static_cast<pushFinderData*>(param);
 
     if (node.depth() >= pdata->target_depth) {
-        // node is as deep as target - time to move sideways
         return sUsrObjPropsNode::eFindPrune;
     }
 
@@ -1640,15 +1616,12 @@ static sUsrObjPropsNode::FindStatus pushFinder(const sUsrObjPropsNode& node, voi
     }
 
     if (node.field() == pdata->ancestorAtDepth(node.depth())) {
-        // if this node already has a child of type field_stack[i-1],
-        // can we add another one?
         const sUsrTypeField * child_fld = pdata->ancestorAtDepth(node.depth() + 1);
         const sUsrObjPropsNode * cur_child = node.firstChild(child_fld->name());
         if (!cur_child || (child_fld->isMulti() && !node.field()->isArrayRow())) {
             pdata->best_node = &node;
             pdata->best_depth = node.depth();
             if (node.depth() + 1 == pdata->target_depth) {
-                // can't get any better than this!
                 return sUsrObjPropsNode::eFindStop;
             }
         }
@@ -1678,7 +1651,6 @@ idx sUsrObjPropsTree::pushHelper(idx node_index, const char * field_name, const 
     const sUsrTypeField * target_field = objType()->getField(_usr, field_name);
     if (!target_field) {
 #ifdef _DEBUG
-        // TODO: replace with proper log API
         fprintf(stderr, "%s:%u: WARNING: failed to insert node of field type '%s' value '%s' - no field type '%s' in object type '%s'\n", __FILE__, __LINE__, field_name, value, field_name, objTypeName());
 #endif
         return -sIdxMax;
@@ -1687,7 +1659,6 @@ idx sUsrObjPropsTree::pushHelper(idx node_index, const char * field_name, const 
     if (target_field == pnode->field() || (value && !target_field->canHaveValue()))
         return -sIdxMax;
 
-    // ensure that we are not repeating a singleton field
     if (!target_field->isGlobalMulti() && find(field_name))
         return -sIdxMax;
 
@@ -1696,15 +1667,12 @@ idx sUsrObjPropsTree::pushHelper(idx node_index, const char * field_name, const 
 
     pushFinderData data(pnode, target_field);
 
-    // ensure that starting node's field is a strict ancestor of the target field
     if (data.ancestorAtDepth(pnode->depth()) != pnode->field() || target_field == pnode->field())
         return -sIdxMax;
 
-    // find the best node where to push
     pnode->findBackwards(0, pushFinder, &data);
     pnode = TREE_ELT_OR_ROOT(data.best_node->_nav.self);
 
-    // create new nodes
     sStr prefix;
     findIdString(prefix);
     sStr node_path("%s", pnode->path() ? pnode->path() : "");
@@ -1712,8 +1680,6 @@ idx sUsrObjPropsTree::pushHelper(idx node_index, const char * field_name, const 
     for (idx i = data.best_depth + 1; i <= data.target_depth; i++) {
         idx parent = pnode->_nav.self;
         idx sib = pnode->_nav.last_child;
-        // If we are at the root and adding a multivalue field, the relevant
-        // sibling is the previous node of the same field type
         if (parent < 0 && sib >= 0) {
             sib = -1;
             if (data.ancestorAtDepth(i)->isMulti()) {
@@ -1728,11 +1694,6 @@ idx sUsrObjPropsTree::pushHelper(idx node_index, const char * field_name, const 
         const sUsrTypeField * parent_fld = pnode->field();
         bool parent_is_array_row = parent_fld && parent_fld->isArrayRow();
 
-        // If we are adding a top-level node, use its field's order as
-        // path by default. (Unless this is a multivalue field, and there
-        // are previous siblings of the same field type.) Otherwise, use
-        // 1 + sibling's path. The exception is array row pseudo-fields,
-        // which use same path as their children.
         idx node_path_seg = parent<0 ? sMax<idx>(1, floor(data.ancestorAtDepth(i)->order())) : 1;
         if ((parent_fld || parent < 0) && sib >= 0 && !parent_is_array_row) {
             const char * sib_path = TREE_ELT(sib)->path();
@@ -1821,7 +1782,6 @@ bool sUsrObjPropsTree::addForm(const sVar & form, const char * filter)
         static const char * key_start = "prop.";
         static const idx key_start_len = sLen(key_start);
 
-        // format: prop.VALID_HIVE_ID.PROP_NAME[.PATH] or prop.SERVICE_PREFIX.PROP_NAME[.PATH]
         if (key_len < key_start_len || strncmp(key, key_start, key_start_len) != 0)
             continue;
 
@@ -1880,7 +1840,7 @@ do { \
     if (log) { \
         log->printf("err.%s.%s", prefix.ptr(), (name)); \
         if (path) \
-            log->printf(".%s", (path) ? (path) : ""); /* ?: syntax silences silly gcc warning */ \
+            log->printf(".%s", (path) ? (path) : "");\
         log->printf("=\"%s\"\n", msg); \
     } else { \
         goto RET; \
@@ -1937,7 +1897,6 @@ bool sUsrObjPropsTree::complete(sStr * log) const
         if (fld->isOptional())
             continue;
 
-        // Ignore system fields like _type, _parent
         if (fld->name()[0] == '_')
             continue;
 

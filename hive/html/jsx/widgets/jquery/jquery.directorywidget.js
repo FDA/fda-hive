@@ -88,7 +88,7 @@ $(function () {
             oThis = this;
             
             oThis.options.container = "directoryWidgetDiv" + parseInt(Math.random() * 100000);
-            oThis.element.append($(document.createElement("div")).attr("id", oThis.options.container)); // add random number generation to the end of this 
+            oThis.element.append($(document.createElement("div")).attr("id", oThis.options.container));
             
             oThis.options.data = verarr(oThis.options.data);
             $(oThis.options.data).each(function(i, dsName){
@@ -105,9 +105,8 @@ $(function () {
             this.options.expandSize = 8;
             this.options.className = "directory";
             
-            vjDS.add("","ds_"+oThis.options.container+"_signals","static://",function(param,text,page_request){oThis.doneChildren(param, text,page_request);});
+            vjDS.add("","ds_"+oThis.options.container+"_signals","static:
             
-            //need to change this, since callbacks/events will be captured differently
             if (this.options.qreyLang) this.options.selectCaptureCallback = oThis.onSelectCaptureCallback_QryLang;
             else this.options.selectCaptureCallback = oThis.onSelectCaptureCallback;
         },
@@ -235,19 +234,9 @@ $(function () {
         
         
         
-        // Hierarchy Alterations
         copy: function (eventNode)
         {
-            /*
-             * eventNode has the following structure: 
-             * {
-             *         element:{}, // the html element (the drop down menu itself) 
-             *         item:{}, //the item from the drop down that was selected
-             *         position:{}, //the x&y coordinates of either the click or the menu itself. not sure 
-             *         reference:{} //this has information about what element was selected (right clicked on), and its parents. the actually useful thing!
-             * }
-             */
-            var curNodeId = eventNode.reference.prevObject[0].id; // the id of the node is its path
+            var curNodeId = eventNode.reference.prevObject[0].id;
             var lastIndex = curNodeId.lastIndexOf("/");
             
             oThis.options.operation = "copy";
@@ -256,9 +245,8 @@ $(function () {
         },
         cut: function (eventNode, fromDND)
         {
-            //if the even was triggered from drag and drop callback
             if (fromDND){
-                var curNodeId = fromDND.data.nodes[0]; // the id of the node is its path
+                var curNodeId = fromDND.data.nodes[0];
                 var lastIndex = curNodeId.lastIndexOf("/");
                 
                 oThis.options.operation = "cut";
@@ -268,16 +256,7 @@ $(function () {
                 return;
             }
             
-            /*
-             * eventNode has the following structure: 
-             * {
-             *         element:{}, // the html element (the drop down menu itself) 
-             *         item:{}, //the item from the drop down that was selected
-             *         position:{}, //the x&y coordinates of either the click or the menu itself. not sure 
-             *         reference:{} //this has information about what element was selected (right clicked on), and its parents. the actually useful thing!
-             * }
-             */
-            var curNodeId = eventNode.reference.prevObject[0].id; // the id of the node is its path
+            var curNodeId = eventNode.reference.prevObject[0].id;
             var lastIndex = curNodeId.lastIndexOf("/");
             
             oThis.options.operation = "cut";
@@ -301,9 +280,9 @@ $(function () {
             var next_currentFolder = oThis.options.currentFolder;
             oThis.options.selectedNodeContentChanged = false;
 
-            var url_do = "http://?cmd=obj"+action+"&raw=1";
+            var url_do = "http:
             var url_undo = url_do;
-            if (action == "Copy") url_undo = "http://?cmd=objCut&raw=1";
+            if (action == "Copy") url_undo = "http:
 
             var srcFolderName;
 
@@ -355,12 +334,7 @@ $(function () {
 
             if (isok(url.exec)) {
                 vjDS["ds_"+oThis.options.container+"_signals"].reload(url.exec,true,params);
-            } /*else {
-                oThis.doneChildren({
-                    callback : 'doneChildren',
-                    params : params
-                }, "");
-            }*/
+            }
             
             oThis.updateHistory (params);
         },
@@ -391,7 +365,6 @@ $(function () {
                 if (oThis.options.actionsHandler) {
                     oThis.options.actionsHandler(content, page_request);
                 }
-                //function to refresh all DS needs to be written and called here
                 oThis.refreshAllDS();
             }
         },
@@ -433,7 +406,6 @@ $(function () {
         },
         updateHistory: function (params, content, page_request){
             if(!params.resetHistory){
-                //neeed to check if the params object has already been in the stack
                 var ret1 = oThis._checkArrayForObject(oThis.options.HistoryStack, params);
                 var ret2 = oThis._checkArrayForObject(oThis.options.DoStack, params);
                 
@@ -495,9 +467,7 @@ $(function () {
                     }
                 });
         },
-        //functions that might be needed later
         onSelectCaptureCallback: function(view, node) {
-            //whatever will need to happen in the select capture
             
             if (oThis.options.onSelectCapture){
                 oThis.options.onSelectCapture(view, node);

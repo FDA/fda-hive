@@ -34,7 +34,7 @@
 int main(int argc, const char * argv[])
 {
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     SvcBatcher backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"svc-batcher",argv[0]));
 

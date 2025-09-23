@@ -28,16 +28,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-// standard javascript methods on default objects which are not implemented in some old browsers (e.g. old IE, old Safari)
 
-// checks if an object is an Array; for IE8
 if (!Array.isArray) {
     Array.isArray = function(a) {
         return Object.prototype.toString.call(a) === '[object Array]';
     };
 }
 
-// runs a callback for every array element; for IE8
 if (!Array.prototype.every) {
     Array.prototype.every = function(callback, thisArg) {
         var len = this.length;
@@ -52,7 +49,6 @@ if (!Array.prototype.every) {
     };
 }
 
-// create new array with elements that satisfy a specified condition; for IE8
 if (!Array.prototype.filter) {
     Array.prototype.filter = function(callback, thisArg) {
         var len = +this.length;
@@ -81,7 +77,6 @@ if (!Array.prototype.forEach) {
     };
 }
 
-// returns first index of a given element, or -1; for IE8
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function(searchElement, fromIndex) {
         var i = +fromIndex || 0;
@@ -101,7 +96,6 @@ if (!Array.prototype.indexOf) {
     };
 }
 
-// returns last index of a given element, or -1; for IE8
 if (!Array.prototype.lastIndexOf) {
     Array.prototype.lastIndexOf = function(searchElement, fromIndex) {
         var i = arguments.length > 1 ? +fromIndex : this.length - 1;
@@ -121,21 +115,18 @@ if (!Array.prototype.lastIndexOf) {
     };
 }
 
-// checks that string starts with the specific string; needed for all IE and Safari versions
 if (!String.prototype.startsWith) {
     String.prototype.startsWith = function (str) {
         return this.slice(0, str.length) == str;
     };
 }
 
-// checks that string ends with the specific string; needed for all IE and Safari versions
 if (!String.prototype.endsWith) {
     String.prototype.endsWith = function (str) {
         return this.slice(-str.length) == str;
     };
 }
 
-// remove whitespace from both sides of a string; needed for IE8
 if (!String.prototype.trim) {
     (function() {
         var re = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
@@ -157,4 +148,3 @@ if (!console.error) {
     };
 }
 
-//# sourceURL = getBaseUrl() + "/js/polyfill.js"

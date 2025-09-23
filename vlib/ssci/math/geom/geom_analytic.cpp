@@ -40,9 +40,9 @@ bool sGeom::isInsidePolygon(idx cnt, sPnt * pnts, sPnt * p)
         p1=p2;
         p2 = pnts + (i%cnt);
         
-        if (p->y <= sMin(p1->y,p2->y) || p->y > sMax(p1->y,p2->y) ) continue; // not intersecting on y axis ... disregard
-        if (p->x > sMax(p1->x,p2->x)) continue; // too right from the right point 
-        if (p1->y == p2->y) continue ; // the segment lies horizontally
+        if (p->y <= sMin(p1->y,p2->y) || p->y > sMax(p1->y,p2->y) ) continue;
+        if (p->x > sMax(p1->x,p2->x)) continue;
+        if (p1->y == p2->y) continue ;
         real xinters = (p->y-p1->y)*(p2->x-p1->x)/(p2->y-p1->y)+p1->x;
         if (p1->x == p2->x || p->x <= xinters)
             counter++;
@@ -78,11 +78,6 @@ void sGeom::propInsideAxes(sPnt * pnts, sPnt * p,sPnt * crossProp)
         xonX=p1->x;
         yonX=p1->y+(p->y-yonY);
     } else {
-        // equation of the first line is   y=py+(x-p1->x)*d21
-        // equation of the second line is  y=py+(x-p1->x)*d31
-        // we solve for crossing of those lines with base lines with 
-        // y axis y=p1->y+(x-p1->y)*d21    
-        // x axis y=p1->y+(x-p1->y)*d31
         xonX=(p->y-p1->y-p->x*d21+p1->x*d31)/(d31-d21);
         yonX=p1->y+(xonX-p1->x)*d31;
 

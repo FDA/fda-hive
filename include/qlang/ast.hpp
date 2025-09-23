@@ -33,15 +33,13 @@
 
 namespace slib {
     namespace qlang {
-        //! Query language syntax tree namespace
         namespace ast {
-            //! Base class for query language's abstract syntax tree nodes
             class Node {
             public:
                 enum eType {
-                    // Warning: keep in sync with NodeNames in ast.cpp
                     node_ERROR = 0,
                     node_NULL_LITERAL,
+                    node_BOOL_LITERAL,
                     node_INT_LITERAL,
                     node_REAL_LITERAL,
                     node_STRING_LITERAL,
@@ -115,7 +113,6 @@ namespace slib {
                 virtual bool isDollarCall(const char ** name, idx * num) const { return false; }
             };
 
-            //! Abstract syntax tree node that contains one other node
             class Unary : public Node {
             protected:
                 Node *_arg;
@@ -127,7 +124,6 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node that contains two other nodes
             class Binary : public Node {
             protected:
                 Node *_lhs, *_rhs;
@@ -139,7 +135,6 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node that contains a list of other nodes
             class Nary : public Node {
             protected:
                 sVec<Node*> _elts;
@@ -152,7 +147,6 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node for a scalar literal
             class ScalarLiteral : public Node {
             protected:
                 sVariant _val;
@@ -164,31 +158,31 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node for a null literal
             class NullLiteral : public ScalarLiteral {
             public:
                 NullLiteral(idx line=-1, idx col=-1): ScalarLiteral(line, col) { _val.setNull(); }
             };
 
-            //! Abstract syntax tree node for an integer literal
+            class BoolLiteral : public ScalarLiteral {
+            public:
+                BoolLiteral(bool b, idx line=-1, idx col=-1);
+            };
+
             class IntLiteral : public ScalarLiteral {
             public:
                 IntLiteral(idx i, idx line=-1, idx col=-1);
             };
 
-            //! Abstract syntax tree node for a real literal
             class RealLiteral : public ScalarLiteral {
             public:
                 RealLiteral(real r, idx line=-1, idx col=-1);
             };
 
-            //! Abstract syntax tree node for a string literal
             class StringLiteral : public ScalarLiteral {
             public:
                 StringLiteral(const char *s, idx line=-1, idx col=-1);
             };
 
-            //! Abstract syntax tree node for a list literal: [1,2,"abc"]
             class ListLiteral : public Nary {
             public:
                 ListLiteral(idx line=-1, idx col=-1): Nary(line, col) { _type = node_LIST_LITERAL; }
@@ -196,7 +190,6 @@ namespace slib {
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for a dictionary literal: {"a":1, "b":2}
             class DicLiteral : public Nary {
             public:
                 DicLiteral(idx line=-1, idx col=-1): Nary(line, col) { _type = node_DIC_LITERAL; }
@@ -204,96 +197,82 @@ namespace slib {
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for a real literal
             class VariantLiteral : public ScalarLiteral {
             public:
                 VariantLiteral(sVariant &val, idx line=-1, idx col=-1);
             };
 
-            //! Abstract syntax tree node for a junction: 1|2|3
             class Junction : public ListLiteral {
             public:
                 Junction(idx line=-1, idx col=-1): ListLiteral(line,col) { _type = node_JUNCTION; }
             };
 
-            //! Abstract syntax tree node for casting to a boolean: "true" as bool
             class BoolCast : public Unary {
             public:
                 BoolCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to an integer: [1,2,3] as int
             class IntCast : public Unary {
             public:
                 IntCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to an unsigned integer
             class UIntCast : public Unary {
             public:
                 UIntCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to an integer list: "1,2,3" as intlist
             class IntlistCast : public Unary {
             public:
                 IntlistCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to a real
             class RealCast : public Unary {
             public:
                 RealCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to a string
             class StringCast : public Unary {
             public:
                 StringCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to an object ID
             class ObjCast : public Unary {
             public:
                 ObjCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to a list of object IDs
             class ObjlistCast : public Unary {
             public:
                 ObjlistCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to date-time
             class DateTimeCast : public Unary {
             public:
                 DateTimeCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to date
             class DateCast : public Unary {
             public:
                 DateCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for casting to time of day
             class TimeCast : public Unary {
             public:
                 TimeCast(Node *arg, idx line=-1, idx col=-1): Unary(arg,line,col) { _type = node_CAST; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for accessing a variable or builtin by name
             class Variable : public Node {
             protected:
                 sStr _var;
@@ -304,7 +283,6 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node for an assignment expression
             class Assign : public Binary {
             public:
                 Assign(Node *lhs, Node *rhs, idx line=-1, idx col=-1): Binary(lhs, rhs, line, col) { _type = node_OP_ASSIGN; }
@@ -312,28 +290,24 @@ namespace slib {
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for ++x or --x
             class Precrement : public Assign {
             public:
                 Precrement(Node *node, char op, idx line=-1, idx col=-1): Assign(node,NULL,line,col) { _type = (op == '+') ? node_OP_INCREMENT : node_OP_DECREMENT; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for x++ or x--
             class Postcrement : public Assign {
             public:
                 Postcrement(Node *node, char op, idx line=-1, idx col=-1): Assign(node,NULL,line,col) { _type = (op == '+') ? node_OP_INCREMENT : node_OP_DECREMENT; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for a basic arithmetic expression
             class Arithmetic : public Binary {
             public:
                 Arithmetic(Node *lhs, char op, Node *rhs, idx line=-1, idx col=-1);
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for an in-place arithmetic expression
             class ArithmeticInplace : public Arithmetic {
             protected:
                 Assign assigner;
@@ -342,21 +316,18 @@ namespace slib {
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for a unary plus or minus, e.g. -x
             class UnaryPlusMinus : public Unary {
             public:
                 UnaryPlusMinus(char op, Node *node, idx line=-1, idx col=-1);
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for subscripting a string, list, dictionary, or object, e.g. list[42];
             class Subscript : public Binary {
             public:
                 Subscript(Node *lhs, Node *index, idx line=-1, idx col=-1): Binary(lhs, index, line, col) { _type = node_OP_SUBSCRIPT; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for taking a list slice, e.g. list[0:10]
             class Slice : public Node {
             protected:
                 Node *_lhs, *_rhs1, *_rhs2;
@@ -367,28 +338,24 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node for (in)equality expressions
             class Equality : public Binary {
             public:
                 Equality(Node *lhs, char op, Node *rhs, idx line=-1, idx col=-1);
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for comparison expressions
             class Comparison : public Binary {
             public:
                 Comparison(Node *lhs, const char *op, Node *rhs, idx line=-1, idx col=-1);
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for the "has" operator, e.g. [1,2,3] has 2
             class Has : public Binary {
             public:
                 Has(Node *lhs, Node *rhs, idx line=-1, idx col=-1): Binary(lhs, rhs, line, col) { _type = node_OP_HAS; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for regular expression match and no-match operators
             class Match : public Unary {
             protected:
                 regex_t _re;
@@ -399,21 +366,18 @@ namespace slib {
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for binary logic expressions (&&, ||)
             class BinaryLogic : public Binary {
             public:
                 BinaryLogic(Node *lhs, char op, Node *rhs, idx line=-1, idx col=-1): Binary(lhs, rhs, line, col) { _type = (op == '&') ? node_OP_AND : node_OP_OR; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for the ! logical not operator
             class Not : public Unary {
             public:
                 Not(Node *node, idx line=-1, idx col=-1): Unary(node, line, col) { _type = node_OP_NOT; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for the ?: ternary conditional
             class TernaryConditional : public Node {
             protected:
                 Node *_condition, *_ifnode, *_elsenode;
@@ -424,7 +388,6 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node for accessing an object's property by name
             class Property : public Node {
             protected:
                 Node *_topic;
@@ -434,13 +397,12 @@ namespace slib {
                 virtual ~Property();
                 virtual void setTopic(Node* topic) { delete _topic; _topic = topic; }
                 virtual Node* getTopic() const { return _topic; }
-                void setName(const char *name) { _name.cut(0); _name.printf(name); }
+                void setName(const char *name) { _name.cut(0); _name.printf("%s", name); }
                 const char* getName() const { return _name.ptr(); }
                 virtual bool eval(sVariant &result, Context &ctx) const;
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree for calling a function without a topic: max(1,2,3)
             class FunctionCall : public Nary {
             protected:
                 Node* _verb;
@@ -454,7 +416,6 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree for calling a function on a topic: objectList.filter({.prop == 42})
             class MethodCall : public FunctionCall {
             protected:
                 Node *_topic;
@@ -467,14 +428,12 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree for calling a function on a topic using the "as" syntax: objectList as csv()
             class FormatCall : public MethodCall {
             public:
                 FormatCall(Node *topic, Node *verb, idx line=-1, idx col=-1): MethodCall(topic, verb, line, col) { _type = node_FORMAT_CALL; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for $NUM or $NAME call
             class DollarCall : public Node {
             protected:
                 idx _num;
@@ -490,7 +449,6 @@ namespace slib {
                 virtual bool isDollarCall(const char ** name, idx * num) const;
             };
 
-            //! Abstract syntax tree node for a block of statements
             class Block : public Nary {
             protected:
                 bool _addsScope;
@@ -503,14 +461,12 @@ namespace slib {
                 virtual bool isDollarCall(const char ** name, idx * num) const { return _elts.dim() == 1 ? _elts[0]->isDollarCall(name, num) : false; }
             };
 
-            //! A block that catches break/continue/return statements
             class UnbreakableBlock : public Block {
             public:
                 UnbreakableBlock(bool addsScope=true, bool isMain=false, idx line=-1, idx col=-1): Block(addsScope, isMain, line, col) { _type = node_UNBREAKABLE_BLOCK; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for a lambda expression or function declared in query text
             class Lambda : public Node, public Callable {
             protected:
                 sVec<sStr> _arglist;
@@ -525,7 +481,6 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node for an if expression
             class If : public Node {
             protected:
                 Node* _condition;
@@ -534,13 +489,11 @@ namespace slib {
             public:
                 If(Node* condition, Node* ifBlock, Node *elseBlock, idx line=-1, idx col=-1): Node(line, col), _condition(condition), _ifBlock(ifBlock), _elseBlock(elseBlock) { _type = node_IF; }
                 virtual ~If();
-                // sets the last else-block in a chain of If-s
                 virtual void setLastElse(Node *node);
                 virtual bool eval(sVariant &result, Context &ctx) const;
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node for a for loop
             class For : public Node {
             protected:
                 Node* _init;
@@ -554,13 +507,11 @@ namespace slib {
                 virtual void print(sStr &s) const;
             };
 
-            //! Abstract syntax tree node for a while loop
             class While : public For {
             public:
                 While(Node* condition, Block *block, idx line=-1, idx col=-1): For(NULL, condition, NULL, block, line, col) { _type = node_WHILE; }
             };
 
-            //! Abstract syntax tree node for a return statement
             class Return : public Unary {
             public:
                 Return(Node *arg, idx line=-1, idx col=-1): Unary(arg, line, col) { _type = node_RETURN; }
@@ -568,14 +519,12 @@ namespace slib {
                 virtual bool isDollarCall(const char ** name, idx * num) const { return _arg ? _arg->isDollarCall(name, num) : false; }
             };
 
-            //! Abstract syntax tree node for a break statement
             class Break : public Node {
             public:
                 Break(idx line=-1, idx col=-1): Node(line,col) { _type = node_BREAK; }
                 virtual bool eval(sVariant &result, Context &ctx) const;
             };
 
-            //! Abstract syntax tree node for a continue statement
             class Continue : public Node {
             public:
                 Continue(idx line=-1, idx col=-1): Node(line,col) { _type = node_BREAK; }

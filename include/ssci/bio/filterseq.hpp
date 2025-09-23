@@ -42,14 +42,10 @@ namespace slib
             struct filterParams{
                 idx complexityWindow;
                 real complexityEntropy;
-                // developer: feel free to add more variables to this structure if necessary
             };
             typedef idx (*callbackType)(void * param, idx countDone, idx curPercent, idx maxPercent);
 
             static idx complexityFilter( const char * seq, idx len ,idx complexityWindow, real complexityEntropy, bool isCompressed = true, idx optiontoCut = 0, bool considerNs = false );
-//            static idx complexityStartFilter( const char * seq, idx len ,idx complexityWindow, real complexityEntropy, bool isCompressed);
-//            static idx complexityEndFilter( const char * seq, idx len ,idx complexityWindow, real complexityEntropy, bool isCompressed);
-//            static bool complexityFilter2( const char * seq, idx len ,idx complexityWindow, real complexityEntropy , idx complexityCharLen=1);
             static bool complexityFilter_wholeSeq_ChunkSize( const char * seq, idx len , idx chunkSize, real complexityEntropy, bool considerNs = false);
 
 
@@ -57,23 +53,18 @@ namespace slib
             static idx trimQuality(const char *qua, idx len, idx threshold, idx minlen = 1);
             static bool trimPosition(idx startseq, idx endseq, idx start, idx end);
             static idx primersFilter(const char *seq, idx seqlen, const char *primer, idx prlen, idx minLength, idx maxMissMatches, bool reverse, bool keepIfMid, bool keepIfEnd, idx windowLen);
-//            static void randomizer(sFil &fp, sBioseq &Sub, idx num, idx noise, idx minValue, idx maxValue, const char * strsettings, const char *strmutations);
             static void randomizer(sFil &QP, sBioseq &sub, idx numReads, real noise, idx minValue, idx maxValue, bool isNrevComp, bool isQual, bool isLengthNormalized, const char * strsettings, const char *strmutations,idx complexityWindow = 0, real complexityEntropy = 0,void * myCallbackParam = 0,callbackType myCallbackFunction = 0  );
-            //static sVec <idx> complexityFilterPrecomputedArray;
             static void randomizer2vioseq(sBioseq &sub, const char * output, idx numReads, real noise=0, idx minValue=0, idx maxValue=0, bool isNrevComp=false, bool isQual=false, const char * strsettings=0, const char *strmutations=0);
             static void randomizer(sBioseq &sub, const char * output, idx numReads, real noise=0, idx minValue=100, idx maxValue=100, bool isNrevComp=false, bool isQual=false, const char * strsettings=0, const char *strmutations=0);
             static idx k_match(const char* s1, const char* q1, idx len1, const char* s2, const char* q2, idx len2, idx max_mismatch, char q_cut);
-//            static void randomizer(const char * input, const char * output, idx numReads, real noise=0, idx minValue=0, idx maxValue=0, bool isNrevComp=false, bool isQual = false, const char * strsettings=0, const char *strmutations=0);
-            static idx adaptiveAlignment (const char *sub, idx sublen, const char *qry, idx qrylen, idx cfmatch, idx cfmismatch, idx cfindel, idx *resPos, idx *costMatrix, idx *dirMatrixconst);
+            static idx adaptiveAlignment (const char *sub, idx sublen, const char *qry, idx qrylen, idx cfmatch, idx cfmismatch, idx cfindel, idx *resPos, idx *costMatrix, idx *dirMatrixconst, idx diagonalFilter = 0);
             static idx posMatrix(idx i, idx j, idx len, idx *mat);
 
-            // Create a dictionary with id's of the bioseq object
             static bool parseDicBioseq(sDic <idx> &idDic, sBioseq &sub, sStr *errmsg = 0, bool attemptSubStrings = true);
-            static idx getrownum(sDic <idx> &idDic, const char *id, idx idlen = 0);
+            static idx getrownum(sDic <idx> &idDic, const char *id, idx idlen = 0, idx * pNum =0);
 
             static idx sequenceFilterStatic(void *param, sStr * buf, idx initid, idx initseq, idx initqua, idx seqlen)
             {
-                // developer: feel free to add more options to the filter
                 filterParams * par = static_cast<filterParams*>(param);
                 const char *seq = buf->ptr(initseq);
                 idx retval = complexityFilter(seq, seqlen, par->complexityWindow, par->complexityEntropy, false);
@@ -84,4 +75,4 @@ namespace slib
 
 }
 
-#endif // sLib_utils_filter_hpp
+#endif 

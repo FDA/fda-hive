@@ -59,7 +59,6 @@ void sJSONPrinter::insertSeparator(bool multiline)
         case eEmptyInlineArray:
             comma = false;
             _states[_states.dim() - 1] = eInlineArray;
-            // no break
         case eInlineArray:
             if( multiline ) {
                 _states[_states.dim() - 1] = eMultilineArray;
@@ -68,18 +67,15 @@ void sJSONPrinter::insertSeparator(bool multiline)
         case eEmptyMultilineArray:
             comma = false;
             _states[_states.dim() - 1] = eMultilineArray;
-            // no break
         case eMultilineArray:
             multiline = true;
             break;
         case eEmptyObject:
             comma = false;
-            // no break
         case eObjectValue:
             multiline = true;
             break;
         default:
-            // no separator here!
             return;
     }
 
@@ -90,7 +86,7 @@ void sJSONPrinter::insertSeparator(bool multiline)
     if( multiline ) {
         newlineAndIndent(_out, _newline, _indent, _states.dim());
     } else {
-        _out->addString(" ", 1);
+        _out->addString(_spacer);
     }
 }
 
@@ -112,6 +108,7 @@ void sJSONPrinter::init(sStr * out, const char * indent, const char * newline)
     }
     _indent = indent_offset >= 0 ? _space_buf.ptr(indent_offset) : default_indent;
     _newline = newline_offset >= 0 ? _space_buf.ptr(newline_offset) : default_newline;
+    _spacer = sLen(_indent) ? " " : sStr::zero;
 }
 
 void sJSONPrinter::finish(bool no_close_parens)
@@ -131,7 +128,6 @@ void sJSONPrinter::finish(bool no_close_parens)
                     endArray();
                     break;
                 default:
-                    // do nothing
                     break;
             }
         }
@@ -191,17 +187,17 @@ bool sJSONPrinter::startObject()
     }, eEmptyObject);
 }
 
-bool sJSONPrinter::addKey(const char * name, idx len/* = 0 */)
+bool sJSONPrinter::addKey(const char * name, idx len)
 {
     switch(curState()) {
         case eObjectKey:
             addNull();
-            // no break
         case eEmptyObject:
         case eObjectValue:
             insertSeparator(true);
             sString::escapeForJSON(*_out, name, len);
-            _out->addString(": ");
+            _out->addString(":");
+            _out->addString(_spacer);
             _states[_states.dim() - 1] = eObjectKey;
             break;
         default:
@@ -215,10 +211,8 @@ bool sJSONPrinter::endObject()
     switch(curState()) {
         case eObjectKey:
             addNull();
-            // no break
         case eObjectValue:
             newlineAndIndent(_out, _newline, _indent, _states.dim() - 1);
-            // no break
         case eEmptyObject:
             _out->addString("}");
             _states.cut(_states.dim() - 1);
@@ -232,7 +226,7 @@ bool sJSONPrinter::endObject()
     return true;
 }
 
-bool sJSONPrinter::startArray(bool force_multiline/* = false */)
+bool sJSONPrinter::startArray(bool force_multiline)
 {
     START_COMPLEX_VALUE({
         _out->addString("[");
@@ -249,7 +243,7 @@ bool sJSONPrinter::endArray()
             newlineAndIndent(_out, _newline, _indent, _states.dim() - 1);
             break;
         case eInlineArray:
-            _out->addString(" ");
+            _out->addString(_spacer);
             break;
         default:
             return false;
@@ -269,7 +263,7 @@ bool sJSONPrinter::addNull()
     });
 }
 
-bool sJSONPrinter::addValue(const char * val, idx len/* = 0*/, bool empty_as_null/* = false */)
+bool sJSONPrinter::addValue(const char * val, idx len, bool empty_as_null)
 {
     ADD_SCALAR_VALUE({
         if( empty_as_null && (!val || !*val) ) {
@@ -280,32 +274,80 @@ bool sJSONPrinter::addValue(const char * val, idx len/* = 0*/, bool empty_as_nul
     });
 }
 
-static bool valid_real_fmt(const char * fmt)
+static const char * valid_real_fmt(const char * fmt)
 {
     if( !fmt ) {
-        return false;
+        return 0;
     }
     if( *fmt == '%' ) {
-        // printf-style %{flags}g or similar
-        for(fmt++; *fmt == '#' || *fmt == '0' || *fmt == '-' || *fmt == '+' || *fmt == ' '; fmt++);
-        for(; isdigit(*fmt); fmt++);
-        if( *fmt == '.' ) {
-            fmt++;
+        const char * f = fmt;
+        for(f++; *f == '#' || *f == '0' || *f == '-' || *f == '+' || *f == ' '; f++);
+        for(; isdigit(*f); f++);
+        if( *f == '.' ) {
+            f++;
         }
-        for(; isdigit(*fmt); fmt++);
-        return (*fmt == 'e' || *fmt == 'E' || *fmt == 'f' || *fmt == 'F' || *fmt == 'g' || *fmt == 'G') && fmt[1] == 0;
+        for(; isdigit(*f); f++);
+        if( (*f == 'e' || *f == 'E' || *f == 'f' || *f == 'F' || *f == 'g' || *f == 'G') && f[1] == 0 ) {
+            return fmt;
+        } else {
+            return 0;
+        }
     } else if( isdigit(*fmt) || ((*fmt == '+' || *fmt == '-') && isdigit(fmt[1])) ) {
-        // literal finite double
-        char * end = 0;
-        for(strtod(fmt, &end); isspace(*end); end++);
-        return *end == 0;
+        idx pos = 0;
+
+        if( fmt[pos] == '+' ) {
+            fmt++;
+        } else if( fmt[pos] == '-' ) {
+            pos = 1;
+        }
+
+        if( fmt[pos] == '0' ) {
+            pos++;
+            if( fmt[pos] && fmt[pos] != '.' ) {
+                return 0;
+            }
+        } else if( isdigit(fmt[pos]) ) {
+            do {
+                pos++;
+            } while(isdigit(fmt[pos]));
+        } else {
+            return 0;
+        }
+
+        if( fmt[pos] == '.' ) {
+            pos++;
+            if( !isdigit(fmt[pos]) ) {
+                return 0;
+            }
+            do {
+                pos++;
+            } while(isdigit(fmt[pos]));
+        }
+
+        if( fmt[pos] == 'e' || fmt[pos] == 'E' ) {
+            pos++;
+            if( fmt[pos] == '+' || fmt[pos] == '-' ) {
+                pos++;
+            }
+            if( !isdigit(fmt[pos]) ) {
+                return 0;
+            }
+            do {
+                pos++;
+            } while(isdigit(fmt[pos]));
+        }
+
+        if( fmt[pos] ) {
+            return 0;
+        }
+
+        return fmt;
     }
-    return false;
+    return 0;
 }
 
-bool sJSONPrinter::addValue(real r, const char * fmt/* = 0*/)
+bool sJSONPrinter::addValue(real r, const char * fmt)
 {
-    // Use javascript formatting for nan/inf
     ADD_SCALAR_VALUE({
         if( unlikely(isnan(r)) ) {
             _out->addString("\"NaN\"");
@@ -316,7 +358,10 @@ bool sJSONPrinter::addValue(real r, const char * fmt/* = 0*/)
                _out->addString("\"-Infinity\"");
            }
         } else {
-            fmt = valid_real_fmt(fmt) ? fmt : "%g";
+            fmt = valid_real_fmt(fmt);
+            if( !fmt ) {
+                fmt = "%g";
+            }
             _out->printf(fmt, r);
         }
     });
@@ -363,6 +408,7 @@ bool sJSONPrinter::addValue(const sVariant & val)
 {
     ADD_SCALAR_VALUE({
         sVariant::Whitespace ws;
+        ws.space = _spacer;
         ws.indent = _indent;
         ws.newline = _newline;
         val.print(*_out, sVariant::eJSON, &ws, _states.dim());

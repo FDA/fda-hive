@@ -32,18 +32,15 @@
 using namespace slib;
 
 
-//#define arr(_v_row, _v_col)     (actmat[(_v_row)*cols+(_v_col)])
-//#define tar(_v_row, _v_col)     (tmparr[(_v_row)*cols+(_v_col)])
-//#define cov(_v_row, _v_col)     (covararr[(_v_row)*cols+(_v_col)])
 void sAlgebra::matrix::pcaReMap(real * dst, const real * orig, idx cols, idx rows, const real * evecs)
 {
     idx ic2,ir, ic1;
     real coef;
 
-    for( ic1=0; ic1<cols; ++ic1) { // for each ic1-th eighenvector 
+    for( ic1=0; ic1<cols; ++ic1) {
         for(ir=0 ; ir<rows ; ++ir ) {
             coef=0;
-            for( ic2=0; ic2<cols; ++ic2) { // here ic2 runs over rows of evecs
+            for( ic2=0; ic2<cols; ++ic2) {
                 coef+=evecs[ic2*cols+ic1]*orig[ir*cols+ic2];
             }
             dst[ir*cols+ic1]=coef;
@@ -52,25 +49,22 @@ void sAlgebra::matrix::pcaReMap(real * dst, const real * orig, idx cols, idx row
 
 }
 
-// http://www.cs.otago.ac.nz/cosc453/student_tutorials/principal_components.pdf
 void sAlgebra::matrix::pca(real * actmat, idx rows, idx cols, real * evals, real * evecs )
 {
 
     
-    //unsigned int cols=arrs.dim(), rows=idxs.dim();
     
-    idx totsize = cols*cols // covariance matrix
-        + rows * cols // intermediate arrays
-        + cols*2 //temporary space for diagonalization and evals 
+    idx totsize = cols*cols
+        + rows * cols
+        + cols*2
         ;
 
 
     real * covar = (real * )sNew(totsize*sizeof(real));
     real * tmparr = covar+(cols*cols);
-    real * B = tmparr+(rows*cols);//evals+cols;
+    real * B = tmparr+(rows*cols);
     
-    // first we zero center the data  then compute the covariance and then diagonalize
-    computeRowStat(actmat, rows, cols, B,0); /// compute the average for each column
+    computeRowStat(actmat, rows, cols, B,0);
     shiftRows(actmat,rows, cols, B ); 
     memcpy(tmparr,actmat,sizeof(real)*cols*rows);
     covariance(tmparr,rows, cols, covar);
@@ -79,11 +73,9 @@ void sAlgebra::matrix::pca(real * actmat, idx rows, idx cols, real * evals, real
     diagSort(cols,evals,evecs,-1, false);
         
     pcaReMap(actmat,tmparr, cols, rows, evecs);
-    //sAlgebra::matrix::transpose(evecs, cols, cols);
-    //multiplyToMatrix(evecs,cols,cols,tmparr,rows,cols,actmat,true);
 
-    // free the allocated resources 
     sDel(covar);
 }
+
 
 

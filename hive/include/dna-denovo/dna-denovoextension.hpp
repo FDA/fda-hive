@@ -67,8 +67,29 @@ class DnaDenovoAssembly
                 idx next;
                 idx prev;
         };
+
+        struct ContigRepresentation
+        {
+                idx acgt [4];
+                idx consensus;
+                idx sumcoverage;
+                idx quality;
+                void updateConsensus (){
+                    idx max = 0;
+                    for (idx ilet = 1; ilet < 4; ++ilet){
+                        if (acgt[ilet] > acgt[max]){
+                            max = ilet;
+                        }
+                    }
+                    consensus = max;
+                }
+                idx freq(){
+                    return ((acgt[consensus]*100)/sumcoverage);
+                }
+        };
         sVec <seqlinkage> seqLink;
         sVec <idx> seqContig;
+        sVec <ContigRepresentation> seqContigContainer;
         idx sizeContigs;
 
         idx seqCount, seqLinkCount;
@@ -79,6 +100,7 @@ class DnaDenovoAssembly
         bool firstStageOnly;
         idx outLengthFilter;
         idx missmatchesPercent;
+        bool useNewContigContainer;
 
 
     protected:
@@ -87,6 +109,7 @@ class DnaDenovoAssembly
     public:
         sBioseq *QrySrc;
         idx dnaDenovoExtension(sBioseq &Qry, BioseqTree &tree, idx sizem, idx sizef, idx rptf, bool firstStage = false);
+        idx dnaContigExtension(sBioseq &Qry, BioseqTree &tree, idx sizem, idx sizef, idx rptf, bool firstStage = false, sStr *err = 0);
         idx dnaDenovoExtension(sBioseq &Qry, BioseqTree &tree);
 
         DnaDenovoAssembly(sQPrideProc * qp)
@@ -97,6 +120,7 @@ class DnaDenovoAssembly
             lenfilter = 0;
             rptfilter = 0;
             firstStageOnly = false;
+            useNewContigContainer = false;
 
         }
 
@@ -104,7 +128,7 @@ class DnaDenovoAssembly
             QrySrc = Q;
         }
         bool getValues(idx, idx, idx *, idx *, bool *);
-        char seqB(sBioseq *, idx , idx, idx *qua = 0);
+        char seqB(sBioseq *Qry, idx contig, idx pos, idx *rpt = 0, idx *qua = 0);
         char seqsetRpt(sBioseq *, idx , idx, idx);
         void addnewSequence(idx pos, idx len, idx rpt, idx strNode, idx revNode = 0, idx seqRev = 0, idx validation = 1);
         void mergeSeq(idx prevpos, idx nextpos, idx sizemer, BioseqTree *revNode = 0, idx thisNode = -1);
@@ -127,15 +151,23 @@ class DnaDenovoAssembly
             sizeContigs = 2000;
             seqLinkCount = 0;
         }
+        void initNewContigs(){
+            useNewContigContainer = true;
+            seqContigContainer.mex()->flags |= sMex::fSetZero;
+            seqContigContainer.cut(0);
+            sizeContigs = 2000;
+            seqLinkCount = 0;
+        }
         void initseqLinkage();
         void addSeqContig(sBioseq *Qry, idx contig);
+        void addNewSeqContig(sBioseq *Qry, idx contig);
         void extendSeqContig(sBioseq *Qry, idx contig, idx nextcontig, idx startpos);
         void mergeonlySeqContig (sBioseq *Qry, idx contig, idx nextcontig, idx startpos);
         idx getContigRpt(idx contig, idx pos);
         char getContigLet(idx contig, idx pos);
         void setContigRpt(idx contig, idx pos, idx newrpt);
         void setContigLet(idx contig, idx pos, char newlet);
-        //const char *getLastMer (const char *, idx, idx);
+        void addNewContigLet(idx contig, idx pos, ContigRepresentation *r2);
         void setInitialParameters (idx sizem, idx sizef = 0, idx rptfil = 0, bool firstSt = false, idx len = 0){
             sizemer = sizem;
             lenfilter = sizef;
@@ -151,8 +183,43 @@ class DnaDenovoAssembly
             else {missmatchesPercent = 90;}
         }
 
+        ContigRepresentation *getNewContigLet(idx contig, idx pos);
+
+        void someStats(sFil *out, idx limit)
+        {
+            sVec<idx> resArr, indxArr;
+            {
+                sVec<idx> idxArr;
+                idxArr.cut(0);
+                indxArr.cut(0);
+                idx count = 0;
+                for(idx contig = 0; contig < seqCount; ++contig) {
+                    if( seqOrder[contig].isValid && (seqOrder[contig].contiglen > limit) ) {
+                        idxArr.vadd(1, seqOrder[contig].contiglen * -1);
+                        indxArr.vadd(1, contig);
+                        ++count;
+                    }
+                }
+                resArr.resize(count);
+                sSort::sort(count, idxArr.ptr(), resArr.ptr(0));
+            }
+
+            if (!resArr.dim()){
+                return;
+            }
+            for(idx contig = 0; contig < 1; contig++) {
+                idx icontig = indxArr[resArr[contig]];
+                for(idx i = 0; i < seqOrder[icontig].contiglen; i++) {
+                    ContigRepresentation *rep = getNewContigLet(icontig, i);
+                    out->printf("%" DEC ",%" DEC ",%c,%" DEC ",%" DEC ",%" DEC ",%" DEC "\n", i + 1, rep->freq(), sBioseq::mapRevATGC[rep->consensus], rep->acgt[0], rep->acgt[1], rep->acgt[2], rep->acgt[3]);
+                }
+                return;
+            }
+
+        }
+
 };
 
 
 
-#endif /* DNA_DENOVOASSEMBLY_HPP_ */
+#endif 

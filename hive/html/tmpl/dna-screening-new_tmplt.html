@@ -1,7 +1,3 @@
-<!--
-$Id: dna-screening-new_tmplt.html 4112 2013-09-13 23:57:20Z kate $
-vim: set et ts=4 sts=4:
--->
 <script type="application/javascript" src="js/vjTree.js"></script>
 <script type="application/javascript" src='js/vjDataSeries.js'></script>
 <script type="application/javascript" src='js/vjTreeSeries.js'></script>
@@ -17,7 +13,7 @@ vim: set et ts=4 sts=4:
     $.loadCSS('css/tabs.css');
 </script>
 
-<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" id="jumpNewPage">
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;visibility:hidden;" id="jumpNewPage">
     <a href = "#">
         Click to go to old Censuscope webpage
     </a>
@@ -27,6 +23,7 @@ vim: set et ts=4 sts=4:
     document.write(algoViewHTMLSetUp(false));
 </script>
 <script src="js-obj-new/svc-dna-screening.js"></script>
+<script src="js-obj-new/svc-alignment.js"></script>
 <script type="application/javascript">
 
 setLocationTitle("censuScope: HIVE");
@@ -40,10 +37,11 @@ var algoProcess=new valgoProcess(thisProcessID,  process_qpsvc, process_svc);
 algoProcess.visibleParameters = ["name", "query", "alignSelector", "subject", "Sample", "CensusIterations", 
                                  "CensuslimitIterations", "taxDepth", "method", "filterNs", "selfStopping", "deepScanning"];
                                  
-if (thisQuery)
-{
-    algoProcess.initialPresets = { query: thisQuery,
-                                    name: "query:s=["+thisQuery+"] as objlist; return s[0].name;"};
+if (thisQuery) {
+    let thisQuery1 = '"' + thisQuery.replace(/,/g, '","') + '"';
+    algoProcess.initialPresets = {
+        query: thisQuery,
+        name: "query:s=[" + thisQuery1 + "] as objlist; return s[0].name;"};
 }
 
 algoProcess.submitButtonName="SUBMIT";
@@ -70,37 +68,77 @@ algoProcess.doneComputing = function (viewer, reqid, stat)
      if(stat>=5) {
         var exposeAlignments = vjDV[algoProcess.recViewerName].getElement("storeAlignments");
         if (exposeAlignments && exposeAlignments.value != 0){
-            valgoToolbarDoneList= //<!-- type,align,order,name,title,icon,path,url,description // -->
-                ",right,2,alignment,Aligning Tools,img-algo/dna-tools.gif,/alignment,,Reference based assembly and profiling analysis\n"+
-                ",right,2,aligner,Hexagon Alignment,img-algo/hive-hexagon.gif,/alignment/aligner,?cmd=dna-hexagon-new&id=$(::thisProcessID),Proceed to alignment, Alignment, etc...\n";
+            valgoToolbarDoneList = [
+                {
+                    type: '',
+                    align: 'right',
+                    order: '2',
+                    name: 'alignment',
+                    title: 'Aligning Tools',
+                    icon: 'img-algo/dna-tools.gif',
+                    path: '/alignment',
+                    url: '',
+                    description: 'Reference based assembly and profiling analysis'
+                },
+                {
+                    type: '',
+                    align: 'right',
+                    order: '2',
+                    name: 'aligner',
+                    title: 'Hexagon Alignment',
+                    icon: 'img-algo/hive-hexagon.gif',
+                    path: '/alignment/aligner',
+                    url: '?cmd=dna-hexagon&id=$(::thisProcessID)',
+                    description: 'Proceed to alignment, Alignment, etc...'
+                }
+            ]
         }
     }
 };
 
 algoProcess.inputLoaded = function (viewer){
-    //if (!isResultsMode()) {
-        algoProcess.readFromDocLoc(["alignmentInput"]);
-        var alObjID=algoProcess.getValue("alignmentInput", "join");
-        var name = algoProcess.getValue("name");
-        if(alObjID){
-            algoProcess.setValue("alignmentInput",alObjID.split(",").join(";"));
-            algoProcess.setValue("name","Screening for object "+ alObjID);
-            algoProcess.setValueList({name: "query:s=["+alObjID+"] as objlist; return s[0].name; "});
-        }
-        algoProcess.readFromDocLoc(["query"]);
-        var thisObjID=algoProcess.getValue("query", "join");
-        if(thisObjID){
-            algoProcess.setValueList({"query": thisObjID.split(",")});
-            algoProcess.setValue("name","Screening for objects "+thisObjID);
-            algoProcess.setValueList({name: "query:s=["+thisObjID+"] as objlist; return s[0].name; "});
-        }
-        algoProcess.setValue("split",'-');
-        //valgoProcess_inputChanged();
-        //algoProcess.setValue("slice",1000000000);
-        //algoProcess.viewer.redraw();
+    algoProcess.readFromDocLoc(["alignmentInput"]);
+    var alObjID = algoProcess.getValue("alignmentInput", "join");
+    var name = algoProcess.getValue("name");
+    if(alObjID){
+        algoProcess.setValue("alignmentInput",alObjID.split(",").join(";"));
+        algoProcess.setValue("name","Screening for object "+ alObjID);
+        let alObjID1 = '"' + alObjID.replace(/,/g, '","') + '"';
+        algoProcess.setValueList({name: "query:s=[" + alObjID1 + "] as objlist; return s[0].name; "});
+    }
+    algoProcess.readFromDocLoc(["query"]);
+    var thisObjID = algoProcess.getValue("query", "join");
+    if(thisObjID){
+        algoProcess.setValueList({"query": thisObjID.split(",")});
+        algoProcess.setValue("name","Screening for objects "+thisObjID);
+        let thisObjID1 = '"' + thisObjID.replace(/,/g, '","') + '"';
+        algoProcess.setValueList({name: "query:s=[" + thisObjID1 + "] as objlist; return s[0].name; "});
+    }
+    algoProcess.setValue("split",'-');
+    
+    if(algoProcess.getValue("storeAlignments") == 1){
+        var node = {
+                _type : 'svc-align2',
+                id : algoProcessID,
+                //profiler: docLocValue("id"),
+                addTo: ["Alignment"],
+                moveNext: false,
+                checkable: (algoProcess.modeActive) ? true : false, 
+                isInput: true,
+//                checkCallback : process_checkedReference,
+//                selectCallback : process_selectedReference,
+//                dbClickCallback: process_dbClickCallback,
+//                subsetCount: isok(subset) ? str2ranges(subset, ";") : "",
+//                detailsTogether: detailsTogether,
+//                algoProc: algoProcess,
+//                modifyResubmit: (docLocValue("id").indexOf("-") == 0 ) ? true : false,
+//                parentProc: docLocValue("parent_proc_ids"),
+                openTabsOnRefresh: false,
+                autoOpen: "computed"
+            };
+            dna_hexagonHitList = vjHO.fullview(node._type, node, $.getAlgoViewManager().options.jsonForPage.subTabs.parameters);
+    }
 
-        //alert(algoProcess.getValue("split"))
-    //}
     return;
 };
 
@@ -146,27 +184,24 @@ algoProcess.prettyFileName = function (filename) {
 //
 // Override download URLs for custome downloads (post-processing of files in dna.cgi)
 //
-
-algoProcess.allDownUrlModification = function () {    
-    var j = "javascript: var ing_url = 'http://?cmd=objFile&ids='+node.id+'&filename='+node.value;\
-        if(node.value.match(/gicenteric/gi)) {ing_url = 'http://?cmd=ionncbiTax&percentage=1&downloadCSVFile=1&screenType=dna-alignx_gicenteric.csv&ginumber=1&screenId='+node.id+'&mode=csv';}\
-        else if(node.value.match(/screenResult/gi)) {}\
-        else if(node.value.match(/screenShannon/gi)) {}\
-        vjDS.add('', 'dsDownSrc', 'static://');\
-        vjDS['dsDownSrc'].reload(ing_url,true,'download');"
-        
-    return j;
+algoProcess.allDownUrlModification = function(viewer, node) { 
     // Tax Based ID Results
     //http://10.107.2.14/usr/torcivia/dna.cgi?cnt=1000&cmd=ionncbiTax&downloadCSVFile=1&screenId=3098140&screenType=dna-alignx_screenResult.csv&percentage=1&mode=csv
-            
-     // GI Based Results
+    // GI Based Results
     //http://10.107.2.14/usr/torcivia/dna.cgi?&cmd=ionncbiTax&percentage=1&downloadCSVFile=1&screenType=dna-alignx_gicenteric.csv&ginumber=1&screenId=3098140&mode=csv
+    var ing_url = 'http://?cmd=objFile&ids=' + node.id + '&filename=' + node.value;
+    if(node.value.match(/gicenteric/gi)) {
+        ing_url = 'http://?cmd=ionncbiTax&percentage=1&downloadCSVFile=1&screenType=dna-alignx_gicenteric.csv&ginumber=1&screenId=' + node.id + '&mode=csv';
+//    } else if(node.value.match(/screenResult/gi)) {
+//    } else if(node.value.match(/screenShannon/gi)) {
+    }
+    return ing_url;
 };
 
-$(document).ready(function() 
-{
+gInitList += "screeningInit();";
+function screeningInit () {
     var topVal = $("#header").height() + 45;
-    $(".content").attr("style", "top: "+ topVal +"px; ");
+    //$(".content").attr("style", "top: "+ topVal +"px; ");
 
         
     globalAlgo = $('#mainAlgoArea').algoview({
@@ -186,7 +221,7 @@ $(document).ready(function()
             
             eventData.preventDefault();
     });
-});
+};
 </script>
 
 

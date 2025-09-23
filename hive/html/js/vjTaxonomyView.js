@@ -98,17 +98,15 @@ function vjTaxonomicControl(viewer)
         this.tree.enumerate(registerNodeClickCallbacks, phylogram, 0, 0, this.tree.root);
     }
 
-    var series = new vjTreeSeries({//this is tree data 
+    var series = new vjTreeSeries({
         name: viewer.data,
         title: "Tree series",
         showRoot:1,
-        //url: "static://",
-        dataFormat: "csv", // or "newick"
+        dataFormat: "csv",
         type: "rectangular",
         rectangularLabelInline: true,
         precompute:"node.path=node.path",
-//        cmdMoreNodes: "http://taxTree.cgi?whatToPrint=taxid|path|matchname" + printExtraColumns() + "&taxid=$(taxid)&depth=1&cmd=ncbiTaxBrowseDown&cnt=100",        //cmdMoreNodes: "http://dna.cgi?cmd=ionncbiTax&taxid=$(taxid)&depth=1&cnt=100",
-        cmdMoreNodes: "http://dna.cgi?cmd=ionTaxDownInfo&taxid=$(taxid)&cnt=100",        //cmdMoreNodes: "http://dna.cgi?cmd=ionncbiTax&taxid=$(taxid)&depth=1&cnt=100",
+        cmdMoreNodes: "http:
         postcompute: function(serie, node) {
             if (node.name) {
                 var spl = node.name.split(':');
@@ -119,7 +117,6 @@ function vjTaxonomicControl(viewer)
         }
     });
     series.register_callback({ obj: series, func: treeSeriesLoaded }, "series_loaded", "refreshed");
-    // alert(viewer.taxTreeOnly)
     phylogram = new vjSVG_Phylogram({
         nodeLabel: function (node, series) {
             if(node.matchResults)
@@ -153,16 +150,15 @@ function vjTaxonomicControl(viewer)
     phylogram.add(series);
     
     
-//    var downloadURL = "http://taxTree.cgi?whatToPrint=taxid|matchname" + printExtraColumns() + "&cnt=1000&cmd=ncbiTaxBrowseCurrent&downloadCSVFile=1";//download link
-    var downloadURL = "http://dna.cgi?cnt=1000&cmd=ionncbiTax&downloadCSVFile=1";//download link
+    var downloadURL = "http:
     var downloadAccURL = null;
     var downloadPATHURL = null;
     if(viewer.updateURL && !viewer.taxTreeOnly){
         downloadURL += "&screenId="+viewer.updateURL;
         if(viewer.data=='blastNTset') {
             downloadURL += "&screenType=dna-alignx_screenResult.csv&percentage=1";
-            downloadAccURL = "http://dna.cgi?&cmd=ionncbiTax&percentage=1&downloadCSVFile=1&screenType=dna-alignx_acclist.csv&accession=1&screenId="+viewer.updateURL;
-            downloadPATHURL = "http://dna.cgi?&cmd=ionTaxPathogenInfo&downloadCSVFile=1&screenType=dna-alignx_screenResult.csv&screenId="+viewer.updateURL;
+            downloadAccURL = "http:
+            downloadPATHURL = "http:
         }
     }
     if (viewer.cmdUpdateURL)
@@ -255,7 +251,7 @@ function vjTaxonomicControl(viewer)
         doNotPropagateUp: true,
         icons: { leaf: 'img/scope.gif' },
         showChildrenCount: true,
-        autoexpand:0,//'all',
+        autoexpand:0,
         checkable: false,
         isok: true,
         linkLeafCallback:viewer.taxTreeSelected,
@@ -284,7 +280,7 @@ function vjTaxonomicControl(viewer)
         name: 'list',
         hidden:true,
         cols: myTaxListCols,
-        precompute:"node.path=node.path.replace(/:*[0-9]/g,'');",//node.path=node.path.replace(/$//,'[')",
+        precompute:"node.path=node.path.replace(/:*[0-9]/g,'');",
         
         bgColors: ['#f2f2f2', '#ffffff'],
         formObject: document.forms[viewer.formName],
@@ -307,7 +303,7 @@ function vjTaxonomicDetailsView(viewer)
         data: [viewer.data.dsTaxonomyViewerSpec, viewer.data.taxDetails],
         name:'details',
         icon:'file',
-        formObject: document.forms[viewer.formName],// //'form-taxList'],
+        formObject: document.forms[viewer.formName],
         showRoot: false,
         hideViewerToggle:true,
         autoStatus: 3,
@@ -325,4 +321,3 @@ function vjTaxonomicDetailsView(viewer)
     return [this.myRecordViewer,this.myHelpViewer];
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjTaxonomyView.js"

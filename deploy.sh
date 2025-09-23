@@ -5,31 +5,47 @@ Hdeplcfg='deploy.cfg'
 hive_setup_cfg()
 {
     # append new values
-    cat <<EOF>>${Hdeplcfg}
-Huser=${Huser}
-Huid=${Huid}
-Hgrp=${Hgrp}
-Hgid=${Hgid}
-Hpswd1=${Hpswd1}
-Hqdbdb=${Hqdbdb}
-Hqdbip4=${Hqdbip4}
-Hqdbport=${Hqdbport}
-Hqdbuser=${Hqdbuser}
-Hqdbpswd=${Hqdbpswd}
+    cat <<EOF>>"${Hdeplcfg}"
+Huser="${Huser}"
+Huid="${Huid}"
+Hgrp="${Hgrp}"
+Hgid="${Hgid}"
+Hpswd1="${Hpswd1}"
+Hqdbdb="${Hqdbdb}"
+Hqdbip4="${Hqdbip4}"
+Hqdbport="${Hqdbport}"
+Hqdbuser="${Hqdbuser}"
+Hqdbpswd="${Hqdbpswd}"
+sql_site_hosts="${sql_site_hosts}"
+sql_head_hosts="${sql_head_hosts}"
+sql_bin_dir="${sql_bin_dir}"
+sql_local_scratch_dir="${sql_local_scratch_dir}"
+sql_global_scratch_dirs="${sql_global_scratch_dirs}"
+sql_obj_storage_dirs="${sql_obj_storage_dirs}"
+sql_internalWWW="${sql_internalWWW}"
+wwwroot="${wwwroot}"
 EOF
-    . ${Hdeplcfg}
+    . "${Hdeplcfg}"
     # overwrite
-    cat <<EOF>${Hdeplcfg}
-Huser=${Huser}
-Huid=${Huid}
-Hgrp=${Hgrp}
-Hgid=${Hgid}
-Hpswd1=${Hpswd1}
-Hqdbdb=${Hqdbdb}
-Hqdbip4=${Hqdbip4}
-Hqdbport=${Hqdbport}
-Hqdbuser=${Hqdbuser}
-Hqdbpswd=${Hqdbpswd}
+    cat <<EOF>"${Hdeplcfg}"
+Huser="${Huser}"
+Huid="${Huid}"
+Hgrp="${Hgrp}"
+Hgid="${Hgid}"
+Hpswd1="${Hpswd1}"
+Hqdbdb="${Hqdbdb}"
+Hqdbip4="${Hqdbip4}"
+Hqdbport="${Hqdbport}"
+Hqdbuser="${Hqdbuser}"
+Hqdbpswd="${Hqdbpswd}"
+sql_site_hosts="${sql_site_hosts}"
+sql_head_hosts="${sql_head_hosts}"
+sql_bin_dir="${sql_bin_dir}"
+sql_local_scratch_dir="${sql_local_scratch_dir}"
+sql_global_scratch_dirs="${sql_global_scratch_dirs}"
+sql_obj_storage_dirs="${sql_obj_storage_dirs}"
+sql_internalWWW="${sql_internalWWW}"
+wwwroot="${wwwroot}"
 EOF
     # secure file
     chown ${Huser}:${Hgrp} ${Hdeplcfg}
@@ -97,18 +113,18 @@ hive_setup_account()
     fi
     AID=`id -u ${USR}`
 
-    id -u apache 2>&1 >/dev/null
-    if [[ $? -eq 0 ]]; then
-        groupmems -g ${GRP} -l | grep apache >/dev/null
-        if [[ $? -ne 0 ]]; then
-            echo "Adding user apache to ${GRP}"
-            groupmems -g ${GRP} -a apache
-            if [[ $? -ne 0 ]]; then
-                echo "Faile to add apache to group ${GRP}"
-                exit 35
-            fi
-        fi
-    fi
+#    id -u apache 2>&1 >/dev/null
+#    if [[ $? -eq 0 ]]; then
+#        groupmems -g ${GRP} -l | grep apache >/dev/null
+#        if [[ $? -ne 0 ]]; then
+#            echo "Adding user apache to ${GRP}"
+#            groupmems -g ${GRP} -a apache
+#            if [[ $? -ne 0 ]]; then
+#                echo "Faile to add apache to group ${GRP}"
+#                exit 35
+#            fi
+#        fi
+#    fi
     Huid="${AID}"
     Hgid="${GID}"
     hive_setup_cfg
@@ -274,14 +290,14 @@ hive_setup_httpd()
     local huser="${1}"
     local hgrp="${2}"
     local pkgnm=httpd
-    local pkguser=apache
+    #local pkguser=apache
 
     if [[ "${OSxx}" == "ubuntu" ]]; then
         pkgnm=apache2
-        pkguser="www-data"
+        #pkguser="www-data"
         apt-get --assume-yes install ${pkgnm}
     else
-        yum install --assumeyes ${pkgnm}
+        yum install --assumeyes ${pkgnm} mod_ruid2
     fi
 
 #Enable web server access, by granting first denial which is expected to be in <Directory />
@@ -294,19 +310,27 @@ hive_setup_httpd()
         ff=/etc/httpd/conf.d/hive.conf
     fi
     cat << EOF > ${ff}
-#
-# Timeout: The number of seconds before receives and sends time out.
-#
-Timeout 1200
+
+<VirtualHost *:80>
+    ServerName hive.com
+    DocumentRoot "/var/www/html"
+    Timeout 1200
+#    ErrorLog "logs/${Huser}-error_log"
+#    TransferLog "logs/${Huser}-access_log"
+    SuexecUserGroup ${Huser} ${Hgrp}
+</VirtualHost>
 
 <Directory "/var/www/html/">
-    Options +Indexes +FollowSymLinks +ExecCGI
+    Options +ExecCGI
     AddHandler cgi-script .cgi
     AllowOverride None
     Order allow,deny
     Allow from all
     FileETag All
 
+    RewriteEngine on
+#    LogLevel alert rewrite:trace4
+    
     # catch special files
     RewriteCond \$0 \.cfg\$ [nocase,OR]
     RewriteCond \$0 \.sql\$ [nocase,OR]
@@ -322,11 +346,22 @@ Timeout 1200
 EOF
 
     if [[ "${OSxx}" == "ubuntu" ]]; then
-        echo 'LoadModule unique_id_module /usr/lib/apache2/modules/mod_unique_id.so' >> ${ff}
-        echo 'LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so' >> ${ff}
-        echo 'LoadModule cgi_module /usr/lib/apache2/modules/mod_cgi.so' >> ${ff}
+        echo '<IfModule !unique_id_module>' >> ${ff}
+        echo '    LoadModule unique_id_module /usr/lib/apache2/modules/mod_unique_id.so' >> ${ff}
+        echo '</IfModule>' >> ${ff}
+        echo '<IfModule !rewrite_module>' >> ${ff}
+        echo '    LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so' >> ${ff}
+        echo '</IfModule>' >> ${ff}
+        echo '<IfModule !cgi_module>' >> ${ff}
+        echo '    LoadModule cgi_module /usr/lib/apache2/modules/mod_cgi.so' >> ${ff}
+        echo '</IfModule>' >> ${ff}
+        echo '<IfModule !cgi_module>' >> ${ff}
+        echo 'LoadModule suexec_module modules/mod_suexec.so' >> ${ff}
+        echo '</IfModule>' >> ${ff}
     else
-        echo 'LoadModule unique_id_module modules/mod_unique_id.so' >> ${ff}
+        echo '<IfModule !unique_id_module>' >> ${ff}
+        echo '    LoadModule unique_id_module modules/mod_unique_id.so' >> ${ff}
+        echo '</IfModule>' >> ${ff}
     fi
 
     if [[ "${OSxx}" != "ubuntu" ]]; then
@@ -337,14 +372,14 @@ LimitNOFILE=100000
 EOF
     fi
 
-    # add apache to HIVE linux group to allow data access
-    if [[ "${hgrp}" != "" ]]; then
-        usermod -G ${hgrp} ${pkguser}
+#    # add apache to HIVE linux group to allow data access
+#    if [[ "${hgrp}" != "" ]]; then
+#        usermod -G ${hgrp} ${pkguser}
         # make www root updateable by HIVE (not so secure)
         if [[ "${huser}" != "" ]]; then
             chown -R ${huser}:${hgrp} /var/www/html/
         fi
-    fi
+#    fi
     systemctl enable ${pkgnm}
     systemctl restart ${pkgnm}
 }
@@ -355,6 +390,15 @@ hive_setup_qappcfg()
     cat <<EOF >"$1/qapp.cfg"
 
 [QPride]
+   db=${Hqdbdb}
+   server=${Hqdbip4}:${Hqdbport}
+   user=${Hqdbuser}
+   pass=${Hqdbpswd}
+   pageSize=50
+   permanent=true
+   debug=0
+
+[HIVE]
    db=${Hqdbdb}
    server=${Hqdbip4}:${Hqdbport}
    user=${Hqdbuser}
@@ -387,14 +431,18 @@ hive_setup_hive()
         echo "Missing ${DBC}"
         exit 2
     fi
-    local HIVESQL="`pwd`/hive/HIVE.sql"
+    local HIVESQL="`pwd`/vlib/db/db_init_QPCfg.sql"
     if [[ ! -s ${HIVESQL} ]]; then
         echo "Missing ${HIVESQL}"
         exit 3
     fi
 
-    local sql_site_hosts="/`uname -n`"
-    local sql_head_hosts="${sql_site_hosts}/"
+    if [[ "${sql_site_hosts}" == "" ]]; then
+        sql_site_hosts="/`uname -n`"
+    fi
+    if [[ "${sql_head_hosts}" == "" ]]; then
+        sql_head_hosts="${sql_site_hosts}/"
+    fi
     while [[ true ]]; do
         echo -n "Add hosts to list [${sql_site_hosts}]: "
         local hh=; read hh
@@ -405,7 +453,9 @@ hive_setup_hive()
     done
     sql_site_hosts="${sql_site_hosts}/"
 
-    local sql_bin_dir="${HOME}/bin/"
+    if [[ "${sql_bin_dir}" == "" ]]; then
+        sql_bin_dir="${HOME}/bin/"
+    fi
     echo -n "Path to bin directory [${sql_bin_dir}]: "
     local bd=; read bd
     if [[ "${bd}" != "" ]]; then
@@ -416,13 +466,10 @@ hive_setup_hive()
         echo "Failed to create directory ${sql_bin_dir}"
         exit 4;
     fi
-    cp -pv "${qapppath}" ${sql_bin_dir}
-    if [[ $? != 0 ]]; then
-        echo "Failed to copy qapp to directory ${sql_bin_dir}"
-        exit 4;
-    fi
 
-    local sql_local_scratch_dir="/tmp/"
+    if [[ "${sql_local_scratch_dir}" == "" ]]; then
+        sql_local_scratch_dir="/tmp/${USER}/"
+    fi
     echo -n "Path to _per_ host local scratch directory [${sql_local_scratch_dir}]: "
     local lsd=; read lsd
     if [[ "${lsd}" != "" ]]; then
@@ -434,37 +481,61 @@ hive_setup_hive()
         exit 5;
     fi
 
-    local sql_global_scratch_dir="${HOME}/data/"
-    echo -n "Path to global scratch (data, tables...) directory [${sql_global_scratch_dir}]: "
+    if [[ "${sql_global_scratch_dirs}" == "" ]]; then
+        sql_global_scratch_dirs="${HOME}/data/"
+    fi
+    echo -n "Path to global temp/scratch (blobs, tables, etc) directory [${sql_global_scratch_dirs}]: "
     local gsd=; read gsd
     if [[ "${gsd}" != "" ]]; then
-        sql_global_scratch_dir="${gsd/%\//}/"
+        sql_global_scratch_dirs="${gsd/%\//}/"
     fi
-    mkdir -p "${sql_global_scratch_dir}"
-    if [[ $? != 0 ]]; then
-        echo "Failed to create directory ${sql_global_scratch_dir}"
-        exit 6;
-    fi
+    IFS=',' read -ra STRG <<< "${sql_global_scratch_dirs}"
+    for i in "${STRG[@]}"; do
+        mkdir -p "${i}" && chmod g+w,o-rwx "${i}"
+        if [[ $? != 0 ]]; then
+            echo "Failed to create directory ${i}"
+            exit 7;
+        fi
+    done
 
-    local sql_obj_storage_dirs="${HOME}/store/"
-    echo -n "Path to object storage directory [${sql_obj_storage_dirs}]: "
+    if [[ "${sql_obj_storage_dirs}" == "" ]]; then
+        sql_obj_storage_dirs="${HOME}/store/"
+    fi
+    echo -n "Path to premanent object storage directory [${sql_obj_storage_dirs}]: "
     local osd=; read osd
     if [[ "${osd}" != "" ]]; then
         sql_obj_storage_dirs="${osd/%\//}/"
     fi
-    mkdir -p "${sql_obj_storage_dirs}"
-    chmod g+w "${sql_obj_storage_dirs}"
-    if [[ $? != 0 ]]; then
-        echo "Failed to create directory ${sql_obj_storage_dirs}"
-        exit 7;
-    fi
+    IFS=',' read -ra STRG <<< "${sql_obj_storage_dirs}"
+    for i in "${STRG[@]}"; do
+        mkdir -p "${i}" && chmod g+w,o-rwx "${i}"
+        if [[ $? != 0 ]]; then
+            echo "Failed to create directory ${i}"
+            exit 7;
+        fi
+    done
 
-    local sql_internalWWW="http://`uname -n`/"
+    if [[ "${sql_internalWWW}" == "" ]]; then
+        sql_internalWWW="http://`uname -n`/"
+    fi
     echo -n "Internal web server URL [${sql_internalWWW}]: "
     local iwww=; read iwww
     if [[ "${iwww}" != "" ]]; then
         sql_internalWWW="${iwww/%\//}/"
     fi
+
+    while [[ 1 == 1 ]]; do
+        echo -n "HIVE instance id (usually website public url, like http://dnahive.fda.gov): "
+        local hive_instanceID=; read hive_instanceID
+        if [[ "${hive_instanceID}" != "" ]]; then
+            hive_instanceID="${hive_instanceID/%\//}"
+            hive_instanceID="${hive_instanceID//\"/}"
+            hive_instanceID="${hive_instanceID//\'/}"
+            break;
+        else
+            echo "HIVE instance id cannot be empty!"
+        fi
+    done
 
     echo -n "Create an admin account to be used to activate other accounts? [Y/n]"
     yn=; read yn
@@ -481,8 +552,15 @@ hive_setup_hive()
         read xx
     fi
 
-    local sql_encoder_hex=$(python -c "import os; print os.urandom(64).encode('hex').upper()")
-    local sql_session_b64=$(python -c "import os; print ''.join(os.urandom(64).encode('base64').split())")
+    local q
+    let q=0
+    local xx=
+    while [[ ${q} -lt 64 ]]; do
+        let i=${RANDOM}%256
+        xx="${xx}`printf '%02X' ${i}`"
+        let q=${q}+1
+    done
+    local sql_encoder_hex="${xx}"
 
     export HIVECFG_SQL=/tmp/hivedeploy$$.sql
     cat <<EOF >${HIVECFG_SQL}
@@ -491,11 +569,11 @@ SET @head_hosts='${sql_head_hosts}';
 SET @site_hosts='${sql_site_hosts}';
 SET @bin_dir='${sql_bin_dir}';
 SET @local_scratch_dir='${sql_local_scratch_dir}';
-SET @global_scratch_dir='${sql_global_scratch_dir}';
+SET @global_scratch_dirs='${sql_global_scratch_dirs}';
 SET @obj_storage_dirs='${sql_obj_storage_dirs}';
 SET @internalWWW='${sql_internalWWW}';
 SET @encoder_hex='${sql_encoder_hex}';
-SET @session_bin='${sql_session_b64}';
+SET @session_bin='@#H29r\$3\`D%^xtY\${%\$Q$$\$}K\%\$+,"#%=H#*%P]*(X*o.^&muTI?N%^E T\'I[X)';
 
 source ${HIVESQL};
 
@@ -511,6 +589,27 @@ INSERT INTO UPGroup (userID, flags, is_active_fg, groupPath) VALUES
     (LAST_INSERT_ID(),  0, 1, '/Projects/Team/${useremail}');
 
 UPDATE QPSvc set capacity = 1, maxLoops = 3, sleepTime = 5000 WHERE sleepTime >= 5000 AND maxLoops >= 3;
+
+source db_init_data_include.sql;
+
+SET @type_domain = 1954115685;
+SET @domain_typeid = 2;
+
+CALL sp_obj_create_v2(@system_group_id, @system_membership, @type_domain, @domain_typeid, NULL, NULL, @system_permission, @system_flags);
+-- find new obj for local domain
+SELECT objID FROM UPObj where objTypeID = @domain_typeid and objTypeDomainID = @type_domain AND domainID = 0 ORDER BY objID DESC LIMIT 1
+INTO @local_domain;
+CALL sp_obj_prop_set_v3(@system_group_id, @system_membership, NULL, @local_domain, @system_permission, CONCAT('(NULL,', @local_domain, ',\'domain-id-descr_title\',\'1\',\'Local domain\',NULL,NULL)'), NULL);
+CALL sp_obj_prop_set_v3(@system_group_id, @system_membership, NULL, @local_domain, @system_permission, CONCAT('(NULL,', @local_domain, ',\'domain-id-descr_uri\',\'1\',\'${hive_instanceID}\',NULL,NULL)'), NULL);
+-- show local domain obj
+SELECT * FROM UPObjField WHERE objid = @local_domain AND domainID IS NULL;
+
+-- set permissions
+CALL sp_obj_perm_set_v2(@system_group_id, @system_membership, @system_group_id, NULL, @local_domain, 0, 0, @system_permission, @system_flags, TRUE);
+-- all get read/browse/EXEC
+CALL sp_obj_perm_set_v2(@system_group_id, @system_membership, @everyone_group_id, NULL, @local_domain, 0, 0, 11, @everyone_flags, TRUE);
+-- show permissions
+SELECT * FROM UPPerm JOIN UPGroup UsING(groupid) WHERE objid = @local_domain AND domainID = 0;
 
 EOF
     echo -n "Database name? [${Hqdbdb}] "
@@ -560,22 +659,31 @@ EOF
     export HIVECFG_SQL=
 
     echo "Installing binaries for ${USER} at ${HOME}"
-    make install
+    make install SITE=all
     if [[ $? != 0 ]]; then
         echo "Installation failed"
         exit 9;
     fi
-    dd=`echo "SELECT val FROM QPCfg WHERE val LIKE '/%/' AND cleanUpDays IS NOT NULL" | mysql -u ${Hqdbuser} --password=${Hqdbpswd} ${Hqdbdb}`
+    dd=`echo "SELECT val FROM QPCfg WHERE val LIKE '/%/' AND cleanUpDays IS NOT NULL" | mysql -N -h ${Hqdbip4} -u ${Hqdbuser} --password=${Hqdbpswd} ${Hqdbdb}`
+    de=0
     for d in ${dd}; do
-        if [[ "${d}" != "val" ]]; then
-            mkdir -p "${d}"
-            if [[ $? != 0 ]]; then
-                echo "Failed to create directory ${d}"
-            else
-                chmod g+w "${d}"
-            fi
-        fi
+        IFS=',' read -ra STRG <<< "${d}"
+	    for i in "${STRG[@]}"; do
+	        mkdir -p "${i}"
+	        if [[ $? != 0 ]]; then
+	            echo "Failed to create directory ${i}"
+	            de=1
+	        fi
+	        chmod g+w,o-rwx "${i}"
+	        if [[ $? != 0 ]]; then
+	            echo "Failed to chmod directory ${i}"
+	            de=1
+	        fi
+	    done
     done
+    if [[ $de != 0 ]]; then
+        echo -n "Press [Enter] to continue..."; read xx
+    fi
 }
 
 hive_setup_local()
@@ -587,19 +695,26 @@ hive_setup_local()
         echo "Cannot read config resourceRoot with qapp"
         exit 7
     fi
-    "${qapppath}" -init ${bin_dir}/
-    if [[ $? != 0 ]]; then
-        echo "Binaries installation failed: $!"
-        exit 8;
+    local st=100
+    if [[ -x "${bin_dir}/qapp.osLinux" ]]; then
+        diff "${qapppath}" "${bin_dir}/qapp.osLinux" 1>&2 2>/dev/null
+        st=$?
     fi
-    cp -pv ${bin_dir}/qapp.osLinux ${bin_dir}/qapp
-
-    echo -n "Setup crontab with \"maintain 1\"? [y/N]:"
+    if [[ $st -ne 0 ]]; then
+        echo "qapp -init ${bin_dir}/"
+        "${qapppath}" -init ${bin_dir}/
+        if [[ $? != 0 ]]; then
+            echo "Binaries installation failed"
+            exit 8;
+        fi
+    else
+        echo "${bin_dir}/qapp.osLinux found and is same, assumed -init on host was done"
+    fi
+    echo "* * * * * ${bin_dir}qpstart.sh.osLinux" >/tmp/hivecron$$.tmp
+    echo -n "Setup crontab for maintainance on `uname -n`? [y/N]:"
     local yn=; read yn
     if [[ "${yn}" == "y" ]]; then
-        echo "* * * * * ${bin_dir}/qpstart.sh.osLinux \" maintain 1\"" >/tmp/hivecron$$.tmp
-    else
-        echo "* * * * * ${bin_dir}/qpstart.sh.osLinux" >/tmp/hivecron$$.tmp
+        echo "*/15 * * * * ${bin_dir}qm_maintain.sh.osLinux" >>/tmp/hivecron$$.tmp
     fi
     crontab /tmp/hivecron$$.tmp
     rm -f /tmp/hivecron$$.tmp
@@ -608,7 +723,6 @@ hive_setup_local()
         echo -e "\n. ~/.hive_bash_rc\n" >> ~/.bashrc
     fi
 }
-
 
 hive_setup_www()
 {
@@ -621,7 +735,9 @@ hive_setup_www()
         echo "Cannot change directory to hive"
         exit 52
     fi
-    local wwwroot='/var/www/html/'
+    if [[ "${wwwroot}" == "" ]]; then
+        wwwroot='/var/www/html/'
+    fi
     echo -n "www root location? [${wwwroot}]"
     wwr=; read wwr
     if [[ "${wwr}" != "" ]]; then
@@ -629,6 +745,8 @@ hive_setup_www()
     fi
     if [[ -s hive.ver ]]; then
         make www "WDIR=${wwwroot}/" VER=`cat hive.ver`
+    elif [[ "${VER}" != "" ]]; then
+        make www "WDIR=${wwwroot}/" VER="${VER}"
     else
         make www "WDIR=${wwwroot}/"
     fi
@@ -839,7 +957,7 @@ elif [[ "${USER}" == "root" ]]; then
             yum install --assumeyes \
                 mc zip unzip xz wget curl iptables-services htop dstat nc \
                 socat bind-utils xfsprogs nfs-utils system-storage-manager lvm2 \
-                perl psmisc yum-plugin-remove-with-leaves iotop bzip2 perl-Env
+                perl psmisc iotop bzip2 perl-Env
         fi
         if [[ $? != 0 ]]; then
             echo "Prerequisites setup failed"
@@ -915,9 +1033,9 @@ elif [[ "${USER}" == "root" ]]; then
         hive_setup_httpd "${Huser}" "${Hgrp}"
     fi
 else
-    echo -n "Run this script as root to setup HIVE account, web and db server, etc"
+    echo "Run this script as root to setup HIVE account, web and db server, etc"
     echo "Usage: ONLY when running from HIVE account, not root"
-    echo "    initial - create DB, load config, loda binaries"
+    echo "    initial - create DB, load config, load binaries"
     echo "    local   - init bin directory, setup crontab"
     echo "    www     - install CGIs, pages, images, etc to www, should be done on web server"
     echo "    data    - download and install basic NGS datasets: taxonomy, NCBI NT, Human Genome"

@@ -41,9 +41,7 @@ using namespace slib;
 
 #define _DEBUG_OBJ_FIELD_TYPE_off
 
-// Keep this in sync with eUsrObjPropType in uprop.hpp
 static const char * propTypeNames =
-//  skip "invalid", it's -1
     "string"_
     "text"_
     "integer"_
@@ -61,7 +59,6 @@ static const char * propTypeNames =
 
 #define PROP_TYPE_DEFAULT eUsrObjProp_invalid
 
-// convert a property type name ("obj", "bool", etc.) to an eUsrObjPropType code
 inline static const eUsrObjPropType propTypeFromName(const char *prop_type_name)
 {
     idx prop_type = PROP_TYPE_DEFAULT;
@@ -92,10 +89,10 @@ static const char * canonicalize(sStr & buf, const char * name)
 class TFieldDef;
 struct TTypeDef;
 
-sDic<TTypeDef> s_types; // lower case type name -> structure
-sDic<idx> s_type_ids; // type id -> index in s_types
+sDic<TTypeDef> s_types;
+sDic<idx> s_type_ids;
 sUsrObjRes s_all_actions;
-static sVarSet s_props_template; // contains just column names
+static sVarSet s_props_template;
 
 struct TTypeDef
 {
@@ -109,10 +106,10 @@ struct TTypeDef
     bool isSystem;
     bool inherited;
     sVarSet props;
-    sDic<TFieldDef*> field_defs; // prop name => field metadata accessor
+    sDic<TFieldDef*> field_defs;
     bool broken_field_defs;
-    sDic<idx> parents; // typeName -> typeIndex
-    sDic<idx> prop_name_row_id; // prop name => row
+    sDic<idx> parents;
+    sDic<idx> prop_name_row_id;
     sDic<std::auto_ptr<sUsrObj> > views;
     TActions acts;
     sStr brief;
@@ -184,7 +181,7 @@ protected:
     idx _row;
     idx _defs_index;
     idx _parent;
-    mutable idx _ancestor_count; // mutable because lazy-initialized
+    mutable idx _ancestor_count;
     eUsrObjPropType _type;
     sDic<bool> _children;
 
@@ -285,7 +282,7 @@ public:
         const char * parent_name = getPropsVal("parent");
         if( parent_name && *parent_name ) {
             TFieldDef * pparent = TTypeDef::find(_obj_type_index)->getFieldDef(parent_name, true);
-            assert (pparent); // this must have been created by the caller of init()!
+            assert (pparent);
 
             _parent = pparent->_defs_index;
             pparent->setChild(pparent->_children, _defs_index, true);
@@ -340,7 +337,6 @@ public:
             }
             break;
         default:
-            // scalar data of some sort
             if( _children.dim() ) {
                 fprintf(stderr, "%s:%u: ERROR: property which is neither list nor array has child properties: object type '%s' prop '%s'\n", __FILE__, __LINE__, getObjTypeName(), name());
                 return false;
@@ -350,17 +346,11 @@ public:
         return true;
     }
 
-    /* The flattening algorithm eliminates "decorative" list properties.
-     * For example, a non-multi-valued list holding two non-multi-valued strings
-     * can be more compactly represented as two non-multi-valued strings themselves;
-     * the list is a decorative property which matters only for the UI.
-     */
     void flatten()
     {
         if( _flattened )
             return;
 
-        // initialize
         _flattened = true;
         _flattened_decor = false;
         _global_multi = isMulti() || (parent() && parent()->globalMulti());
@@ -371,29 +361,19 @@ public:
                 addFlattenedChild(child);
         }
 
-        // If we are a scalar type, we are now done
         if( type() != eUsrObjProp_list && type() != eUsrObjProp_array )
             return;
 
-        // We consider lists non-decorative only if:
-        // 1) the list has >= 2 non-decorative children; and
-        // 2) one of those children, or the list itself, is multivalued.
         idx initial_dim_children = _flattened_children.dim();
         idx non_decor_children = 0;
         idx non_decor_multi_children = 0;
 
-        // Recursively flatten children. Note that as a result,
-        // we may receive additional, already flattened children (former
-        // grandchildren) which must not be re-flattened, so use
-        // initial_dim_children, not _flattened_children.dim().
         for(idx ic=0; ic<initial_dim_children; ic++) {
             if( TFieldDef * child = getFlattenedChild(ic) ) {
                 child->flatten();
             }
         }
 
-        // During flattening, children may have reparented themselves, or added
-        // their former children to us. So go through the list again.
         for(idx ic=0; ic<_flattened_children.dim(); ic++) {
             TFieldDef * child = getFlattenedChild(ic);
             if( !child )
@@ -406,11 +386,9 @@ public:
             }
         }
 
-        // If we are a non-decorative list, we are now done
         if( non_decor_children >= 2 && (non_decor_multi_children || isMulti()) )
             return;
 
-        // array rows are always considered non-decorative
         if( isArrayRow() )
             return;
 
@@ -420,8 +398,6 @@ public:
 
         _flattened_decor = true;
 
-        // But if we are a decorative node, we make our parent adopt our former
-        // flattened children...
         for(idx ic=0; ic<_flattened_children.dim(); ic++) {
             TFieldDef * child = getFlattenedChild(ic);
             if( !child )
@@ -437,7 +413,6 @@ public:
             delFlattenedChild(child);
         }
 
-        // ... and remove ourselves from our parent's child list
         if( flattenedParent() )
             flattenedParent()->delFlattenedChild(this);
 
@@ -672,7 +647,6 @@ public:
     {
         _parent = parent_index;
 
-        // adopt parent's children
         for( idx i=0; i<parent()->_children.dim(); i++ ) {
             if( TFieldDef * child = parent()->getChild(i) ) {
                 addChild(child);
@@ -865,7 +839,6 @@ bool TTypeDef::inherit()
         static const idx colKey = props.colId("is_key_fg");
 
         idx i = 0;
-        // expand type use
         for(i = 0; i < props.rows; ++i) {
             if( sIs("type2", props.val(i, colType)) ) {
                 const char * use = props.val(i, colConstData);
@@ -876,7 +849,6 @@ bool TTypeDef::inherit()
                 if( !t || !t->inherit() ) {
                     break;
                 }
-                // FIXME FIXME FIXME FIXME FIXME
                 sStr buf;
                 sStr prefix("$(%s_", props.val(i, colName));
                 prefix.add0(2);
@@ -896,7 +868,6 @@ bool TTypeDef::inherit()
                                     buf.cut0cut(-1);
                                 }
                             } else if( p && *p ) {
-                                // replace $(prop) with $(use_prop)
                                 idx pos = buf.length();
                                 sString::searchAndReplaceStrings(&buf, p, 0, "$(" __, prefix, 0, true);
                                 p = buf.ptr(pos);
@@ -910,19 +881,17 @@ bool TTypeDef::inherit()
                 props.updateVal(i, colConstData, "");
             }
         }
-        // append parent parents and props, skip [0] which is self
         const idx pq = parents.dim();
         for(i = (i == props.rows) ? 1 : (pq + 1); i < pq; ++i) {
             idx parIdx = *(parents.ptr(i));
             TTypeDef * par = TTypeDef::find(parIdx);
             if( par ) {
-                if( !par->inherit() ) { // make sure this parent has all from its parents
+                if( !par->inherit() ) {
                     break;
                 }
                 idx p = 0;
                 for(; p < par->parents.dim(); ++p ) {
                     if( par->type_index == type_index ) {
-                        // loop!!
                     }
                     idx * pidx = parents.setString((const char*)par->parents.id(p));
                     if( !pidx ) {
@@ -992,17 +961,14 @@ bool TTypeDef::inherit()
                 idx* u = prop_name_row_id.set(prop_name);
                 if( u ) {
                     if( *u ) {
-                        if( *u >= props.rows || // already broken
+                        if( *u >= props.rows ||
                             strcasecmp(props.val(r, colType), props.val(*u, colType)) != 0 ||
                             strcasecmp(props.val(r, colParent), props.val(*u, colParent)) != 0 ||
                             props.boolval(r, colMulti) != props.boolval(*u, colMulti) ) {
-                            // make bad index for output to disappear in case type use or
-                            // inheritance has duplicate prop names with different: type, parent, is_multi_fg
                             *u = (*u * 100000) + r;
                             continue;
                         }
                     }
-                    // keep child type field definition override
                     *u = *u ? *u : r;
                 }
                 const char * v = props.val(r, colBrief);
@@ -1016,12 +982,10 @@ bool TTypeDef::inherit()
                 }
                 v = props.val(r, colParent);
                 if( v && v[0] ) {
-                    // Ensure the parent field def is allocated before initializing our field def.
                     ensureFieldDef(v, true, false);
                 }
                 ensureFieldDef(prop_name, true, false)->init(r);
             }
-            // add array row psedo-fields
             idx ifd_array_row_start = field_defs.dim();
             for(idx ifd = 0; ifd < ifd_array_row_start; ifd++) {
                 TFieldDef * pf = *(field_defs.ptr(ifd));
@@ -1029,7 +993,6 @@ bool TTypeDef::inherit()
                     ensureFieldDef(pf->name(), true, true)->init(ifd);
                 }
             }
-            // sanity check and generate flattened field hierarchy
             for(idx ifd = 0; ifd < field_defs.dim(); ifd++) {
                 TFieldDef * pf = *(field_defs.ptr(ifd));
                 if( !pf->sanityCheck() ) {
@@ -1056,13 +1019,6 @@ bool TTypeDef::inherit()
         if( key ) {
             *key = 0;
         }
-/*
-#ifdef _DEBUG
-    sStr bb;
-    props.printCSV(bb);
-    ::fprintf(stderr, "\n%s::\n%s\n", name.ptr(), bb.ptr());
-#endif
-*/
         break;
     }
     return inherited;
@@ -1079,7 +1035,7 @@ static void loadType(sSql& sql, bool prefetch, sStr * names00, sStr * parents00,
         }
     }
     sStr lst, more;
-    do { // loop by missing parents
+    do {
         if( !id ) {
             if( names00 ) {
                 names00->add0(2);
@@ -1103,7 +1059,6 @@ static void loadType(sSql& sql, bool prefetch, sStr * names00, sStr * parents00,
         if( lst || id || prefetch ) {
             const bool use_type_domain_id = sString::parseBool(getenv("TYPE_DOMAIN_ID"));
             std::auto_ptr<sSql::sqlProc> p(sql.Proc(use_type_domain_id ? "sp_type_get_v4" : "sp_type_get_v3" ));
-            // to avoid id conflicts with usual objects for now
             if( use_type_domain_id ) {
                 p->Add(id ? id->domainId() : 0);
             }
@@ -1111,7 +1066,6 @@ static void loadType(sSql& sql, bool prefetch, sStr * names00, sStr * parents00,
             prefetch = false;
             id = 0;
             if( p->resultOpen() && sql.resultNext() ) {
-                // types
                 static const idx colDom = sql.resultColId("domainID");
                 static const idx colId = sql.resultColId("type_id");
                 static const idx colName = sql.resultColId("name");
@@ -1125,8 +1079,7 @@ static void loadType(sSql& sql, bool prefetch, sStr * names00, sStr * parents00,
                     if( !t ) {
                         return;
                     }
-                    t->broken_field_defs = true; // to indicate incomplete object
-                    // self as first parent
+                    t->broken_field_defs = true;
                     sStr par00("%s", sql.resultValue(colName));
                     par00.add0();
                     sString::searchAndReplaceSymbols(&par00, sql.resultValue(colParent), 0, ",", 0, 0, true, true, true, true);
@@ -1180,7 +1133,6 @@ static void loadType(sSql& sql, bool prefetch, sStr * names00, sStr * parents00,
                     sVariant::internString(t->name);
                 }
                 while( sql.resultNext() ) {
-                    // properties
                     static const idx id_col = sql.resultColId("type_id");
                     if( !s_props_template.colName(0) ) {
                         for(idx c = 0, k = 0; c < sql.resultColDim(); ++c) {
@@ -1257,11 +1209,9 @@ static void loadType(sSql& sql, bool prefetch, sStr * names00, sStr * parents00,
     } while(more);
     for(idx i = 0; i < loaded.dim(); ++i) {
         TTypeDef * t = TTypeDef::find(*(loaded.ptr(i)));
-        // assign props col names
         for(idx c = 0; t && c < s_props_template.cols; ++c) {
             t->props.setColId(c, s_props_template.colName(c));
         }
-        // link parents missed in previous loops
         for(idx j = 0; t && j < t->parents.dim(); ++j) {
             idx * pidx = t->parents.ptr(j);
             if( *pidx == sNotIdx ) {
@@ -1274,9 +1224,7 @@ static void loadType(sSql& sql, bool prefetch, sStr * names00, sStr * parents00,
         }
         t->broken_field_defs = false;
     }
-    // reconstruct props
     for(idx i = 0; i < loaded.dim(); ++i) {
-        // link parents missed in previous loops
         TTypeDef * t = TTypeDef::find(*(loaded.ptr(i)));
         if( !t || !t->inherit() ) {
             return;
@@ -1288,29 +1236,19 @@ static
 void loadAction(const sUsr& usr, idx typeIndex)
 {
     if( s_all_actions.dim() == 0 ) {
-        // cache all actions regardless
-        usr.objs2("action", s_all_actions); // all props
+        usr.objs2("action", s_all_actions);
     }
     TTypeDef * def = TTypeDef::find(typeIndex);
 
     if( def && def->acts.dim() == 0 ) {
-        // we need to collect actions sorted in reverse order of inheritance: self, parent, parent_of_parent, etc!
-        // so that more type specific action overloads more generic actions (a'la C++ overloading)
         for(idx t = 0; t < def->parents.dim(); ++t) {
             for(sUsrObjRes::IdIter it = s_all_actions.first(); s_all_actions.has(it); s_all_actions.next(it)) {
-                // TODO hiveids
                 sUsrObjRes::TObjProp * props = s_all_actions.get(it);
-                // TODO hiveids
                 const sUsrObjRes::TPropTbl * tbl = s_all_actions.get(*props, "type_name");
                 const char * tpnm = s_all_actions.getValue(tbl);
                 const idx plen = sLen(tpnm);
                 const bool isVirtual = plen && (tpnm[plen - 1] == '+');
-                // add only actions:
-                // 1. are virtual (inherited from parent: with '+' at the end of type_name)
-                // 2. of this type explicitly
-                // 3. which are not already in the list (overridden by child type)
                 if( strncasecmp(tpnm, (const char *) def->parents.id(t), isVirtual ? plen - 1 : plen) == 0 && (t == 0 || isVirtual)) {
-                    // find its name
                     const sUsrObjRes::TPropTbl * tbl1 = s_all_actions.get(*props, "name");
                     const char * actName = s_all_actions.getValue(tbl1);
                     if( actName && actName[0] ) {
@@ -1342,7 +1280,6 @@ static sUsrObj* loadView(const sUsr& usr, idx typeIndex, const char* view_name)
 
     std::auto_ptr<sUsrObj>* avw = view_name ? def->views.get(view_name) : 0;
     if( !avw && def->views.dim() == 0 ) {
-        // load all views
         sUsrObjRes vec;
         usr.objs2("view", vec);
         def = TTypeDef::find(typeIndex);
@@ -1438,7 +1375,6 @@ const sHiveId & sUsrObjType::id() const
 
 idx sUsrObjType::init(const sUsr & usr, const char * name, const sHiveId & id) const
 {
-    // hack for type 'type'
     static bool prefetch = true;
     if( prefetch ) {
         loadType(usr.db(), prefetch, 0, 0, sHiveId());
@@ -1504,7 +1440,6 @@ udx sUsrObjType::props(const sUsr & usr, sVarSet& list, const char* view_name, c
     if( m_def != sNotIdx ) {
         const idx start_col = 0;
         TTypeDef * def = TTypeDef::find(m_def);
-        // expand _brief and _summary
         sStr pFltr;
         for(const char * f = filter00; f; f = sString::next00(f)) {
             if( strcasecmp(f, "_brief") == 0 ) {
@@ -1528,19 +1463,16 @@ udx sUsrObjType::props(const sUsr & usr, sVarSet& list, const char* view_name, c
         }
 
         if( list.rows == 0 ) {
-            // add header only if it is first row in list for chaining
             list.setColId(0, "type_id");
             for(idx i = start_col; i < def->props.cols; ++i) {
                 list.setColId(i - start_col + 1, def->props.colName(i));
             }
         }
         if( view_name ) {
-            // rows in each is ordered by 'group'
             sVec<sUsrObj*> views;
             if( view_name[0] ) {
                 *(views.ptrx(0)) = loadView(usr, m_def, view_name);
             } else {
-                // collect default view(s)
                 for(idx i = 0; i < def->views.dim(); ++i) {
                     sUsrObj* vw = def->views[i].get();
                     if( vw->propGetBool("is_default") ) {
@@ -1551,11 +1483,10 @@ udx sUsrObjType::props(const sUsr & usr, sVarSet& list, const char* view_name, c
             CViewFieldList vf;
             vf.mex()->flags |= sMex::fSetZero;
             for(idx k = 0; k < views.dim(); ++k) {
-                sVarSet ff[4]; // rows in each is ordered by 'group'
+                sVarSet ff[4];
                 views[k]->propGet("field_name", ff[0]);
                 views[k]->propGet("field_readonly", ff[2]);
                 if( k == 0 ) {
-                    // ignored for subsequent views
                     views[k]->propGet("field_default", ff[1]);
                     views[k]->propGet("field_order", ff[3]);
                 }
@@ -1649,7 +1580,7 @@ struct TypeTypeField
     idx name_offset;
 };
 
-const sUsrObjPropsTree* sUsrObjType::propsTree(const sUsr & usr, const char* view_name/* = 0*/, const char * filter00/* = 0*/) const
+const sUsrObjPropsTree* sUsrObjType::propsTree(const sUsr & usr, const char* view_name, const char * filter00) const
 {
     const sUsrObjPropsTree * tree = 0;
     if( m_def != sNotIdx ) {
@@ -1681,7 +1612,7 @@ const sUsrObjPropsTree* sUsrObjType::propsTree(const sUsr & usr, const char* vie
                 def->props_tree_table.addRow().addCol(id_str.ptr()).addCol("name").addCol(type_type.prop("name")->orderString()).addCol(def->name.ptr());
                 def->props_tree_table.addRow().addCol(id_str.ptr()).addCol("title").addCol(type_type.prop("title")->orderString()).addCol(def->title.ptr());
                 def->props_tree_table.addRow().addCol(id_str.ptr()).addCol("description").addCol(type_type.prop("description")->orderString()).addCol(def->description.ptr());
-                for(idx ip=1 /* ip == 0 is self! */; ip<def->parents.dim(); ip++) {
+                for(idx ip=1; ip<def->parents.dim(); ip++) {
                     idx * piparent_def = def->parents.ptr(ip);
                     if( piparent_def ) {
                         TTypeDef * parent_def = TTypeDef::find(*piparent_def);
@@ -1827,7 +1758,6 @@ bool sUsrObjType::propsJSON(const sUsr & usr, sJSONPrinter & printer, bool into_
             for(idx i=0; i<def->field_defs.dim(); i++) {
                 const sUsrObjTypeField* fld = *def->field_defs.ptr(i);
                 if( !fld->parent() ) {
-                    // top-level field
                     fieldJSON(fld, printer, tmp_val);
                 }
             }
@@ -1942,7 +1872,6 @@ struct GetTreeWorker
             tree[ir].init(&tree_mex);
 
             const char * name = sql_tbl.val(ir, eColName);
-            // skip "--DELETED--" and similar hidden types
             if( !name || ((name[0] < 'a' || name[0] > 'z') && (name[0] < 'A' || name[0] > 'Z')) ) {
                 continue;
             }   
@@ -1985,8 +1914,7 @@ struct GetTreeWorker
     }
 };
 
-// static
-idx sUsrObjType::getTree(const sUsr& usr, sVarSet& out_tbl, const char* root_name/*="base"*/)
+idx sUsrObjType::getTree(const sUsr& usr, sVarSet& out_tbl, const char* root_name)
 {
     GetTreeWorker w(usr.db());
     return w.run(out_tbl, root_name);
@@ -1999,15 +1927,13 @@ void sUsrType::propBulk(const char * filter00, sVarSet& list) const
         props.printf(",%s", f);
     }
     std::auto_ptr<sSql::sqlProc> p(m_usr.db().Proc("sp_type_prop_list"));
-    // TODO: support domain_id and ion_id
     p->Add(m_id.domainId()).Add(m_id.objId()).Add(props ? props.ptr(1) : ((char*)0)).Add(false);
     p->getTable(&list);
 }
 
-udx sUsrType::propGet(const char* prop, sVarSet& res, bool sort /* = false, not used */) const
+udx sUsrType::propGet(const char* prop, sVarSet& res, bool sort) const
 {
     std::auto_ptr<sSql::sqlProc> p(m_usr.db().Proc("sp_type_prop_list"));
-    // TODO: support domain_id and ion_id
     p->Add(m_id.domainId()).Add(m_id.objId()).Add(prop).Add(true);
     p->getTable(&res);
     return res.rows;

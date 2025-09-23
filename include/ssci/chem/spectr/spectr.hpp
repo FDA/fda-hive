@@ -40,11 +40,11 @@ namespace slib {
 struct sSpectrMS {
     struct isoDistribution {
         static real absShiftAll;
-        sChem::formula frml; // the molecule
+        sChem::formula frml;
         real frmlShift,rMass;
         idx shiftedFrom;
         sVec < sChem::isotop > spctr;
-        sVec < sChem::formula > isoFormulas; /// the list of isotopic formulas
+        sVec < sChem::formula > isoFormulas;
         isoDistribution (void) {frmlShift=0;rMass=0;shiftedFrom=sNotIdx;}
         real getMass(void){
             if(rMass==0)rMass=frml.mass(sChem::formula::eIsotopicAbundant, false);
@@ -69,9 +69,7 @@ struct sSpectrMS {
         real isoTol1;
         real isoTol2;
 
-        //idx makeMolList (const char * molListFile);
         idx makeMolList (sStr * moList, idx istart=0, idx iend=-1) ;
-        //idx readIsoDistributions(const char * molListFile, real tol1, real tol2);
         idx readIsoDistributions(const char * src, idx len, real tol1, real tol2, real shift=0);
         idx makeAverageIsoDistribution(real daltons);
         idx makeCloseIsoDistribution(real daltons, isoDistribution * isos=0, idx maxCntToUse=0);
@@ -85,8 +83,7 @@ struct sSpectrMS {
 
 
 
-#endif // sChem_spetr_hpp
+#endif 
 
 
-
-} // namespace slib
+}

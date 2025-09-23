@@ -27,58 +27,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// datasource and dataview
-/*
-function isok( obj )
-{
-    if( !obj || obj.length==0 ) return false;
-    return true;
-}
-
-function verobj( obj )
-{
-    if( !obj || !obj.length ) return 0;
-    return obj;
-}
-
-function verarr( obj )
-{
-    if( !obj ) return new Array(); // empty array
-    if( (obj instanceof Array) ) return obj;
-    return  new Array( obj ) ;
-   // return obj;|| !obj.length
-}
-
-function evalVars(text, starter, ender )
-{
-    var spl=text.split("<!--") ;
-    if(spl.length>1){
-        text="";
-        for (var i=0; i<spl.length; ++i ) {
-            var posend=spl[i].indexOf("//-->");
-                
-            if(posend==-1){ text+=spl[i];continue; } // this one doesn't have ending parenthesis 
-            text+=eval(spl[i].substring(0,posend)) + spl[i].substring(posend+5);  // replace the variable and concat
-        }
-    }
-    return text;
-}
-
-*/
 
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ datasource constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 var vDS = new Array ();
 var vDS_reuseTblBlobs=0;
 var vDS_raw=1;
-var debug=0;//'flow';
+var debug=0;
 vDS.add=function( name, url, callbacks,  header )
 {
-    if(vDS[name])  { // if exists 
+    if(vDS[name])  {
         vDS[name].url=url;
         vDS[name].callbacks=callbacks;
         vDS[name].header=header;
@@ -86,26 +43,26 @@ vDS.add=function( name, url, callbacks,  header )
     }
 
     var ds={
-        'name' : name,  // the name by which this data source is specified in tabs
-        'url' : url, // the url to load the data: can have http:// qp_data:// ... etc
-        'header' : header, // automatically added to data retrieved from source 
-        'parser': '', // should be of a prototype parser ( ds, text)    and return text or null
-        'data' : '', // the data itself 
-        'page_request' : '', // complete page_request response from ajax layer
-        'callbacks' : callbacks , // new Array(),  //  array of {obj,func,param}  triples
-        'evaluator': false,  //  automatically parsing of variables in data sources is turned off 
+        'name' : name,
+        'url' : url,
+        'header' : header,
+        'parser': '',
+        'data' : '',
+        'page_request' : '',
+        'callbacks' : callbacks ,
+        'evaluator': false,
 
         'load': function (loadmode){return vDS.load(this,loadmode);}, 
-        'refresh': function (){return vDS.refresh(this);},  // call refresh for all callbacks
-        'hook' : function(  cbfun ) { return vDS.hook(this, cbfun); }, // add a new hook to our data 
-        'unhook' : function(  cbfun ) { return vDS.unhook(this, cbfun); }, // remove an existing hook to our data 
+        'refresh': function (){return vDS.refresh(this);},
+        'hook' : function(  cbfun ) { return vDS.hook(this, cbfun); },
+        'unhook' : function(  cbfun ) { return vDS.unhook(this, cbfun); },
         
-        'progressor' :'QP_bgProgress', // the progress bar container during background data downloads
-        'dataurl': '', // the url for which we got the data already: check this in lazy mode
-        'state' : ''  // can be '', 'load' , 'done'
+        'progressor' :'QP_bgProgress',
+        'dataurl': '',
+        'state' : ''
     };
 
-    vDS[name]=ds; // this makes sure element is refferencable by its name in array
+    vDS[name]=ds;
     return ds;
 };
 
@@ -115,11 +72,11 @@ vDS.refresh=function( ds )
     if(debug=='flow')alert( "CALLBACING: "+ds.name +"\n"+"url="+ds.url + "\n"+ds.state+"\n\n\n"+jjj(ds.callbacks));
     for ( var i=0 ; i<ds.callbacks.length; ++i) {
         var func=eval(ds.callbacks[i].func);
-        if( isok(func) ) // if a callback function is specieid call it
+        if( isok(func) )
             func( ds.callbacks[i].obj, ds.callbacks[i].param , ds.data, ds.page_request );
-        else if( isok(ds.callbacks[i].obj) && isok(ds.callbacks[i].obj.refresh) ) // call the objects function 
+        else if( isok(ds.callbacks[i].obj) && isok(ds.callbacks[i].obj.refresh) )
             ds.callbacks[i].obj.refresh( ds.callbacks[i].obj, ds.callbacks[i].param , ds.data, ds.page_request); 
-        else{ // if no object is specified the whole callback is a function 
+        else{
             eval(ds.callbacks[i])( ds.callbacks[i], ds.data, ds.page_request );
         }
     }
@@ -129,7 +86,7 @@ vDS.hook=function (ds, cbfun )
 {
     if(!ds)return ;
 
-    ds.callbacks=verarr(ds.callbacks) ; // turn it into an array if it was just a function
+    ds.callbacks=verarr(ds.callbacks) ;
     ds.callbacks[ds.callbacks.length]=cbfun;
 };
 
@@ -143,7 +100,6 @@ vDS.unhook=function (ds, cbfun )
 
 vDS.load_callback = function (dsname, text, page_request) {
     var ds = vDS[dsname];
-    //  remember the data
     if (isok(ds.header)) ds.data = ds.header + "\n" + text;
     else ds.data = text;
     ds.page_request = page_request;
@@ -151,17 +107,16 @@ vDS.load_callback = function (dsname, text, page_request) {
     if (debug == 'flow') alert("FiNISHED: " + ds.name + "\n" + "url=" + ds.url + "\n" + ds.state);
     if (!isok(ds.data)) { ds.state = 'err'; return; }
 
-    if (ds.evaluator) { // evaluate variables which are included as comments
-        ds.data = evalVars(ds.data, "<!--", "//-->");
+    if (ds.evaluator) {
+        ds.data = evalVars(ds.data, "<!--", "
         
     }
-    if (isok(ds.parser)) { // if parser is specified ... do parse 
+    if (isok(ds.parser)) {
         var parsed = eval(ds.parser)(ds, ds.data);
         if (!parsed) return;
         ds.data = parsed;
     }
 
-    // refresh callbacks for this 
     vDS.refresh(ds);
 };
 
@@ -172,87 +127,69 @@ vDS.load=function( ds , loadmode )
 
         if(debug=='flow')alert( "INQUIRY: "+ds.name +"\n"+"url="+ds.url +"\n"+"dataurl="+ds.dataurl+ "\n"+ds.state);
 
-        // be lazy about loading the data
-        // check that data exists and it is from the same source
         if( isok(ds.data) && isok(ds.dataurl) && ds.dataurl==ds.url && (ds.state=='done' || ds.state=='err') ){
-            //vDS.load_callback(ds,ds.data);
-            //vDS.refresh(ds);
             if(debug=='flow')alert( "LAZY: "+ds.name +"\n"+"url="+ds.url + "\n"+ds.state);
             return true;
         }
-        if(ds.state=='load' &&  ds.dataurl==ds.url ) // currently loading : do not attempt to get it twice  
+        if(ds.state=='load' &&  ds.dataurl==ds.url )
             return true;
 
         if(debug=='flow')alert( "LOAD: "+ds.name +"\n"+"url="+ds.url + "\n"+ds.state);
         ds.state='load';
-        //alert(ds.name+" is = " +ds.dataurl+"=="+ds.url);
-        ds.dataurl=ds.url; // associate the data with the url
+        ds.dataurl=ds.url;
         
     }
     
-    // ds.state='load';
     
-    // split the source and the url
-    var spl=ds.url.split("://"), dataname="";
+    var spl=ds.url.split(":
     var src=spl[0];
     var url=spl[1]; 
-    //if(url.indexOf("//")==0) url=url.substring(2);
     
-    // now make the replacements
-    //if(isok(ds.evaluator))
-    url=evalVars(url,"$(",")"); // evaluate variables
+    url=evalVars(url,"$(",")");
     
-    // for background retrievals there is a dataname in front of the job
     if(src.indexOf("qpbg_")==0 ){
-        spl=url.split("//");
+        spl=url.split("
         dataname=spl[0];
         url=spl[1];
     }
 
-    // reusage of the service with an alias 
     var dataReq=0;
     if(src=="qpbg_tblqry"){
         dataReq=req;
-        //if(loadmode!='download' && QPride_findDataName( dataname+".tbl.csv" )){ // if this blob already exists 
-        if(loadmode!='download' && QPride_findDataName( "Tbl-"+dataname )){ // if this blob already exists 
+        if(loadmode!='download' && QPride_findDataName( "Tbl-"+dataname )){
             src="qp_data";
             url="Tbl-"+dataname;
-            //url=dataname+".tbl.csv";
         } else {
             url="-qpSubmit&svc=tblqry&oper=list&tbl="+dataname+"&dataGrpID="+req+"&resID="+req+"&"+url;
-            //dataname+=".tbl.csv";
-            dataname="Tbl-"+dataname;//.tbl.csv";
+            dataname="Tbl-"+dataname;
             src="qpbg_data";
         }
     }
     
 
-    // now the operation itself 
-    if( loadmode=='download' && src.indexOf("qpbg_")!=0 )  { // downlaods of direct links
+    if( loadmode=='download' && src.indexOf("qpbg_")!=0 )  {
         if(src=='qp_data')url="?cmd=-qpData&req="+req+"&grp=1&raw=1&dname="+url;
         document.location=url;
         return ;
     }
 
-    //var oprogi=(ds.proginfo) ? gObject(ds.proginfo) : 0;
 
     if(src =="http" ){
-        ajaxDynaRequestPage(url, ds.name , vDS.load_callback ); // +"&raw="+vDS_raw
+        ajaxDynaRequestPage(url, ds.name , vDS.load_callback );
         return true;
-    } else if(src=="innerHTML")  { // if the data is associated with an innerHTML of some other layer
+    } else if(src=="innerHTML")  {
         var o=document.getElementById(url);
         if(o)vDS.load_callback(ds.name ,o.innerHTML);
         return true;
     } else if(src=='static') {
         vDS.load_callback( ds.name ,url);
         return true;
-    } else if(src=="qp_data") { // if the data is assoociated with a datablob
+    } else if(src=="qp_data") {
         ajaxDynaRequestPage("?cmd=-qpData&req="+req+"&raw=1&grp=1&dname="+url, ds.name ,  vDS.load_callback );
         return true;
     } 
 
-    if(src.indexOf("qpbg_")==0 ) { // if(src=="qpbg_data"){
-        //if(oprogi) oprogi.innerHTML="downloading: "+dataname ;
+    if(src.indexOf("qpbg_")==0 ) {
         QPride_backgroundExecution(url, verobj(ds.progressor) , (loadmode=='download')  ? "download" : "vDS.load_callback" , dataname , ds.name, dataReq  );
         return true;
     }
@@ -270,11 +207,6 @@ vDS.forceload=function (dsprefix)
 };
 
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Dataview constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 var vDV = new Array ();
 var vDV_registeredViewers=new Array();
@@ -283,16 +215,16 @@ vDV.add=function( name, width, height , maxtabs )
 {
     var dv={
         'name': name, 
-        'container' : name,  // the default container is the same as the name 
+        'container' : name,
         'tabs': new Array (),
         'width': (width ? width  : 0 ),
         'height' : (height ? height : 0 ) ,
         'maxtabs' : (maxtabs ? maxtabs : 0 ),
-        'tabstart' : 0 , //  current shift in tabs
-        'selected': 0, // current selected tab
-        'tabs' : new Array () ,  // the list of tabs
+        'tabstart' : 0 ,
+        'selected': 0,
+        'tabs' : new Array () ,
         
-        'active': '', // the list of available tabs
+        'active': '',
 
         'add' : function (name, icon, type, viewers){return vDV.addtab(this, name, icon, type, viewers);},
         'compose' : function (reuse){return vDV.compose(this,reuse);},
@@ -315,8 +247,8 @@ vDV.addtab=function( dv, name, icon, type, viewers )
     var tb={
         'name':name, 
         'icon' : (icon ? icon : name ),
-        'viewers': new Array() , // one of the known types of viewers; currently "ggraph', seltable
-        'type': type, // tab, link, download, redir  
+        'viewers': new Array() ,
+        'type': type,
         'columns': 1,
         'width': '100%',
         'height' : '100%',
@@ -339,12 +271,11 @@ vDV.addview=function(tb, viewers)
     var vie=verarr(viewers);
     
     for ( var iv=0;  iv< vie.length ; ++ iv) { 
-        vie[iv].uniqueId=Math.random(); //
-        tb.viewers[tb.viewers.length]=vie[iv];// remember this viewer in our list 
+        vie[iv].uniqueId=Math.random();
+        tb.viewers[tb.viewers.length]=vie[iv];
         if( isok(vie[iv].data) ) {
-            vDS.hook( vDS[vie[iv].data],  {'func':'vDV.refreshview', 'obj' : vie[iv], 'param' : tb } ); // register ourselves a callback for a data updater
+            vDS.hook( vDS[vie[iv].data],  {'func':'vDV.refreshview', 'obj' : vie[iv], 'param' : tb } );
         }
-            //vie[iv].load=function (){ return vDV.loadview(this); }
     }
 };
 
@@ -356,7 +287,7 @@ vDV.hookview=function(dsname, dvname, tbname, iv )
     var viewer=tb.viewers[iv];
     
     viewer.data=dsname;
-    vDS.hook( vDS[viewer.data],  {'func':'vDV.refreshview', 'obj' : viewer, 'param' : tb } ); // register ourselves a callback for a data updater
+    vDS.hook( vDS[viewer.data],  {'func':'vDV.refreshview', 'obj' : viewer, 'param' : tb } );
 };
 
 vDV.unhookview=function( viewer )
@@ -364,10 +295,8 @@ vDV.unhookview=function( viewer )
     var ds=vDS[viewer.data];
     var callbacks=verarr(ds.callbacks); 
     for ( var ic=callbacks.length-1; ic>=0; --ic  ) {   
-        //alert(" considering " + viewer.uniqueId + " === " + jjj( callbacks[ic].obj ) ) ;
         if(callbacks[ic].obj && callbacks[ic].obj.uniqueId==viewer.uniqueId ) {
             callbacks=callbacks.splice(ic);
-            //alert(" found to remove " + viewer.uniqueId + " === " + jjj( viewer ) ) ;
         }
     }
 
@@ -388,7 +317,6 @@ vDV.findview=function( dvname, tbname, iview )
     var dv=vDV[dvname];
     var itb=vDV.findtab(dvname,tbname);if(itb<0)return -1;
     return dv.tabs[itb].viewers[parseInt(iview)];
-    //return 0;
 };
 
 vDV.findviewByContainer=function( container )
@@ -402,11 +330,6 @@ vDV.registerViewer=function( viewerTypeName, viewerFunction)
     vDV_registeredViewers[viewerTypeName]=viewerFunction;
 };
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ load and view functions
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 vDV.load=function( dv , loadmode )
 {
@@ -432,23 +355,22 @@ vDV.loadtab=function( tb, loadmode  )
 vDV.loadview=function( viewer , loadmode )
 {
     var text=0;
-//    var viewerData=verarr(viewer.data);
 
-    if(!viewer.data) return ; // no associated data source: can do nothing 
+    if(!viewer.data) return ;
     if( !vDS[viewer.data] ) {
         alert("DEVELOPER ALERT: data source '"+viewer.data+"' does not exist");
         return ;
     }
 
     if( loadmode=='download'){
-        vDS.load(vDS[viewer.data], loadmode ); // refresher will be called from data handler
+        vDS.load(vDS[viewer.data], loadmode );
         return ;
     }
     if(debug=='flow')alert("VIEWLOAD ANALIZING "+vDS[viewer.data].url +"\n\n"+ vDS[viewer.data].dataurl +"\n\n"+ vDS[viewer.data].state) ; 
 
-    if( (vDS[viewer.data].url && vDS[viewer.data].url!=vDS[viewer.data].dataurl) || (vDS[viewer.data].state!='done' && vDS[viewer.data].state!='err') ) { // datasource is associated but data is not here 
+    if( (vDS[viewer.data].url && vDS[viewer.data].url!=vDS[viewer.data].dataurl) || (vDS[viewer.data].state!='done' && vDS[viewer.data].state!='err') ) {
         if(debug=='flow')alert("VIEWLOAD attempts to get the data " +  vDS[viewer.data].data ) ;
-        vDS.load(vDS[viewer.data], loadmode ); // refresher will be called from data handler
+        vDS.load(vDS[viewer.data], loadmode );
         return ;
     }
     if(debug=='flow')alert("VIEWLOAD had the data from " + viewer.data ) ;
@@ -462,14 +384,7 @@ vDV.refreshview=function( viewer, param, text, page_request)
 
     
     if(debug=='flow')alert(" RENDEInG " + viewer.container );
-    // call the refresh function for this viewer .. if exists 
-    /*if(isok(viewer.refresh)) {
-        if( !viewer.refresh(viewer,param,text) )
-            return ;
-    }
-    */
     
-    //alert( viewer.container  + "==="+viewer.hidden);
     var o=document.getElementById(viewer.container+"_cell"); 
     if(o) {
         if(viewer.hidden) o.className="sectHid";
@@ -479,13 +394,11 @@ vDV.refreshview=function( viewer, param, text, page_request)
 
     var o=document.getElementById(viewer.container); if(!o)return ;
 
-    // now deal with built in viewers 
     if(isok(viewer.composer) && vDV_registeredViewers[viewer.composer]) {
         vDV_registeredViewers[viewer.composer](viewer,text,page_request);
-        //alert(viewer.composer);
         return;
     }
-    if( isok( viewer.composer) && viewer.composer=='preview' ) { // unformtatted blobs 
+    if( isok( viewer.composer) && viewer.composer=='preview' ) {
     
         var o=document.getElementById(viewer.container);if(!o)return ;
         var t="";
@@ -505,11 +418,6 @@ vDV.refreshview=function( viewer, param, text, page_request)
 
 
  
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Dataview composition functions
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 vDV.compose=function(dv,reuse)
 {
@@ -521,7 +429,7 @@ vDV.compose=function(dv,reuse)
     }
     var nm;
     for ( var it=0; it<dv.tabs.length; ++it){ 
-        nm="DV_"+dv.name+"_"+dv.tabs[it].name; // sub container name
+        nm="DV_"+dv.name+"_"+dv.tabs[it].name;
         o=gObject(nm);
         if(o)o.className= (it==dv.selected) ? "sectVis" :"sectHid";
         var viewer=verarr(dv.tabs[it].viewers);
@@ -531,10 +439,10 @@ vDV.compose=function(dv,reuse)
                            
     }
     
-    nm="DV_"+dv.name+"_tablist"; // the tablist is here 
+    nm="DV_"+dv.name+"_tablist";
     o=gObject(nm);
     if(o)o.innerHTML=vDV.composeText(dv, 2);
-    nm="DV_"+dv.name+"_viewlist"; // the tablist is here 
+    nm="DV_"+dv.name+"_viewlist";
     o=gObject(nm);
     if(o){
         o.innerHTML=vDV.composeText(dv, 4);
@@ -584,11 +492,10 @@ vDV.composeText=function(dv, whattocompose)
                                 t1+="<td class='"+(dv.selected==i ? "sectVis" : "sectHid" )+ "' id='"+viewer[iv].container+"_cell' valign='"+(tb.valign)+"' align='"+(tb.align)+"' " + (tb.width ? ("width="+tb.width) : "") +" " + (tb.height ? ("height="+tb.height) : "")  +" >";
                                     var szWd=dv.width;
                                     var szHi=dv.height;
-                                    t1+="<div id='"+viewer[iv].container+"' style='position:relative;overflow:auto;margin:0px;padding: 0px;max-height:"+szHi+"px;max-width:"+szWd+"px;' >";  // height:"+szHi+"px;width:"+szWd+"px;
-                                       // t1+=viewer[iv].container;
+                                    t1+="<div id='"+viewer[iv].container+"' style='position:relative;overflow:auto;margin:0px;padding: 0px;max-height:"+szHi+"px;max-width:"+szWd+"px;' >";
                                     t1+="</div>";
                                 t1+="</td>";
-                                if(iv<cntviewer+1 && ((iv+1)%tb.columns)==0)t1+="</tr><tr>"; // insert a new row  if new columns has to be started 
+                                if(iv<cntviewer+1 && ((iv+1)%tb.columns)==0)t1+="</tr><tr>";
                             }
                             t1+="</tr>";
                         t1+="</table>";
@@ -600,9 +507,7 @@ vDV.composeText=function(dv, whattocompose)
     }
 
     var t2="";
-    if(whattocompose&2 && dv.frame!="none"){ //  tabs 
-        //t2+="<tr><td colspan="+dv.tabs.length +" >"+t3+"</td></tr>";
-        //t2+=t3;        
+    if(whattocompose&2 && dv.frame!="none"){
         t2+="<table  "+sp+" " + (dv.width ? ("width="+dv.width) : "") +" " + (dv.tabHeight ? ("height="+dv.tabHeight) : "") + " >";
             t2+="<tr>";
             for (var i=0; i<dv.tabs.length ; ++i ) {
@@ -637,7 +542,7 @@ vDV.composeText=function(dv, whattocompose)
     }
     
     var t3="";
-    if(whattocompose&4 ){ // view toggles 
+    if(whattocompose&4 ){
         
         var tb=dv.tabs[dv.selected];
         var viewer=verarr(tb.viewers);
@@ -646,7 +551,6 @@ vDV.composeText=function(dv, whattocompose)
             t3+="<table >";
             t3+="<tr>";
             for ( var iv=0; iv<cntviewer; ++iv) {
-                //t3+="<tr>";
                     t3+="<td>";
                         t3+="<img border=0 src='img/white.gif' width="+dv.tabSeparation+" height=1 />&nbsp;";
                         t3+="<a href='javascript:vDV.clickViewToggle(\""+dv.name+"\","+dv.selected+","+iv+")'><img src='img/"+ (viewer[iv].hidden ? "plus" : "xlose" ) +".gif' width=12 height=12 border=0 /></a>";
@@ -656,7 +560,6 @@ vDV.composeText=function(dv, whattocompose)
                             t3+=isok(viewer[iv] && viewer[iv].name ) ? viewer[iv].name : iv;
                         t3+="</small></a><br/>";
                     t3+="</td>";
-                //t3+="</tr>";
             }
             t3+="</tr>";
             t3+="</table>";
@@ -668,7 +571,7 @@ vDV.composeText=function(dv, whattocompose)
 
     
     var t="";
-    if(whattocompose&8) { // the framing of the whole dv
+    if(whattocompose&8) {
         t+="<table border=0 "+sp+" " + (dv.width ? ("width="+dv.width) : "") +" " + (dv.height ? ("height="+dv.height) : "") + " >";
             t+="<tr>";
                 t+="<td colspan=3  id='DV_"+dv.name+"_tabcontainer' valign=top ";
@@ -678,19 +581,16 @@ vDV.composeText=function(dv, whattocompose)
                 t+="</td>";
             t+="</tr>";
 
-            //if(t3.length){
                 t+="<tr  height=0 >";
                     t+="<td colspan=3 id='DV_"+dv.name+"_viewlist' class='sectHid' >";
                         t+=t3;
                     t+="</td>";
                 t+="</tr>";
-            //}
             
             t+="<tr>";
                 t+="<td height="+dv.tabHeight;
                 if(dv.frame!="none")t+=" class='DV_tab' ";
                 t+=" width="+(dv.tabSeparation*2)+" valign=top >";
-                    //if(dv.tabstart>0)
                     if(dv.maxtabs){
                         t+="<a href='javascript:vDV.clicktabmove(\""+dv.name+"\",-1)'>";
                         t+="<img src='img/left.gif' border=0 height="+dv.tabHeight+" width="+(dv.tabSeparation*2)+" />";
@@ -703,7 +603,6 @@ vDV.composeText=function(dv, whattocompose)
                 t+="<td height="+dv.tabHeight;
                 if(dv.frame!="none")t+=" class='DV_tab' ";
                 t+=" width="+(dv.tabSeparation*2)+" valign=top >";
-                    //if(dv.maxtabs && dv.tabstart+dv.maxtabs<dv.tabs.length) 
                     if(dv.maxtabs){
                         t+="<a href='javascript:vDV.clicktabmove(\""+dv.name+"\",1)'>";
                         t+="<img src='img/right.gif' border=0 height="+dv.tabHeight+" width="+(dv.tabSeparation*2)+" />";
@@ -712,20 +611,13 @@ vDV.composeText=function(dv, whattocompose)
                 t+="</td>";
             t+="</tr>";
         t+="</table>";
-        //return t;
     }
-    //alert(t1);
     
     return t;
 };
 
 
  
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ handlers 
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 vDV.clickViewToggle=function(dvname, itb , ivi) 
 {
     var dv=vDV[dvname];
@@ -744,7 +636,6 @@ vDV.clickViewToggle=function(dvname, itb , ivi)
         viewer=tb.viewers[iv];
         viewer.widthAvail=parseInt(dv.width/cols);
         viewer.heightAvail=parseInt(dv.height/rows);
-        //vDV.refreshview=function( viewer, viewer.param, viewer.datext)
         vDV.loadview(viewer);
     }
 
@@ -795,13 +686,8 @@ vDV.clicktab=function(dvname , itb)
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Empty datasource
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
-vDS.add( "dsVoid" , "static://void");
+vDS.add( "dsVoid" , "static:
 
 
 

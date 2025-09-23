@@ -35,8 +35,8 @@ endif
 include $(devdir)/build/makefile.meta
 
 BUILD_LIST = \
-    dna-denovo dmlib violin qpsvc
+    dna-denovo violin qpsvc dmHoneyBee
 
-.PHONY: all clean dist
-all clean dist::
+.PHONY: dist
+dist::
 	$(call make-list,$@,$(BUILD_LIST))

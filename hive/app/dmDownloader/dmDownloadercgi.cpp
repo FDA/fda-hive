@@ -42,8 +42,13 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
 
     public:
         dmDownloaderCGI(const char * defline00, const char * service, idx argc, const char * * argv, const char * * envp, FILE * readfrom, bool isCookie, bool immediate)
-            : sQPrideCGI(defline00, service, argc, argv, envp, readfrom, isCookie, immediate), m_mode(eNONE), m_arch(*this, 0, 0), m_in_headers(false), m_contentRead(0), m_contentLength(0)
+            : sQPrideCGI(defline00, service, argc, argv, envp, readfrom, isCookie, immediate), m_mode(eNONE), m_arch(*this, 0, 0), m_uploadProc(0), m_contentRead(0), m_contentLength(0)
         {
+        }
+
+        ~dmDownloaderCGI()
+        {
+            delete m_uploadProc;
         }
 
         virtual idx customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * obj, sQPride::Service * pSvc, sStr * log, sMex **pFileSlices = 0);
@@ -61,8 +66,13 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
             m_fi.fno = -1;
             m_fi.started = 0;
             m_subject.cut0cut();
+            m_project.cut0cut();
             m_onBehalf.cut0cut();
-            // checkboxes are not submitted:
+            m_folder.cut0cut();
+            m_arch.setDepth(0);
+            m_arch.setScreenFlag(false);
+            m_arch.setQCFlag(false);
+
 
             sQPrideClient::Service svc;
             serviceGet(&svc, 0, 0);
@@ -86,17 +96,24 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
             if( !q ) {
                 m_logBuf.printf("<b>Upload failed</b>\n");
             } else {
-                if( m_uploadProc.get() && m_onBehalf ) {
-                    m_uploadProc->propSet("onUserBehalf", m_onBehalf);
-                }
+                m_arch.setForm(pForm, false);
                 m_arch.setInput("%s", m_uploadAreaPath.ptr());
                 m_arch.setInputName(m_uploadAreaPath);
                 m_arch.setDataSource(m_uploadProc->propGet("uri"));
                 m_arch.setSubject(m_subject);
-                sUsrFolder * folder = getFolder();
-                if( folder ) {
-                    m_arch.setFolder(*folder);
-                    delete folder;
+                if( m_uploadProc ) {
+                    if( m_onBehalf ) {
+                        m_uploadProc->propSet("onUserBehalf", m_onBehalf);
+                    }
+                    if( m_project ) {
+                        m_uploadProc->propSet("submission_project", m_project);
+                    }
+                    sUsrFolder * fptr = 0;
+                    setFolder(*m_uploadProc, &fptr);
+                    if( fptr ) {
+                        m_arch.setFolder(*fptr);
+                        delete fptr;
+                    }
                 }
                 archReqId = m_arch.launch(*user, reqId);
                 if( !archReqId ) {
@@ -107,7 +124,7 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                     m_logBuf.printf("HIVE Received %" DEC " bytes\nBrowser Submitted %" DEC " bytes\n", m_contentRead, m_contentLength);
                 }
             }
-            m_logBuf.printf("Success %" DEC ",%s!\n", archReqId, m_uploadProc.get() ? m_uploadProc->Id().print() : "0");
+            m_logBuf.printf("Success %" DEC ",%s!\n", archReqId, m_uploadProc ? m_uploadProc->Id().print() : "0");
             sStr l;
             sString::searchAndReplaceSymbols(&l, m_logBuf.ptr(), m_logBuf.length(), "\n", 0, 0, true, true, false, true);
             for(const char * p = l.ptr(); p; p = sString::next00(p)) {
@@ -123,7 +140,7 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
         bool updateProgress(udx done, udx total)
         {
             idx prgs = reqProgress(reqId, 2, done, done, total);
-            sUsrProc * p = dynamic_cast<sUsrProc *>(m_uploadProc.get());
+            sUsrProc * p = dynamic_cast<sUsrProc *>(m_uploadProc);
             if( p ) {
                 p->propSync();
             }
@@ -139,28 +156,18 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
             if( !reqId ) {
                 reqId = grpSubmit("dmDownloader", 0, 0, 1);
                 if( reqId ) {
-                    grpId = req2Grp(reqId);
-                    // checkboxes do not come in request unless checked
-                    dmArchiver::setDepth(*this, 0);
-                    dmArchiver::setIndexFlag(*this, 0);
-                    dmArchiver::setQCFlag(*this, 0);
-                    dmArchiver::setScreenFlag(*this, 0);
-                    // block anyone from grabbing this request
                     reqSetStatus(reqId, eQPReqStatus_Processing);
+                    grpId = req2Grp(reqId);
                     jobSetReq(jobId, reqId);
-                    m_uploadProc.reset(new sUsrProc(*user, "svc-download"));
-                    udx q = (m_uploadProc.get() && m_uploadProc->Id()) ? 1 : 0;
+                    m_uploadProc = new sUsrProc(*user, "svc-download");
+                    udx q = (m_uploadProc && m_uploadProc->Id()) ? 1 : 0;
                     if( q ) {
-                        // connect obj to req
                         reqSetPar(reqId, sQPrideBase::eQPReqPar_Objects, m_uploadProc->IdStr());
                         q += m_uploadProc->propSetI("reqID", reqId);
                         q += m_uploadProc->propSet("datasource", "file://");
                         q += m_uploadProc->propSet("svcTitle", "File Upload");
                         q += m_uploadProc->propSetBool("is_upload", true);
-                        std::auto_ptr<sUsrFolder> folder(getFolder());
-                        if( folder.get() ) {
-                            folder->attach(*m_uploadProc);
-                        }
+                        setFolder(*m_uploadProc);
                     }
                     if( q == 5 ) {
                         reqSetStatus(reqId, eQPReqStatus_Running);
@@ -169,19 +176,40 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                         reqSetStatus(reqId, eQPReqStatus_ProgError);
                         reqSetAction(reqId, eQPReqAction_Kill);
                         m_logBuf.printf("Internal error %u (%s)\n", __LINE__, m_uploadProc->Id().print());
-                        m_uploadProc->actDelete();
                         reqId = 0;
-                        m_uploadProc.reset(0);
+                        m_uploadProc->actDelete();
+                        delete m_uploadProc;
+                        m_uploadProc = 0;
                     }
                 }
             }
-            return m_uploadProc.get();
+            return m_uploadProc;
         }
 
-        sUsrFolder * getFolder()
+        void setFolder(sUsrObj & obj, sUsrFolder ** fptr = 0)
         {
-            sHiveId id(pForm->value("HIVE-user-curdir_save"));
-            return id ? new sUsrFolder(*user, id) : sSysFolder::Inbox(*user);
+            sHiveId id(m_folder ? m_folder.ptr() : pForm->value("HIVE-user-curdir_save", pForm->value("HIVE-user-curdir_open")));
+            sUsrFolder * folder = id ? new sUsrFolder(*user, id) : 0;
+            sUsrFolder * inbox = sSysFolder::Inbox(*user);
+            if( folder ) {
+                if( inbox ) {
+                    inbox->detach(obj);
+                }
+                folder->attach(obj);
+                if( fptr ) {
+                    * fptr = folder;
+                } else {
+                    delete folder;
+                }
+            } else if( inbox ) {
+                inbox->attach(obj);
+                if( fptr ) {
+                    * fptr = inbox;
+                } else {
+                    delete inbox;
+                }
+
+            }
         }
 
         virtual bool on_next_chunk(const char ** buf, udx & len)
@@ -191,7 +219,6 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                 m_uploadBuf.add(0, sizeBuf);
                 m_propName.cut(0);
             } else if( len > 0 ) {
-                // preserve left over
                 memmove(m_uploadBuf, *buf, len);
             }
             clearerr(stdin);
@@ -206,103 +233,87 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
             return true;
         }
 
-        void parseHeader(void)
+        virtual bool on_header_value(const char * buf, udx len)
         {
-            if( !m_in_headers ) {
-                m_mode = eNONE;
-            }
-            m_in_headers = true;
-            const idx len = m_headerVal.length();
             if( len ) {
                 const char * fnd = 0;
-                if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"chkauto_" __, 1, "\n" __, true) != 0 ) {
+                if( sString::searchSubstring(buf, len, "form-data; name=\"chkauto_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eUnpackDepth;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"idx_" __, 1, "\n" __, true) != 0 ) {
-                    m_mode = eIndex;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"qc_" __, 1, "\n" __, true) != 0 ) {
+                } else if( sString::searchSubstring(buf, len, "form-data; name=\"qc_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eQC;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"screen_" __, 1, "\n" __, true) != 0 ) {
+                } else if( sString::searchSubstring(buf, len, "form-data; name=\"screen_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eScreen;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"subj_" __, 1, "\n" __, true) != 0 ) {
+                } else if( sString::searchSubstring(buf, len, "form-data; name=\"subj_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eSubject;
-                } else if( sString::searchSubstring(m_headerVal, len, "form-data; name=\"onbehalf_" __, 1, "\n" __, true) != 0 ) {
+                } else if( sString::searchSubstring(buf, len, "form-data; name=\"onbehalf_" __, 1, "\n" __, true) != 0 ) {
                     m_mode = eOnBehalf;
-                } else if( (fnd = sString::searchSubstring(m_headerVal, len, "; filename=\"" __, 1, "\"\n" __, true)) != 0 ) {
+                } else if( sString::searchSubstring(buf, len, "form-data; name=\"folder_" __, 1, "\n" __, true) != 0 ) {
+                    m_mode = eFolder;
+                } else if( sString::searchSubstring(buf, len, "form-data; name=\"submission_project" __, 1, "\n" __, true) != 0 ) {
+                    m_mode = eProject;
+                } else if( (fnd = sString::searchSubstring(buf, len, "; filename=\"" __, 1, "\"\n" __, true)) != 0 ) {
                     sStr fff;
                     sString::copyUntil(&fff, fnd + 12, len - 12, "\"\r\n");
                     m_mode = eFILE;
-                    m_logBuf.printf("Uploading file %s\n", fff.ptr());
+#if _DEBUG
+                    m_logBuf.printf("Uploading file (orig) %s\n", fff.ptr());
+#endif
                     m_fi.name.printf(0, "%s", sFilePath::nextToSlash(fff));
                     m_logBuf.printf("Uploading file %s\n", m_fi.name.ptr());
-                }
-            }
-        }
-
-        virtual bool on_header_field(const char * buf, udx len)
-        {
-            parseHeader();
-            m_headerVal.cut0cut(0);
-            return sMultipartParser::on_header_field(buf, len);
-        }
-        virtual bool on_header_value(const char * buf, udx len)
-        {
-            m_in_headers = true;
-            m_headerVal.printf("%.*s", (int)len, buf);
-            return sMultipartParser::on_header_value(buf, len);
-        }
-        virtual bool on_headers_complete()
-        {
-            parseHeader();
-            if( !m_uploadProc.get() && !useOrSubmitReq() ) {
-                return false;
-            }
-            if( m_mode == eFILE ) {
-                if( !m_uploadAreaPath ) {
-                    cfgStr(&m_uploadAreaPath, 0, "user.download", "");
-                    m_uploadAreaPath.printf("upl-%" DEC "/", reqId); // '/' here is important for archiver submission!
-                    // Running from HTTP server account we need to give all permissions to download
-                    if( !sDir::makeDir(m_uploadAreaPath, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH | S_IWOTH) ) {
-                        m_logBuf.printf("Upload area is not accessible: %s\n", strerror(errno));
+                    if( !m_uploadAreaPath ) {
+                        cfgStr(&m_uploadAreaPath, 0, "user.download", "");
+                        m_uploadAreaPath.printf("upl-%" DEC "/", reqId);
+                        if( !sDir::makeDir(m_uploadAreaPath, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH | S_IWOTH) ) {
+                            m_logBuf.printf("Upload area is not accessible: %s\n", strerror(errno));
+                            reqSetStatus(reqId, eQPReqStatus_ProgError);
+                            return false;
+                        }
+                    }
+                    m_fi.src.printf(" http://%s", m_fi.name.ptr());
+                    m_fi.path.cut(0);
+                    sDir::uniqueName(m_fi.path, "%s%s", m_uploadAreaPath.ptr(), m_fi.name.ptr());
+#if _DEBUG
+                    m_logBuf.printf("Destination '%s'\n", m_fi.path.ptr());
+#endif
+                    m_fi.started = time(0);
+                    errno = 0;
+                    m_fi.fno = open(m_fi.path, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+                    if( m_fi.fno < 0 ) {
+                        m_logBuf.printf("ERROR: Cannot create destination file: %s\n", strerror(errno));
                         reqSetStatus(reqId, eQPReqStatus_ProgError);
                         return false;
                     }
+                    sFile::chmod(m_fi.path, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+                    m_fi.buf.cut(0);
+                    m_propName.printf(", %s", m_fi.name.ptr());
+                    if( m_uploadProc->propSet("name", m_propName.ptr(2)) + m_uploadProc->propSet("uri", m_fi.src.ptr(1)) != 2 ) {
+                        return false;
+                    }
                 }
-                m_fi.src.printf(" http://%s", m_fi.name.ptr());
-                m_fi.path.cut(0);
-                sDir::uniqueName(m_fi.path, "%s%s", m_uploadAreaPath.ptr(), m_fi.name.ptr());
-#if _DEBUG
-                m_logBuf.printf("Destination '%s'\n", m_fi.path.ptr());
-#endif
-                m_fi.started = time(0);
-                errno = 0;
-                m_fi.fno = open(m_fi.path, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-                if( m_fi.fno < 0 ) {
-                    m_logBuf.printf("ERROR: Cannot create destination file: %s\n", strerror(errno));
-                    reqSetStatus(reqId, eQPReqStatus_ProgError);
-                    return false;
-                }
-                // we need to share with everybody from http server account
-                sFile::chmod(m_fi.path, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-                m_fi.buf.cut(0);
-                m_propName.printf(", %s", m_fi.name.ptr());
-                if( m_uploadProc->propSet("name", m_propName.ptr(2)) + m_uploadProc->propSet("uri", m_fi.src.ptr(1)) != 2 ) {
-                    return false;
-                }
+            }
+            return sMultipartParser::on_header_value(buf, len);
+        }
+
+        virtual bool on_headers_complete()
+        {
+            if( !m_uploadProc && !useOrSubmitReq() ) {
+                return false;
             }
             return sMultipartParser::on_headers_complete();
         }
+
         virtual bool on_part_data(const char * buf, udx len)
         {
-            m_in_headers = false;
             switch(m_mode) {
                 case eNONE:
                     break;
                 case eUnpackDepth:
-                case eIndex:
                 case eQC:
                 case eScreen:
                 case eSubject:
                 case eOnBehalf:
+                case eFolder:
+                case eProject:
                     m_partData.add(buf, len);
                     break;
                 case eFILE:
@@ -326,9 +337,9 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
             }
             return true;
         }
+
         virtual bool on_part_data_end()
         {
-            m_in_headers = false;
             udx u;
             idx i;
             switch(m_mode) {
@@ -336,27 +347,17 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                     break;
                 case eUnpackDepth:
                     u = 0;
-
                     if( sString::bufscanf(m_partData, m_partData.last(), "%" DEC, &u) ) {
-                        dmArchiver::setDepth(*this, u);
+                        m_arch.setDepth(u);
                         if( u ) {
                             m_logBuf.printf("Upload marked for processing %" DEC "\n", u = ~0 ? -1 : u);
-                        }
-                    }
-                    break;
-                case eIndex:
-                    i = 0;
-                    if( sString::bufscanf(m_partData, m_partData.last(), "%" DEC, &i) ) {
-                        dmArchiver::setIndexFlag(*this, i);
-                        if( i ) {
-                            m_logBuf.printf("Upload marked for indexing\n");
                         }
                     }
                     break;
                 case eQC:
                     i = 0;
                     if( sString::bufscanf(m_partData, m_partData.last(), "%" DEC, &i) ) {
-                        dmArchiver::setQCFlag(*this, i);
+                        m_arch.setQCFlag(i);
                         if( i ) {
                             m_logBuf.printf("Upload marked for QC\n");
                         }
@@ -365,7 +366,7 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                 case eScreen:
                     i = 0;
                     if( sString::bufscanf(m_partData, m_partData.last(), "%" DEC, &i) ) {
-                        dmArchiver::setScreenFlag(*this, i);
+                        m_arch.setScreenFlag(i);
                         if( i ) {
                             m_logBuf.printf("Upload marked for screening\n");
                         }
@@ -375,10 +376,22 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
                     m_subject.printf("%.*s;", (int)m_partData.length(), m_partData.ptr());
                     break;
                 case eOnBehalf:
-                    m_onBehalf.printf("%.*s", (int)m_partData.length(), m_partData.ptr());
+                    m_onBehalf.printf(0, "%.*s", (int)m_partData.length(), m_partData.ptr());
+                    break;
+                case eFolder:
+                    m_folder.printf(0, "%.*s", (int)m_partData.length(), m_partData.ptr());
+                    if( m_uploadProc ) {
+                        setFolder(*m_uploadProc);
+                    }
+                    break;
+                case eProject:
+                    m_project.printf("%.*s", (int)m_partData.length(), m_partData.ptr());
+                    if( m_project ) {
+                        m_logBuf.printf("Upload associated with project %s\n", m_project.ptr());
+                    }
                     break;
                 case eFILE:
-                    on_part_data(0, 0); //dump tail to file
+                    on_part_data(0, 0);
                     errno = 0;
                     if( close(m_fi.fno) != 0 || errno != 0 ) {
                         reqSetStatus(reqId, eQPReqStatus_ProgError);
@@ -415,11 +428,12 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
             eNONE,
             eFILE,
             eUnpackDepth,
-            eIndex,
             eQC,
             eScreen,
             eSubject,
             eOnBehalf,
+            eFolder,
+            eProject
         } m_mode;
 
         struct {
@@ -433,16 +447,17 @@ class dmDownloaderCGI: public sQPrideCGI, private sMultipartParser
 
         dmArchiver m_arch;
         sStr m_logBuf;
-        sStr m_headerVal, m_partData;
-        bool m_in_headers;
-        std::auto_ptr<sUsrObj> m_uploadProc;
+        sStr m_partData;
+        sUsrObj * m_uploadProc;
         sStr m_uploadBuf;
         udx m_contentRead;
         udx m_contentLength;
         sStr m_uploadAreaPath;
         sStr m_propName;
         sStr m_subject;
+        sStr m_project;
         sStr m_onBehalf;
+        sStr m_folder;
 };
 
 static void addURI(sUsrObj & obj, const char * uri, const char * wget_opts, const char * filename)
@@ -481,18 +496,16 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
             errlog.printf("err.%s.uri=URLs and Identifiers list is empty: nothing to do", obj_id.ptr());
             break;
         }
-        // disabled until protein parser is implemented: _"ncbi_protein" _ "uniprot"
         const char * const schemas = "http" _ "https" _ "ftp" _ "ncbi_nuccore" _ "ncbi_nuccds" _ "sra" _ "genbank" _ "dropbox" __;
         sStr base;
         obj->propGet("baseURL", &base);
         sString::cleanEnds(&base, base, 0, sString_symbolsBlank, true);
         char * baseUrl = base.ptr();
         while( baseUrl && *baseUrl && strchr(sString_symbolsBlank, *baseUrl) ) {
-            ++baseUrl; // skip leading blanks
+            ++baseUrl;
         }
         char * s = baseUrl ? strstr(baseUrl, "://") : 0;
         if( s ) {
-            // validate schema in base url
             sStr schema("%.*s", (int)(s - baseUrl), baseUrl);
             idx bu_id = -1;
             sString::compareChoice(schema, schemas, &bu_id, true, 0, true);
@@ -510,14 +523,14 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
             sString::compareChoice(datasource, schemas, &ds_id, true, 0, true);
             datasource = (ds_id != -1) ? sString::next00(schemas, ds_id) : 0;
         }
-        // filter the list provided make sure there are now mistakes, duplicates and erroneous inquiries
         sTxtTbl tbl;
         tbl.setBuf(&uri);
         tbl.parseOptions().flags = 0;
         tbl.parseOptions().colsep = ",;" sString_symbolsSpace;
         tbl.parse();
-        regex_t sra_rgx, accession_rgx;
-        if( regcomp(&sra_rgx, "^[DES]R[RXSP][0-9]+$", REG_EXTENDED | REG_ICASE) != 0 ||
+        regex_t sra_rgx, sra_rgx_bad, accession_rgx;
+        if( regcomp(&sra_rgx_bad, "^[DES]R[X][0-9]+$", REG_EXTENDED | REG_ICASE) != 0 ||
+            regcomp(&sra_rgx, "^[DES]R[PRSZ][0-9]+$", REG_EXTENDED | REG_ICASE) != 0 ||
             regcomp(&accession_rgx, "^[A-Z]*[0-9]+\\.?[0-9]*$", REG_EXTENDED | REG_ICASE) != 0 ) {
             errlog.printf("err.%s._err=Internal error %u", obj_id.ptr(), __LINE__);
             break;
@@ -543,6 +556,9 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
                         }
                         name.printf(", %s", flnm);
                     }
+                }
+                if( name.length() >= 128 + sLen(datasource) ) {
+                    break;
                 }
             }
             cell.printf(0, "%s%s%s", datasource ? datasource : "", datasource && name ? ": " : "", name ? name.ptr(2) : "");
@@ -585,7 +601,6 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
                     }
                     addURI(*obj, p, ex_auth, 0);
                 } else {
-                    // expand range or just use a single id
                     sStr ids;
                     if( (idx)(strspn(p, "0123456789-")) == sLen(p) ) {
                         sVec<idx> range;
@@ -614,6 +629,10 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
                         } else if( datasource ) {
                             if( strcmp("sra", datasource) == 0 ) {
                                 sStr first3, filename, byWhat;
+                                if( regexec(&sra_rgx_bad, id, 0, NULL, 0) != REG_NOMATCH ) {
+                                    errlog.printf("err.%s._err=NCBI SRA no longer supports downloads by experiment or sample", obj_id.ptr());
+                                    break;
+                                }
                                 if( regexec(&sra_rgx, id, 0, NULL, 0) == REG_NOMATCH ) {
                                     errlog.printf("err.%s.uri=invalid SRA accession: '%s'\n", obj_id.ptr(), id);
                                     continue;
@@ -622,20 +641,20 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
                                 first3.printf("%.*s", 3, id);
                                 wgeto.printf("--cut-dirs=7");
                                 if( first3[2] == 'R' ) {
-                                    byWhat.printf("ByRun");
+                                    byWhat.printf(0, "reads/ByRun/sra");
                                     filename.printf("/%s.sra", id);
                                     wgeto.cut0cut();
-                                } else if( first3[2] == 'X' ) {
-                                    byWhat.printf("ByExp");
+                                } else if( first3[2] == 'P' ) {
+                                    byWhat.printf(0, "analysis/ByStudy");
                                     filename.printf("/");
                                 } else if( first3[2] == 'S' ) {
-                                    byWhat.printf("BySample");
+                                    byWhat.printf(0, "analysis/BySample");
                                     filename.printf("/");
-                                } else if( first3[2] == 'P' ) {
-                                    byWhat.printf("ByStudy");
+                                } else if( first3[2] == 'Z' ) {
+                                    byWhat.printf(0, "analysis/ByAnalysis");
                                     filename.printf("/");
                                 }
-                                composite.printf("ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/%s/sra/%s/%.*s/%s%s", byWhat.ptr(), first3.ptr(), 6, id, id, filename.ptr());
+                                composite.printf("ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/%s/%s/%.*s/%s%s", byWhat.ptr(), first3.ptr(), 6, id, id, filename.ptr());
                             } else if( strcmp("genbank", datasource) == 0 ) {
                                 composite.printf("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&rettype=gbwithparts&retmode=text&id=%s", id);
                                 filename.printf("%s.gb", id);
@@ -684,7 +703,7 @@ idx dmDownloaderCGI::customizeSubmission(sVar * pForm, sUsr * user, sUsrProc * o
     if( errlog ) {
         log->printf(0, "%s", errlog.ptr());
         if( obj_proc ) {
-            obj_proc->actDelete(); // suicide since front end cannot handle updates now
+            obj_proc->actDelete();
         }
     }
     return count;

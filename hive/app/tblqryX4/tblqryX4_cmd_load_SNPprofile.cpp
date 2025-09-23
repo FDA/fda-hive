@@ -134,7 +134,6 @@ bool CmdLoadSNPprofile::init(const char * op_name, sVariant * arg)
     idx csv_pos = -sIdxMax, csv_len = 0;
     bool is_thumb = false;
     if( obj->getFilePathname(csv_path, "SNPprofile.csv") ) {
-        // heptagon profile
         if( thumb ) {
             sStr thumb_path;
             if( obj->getFilePathname(thumb_path, "SNPthumb.csv") ) {
@@ -156,7 +155,6 @@ bool CmdLoadSNPprofile::init(const char * op_name, sVariant * arg)
             }
         }
     } else if( obj->getFilePathname(csv_path, "SNPprofile-%" DEC ".csv", sub ) ) {
-        // check if it's an old profiler with per-subject files
         tbl_name = sFilePath::nextToSlash(csv_path.ptr());
         csv_file.destroy();
         csv_file.init(csv_path.ptr(), sMex::fReadonly);

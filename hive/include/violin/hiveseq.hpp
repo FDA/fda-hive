@@ -35,7 +35,6 @@
 #include <ssci/bio.hpp>
 #include <ulib/ulib.hpp>
 
-//! Namespace for scientific data structures and algorithms that require HIVE infrastructure
 namespace sviolin
 {
     class sHiveseq : public sBioseqSet
@@ -45,7 +44,7 @@ namespace sviolin
             sStr objSourceIDs;
             struct Bios{
                 sBioseq* bioseq;
-                bool selfManaged; // need to delete
+                bool selfManaged;
                 idx ofsFileName;
             };
 
@@ -84,7 +83,7 @@ namespace sviolin
                 idx minLen = sIdxMax, l_min = 0;
                 for(const char * ff = objSourceIDs.ptr(); ff; ff = sString::next00(ff)) {
                     sHiveId id(strstr(ff, "obj://") ? ff + 6 : ff);
-                    std::auto_ptr<sUsrObj> o(user->objFactory(sHiveId(id)));
+                    std::unique_ptr<sUsrObj> o(user->objFactory(sHiveId(id)));
                     if( o.get() ) {
                         l_min = o->propGetI("len-min");
                         if( l_min ) {
@@ -100,7 +99,7 @@ namespace sviolin
                 idx maxLen = 0;
                 for(const char * ff = objSourceIDs.ptr(); ff; ff = sString::next00(ff)) {
                     sHiveId id(strstr(ff, "obj://") ? ff + 6 : ff);
-                    std::auto_ptr<sUsrObj> o(user->objFactory(sHiveId(id)));
+                    std::unique_ptr<sUsrObj> o(user->objFactory(sHiveId(id)));
                     if( o.get() ) {
                         maxLen = sMax(o->propGetI("len-min"), maxLen);
                     }
@@ -114,7 +113,7 @@ namespace sviolin
                 idx cnt = 0, l_cnt = 0;
                 for(const char * ff = objSourceIDs.ptr(); ff; ff = sString::next00(ff)) {
                     sHiveId id(strstr(ff, "obj://") ? ff + 6 : ff);
-                    std::auto_ptr<sUsrObj> o(user->objFactory(sHiveId(id)));
+                    std::unique_ptr<sUsrObj> o(user->objFactory(sHiveId(id)));
                     if( o.get() ) {
                         l_cnt = o->propGetI("rec-count");
                         l_avLen = o->propGetR("len-avg");
@@ -163,4 +162,4 @@ namespace sviolin
 }
 
 
-#endif // sHiveSeq_hpp
+#endif 

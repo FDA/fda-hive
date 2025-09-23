@@ -35,4 +35,4 @@ CREATE TABLE `QPReqPar` (
   `type` int(11) NOT NULL,
   `val` varchar(1024) NOT NULL,
   PRIMARY KEY (`reqID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

@@ -36,8 +36,7 @@
 namespace slib { 
     idx dbgHexArr( const void * buf, idx siz , idx brk);
 
-}  // end namespace slib
+}
 
-#endif // Vstd_dbg_hpp
-
+#endif 
 

@@ -28,7 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
-//javaScriptEngine.include("js-graph/vjSVG_Phylogram.js");
 javaScriptEngine.include("js-graph/vjSVG_plot.js");
 javaScriptEngine.include("js-graph/vjSVG_base.js");
 javaScriptEngine.include("js-graph/vjSVG_Axis.js");
@@ -38,7 +37,6 @@ javaScriptEngine.include("js-graph/vjSVG_Defaults.js");
 javaScriptEngine.include("js-graph/vjSVG_General.js");
 javaScriptEngine.include("js-graph/vjSVG_HeatMap.js");
 
-//javaScriptEngine.include("d3js/annotation_box.js");
 
 vjHO.register('svc-differential-profiler').Constructor = function() {
 
@@ -49,30 +47,31 @@ vjHO.register('svc-differential-profiler').Constructor = function() {
     {
         this.loadedID = docLocValue("id");
         
-        // add Heatmap
         var myHeatmapPlot = new vjSVG_HeatMap({
             color: {min: "blue", max: "#ffc200", mid:"white"},
-            valueRange: {min: 0, mid: undefined, max: 100},
-            heat_image_url: "http://?cmd=-qpData&req="+this.loadedID+"&dname=heatmap.png",
+            valueRange: {min: 0, mid: undefined, max: "tbl"},
+            heat_image_url: "http:
             heat_image_min_cells: 10000
         });
         
-        var heatmap_tqs = [{
-              op: "insertcol",
-              arg: {
-                 col: 0,
-                 name: "id",
-                 formula: "cat($0,':', $1,'-',$2)"
-              }
-            },
+        var heatmap_tqs = [
             {
               op: "hidecol",
               arg: {
-                 cols: [1,2,3]
+                  cols: {"regex": "coverage", "caseSensitive": true, "negate": true}
               }
-            }];
+            },
+              {
+                  op: "insertcol",
+                  arg: {
+                     col: 0,
+                     name: "id",
+                     formula: "cat($0,':', $1,'-',$2)"
+                  }
+            }
+            ];
         var heatmap_tqs_string = vjDS.escapeQueryLanguage(JSON.stringify(heatmap_tqs));
-        var heatMap_url = "qpbg_tblqryx4://coverage_diff.csv//objs="+this.loadedID+"&tqs=" + heatmap_tqs_string; 
+        var heatMap_url = "qpbg_tblqryx4:
 
         
         myHeatmapPlot.add(new vjDataSeries({
@@ -97,12 +96,10 @@ vjHO.register('svc-differential-profiler').Constructor = function() {
             position: {posId: 'resultsGraph', top:'0%', bottom:'100%', left:'60%', right:'100%'},
             viewerConstructor: {
                 instance: myHeatmapViewer
-            },
-              autoOpen: ["computed"]
+            }
         }        
         ];
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
-//        algoWidgetObj.closeTab("downloadAllFiles");        
     }
     
     function onRenderQueryList(viewer,node,irow){

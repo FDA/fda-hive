@@ -27,13 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/**
- * ### Checkbox plugin
- *
- * This plugin renders checkbox icons in front of each node, making multiple selection much easier.
- * It also supports tri-state behavior, meaning that if a node has a few of its children checked it will be rendered as undetermined, and state will be propagated up.
- */
-/*globals jQuery, define, exports, require, document */
 (function (factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
@@ -53,49 +46,12 @@
     var _i = document.createElement('I');
     _i.className = 'jstree-icon jstree-checkbox';
     _i.setAttribute('role', 'presentation');
-    /**
-     * stores all defaults for the checkbox plugin
-     * @name $.jstree.defaults.checkbox
-     * @plugin checkbox
-     */
     $.jstree.defaults.checkbox = {
-        /**
-         * a boolean indicating if checkboxes should be visible (can be changed at a later time using `show_checkboxes()` and `hide_checkboxes`). Defaults to `true`.
-         * @name $.jstree.defaults.checkbox.visible
-         * @plugin checkbox
-         */
         visible                : true,
-        /**
-         * a boolean indicating if checkboxes should cascade down and have an undetermined state. Defaults to `true`.
-         * @name $.jstree.defaults.checkbox.three_state
-         * @plugin checkbox
-         */
         three_state            : true,
-        /**
-         * a boolean indicating if clicking anywhere on the node should act as clicking on the checkbox. Defaults to `true`.
-         * @name $.jstree.defaults.checkbox.whole_node
-         * @plugin checkbox
-         */
         whole_node            : true,
-        /**
-         * a boolean indicating if the selected style of a node should be kept, or removed. Defaults to `true`.
-         * @name $.jstree.defaults.checkbox.keep_selected_style
-         * @plugin checkbox
-         */
         keep_selected_style    : true,
-        /**
-         * This setting controls how cascading and undetermined nodes are applied.
-         * If 'up' is in the string - cascading up is enabled, if 'down' is in the string - cascading down is enabled, if 'undetermined' is in the string - undetermined nodes will be used.
-         * If `three_state` is set to `true` this setting is automatically set to 'up+down+undetermined'. Defaults to ''.
-         * @name $.jstree.defaults.checkbox.cascade
-         * @plugin checkbox
-         */
         cascade                : '',
-        /**
-         * This setting controls if checkbox are bound to the general tree selection or to an internal array maintained by the checkbox plugin. Defaults to `true`, only set to `false` if you know exactly what you are doing.
-         * @name $.jstree.defaults.checkbox.tie_selection
-         * @plugin checkbox
-         */
         tie_selection        : true
     };
     $.jstree.plugins.checkbox = function (options, parent) {
@@ -122,7 +78,6 @@
             if(this.settings.checkbox.cascade.indexOf('undetermined') !== -1) {
                 this.element
                     .on('changed.jstree uncheck_node.jstree check_node.jstree uncheck_all.jstree check_all.jstree move_node.jstree copy_node.jstree redraw.jstree open_node.jstree', $.proxy(function () {
-                            // only if undetermined is in setting
                             if(this._data.checkbox.uto) { clearTimeout(this._data.checkbox.uto); }
                             this._data.checkbox.uto = setTimeout($.proxy(this._undetermined, this), 50);
                         }, this));
@@ -152,7 +107,6 @@
                                 c, i, j, k, l, tmp, s = this.settings.checkbox.cascade, t = this.settings.checkbox.tie_selection;
 
                             if(s.indexOf('down') !== -1) {
-                                // apply down
                                 if(p.state[ t ? 'selected' : 'checked' ]) {
                                     for(i = 0, j = dpc.length; i < j; i++) {
                                         m[dpc[i]].state[ t ? 'selected' : 'checked' ] = true;
@@ -172,7 +126,6 @@
                             }
 
                             if(s.indexOf('up') !== -1) {
-                                // apply up
                                 for(i = 0, j = p.children_d.length; i < j; i++) {
                                     if(!m[p.children_d[i]].children.length) {
                                         chd.push(m[p.children_d[i]].parent);
@@ -211,7 +164,6 @@
                                 dom = this.get_node(obj, true),
                                 i, j, c, tmp, s = this.settings.checkbox.cascade, t = this.settings.checkbox.tie_selection;
 
-                            // apply down
                             if(s.indexOf('down') !== -1) {
                                 this._data[ t ? 'core' : 'checkbox' ].selected = $.vakata.array_unique(this._data[ t ? 'core' : 'checkbox' ].selected.concat(obj.children_d));
                                 for(i = 0, j = obj.children_d.length; i < j; i++) {
@@ -223,7 +175,6 @@
                                 }
                             }
 
-                            // apply up
                             if(s.indexOf('up') !== -1) {
                                 while(par && par.id !== $.jstree.root) {
                                     c = 0;
@@ -245,7 +196,6 @@
                                 }
                             }
 
-                            // apply down (process .children separately?)
                             if(s.indexOf('down') !== -1 && dom.length) {
                                 dom.find('.jstree-anchor').addClass(t ? 'jstree-clicked' : 'jstree-checked').parent().attr('aria-selected', true);
                             }
@@ -269,7 +219,6 @@
                                 obj.original.state.undetermined = false;
                             }
 
-                            // apply down
                             if(s.indexOf('down') !== -1) {
                                 for(i = 0, j = obj.children_d.length; i < j; i++) {
                                     tmp = this._model.data[obj.children_d[i]];
@@ -280,7 +229,6 @@
                                 }
                             }
 
-                            // apply up
                             if(s.indexOf('up') !== -1) {
                                 for(i = 0, j = obj.parents.length; i < j; i++) {
                                     tmp = this._model.data[obj.parents[i]];
@@ -296,7 +244,6 @@
                             }
                             tmp = [];
                             for(i = 0, j = this._data[ t ? 'core' : 'checkbox' ].selected.length; i < j; i++) {
-                                // apply down + apply up
                                 if(
                                     (s.indexOf('down') === -1 || $.inArray(this._data[ t ? 'core' : 'checkbox' ].selected[i], obj.children_d) === -1) &&
                                     (s.indexOf('up') === -1 || $.inArray(this._data[ t ? 'core' : 'checkbox' ].selected[i], obj.parents) === -1)
@@ -306,7 +253,6 @@
                             }
                             this._data[ t ? 'core' : 'checkbox' ].selected = $.vakata.array_unique(tmp);
 
-                            // apply down (process .children separately?)
                             if(s.indexOf('down') !== -1 && dom.length) {
                                 dom.find('.jstree-anchor').removeClass(t ? 'jstree-clicked' : 'jstree-checked').parent().attr('aria-selected', false);
                             }
@@ -315,7 +261,6 @@
             if(this.settings.checkbox.cascade.indexOf('up') !== -1) {
                 this.element
                     .on('delete_node.jstree', $.proxy(function (e, data) {
-                            // apply up (whole handler)
                             var p = this.get_node(data.parent),
                                 m = this._model.data,
                                 i, j, c, tmp, t = this.settings.checkbox.tie_selection;
@@ -339,7 +284,6 @@
                             }
                         }, this))
                     .on('move_node.jstree', $.proxy(function (e, data) {
-                            // apply up (whole handler)
                             var is_multi = data.is_multi,
                                 old_par = data.old_parent,
                                 new_par = this.get_node(data.parent),
@@ -400,12 +344,6 @@
                         }, this));
             }
         };
-        /**
-         * set the undetermined state where and if necessary. Used internally.
-         * @private
-         * @name _undetermined()
-         * @plugin checkbox
-         */
         this._undetermined = function () {
             if(this.element === null) { return; }
             var i, j, k, l, o = {}, m = this._model.data, t = this.settings.checkbox.tie_selection, s = this._data[ t ? 'core' : 'checkbox' ].selected, p = [], tt = this;
@@ -419,7 +357,6 @@
                     }
                 }
             }
-            // attempt for server side undetermined state
             this.element.find('.jstree-closed').not(':has(.jstree-children)')
                 .each(function () {
                     var tmp = tt.get_node(this), tmp2;
@@ -489,30 +426,9 @@
             }
             return obj;
         };
-        /**
-         * show the node checkbox icons
-         * @name show_checkboxes()
-         * @plugin checkbox
-         */
         this.show_checkboxes = function () { this._data.core.themes.checkboxes = true; this.get_container_ul().removeClass("jstree-no-checkboxes"); };
-        /**
-         * hide the node checkbox icons
-         * @name hide_checkboxes()
-         * @plugin checkbox
-         */
         this.hide_checkboxes = function () { this._data.core.themes.checkboxes = false; this.get_container_ul().addClass("jstree-no-checkboxes"); };
-        /**
-         * toggle the node icons
-         * @name toggle_checkboxes()
-         * @plugin checkbox
-         */
         this.toggle_checkboxes = function () { if(this._data.core.themes.checkboxes) { this.hide_checkboxes(); } else { this.show_checkboxes(); } };
-        /**
-         * checks if a node is in an undetermined state
-         * @name is_undetermined(obj)
-         * @param  {mixed} obj
-         * @return {Boolean}
-         */
         this.is_undetermined = function (obj) {
             obj = this.get_node(obj);
             var s = this.settings.checkbox.cascade, i, j, t = this.settings.checkbox.tie_selection, d = this._data[ t ? 'core' : 'checkbox' ].selected, m = this._model.data;
@@ -529,13 +445,6 @@
             }
             return false;
         };
-        /**
-         * disable a node's checkbox
-         * @name disable_checkbox(obj)
-         * @param {mixed} obj an array can be used too
-         * @trigger disable_checkbox.jstree
-         * @plugin checkbox
-         */
         this.disable_checkbox = function (obj) {
             var t1, t2, dom;
             if($.isArray(obj)) {
@@ -555,23 +464,9 @@
                 if(dom && dom.length) {
                     dom.children('.jstree-anchor').children('.jstree-checkbox').addClass('jstree-checkbox-disabled');
                 }
-                /**
-                 * triggered when an node's checkbox is disabled
-                 * @event
-                 * @name disable_checkbox.jstree
-                 * @param {Object} node
-                 * @plugin checkbox
-                 */
                 this.trigger('disable_checkbox', { 'node' : obj });
             }
         };
-        /**
-         * enable a node's checkbox
-         * @name disable_checkbox(obj)
-         * @param {mixed} obj an array can be used too
-         * @trigger enable_checkbox.jstree
-         * @plugin checkbox
-         */
         this.enable_checkbox = function (obj) {
             var t1, t2, dom;
             if($.isArray(obj)) {
@@ -591,13 +486,6 @@
                 if(dom && dom.length) {
                     dom.children('.jstree-anchor').children('.jstree-checkbox').removeClass('jstree-checkbox-disabled');
                 }
-                /**
-                 * triggered when an node's checkbox is enabled
-                 * @event
-                 * @name enable_checkbox.jstree
-                 * @param {Object} node
-                 * @plugin checkbox
-                 */
                 this.trigger('enable_checkbox', { 'node' : obj });
             }
         };
@@ -624,13 +512,6 @@
             this.trigger('activate_node', { 'node' : this.get_node(obj) });
         };
 
-        /**
-         * check a node (only if tie_selection in checkbox settings is false, otherwise select_node will be called internally)
-         * @name check_node(obj)
-         * @param {mixed} obj an array can be used to check multiple nodes
-         * @trigger check_node.jstree
-         * @plugin checkbox
-         */
         this.check_node = function (obj, e) {
             if(this.settings.checkbox.tie_selection) { return this.select_node(obj, false, true, e); }
             var dom, t1, t2, th;
@@ -652,25 +533,9 @@
                 if(dom && dom.length) {
                     dom.children('.jstree-anchor').addClass('jstree-checked');
                 }
-                /**
-                 * triggered when an node is checked (only if tie_selection in checkbox settings is false)
-                 * @event
-                 * @name check_node.jstree
-                 * @param {Object} node
-                 * @param {Array} selected the current selection
-                 * @param {Object} event the event (if any) that triggered this check_node
-                 * @plugin checkbox
-                 */
                 this.trigger('check_node', { 'node' : obj, 'selected' : this._data.checkbox.selected, 'event' : e });
             }
         };
-        /**
-         * uncheck a node (only if tie_selection in checkbox settings is false, otherwise deselect_node will be called internally)
-         * @name uncheck_node(obj)
-         * @param {mixed} obj an array can be used to uncheck multiple nodes
-         * @trigger uncheck_node.jstree
-         * @plugin checkbox
-         */
         this.uncheck_node = function (obj, e) {
             if(this.settings.checkbox.tie_selection) { return this.deselect_node(obj, false, e); }
             var t1, t2, dom;
@@ -692,24 +557,9 @@
                 if(dom.length) {
                     dom.children('.jstree-anchor').removeClass('jstree-checked');
                 }
-                /**
-                 * triggered when an node is unchecked (only if tie_selection in checkbox settings is false)
-                 * @event
-                 * @name uncheck_node.jstree
-                 * @param {Object} node
-                 * @param {Array} selected the current selection
-                 * @param {Object} event the event (if any) that triggered this uncheck_node
-                 * @plugin checkbox
-                 */
                 this.trigger('uncheck_node', { 'node' : obj, 'selected' : this._data.checkbox.selected, 'event' : e });
             }
         };
-        /**
-         * checks all nodes in the tree (only if tie_selection in checkbox settings is false, otherwise select_all will be called internally)
-         * @name check_all()
-         * @trigger check_all.jstree, changed.jstree
-         * @plugin checkbox
-         */
         this.check_all = function () {
             if(this.settings.checkbox.tie_selection) { return this.select_all(); }
             var tmp = this._data.checkbox.selected.concat([]), i, j;
@@ -720,21 +570,8 @@
                 }
             }
             this.redraw(true);
-            /**
-             * triggered when all nodes are checked (only if tie_selection in checkbox settings is false)
-             * @event
-             * @name check_all.jstree
-             * @param {Array} selected the current selection
-             * @plugin checkbox
-             */
             this.trigger('check_all', { 'selected' : this._data.checkbox.selected });
         };
-        /**
-         * uncheck all checked nodes (only if tie_selection in checkbox settings is false, otherwise deselect_all will be called internally)
-         * @name uncheck_all()
-         * @trigger uncheck_all.jstree
-         * @plugin checkbox
-         */
         this.uncheck_all = function () {
             if(this.settings.checkbox.tie_selection) { return this.deselect_all(); }
             var tmp = this._data.checkbox.selected.concat([]), i, j;
@@ -745,47 +582,18 @@
             }
             this._data.checkbox.selected = [];
             this.element.find('.jstree-checked').removeClass('jstree-checked');
-            /**
-             * triggered when all nodes are unchecked (only if tie_selection in checkbox settings is false)
-             * @event
-             * @name uncheck_all.jstree
-             * @param {Object} node the previous selection
-             * @param {Array} selected the current selection
-             * @plugin checkbox
-             */
             this.trigger('uncheck_all', { 'selected' : this._data.checkbox.selected, 'node' : tmp });
         };
-        /**
-         * checks if a node is checked (if tie_selection is on in the settings this function will return the same as is_selected)
-         * @name is_checked(obj)
-         * @param  {mixed}  obj
-         * @return {Boolean}
-         * @plugin checkbox
-         */
         this.is_checked = function (obj) {
             if(this.settings.checkbox.tie_selection) { return this.is_selected(obj); }
             obj = this.get_node(obj);
             if(!obj || obj.id === $.jstree.root) { return false; }
             return obj.state.checked;
         };
-        /**
-         * get an array of all checked nodes (if tie_selection is on in the settings this function will return the same as get_selected)
-         * @name get_checked([full])
-         * @param  {mixed}  full if set to `true` the returned array will consist of the full node objects, otherwise - only IDs will be returned
-         * @return {Array}
-         * @plugin checkbox
-         */
         this.get_checked = function (full) {
             if(this.settings.checkbox.tie_selection) { return this.get_selected(full); }
             return full ? $.map(this._data.checkbox.selected, $.proxy(function (i) { return this.get_node(i); }, this)) : this._data.checkbox.selected;
         };
-        /**
-         * get an array of all top level checked nodes (ignoring children of checked nodes) (if tie_selection is on in the settings this function will return the same as get_top_selected)
-         * @name get_top_checked([full])
-         * @param  {mixed}  full if set to `true` the returned array will consist of the full node objects, otherwise - only IDs will be returned
-         * @return {Array}
-         * @plugin checkbox
-         */
         this.get_top_checked = function (full) {
             if(this.settings.checkbox.tie_selection) { return this.get_top_selected(full); }
             var tmp = this.get_checked(true),
@@ -808,13 +616,6 @@
             }
             return full ? $.map(tmp, $.proxy(function (i) { return this.get_node(i); }, this)) : tmp;
         };
-        /**
-         * get an array of all bottom level checked nodes (ignoring selected parents) (if tie_selection is on in the settings this function will return the same as get_bottom_selected)
-         * @name get_bottom_checked([full])
-         * @param  {mixed}  full if set to `true` the returned array will consist of the full node objects, otherwise - only IDs will be returned
-         * @return {Array}
-         * @plugin checkbox
-         */
         this.get_bottom_checked = function (full) {
             if(this.settings.checkbox.tie_selection) { return this.get_bottom_selected(full); }
             var tmp = this.get_checked(true),
@@ -871,6 +672,4 @@
         };
     };
 
-    // include the checkbox plugin by default
-    // $.jstree.defaults.plugins.push("checkbox");
 }));

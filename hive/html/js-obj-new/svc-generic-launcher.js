@@ -32,13 +32,12 @@ if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
 
 vjHO.register('svc-generic-launcher').Constructor=function ()
 {                    
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         var id = docLocValue("id");
-        vjDS.add("", "dsDetails", "static://");
-        vjDS.add("", "dsResult", "http://?cmd=propget&ids="+id+"&files=*&mode=csv");
-        vjDS.add("", "dsDownload", "static://");
+        vjDS.add("", "dsDetails", "static:
+        vjDS.add("", "dsResult", "http:
+        vjDS.add("", "dsDownload", "static:
         vjDS["dsResult"].parser = this.parseData;
         
         var filesStructureToAdd = {
@@ -65,15 +64,12 @@ vjHO.register('svc-generic-launcher').Constructor=function ()
     };  
     
     
-    //
-    // This function archives the file into HIVE when it is clicked on in the interface.  It is a callback function for the Results Table (vjTableView)
-    //
     this.archiveFile = function (table,row,col)
     {
         if (table.ingestedRow.indexOf(row.irow) !=-1) return;
         var url = "?cmd=objFile&arch=1&ids=" + processID + "&filename=" + row["velvet results file"] + "&arch_dstname="+ row["velvet results file"]+"&backend=1";
         alert("ingesting ..." + url)
-        vjDS["dsDownload"].reload("qpbg_http://" +url,true);
+        vjDS["dsDownload"].reload("qpbg_http:
         alert ("Your selected item is being ingested. You can monitor the progress from within data loading tab");
         row.download = "<img src='img/done.gif' width=12 height=12 />";
         table.ingestedRow.push(row.irow);
@@ -81,9 +77,6 @@ vjHO.register('svc-generic-launcher').Constructor=function ()
         gObject("done_" + row.irow).style.visibility = "visible";
     };
     
-    //
-    // This function shows the file in the preview window when it is clicked on in the interface.  It is a callback function for the Results Table (vjTableView)
-    //
     this.showFile = function (table,row,col)
     {
         if (!algoWidgetObj.existsTab("details"))
@@ -108,13 +101,10 @@ vjHO.register('svc-generic-launcher').Constructor=function ()
         }
         
         processID = docLocValue("id")
-        var url = "http://?cmd=objFile&ids=" + processID + "&filename=" + row["velvet results file"];
+        var url = "http:
         vjDS["dsDetails"].reload(url,true);
     };
     
-    //
-    // This function downloads the file into the user's harddrive when it is clicked on in the interface.  It is a callback function for the Results Table (vjTableView)
-    //
     this.downloadFile = function (table,row,col)
     {
         var detailsStructureToAdd = {
@@ -135,7 +125,7 @@ vjHO.register('svc-generic-launcher').Constructor=function ()
         algoWidgetObj.addTabs(detailsStructureToAdd, "results");
     
         processID = docLocValue("id")
-        var url = "http://?cmd=objFile&ids=" + processID + "&filename=" + row["velvet results file"];
+        var url = "http:
         vjDS["dsDetails"].reload(url,true,"download");
     };
     

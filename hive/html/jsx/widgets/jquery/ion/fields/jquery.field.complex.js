@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.filed.complex.js
 
 $(function () {
     $.widget("ion.field_complex", $.ion.field_base, {
@@ -36,7 +35,6 @@ $(function () {
 
             var self = this;
 
-            //  need to destroy previously created widget first...
             if ($(this.element).field_complex_list("instance") !== undefined) {
                 $(this.element).field_complex_list("destroy");
             }
@@ -44,7 +42,6 @@ $(function () {
                 $(this.element).field_complex_array("destroy");
             }
 
-            //  ... and then try to build new component... 
             if (this.isList()) {
                 $(this.element).field_complex_list(this.options);
             }
@@ -52,7 +49,6 @@ $(function () {
                 $(this.element).field_complex_array(this.options);
             }
 
-            //  ... and finally try to apply value
             if (this.options.spec.hasOwnProperty('_type') && this.options.spec.hasOwnProperty('_id')) {
                 this.setValue(this.options.spec);
             }
@@ -66,15 +62,12 @@ $(function () {
                     $(this)
                         .unbind('change.' + self.options.name)
                         .bind('change.' + self.options.name, function (event) {
-                            //console.log('layout: ' + self.options.spec._layout.evalJs());
-                            //console.log('prev: ' + $(event.target).data('prev'));
 
                             var value = self.options.spec._layout.evalJs();
                             var prev = $(event.target).data('prev');
 
                             var val;
 
-                            //    save value in order to apply it later after rendering... 
                             if (prev && self.isPlural()) {
                                 if (prev === 'array') {
                                     val = $(self.element).field_complex_array('getValue');

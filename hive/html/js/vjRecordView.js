@@ -30,7 +30,7 @@
 
 function vjRecordView ( viewer )
 {
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
 
     this.spcTypeObj="spcTypeObj";
 
@@ -60,54 +60,74 @@ function vjRecordView ( viewer )
     if (!this.implementCopyButton) this.implementCopyButton = false;
     if (!this.implementSetStatusButton) this.implementSetStatusButton = false;
     if (!this.showReadonlyWhenValueThere) this.showReadonlyWhenValueThere = false;
-    // callback to check if element value needs to be split by a separator before validation, e.g.
-    // this.getValidateSeparatorCb(fld_name) { return name == 'foo' ? ',' : null; }
+    if(!this.recordEditingCommand)this.recordEditingCommand="record";
+    this.td_width = 30
     if (!this.getValidateSeparatorCb) this.getValidateSeparatorCb = function(fld_name) { return null; };
 
     this._evalKeys = ["$(","$_("];
 
-  //  if (!this.accumulateWithNonModified) this.accumulateWithNonModified = true;
     if(!this.vjDS)this.vjDS=vjDS;
 
     if(!this.icons)this.icons={
-        collapse: "<img border=0 width=16 height=16 src='img/recCollapse.gif' title='collapse the hierarchy of sub-elements' />" ,
-        expand: "<img border=0 width=16 height=16 src='img/recExpand.gif' title='expand the hierarchy of sub-elements' />" ,
+        collapse: "<img border=0 width=16 height=16 src='img/chevronBottomBlack.svg' title='collapse the hierarchy of sub-elements' />" ,
+        expand: "<img border=0 width=16 height=16 src='img/chevronRightBlack.svg' title='expand the hierarchy of sub-elements' />" ,
         help: "<img border=0 width=12 height=12 src='img/recQuestion.gif' title='help' />" ,
         lock: "<img border=0 width=16 height=16 src='img/recLock.gif' title='the field cannot be modified' />" ,
         search: "<img border=0 width=16 height=16 src='img/recSearch.gif' title='lookup possible values' />" ,
         link: "<img border=0 width=16 height=16 src='img/recLink.gif' title='jump to appropriate internet location' />" ,
-        delRow: "<img border=0 width=16 height=16 src='img/recDelete.gif' title='delete the specified element' />",
+        delRow: "<img border=0 width=14 height=14 src='img/closeRed.svg' title='delete the specified element' />",
         clearRow: "<img border=0 width=16 height=16 src='img/delete.gif' title='clear the content' />",
         addRow: "<img border=0 width=16 height=16 src='img/recAdd.gif' title='create new sub-element' />" ,
-        addRowMore: "<img border=0 width=16 height=16 src='img/recAddMore.gif' />", // no title - that is set in parent button
-        revertRow: "<img border=0 width=16 height=16 src='img/recRevert.gif' title='discard modifications' />" ,
+        addRowMore: "<img border=0 width=12 height=12 src='img/addBlue.svg' />",
+        revertRow: "<img border=0 width=14 height=14 src='img/redoLightBlue.svg' title='discard modifications' />" ,
         setRow: "<img border=0 width=16 height=16 src='img/recSet.gif' title='save the modifications' />" ,
-        itemRow: "<img border=0 width=16 height=16 src='img/recItem.gif' title='input element value' />" ,
-        errorRow: "<img border=0 width=16 height=16 src='img/recError.gif'/>", // no title - that is set in parent span
+        itemRow: "<img border=0 width=16 height=16 src='img/chevronRightGrey.svg' title='input element value' />" ,
+        errorRow: "<img border=0 width=14 height=14 src='img/exclamationRed.svg'/>",
         notEmpty:"<img border=0 width=16 height=16 src='img/recNotEmpty.gif'  title='field cannot be empty'/>" ,
         white:"<img border=0 width=16 height=16 src='img/white.gif'  title='white img taken one img place'/>" ,
         urlJump: "<img border=0 width=16 height=16 src='img/new.gif' title='jump to the external website' />"
         };
 
+    this.hasNodeDataSource = function() {
+        return this.data.length > 1 && this.data[1] != "dsVoid";
+    };
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ main composer function is called when the viewer control needs to be drawn upon arrival of the data
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+    this.readFromDocLoc=function(namearr)
+    {
+        for( var i=0; i<namearr.length ; ++ i) {
+            par = docLocValue(namearr[i]);
+            if( isok(par) ) {
+                var o=new Object();
+                o[namearr[i]]=par.split(",");
+                this.changeValueList(o);
+            }
+        }
+    };
+    
+    this.defaultPropSpecFilter = function(tbl) {
+        for (var ir=0; ir<tbl.rows.length; ir++) {
+            while (ir<tbl.rows.length && tbl.rows[ir].name[0] == "_") {
+                tbl.rows.splice(ir, 1);
+            }
+        }
+    };
+    if (!this.propSpecFilter) {
+        this.propSpecFilter = this.defaultPropSpecFilter;
+    }
 
     this.composerFunction=function( viewer, content )
     {
-
+        if(!this.formObject && this.formName)
+            this.formObject = document.forms[this.formName];
+        
         var tMyFloater=gObject("dvFloatingDiv").outerHTML;
         if(!tMyFloater)tMyFloater="";
         this.myFloaterName="floater-"+this.objCls;
-        //this.debug=1;
+        
         tMyFloater=tMyFloater.replace(/dvFloating/g,this.myFloaterName);
         tMyFloater=tMyFloater.replace(/href=\"#\" onclick=\".*\return false;\">/g, "href=\"#\" onclick=\"vjObjEvent('onClosepop','"+this.objCls+"'\)return false;\">");
         gCreateFloatingDiv(tMyFloater);
-        //alert(content);
-        //this.debug=1;
 
         var want_new_fldTree = this.force_fld_load || !this.fldTree || this.fldTree.t_sessionID !== this.getDataSessionID(0);
         var want_new_nodeTree = this.force_node_load || !this.nodeTree || this.nodeTree.t_sessionID !== this.getDataSessionID(1);
@@ -124,12 +144,7 @@ function vjRecordView ( viewer )
                 objTypeTitle = this.objType;
             }
 
-            // We don't want system properties (e.g. _type, _action) in the record
-            for (var ir=0; ir<tbl.rows.length; ir++) {
-                while (ir<tbl.rows.length && tbl.rows[ir].name[0] == "_") {
-                    tbl.rows.splice(ir, 1);
-                }
-            }
+            this.propSpecFilter(tbl);
 
             this.fldTree=new vjTree(tbl );
             this.fldTree.root.title = objTypeTitle;
@@ -138,8 +153,8 @@ function vjRecordView ( viewer )
         }
 
         if (want_new_nodeTree) {
-            if (this.data.length > 1 && this.reloadObjIDFromData && !(parseHiveId(this.hiveId).objId > 0)) {
-                var elemTxt = this.getData(1).data;
+            if (this.hasNodeDataSource() && this.reloadObjIDFromData && !(parseHiveId(this.hiveId).objId > 0)) {
+                var elemTxt = this.getData(1).original_data || this.getData(1).data;
                 if (elemTxt.indexOf("preview:") !== 0) {
                     var prelimElemArr = new vjTable(elemTxt, 0, vjTable_hasHeader);
                     for (var ir=0; ir<prelimElemArr.rows.length; ir++) {
@@ -152,7 +167,7 @@ function vjRecordView ( viewer )
                 }
             }
 
-            this.nodeTree=new vjTree( ); // parsing propspec
+            this.nodeTree=new vjTree( );
             this.nodeTree.root=cpyObj(this.nodeTree.root, {value: '' , value0: '', fld: this.fldTree.root, row: 0, subRow: 0, obj: this.hiveId, expanded:this.expansion , children: new Array (), depth: 0, path:'/', name:'root'} );
             this.nodeTree.t_sessionID = this.getDataSessionID(1);
         }
@@ -163,13 +178,20 @@ function vjRecordView ( viewer )
                 this.setFields(this.fldPresets);
             this.fldTree.enumerate(
                 function(params, node) {
-                    node.is_optional_fg = node.is_optional_fg ? parseInt(node.is_optional_fg) : 0 ;
+                    node.is_optional_fg = node.is_optional_fg ? parseIBool(node.is_optional_fg) : 0;
                     node.elname = params.obj.RVtag+"-"+node.name;
                     node.div = params.document.getElementById( node.elname );
                     node.dsSource = params.obj.dataSourceEngine["ds"+params.obj.RVtag+"-"+node.name];
+
                     var showNode=true;
+
+                    if(node.role === "output"){
+                        node.is_readonly_fg = 1
+                        node.is_hidden_fg = 1
+                    }
+
                     if (node.is_readonly_fg) {
-                        var int_readonly_fg = parseInt(node.is_readonly_fg);
+                        var int_readonly_fg = parseIBool(node.is_readonly_fg);
                         if(parseHiveId(params.obj.hiveId).objId>0) {
                             node.is_readonly_fg = (int_readonly_fg != 0);
                             showNode = !node.is_readonly_fg;
@@ -202,18 +224,16 @@ function vjRecordView ( viewer )
                         } else {
                             node.default_value = '';
                         }
-                        // render non-optional bools as a dialog, forcing the user to choose yes or no
                         if (!node.is_optional_fg && !node.is_readonly_fg) {
                             node.constraint = "choice";
-                            node.constraint_data = "1///yes|0///no";
+                            node.constraint_data = "1
                         }
                     }
 
-                    node.is_hidden_fg=node.is_hidden_fg ? parseInt(node.is_hidden_fg) : 0 ;
-                    node.is_batch_fg=node.is_batch_fg ? parseInt(node.is_batch_fg) : 0 ;
+                    node.is_hidden_fg=node.is_hidden_fg ? parseIBool(node.is_hidden_fg) : 0 ;
+                    node.is_batch_fg=node.is_batch_fg ? parseIBool(node.is_batch_fg) : 0 ;
                     if(node.is_hidden_fg) node.hidden = true;
-                    node.is_multi_fg = node.is_multi_fg ? parseInt(node.is_multi_fg) : 0;
-                    //alerJ(params.RVtag+'ds-'+'node.name',node);
+                    node.is_multi_fg = node.is_multi_fg ? parseIBool(node.is_multi_fg) : 0;
                     node.maxEl = node.is_multi_fg ? 0x7FFFFFFF : 1;
                     if(node.parent && node.parent.children.length>1 && node.parent.type=="array") {
                         node.doNotCollapseMultiValueViewers=true;
@@ -236,25 +256,29 @@ function vjRecordView ( viewer )
                         newNode.subpath = "new";
                         newNode.name += '.' + newNode.subpath;
                         newNode.path += '.' + newNode.subpath;
-                        node.order = node.order?node.order:10000
-                        newNode.order = node.order+.0001;
+                        node.order = node.order ? node.order : 10000; 
+                        newNode.order = parseFloat(node.order) + .1;
+                        newNode.is_disabled_fg = true;
+                        
+                        
                         var confirmNode = parent.children[parent.children.length-1];
                         confirmNode.isCopy=true;
-                        confirmNode.title = 'Confirm '+node.title;
+                        confirmNode.title = 'Confirm New '+node.title;
                         confirmNode.subpath = "confirm";
                         confirmNode.name += '.' + confirmNode.subpath;
                         confirmNode.path += '.' + confirmNode.subpath;
-                        confirmNode.order = newNode.order+.0001;
-                        
+                        confirmNode.order = newNode.order + .1;
+                        confirmNode.is_disabled_fg = true;
                         confirmNode.passwordSiblingNode = newNode;
                         confirmNode.passwordVerifiableNode = newNode;
+                        confirmNode.passwordOldNode = node;
+                        
                         newNode.passwordSiblingNode = confirmNode;
                         newNode.passwordConfirmingNode = confirmNode;
+                        
                         node.passwordSiblingNodes = [newNode,confirmNode];
                         
                         node.subpath = "old";
-//                        node.name += '.'+ node.subpath;
-//                        node.path += '.'+node.subpath;
                         node.title = 'Old '+ node.title;
                    }
                 },
@@ -263,35 +287,19 @@ function vjRecordView ( viewer )
 
             if(this.fldEnumerate)
                 this.fldTree.enumerate(this.fldEnumerate, { document: this.formProviderDoc, obj: this });
-
-
-//          if(this.readonlyMode){
-//              this.fldTree.enumerate( "node.is_readonly_fg=true;") ;
-//          }else {
-//              if(!this.showReadonlyInNonReadonlyMode)
-//                  this.fldTree.enumerate("if(node.is_readonly_fg){node.hidden = true;}");
-//
-//          }
-            //this.fldTree.enumerate("if(node.hidden)node.type='string';");
         }
 
-        if (this.data.length > 1 && want_new_nodeTree) { // new values are specified
-            var elemTxt = this.getData(1).data;
+        if (this.hasNodeDataSource() && want_new_nodeTree) {
+            var elemTxt = this.getData(1).original_data || this.getData(1).data;
             if( elemTxt.indexOf("preview:")==0 ) {
                 this.div.innerHTML=elemTxt.substring(8);
                 return ;
             }
 
-            //elemTxt="id,name,path,value\n";
             elemTxt += this.hiveId + "," + this.spcTypeObj + ",0," + this.objType + "\n";
-           // alert(elemTxt)
-            //alert(this.hiveId+ "\n " + elemTxt);
             this.elemArr = new vjTable(elemTxt, 0, vjTable_hasHeader);
 
             if (!(parseHiveId(this.hiveId).objId>0)) {
-                // For fields that need to be reset to default, change element value
-                // to default if the default value is specified, and remove element
-                // if the default value is empty
                 var newElemArrRows = [];
                 for (var ir=0; ir<this.elemArr.rows.length; ir++) {
                     var elemRow = this.elemArr.rows[ir];
@@ -316,8 +324,7 @@ function vjRecordView ( viewer )
                 }
             }, this);
 
-            if (this.elemArr.rows.length) { // this.nodeTree.root
-                // sort fields for correct insertion order: by path, then by field order, then by name
+            if (this.elemArr.rows.length) {
                 var this_ = this;
                 this.elemArr.rows.sort(function(a, b) {
                     for (var i = 0; i < a.path.length && i < b.path.length; i++) {
@@ -349,12 +356,9 @@ function vjRecordView ( viewer )
 
         }
 
-
-
-
         if (this.constructAllNonOptionField) this.constructionPropagateDown = 300;
 
-        if((this.data.length<1 || this.constructionPropagateDown) && (!this.readonlyMode|| this.showReadonlyInNonReadonlyMode) && !this.editExistingOnly ){
+        if((!this.hasNodeDataSource() || this.constructionPropagateDown) && (!this.readonlyMode|| this.showReadonlyInNonReadonlyMode) && !this.editExistingOnly ){
             this.constructInfrastructure ( this.nodeTree.root , 0,  true , this.constructionPropagateDown);
         }
 
@@ -366,28 +370,29 @@ function vjRecordView ( viewer )
 
         this.nodeTree.enumerate(function(params, node) {
             if(!node.fld.order || parseFloat(node.fld.order).toString()=='NaN') {
-                // sort undefined orders at the beginning
                 node.fld.order = +1000000;
-                //alert('find a NaN in order');
             }
-            //else alerJ('node.fld',node.fld);
         });
         this.nodeTree.enumerate(function(params, node)
         {
             function sorter(a, b, a2, b2, a3, b3) {
-                // compare a and b, falling back to comparing a2 and b2 if a and b equal
+                a = parseFloat(a) || 0;
+                b = parseFloat(b) || 0;
+                a2 = a2 || "";
+                b2 = b2 || "";
+                a3 = parseFloat(a3) || 0;
+                b3 = parseFloat(b3) || 0;
                 return a > b ? 1 : a < b ? -1 : a2 > b2 ? 1 : a2 < b2 ? -1 : a3 > b3 ? 1 : a3 < b3 ? -1 : 0;
             }
 
             if (node.fld.children && node.fld.children.length)
-                node.fld.children = node.fld.children.sort(function (a, b) {
-                    return sorter(parseFloat(a.order), parseFloat(b.order), a.title?a.title:a.name, b.title?b.title:b.name, 0, 0);
+                node.fld.children.sort(function (a, b) {
+                    return sorter(a.order, b.order, a.title?a.title:a.name, b.title?b.title:b.name, 0, 0);
                 });
             if (node.children && node.children.length)
-                node.children = node.children.sort(function (a, b) {
-                    return sorter(parseFloat(a.fld.order), parseFloat(b.fld.order), a.fld.title?a.fld.title:a.fld.name, b.fld.title?b.fld.title:b.fld.name, a.row, b.row);
+                node.children.sort(function (a, b) {
+                    return sorter(a.fld.order, b.fld.order, a.fld.title?a.fld.title:a.fld.name, b.fld.title?b.fld.title:b.fld.name, a.row, b.row);
                 });
-            node;
         });
 
 
@@ -402,20 +407,93 @@ function vjRecordView ( viewer )
                              c_node.fld.is_optional_fg = 1;
                          }
                          if(c_node.fld.subpath == "confirm" ) {
+                             c_node.fld.is_disabled_fg = false;
                              c_node.fld.passwordVerifiableNode = node.fld;
                              node.fld.passwordConfirmingNode = c_node.fld;
+                             c_node.fld.title = c_node.fld.title.replace(/New /,"");
                          }
+                         node.fld.subpath = '';
                          node.fld.title = node.fld.title.replace(/^Old /,"");
                      }
                  }
+                if(node.fld.subpath === "old" && node.value.length >= 0){
+                   node.value = '';
+                }
             }
         },{ document: this.formProviderDoc, obj: this });
 
         this.nodeTree.enumerate( "if(node.depth==0 || (params.autoexpand && ( params.autoexpand=='all' || node.depth<=params.autoexpand) && node.children && node.children.length>0))node.expanded=params.expansion;else node.expanded=0;" , {autoexpand:this.autoexpand, expansion: this.expansion} ) ;
-        this.vjDS.add("Retrieving Objects Metadata Information","ds"+this.container,"static://");
+        this.vjDS.add("Retrieving Objects Metadata Information","ds"+this.container,"static:
+        
+        if(this.onConstructCallback)this.onConstructCallback();
+        
         this.redraw();
+        if(this.fromDocLoc)
+            this.readFromDocLoc(this.fromDocLoc);        
     };
 
+    this.popUpQuery = `
+        cnt = $(cnt);
+        start = $(start);
+        folder = "$(folder)";
+        type = "$(type)";
+        if(!type || type == "-"){
+            type = "*";
+        }
+        all = false;
+        if(folder && type != "*"){
+            all =  allusedby(folder,{recurse:true}).filter({.objoftype(type)}); 
+        }else if(folder){
+            all =  allusedby(folder,{recurse:true}); 
+        }else {
+            all = alloftype(type);
+        }
+        result = [];
+        for (i=0; i<(int)all; i++) {
+            if( !all[i].status){
+                result.push(all[i]);
+            } else if ( (all[i] as obj).objoftype("^process$+") &&  all[i].status == 0 | 1 | 2 | 3 | 4 | 6 | 7 ){
+                continue;
+            } else {
+                result.push(all[i]);
+            }
+        }
+        total = result as int;
+        if(cnt && total){
+            end = min(start + cnt, total) - 1;
+            result = result[start : end];
+        }
+        return  cat(result.csv(["_brief","created","_type"]) , "info,total,," , total ,"\ninfo,start,," , start);
+    `
+
+    this.popUpQuerySearch = `
+        folder = "$(folder)";
+        type = "$(type)";
+        if(!type || type == "-"){
+            type = "*";
+        }
+        all = false;
+        if(folder && type != "*"){
+            all =  allusedby(folder,{recurse:true}).filter({.objoftype(type)}); 
+        }else if(folder){
+            all =  allusedby(folder,{recurse:true}); 
+        }else {
+            all = alloftype(type);
+        }
+        all = all.filter({ ._brief=~ /$(search)/i});
+        result = [];
+        for (i=0; i<(int)all; i++) {
+        if( !all[i].status){
+            result.push(all[i]);
+        } else if ( (all[i] as obj).objoftype("^process$+") &&  all[i].status == 0 | 1 | 2 | 3 | 4 | 6 | 7 ){
+            continue;
+        } else {
+            result.push(all[i]);
+            }
+        }
+        total = result as int;
+        return  cat(result.csv(["_brief","created","_type"]) , "info,total,," , total ,"\ninfo,start,,0");
+    `
 
     this.constructPopUpViewer = function(tabname, popupType){
         if(!popupType)
@@ -425,15 +503,11 @@ function vjRecordView ( viewer )
             this.popObjectPanel = new vjPanelView({
                 data:[ "dsVoid", "ds"+this.container],
                 formObject: document.forms["form-floatingDiv"],
-                //callbackRendered: ala,// "javascript:alerJ('a',this)",
                 iconSize:24,
-                //geometry:{width:'30%' },
                 rows: [
-                    //{name:'refresh', title: 'Refresh' , icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS.ds"+tagWord+".state=\"\";vjDS.ds"+tagWord+".load();"},
-                    {name:'pager', icon:'page' , title:'per page', description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']},
+                    {name:'pager', icon:'page' , title:'per page', description: 'PAge up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']},
                     {name: 'search', align: 'right', type: ' search', isSubmitable: true, title: 'Search', description: 'search sequences by ID', url: "?cmd=objFile&ids=$(ids)" }
                 ],
-                //hidden:true,
                 isok:true });
             this.defaultOutlineShow = [
                    {name:new RegExp(/./), hidden:true },
@@ -452,7 +526,6 @@ function vjRecordView ( viewer )
                     cols: this.defaultOutlineShow,
                     checkable:false,
                     maxTxtLen:this.popUpTableText? this.popUpTableText : 64,
-                    //objectsDependOnMe:[ dv+'.select.0' ],
                     selectCallback: "function:vjObjFunc('onSelectPopupList','" + this.objCls + "')",
                     checkCallback: "function:vjObjFunc('onCheckPopupList','" + this.objCls + "')",
                     defaultIcon:'rec',
@@ -461,13 +534,12 @@ function vjRecordView ( viewer )
                     isok:true });
 
             this.popupViewer = this.myFloaterName+"Viewer";
-            // this.vjDV.add(this.popupViewer, this.popObjectViewer.geometry.height, this.popObjectViewer.geometry.width);
              this.vjDV.add(this.popupViewer, (this.popUpViewerWidth && !isNaN(this.popUpViewerWidth))? parseInt(this.popUpViewerWidth):600,300);
-             this.vjDV[this.popupViewer].add("select","table","tab",[ this.popObjectPanel, this.popObjectViewer ]);//.viewtoggles=1;
+             this.vjDV[this.popupViewer].add("select","table","tab",[ this.popObjectPanel, this.popObjectViewer ]);
              this.vjDV[this.popupViewer].render();
              this.vjDV[this.popupViewer].load();
         }
-        if(popupType == "explorer" && !this.popNExplorer){
+        if(popupType == "explorer"){
             if(!tabname) tabname = "All";
             if(this.popObjectExplorerViewer){
                 this.popObjectExplorerViewer.destroyDS();
@@ -479,13 +551,59 @@ function vjRecordView ( viewer )
                  formFolders:"form-floatingDiv",
                  formTables:"form-floatingDiv",
                  formSubmit:"form-floatingDiv",
-                 preselectedFolder:"/All",
                  formPreviews:"form-floatingDiv",
                  isNShowactions:true,
-                 subTablesAttrs : [{    tabname : tabname,
-                                       tabico : "folder-apps",
-                                       url : { type : "-" , prop:"id,_brief,created" }
-                                   }],
+                 isNoUpload: true,
+                 subTablesAttrs : [
+                                    {    
+                                       tabname: tabname,
+                                       tabico: "folder-apps",
+                                       url: { },
+                                       addCmd: [
+                                        { 
+                                            name: 'search', 
+                                            align: 'right', 
+                                            type: 'search', 
+                                            isSubmitable: true, 
+                                            title: 'Search', 
+                                            description: 'Search sequences by name', 
+                                            evalVarCallback: this.evalVarCallbackAll,
+                                            url_tmplt: 'http:
+                                            qry_tmplt: `${this.popUpQuerySearch}`, 
+                                        }
+                                        ],
+                                       evalVarCallback: this.evalVarCallbackAll,
+                                       url_tmplt: 'http:
+                                       qry_tmplt: `${this.popUpQuery}`,
+                                       urlValues: { start: 0, cnt:20, search: ""}
+                                    },{    
+                                        tabname: 'Flat List',
+                                        tabico: "elements_tree.png",
+                                        url: { },
+                                        isHiddenCallback: this.getIfFlatListHidden,
+                                        addCmd: [
+                                            {name:'pager',hidden: true , type:'pager',prohibit_new: false},
+                                            { 
+                                                name: 'search', 
+                                                align: 'right', 
+                                                type: 'search', 
+                                                isSubmitable: true, 
+                                                title: 'Search', 
+                                                description: 'Search sequences by name', 
+                                                evalVarCallback: this.evalVarCallbackFlatList,
+                                                urlWithoutTypeFilter: '?cmdr=objQry&qry=allusedby($(folder),{recurse:true,with_topic:false}).filter({!(.objoftype("sysfolder,folder"))}).filter({._brief=~/$(search)/i}).csv(["_brief","created","_type"])',
+                                                url: '?cmdr=objQry&qry=allusedby($(folder),{recurse:true,with_topic:false}).filter({.objoftype("$(type)")}).filter({!(.objoftype("sysfolder,folder"))}).filter({._brief=~/$(search)/i}).csv(["_brief","created","_type"])', 
+                                                url_tmplt: 'http:
+                                                qry_tmplt: 'allusedby($(folder),{recurse:true,with_topic:false}).filter({.objoftype("$(type)")}).filter({!(.objoftype("sysfolder,folder"))}).filter({._brief=~/$(search)/i}).csv(["_brief","created","_type"])' 
+                                            }
+                                        ],
+                                        evalVarCallback: this.evalVarCallbackFlatList,
+                                        urlWithoutTypeFilter: 'allusedby($(folder),{recurse:true,with_topic:false}).filter({!(.objoftype("sysfolder,folder"))}).csv(["_brief","created","_type"])',
+                                        url_tmplt: 'http:
+                                        qry_tmplt: 'allusedby($(folder),{recurse:true,with_topic:false}).filter({.objoftype("$(type)")}).filter({!(.objoftype("sysfolder,folder"))}).csv(["_brief","created","_type"])'
+
+                                    }
+                                ],
                  folders_DV_attributes : {
                      width : 200,
                      height : 400,
@@ -507,7 +625,6 @@ function vjRecordView ( viewer )
                  isSubmitMode:true,
                  autoexpand:0,
                  isNdisplay_Previews:true,
-
                  onSubmitObjsCallback: "function:vjObjFunc('onGetPopupList','" + this.objCls + "')",
                  drag:false,
                  isok:true
@@ -520,24 +637,40 @@ function vjRecordView ( viewer )
         }
     };
 
+    this.evalVarCallbackAll = (curAttrs,dsurl, url_obj, start, fin) => {
+        url_obj.folder = url_obj.folder === '-' ? '': url_obj.folder;
+        url_obj.type = (url_obj.type === " " || url_obj.type === undefined || !url_obj.type ) ? "" : url_obj.type;
+        return evalVars( dsurl, start, fin, url_obj );
+    }
+    this.evalVarCallbackFlatList = (curAttrs,dsurl, url_obj,  start, fin) =>{
+
+        if(url_obj.folder=="-"){
+            url_obj.folder ="alloftype(\"*\")";
+        }else{
+            url_obj.folder ="((obj)"+url_obj.folder+").child ";
+        }
+
+        if(url_obj.type === " " || url_obj.type === undefined || !url_obj.type ){
+            return evalVars( `${curAttrs.urlWithoutTypeFilter}`, start, fin, url_obj )
+        }
+        return evalVars( dsurl, start, fin, url_obj )
+    }
+    this.getIfFlatListHidden = (folderName) => {
+        if(folderName === "/all"){
+            return true
+        }
+        return false
+    }
 
 
 
-
-
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ renderer function, can be called when needs to be redrawn
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     this.redraw=function( elements ,ifFromChange)
     {
         if (!elements) elements = this.nodeTree.root;
         if(!ifFromChange)    ifFromChange = false;
         this.validate(elements);
-        //this.constructElementViewers(elements, false);
-        this.fldTree.enumerate( "node.innerTxt='';" ) ;  //this.enumerateNodesTreeView( this.fldTree.root, "node.innerTxt=''");
+        this.fldTree.enumerate( "node.innerTxt='';" ) ;
         this.nodeTree.enumerate("node.onlyOneTitleForMultiArray='';");
 
 
@@ -550,13 +683,16 @@ function vjRecordView ( viewer )
             t += "<tr><td><img onClick='vjObjEvent(\"showAllFunction\",\"" + this.objCls + "\")' src=" + (this.showReadonlyInNonReadonlyMode ? 'img/off_icon.gif' : 'img/on_icon.gif') + " border=0 width=20 height=20 title='show/hide readonly field'/></td>";
             t += "<td><img onClick='vjObjEvent(\"expandAllFunction\",\"" + this.objCls + "\",\"\")' src=" + (!this.nodeTree.root.expanded ? 'img/recExpand.gif' : 'img/recCollapse.gif') + " border=0 width=20 height=20 title='expand/collapse all field'/></td>";
             t += " <td><img onClick='vjObjEvent(\"constructAllFunction\",\"" + this.objCls + "\")'" + (this.constructAllField ? 'class=sectHid' : 'src="img/recAdd.gif" title="show all editable Field show"') + "  border=0 width=16 height=16 /></td></tr>";
-            // t += "<tr><td>" + (this.constructAllField ? '' : 'show all editable Field show') + "</td><td>" + (this.showReadonlyInNonReadonlyMode ? 'Hide Read Only Field' : 'Show Read Only Field') + "</td><td>" + (!this.nodeTree.root.expanded ? 'Expand' : 'Collapse') + " all</td></tr></table>"
             t += "<tr><td>" + (this.showReadonlyInNonReadonlyMode ? 'Hide' : 'Show') + "</td><td>" + (!this.nodeTree.root.expanded ? 'Expand' : 'Collapse') + "</td><td border=0>" + (this.constructAllField ? '' : 'Construct') + "</td></tr></table>";
         }
 
         t += this.generateText(elements, this.showRoot ? false : true);
-        //if (this.implementSaveButton) t += "<input type='button' name='save_record+" + this.container + "' value=" + ((this.hiveId == this.objType)? "CREATE_RECORD":"SAVE_RECORD") + " onclick='vjObjEvent(\"onSetVerification\",\"" + this.objCls + "\",\"/\")' />";
-        if (this.implementSaveButton) t += "<input type='button' name='save_record+" + this.container + "' value=" + ((parseHiveId(this.hiveId).objId>0 )? "SAVE" : "CREATE") + " onclick='vjObjEvent(\"onSetVerification\",\"" + this.objCls + "\",\"/\",\"save\")' />";
+        
+        if (this.implementSaveButton) {
+            let value = this.saveButtonText ?  this.saveButtonText :  (parseHiveId(this.hiveId).objId>0 ) ? 'SAVE' : 'CREATE';
+            let btn_class = this.saveButtonClass ? this.saveButtonClass : '';
+            t += `<input class="${btn_class}" type='button' name='save_record+${this.container}' value="${value}" onclick='vjObjEvent(\"onSetVerification\",\"${this.objCls}\",\"/\",\"save\")' />`;
+        }
 
         if (this.implementCopyButton && parseHiveId(this.hiveId).objId>0 ) t += "<input type='button' name='copy_record+" + this.container + "' value='COPY' onclick='vjObjEvent(\"onSetVerification\",\"" + this.objCls + "\",\"/\",\"copy\")' />";
         if (this.noFileErrorText) t += "<span style='color:red' id="+this.RVtag+"_noFileErrorText></span>";
@@ -575,7 +711,7 @@ function vjRecordView ( viewer )
             fld.div.innerHTML=fld.innerTxt;
         }
         if(fld.dsSource){
-            fld.dsSource.reload("static://<span id='"+this.RVtag+"-"+fld.name+"' >"+fld.innerTxt+"</span>",true);
+            fld.dsSource.reload("static:
         }
 
 
@@ -589,7 +725,6 @@ function vjRecordView ( viewer )
     {
 
 
-       // if (element.viewerAssociated && element.fld.constraint!='search+' && element.fld.constraint != "choice+")  {
         if(element.fld.type =='file'){
             var o=gObject(this.RVtag+"-"+element.name+"-input");
             if(o && element.inputNode){
@@ -599,7 +734,7 @@ function vjRecordView ( viewer )
 
         if (element.viewerAssociated && element.fld.constraint!='search+' && element.fld.constraint != "choice+")  {
             var newInlineList = new Array();
-            var hideRowList=null;
+            var hideRowList=null, showRowList=null;
             var childrenVals= new Array();
             var par=element.parent;
             for ( var ie=0; ie<par.children.length; ++ie) {
@@ -626,13 +761,10 @@ function vjRecordView ( viewer )
 
             var url;
             if (element.fld.constraint == 'type') {
-
-                //url = element.value ? "http://?cmd=propget&prop=id,brief,name,description,title&mode=csv&ids=" + childrenVals : "static://";
-                url = haveChildrenIdVals ? "http://?cmd=propget&prop=id,_brief,&mode=csv&ids=" + childrenVals : "static://";
+                url = haveChildrenIdVals ? "http:
             }
             else if (element.fld.constraint == 'search') {
                 if (childrenVals.length) {
-                    // constraint_data may have substitutable substrings and need jsonification
                     var constraint_data = this.computeConstraintData(element);
                     if ( (constraint_data.qryLang || (constraint_data.url.indexOf('cmd=') != -1) ) && (constraint_data.url.indexOf('taxTree') == -1) && (constraint_data.url.indexOf('cmd=usrList') == -1)) {
                         var inlineProps = "_brief,name,description,title";
@@ -644,27 +776,18 @@ function vjRecordView ( viewer )
                         } else if (constraint_data.inline)
                             inlineProps = constraint_data.inline;
                         if(constraint_data.fetch=="id" && haveChildrenIdVals) {
-                            url = constraint_data.inline_url ? constraint_data.inline_url : "http://?cmd=propget&mode=csv";
+                            url = constraint_data.inline_url ? constraint_data.inline_url : "http:
                             url = urlExchangeParameter(url, "ids", encodeURIComponent(childrenVals));
                             url = urlExchangeParameter(url, "prop", encodeURIComponent(constraint_data.fetch + "," + inlineProps));
                         }
-                        //else url = "http://?cmd=propget&mode=csv&"+constraint_data.fetch+"=" + childrenVals+"&prop=" + constraint_data.fetch + "," + inlineProps;
-                        //else if(element.fld.compleURLUsed) {
-                        //        url = urlExchangeParameter(element.fld.compleURLUsed,"prop");//;"http://?cmd=objList&mode=csv&prop_val=" + childrenVals+"&prop_name=" + constraint_data.fetch + "&prop=" + inlineProps;
-                        //        alert("sshe " + url);
-                        //}
-                        //else
                     }
                     if(!url){
-                    //else {
                         url = "" + constraint_data.url;
                         hideRowList = new Object();
                         hideRowList[constraint_data.fetch] = new RegExp("^("+sanitizeStringRE(childrenVals).split(",").join("|")+")$");
-                        //alerJ("we are going to hide", hideRowList);
                     }
                     if (constraint_data.inline) {
                         newInlineList.push({ name: new RegExp(/.*/), hidden: true });
-                        //newInlineList.push({ name: 'icon', hidden: false, type:'icon' });
                         if (constraint_data.inline instanceof Array)
                             newInlineList = newInlineList.concat(constraint_data.inline);
                         else {
@@ -672,60 +795,72 @@ function vjRecordView ( viewer )
                             for (var i = 0; i < inline.length; i++)
                                 newInlineList.push({ name: inline[i], hidden: false, title: inline[i] });
                         }
-                        //alert(newInlineList)
                     }
 
                 }
-                else url = "static://";
+                else url = "static:
 
             }
             else if (element.fld.constraint == "choice" ) {
                 var url;
-                var whatToShow = element.choiceOption.split("\n");
-                var ic = 0;
-                for (; ic < whatToShow.length; ic++) {
-                    if (whatToShow[ic].split(",")[1] == element.value) break;
+                if (element.defaltValueShow && !ifFromChange) {
+                    url = "static:
+                } else {
+                    url = "static:
+                    var choiceOptionFound = (element.choiceOption || []).some(function(c) {
+                        if (c.value == element.value) {
+                            url += "\n" + quoteForCSV(c.description) + "," + quoteForCSV(c.value);
+                            return true;
+                        }
+                        return false;
+                    }, this);
+                    if (!choiceOptionFound) {
+                        url += "\n" + quoteForCSV(element.value) + "," + quoteForCSV(element.value);
+                    }
                 }
 
-                //if(ic>=whatToShow.length)
-                url = "static://" + whatToShow[0].concat("\n", (ic>=whatToShow.length)?element.value :whatToShow[ic]);
-                if (element.defaltValueShow && !ifFromChange) url = "static://" + element.defaltValueShow;
-
+            }
+            if (["choice", "search", "type"].includes(element.fld.constraint) && !url.startsWith("static:
+                && !!element.fld.default_value && element.fld.default_value == element.value) {
+                showRowList = JSON.parse(element.fld.default_value);
+                var that = this;
+                element.fld.callbackRendered = function(myviewer){
+                    element.value = myviewer.accumulate("true", that.elementValueAccumulator(element))[0];
+                }
+                hideRowList = null;
             }
 
-            this.dataSourceEngine.add("infrastructure: Constructing Object Lists in RecrodViewer", 'ds' + element.name, url);
+            this.dataSourceEngine.add("infrastructure: Constructing Objecyt Lists in RecrodViewer", 'ds' + element.name, url);
             this.dataViewEngine.add(element.viewerAssociated, 500, 500).frame = 'none';
-            // alert(whatTheSpanShow.title)
-            this.defaultInlineShow = [{ name: new RegExp(/./), hidden: true }, { name: '_brief', hidden: false, title: 'Description' },{name:'icon', type: 'icon'},{ name: 'description', hidden: false, title: 'Description' },{ name: 'brief', hidden: false, title: 'Summary' }, { name: new RegExp(/Title.*/i), hidden: false, title: 'Title' }];
-           // this.defaultInlineShow = [{ name: '_brief', hidden: false, title: 'Description' },{name:'icon', type: 'icon'}];
+            this.defaultInlineShow = [{ name: new RegExp(/./), hidden: true },{ name: '_brief', hidden: false, title: 'Description' },{name:'icon', hidden: true,type: 'icon'},{ name: 'description', hidden: false, title: 'Description' },{ name: 'brief', hidden: false, title: 'Summary' }, { name: new RegExp(/Title.*/i), hidden: false, title: 'Title' }];
+            if(element.fld.constraint == 'type'){
+                this.defaultInlineShow.push( {name: 'id' , hidden: false })
+            }
             var myListViewer=new vjTableView( {
                 data: "ds"+element.name,
                 formObject: this.formObject,
                 bgColors:['#F0F3F9','#F0F3F9'] ,
-               // cols: this.defaultOutlineShow,
                 isNheader: true,
                 defaultEmptyText:" ",
-                cols: newInlineList.length?newInlineList:this.defaultInlineShow,
+                cols: newInlineList.length ? newInlineList : this.defaultInlineShow,
                 inclusionObjRegex: hideRowList ,
-                selectCallback: element.fld.selectCallback,//"function:vjObjFunc('onSelectPopupList','" + this.objCls + "')",
-                checkCallback: element.fld.checkCallback,// "function:vjObjFunc('onCheckPopupList','" + this.objCls + "')",
+                inclusionByIndex: showRowList ,
+                selectCallback: element.fld.selectCallback,
+                checkCallback: element.fld.checkCallback,
+                callbackRendered: element.fld.callbackRendered,
                 maxTxtLen:64,
                 multiSelect:true,
                 geometry:{ width:'100%',height:'100%'},
                 doNotShowRefreshIcon: true,
-                //iconSize: (element.fld.constraint == 'search')?20:0,
                 iconSize: 0,
                 defaultIcon:'rec',
-
+                field_constraint: element.fld.constraint,
                 isok: true
             });
 
             this.dataViewEngine[element.viewerAssociated].add("details", "table", "tab", [myListViewer]);
             this.dataViewEngine[element.viewerAssociated].render();
 
-            // On common events like tab switch, we do not want to reload viewer data sources if we already have the data
-            // (to avoid unnecessary ajax requests), but we do want to refresh the element's table view (because the view's
-            // div may have been invalidated).
             if (this.dataSourceEngine['ds' + element.name].hasDataForUrl()) {
                 this.dataSourceEngine['ds' + element.name].call_refresh_callbacks();
             } else {
@@ -741,7 +876,6 @@ function vjRecordView ( viewer )
                         t+="<img src = '?cmd=objFile&ids="+ childrenVals[vi] + "&filename=_.png"+ "' "+element.myTags+" >" ;
                     }
                     o.innerHTML=t;
-                    //alerJ('a',o.innerHTML);
                 }
             }
         }
@@ -753,21 +887,13 @@ function vjRecordView ( viewer )
     };
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Record Viewers Data Model construction functions
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     this.createElement=function( fld, element)
     {
-
         var newel=new Object( {value: '' , value0:'', fld: fld, row: element.subRow, subRow: 0, obj: element.obj, expanded:this.expansion, children: new Array (), depth: element.depth+1, distance: 1 } );
         newel.parent=element;
         newel.name=this.elementName(newel);
         newel.path=element.path+newel.name+"/"; 
-
-        //fld.default_value="eval:timeNow();";
 
         if(fld.default_value && typeof(fld.default_value) === "string" && fld.default_value.indexOf("eval:")==0){
             fld.default_value=eval(fld.default_value.substring(5));
@@ -804,14 +930,11 @@ function vjRecordView ( viewer )
 
     this.expandAllFunction = function (container,element,epxandOrClose) {
         if (!element) element = this.nodeTree.root;
-        //alerJ("element", element)
         if (element == this.nodeTree.root) {
             if (!epxandOrClose)
                 epxandOrClose = element.expanded ? 0 : 1;
         }
-//        var elname = element.fld.name;
-        element.expanded = epxandOrClose;//element.expanded ? 0 : this.expansion;
-        //element.expanded = element.expanded ? 0 : this.expansion;
+        element.expanded = epxandOrClose;
 
         for (var ic = 0; ic < element.children.length; ic++) this.expandAllFunction(container, element.children[ic], epxandOrClose);
         if (element == this.nodeTree.root) this.redraw();
@@ -819,16 +942,13 @@ function vjRecordView ( viewer )
 
     this.constructInfrastructure=function(element, kind , onlyifnochildren, propagateDown)
     {
-        //element is parent node
-        //fld is parent fld
 
         var fld=element.fld;
-//        var rowToAdd=element.row;
         var newel;
+        var is_newly_created_newel = false;
         var this_ = this;
 
-        // create the cells
-        var array_rows = {}; // map array row -> indices of element.children for that row
+        var array_rows = {};
         if (fld.type == "array" && element.children.length) {
             element.children.forEach(function(c, ic) {
                 var row = +c.row;
@@ -849,13 +969,14 @@ function vjRecordView ( viewer )
 
                 var fls=fld.children[il],docreate=true;
 
-                if(kind && fls.name!=kind  ) continue;//docreate=false;
+                if(kind && fls.name!=kind  ) continue;
 
 
 
                 if(docreate){
                     newel = undefined;
-                    if (onlyifnochildren) { // find a child of this kind
+                    is_newly_created_newel = false;
+                    if (onlyifnochildren) {
                         for (var ie=0; ie<row_ichildren.length; ++ie) {
                             var child = element.children[row_ichildren[ie]];
                             if (child.fld.name == fls.name) {
@@ -865,7 +986,6 @@ function vjRecordView ( viewer )
                         }
                     }
                     if (!newel) {
-                        // check if it's legal for fls to have multiple elements
                         var fls_is_global_multi = ({
                             recurse: function(f) {
                                 if (f) {
@@ -880,22 +1000,23 @@ function vjRecordView ( viewer )
                             }
                         }).recurse(fls);
 
-                        // for globally single-valued fields that already have an element with the wrong
-                        // or different parent, don't create any more elements (this issue can arise with
-                        // a corrupt tree structure when some nodes with invalid paths were added to an
-                        // object). And don't construct into them either (that will be taken care of by the
-                        // parent of the already created element).
                         if (!fls_is_global_multi && this_.accumulate("node.fld.name=='" + (fls.name) + "'", "node").length) {
                             continue;
                         }
 
                         newel=this_.createElement( fls, element) ;
                         if(!newel)continue;
+                        newel.cntChildren0 = 0;
+                        is_newly_created_newel = true;
                         element.children.push(newel);
                     }
 
-                    if(propagateDown>1 || fls.type=="array")
+                    if(propagateDown>1 || fls.type=="array") {
                         this_.constructInfrastructure ( newel , 0, onlyifnochildren, fld.type=="array" ? propagateDown : propagateDown-1);
+                        if (is_newly_created_newel && newel.children) {
+                            newel.cntChildren0 = newel.children.length;
+                        }
+                    }
                 }
                 if(fld.type!="array")
                     ++element.subRow;
@@ -912,22 +1033,19 @@ function vjRecordView ( viewer )
 
         for( var iv=0; iv< valarr.rows.length ; ++iv) {
             var row=valarr.rows[iv];
-           // alerJ("rw",row)
             var fld=this.fldTree.findByName( row.name );
 
             if(!fld){
-                if(row.name.charAt(0)=="_") { // accumulate special objects
+                if(row.name.charAt(0)=="_") {
                     if(!this[row.name.substring(1)])this[row.name.substring(1)]=new Object();
                     this[row.name.substring(1)][row.value]=1;
                 }
-                //alerJ('r',this[row.name.substring(1)]);
-                continue; // field with this name must exist
+                continue;
             }
 
             var el=this.nodeTree.findByName(row.name );
-            if(!el) { // element does not exist .. need to be created
+            if(!el) {
 
-                // remember the path to the top parent
                 var parList=new Array();
                 for ( var curT=fld; curT.parent && (curT!=element.fld); curT=curT.parent ){
                     parList.push(curT);
@@ -935,22 +1053,20 @@ function vjRecordView ( viewer )
                 var parentelem=element;
                 var rowlist="";
 
-                // now scan and create all elements from the root if those do not exist
                 for (var ip = parList.length - 1; ip >= 0; --ip) {
                     if (row.path[row.path.length - ip - 1] == "NaN") row.path[row.path.length - ip - 1] = '0';
                     var ir=(ip<row.path.length)? row.path[row.path.length-ip-1] : "0";
                     parentelem.subRow=parseInt(ir);
                     rowlist = rowlist + "." + ir;
 
-                    var elname="prop."+this.idForProp(obj)+"."+parList[ip].name+rowlist;
-                    //alert(elname+"   rowlist"+rowlist)
+                    var elname = "" + this.objCls + ".prop."+this.idForProp(obj)+"."+parList[ip].name+rowlist;
                     el=this.nodeTree.findByName(elname,parentelem);
                     if(el){
                         parentelem=el;
                         continue;
                     }
 
-                    if( parentelem.fld.type=="array") {// for arrays we always add all elements at once
+                    if( parentelem.fld.type=="array") {
                         for( var il=0; il<parentelem.fld.children.length; ++il) {
                             var thisel=this.createElement( parentelem.fld.children[il], parentelem) ;
                             if(!thisel)continue;
@@ -959,13 +1075,11 @@ function vjRecordView ( viewer )
                         }
                         el=this.nodeTree.findByName(elname,parentelem);
                     }
-                    else { // other elements
+                    else {
                         el=this.createElement( parList[ip], parentelem) ;
                         if(!el)break;
-                        //if(el){
                             if(ip>0) {el.value0='';el.value=el.value0;}
                             parentelem.children.push(el);
-                        //}
                     }
 
                     parentelem=el;
@@ -975,10 +1089,8 @@ function vjRecordView ( viewer )
             if(!el){
                 continue;
             }
-            //f(el){
                 el.value0=valarr.rows[iv].value;
                 el.value=el.value0;
-            //}
             if( el.parent ) {
                 if(el.parent && row.path.length && el.parent.subRow<=row.path[row.path.length-1])
                     el.parent.subRow=parseInt(row.path[row.path.length-1])+1;
@@ -991,32 +1103,24 @@ function vjRecordView ( viewer )
 
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Miscelaneous data information and mainuplation functions
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    // When printing prop format identifiers for a new object, we want to use
-    // the object type instead of "0" (the object ID) - this is significant for
-    // the backend's prop format parser
     this.idForProp=function(id)
     {
         return parseHiveId(id).objId ? id : this.propFormatId;
     };
 
-    this.elementName=function(element)
+    this.elementName=function(element, forAccumulateValues)
     {
+        var prefix = forAccumulateValues ? "" : ("" + this.objCls + ".");
         if(element.fld.name==this.spcTypeObj)
-            return "prop."+this.idForProp(element.hiveId)+"._type";
-            //return "type."+this.idForProp(element.hiveId);
+            return prefix + "prop."+this.idForProp(element.hiveId)+"._type";
 
         var t=new Array();
         for (var cur=element; cur && cur.parent!=cur && cur.parent; cur=cur.parent)  {
             t.push(cur.row);
         }
 
-        return "prop."+this.idForProp(element.obj)+"."+element.fld.name+"."+t.reverse().join(".");
+        return prefix + "prop."+this.idForProp(element.obj)+"."+element.fld.name+"."+t.reverse().join(".");
     };
 
     this.fieldIsReadonly = function(fld)
@@ -1034,10 +1138,6 @@ function vjRecordView ( viewer )
 
     this.elementIsRemovable = function(element)
     {
-        // an element is considered removable if:
-        // 1. its values get deleted using multiSelectDelete; or
-        // 2. it is a multi-value element which has siblings with the same field
-        // But readonly elements are never removable
 
         if (this.readonlyMode || this.fieldIsReadonly(element.fld)) {
             return false;
@@ -1108,12 +1208,9 @@ function vjRecordView ( viewer )
 
         if (element.modifications ) {
 
-          //  alerJ("element",element.fld)
             if (!element.errors && this.implementSetStatusButton) {
-               // alert(this.implementSetStatusButton)
                 if (element.children.length) {
                     t += "<td>";
-                    //alerJ("el",element)
                     t += "<a href='javascript:vjObjEvent(\"onSet\",\"" + this.objCls + "\",\"" + sanitizeElementAttrJS(element.path) + "\")' >" + this.icons.setRow + "</a>";
                     t += "</td>";
                 }
@@ -1129,7 +1226,6 @@ function vjRecordView ( viewer )
         }
 
         if (!this.hideErrors && element.errors) {
-            //alert(element.fld.title)
             t+="<td valign=middle border=1>";
             t += this.elementsErrorText([element]);
             t+="</td>";
@@ -1151,7 +1247,6 @@ function vjRecordView ( viewer )
         if(!description.length )
             return "";
 
-//        var elname=this.elementName(element);
         var t="";
         t+="<span class='"+this.tblClass+"_description'>";
         t+=this.icons.help;
@@ -1180,9 +1275,8 @@ function vjRecordView ( viewer )
         return ret;
     }
 
-    this.validate=function ( element, visualize, skip_optionality_validation)
+    this.validate=function ( element, visualize, skip_optionality_validation, errorText)
     {
-       // alerJ("call me one time",element);
         if (!element) element = this.nodeTree.root;
 
         if(!element.modifications ) element.modifications=0;
@@ -1202,9 +1296,7 @@ function vjRecordView ( viewer )
         element.warnings = 0;
         for  ( var ie=0; ie<element.children.length; ++ie) {
             
-            //if(skip_optionality_validation) { 
-                this.validate(element.children[ie], visualize);
-            //}
+            this.validate(element.children[ie], visualize, skip_optionality_validation, errorText);
 
             if (element.children[ie].errors > 0 && element.children[ie].fld.type == "string") {
                 element.errorTooltip = element.children[ie].errorTooltip;
@@ -1215,7 +1307,7 @@ function vjRecordView ( viewer )
             element.modifications+=element.children[ie].modifications;
         }
 
-        if (!element.fld.is_hidden_fg&&!element.fld.is_readonly_fg && !isok(element.value) && !element.fld.is_optional_fg && (element.fld.type != "list") && (element.fld.type != "array")) {
+        if (!element.fld.is_hidden_fg&&!element.fld.is_readonly_fg && (!isok(element.value) || element.value == 0) && !element.fld.is_optional_fg && (element.fld.type != "list") && (element.fld.type != "array")) {
              if (element.fld.is_multi_fg && element.fld.constraint=='type') {
                  var arrcheck=new Array();
                  var par=element.parent;
@@ -1235,7 +1327,7 @@ function vjRecordView ( viewer )
 
                  }
              }
-             else{
+             else if(!isok(element.value) && (element.value.toString() != "0")){
                 ++element.errors;
                 element.errorTooltip = "Required field is empty";
                 element.warnings++;
@@ -1255,17 +1347,19 @@ function vjRecordView ( viewer )
 
         if (isok(element.value)  && element.fld.type == "password") {
             if(element.fld.isCopy && element.modifications){
-                var verifyNode = this.accumulate("(node.fld.name=='" + (element.fld.passwordVerifiableNode.name) + "') ", "node", null,element.parent)[0];
-                if((verifyNode.value && element.value) && verifyNode.value!=element.value){
+                var verifyNode = element.fld.hasOwnProperty('passwordVerifiableNode') ? this.accumulate("(node.fld.name=='" + (element.fld.passwordVerifiableNode.name) + "') ", "node", null,element.parent)[0] : null;
+                
+                var confirmNode = element.fld.hasOwnProperty('passwordConfirmingNode') ? this.accumulate("(node.fld.name=='" + (element.fld.passwordConfirmingNode.name) + "') ", "node", null,element.parent)[0] : null;
+                
+                if(confirmNode && (confirmNode.value || element.value) && confirmNode.value!= element.value){
                     element.errors++;
-                    element.errorText = "Passwords do not match";
-                }
-                else if (verifyNode.value && element.value && verifyNode.value==element.value){
-                    //if they are the same, we allow to change the real password field
-                    var oldNode = this.accumulate("(node.fld.name=='" + (element.fld.name) + "') && !node.isCopy", "node");
+                    element.errorText = "Passwords do not match.";
+                } else if(verifyNode && (verifyNode.value || element.value) && verifyNode.value!=element.value){
+                    element.errors++;
+                    element.errorText = "Passwords do not match.";
+                } else if (verifyNode && verifyNode.value && element.value && verifyNode.value==element.value && verifyNode.value.length >= 0){
+                    var oldNode = this.accumulate("(node.fld.name=='" + (element.fld.passwordOldNode.name) + "') && !node.isCopy", "node");
                     if(oldNode.length==1){
-                        //if old one is hidden, which means we do not have value, what ever comes will be set
-                        //if not, we need to verify if the old field has already been put right value
                         if(oldNode[0].hidden ||oldNode[0].overWrite ){
                             oldNode[0].value = element.value;
                             oldNode[0].modifications=1;
@@ -1274,40 +1368,53 @@ function vjRecordView ( viewer )
                 }
             }
             else if (!element.hidden){
-                //we are changing the old one
-                if(element.value!=element.value0 && !element.overWrite){
-                    element.errors++;
-                    element.errorText = "Not match your old password.";
-                }else{
-                    element.overWrite = true;
-                    //after we see there is a correct one, we do not let it change
-                    var o=gObject(this.RVtag+"-"+element.name+"-input");
-                    if(o ){
-                        //alerJ('a',o);
-                        o.readOnly = true;
+                if(element.fld.subpath === 'old'){
+                    
+                    if (element.value != element.value0 && !element.overWrite){
+                        element.errors++;
+                        element.errorText = "Does not match your old password.";
+                    } else {
+                        element.overWrite = true;
+                        
+                        let siblings = element.fld.passwordSiblingNodes;
+                        for (let i = 0 ; i < siblings.length ; i++ ) {
+                            let sibNode = this.accumulate("(node.fld.name=='" + (siblings[i].name) + "') ", "node", null,element.parent)[0];
+                            let sibling = gObject(this.RVtag+"-"+sibNode.name+"-input");
+                            sibling.disabled = false;
+                        }
+                        
+                        var o=gObject(this.RVtag+"-"+element.name+"-input");
+                        if( o ){
+                            o.readOnly = true;
+                        }
                     }
                 }
             }
+        }
+        if(element.fld.type=="datetime"){
+            var val = element.value;
+            var date = formatToDate(element.value);
 
+            if(val != "" && isNaN(date.getDate())){
+                element.errors++;
+                element.errorText = "invalid date format"; 
+                element.fld.errors=element.errors;
+            }
         }
 
 
 
         if (isok(element.value) && element.modifications && element.fld.constraint == "regexp") {
-            var myRegExp = new RegExp(element.fld.constraint_data);
-            if (!eval(myRegExp.test(element.value))) {
+            var constraint_data = element.fld.constraint_data;
+            if(constraint_data.indexOf("/") == 0) constraint_data = constraint_data.substring(1);
+            if(constraint_data.lastIndexOf("/") == constraint_data.length-1) constraint_data = constraint_data.substring(0, constraint_data.length-1);
+            var myRegExp = new RegExp(constraint_data, 'u');
+            if (element.value.match(myRegExp) == null) {
                 element.errors++;
-                element.errorText = "plase give something within the constraint: " + (element.fld.constraint_description? element.fld.constraint_description:element.fld.constraint_data);
-
+                element.errorText = "please give something within the constraint: " + (element.fld.constraint_description? element.fld.constraint_description:element.fld.constraint_data);
             }
         }
         
-
-    /*    if (element.fld.constraint!="choice+"&&!element.fld.is_hidden_fg && !element.fld.is_readonly_fg &&  element.idList && element.idList.indexOf(element.value) == -1) {
-            //alert(element.idList);
-            element.errors++;
-            element.errorText = "plase give valid id";
-       }*/
         element.fld.modifications=element.modifications;
         element.fld.errors=element.errors;
 
@@ -1318,7 +1425,6 @@ function vjRecordView ( viewer )
             var v=gObject(this.RVtag+"-"+element.fld.name+"-status");
             var g=gObject(this.RVtag+"-status");
             if (o || v || g) {
-                //alert("I will call function")
                 t = this.elementStatusText(element);
                 if(o)o.innerHTML=t;
                 if(v)v.innerHTML=t;
@@ -1326,58 +1432,97 @@ function vjRecordView ( viewer )
             }
 
         }
-        //this.redraw(element)
     };
 
-    this.accumulateValues=function(element, propagatedown, separator, togetherWithNonModified, withoutHidden, cmdLineStyle, forSubmission)
+    this.accumulateValues=function(element, propagatedown, separator, togetherWithNonModified, withoutHidden, cmdLineStyle, forSubmission, formData)
     {
         var t="";
 
         if(element) {
-            var doshow=true;
+            var doshow = true;
+            var dofiles = null;
 
-            if( !togetherWithNonModified && element.value==element.value0 )
+            if( !togetherWithNonModified && element.fld.type != "file" && element.value==element.value0 )
                 doshow=false;
-            if( withoutHidden && ( element.fld.is_hidden_fg==true || element.fld.name.charAt(0) == "_") )
+            if( withoutHidden && ( element.fld.is_hidden_fg==true || element.fld.name.charAt(0) == "_") && !element.fld.force_unhidden )
                 doshow=false;
-            if( !element.value || element.value.length==0)
-                doshow = false;
-            if (!element.value && element.modifications>0 && element.fld.type!='list' && element.fld.type!='array')
-                doshow = true;
-            if (forSubmission && !element.fld.is_submittable)
-                doshow = false;
 
-            //if(!doshow)alerJ(element.fld.name +" " + doshow ,element)
-            if( doshow) {
+            if (element.fld.type == "file") {
+                if (element.inputNode.files && element.inputNode.files.length) {
+                    dofiles = element.inputNode.files;
+                }
+            } else {
+                if (!element.value || element.value.length == 0)
+                    doshow = false;
+                if (!element.value && element.modifications>0 && element.fld.type!='list' && element.fld.type!='array')
+                    doshow = true;
+            }
 
-                if(cmdLineStyle=="CGI") {
-                    //t+="-"+element.fld.name+"="+element.value+"\"";
-                    t+=element.fld.name+"="+encodeURIComponent(element.value);
-                } else if(cmdLineStyle=="no_prop") {
-                    t+=this.elementName(element).replace(/prop\.[0-9]\./,"").replace(/\./g,"_")+"="+encodeURIComponent(element.value);
+            if (forSubmission && !element.fld.is_submittable) {
+                doshow = false;
+                dofiles = null;
+            }
+
+            if (doshow) {
+                var name;
+                var value = element.value;
+                if (dofiles && !formData) {
+                    value = Array.prototype.map.call(dofiles, function(file) { return file.name }).join(";");
                 }
-                else if(cmdLineStyle) {
-                    t+="-"+element.fld.name+" \""+element.value+"\"";
+
+                var equals = "=";
+                var encode = true;
+
+                if (cmdLineStyle=="CGI") {
+                    name = element.fld.name;
+                } else if (cmdLineStyle=="no_prop") {
+                    name = this.elementName(element, true).replace(/prop\.[0-9]\./,"").replace(/\./g,"_");
+                } else if (cmdLineStyle) {
+                    name = "-" + element.fld.name;
+                    equals = " ";
+                    encode = false;
+                    value = '"' + value + '"';
+                } else {
+                    name = this.elementName(element, true);
                 }
-                else {
-                    t+=this.elementName(element)+"="+encodeURIComponent(element.value);
+                
+                if(element.fld.type == "datetime"){
+                    let tmp = (new Date(value)).getTime();
+                    tmp /= 1000;
+
+                    if(isNaN(tmp)) value = (new Date(parseInt(value))).getTime(); 
+                    else value = tmp;
+                }
+
+                if (formData) {
+                    if (dofiles) {
+                        Array.prototype.forEach.call(dofiles, function(file) {
+                            formData.append(name, file);
+                        });
+                    } else {
+                        formData.append(name, value);
+                    }
+                } else {
+                    if (encode) {
+                        value = encodeURIComponent(value);
+                    }
+                    t += name + equals + value;
                 }
             }
         }
         else element=this.nodeTree.root;
         if(!propagatedown)return ;
         for( var ie=0; ie<element.children.length; ++ie) {
-            var r=this.accumulateValues(element.children[ie], propagatedown,separator,togetherWithNonModified,withoutHidden ,cmdLineStyle,forSubmission);
+            var r=this.accumulateValues(element.children[ie], propagatedown, separator, togetherWithNonModified, withoutHidden, cmdLineStyle, forSubmission, formData);
             if(r.length && t.length) t+=separator;
             t+=r;
         }
-        //alert(t)
+
         return t;
     };
 
     this.changeElementValue=function (fldName , eleVal , rownum , dovalidate , doTriggerOnChange, forceConstruct)
     {
-        //if want to set up multiple levels in the viewer
         if ((eleVal instanceof Object) && !(eleVal instanceof Array)){
             if (eleVal.name){
                 var arr = this.accumulate( "node.fld.name=='" + (eleVal.name) + "'", "node");
@@ -1398,38 +1543,9 @@ function vjRecordView ( viewer )
                 this.changeElementValueByPath(arr[0].path, eleVal , rownum , dovalidate, doTriggerOnChange , forceConstruct );
             return ;
         }
-        /*
-        if(!rownum)rownum=0;
-        var arr = this.accumulate("node.fld.name=='" + (fldName) + "'", "node");
-        if(!arr || arr.length<rownum+1)return ;
-        arr[rownum].value = eleVal;
-
-        if ((arr[rownum].fld.type.indexOf("bool") == 0) && ((eleVal==1)||(eleVal == 'true')) ){
-            this.formObject.elements[arr[rownum].name].checked = true;
-        }
-        else{
-            this.formObject.elements[arr[rownum].name].value = eleVal;
-        }
-        //alerJ(fldName+"="+eleVal + " \n"+arr[rownum].fld.constraint ,arr[rownum]);
-        if (forceConstruct || arr[rownum].fld.constraint.indexOf("choice")!=-1 ||(arr[rownum].fld.constraint == "type" || arr[rownum].fld.constraint.indexOf("search")!=-1)){
-            //alerJ("OK "+fldName+"="+eleVal,arr[rownum]);
-            this.constructElementViewers(arr[rownum],true);
-            if (arr[rownum].length > 1) {
-                this.constructInfrastructure(element, fld.children[0].name, false, 1);
-            }
-        }
-        this.redraw(this.nodeTree.root,true);
-
-        if(doTriggerOnChange && this.onChangeCallback)
-            return funcLink(this.onChangeCallback, this, arr[rownum], this.formObject.elements[arr[rownum].name] );
-
-        if (dovalidate) {
-            this.validate(arr[rownum], true);
-        }
-        */
     };
 
-    this.changeElementValueByPath=function (fldPath , eleVal , rownum , dovalidate, doTriggerOnChange, forceConstruct, donotredraw)
+    this.changeElementValueByPath=function (fldPath , eleVal , rownum , dovalidate, doTriggerOnChange, forceConstruct, donotredraw, node)
     {
 
         if(!rownum)rownum=0;
@@ -1437,7 +1553,6 @@ function vjRecordView ( viewer )
 
         var element=this.nodeTree.findByPath(fldPath);
         if(element.elementValueArray)    element.elementValueArray = eleVal;
-        //var element = this.accumulate("node.fld.path=='" + (fldPath) + "'", "node")[0];
         var par=element.parent;
         if( (eleVal instanceof Array) && (element.fld.is_multi_fg && ((element.fld.constraint=='search') || (element.fld.constraint=='type'))) ) {
 
@@ -1455,7 +1570,6 @@ function vjRecordView ( viewer )
                 var newchild= ie==0 ? element : par.children[par.children.length-1];
                 newchild.value=eleVal[ie];
                 newchild.hidden= (ie==0) ? false: true;
-                //alerJ(ie,newchild)
             }
 
 
@@ -1485,17 +1599,9 @@ function vjRecordView ( viewer )
                 this.formObject.elements[arr[rownum].name].value = eleVal;
             }
 
-           // if (forceConstruct || arr[rownum].fld.constraint.indexOf("choice") != -1 || (arr[rownum].fld.constraint == "type" || arr[rownum].fld.constraint == "search")) {
-                //this.constructElementViewers(arr[rownum], true);
-               /* if (arr[rownum].length > 1) {
-                    this.constructInfrastructure(element, fld.children[0].name, false, 1);
-                }*/
 
-            //}
         }
 
-       // if (!donotredraw)
-        //    this.redraw(this.nodeTree.root,true);
 
         this.constructElementViewers(element, true);
         if(this.autoSaveOnChange)
@@ -1503,17 +1609,11 @@ function vjRecordView ( viewer )
 
         if (dovalidate) {
             this.validate(par, true);
-            //this.validate(arr[rownum], true);
         }
 
         if(doTriggerOnChange && this.onChangeCallback)
-            return funcLink(this.onChangeCallback, this, arr[rownum], this.formObject.elements[arr[rownum].name] );
+            return funcLink(this.onChangeCallback, this, arr[rownum], this.formObject.elements[arr[rownum].name], node );
 
-        /*if (dovalidate) {
-            if(arr[rownum].fld.is_multi_fg==1)
-                this.validate(arr[rownum].parent, true);
-            this.validate(arr[rownum], true);
-        }*/
     };
 
     this.changeValueList=function(obj)
@@ -1529,7 +1629,6 @@ function vjRecordView ( viewer )
                     function (par, txt) {
                         var txtVal = txt;
                         if (txt && txt.length && ((txt[0] == '[' && txt[txt.length - 1] == ']') || (txt[0] == '{' && txt[txt.length - 1] == '}'))) {
-                            // txt looks like a query language structure
                             txtVal = null;
                             try {
                                 txtVal = JSON.parse(txt);
@@ -1541,16 +1640,12 @@ function vjRecordView ( viewer )
                                 if(isok(elem)) {
                                     
                                     if(elem.fld.constraint.indexOf('choice')==0) {
-                                        var a=txtVal.split("\n");
-                                        var opt="";
-                                        for( var i=0; i<a.length; ++i ) { 
-                                            opt+=a[i]+","+a[i]+"\n";
-                                        }
+                                        elem.choiceOption = txtVal.split("\n").map(function(a) {
+                                            return { description: a, value: a };
+                                        });
                                         txtVal=txtVal.replace(/\n/g,"|");
-                                        elem.choiceOption="description,value\n"+opt;
                                     }
                                     elem.fld.constraint_data=txtVal;
-                                    //par.obj.constructElementViewers( elem,true);
                                                                         
                                 }
                             }
@@ -1577,9 +1672,9 @@ function vjRecordView ( viewer )
         else return arr[parseInt(which)];
     };
 
-    this.getElement=function( fldName, which)
+    this.getElement=function( fldName, which, node)
     {
-        var arr = this.accumulate("node.fld.name=='" + (fldName) + "'", "node");
+        var arr = this.accumulate("node.fld.name=='" + (fldName) + "'", "node",null,node);
         if(!which)which=this.whichDefined;
         if(!which)return arr[0];
         else if(which=="join")return arr.join(",");
@@ -1622,9 +1717,6 @@ function vjRecordView ( viewer )
         return t;
     };
 
-    // substitute $(key) expressions which are located closest in the node tree to the specified element;
-    // keys present in field tree but not in the node tree are replaced with empty string "";
-    // keys that are not present in the field tree are left unchanged
     this.computeExpressionAtElement = function(expr, element)
     {
         var this_ = this;
@@ -1646,15 +1738,12 @@ function vjRecordView ( viewer )
         });
     };
 
-    // retrieve constraint_data as object (for search/search+) or string (other constraints)
-    // and then perform all appropriate $(key) expression substitutions
     this.computeConstraintData = function(element) {
         var constraint_data = "";
         var fld = element.fld;
         if (fld.constraint == "search" || fld.constraint == "search+") {
             var this_ = this;
-            var constraint_data_raw = eval("new Object(" + fld.constraint_data + ")"); // TODO: switch to JSON.parse
-            // recusively substitute object/array values
+            var constraint_data_raw = eval("new Object(" + fld.constraint_data + ")");
             constraint_data = function computeExpressionRecursive(o) {
                 if (o instanceof Array) {
                     o.forEach(function(e, i, o) {
@@ -1679,31 +1768,14 @@ function vjRecordView ( viewer )
         }
         return constraint_data;
     };
-/*
-    this.retrieveFieldValue=function (fldName, url)
-    {
-        ajaxDynaRequestPage(url, {objCls: this.objCls, callback:'onRetrieveValueFromURLCallback', fldName: fldName  }, vjObjAjaxCallback, false );
-    }
-    
-    this.onRetrieveValueFromURLCallback = function(container, text )
-    {
-        //alert(container +"\n"+text);
-        this.changeElementValue(container.fldName,text,0,true);
-    }
-*/
     this.getElementValue=function( fldName, which)
     {
 
         var vals=this.accumulate( "node.fld.name=='"+fldName+"' && isok(node.value)","node.value" );
 
-         //var el=this.accumulate( "node.fld.name=='"+fldName+"'","node" );
-        //if(el.length && el[0].jointVal && vals.length==1 )
-        //    vals=vals[0].split(";");
 
         if(!vals)return null;
         if(!which)which=this.whichDefined;
-
-        //alerJ(fldName+"+"+vals+"=="+which,el[0])
 
         if(!which )return vals[0];
         else if(which=="join")return vals.join(",");
@@ -1715,7 +1787,6 @@ function vjRecordView ( viewer )
 
     this.attached=function(kind, name )
     {
-        //alert(kind+"/."+name,"",this[kind])
         if(!name)return this[kind];
         else if(!this[kind])return null;
         return this[kind][name];
@@ -1727,32 +1798,38 @@ function vjRecordView ( viewer )
         var separator=this.separator?this.separator:"&";
         this.setUrl = this.cmdPropSet + separator + "raw=1" + separator;
 
-        ///this.setUrl+="type."+this.idForProp(this.hiveId)+"="+this.objType+separator;
-        //this.setUrl+="prop."+this.idForProp(this.hiveId)+"._type="+this.objType+separator;
         this.enumerate("if(node.fld.type=='list') node.value='';if(node.isCopy)  node.value='';");
         var arr = this.accumulate("(node.fld.type=='password') && node.value && node.value.length", "node");
-        if(arr.length && arr[0].fld.type=='password'){
-            //not sure if the forObject.submit() submit varies by post
-            //so set useajax true
-            useajax = true;
-            this.submitByPost= true;
+        if(arr.length && arr[0].fld.type == 'password') {
+            this.submitByPost = true;
         }
-        this.setUrl += this.accumulateValues(element, true, separator, this.accumulateWithNonModified, this.accumulateWithoutHidden, this.submitFormat, true);
+        var formData;
+        if (useajax == "FormData") {
+            formData = new FormData();
+        }
+        this.setUrl += this.accumulateValues(element, true, separator, this.accumulateWithNonModified, this.accumulateWithoutHidden, this.submitFormat, true, formData);
 
         var oldcb;
         if(callback){
             oldcb=this.setDoneCallback ;
             this.setDoneCallback = callback;
         }
-        if( useajax ) {
-            ajaxDynaRequestPage(this.setUrl, {objCls: this.objCls, callback:'onSetCallback',dowhat:whattodo}, vjObjAjaxCallback, this.submitByPost  ? true : false );
+        if( useajax && useajax != "later") {
+            var submitByPost = this.submitByPost || (useajax == "FormData");
+            ajaxDynaRequestPage(this.setUrl, {objCls: this.objCls, callback:'onSetCallback', dowhat:whattodo}, vjObjAjaxCallback, submitByPost, formData);
+        } else {
+                if(useajax == "later") return;
+            this.formObject.submit();
         }
-        else this.formObject.submit();
         if(oldcb) {
             this.setDoneCallback =oldcb;
         }
-        //alert(this.setUrl);
     };
+    
+    this.submitAfterSave = function (element, useajax, callback, whattodo ){
+            var submitByPost = this.submitByPost || (useajax == "FormData");
+        ajaxDynaRequestPage(this.setUrl, {objCls: this.objCls, callback:'onSetCallback', dowhat:whattodo}, vjObjAjaxCallback, submitByPost, undefined);
+    }
 
     this.accumulate=function( checker, collector , params, node )
     {
@@ -1765,11 +1842,6 @@ function vjRecordView ( viewer )
     };
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Event Handlers
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
     this.onRevert=function( container, path, donotredraw)
@@ -1784,12 +1856,10 @@ function vjRecordView ( viewer )
             this.redraw();
     };
 
-    this.onSetCallback=function(param, text)
+    this.onSetCallback=function(param, text , page_request)
     {
-        //it's so confused.. actually it's for save and create button
-        //and this part works for create logic....
 
-        if(text.indexOf('error:')!=-1){
+        if(text.indexOf('error:')!=-1 || text.indexOf('err.') != -1){
             var textMessage="";
             var firstN = text.indexOf('\n');
             if(firstN!=-1){
@@ -1821,52 +1891,52 @@ function vjRecordView ( viewer )
                      if(o) o.innerHTML+=tbl.rows[i].cols[1]+" ";
                 }
             }
+            if(this.ErrorOnSave){
+               this.ErrorOnSave(text);
+            }
         }
-
-        //alert(text.indexOf('\n'))
+ 
         if (this.implementSaveButton || this.implementCopyButton) {
             var hiveId = text.slice(text.indexOf("_id=") + 4);
             if(parseHiveId(hiveId).objId > 0) this.ForSaveReload(hiveId);
             else if(param.dowhat && param.dowhat=='copy')
                 this.ForSaveReload('-'+this.hiveId);
-        }
-        //alerJ(this.setDoneCallback + '====' + text,this);
+        } 
+
+
         if(this.setDoneCallback)
-            return funcLink(this.setDoneCallback, this, text );
+            return funcLink(this.setDoneCallback, this, text , page_request);          
         for(var iv=0; iv<this.data.length; ++iv) {
             this.getData(iv).reload(null,true);
         }
     };
 
-    this.ForSaveReload = function (hiveId) {
-        //if (!hiveId) return;
-        //var newurl = urlExchangeParameter(this.vjDS[this.data].url, "ids", hiveId);
-        //alert("asdf")
-        newurl = "?cmd=record&ids=" + hiveId + "&types=" + this.objType;
-        if(hiveId.charAt(0)!='-')alert("Record Created Successfully");
-        else alert("Record Copied Successfully")
-        window.location.href = newurl;
-        //this.vjDS[this.data].reload(newurl,true);
-    };
+    if (!this.ForSaveReload){
+        this.ForSaveReload = function (hiveId) {
+            newurl = makeCmdSafe(this.recordEditingCommand)+"&ids=" + hiveId + "&types=" + this.objType;
+            if(hiveId.charAt(0)!='-')alert("Record Created Successfully");
+            else alert("Record Copied Successfully")
+            window.location.href = newurl;
+        };
+    }
 
     this.onSet=function( container, path, whattodo)
     {
         var element=this.nodeTree.findByPath(path);
 
-        //gObject(this.RVtag+"-SET").innerHTML=url;
         var docontinue=true;
         if(this.setCallback)
-            docontinue = funcLink(this.setCallback);
+            docontinue = this.setCallback(container, path, whattodo);
         if(!docontinue)
             return;
         if (!this.noAutoSubmit) {
-            //alerJ("auto", element)
             this.saveValues(element, true,null,whattodo);
-        }
+        }else if (this.noAutoSubmit) {
+           this.saveValues(element, true ,this.myCallback,whattodo);
+         }
     };
 
     this.onSetVerification = function (container, path, whattodo) {
-        //alerJ("d", this.nodeTree.root)
         if (((this.nodeTree.root.warnings == this.nodeTree.root.errors) && this.hiveId == this.objType) || ((this.hiveId != this.objType) && !this.nodeTree.root.errors)) this.onSet(container, path, whattodo);
         else if (this.nodeTree.root.errors) alert("Please give the value within constraint");
     };
@@ -1876,16 +1946,12 @@ function vjRecordView ( viewer )
         if(typeof obj == 'string')
             obj=eval(obj);
         for ( nm in obj ) {
-            // var el=this.getElement( nm );
             var el = this.fldTree.findByName(nm);
             if ( !el )continue;
 
             for ( attr in obj[nm] ) {
-                //if(!obj[nm][attr])continue;
                 var val= obj[nm][attr];
-                //if(!val)val="";
                 el[attr]=obj[nm][attr];
-                //alerJ(111+ "--"+nm +"."+attr+"="+val);
             }
         }
     };
@@ -1901,11 +1967,16 @@ function vjRecordView ( viewer )
         var o=gObject(elname+"-children");if(!o)return;
 
         var  plsmin;
-        if(o.className=="sectHid") {o.className=this.tblClass+"_table";plsmin=this.icons.collapse;}
-        else {o.className="sectHid" ;plsmin=this.icons.expand;}
+        if (element.expanded) {
+            o.className=this.tblClass+"_table";
+            plsmin=this.icons.collapse;
+        } else {
+            o.className="sectHid";
+            plsmin=this.icons.expand;
+        }
         o=gObject(elname+"-collapser");if(!o)return;
 
-        o.innerHTML=plsmin;//"<img widht=24 height=24 src='img/rec"+plsmin+".gif'>";
+        o.innerHTML=plsmin;
 
     };
 
@@ -1920,12 +1991,11 @@ function vjRecordView ( viewer )
 
         var fld=element.fld;
 
-        var url = "http://";
+        var url = "http:
 
         var popupType = "basic";
         var that=this;
 
-        // constraint_data may have substitutable substrings and need jsonification
         var constraint_data = this.computeConstraintData(element);
 
         if(fld.constraint == "type") {
@@ -1945,7 +2015,7 @@ function vjRecordView ( viewer )
             else  if(this.popObjectViewer && this.popObjectViewer.refresh)
                 setTimeout(function(){that.popObjectViewer.refresh();},150);
         } else {
-            this.vjDS["ds" + this.container].reload("static:// ", true);
+            this.vjDS["ds" + this.container].reload("static:
             if (this.eltOfPopObjectViewer != element ) {
                 this.eltOfPopObjectViewer = element;
                 this.constructPopUpViewer(undefined, popupType);
@@ -1960,13 +2030,12 @@ function vjRecordView ( viewer )
 
         var gModalCallback = "vjObjEvent('onClosepop','" + this.objCls + "')";
 
-        //undefined clickCount prevents closing of popUp
         var clickCount = fld.is_multi_fg  ? "-" : undefined;
 
         var tableDS = null;
         if (popupType == "explorer") {
             clickCount = 0;
-            gModalCallback = "true;";//function _t(){gOnDocumentClickCallbacksStack[iv].clickCounter;return true;};_t(); ";
+            gModalCallback = "true;";
 
             cur_table = this.popObjectViewer.getActiveViewer();
             var selectedTAB = this.popObjectViewer.tables_DV.selected;
@@ -1981,13 +2050,15 @@ function vjRecordView ( viewer )
         if (fld.constraint == "type") {
             var turl = urlExchangeParameter(tableDS.url_tmplt, "type", encodeURIComponent(constraint_data));
             tableDS.url_tmplt= turl;
+            if(!this.popObjectViewer['urlValues']){  this.popObjectViewer['urlValues'] = {} }
+            this.popObjectViewer['urlValues']['type'] = constraint_data
         } else if (fld.constraint == "search" || fld.constraint == "search+") {
             var url=constraint_data.url;
             if (constraint_data.qryLang && popupType == "explorer") {
                 this.popObjectViewer.qryLang = true;
             }
             if (!url) {
-                url = "static://";
+                url = "static:
             }
             if (tableDS) {
                 tableDS.url_tmplt = url;
@@ -2023,9 +2094,7 @@ function vjRecordView ( viewer )
             } else if (popupType == "basic" && this.defaultOutlineShow) {
                 cur_table.cols = this.defaultOutlineShow;
             }
-            //alert(url)
             if(cur_panel)cur_panel.hidden = false;
-            //alert("befire"+element.value)
 
             var checkedValues = null;
 
@@ -2064,16 +2133,14 @@ function vjRecordView ( viewer )
                     }
                 };
             }
-
+            url=evalVars(url, "$(", ")", this );
             this.vjDS["ds" + this.container].reload(url, true);
         }
         else if (fld.constraint == 'choice' || fld.constraint == 'choice+') {
-//            if(this.whichToConstruct == 2){
-//                this.whichToConstruct = 1;
-//                this.constructPopUpViewer();
-//            }
             cur_table.iconSize = 0;
-            url = "static://" + element.choiceOption;
+            url = "static:
+                return s + "\n" + quoteForCSV(c.description) + "," + quoteForCSV(c.value); 
+            }, "");
             if(cur_panel)cur_panel.hidden = true;
             cur_table.checkable = false;
             cur_table.multiSelect = false;
@@ -2084,8 +2151,7 @@ function vjRecordView ( viewer )
         fld.compleURLUsed=url;
 
         this.currentPopupElement=element;
-
-        var xx=(gMoX+1000>gPgW) ? gPgW-1000 : gMoX;
+        var xx=(gMoX+1000>gPgW) ? gPgW-1000 : gMoX; 
         gModalOpen(this.myFloaterName+"Div", gModalCallback , xx, gMoY, clickCount);
     };
 
@@ -2096,7 +2162,7 @@ function vjRecordView ( viewer )
         var allList = viewer.accumulate("1", whatToAccumulate).join(";");
         this.currentPopupElement.idList = allList;
 
-        this.parsePopupList(list);
+        this.parsePopupList(list, node);
     };
 
     this.onGetPopupList = function (viewer,nodelist) {
@@ -2115,9 +2181,8 @@ function vjRecordView ( viewer )
         this.onClosepop(true);
     };
     
-    this.parsePopupList = function (list) {
+    this.parsePopupList = function (list, node) {
         var element=this.nodeTree.findByPath(this.currentPopupElement.path);
-        // var elementValue;
          if(element.fld.is_multi_fg){
              if(!element.elementValueArray){
                  element.elementValueArray = new Array();
@@ -2145,11 +2210,11 @@ function vjRecordView ( viewer )
              whatToPass = list.length ? list[0] : "";
          }
 
-         this.changeElementValueByPath(this.currentPopupElement.path, whatToPass, 0, true, true);
+         this.changeElementValueByPath(this.currentPopupElement.path, whatToPass, 0, true, true, undefined, undefined, node);
 
          var res=0;
          if(this.currentPopupElement.fld.selectCallback){
-             res=funcLink(this.currentPopupElement.fld.selectCallback, viewer,node , this);
+             res=funcLink(this.currentPopupElement.fld.selectCallback, viewer, undefined , this);
          }
          if( !this.currentPopupElement.fld.is_multi_fg )
              {this.onClosepop(true);}
@@ -2166,8 +2231,6 @@ function vjRecordView ( viewer )
 
     this.onCheckOutsideList=function(viewer, node, element, nodeProp, donotredraw)
     {
-        // alerJ("a", node);
-
         if (!element) element = this.currentPopupElement;
 
         var whatToAccumulate = this.elementValueAccumulator(element, nodeProp);
@@ -2182,12 +2245,10 @@ function vjRecordView ( viewer )
         }
         else {
             if (node.checked) {
-                //this.onAddElement(this.objCls, element.path, element.children[0].fld.name);
-                //alerJ("aa",element.fld)
                 if (element.fld.children.length!=0){
                     this.constructInfrastructure(element, element.fld.children[0].name, false, 1);
                     element.children[element.children.length - 1].value = node[nodeProp];
-                }//this.redraw();
+                }
             }
             else {
                 var deleteRow;
@@ -2195,7 +2256,6 @@ function vjRecordView ( viewer )
                     if (element.children[i].value == node[nodeProp]) deleteRow = element.children[i].row;
                 }
                 this.onDelElement(this.objCls, element.path, deleteRow, 1, true, true);
-                //this.redraw();
             }
         }
 
@@ -2206,19 +2266,17 @@ function vjRecordView ( viewer )
         var allList = viewer.accumulate("1", whatToAccumulate).join(";");
         element.idList = allList;
         this.changeElementValueByPath(element.path, elementValue, 0, true, true, false, donotredraw);
-        // use element, because this.currentPopupElement may be undefined when using outside viewers
         if(element.fld.checkCallback)
             return funcLink(element.fld.checkCallback, viewer, node, this);
     };
 
     this.onClosepop=function(force)
     {
-        //var viewer=vjDV.locate(this.container+"_popViewer.select.0");
         if (gKeyCtrl == 0 || force) {
             gModalClose(this.myFloaterName+"Div");
             this.currentPopupElement = null;
         }
-        return 1; //onClosepop is called from href and firefox will jump unless return is false
+        return 1;
     };
 
     this.onAddElement=function(container,path, kind)
@@ -2269,10 +2327,8 @@ function vjRecordView ( viewer )
         if(((element.fld.constraint=='search') || (element.fld.constraint=='type') )  && element.viewerAssociated)
         {
             var viewer = this.dataViewEngine[element.viewerAssociated].tabs[0].viewers[0];
-            // delete selected values, preserve non-selected
             var preserveValues = viewer.accumulate("node.selected!=1", this.elementValueAccumulator(element));
             if (preserveValues && preserveValues.length == viewer.dim()) {
-                // if the user didn't select any values for deletion - assume he wants to delete all values
                 preserveValues = [];
             }
             this.changeElementValueByPath(path, preserveValues, 0, true, true);
@@ -2292,7 +2348,6 @@ function vjRecordView ( viewer )
 
     this.onDelElement=function (container, path, row, cntdel, notrecurse,Notredraw)
     {
-        //   alert("path"+path)
         if (!Notredraw) Notredraw = false;
         var element=this.nodeTree.findByPath(path);
 
@@ -2315,7 +2370,6 @@ function vjRecordView ( viewer )
         if (newchld.length == 0 && element.parent && !notrecurse && element.fld.type != "array") {
             return this.onDelElement(container, element.parent.path, element.row , 1 , true) ;
         }
- //       alert(element.path)
         element.children = newchld;
         if (!Notredraw) this.redraw();
     };
@@ -2327,7 +2381,6 @@ function vjRecordView ( viewer )
     this.onChangeSelectValue=function (container, path , selbox)
     {
         var element=this.nodeTree.findByPath(path);
-        //alert("before " + element.value);
         element.value=selbox.value;
         if (element.fld.is_multi_fg) element.parent.modifications = 1;
         element.modifications = 1;
@@ -2342,7 +2395,6 @@ function vjRecordView ( viewer )
     this.onChangeTextValue=function (container, path , textbox)
     {
         var element=this.nodeTree.findByPath(path);
-//        if((typeof(element)==="array") && element.length==2)
 
         if( element.fld.type=="bool")element.value=textbox.checked ? 1 : 0;
         else if(element.fld.type=='file'){
@@ -2350,12 +2402,24 @@ function vjRecordView ( viewer )
             if(o){
                 element.inputNode = o;
             }
-            //alerJ('a',o);
+        }else if(element.fld.type=="datetime"){
+            var val = textbox.value;
+            var date = new Date(val);
+            if(!isNaN(date.getDate())){
+                var fDate = date.getFullYear() + "/" + (date.getMonth()+1 < 10 ? ("0"+(date.getMonth()+1)) : (date.getMonth()+1)) + "/" + 
+                        (date.getDate() < 10 ? ("0"+date.getDate()):date.getDate()) + " " + (date.getHours()<10?("0"+date.getHours()):date.getHours()) + 
+                        ":" + (date.getMinutes()<10?("0"+date.getMinutes()):date.getMinutes()) + ":" + 
+                        (date.getSeconds()<10?("0"+date.getSeconds()):date.getSeconds());
+                textbox.value = fDate;
+                element.value = fDate;
+            }
+            else{
+                element.value = textbox.value;
+            }
         }else{
             element.value=textbox.value;
         }
-       // if (element.fld.constraint.indexOf("choice")!=-1 || element.fld.type == "obj" && (element.fld.constraint == "type" || element.fld.constraint == "search"))
-            //this.constructElementViewers(this.nodeTree.roo);
+        
         this.constructElementViewers(element, true);
         this.validate(this.nodeTree.root, true);
         if(this.autoSaveOnChange)
@@ -2384,7 +2448,7 @@ function vjRecordView ( viewer )
 
             if(o) {
                 o.innerHTML=fieldtext;
-                this.previousHelp=o.id;//element.fld.name+"_descriptionDiv";
+                this.previousHelp=o.id;
             }
         }
     };
@@ -2400,18 +2464,15 @@ function vjRecordView ( viewer )
                 }
 
             }
-            // alert("searchig for " + elname+"-controls");
+
             var o=gObject(elname+'-'+this.RVtag+"-controls");
             if(!o){
-                //alert("searchig for parent of " + elname+"-controls which is "+this.elementName(element.parent)+"."+element.row+"-controls");
                 elname=this.elementName(element.parent)+"."+element.row;
                 o=gObject(elname+'-'+this.RVtag+"-controls");
-              //  alert(o);
             }
 
             return this.showControlsByElname(container, elname, showorhide);
         }
-        //setTimeout("this.onMouseOver('"+container+"','"+path+"',"+ (1-showorhide)+" )",5000);
 
     };
 
@@ -2424,18 +2485,12 @@ function vjRecordView ( viewer )
             this.previousControl = "";
         }
 
-        //alert("path="+path + "  showorhide="+showorhide + " "+elname+"-controls" );
         if (o) {
             o.className = showorhide ? "sectVis" : "sectHid";
             this.previousControl = elname+'-'+this.RVtag+"-controls";
         }
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ HTML construction function
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     this.wantCollapseElement = function(element)
     {
@@ -2465,34 +2520,23 @@ function vjRecordView ( viewer )
 
     this.generateText=function ( element, hidetitle, prohibitLayering)
     {
-        //var hidetitle = false;
         var fld = element.fld;
         var elname=sanitizeElementId(this.elementName(element));
 
         var tTit="";
 
-        /*if(fld.hidden || fld.is_hidden_fg)return "";
-        if(fld.is_readonly_fg && !this.readonlyMode && !this.showReadonlyInNonReadonlyMode) {
-            return "";
-        }*/
-
-        //alert(fld.constraint)
         if (this.wantCollapseElement(element))
             hidetitle = true;
 
         if(fld.hidden) hidetitle=true;
 
-        // _/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ Here we construct the title of the element
-        // _/
 
         if(fld.icon)  {
             tTit+="<td><img src='img/"+icon+"' /></td>";
         }
 
-        if (!hidetitle) {  // && fld.hidden
-            if(element.children.length>0 )  { // && fld.maxEl>1
+        if (!hidetitle) {
+            if(element.children.length>0 )  {
                 tTit += "<td id='" + elname + "-group'><small>";
                 tTit+= "<a href='javascript:vjObjEvent(\"onClickExpand\",\""+ this.objCls+"\",\""+sanitizeElementAttrJS(element.path)+"\")'>";
                 tTit+="<span id='"+elname+"-collapser'>"+( element.expanded>=this.expansion ? this.icons.collapse  : this.icons.expand )+"</span>";
@@ -2501,34 +2545,18 @@ function vjRecordView ( viewer )
             } else
                tTit+="<td>"+this.icons.itemRow+"</td>";
 
-            //if(!fld.div) {
             tTit += "<td id='" + elname + "-title' >";
                  var usetitle = element.title ? element.title : fld.title;
                 tTit+=usetitle;
-                if(this.debug){
-                    tTit+="<small><small><br/>";
-                    tTit+= (fld.is_optional_fg?"O":"-")+(fld.is_multi_fg?"M":"-");
-                    //if(fld.type=="list" || fld.type=="array")
-                        tTit+=":"+elname+":"+element.path;
-                    tTit+="</small></small>";
-                }
                 tTit+="</td>";
-            //}
         }
 
 
-        // _/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ Here we construct the body of the element (without children)
-        // _/
 
-        if (fld.type == "list" && !fld.constraint ) {
+        if ( (fld.type == "list" && !fld.constraint) || fld.type=="array") {
 
-        } else if( fld.type=="array"  ) {
-            if( element.children.length<fld.maxEl*fld.children.length ) {
-                if(this.debug)tTit+="<td><small><small>["+element.children.length+"]"+fld.type+"</small></small></td>";
-            }
-        } else { // other types
+            
+        } else {
 
             val=element.value;
 
@@ -2539,7 +2567,7 @@ function vjRecordView ( viewer )
             tTit += "<td align=left " + (fld.hidden ? "class='sectHid'" : "");
 
             var eventFuncsWithoutClickNode = eventFuncs;
-            if (fld.constraint == 'search'  || (fld.constraint == "type") || (fld.constraint == 'choice' || fld.constraint == 'choice+' && !fld.is_readonly_fg && !fld.is_hidden_fg)) { // Searchable types : dialogs are open when clicking on the table cell
+            if (fld.constraint == 'search'  || (fld.constraint == "type") || (fld.constraint == 'choice' || fld.constraint == 'choice+' && !fld.is_readonly_fg && !fld.is_hidden_fg)) {
                 eventFuncs+="onClick='vjObjEvent(\"onClickNode\",\""+ this.objCls+"\",\""+ sanitizeElementAttrJS(element.path)+"\", \" \"); stopDefault(event);' ";
             }
             tTit+=">";
@@ -2550,7 +2578,7 @@ function vjRecordView ( viewer )
                 eventFuncsWithoutClickNode = '';
             }
 
-            if ((fld.constraint == 'choice' ) && (fld.is_readonly_fg || fld.is_hidden_fg)) { // CHOICE
+            if ((fld.constraint == 'choice' ) && (fld.is_readonly_fg || fld.is_hidden_fg)) {
                 var chc = fld.constraint_data.split("|");
                 tTit+="<select" + this.fieldDescriptionTitle(fld) + " ";
                 tTit+=eventFuncs;
@@ -2558,20 +2586,26 @@ function vjRecordView ( viewer )
                 if(fld.is_readonly_fg)tTit+=" readonly='readonly' disabled='disabled' ";
                 tTit+="class='"+this.inputClass+(fld.is_readonly_fg?"ReadOnly":"")+"' type='select' name='"+elname+"' >";
                 for( var ic=0;ic<chc.length; ++ic)  {
-                    var farr=chc[ic].split("///");
-                    //tTit+="<option value='"+farr[0]+"' "+(chc[ic]==val ? "selected" : "")+" />"+farr[1]+(farr.length>1 ? (" - " + farr[1]) : "");
+                    var farr=chc[ic].split("
                     tTit+="<option value='"+sanitizeElementAttr(farr[0])+"' "+(farr[0]==val ? "selected" : "")+" >"+(farr.length>1 ? farr[1] : farr[0]) +"</option>";
                 }
                 if(!chc.length || !chc[0].length){
-                    tTit+="<option value='"+sanitizeElementAttr(val)+"' selected >"+val +"</option>";
+                    tTit+="<option value='"+sanitizeElementAttr(val)+"' selected >"+sanitizeInnerHTML(val) +"</option>";
                 }
                 tTit+="</select>";
 
-            } else { // every other non specifically composable type
+            } else {
 
                 if (fld.type == "datetime") {
-                    //alert("a")
-                    val=formaDatetime(val);
+                    if(val != ""){
+                        var tmp = formatToDate(val);
+                  
+                        if(!isNaN(tmp.getDate()))
+                            val = tmp.getFullYear() + "/" + (tmp.getMonth()+1 < 10 ? ("0"+(tmp.getMonth()+1)) : (tmp.getMonth()+1)) + "/" + 
+                                (tmp.getDate() < 10 ? ("0"+tmp.getDate()):tmp.getDate()) + " " + (tmp.getHours()<10?("0"+tmp.getHours()):tmp.getHours()) + 
+                                ":" + (tmp.getMinutes()<10?("0"+tmp.getMinutes()):tmp.getMinutes()) + ":" + 
+                                (tmp.getSeconds()<10?("0"+tmp.getSeconds()):tmp.getSeconds());
+                    }
                 }
 
                 var myTags=" ";
@@ -2584,34 +2618,37 @@ function vjRecordView ( viewer )
                     myType = this.inputClass + "ReadOnly";
                     myTags += " readonly='readonly' ";
                 }
+                if(fld.is_disabled_fg){
+                    myType = this.inputClass;
+                    myTags += " disabled='true' ";
+                }
                 else myType = this.inputClass;
 
                 myTags+="class='"+myType+"' "+ (this.textsize ? ("size="+this.textsize+"") : "") +" ";
-               // if(fld.is_readonly_fg)myTags+=" readonly ";
-                //if( fld.hidden) myTags+="type='hidden' ";
                 if (fld.type == "bool") myTags += "type='checkbox' ";
                 else if (fld.type == 'password') {
                     myTags += "type='password' ";
                 }
-                    //else if (fld.type == 'obj' && (fld.constraint == 'type' || fld.constraint == 'search')) myTags += "type='text' ";
                 else if(fld.type=="file"){
                     myTags+=" type='file'";
+                    if( fld.is_multi_fg ) {
+                        myTags += " multiple ";
+                    }
                 }
                 else if(fld.type=="date"){
                     myTags+=" type='date'";
                 }
                 else if(fld.type=="datetime"){
-                    myTags+=" type='datetime'";
+                    myTags+=" type='string'";
                 }
                 else myTags += "type='text' ";
                 myTags+="name='"+elname+"'" + this.fieldDescriptionTitle(fld);
                 var oo = gObject(this.RVtag + "-" + fld.name + "-TEMPLATE");
 
-                if(oo && oo.innerHTML){ // here we do template manipulations, if specified
-                    tTit+=oo.innerHTML.replace("%"+this.RVtag+"-INTERFACE-TAGS%",myTags).replace("%"+this.RVtag.toLowerCase()+"-interface-tags%",myTags).replace("%"+this.RVtag+"-INTERFACE-VALUE%",val);
+                if(oo && oo.innerHTML){
+                    tTit+=oo.innerHTML.replace("%"+this.RVtag+"-INTERFACE-TAGS%",myTags).replace("%"+this.RVtag.toLowerCase()+"-interface-tags%",myTags).replace("%"+this.RVtag+"-INTERFACE-VALUE%",sanitizeInnerHTML(val));
                 }
                 else if (fld.constraint == 'type' || fld.constraint == 'search' ) {
-                    //alert(elname)
                     var myRecordVewer = elname + "Viewer"+'-'+this.RVtag;
 
                     if(fld.doNotCollapseMultiValueViewers || !element.parent.childrenOfTypeViewerAssociatedWithElement)
@@ -2625,7 +2662,6 @@ function vjRecordView ( viewer )
 
                     if(element.viewerAssociated ){
                         tTit += "<table " + (this.classChoiceStyle ? "class='" + this.classChoiceStyle + "'" : "") + this.fieldDescriptionTitle(fld) + "><tr><td><input " + (fld.constraint == "search+" ? "" : "class='sectHid'");
-                    //tTit += "<table " + (this.classChoiceStyle ? "class='" + this.classChoiceStyle + "'" : "") + "><tr><td><input " + (fld.constraint == "search+" ? "" : "");
                         tTit+=myTags;
                         tTit += " value='" + sanitizeElementAttr(val) + "' ";
                         tTit += "/></td><td><span  " + (element.fld.is_multi_fg ? eventFuncsWithoutClickNode : eventFuncs) + "  id= \"" + myRecordVewer + "\"></span></td>";
@@ -2633,16 +2669,12 @@ function vjRecordView ( viewer )
 
                             tTit+="<td style='vertical-align:top;'><button class='linker' type='button' " + eventFuncs + "><img src='img/combobox.gif'></button></td>";
 
-                        tTit +=    "</tr></table>"; // <button type=button " +  eventFuncs + "></button>
-                        // tTit += "<span id= \"" + myRecordVewer + "\"></span>";
+                        tTit +=    "</tr></table>";
                         if(fld.constraint_data=='image' || fld.constraint_data=='system-image'){
-                            // for(var i=0;i<val.length;i++){
                                  tTit += "<table " + (this.classSearchStyle ? "class='" + this.classSearchStyle + "'" : "") + "><tr><td>" ;
                                  tTit += "<div id='"+this.RVtag+"-"+elname+"-imageControl'>" ;
                                  element.myTags = myTags;
-                                // if(val!=0) tTit+="<img src = '?cmd=objFile&ids="+ val + "' "+myTags+" >" ;
                                  tTit +=    "</div></td></tr></table>";
-                            // }
                         }
                     }
 
@@ -2650,47 +2682,34 @@ function vjRecordView ( viewer )
                     var chc = fld.constraint_data.split("|");
                     tTit += "<table " + (fld.constraint == "choice+" ? "class='" + this.classSearchStyle + "'" : "class='" + this.classChoiceStyle + "'") + this.fieldDescriptionTitle(fld) + "><tr><td><input " + (fld.constraint == "choice+" ? "" : "class='sectHid'");
                     tTit += myTags;
-                    //These thing is the input box, we send these thing to the server
                     tTit += " value='" + sanitizeElementAttr(val) + "' ";
-                    //alert(val)
+                    
                     var myRecordVewer = elname + "Viewer"+'-'+this.RVtag;
                     element.viewerAssociated = myRecordVewer;
-                    element.choiceOption = "description,value\n";
-                    var option = new Array();
+                    element.choiceOption = [];
                     var tagForSpan = ((fld.constraint == 'choice+') ? 'class=sectHid' : '');
-                    //alert("value:"+val+"elname is : "+elname)
+                    
                     for (var ic = 0; ic < chc.length; ++ic, ir++) {
-                        var farr = chc[ic].split("///");
-                        // If farr contains embedded double-quotes, escape them for CSV to allow use in vjTable
-                        for (var ifarr=0; ifarr < farr.length; ifarr++)
-                            farr[ifarr] = quoteForCSV(farr[ifarr]);
-
-                        //if (farr[0] == val) tTit += "value= '" + (farr.length > 1 ? farr[1] : farr[0]) + "'";
-                        option.push((farr.length > 1 ? farr[1] : farr[0]) + "," + farr[0]);
-                        //following thing goes to the table between span, show to the user
-                        if (farr[0] == val) { element.defaltValueShow = "description,value\n" + (farr.length > 1 ? farr[1] : farr[0]) + "," + farr[0]+"\n"; }
+                        var farr = chc[ic].split("
+                        if (farr.length == 1) {
+                            farr.push(farr[0]);
+                        }
+                        element.choiceOption.push({ description: farr[1], value: farr[0] });
+                        if (farr[0] == val) { element.defaltValueShow = "description,value\n" + quoteForCSV(farr[1]) + "," + quoteForCSV(farr[0])+"\n"; }
                     }
-                    element.choiceOption += option.join("\n");
-                    //if the choice+, span do not need to been show, instead show the input box
                     tTit += "/></td><td><span "+tagForSpan+" id=\"" + myRecordVewer + "\" ></span></td>";
                     if(!this.readonlyMode)tTit +="<td><button class='linker' type='button' " + eventFuncs + "><img src='img/combobox.gif' ></button></td>";
                     tTit +="</tr></table>";
-                   // tTit += "<span id= \"" + myRecordVewer + "\"></span>";
                 } else if (fld.constraint == 'search+') {
-                    //alert(elname)
-                 //   var myRecordVewer = elname + "Viewer";
-                  //  element.viewerAssociated = myRecordVewer;
-                    //
                     tTit += "<table " + (this.classSearchStyle ? "class='" + this.classSearchStyle + "'" : "") + this.fieldDescriptionTitle(fld) + "><tr><td>";
                     if (fld.type == "text" || ("" + val).length > 60) {
-                        tTit += "<textarea cols='60' rows='6' "+myTags +">"+val+"</textarea>";
+                        tTit += "<textarea cols='60' rows='6' "+myTags +">"+sanitizeInnerHTML(val)+"</textarea>";
                     } else {
                         tTit += "<input "+myTags+ " value=\""+sanitizeElementAttr(val)+"\" />";
                     }
                     tTit += "</td>";
                     if(!this.readonlyMode)tTit +="<td ><button class='linker' type='button' " + "onClick='vjObjEvent(\"onClickNode\",\"" + this.objCls + "\",\"" + sanitizeElementAttrJS(element.path) + "\", \" \")' " + eventFuncs + "><img src='img/combobox.gif' align='to: 'top'></button></td>";
-                    tTit +="</tr></table>"; // <button type=button " +  eventFuncs + "></button>
-                    // tTit += "<span id= \"" + myRecordVewer + "\"></span>";
+                    tTit +="</tr></table>";
 
                 }
 
@@ -2702,7 +2721,7 @@ function vjRecordView ( viewer )
                         tTit+="<textarea cols='60' rows='6' ";
                         tTit+=myTags;
                         tTit+=" >";
-                        tTit+=val;
+                        tTit+=sanitizeInnerHTML(val);
                         tTit+="</textarea>";
                     }
                     else {
@@ -2712,40 +2731,28 @@ function vjRecordView ( viewer )
                             if( fld.type=="bool"){
                                 tTit+=(parseBool(element.value) ? " checked " : "") ;
                             }
-            /*                else if(fld.type=="file"){
-                                tTit +=
-
-                            }*/
                             else{
-                                //alert(" value=\""+val+"\" ")
                                 tTit+=" value=\""+sanitizeElementAttr(val)+"\" ";
                             }
-                            //else tTit+=" value=\""+val+"\" ";
 
                         tTit+=" />";
                     }
 
                 }
-                if(this.debug)tTit+="<br/><small><small>"+elname+"</small></small>";
 
             }
             if(fld.link_url){
 
                 tTit+="<td><a href=javascript:vjObjEvent(\"onClickUrlLink\",\""+this.objCls+"\",\""+sanitizeElementAttrJS(element.path)+"\")>"+this.icons.urlJump+"</a></td>";
-                //alert(tTit);
+                
             }
-            //here we add
             tTit+="</td>";
 
         }
 
 
-        // _/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ construction of the control section: status, update, etc
-        // _/
 
-        if (!hidetitle ) { // && fld.hidden
+        if (!hidetitle ) {
 
             if (((this.autoStatus & 0x01) && (fld.type != "list" && fld.type != "array")) ||
                 ((this.autoStatus & 0x02) && (fld.type == "list" || fld.type == "array"))) {  tTit += "<td style='vertical-align: top;' id='" + elname + "-status'>" + this.elementStatusText(element) + "</td>"; }
@@ -2772,14 +2779,9 @@ function vjRecordView ( viewer )
         }
 
 
-        // _/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ Summarize all what is about the current element (not its children )
-        // _/
 
         var t="";
         if(tTit) {
-            //t+="<table id='"+elname+"-wrapper' class='"+(fld.hidden ? "sectHid" : this.tblClass)+"' >";
             t += "<table id='"+elname+"-wrapper' class='"+(fld.hidden ? this.tblClass+"_table" : this.tblClass+"_table")+"'";
             if (!fld.is_readonly_fg && !this.readonlyMode) {
                 t += "onmouseover='vjObjEvent(\"onMouseOver\",\""+ this.objCls+"\",\""+ sanitizeElementAttrJS(element.path)+"\" , 1)'";
@@ -2792,31 +2794,9 @@ function vjRecordView ( viewer )
 
 
 
-        // _/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ Here we construct the children of elements (arrays and lists)
-        // _/
 
         var tGrp = "";
-        var ifDrawtGrap;
         if( fld.type=="array" ) {
-            tGrp+="<table class='"+( (element.expanded>=this.expansion ) ? (this.tblClass+"_table" + " " + this.tblClass + "_array") : "sectHid")+"' id='"+elname+"-children' border=1>";
-                tGrp+="<tr>";
-                if(!hidetitle){
-                    tGrp+="<td width=30></td>";
-
-                    for( var i=0; i< fld.children.length; ++i) {
-                        tGrp+="<th" + (fld.children[i].hidden ? " class='sectHid'" : "") + ">";
-                        if(this.debug)tGrp+= (fld.children[i].is_optional_fg?"O":"-")+(fld.children[i].is_multi_fg?"M":"-")+"["+fld.children[i].children.length+"]";
-                        tGrp += fld.children[i].title;
-                        tGrp+="</th>";
-                    }
-                //always draw one additional td for control
-                    tGrp+="<td >"+this.icons.white+"</td>";
-                    tGrp+="</tr>";
-                }
-
-            // create the cells
             var subRows = [];
             var subRowsSeen = {};
             for (var ichild=0; ichild<element.children.length; ichild++) {
@@ -2831,7 +2811,34 @@ function vjRecordView ( viewer )
                 subRows[isub][child.fld.name] = ichild;
             }
 
-            // array rows are removable if non-empty and either there are other rows in the array or the array as a whole is optional
+            let titles;
+            if(!hidetitle){
+                let list = '';
+
+                for( var i=0; i< fld.children.length; ++i) {
+                    list += `<th ${fld.children[i].hidden ?  "class='sectHid'" : ""}>`;
+
+                    list += subRows.length > 0 && element.children[subRows[0][ fld.children[i].name] ].title 
+                            ? element.children[subRows[0][ fld.children[i].name] ].title
+                            : fld.children[i].title;
+
+                    list +="</th>";
+                }
+
+                titles = `<td width=${this.td_width}></td> ${list} <td>${this.icons.white}</td>`;
+            }
+
+            let tableClass = element.expanded >= this.expansion  ?  `${this.tblClass}_table ${this.tblClass}_array` : "sectHid"
+            tGrp += `   <table 
+                            class='${ tableClass }' 
+                            id='${elname}-children' 
+                            border=1
+                        >
+                          <tr> 
+                            ${titles ? titles : ''}
+                          </tr>
+                    `;
+
             var subRowsRemovable = !this.readonlyMode && !this.doNotDrawDelete && (subRows.length > 1 || fld.is_optional_fg) && !this.fieldIsReadonly(element.fld);
 
             for (var isub=0; isub<subRows.length; isub++) {
@@ -2848,7 +2855,7 @@ function vjRecordView ( viewer )
                     tGrp += " onmouseover='vjObjEvent(\"showControlsByElname\",\""+ this.objCls+"\",\""+ sanitizeStringJS(row_elname)+"\", 1); stopDefault(event);'"
                 }
                 tGrp += ">";
-                if(!hidetitle ||fld.is_multi_fg )tGrp+="<td width=30></td>";
+                if(!hidetitle ||fld.is_multi_fg ) tGrp += `<td width=${this.td_width}></td>`;
                 for (var ifld=0; ifld<fld.children.length; ifld++) {
                     tGrp += "<td" + (fld.children[ifld].hidden ? " class='sectHid'" : "") + ">";
                     var ichild = subRows[isub][fld.children[ifld].name];
@@ -2870,28 +2877,24 @@ function vjRecordView ( viewer )
                     tGrp += this.icons.delRow;
                     tGrp += "</a>";
                 }
-                //if(!fld.is_optional_fg)tGrp+=this.icons.notEmpty;
                 tGrp+="</td>";
                 tGrp+="</tr>";
             }
 
             if((fld.children[0] && (element.children.length<fld.children[0].maxEl*fld.children.length)) && !this.readonlyMode && !this.editExistingOnly){
-                tGrp += "<tr class='" + this.tblClass + "_interface'><td width=30></td>";
-                //alert("vjObjEvent(\"onAddElement\",\""+ this.objCls+"\",\""+ element.path+"\"")
-                tGrp += "<td><button class='linker' type='button' onclick='javascript:vjObjEvent(\"onAddArrayRow\",\""+ this.objCls+"\",\""+ sanitizeElementAttrJS(element.path)+"\"); stopDefault(event);'" + this.fieldAddTitleTitle(fld) + ">" + this.icons.addRowMore + "&nbsp;" + fld.title + "</button></td>";
-                tGrp += "</tr>";
+                tGrp += `<tr class='${this.tblClas}_interface'>
+                            <td width=${this.td_width}></td>
+                            <td><button class='linker' type='button' onclick='javascript:vjObjEvent("onAddArrayRow","${this.objCls}","${sanitizeElementAttrJS(element.path)}"); stopDefault(event);' ${this.fieldAddTitleTitle(fld)}> ${this.icons.addRowMore}&nbsp;${fld.title}</button></td>
+                        </tr>
+                        `;
             }
 
             tGrp+="</table>";
 
         } else if (fld.type=="list" || fld.type == "array" || ((fld.type == "string" && ((fld.constraint=="search") || (fld.constraint == "type")) ))) {
-            //tGrp="";
-            // TODO: when there is a UI control for folding/unfolding sub-lists/sub-arrays in an array cell,
-            // change from this.tvlClass + "_table" to
-            // (element.expanded >= this.expansion ? this.tblClass + "_table" : "sectHid")
             tGrp += "<table class='" + this.tblClass + "_table" + "' id='" + elname + "-children' border=0>";
 
-            for (var il = 0; il < fld.children.length; ++il) {  // to group each kind of its daughters
+            for (var il = 0; il < fld.children.length; ++il) {
 
                 var tList="<table border='0'>";
                 var thiskind = 0;
@@ -2907,8 +2910,8 @@ function vjRecordView ( viewer )
                         tList+="<tr>";
                         unhidden_children++;
                     }
-                    if(!hidetitle && !fld.children[il].div)tList+="<td width=30></td>";
-                    if(element.children[ie].hidden)tList+="<td class='sectHid'>";
+                    if(!hidetitle && !fld.children[il].div) tList+=`<td width=${this.td_width}></td>`;
+                    if(element.children[ie].hidden) tList+="<td class='sectHid'>";
 
                     else tList+="<td>";
                     cntC++;
@@ -2922,16 +2925,13 @@ function vjRecordView ( viewer )
                 }
 
                 var doPlusSign = ( element.childrenOfTypeViewerAssociatedWithElement && element.childrenOfTypeViewerAssociatedWithElement[fld.children[il].name] ) ? false : true ;
-                //alerJ(fld.name,element.childrenOfTypeViewerAssociatedWithElement )
-
 
                 if(thiskind<fld.children[il].maxEl && !this.readonlyMode && !this.editExistingOnly && doPlusSign ) {
                     if(!hidetitle && !fld.children[il].div) {
-                        tList+="<tr><td width=30></td><td>";
+                        tList+=`<tr><td width=${this.td_width}></td><td>`;
                     }
-                    //tList+="<td>";
                     if (thiskind) {
-                        tList += "<table class='" + this.tblClass + "_interface'><tr><td width=30></td><td>";
+                        tList += `<table class='${this.tblClass}_interface'><tr><td width=${this.td_width}></td><td>`;
                     }
                     if ((fld.children[il].constraint !='search+')&& fld.children[il].is_multi_fg &&  !fld.children[il].is_readonly_fg) {
                         tList += "<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onAddElement\",\"" + this.objCls + "\",\"" + sanitizeElementAttrJS(element.path) + "\",\"" + sanitizeElementAttrJS(fld.children[il].name) + "\"); stopDefault(event);'" + this.fieldAddTitleTitle(fld.children[il]) + ">";
@@ -2953,12 +2953,11 @@ function vjRecordView ( viewer )
                     fld.children[il].innerTxt = tList;
                     tList = "";
                 } else {
-                    //alert(fld.children[il].title + "   " + fld.children[il].type)
+                    
                     var showOrNot=true;
                     if (fld.children[il].is_readonly_fg) {
                         if (this.showReadonlyInNonReadonlyMode) {
                             if (!thiskind) showOrNot = false;
-                            //else if (element.children[ie-1].value) showOrNot = false;
                         }
                         else if (this.readonlyMode) showOrNot = true;
                         else showOrNot = false;
@@ -2977,18 +2976,13 @@ function vjRecordView ( viewer )
 
 
 
-        // _/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ Finalize
-        // _/
         t+=tGrp;
 
         fld.innerTxt=t;
-        if(!prohibitLayering && fld.div)return ''; // if this one has a div it does not contribute to its parents
+        if(!prohibitLayering && fld.div)return '';
         return fld.innerTxt;
     };
 
 }
 
 
-//# sourceURL = getBaseUrl() + "/js/vjRecordView.js"

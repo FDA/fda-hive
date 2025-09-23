@@ -60,13 +60,13 @@ sSqlite::sSqlite()
     clearAll();
 }
 
-sSqlite::sSqlite(const char * filepath, bool readonly/* = false */)
+sSqlite::sSqlite(const char * filepath, bool readonly)
 {
     clearAll();
     reset(filepath, readonly);
 }
 
-bool sSqlite::reset(const char * filepath, bool readonly/* = false */)
+bool sSqlite::reset(const char * filepath, bool readonly)
 {
     resultClose();
     sqlite3_close(sSqlite_db);
@@ -116,6 +116,7 @@ bool sSqlite::executeExact(const char * sql)
     _errno = sqlite3_exec(sSqlite_db, sql, 0, 0, &errmsg);
     if( errmsg ) {
         _err_msg.cutAddString(0, errmsg);
+        sqlite3_free(errmsg);
     } else if( _errno != SQLITE_OK ) {
         _err_msg.cutAddString(0, sqlite3_errmsg(sSqlite_db));
     }
@@ -158,11 +159,154 @@ idx sSqlite::getTableExact(sVarSet & out_tbl, const char * sql)
     _errno = sqlite3_exec(sSqlite_db, sql, getTable_callback, &out_tbl, &errmsg);
     if( errmsg ) {
         _err_msg.cutAddString(0, errmsg);
+        sqlite3_free(errmsg);
     } else if( _errno != SQLITE_OK ) {
         _err_msg.cutAddString(0, sqlite3_errmsg(sSqlite_db));
     }
 
     return out_tbl.rows - start_rows;
+}
+
+const char * sSqlite::getValue(sStr & out, const char * defval, const char * sqlfmt, ...)
+{
+    sStr sql;
+    va_list ap;
+    va_start(ap, sqlfmt);
+    sql.vprintf(sqlfmt, ap);
+    va_end(ap);
+
+    return getValueExact(out, sql.ptr(), defval);
+}
+
+const char * sSqlite::getValueExact(sStr & out, const char * sql, const char * defval)
+{
+    const char * val = 0;
+    idx len = 0;
+    idx start_pos = out.length();
+
+    if( resultOpenExact(sql) ) {
+        udx saved_errno = SQLITE_OK;
+        sStr saved_err_msg;
+
+        if( resultNextRow() ) {
+            val = resultValue(0, 0, &len);
+            if( val && len ) {
+                out.addString(val, len);
+            }
+        } else {
+            saved_errno = saveError(&saved_err_msg);
+        }
+        resultClose();
+        if( saved_errno ) {
+            restoreError(saved_errno, &saved_err_msg);
+        }
+    }
+
+    if( !val || !len ) {
+        val = defval;
+        len = sLen(defval);
+
+        if( val && len ) {
+            out.addString(val, len);
+        } else if( val ) {
+            out.add0cut();
+        }
+    }
+
+    return val ? out.ptr(start_pos) : 0;
+}
+
+idx sSqlite::getIValue(idx defval, const char * sqlfmt, ...)
+{
+    sStr sql;
+    va_list ap;
+    va_start(ap, sqlfmt);
+    sql.vprintf(sqlfmt, ap);
+    va_end(ap);
+
+    return getIValueExact(sql.ptr(), defval);
+}
+
+idx sSqlite::getIValueExact(const char * sql, idx defval)
+{
+    idx ret = defval;
+    if( resultOpenExact(sql) ) {
+        udx saved_errno = SQLITE_OK;
+        sStr saved_err_msg;
+
+        if( resultNextRow() ) {
+            ret = resultIValue(0);
+        } else {
+            saved_errno = saveError(&saved_err_msg);
+        }
+        resultClose();
+        if( saved_errno ) {
+            restoreError(saved_errno, &saved_err_msg);
+        }
+    }
+    return ret;
+}
+
+udx sSqlite::getUValue(udx defval, const char * sqlfmt, ...)
+{
+    sStr sql;
+    va_list ap;
+    va_start(ap, sqlfmt);
+    sql.vprintf(sqlfmt, ap);
+    va_end(ap);
+
+    return getIValueExact(sql.ptr(), defval);
+}
+
+udx sSqlite::getUValueExact(const char * sql, udx defval)
+{
+    udx ret = defval;
+    if( resultOpenExact(sql) ) {
+        udx saved_errno = SQLITE_OK;
+        sStr saved_err_msg;
+
+        if( resultNextRow() ) {
+            ret = resultUValue(0);
+        } else {
+            saved_errno = saveError(&saved_err_msg);
+        }
+        resultClose();
+        if( saved_errno ) {
+            restoreError(saved_errno, &saved_err_msg);
+        }
+    }
+    return ret;
+}
+
+real sSqlite::getRValue(real defval, const char * sqlfmt, ...)
+{
+    sStr sql;
+    va_list ap;
+    va_start(ap, sqlfmt);
+    sql.vprintf(sqlfmt, ap);
+    va_end(ap);
+
+    return getIValueExact(sql.ptr(), defval);
+}
+
+real sSqlite::getRValueExact(const char * sql, real defval)
+{
+    real ret = defval;
+    if( resultOpenExact(sql) ) {
+        udx saved_errno = SQLITE_OK;
+        sStr saved_err_msg;
+
+        if( resultNextRow() ) {
+            ret = resultRValue(0);
+        } else {
+            saved_errno = saveError(&saved_err_msg);
+        }
+        resultClose();
+        if( saved_errno ) {
+            restoreError(saved_errno, &saved_err_msg);
+        }
+    }
+    return ret;
 }
 
 bool sSqlite::resultOpen(const char * sqlfmt, ...)
@@ -182,8 +326,11 @@ bool sSqlite::resultOpenExact(const char * sql)
 
     _errno = sqlite3_prepare_v2(sSqlite_db, sql, -1, sSqlite_pstmt, 0);
     if( _errno ) {
-        _err_msg.cutAddString(0, sqlite3_errmsg(sSqlite_db));
+        sStr saved_err_msg;
+        udx saved_errno = _errno;
+        saved_err_msg.cutAddString(0, sqlite3_errmsg(sSqlite_db));
         resultClose();
+        restoreError(saved_errno, &saved_err_msg);
         return false;
     } else {
         _res_ncols = sqlite3_column_count(sSqlite_stmt);
@@ -218,12 +365,10 @@ bool sSqlite::resultNextRow()
                 return false;
             case SQLITE_BUSY:
                 if( inTransaction() ) {
-                    // it's the caller's responsibility to restart the entire transaction
                     _had_deadlocked = true;
                     _errno = code;
                     break;
                 } else {
-                    // retry sqlite3_step up to max_deadlock_retries times
                     continue;
                 }
             default:
@@ -232,8 +377,11 @@ bool sSqlite::resultNextRow()
         }
     }
 
-    _err_msg.cutAddString(0, sqlite3_errmsg(sSqlite_db));
+    sStr saved_err_msg;
+    udx saved_errno = _errno;
+    saved_err_msg.cutAddString(0, sqlite3_errmsg(sSqlite_db));
     resultClose();
+    restoreError(saved_errno, &saved_err_msg);
     return false;
 }
 
@@ -245,7 +393,7 @@ const char * sSqlite::resultColName(idx icol) const
     return 0;
 }
 
-const char * sSqlite::resultValue(idx icol, const char * defval/* = 0 */, idx * plen/* = 0 */)
+const char * sSqlite::resultValue(idx icol, const char * defval, idx * plen)
 {
     const char * val = 0;
     idx len = 0;
@@ -263,7 +411,7 @@ const char * sSqlite::resultValue(idx icol, const char * defval/* = 0 */, idx * 
     return val;
 }
 
-idx sSqlite::resultIValue(idx icol, idx defval/* = 0 */)
+idx sSqlite::resultIValue(idx icol, idx defval)
 {
     if( const char * val = resultValue(icol) ) {
         return atoidx(val);
@@ -272,7 +420,7 @@ idx sSqlite::resultIValue(idx icol, idx defval/* = 0 */)
     }
 }
 
-udx sSqlite::resultUValue(idx icol, udx defval/* = 0 */)
+udx sSqlite::resultUValue(idx icol, udx defval)
 {
     if( const char * val = resultValue(icol) ) {
         return atoudx(val);
@@ -281,7 +429,7 @@ udx sSqlite::resultUValue(idx icol, udx defval/* = 0 */)
     }
 }
 
-real sSqlite::resultRValue(idx icol, real defval/* = 0 */)
+real sSqlite::resultRValue(idx icol, real defval)
 {
     if( const char * val = resultValue(icol) ) {
         return strtod(val, 0);
@@ -311,6 +459,7 @@ bool sSqlite::startTransaction()
         _errno = sqlite3_exec(sSqlite_db, "BEGIN TRANSACTION;", 0, 0, &errmsg);
         if( errmsg ) {
             _err_msg.cutAddString(0, errmsg);
+            sqlite3_free(errmsg);
             return false;
         } else if( _errno != SQLITE_OK ) {
             _err_msg.cutAddString(0, sqlite3_errmsg(sSqlite_db));
@@ -334,6 +483,7 @@ bool sSqlite::commit()
         _errno = sqlite3_exec(sSqlite_db, "COMMIT;", 0, 0, &errmsg);
         if( errmsg ) {
             _err_msg.cutAddString(0, errmsg);
+            sqlite3_free(errmsg);
             return false;
         } else if( _errno != SQLITE_OK ) {
             _err_msg.cutAddString(0, sqlite3_errmsg(sSqlite_db));
@@ -355,6 +505,7 @@ bool sSqlite::rollback()
         _errno = sqlite3_exec(sSqlite_db, "ROLLBACK;", 0, 0, &errmsg);
         if( errmsg ) {
             _err_msg.cutAddString(0, errmsg);
+            sqlite3_free(errmsg);
             return false;
         } else if( _errno != SQLITE_OK ) {
             _err_msg.cutAddString(0, sqlite3_errmsg(sSqlite_db));
@@ -370,7 +521,42 @@ void sSqlite::clearError()
     _err_msg.cut0cut();
 }
 
+udx sSqlite::saveError(sStr * out_err_msg) const
+{
+    if( _err_msg.length() ) {
+        out_err_msg->addString(_err_msg.ptr(), _err_msg.length());
+    }
+    return _errno;
+}
+
+void sSqlite::restoreError(udx saved_errno, const sStr * saved_err_msg)
+{
+    _errno = saved_errno;
+    if( saved_err_msg->length() ) {
+        _err_msg.addString(saved_err_msg->ptr(), saved_err_msg->length());
+    } else {
+        _err_msg.cut0cut();
+    }
+}
+
 idx sSqlite::getLastInsertRowid()
 {
     return sqlite3_last_insert_rowid(sSqlite_db);
+}
+
+char * sSqlite::protectValue(sStr & to, const char* from, udx length)
+{
+    idx pos = to.length();
+
+    if( !length ) {
+        length = sLen(from);
+    }
+
+    to.addString("'", 1);
+    if( length ) {
+        sString::searchAndReplaceStrings(&to, from, length, "'" __, "''" __, 0, false);
+        to.shrink00();
+    }
+    to.addString("'", 1);
+    return to.ptr(pos);
 }

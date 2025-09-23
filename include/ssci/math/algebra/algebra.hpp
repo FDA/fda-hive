@@ -35,12 +35,11 @@
 
 namespace slib
 {
-    class sAlgebra { // lower level algebraic functions
+    class sAlgebra {
 
     public:
         class matrix {
         public:
-            ///static void multiplyToMatrix(idx  n,real   * A,real   * B,real   * C);
             static void multiplyToMatrix(const real   * A,idx arows, idx acols, const real   * B, idx brows, idx bcols, real   * C, bool transposesecond=false);
             static void multiplyToVector(const real   * A,idx arows, idx acols, const real   * P,real   * Q);
             static void transpose(real * src, idx rows, idx cols);
@@ -54,7 +53,6 @@ namespace slib
 
             static idx diagGivens(idx nmax,idx nx,idx nrootx,idx njx,real * a,real * root,real * vect,real * b);
 
-            // eigenp_
             static idx  diagNonSym(idx *n, idx *nm, real *a, real *t, real * evr, real *evi, real *vecr, real *veci, idx *indic);
 
             static void computeRowStat(const real * src, idx rows, idx cols, real * aves,real * stddev=0, real * minp=0, real * maxp=0);
@@ -63,18 +61,16 @@ namespace slib
             static void pcaReMap(real * dst, const real * orig, idx cols, idx rows, const real * evecs);
 
 
-            static idx eigen (                /* Compute all evalues/evectors of a matrix ..*/
-                   idx vec,           /* switch for computing evectors ...*/
-                   idx ortho,         /* orthogonal Hessenberg reduction? */
-                   idx ev_norm,       /* normalize Eigenvectors? .........*/
-                   idx n,             /* size of matrix ..................*/
-                   //REAL ** mat,           /* input matrix ....................*/
-                   real * mat_,           /* input matrix ....................*/
-                   //REAL ** eivec,         /* Eigenvectors ....................*/
-                   real * eivec_,         /* Eigenvectors ....................*/
-                   real * valre,         /* real parts of eigenvalues .......*/
-                   real * valim,         /* imaginary parts of eigenvalues ..*/
-                   idx  * cnt            /* Iteration counter ...............*/
+            static idx eigen (
+                   idx vec,
+                   idx ortho,
+                   idx ev_norm,
+                   idx n,
+                   real * mat_,
+                   real * eivec_,
+                   real * valre,
+                   real * valim,
+                   idx  * cnt
                   );
 
 
@@ -94,8 +90,7 @@ namespace slib
     };
 }
 
-#endif // sLib_math_func_hpp
-
+#endif 
 
 
 

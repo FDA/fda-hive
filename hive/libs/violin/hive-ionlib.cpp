@@ -28,19 +28,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <ulib/ulib.hpp>
-#include <violin/violin.hpp>
+#include <violin/hiveion.hpp>
 #include <ssci/math/stat/stat.hpp>
+
 
 
 using namespace sviolin;
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/
- _/  HIVE ION GENERAL CLASS
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- */
 
 
 enum enumCommands{
@@ -70,21 +64,9 @@ idx sHiveIon::retrieveListOfObjects(sUsr * usr, sVec<sHiveId> * objList, sDir * 
         }
     }
 
-    // use SpecialObj::findTaxDb() to filter?
     return objList->dim();
 }
 
-/*
-sDic < sDic < sVec < real > > > samplePassageReplicaDic;
-
-sDic < idx >  rowIds;
-sMex largeDicBuf;
-sDic < sDic < sMex::Pos  > > valueDic;
-//sString dicLabelSet00;
-sStr compositePassage;
-//idx limit=100;
-bool collapsePassage=false;
-*/
 
 idx sHiveIon::realValStatCallback(sIon * ion, sIonWander * wander, sIonWander::StatementHeader * statement, sIon::RecordResult * reslist )
 {
@@ -94,22 +76,16 @@ idx sHiveIon::realValStatCallback(sIon * ion, sIonWander * wander, sIonWander::S
     sHiveIon::geneExpr * gE = (sHiveIon::geneExpr *) wander->callbackFuncParam;
 
     if( memcmp(statement->label,"dic",3)==0 || memcmp(statement->label,"Dic",3)==0 ) {
-        idx recordID=*(idx*)reslist[1].body;
-  //      if(recordID>limit && statement->label[0]=='D')
-   //         return 1;
-        //real r;sRScanf(r,reslist[4].body,reslist[4].size,10);
         char buf[1024];
         idx shift=0;
 
         gE->compositePassage.cut(0);
-        // because we know the label for asking about the phenotype started with an 'd'
         if(statement->label[0]=='d') {
-            //compositePassage.printf("%" DEC "_",statement->scope);
-            gE->compositePassage.addString("a_",2); // 'a' for phenotype
+            gE->compositePassage.addString("a_",2);
             if (gE->collapsePassage){
                 const char * specialSepar = strchr((const char *)reslist[3].body,'@');
                 if (specialSepar) {
-                    gE->compositePassage.addString((const char *)reslist[3].body,reslist[3].size-3); // something@P3
+                    gE->compositePassage.addString((const char *)reslist[3].body,reslist[3].size-3);
                 }
                 else gE->compositePassage.addString((const char *)reslist[3].body,reslist[3].size);
             }
@@ -118,14 +94,8 @@ idx sHiveIon::realValStatCallback(sIon * ion, sIonWander * wander, sIonWander::S
             #ifdef WORKING_MODEL
             gE->compositePassage.printf("Expr%" DEC "-",recordID+1);
             #else
-                //compositePassage.addString("\"",1);
-            gE->compositePassage.addString("e_",2); // 'e' for genotype
+            gE->compositePassage.addString("e_",2);
                 if(reslist[shift+3-6].size>1){
-              /*      const char * specialSepar = strchr((const char *)reslist[shift+3-6].body,'@');
-                    if (specialSepar) {
-                        compositePassage.addString((const char *)reslist[shift+3-6].body,reslist[shift+3-6].size-3); // something@P3
-                    }
-                    else compositePassage.addString((const char *)reslist[shift+3-6].body,reslist[shift+3-6].size);*/
                     gE->compositePassage.addString((const char *)reslist[shift+3-6].body,reslist[shift+3-6].size);
                 }
                 else
@@ -136,15 +106,8 @@ idx sHiveIon::realValStatCallback(sIon * ion, sIonWander * wander, sIonWander::S
                 gE->compositePassage.addString((const char *)reslist[shift+3].body,reslist[shift+3].size);
             }
             #ifndef WORKING_MODEL
-                //compositePassage.addString("\"",1);
             #endif
         }
-        /* else {
-            shift=-10;
-            compositePassage.addString((const char *)reslist[1].body,reslist[1].size);
-            compositePassage.addString("-",1);
-            compositePassage.addString((const char *)reslist[shift+3].body,reslist[shift+3].size);
-        }*/
 
 
         idx siz=reslist[shift+4].size; if(siz>(idx)sizeof(buf)-1)siz=sizeof(buf)-1;
@@ -153,9 +116,7 @@ idx sHiveIon::realValStatCallback(sIon * ion, sIonWander * wander, sIonWander::S
         real r;if(sscanf(buf,"%lg",&r)==1){
             gE->samplePassageReplicaDic.set(reslist[shift+2].body,reslist[shift+2].size)->set(gE->compositePassage.ptr(),gE->compositePassage.length())->vadd(1,  r );
             *gE->rowIds.set(gE->compositePassage.ptr(),gE->compositePassage.length())=1;
-        } /* else {
-            ::printf("########## EPRST %s ! \n",buf);
-        }*/
+        }
     }
     return 1;
 }
@@ -193,7 +154,7 @@ void sHiveIon::dicDicVecPrint(sIO * buf, sDic < sDic < sVec < real > > > & sPrDi
             buf->addString("\n",1);
 
     #define CHARACTERISTIC(_characteristics_) \
-                    real val=0, stdev; \
+                    real val=0, stdev = 0; \
                     switch (_characteristics_) { \
                         case eCharacteristicMean:  { \
                             val = sStat::mean(arrVal); \
@@ -209,16 +170,12 @@ void sHiveIon::dicDicVecPrint(sIO * buf, sDic < sDic < sVec < real > > > & sPrDi
 
     sVec < idx > ind;
     if (printMeasurementAsHeader){
-        // Preparing header
-        // Sample,P3,P5,C3,C5.....
         buf->addString("Sample");
         PREPAREHEADER(gE->rowIds);
         if(doSort) {
             ind.resize(sPrDic.dim());
             sSort::sortSimpleCallback((sSort::sCallbackSorterSimple)sSort::sort_stringsDicID,&sPrDic,sPrDic.dim(), sPrDic.ptr(),ind.ptr());
         }
-        // Printing the content
-        // Sample1,valueOfP3...
         for (idx is =0; is < sPrDic.dim(); ++is){
             idx iS=ind.dim() ? ind[is] : is ;
 
@@ -239,19 +196,15 @@ void sHiveIon::dicDicVecPrint(sIO * buf, sDic < sDic < sVec < real > > > & sPrDi
         }
     }
     else {
-        //Preparing the header
-        // passageNumber,sample1,sample2,...\n
         if (gE->collapsePassage){
             buf->addString("DataType,Measurements");
         }
-        else buf->addString("DataType,Measurements");//buf->addString("DataType,Measurements,Passage");
-        //else buf->addString("DataType,Measurements");
+        else buf->addString("DataType,Measurements");
         PREPAREHEADER(sPrDic);
         if(doSort) {
             ind.resize(gE->rowIds.dim());
             sSort::sortSimpleCallback((sSort::sCallbackSorterSimple)sSort::sort_stringsDicID,&gE->rowIds,gE->rowIds.dim(), gE->rowIds.ptr(),ind.ptr());
         }
-        // Printing the content
         for (idx ir=0; ir<gE->rowIds.dim(); ++ir){
             idx iR=ind.dim() ? ind[ir] : ir ;
             const char * r=(const char*)gE->rowIds.id(iR,&idlen);
@@ -261,19 +214,14 @@ void sHiveIon::dicDicVecPrint(sIO * buf, sDic < sDic < sVec < real > > > & sPrDi
                 buf->addString(",",1);
             }
             const char * separated=strchr(r,'@');
-            //const char * separated=strchr(r,'#');
             if(separated) {
-                //buf->addString((const char*)r,separated-r);
                 buf->addString(typeSep+1,separated-typeSep-1);
                 if (!gE->collapsePassage){
-                    //buf->add(",",1);
-                    //buf->addString(separated+1,r+idlen-separated-1);
                     buf->addString("_",1);
                     buf->addString(separated+1,typeSep+idlen-separated-1-1);
                 }
             }else{
                 buf->addString((const char*)r,idlen);
-                //buf->addString(typeSep+1,idlen-1-1);
                 if (!gE->collapsePassage){
                     buf->add(",",1);
                 }
@@ -302,13 +250,12 @@ idx sHiveIon::Cmd(sIO * out, const char * cmd, sVar * pForm)
     idx cmdnum=-1;
     if(cmd)
         sString::compareChoice( cmd, listCommands,&cmdnum,false, 0,true);
-    if(cmdnum==-1){return 0;}// {sQPrideCGIProc::Cmd(cmd );}
+    if(cmdnum==-1){return 0;}
 
-    idx measurementAsHdr = pForm->ivalue("measurementAsHdr",0); // flag to print the measurements as header, instead of samples
+    idx measurementAsHdr = pForm->ivalue("measurementAsHdr",0);
     const char * postTreat=pForm->value("resTreat");
     cur_geneExp->collapsePassage = pForm->boolvalue("collapse_passage");
 
-    // initialize the wander object which is running the statements
     sIonWander wander;
     wander.resetCompileBuf();
     wander.resetResultBuf();
@@ -322,8 +269,7 @@ idx sHiveIon::Cmd(sIO * out, const char * cmd, sVar * pForm)
         wander.callbackFuncParam = cur_geneExp;
     }
     else
-        wander.pTraverseBuf=out; // this is where we output
-        //wander.pTraverseBuf=static_cast < sIO * >(this); // this is where we output
+        wander.pTraverseBuf=out;
 
     wander.setSepar(pForm->value("sepField"),pForm->value("sepRecord"));
 
@@ -331,8 +277,6 @@ idx sHiveIon::Cmd(sIO * out, const char * cmd, sVar * pForm)
         cur_geneExp->exportStDev = true;
     }
 
-    // retrieve the query statements to work w`ith and compile those through wander objects
-    //sFilePath path;
     sFil qryF;
     const char * query=pForm->value("qry");
     if(!query) {
@@ -340,26 +284,19 @@ idx sHiveIon::Cmd(sIO * out, const char * cmd, sVar * pForm)
         retrieveListOfObjects(myUser, 0, &qryList, pForm->value("qryid") , pForm->value("qrytype"), pForm->value("qrypar"), pForm->value("qryval"), pForm->value("qryfile"));
         qryF.init(qryList.ptr(),sMex::fReadonly);
         query=qryF.ptr();
-        //path.makeName(qryList.ptr(),"%%dir/%s",ionfile);
-        //ionList00._entryBuf.printf("%s",path.ptr());ionList00._entryBuf.add0(1);
     }
 
-    // retrieve the list of ions to work with and initialize those through wander objects
 
     sDir ionList00;
     const char * ionfile=pForm->value("ionfile","ion.ion");
     retrieveListOfObjects(myUser, 0, &ionList00, pForm->value("ionid") , pForm->value("iontype"), pForm->value("ionpar"), pForm->value("ionval"), ionfile);
-    // get the list of files
     for( char * f=(char*)ionList00.ptr(); f && *f; f=sString::next00(f)) {
         char * k=strrchr(f,'.');
         if(k)*k=0;
-        //if(strcmp(f,ionList00.ptr())==0)
-        //    continue;
         wander.addIon(0)->ion->init(f,sMex::fReadonly);
         if(k)*k='.';
     }
     cur_geneExp->rowIds.empty();
-   // samplePassageReplicaDic.empty();
 
     sIO errb;
     wander.traverseCompile(query, sLen(query), &errb, true);
@@ -370,10 +307,8 @@ idx sHiveIon::Cmd(sIO * out, const char * cmd, sVar * pForm)
     idx cnt=pForm->ivalue("cnt",200);
 
 
-    // commands
     switch(cmdnum) {
-        case eWander:{ // execute actual traverse script and produce outcome
-            //outHtml();
+        case eWander:{
             wander.resetResultBuf();
             wander.retrieveParametricWander(pForm,0);
             wander.traverse();
@@ -382,7 +317,6 @@ idx sHiveIon::Cmd(sIO * out, const char * cmd, sVar * pForm)
             sDir tblList00;
             retrieveListOfObjects(myUser, 0, &tblList00, pForm->value("tblid") , pForm->value("tbltype"), pForm->value("tblpar"), pForm->value("tblval"), pForm->value("tblfile","_.csv"));
 
-            // retrieve the list of tables to work with and initialize those through wander objects
             #ifdef USETXTTBL
                 sTxtTbl txttbl;
                 txttbl.setFile(tblList00);
@@ -418,7 +352,6 @@ idx sHiveIon::Cmd(sIO * out, const char * cmd, sVar * pForm)
         }
         out->printf("\n");
         for(idx ir=0; ir<cur_geneExp->valueDic.dim() ; ++ir ) {
-            //out->printf("%s",(const char*) valueDic.id(ir));
             for(idx ic=0; ic<cur_geneExp->valueDic.ptr(ir)->dim() ; ++ic ) {
                 sMex::Pos * pos=cur_geneExp->valueDic.ptr(ir)->ptr(ic);
                 if(ic)out->add(",",1);
@@ -433,4 +366,3 @@ idx sHiveIon::Cmd(sIO * out, const char * cmd, sVar * pForm)
     return 1;
 
 }
-

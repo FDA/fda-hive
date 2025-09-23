@@ -27,57 +27,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- sampleTableView={
-
- checkable
- newSectionWord: appearance of these words in the first column makes them to be rendered as th ... sections
-
- className: 'DV_table',
- startAutoNumber: '',
- skipRows: 0,
- prefixHTML: 'text', // prefix text for table
- appendHTML: 'text', // psotfix tex for the table
- allowVariableReplacement: false, in the values
- appendCols : [{header: name, cell: text }]
- clickLink: javascript: or url
- exclusionObjRegex: {file-name: null, id: /![0-9]/g}
- iconSize: 24
- defaultIcon : 'rec'
- this: "dsMenuAct",
- defaultEmptyText: "" ,   //      'no element to show'
- maxTxtLen: 32,        // max number of text will be shown in a cell, the rest is interpreted by ...
- isStickyHeader:true    //puts the header into seperate div (and table) so scrolling doesn't affect header.
- isReOrderable : false  //columns can be reordered
-
- cols:[   // serial number of the column to be customized
-      { name: name of the column to be customized,
-        link: url or javascript,
-        align: right | left,
-        type: largenumber, percent,
-        wrap: true|false,
-        hidden: true|false
-      }],
-
- rows:[ { //serial number of the row to customized
-       checked,
-       styleColor,
-       styleNoCheckmark,
-       url: url or javascript
-       }]
-  selectCallback: function,         //   "function:vjObjFunc('onSelectedItem','" + this.objCls + "')"
-  checkCallback: function,          //   "function:vjObjFunc('onCheckedItem','" + this.objCls + "')"
-  callbackRendered: function,       //    "function:vjObjFunc('onLoadedItem','" + this.objCls + "')"
-  precompute: "if(node.id==0 || node.id=='+')node.styleNoCheckmark=true;",
- };
-
-
-
- */
 
 function vjMobileTableView(viewer) {
 
-    vjTableView.call(this, viewer); // Inherit default behaviors from TableView
+    vjTableView.call(this, viewer);
 
     this.waitOnLoadCallback=function(a,b,c,d)
     {
@@ -93,9 +46,8 @@ function vjMobileTableView(viewer) {
         var top=this.div.scrollTop;
         if( !this.doNotShowRefreshIcon) {
             if(this.div.style.overflow=='auto')this.div.style.overflow='hidden';
-            this.div.innerHTML ="<div id='"+this.container+"_loading' style='position:static;width:100%;height:100%'><div class='progressingMobile'>&nbsp;</div></div>"+this.div.innerHTML;//styles='background-image:url(\"img/progress.gif\");' width='16'></img>";
+            this.div.innerHTML ="<div id='"+this.container+"_loading' style='position:static;width:100%;height:100%'><div class='progressingMobile'>&nbsp;</div></div>"+this.div.innerHTML;
         }
-//      this.div_loading=gObject(this.container+"_loading");
     };
 }
 
@@ -103,7 +55,7 @@ function vjMobileTableView(viewer) {
 
 function vjProcessMobileView(viewer) {
 
-    vjMobileTableView.call(this, viewer); // inherit default behaviours of the
+    vjMobileTableView.call(this, viewer);
 
     this.generateTableViewText=function(tbl)
     {
@@ -135,7 +87,7 @@ function vjProcessMobileView(viewer) {
             var time=Date.now()-tbl.rows[x]['created']*1000;
             console.log("C:" +tbl.rows[x]['created']);
             console.log("N:"+ Date.now());
-            var limit=36*24*60*60*1000; //days*hours in day* minutes in hour*seconds in minute*1000
+            var limit=36*24*60*60*1000;
             var icon="";
 
 
@@ -176,7 +128,6 @@ function vjProcessMobileView(viewer) {
 
     this.refresh = function() {
         if (!this.tblArr || !this.tblArr.rows) return;
-        //this.div.innerHTML =
         this.generateTableViewText(this.tblArr);
         if(this.isStickyHeader){
             this._reHeadered = false;
@@ -190,7 +141,7 @@ function vjProcessMobileView(viewer) {
 
 }
 function vjMobileView(viewer) {
-     vjTableView.call(this, viewer); // inherit default behaviours of the
+     vjTableView.call(this, viewer);
 
         this.generateTableViewText=function(tbl)
         {
@@ -203,11 +154,9 @@ function vjMobileView(viewer) {
 
 function changeTabs(a,b,c){
 
-    //------> change the tab label
     document.getElementById("runningLabel").innerHTML=a;
     document.getElementById("completedLabel").innerHTML=b;
     document.getElementById("failedLabel").innerHTML=c;
 }
 
 
-//# sourceURL = getBaseUrl() + "/js/vjTableViewMobile.js"

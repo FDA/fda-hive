@@ -36,6 +36,7 @@ BEGIN
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
     -- hosts alive in last 30 minutes
     SELECT SUM(capacitY) FROM QPHosts WHERE (NOW() - mdate) < (30 * 60)
     INTO @total;

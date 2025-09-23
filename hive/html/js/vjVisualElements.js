@@ -29,7 +29,6 @@
  */
 
 function vjVisualElement(flList,objCls) {
-    // this.zIndex=100;
     this.objCls = objCls?objCls:"vjVisual";
     this.singleOpen = true;
     this.underMouseDiv = null;
@@ -39,10 +38,8 @@ function vjVisualElement(flList,objCls) {
 
     if (!this.flList)
         this.flList = new Array();
-    // if(isok( flList) ) this.flList=this.flList.concat(flList);
 
-    vjObj.register(this.objCls, this); // needed to find this object in events
-                                        // by object container
+    vjObj.register(this.objCls, this);
 
     this.mouseOverDiv = function(cont, nme, ison) {
         if (ison)
@@ -77,25 +74,17 @@ function vjVisualElement(flList,objCls) {
     };
 
     this.winop = function(cont, nme, whattodo, countForScroll,popUpPosition, callback) {
-        // if(this.singleOpen){
-        // this.closeall(cont, nme);
-        // }
         if (this.underMouseDiv) {
-            // if( this.underMouseDiv==nme && whattodo!='toggle')return ;
-            // else
             if (this.underMouseDiv != nme)
                 this.doWinOP(this.underMouseDiv, 'close');
         }
 
         this.underMouseDiv = nme;
         this.doWinOP(nme, whattodo, countForScroll);
-        // alert("showing "+nme);
 
-        // ++this.zIndex;
         ++gObjZindex;
-//        gObject(nme).style.zIndex = gObjZindex;// this.zIndex; !! only the container should increase in its z-index
         var nmeContObj = gObject(nme + "-container");
-        nmeContObj.style.zIndex = gObjZindex;// this.zIndex;
+        nmeContObj.style.zIndex = gObjZindex;
         if (popUpPosition && typeof(popUpPosition)=="object"){
             nmeContObj.style.left = popUpPosition.x +"px";
             nmeContObj.style.top = popUpPosition.y + "px";
@@ -136,8 +125,6 @@ function vjVisualElement(flList,objCls) {
                 var dv = vjDV[nme + "Viewer"];
                 if (dv) {
                     dv.refresh();
-// dv.render(true);
-// dv.load();
                     this.flVs[nme]._opened = true;
                 }
             }
@@ -153,7 +140,6 @@ function vjVisualElement(flList,objCls) {
 
         var icoSize = 16;
         var tAll = "";
-        // alert(gPgW + ' '+ gPgH);
         if(!this.flVs)this.flVs=new Object();
         for ( var iv = 0; iv < this.flList.length; ++iv) {
             var flV = this.flList[iv];
@@ -242,17 +228,8 @@ function vjVisualElement(flList,objCls) {
                                 + (flV.icoSize ? flV.icoSize : icoSize ) + " />";
                             t += "</td><td >";
                         }
-                        /*
-                        if(flV.rightTitle) {
-                            t+="<table border=0><tr><td >";
-                        }*/
                         t += flV.title;
 
-                        /*if(flV.rightTitle) {
-                            t+="</td><td>";
-                             t+=flV.rightTitle;
-                            t+="</td></tr></table>";
-                        }*/
                         if(flV.icon) {
                             t += "</td></tr></table>";
                         }
@@ -284,7 +261,6 @@ function vjVisualElement(flList,objCls) {
                 if (isok(flV.brief)) {
                     t += "<span id='" + flV.name + "-brief' >";
                     t += flV.brief;
-                    //t += "<small>";
                 }
                 else {
                     t += "<span id='" + flV.name + "BriefViewer' >";
@@ -301,15 +277,6 @@ function vjVisualElement(flList,objCls) {
                 t += "</td>";
                 t += "</tr>";
 
-                /*
-                 * t+="<tr>"; t+="<td bgcolor='white' colspan=3 >"; t+="<span
-                 * id='"+flV.name+"-container' "+ ( flV.open==true ? "" :
-                 * "style='visibility:hidden;display:none;'" ) + " >"; t+="<span
-                 * id='"+flV.name+"Viewer' >"; t+="</span>"; t+="</span>";
-                 * t+="</td>";
-                 *
-                 * t+="</tr>";
-                 */
                 t += "</table>";
                 if(flV.afterBriefHTML)
                     t+=flV.afterBriefHTML;
@@ -348,7 +315,6 @@ function vjVisualElement(flList,objCls) {
             if(!oo)t += "</div>";
             t += "</div>";
 
-            // alert(flV.name);
             if (flV.div)
                 flV.div.innerHTML = t;
             else
@@ -360,12 +326,6 @@ function vjVisualElement(flList,objCls) {
         if (gOnDocumentClickCallbacks.indexOf(rr) == -1)
             gOnDocumentClickCallbacks += rr;
 
-        // if(dowrite) {
-        // document.write(t);
-        // gFloatingElements+=t;
-        // gCreateFloatingElements(t);
-        // }
-        // else
         this.closeall();
         if(flList)
             this.flList=new Array();
@@ -373,10 +333,9 @@ function vjVisualElement(flList,objCls) {
     };
 
     if (isok(flList))
-        this.generate(flList, false);// =this.flList.concat(flList);
+        this.generate(flList, false);
 
 }
 
 var vjVIS = new vjVisualElement();
 
-//# sourceURL = getBaseUrl() + "/js/vjVisualElements.js"

@@ -31,61 +31,56 @@
 #include <slib/core/net.hpp>
 #include <slib/std/file.hpp>
 #include <slib/utils/sort.hpp>
+#include <slib/utils/tbl.hpp>
+#include <qlang/engine.hpp>
 #include <qlib/QPrideBase.hpp>
 #include <ulib/utype2.hpp>
 #include <ulib/uobj.hpp>
 #include <ulib/upropset.hpp>
 
+#include "utype2_loading.hpp"
+#include "utype2_cache.hpp"
+
 #include <assert.h>
 #include <ctype.h>
 #include <regex.h>
+#include <stdlib.h>
 
 using namespace slib;
+static const char * canonicalCase(slib::sStr & buf, const char * str, idx len = 0)
+    {
+        if( !str ) {
+            return slib::sStr::zero;
+        }
+        if( !len ) {
+            len = slib::sLen(str);
+        }
+        for(idx i=0; i<len; i++) {
+            if( str[i] >= 'A' && str[i] <= 'Z' ) {
+                buf.cut0cut();
+                slib::sString::changeCase(&buf, str, 0, slib::sString::eCaseLo);
+                return buf.ptr(0);
+            }
+        }
+        return str;
+    }
+
+    static idx strncmp_exact(const char * s1, idx len1, const char * s2, idx len2)
+    {
+        if( !len1 ) {
+            len1 = slib::sLen(s1);
+        }
+        if( !len2 ) {
+            len2 = slib::sLen(s2);
+        }
+        if( int d = strncmp(s1, s2, slib::sMin<idx>(len1, len2)) ) {
+            return d;
+        }
+        return len1 - len2;
+    }
+
 
 static sStr utype_errors;
-
-#define TRACE_UTYPE2 0
-
-#if TRACE_UTYPE2
-#define LOG_TRACE(fmt, ...) \
-do { \
-    sStr local_log_buf; \
-    fprintf(stderr, "Trace %s: %s():%u: " fmt "\n", __FILE__, __func__, __LINE__, __VA_ARGS__); \
-} while( 0 )
-#else
-#define LOG_TRACE(fmt, ...)
-#endif
-
-#define LOG_WARNING(fmt, ...) \
-do { \
-    idx pos = utype_errors.length(); \
-    sStr local_log_buf; \
-    utype_errors.printf("WARNING %s: %s():%u: " fmt "\n", __FILE__, __func__, __LINE__,  __VA_ARGS__); \
-    fprintf(stderr, "%s", utype_errors.ptr(pos)); \
-} while( 0 )
-
-#define LOG_ERROR(fmt, ...) \
-do { \
-    idx pos = utype_errors.length(); \
-    sStr local_log_buf; \
-    utype_errors.printf("ERROR %s: %s():%u: " fmt "\n", __FILE__, __func__, __LINE__,  __VA_ARGS__); \
-    fprintf(stderr, "%s", utype_errors.ptr(pos)); \
-} while( 0 )
-
-static bool useTypeUPObj()
-{
-    static bool use_type_upobj = false;
-    static bool first_call = true;
-
-    if( first_call ) {
-        // TYPE_UPOBJ env variable can be set via sUsrCGI::OnCGIInit() by &useTypeUPObj=1 url param
-        if( const char * s = getenv("TYPE_UPOBJ") ) {
-            use_type_upobj = sString::parseBool(s);
-        }
-        first_call = false;
-    }
-    return use_type_upobj;
-}
 
 static bool useJSONCache(bool change_setting = false, bool new_setting = false)
 {
@@ -106,60 +101,45 @@ static bool useJSONCache(bool change_setting = false, bool new_setting = false)
     return use_json_cache;
 }
 
-static const char * canonicalCase(sStr & buf, const char * str, idx len = 0)
+static bool useBinCache(bool change_setting = false, bool new_setting = false)
 {
-    if( !str ) {
-        return sStr::zero;
-    }
-    if( !len ) {
-        len = sLen(str);
-    }
-    for(idx i=0; i<len; i++) {
-        if( str[i] >= 'A' && str[i] <= 'Z' ) {
-            buf.cut0cut();
-            sString::changeCase(&buf, str, 0, sString::eCaseLo);
-            return buf.ptr(0);
+    static bool use_bin_cache = true;
+    static bool first_call = true;
+
+    if( first_call ) {
+        if( const char * s = getenv("TYPE_BIN_CACHE") ) {
+            use_bin_cache = sString::parseBool(s);
         }
+        first_call = false;
     }
-    return str;
+
+    if( change_setting ) {
+        use_bin_cache = new_setting;
+    }
+
+    return use_bin_cache;
 }
 
-static idx strncmp_exact(const char * s1, idx len1, const char * s2, idx len2)
-{
-    if( !len1 ) {
-        len1 = sLen(s1);
-    }
-    if( !len2 ) {
-        len2 = sLen(s2);
-    }
-    if( int d = strncmp(s1, s2, sMin<idx>(len1, len2)) ) {
-        return d;
-    }
-    return len1 - len2;
-}
-
-/// static data members ///
 
 const udx sUsrType2::type_type_domain_id = sHiveId::encodeDomainId("type");
-sStr sUsrType2::_name_buf;
-sStr sUsrType2::_err_buf;
-sMex sUsrType2::_deps_buf;
-sUsrType2::sUsrType2List sUsrType2::_types;
-sDic<idx> sUsrType2::_name_or_id2itype;
-sVec<sUsrType2*> sUsrType2::_roots;
-bool sUsrType2::_all_deps_loaded = false;
-bool sUsrType2::_all_prefetched = false;
+sStr sUsrLoadingType::_name_buf;
+sMex sUsrLoadingType::_deps_buf;
+sUsrLoadingType::sUsrLoadingTypeList sUsrLoadingType::_types;
+sDic<idx> sUsrLoadingType::_name_or_id2itype;
+sDic<idx> sUsrLoadingType::_name_or_id2ephemeral_itype;
+sVec<sUsrLoadingType*> sUsrLoadingType::_roots;
+bool sUsrLoadingType::_all_deps_loaded = false;
+bool sUsrLoadingType::_all_prefetched = false;
 
-sDic<sUsrAction::ActRes> sUsrAction::_usr2actres;
-sMex sUsrView::_fields_buf;
-sDic<sUsrView::ViewRes> sUsrView::_usr2viewres;
-sDic<bool> sUsrView::_names;
+sDic<sUsrLoadingAction::ActRes> sUsrLoadingAction::_usr2actres;
+sDic<sUsrLoadingJSComponent::JscoRes> sUsrLoadingJSComponent::_usr2jscores;
+sMex sUsrLoadingView::_fields_buf;
+sDic<sUsrLoadingView::ViewRes> sUsrLoadingView::_usr2viewres;
+sDic<bool> sUsrLoadingView::_names;
 
-sStr sUsrTypeField::_name_buf;
+sStr sUsrLoadingTypeField::_name_buf;
 
-// Keep this in sync with sUsrTypeField::eType in uprop2.hpp
 static const char * field_type_names[] = {
-    // skip "invalid", it's -1
     "string",
     "text",
     "integer",
@@ -173,18 +153,80 @@ static const char * field_type_names[] = {
     "url",
     "obj",
     "password",
-    "file"
+    "file",
+
+    "integer",
+    "string",
+    "string",
+    "string",
+    "string",
+    "string",
+    "listtab",
+    "arraytab"
 };
 
-// convert a property type name ("obj", "bool", etc.) to an eUsrObjPropType code
+static const char * field_type_names2[] = {
+    "string",
+    "text",
+    "int",
+    "real",
+    "bool",
+    "array",
+    "list",
+    "date",
+    "time",
+    "datetime",
+    "url",
+    "hiveid",
+    "password",
+    "file",
+    "uint",
+    "memory",
+    "version",
+    "blob",
+    "json",
+    "xml",
+    "arraytab",
+    "listtab"
+};
+
+static const char * field_role_names00[] = {
+    "input" _ "in" __,
+    "output" _ "out" __,
+    "parameter" __,
+    "state" __
+};
+
 inline static const sUsrTypeField::EType fieldTypeFromName(const char * name)
 {
     for(idx i=0; i<sDim(field_type_names); i++) {
-        if( sIs(name, field_type_names[i]) ) {
+        if( sIsExactly(name, field_type_names[i]) ) {
             return (sUsrTypeField::EType)i;
         }
     }
     return sUsrTypeField::eInvalid;
+}
+
+inline static const sUsrTypeField::EType fieldTypeFromName2(const char * name)
+{
+    for(idx i=0; i<sDim(field_type_names2); i++) {
+        if( sIsExactly(name, field_type_names2[i]) ) {
+            return (sUsrTypeField::EType)i;
+        }
+    }
+    return sUsrTypeField::eInvalid;
+}
+
+inline static const sUsrTypeField::ERole fieldRoleFromName(const char * name)
+{
+    for(idx i=0; i<sDim(field_role_names00); i++) {
+        for(const char * s = field_role_names00[i]; s && *s; s = sString::next00(s)) {
+            if( sIsExactly(name, s) ) {
+                return (sUsrTypeField::ERole)i;
+            }
+        }
+    }
+    return sUsrTypeField::eRole_unknown;
 }
 
 static const char * fieldTypeToName(sUsrTypeField::EType t)
@@ -195,9 +237,24 @@ static const char * fieldTypeToName(sUsrTypeField::EType t)
     return "invalid";
 }
 
-// private interfaces
+static const char * fieldTypeToName2(sUsrTypeField::EType t)
+{
+    if( t >= 0 && t < sDim(field_type_names2)) {
+        return field_type_names2[(int)t];
+    }
+    return "invalid";
+}
 
-sUsrType2::sUsrType2(bool default_zero/* = false*/)
+static const char * fieldRoleToName(sUsrTypeField::ERole r)
+{
+    if( r >= 0 && r < sDim(field_role_names00)) {
+        return field_role_names00[(int)r];
+    }
+    return 0;
+}
+
+
+sUsrLoadingType::sUsrLoadingType(bool default_zero)
 {
     _itype = _pos_name = _pos_title = _pos_description = -1;
     _is_virtual = default_zero ? false : true;
@@ -205,7 +262,9 @@ sUsrType2::sUsrType2(bool default_zero/* = false*/)
     _is_system = eLazyNotLoaded;
     _is_prefetch = false;
     _is_fetched = false;
+    _is_singleton = eNotSingleton;
     _is_broken = false;
+    _is_ephemeral = false;
 
     _created = _modified = 0;
 
@@ -216,8 +275,7 @@ sUsrType2::sUsrType2(bool default_zero/* = false*/)
     _dim_explicit_fields = _dim_inherited_fields = _dim_included_fields = 0;
 }
 
-//static
-sUsrType2 * sUsrType2::getRaw(const char * type_name, idx type_name_len/* = 0 */)
+sUsrLoadingType * sUsrLoadingType::getRaw(const char * type_name, idx type_name_len)
 {
     sStr case_buf;
     if( !type_name ) {
@@ -230,10 +288,15 @@ sUsrType2 * sUsrType2::getRaw(const char * type_name, idx type_name_len/* = 0 */
     return pitype ? _types[*pitype] : 0;
 }
 
-//static
-sUsrType2 * sUsrType2::getRaw(const sHiveId & type_id)
+sUsrLoadingType * sUsrLoadingType::getRaw(const sHiveId & type_id)
 {
     idx * pitype = _name_or_id2itype.get(&type_id, sizeof(sHiveId));
+    return pitype ? _types[*pitype] : 0;
+}
+
+sUsrLoadingType * sUsrLoadingType::getRawEphemeral(const sHiveId & type_id)
+{
+    idx * pitype = _name_or_id2ephemeral_itype.get(&type_id, sizeof(sHiveId));
     return pitype ? _types[*pitype] : 0;
 }
 
@@ -242,7 +305,8 @@ namespace {
         struct Entry {
             sHiveId type_id;
             sHiveId dep_id;
-            idx index; // index of path in interned_strings, or of field if kind == eInclude
+            idx path_index;
+            idx ifld;
             enum EKind {
                 eParent,
                 eChild,
@@ -299,25 +363,31 @@ namespace {
             ep->type_id = type_id;
             ep->dep_id = parent_id;
             ep->kind = Entry::eParent;
+            ep->ifld = -sIdxMax;
             if( !path ) {
                 path = "";
             }
-            interned_strings.setString(path, 0, &ep->index);
+            interned_strings.setString(path, 0, &ep->path_index);
 
             Entry * ec = vec.add(1);
             ec->type_id = parent_id;
             ec->dep_id = type_id;
             ec->kind = Entry::eChild;
-            ec->index = -sIdxMax;
+            ec->path_index = -sIdxMax;
+            ec->ifld = -sIdxMax;
         }
 
-        void pushInclude(sHiveId type_id, sHiveId include_id, idx ifld)
+        void pushInclude(sHiveId type_id, sHiveId include_id, const char * path, idx ifld)
         {
             Entry * ed = vec.add(1);
             ed->type_id = type_id;
             ed->dep_id = include_id;
-            ed->index = ifld;
             ed->kind = Entry::eInclude;
+            ed->ifld = ifld;
+            if( !path ) {
+                path = "";
+            }
+            interned_strings.setString(path, 0, &ed->path_index);
         }
 
         static idx sort_cb(void * param, void * arr_param, idx i1, idx i2)
@@ -327,7 +397,6 @@ namespace {
             Entry & e1 = self->vec[arr[i1]];
             Entry & e2 = self->vec[arr[i2]];
 
-            // compare by child id, then by path
             if( idx diff = e1.type_id.cmp(e2.type_id) ) {
                 return diff;
             }
@@ -337,8 +406,8 @@ namespace {
             }
 
             if( e1.kind == Entry::eParent && e2.kind == Entry::eParent ) {
-                const char * path1 = static_cast<const char *>(self->interned_strings.id(e1.index));
-                const char * path2 = static_cast<const char *>(self->interned_strings.id(e2.index));
+                const char * path1 = static_cast<const char *>(self->interned_strings.id(e1.path_index));
+                const char * path2 = static_cast<const char *>(self->interned_strings.id(e2.path_index));
                 do {
                     idx cur_elt1 = sUsrObj::readPathElt(path1, &path1);
                     idx cur_elt2 = sUsrObj::readPathElt(path2, &path2);
@@ -372,7 +441,6 @@ namespace {
         }
     };
 
-    // map from type id + first 2 elements of group path to field's index within the type
     struct FieldPathDic {
         sDic<idx> dic;
         sStr buf;
@@ -393,7 +461,6 @@ namespace {
             }
         }
 
-        // check if anything for this type id was set
         bool get(const sHiveId & type_id)
         {
             return dic.get(&type_id, sizeof(sHiveId));
@@ -408,7 +475,7 @@ namespace {
 
         void set(const sHiveId & type_id, const char * prop_group, idx ifld)
         {
-            *dic.set(&type_id, sizeof(sHiveId)) = -sIdxMax; // record that *something* for this type id was set
+            *dic.set(&type_id, sizeof(sHiveId)) = -sIdxMax;
             makeBuf(type_id, prop_group);
             *dic.setString(buf.ptr(), buf.length(), 0) = ifld;
         }
@@ -421,49 +488,12 @@ namespace {
     };
 };
 
-class sUsrType2::DepForest
-{
-    public:
-        DepForest() { ensureType2Inode(); }
-        void add(sUsrType2 * utype)
-        {
-            ensureType2Inode();
-            addWorker(utype);
-        }
-        bool has(idx itype) const
-        {
-            return itype >= 0 && itype < _itype2node.dim() && _itype2node[itype] >= 0;
-        }
-        // generate a traversal of the tree such that for any i, node i only depends only on nodes 0..i-1
-        idx makeTraversal(sVec<idx> & out);
-
-    private:
-        sMex _mex;
-        sVec< sKnot<udx> > _nodes;
-        sVec<idx> _roots;
-        sVec<idx> _itype2node;
-
-        idx addWorker(const sUsrType2 * utype);
-        void makeTreeTraversal(sVec<idx> & out, idx inode, sVec<bool> & visited);
-        void ensureType2Inode()
-        {
-            if( !_itype2node.dim() ) {
-                _itype2node.resize(sUsrType2::_types.dim());
-                for( idx itype=0; itype<_itype2node.dim(); itype++ ) {
-                    _itype2node[itype] = -sIdxMax;
-                }
-            }
-        }
-};
-
-idx sUsrType2::DepForest::addWorker(const sUsrType2 * utype)
+idx sUsrLoadingType::DepForest::addWorker(const sUsrLoadingType * utype)
 {
     if( utype->_is_fetched ) {
-        // if the type was fetched already, don't refetch it
         return -1;
     }
     if( _itype2node[utype->_itype] >= 0 ) {
-        // if the type was already pulled into the forest, use its node
         return _itype2node[utype->_itype];
     }
     LOG_TRACE("adding \"%s\" (%s) to forest", utype->name(), utype->id().print());
@@ -474,27 +504,28 @@ idx sUsrType2::DepForest::addWorker(const sUsrType2 * utype)
     node->out.init(&_mex);
     node = 0;
 
-    // otherwise: pull in parents, then includes
     for(idx ip=0; ip<utype->dimParents(); ip++) {
-        const sUsrType2 * par = utype->getParent(ip);
-        idx ipar_node = addWorker(par);
-        if( ipar_node >= 0 ) {
-            *_nodes[inode].in.add(1) = ipar_node;
-            *_nodes[ipar_node].out.add(1) = inode;
+        if( const sUsrLoadingType * par = dynamic_cast<const sUsrLoadingType*>(utype->getParent(ip)) ) {
+            idx ipar_node = addWorker(par);
+            if( ipar_node >= 0 ) {
+                *_nodes[inode].in.add(1) = ipar_node;
+                *_nodes[ipar_node].out.add(1) = inode;
+            }
         }
     }
     for(idx iinc=0; iinc<utype->dimIncludes(); iinc++) {
-        const sUsrType2 * inc = utype->getInclude(iinc);
-        idx iinc_node = addWorker(inc);
-        if( iinc_node >= 0 ) {
-            *_nodes[inode].in.add(1) = iinc_node;
-            *_nodes[iinc_node].out.add(1) = inode;
+        if( const sUsrLoadingType * inc = dynamic_cast<const sUsrLoadingType*>(utype->getInclude(iinc)) ) {
+            idx iinc_node = addWorker(inc);
+            if( iinc_node >= 0 ) {
+                *_nodes[inode].in.add(1) = iinc_node;
+                *_nodes[iinc_node].out.add(1) = inode;
+            }
         }
     }
     return inode;
 }
 
-idx sUsrType2::DepForest::makeTraversal(sVec<idx> & out)
+idx sUsrLoadingType::DepForest::makeTraversal(sVec<idx> & out)
 {
     idx start_dim = out.dim();
     sVec<bool> visited(sMex::fSetZero);
@@ -505,31 +536,42 @@ idx sUsrType2::DepForest::makeTraversal(sVec<idx> & out)
     return out.dim() - start_dim;
 }
 
-void sUsrType2::DepForest::makeTreeTraversal(sVec<idx> & out, idx inode, sVec<bool> & visited)
+void sUsrLoadingType::DepForest::makeTreeTraversal(sVec<idx> & out, idx inode, sVec<bool> & visited)
 {
     if( visited[inode] ) {
         return;
     }
     visited[inode] = true;
     sKnot<udx> & node = _nodes[inode];
-    // first ensure we got all of the node's parents...
     for(idx iin=0; iin < node.in.dim(); iin++) {
-        LOG_TRACE("Traversing parent %" DEC "/%" DEC " of type \"%s\": \"%s\"", iin, node.in.dim(), sUsrType2::_types[node.obj]->name(), sUsrType2::_types[_nodes[*node.in.ptr(iin)].obj]->name());
+        LOG_TRACE("Traversing parent %" DEC "/%" DEC " of type \"%s\": \"%s\"", iin, node.in.dim(), sUsrLoadingType::_types[node.obj]->name(), sUsrLoadingType::_types[_nodes[*node.in.ptr(iin)].obj]->name());
         makeTreeTraversal(out, *node.in.ptr(iin), visited);
     }
 
-    // then add node to traversal order
-    LOG_TRACE("Adding type \"%s\" to traversal", sUsrType2::_types[node.obj]->name());
+    LOG_TRACE("Adding type \"%s\" to traversal", sUsrLoadingType::_types[node.obj]->name());
     *out.add(1) = node.obj;
 }
 
+static bool isFieldWeakReference(const char * type_name, const char * field_name)
+{
+    if( !type_name ) {
+        type_name = sStr::zero;
+    }
+    if( !field_name ) {
+        field_name = sStr::zero;
+    }
 
-// magic flag for fld->_included_from_itype indicating that a valid field_include_type is expected
+    if( sIsExactly(type_name, "process") && sIsExactly(field_name, "folder") ) {
+        return true;
+    }
+    return false;
+}
+
 #define INCLUDE_TYPE_EXPECTED -999
-class sUsrType2::LoadFromObjContext {
+class sUsrLoadingType::LoadFromObjContext {
     public:
         const sUsr & user;
-        sUsrType2 * utype;
+        sUsrLoadingType * utype;
         bool is_full_fetch;
         DepList dep_list;
         FieldPathDic field_path_dic;
@@ -552,15 +594,13 @@ class sUsrType2::LoadFromObjContext {
 
         bool accumulateProp(const char * prop_name, const char * prop_value, const char * prop_group)
         {
-            if( strcmp(prop_name, "name") == 0 ) {
+            if( sIsExactly(prop_name, "name") ) {
                  if( isalpha(prop_value[0]) ) {
                      const char * canon_value = canonicalCase(case_buf, prop_value);
-                     // valid type name, not something like "--DELETED" etc. (which was permitted in old pre-2016 UPType table, but is not permitted in UPObj-based type storage)
                      if( idx * pitype = _name_or_id2itype.get(canon_value) ) {
-                         sUsrType2 * other_utype = _types[*pitype];
+                         sUsrLoadingType * other_utype = _types[*pitype];
                          if( utype->_id != other_utype->_id ) {
                              LOG_ERROR("Types \"%s\" and \"%s\" have the same name \"%s\"", utype->_id.print(), other_utype->_id.print(local_log_buf), prop_value);
-                             // FIXME: do we want to mark utype and/or other_utype as broken?
                          }
                      } else {
                          *_name_or_id2itype.setString(canon_value) = utype->_itype;
@@ -569,7 +609,7 @@ class sUsrType2::LoadFromObjContext {
                          utype->_pos_name = _name_buf.length();
                          _name_buf.addString(prop_value);
                          _name_buf.add0();
-                     } else if( strcmp(utype->name(), prop_value) != 0 ) {
+                     } else if( !sIsExactly(utype->name(), prop_value) ) {
                          LOG_ERROR("Type \"%s\" found with 2 different names: '%s' and '%s'", utype->_id.print(), utype->name(), prop_value);
                          utype->_is_broken = true;
                      }
@@ -578,37 +618,43 @@ class sUsrType2::LoadFromObjContext {
                      utype->_is_broken = true;
                      return false;
                  }
-             } else if( strcmp(prop_name, "created") == 0 ) {
+             } else if( sIsExactly(prop_name, "created") ) {
                  struct tm unused;
                  utype->_created = sString::parseDateTime(&unused, prop_value);
-             } else if( strcmp(prop_name, "modified") == 0 ) {
+             } else if( sIsExactly(prop_name, "modified") ) {
                  struct tm unused;
                  utype->_modified = sString::parseDateTime(&unused, prop_value);
-             } else if( strcmp(prop_name, "title") == 0 ) {
+             } else if( sIsExactly(prop_name, "title") ) {
                  if( utype->_pos_title < 0 ) {
                      utype->_pos_title = _name_buf.length();
                      _name_buf.addString(prop_value);
                      _name_buf.add0();
-                 } else if( strcmp(utype->title(), prop_value) != 0 ) {
+                 } else if( !sIsExactly(utype->title(), prop_value) ) {
                      LOG_ERROR("Type \"%s\" found with 2 different titles: '%s' and '%s'", utype->_id.print(), utype->title(), prop_value);
                      utype->_is_broken = true;
                  }
-             } else if( strcmp(prop_name, "description") == 0 ) {
+             } else if( sIsExactly(prop_name, "description") ) {
                  if( utype->_pos_description < 0 ) {
                      utype->_pos_description = _name_buf.length();
                      _name_buf.addString(prop_value);
                      _name_buf.add0();
-                 } else if( strcmp(utype->description(), prop_value) != 0 ) {
+                 } else if( !sIsExactly(utype->description(), prop_value) ) {
                      LOG_ERROR("Type \"%s\" found with 2 different descriptions: '%s' and '%s'", utype->_id.print(), utype->description(), prop_value);
                      utype->_is_broken = true;
                  }
-             } else if( strcmp(prop_name, "is_abstract_fg") == 0 ) {
+             } else if( sIsExactly(prop_name, "is_abstract_fg") ) {
                  utype->_is_virtual = sString::parseBool(prop_value);
-             } else if( strcmp(prop_name, "prefetch") == 0 )  {
+             } else if( sIsExactly(prop_name, "prefetch") )  {
                  utype->_is_prefetch = sString::parseBool(prop_value);
-             } else if( strcmp(prop_name, "parent") == 0 ) {
-                 // order of parent types matters, but db rows arrive unsorted - so save and sort by path later
-                 if( !utype->dimParents() ) {
+             } else if( sIsExactly(prop_name, "singleton") )  {
+                 idx iprop_value = atoidx(prop_value);
+                 if( iprop_value < eNotSingleton || iprop_value > eSingletonPerSystem ) {
+                     LOG_WARNING("Type \"%s\" has unknown singleton value % " DEC "; treating as %d (systemwide singleton)", utype->_id.print(), iprop_value, eSingletonPerSystem);
+                     iprop_value = eSingletonPerSystem;
+                 }
+                 utype->_is_singleton = (ESingleton)iprop_value;
+             } else if( sIsExactly(prop_name, "parent") ) {
+                 if( !utype->dimParents() || is_full_fetch ) {
                      sHiveId parent_id;
                      if( !parent_id.parse(prop_value) ) {
                          LOG_ERROR("Type \"%s\" has invalid parent \"%s\"", utype->_id.print(), prop_value);
@@ -618,50 +664,51 @@ class sUsrType2::LoadFromObjContext {
                      dep_list.pushParent(utype->_id, parent_id, prop_group);
                  }
              } else if( sIs("field_", prop_name) ) {
-                 prop_name += 6; // strlen("field_");
+                 prop_name += 6;
                  idx ifld = -sIdxMax;
 
                  if( is_full_fetch ) {
                      if( utype->_fields.dim() && !field_path_dic.get(utype->_id) ) {
-                         // for now, do not allow incomplete loading of fields into a type - hard to do correctly
                          LOG_ERROR("Type \"%s\" already had its field information loaded, refusing to overwrite", utype->_id.print());
                          return false;
                      }
                      ifld = field_path_dic.get(utype->_id, prop_group);
-                     sUsrTypeField * fld = 0;
+                     sUsrLoadingTypeField * fld = 0;
                      if( ifld >= 0 ) {
                          fld = utype->_fields.ptr(ifld);
                      } else {
-                         // we have not seen field info with the first 2 elements of prop_group for this type before
                          ifld = utype->_fields.dim();
                          field_path_dic.set(utype->_id, prop_group, ifld);
                          fld = utype->_fields.addM(1);
-                         new(fld) sUsrTypeField(true);
+                         new(fld) sUsrLoadingTypeField(true);
                          fld->_index = ifld;
                          fld->_owner_itype = fld->_definer_itype = utype->_itype;
+                         LOG_TRACE("Type \"%s\" constructing new field %" DEC " for path \"%s\"", utype->_id.print(), ifld, prop_group ? prop_group : "");
                      }
 
-                     if( strcmp(prop_name, "name") == 0 ) {
-                         fld->_pos_name = fld->_pos_orig_name = sUsrTypeField::setString(prop_value);
+                     if( sIsExactly(prop_name, "name") ) {
+                         fld->_pos_name = fld->_pos_orig_name = sUsrLoadingTypeField::setString(prop_value);
                          *utype->_name2ifield.setString(canonicalCase(case_buf, prop_value)) = ifld;
-                     } else if( strcmp(prop_name, "title") == 0 ) {
-                         fld->_pos_title = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "type") == 0 ) {
+                         if( isFieldWeakReference(utype->name(), prop_value) ) {
+                             fld->_is_weak_reference = true;
+                         }
+                     } else if( sIsExactly(prop_name, "title") ) {
+                         fld->_pos_title = sUsrLoadingTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "type") ) {
                          if( sIs("type2", prop_value) ) {
-                             prop_value += 5; // strlen("type2");
-                             fld->_included_from_itype = INCLUDE_TYPE_EXPECTED; // magic flag indicating that a valid field_include_type is expected
+                             prop_value += 5;
+                             fld->_included_from_itype = INCLUDE_TYPE_EXPECTED;
                          } else {
                              fld->_included_from_itype = -1;
                          }
                          fld->_type = fieldTypeFromName(prop_value);
-                         //LOG_WARNING("Type %s field %s type %s", type_id.print(), fld->name(), fld->typeName());
-                     } else if( strcmp(prop_name, "parent") == 0 ) {
-                         fld->_pos_parent_name = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "role") == 0 ) {
-                         fld->_pos_role = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "is_key_fg") == 0 ) {
+                     } else if( sIsExactly(prop_name, "parent") ) {
+                         fld->_pos_parent_name = sUsrLoadingTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "role") ) {
+                         fld->_role = fieldRoleFromName(prop_value);
+                     } else if( sIsExactly(prop_name, "is_key_fg") ) {
                          fld->_is_key = sString::parseBool(prop_value);
-                     } else if( strcmp(prop_name, "is_readonly_fg") == 0 ) {
+                     } else if( sIsExactly(prop_name, "is_readonly_fg") ) {
                          switch(idx ro = atoidx(prop_value)) {
                              case sUsrTypeField::eReadWrite:
                              case sUsrTypeField::eWriteOnce:
@@ -675,46 +722,49 @@ class sUsrType2::LoadFromObjContext {
                                  fld->_readonly = sUsrTypeField::eReadOnly;
                                  fld->_is_broken = true;
                          }
-                     } else if( strcmp(prop_name, "is_optional_fg") == 0 ) {
+                     } else if( sIsExactly(prop_name, "is_optional_fg") ) {
                          fld->_is_optional = sString::parseBool(prop_value);
-                     } else if( strcmp(prop_name, "is_multi_fg") == 0 ) {
+                     } else if( sIsExactly(prop_name, "is_multi_fg") ) {
                          fld->_is_multi = sString::parseBool(prop_value);
-                     } else if( strcmp(prop_name, "is_hidden_fg") == 0 ) {
+                     } else if( sIsExactly(prop_name, "is_hidden_fg") ) {
                          fld->_is_hidden = sString::parseBool(prop_value);
-                     } else if( strcmp(prop_name, "brief") == 0 ) {
-                         fld->_pos_brief = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "is_summary_fg") == 0 ) {
+                     } else if( sIsExactly(prop_name, "brief") ) {
+                         fld->_pos_brief = sUsrLoadingTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "is_summary_fg") ) {
                          fld->_is_summary = sString::parseBool(prop_value);
-                     } else if( strcmp(prop_name, "is_virtual_fg") == 0 ) {
+                     } else if( sIsExactly(prop_name, "is_virtual_fg") ) {
                          fld->_is_virtual = sString::parseBool(prop_value);
-                     } else if( strcmp(prop_name, "is_batch_fg") == 0 ) {
+                     } else if( sIsExactly(prop_name, "is_batch_fg") ) {
                          fld->_is_batch = sString::parseBool(prop_value);
-                     } else if( strcmp(prop_name, "order") == 0 ) {
-                         fld->_pos_order = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "default_value") == 0 ) {
-                         fld->_pos_default_value = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "default_encoding") == 0 ) {
+                     } else if( sIsExactly(prop_name, "weakref") ) {
+                         fld->_is_weak_reference = sString::parseBool(prop_value);
+                     } else if( sIsExactly(prop_name, "order") ) {
+                         fld->_pos_order = sUsrLoadingTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "default_value") ) {
+                         fld->_pos_default_value = sUsrLoadingTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "default_encoding") ) {
                          fld->_default_encoding = atoidx(prop_value);
-                     } else if( strcmp(prop_name, "link_url") == 0 ) {
-                         fld->_pos_link_url = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "constraint") == 0 ) {
-                         fld->_pos_constraint = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "constraint_data") == 0 ) {
-                         fld->_pos_constraint_data = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "constraint_description") == 0 ) {
-                         fld->_pos_constraint_description = sUsrTypeField::setString(prop_value);
-                     } else if( strcmp(prop_name, "description") == 0 ) {
-                         fld->_pos_description = sUsrTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "link_url") ) {
+                         fld->_pos_link_url = sUsrLoadingTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "constraint") ) {
+                         fld->_pos_constraint = sUsrLoadingTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "constraint_data") ) {
+                         fld->_pos_constraint_data = sUsrLoadingTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "constraint_description") ) {
+                         fld->_pos_constraint_description = sUsrLoadingTypeField::setString(prop_value);
+                     } else if( sIsExactly(prop_name, "description") ) {
+                         fld->_pos_description = sUsrLoadingTypeField::setString(prop_value);
                      }
                  }
 
-                 if( strcmp(prop_name, "include_type") == 0 ) {
+                 if( sIsExactly(prop_name, "include_type") ) {
                      sHiveId include_id;
                      if( !include_id.parse(prop_value) ) {
                          LOG_ERROR("Type \"%s\" has invalid field_include_type \"%s\" (group \"%s\")", utype->_id.print(), prop_value, prop_group);
                          return false;
                      }
-                     dep_list.pushInclude(utype->_id, include_id, ifld);
+                     LOG_TRACE("Type \"%s\" has field_include_type \"%s\" (group \"%s\"); adding to dep list", utype->_id.print(), prop_value, prop_group);
+                     dep_list.pushInclude(utype->_id, include_id, prop_group, ifld);
                  }
              } else {
                  LOG_ERROR("Type \"%s\" has unexpected property \"%s\" = \"%s\"", utype->_id.print(), prop_name, prop_value);
@@ -723,14 +773,24 @@ class sUsrType2::LoadFromObjContext {
             return true;
         }
 
+        void addIfNotInLst(sLst<idx> & lst, idx val)
+        {
+            for(idx i = 0; i < lst.dim(); i++) {
+                if( *lst.ptr(i) == val) {
+                    return;
+                }
+            }
+            *lst.add(1) = val;
+        }
+
         bool assembleDeps()
         {
             dep_list.sort();
-            sDic<idx> unique_includes; // key = included itype
+            sDic<idx> unique_includes;
             for(idx idep = 0; idep < dep_list.dim(); ) {
                 idx istart = idep;
                 const DepList::Entry & e_start = dep_list.getSorted(istart);
-                if( sUsrType2 * utype = getRaw(e_start.type_id) ) {
+                if( sUsrLoadingType * utype = getRaw(e_start.type_id) ) {
                     unique_includes.empty();
                     for( idx iinc = 0; iinc < utype->_includes.dim(); iinc++ ) {
                         idx inc_itype = utype->_includes[iinc];
@@ -738,9 +798,9 @@ class sUsrType2::LoadFromObjContext {
                     }
                     for( ; idep < dep_list.dim() && e_start.type_id == dep_list.getSorted(idep).type_id; idep++ ) {
                         const DepList::Entry & e = dep_list.getSorted(idep);
-                        LOG_TRACE("Got dep entry #%" DEC ": %s (%s path)", idep, e.print(local_log_buf, false, false), e.index >= 0 ? static_cast<const char*>(dep_list.interned_strings.id(e.index)) : "no");
+                        LOG_TRACE("Got dep entry #%" DEC ": %s (%s path)", idep, e.print(local_log_buf, false, false), e.path_index >= 0 ? static_cast<const char*>(dep_list.interned_strings.id(e.path_index)) : "no");
                         const DepList::Entry * e_prev = idep > istart ? &dep_list.getSorted(idep - 1) : 0;
-                        sUsrType2 * udep = getRaw(e.dep_id);
+                        sUsrLoadingType * udep = getRaw(e.dep_id);
 
                         if( !udep ) {
                             LOG_ERROR("%s which cannot be fetched", e.print(local_log_buf, true, false));
@@ -749,18 +809,16 @@ class sUsrType2::LoadFromObjContext {
                         }
 
                         if( e.kind == DepList::Entry::eParent ) {
-                            *utype->_parents.add(1) = udep->_itype;
+                            addIfNotInLst(utype->_parents, udep->_itype);
                         } else if( e.kind == DepList::Entry::eChild ) {
-                            *utype->_children.add(1) = udep->_itype;
+                            addIfNotInLst(utype->_children, udep->_itype);
                         } else if( e.kind == DepList::Entry::eInclude ) {
-                            if( utype->_fields.dim() ) {
-                                utype->_fields[e.index]._included_from_itype = udep->_itype;
+                            if( utype->_fields.dim() && e.ifld >= 0 ) {
+                                utype->_fields[e.ifld]._included_from_itype = udep->_itype;
+                                LOG_TRACE("Type \"%s\" (%s) field \"%s\" (%" DEC ") is being marked as included from type \"%s\" (%s)", utype->id().print(), utype->name(), utype->_fields[e.ifld].name(), e.ifld, udep->id().print(local_log_buf), udep->name());
                             }
 
                             if( !e_prev || e_prev->kind != e.kind || e_prev->dep_id != e.dep_id ) {
-                                // copy only unique includes; note that we are assuming that for a given type,
-                                // its field data will be loaded only once, so there is no need to check for
-                                // pre-existing includes in utype->_includes before loop start
                                 if( !unique_includes.get(&udep->_itype, sizeof(udep->_itype)) ) {
                                     *utype->_includes.add(1) = udep->_itype;
                                     unique_includes.set(&udep->_itype, sizeof(udep->_itype));
@@ -770,7 +828,7 @@ class sUsrType2::LoadFromObjContext {
                     }
                 } else {
                     LOG_ERROR("%s which cannot be fetched", e_start.print(local_log_buf, true, true));
-                    if( sUsrType2 * udep = getRaw(e_start.dep_id) ) {
+                    if( sUsrLoadingType * udep = getRaw(e_start.dep_id) ) {
                         udep->_is_broken = true;
                     }
                     idep++;
@@ -786,10 +844,10 @@ class sUsrType2::LoadFromObjContext {
                 DepForest forest;
                 for(idx i = 0; i < full_fetch_ids2itype.dim(); i++) {
                     idx itype = *full_fetch_ids2itype.ptr(i);
-                    sUsrType2 & utype = *_types[itype];
+                    sUsrLoadingType & utype = *_types[itype];
                     forest.add(&utype);
                     for(idx ifld = 0; ifld < utype._fields.dim(); ifld++) {
-                        sUsrTypeField * fld = utype._fields.ptr(ifld);
+                        sUsrLoadingTypeField * fld = utype._fields.ptr(ifld);
                         if( fld->_included_from_itype == INCLUDE_TYPE_EXPECTED ) {
                             LOG_ERROR("Type \"%s\" field \"%s\" is type \"type2*\" but its field_include_type was missing or invalid", utype.id().print(), fld->name());
                             fld->_is_broken = true;
@@ -798,23 +856,21 @@ class sUsrType2::LoadFromObjContext {
                 }
                 sVec<idx> loaded_itypes;
                 forest.makeTraversal(loaded_itypes);
-                sUsrType2::linkFields(loaded_itypes);
+                sUsrLoadingType::linkFields(loaded_itypes);
             }
 
             return true;
         }
 };
 
-static sHiveId type_type_id; // caches ID of type "type" - which canonically ought to be id "type.1"
+sHiveId sUsrLoadingType::type_type_id;
 
-//static
-void sUsrType2::loadFromObj(const sUsr & user, const char * name, idx name_len, const sHiveId * type_id, bool no_prefetch/* = false */, bool lazy_fetch_fields/* = false */)
+void sUsrLoadingType::loadFromObj(const sUsr & user, const char * name, idx name_len, const sHiveId * type_id, bool no_prefetch, bool lazy_fetch_fields)
 {
     if( !name_len ) {
         name_len = sLen(name);
     }
 
-    // if prefetch types were already prefetched, and name/type_id are among them or were not specified, nothing more to do here:
     if( _all_prefetched ) {
         if( (name && strncmp(name, "*", name_len) && getRaw(name, name_len) && (lazy_fetch_fields || getRaw(name, name_len)->_is_fetched)) ||
             (type_id && getRaw(*type_id) && (lazy_fetch_fields || getRaw(*type_id)->_is_fetched)) ||
@@ -824,22 +880,19 @@ void sUsrType2::loadFromObj(const sUsr & user, const char * name, idx name_len, 
         }
     }
 
-    // name == "*" : load all
 #define SP_TYPE_GET "sp_type_get_v6"
-    std::auto_ptr<sSql::sqlProc> p(user.getProc(SP_TYPE_GET));
+    std::unique_ptr<sSql::sqlProc> p(user.getProc(SP_TYPE_GET));
     if( name && strncmp(name, "*", name_len) == 0 ) {
-        // load all types
         if( _all_deps_loaded ) {
             return;
         }
         _all_deps_loaded = true;
-        p->Add("TRUE"); // all types
+        p->Add("TRUE");
         if( no_prefetch && lazy_fetch_fields ) {
-            // do not fetch full fields for any type
             p->Add("FALSE");
         } else {
-            // load full fields only for prefetchable types
             p->Add("(f.`name` = 'prefetch' AND f.`value` > 0)");
+            _all_prefetched = true;
         }
     } else {
         sStr sql;
@@ -860,14 +913,12 @@ void sUsrType2::loadFromObj(const sUsr & user, const char * name, idx name_len, 
                 sql.addString(" OR ");
                 type_id->printSQL(sql, "o", true);
             }
-            _all_prefetched = true;
+            _all_prefetched = !lazy_fetch_fields;
         }
         p->Add(sql);
         if( lazy_fetch_fields ) {
-            // do not fetch full fields for any type
             p->Add("FALSE");
         } else {
-            // load full fields only for all selected types (the one specified by name/id + the prefetchable ones)
             p->Add("TRUE");
         }
     }
@@ -879,16 +930,15 @@ void sUsrType2::loadFromObj(const sUsr & user, const char * name, idx name_len, 
     do {
         idx dep_list_start = ctx.dep_list.vec.dim();
         ctx.resetType();
-        unfetched_ids.cut();
-        unfetched_full_fetch_ids.cut();
+        unfetched_ids.empty();
+        unfetched_full_fetch_ids.empty();
         if( p->resultOpen() && user.db().resultNext() ) {
-            // first result is domain and objid of type "type" for us to cache
+            LOG_TRACE("%s;", p->rawStatement());
             if( !type_type_id && user.db().resultNextRow() ) {
                 const idx domain_id_icol = user.db().resultColId("domainID");
                 const idx obj_id_icol = user.db().resultColId("objID");
                 type_type_id.set(user.db().resultUValue(domain_id_icol), user.db().resultUValue(obj_id_icol), 0);
             }
-            // second result is the type data
             if( !user.db().resultNext() ) {
                 break;
             }
@@ -914,21 +964,19 @@ void sUsrType2::loadFromObj(const sUsr & user, const char * name, idx name_len, 
                     prop_value = sStr::zero;
                 }
 
-                LOG_TRACE("Got row from " SP_TYPE_GET ": %s,%s,%s,\"%s\"", type_id.print(), prop_name, prop_group, prop_value);
+                LOG_TRACE("Got row from " SP_TYPE_GET ": %s,%" DEC ",%s,%s,\"%s\"", type_id.print(), user.db().resultIValue(is_full_fetch_fg_icol), prop_name, prop_group, prop_value);
 
                 idx itype = -sIdxMax;
-                sUsrType2 * utype = 0;
+                sUsrLoadingType * utype = 0;
                 if( idx * pitype = _name_or_id2itype.get(&type_id, sizeof(sHiveId)) ) {
                     itype = *pitype;
                     utype = _types[itype];
                     if( utype->_is_fetched ) {
-                        // the entire type was already loaded; e.g. we fetched a few specific types,
-                        // and then after we are fetching "*"
                         continue;
                     }
                 } else {
                     itype = _types.dim();
-                    utype = new sUsrType2(true);
+                    utype = new sUsrLoadingType(true);
                     *_types.add(1) = utype;
                     utype->_itype = itype;
                     utype->_id = type_id;
@@ -940,6 +988,8 @@ void sUsrType2::loadFromObj(const sUsr & user, const char * name, idx name_len, 
                 if( is_full_fetch ) {
                     ctx.is_full_fetch = true;
                     *ctx.full_fetch_ids2itype.set(&type_id, sizeof(sHiveId)) = itype;
+                } else {
+                    ctx.is_full_fetch = false;
                 }
 
                 if( !ctx.accumulateProp(prop_name, prop_value, prop_group) ) {
@@ -953,87 +1003,251 @@ void sUsrType2::loadFromObj(const sUsr & user, const char * name, idx name_len, 
         for(idx id = dep_list_start; id < ctx.dep_list.vec.dim(); id++) {
             const sHiveId * pdep = &ctx.dep_list.vec[id].dep_id;
             const sHiveId * p_dep_of = &ctx.dep_list.vec[id].type_id;
-            if( !_name_or_id2itype.get(pdep, sizeof(sHiveId)) ) {
-                *unfetched_ids.add(1) = *pdep;
-                if( ctx.full_fetch_ids2itype.get(p_dep_of, sizeof(sHiveId)) ) {
+            const sUsrLoadingType * udep = getRaw(*pdep);
+
+            if( ctx.full_fetch_ids2itype.get(p_dep_of, sizeof(sHiveId)) ) {
+                if( (!udep || !udep->_is_fetched) && !ctx.full_fetch_ids2itype.get(pdep, sizeof(sHiveId)) ) {
+                    *unfetched_ids.add(1) = *pdep;
                     *unfetched_full_fetch_ids.add(1) = *pdep;
-                    LOG_TRACE("Type \"%s\" depends on \"%s\" which was not fetched yet, adding to fetch list (will fetch all fields)", ctx.dep_list.vec[id].type_id.print(), pdep->print());
-                } else {
-                    LOG_TRACE("Type \"%s\" depends on \"%s\" which was not fetched yet, adding to fetch list (in minimal mode)", ctx.dep_list.vec[id].type_id.print(), pdep->print());
+                    LOG_TRACE("Type \"%s\" depends on \"%s\" which was not fully fetched yet, adding to fetch list (will fetch all fields)", ctx.dep_list.vec[id].type_id.print(), pdep->print(local_log_buf));
+                }
+            } else {
+                if( !udep ) {
+                    *unfetched_ids.add(1) = *pdep;
+                    LOG_TRACE("Type \"%s\" depends on \"%s\" which was not fetched yet, adding to fetch list (in minimal mode)", ctx.dep_list.vec[id].type_id.print(), pdep->print(local_log_buf));
                 }
             }
         }
 
         if( unfetched_ids.dim() ) {
             p.reset(user.getProc(SP_TYPE_GET));
-            sStr sql;
-            p->Add(user.db().protectValue(sql, sSql::exprInList(sql_buf, "o.domainID", "o.objID", unfetched_ids)));
+            sql_buf.cut0cut();
+            p->Add(sSql::exprInList(sql_buf, "o.domainID", "o.objID", unfetched_ids));
             if( unfetched_full_fetch_ids.dim() == 0 ) {
-                p->Add("FALSE"); // load all unfetched ids in minimal mode
+                p->Add("FALSE");
             } else if( unfetched_full_fetch_ids.dim() == unfetched_ids.dim() ) {
-                p->Add("TRUE"); // load all unfetched ids in full mode
+                p->Add("TRUE");
             } else {
-                sql.cut0cut();
-                p->Add(user.db().protectValue(sql, sSql::exprInList(sql_buf, "o.domainID", "o.objID", unfetched_full_fetch_ids)));
+                sql_buf.cut0cut();
+                p->Add(sSql::exprInList(sql_buf, "o.domainID", "o.objID", unfetched_full_fetch_ids));
             }
             p->Add(type_type_id.domainId()).Add(type_type_id.objId());
         }
     } while( unfetched_ids.dim() );
 
-    // assemble dependency info
     ctx.assembleDeps();
     ctx.linkFields();
 }
 
-class sUsrType2::JSONLoader : public sUsrPropSet
+sUsrLoadingType * sUsrLoadingType::ensureEphemeral(const sHiveId & type_id)
+{
+    sUsrLoadingType * utype = getRaw(type_id);
+    if( !utype ) {
+        idx itype = _types.dim();
+        utype = new sUsrLoadingType();
+        *_types.add(1) = utype;
+        utype->_itype = itype;
+        utype->_id = type_id;
+        utype->_is_fetched = true;
+        utype->_is_broken = true;
+        utype->_is_ephemeral = true;
+        *_name_or_id2itype.set(&type_id, sizeof(sHiveId)) = itype;
+        *_name_or_id2ephemeral_itype.set(&type_id, sizeof(sHiveId)) = itype;
+
+        utype->_pos_name = _name_buf.length();
+        _name_buf.addString("_unknown-");
+        type_id.print(_name_buf);
+        _name_buf.add0();
+        *_name_or_id2itype.setString(_name_buf.ptr(utype->_pos_name)) = itype;
+        *_name_or_id2ephemeral_itype.setString(_name_buf.ptr(utype->_pos_name)) = itype;
+
+        utype->_pos_title = _name_buf.length();
+        _name_buf.addString("Unknown type (");
+        type_id.print(_name_buf);
+        _name_buf.addString(")");
+        _name_buf.add0();
+    }
+    return utype->_is_ephemeral ? utype : 0;
+}
+
+class sUsrLoadingType::JSONLoader : public sUsrPropSet
 {
     private:
-        struct BuiltinField {
+        struct BuiltinFieldPack {
             const char * name;
             sUsrTypeField::EType type;
+            sUsrTypeField::ERole role;
             bool is_array_row;
             bool is_key;
+            bool is_optional;
             bool is_multi;
             bool is_global_multi;
+            bool is_flattened_decor;
+            bool is_flattened_multi;
+            const char * order_string;
             const char * parent;
-            const char * flattened_non_array_row_parent;
+            idx ancestor_count;
+            const char * flattened_parent;
+            const char ** children;
         };
-        static const BuiltinField _builtin_fields[];
-        static const BuiltinField _unknown_field;
-        static sDic<const BuiltinField*> _builtin_fields_dic;
 
-        sUsrType2::LoadFromObjContext _ctx;
+        class BuiltinType;
+        class BuiltinField : public sUsrTypeField {
+            private:
+                const BuiltinFieldPack * _pack;
+                friend class BuiltinType;
+
+            public:
+                static const BuiltinFieldPack builtin_field_packs[];
+                static sDic<BuiltinField> builtin_fields;
+                static const BuiltinField unknown_field;
+
+                BuiltinField(const BuiltinFieldPack * pack = 0) { _pack = pack; }
+
+                virtual ~BuiltinField() {}
+                virtual const char * name() const { return _pack ? _pack->name : "__unknown_field__"; }
+                virtual const char * originalName() const { return name(); }
+                virtual const char * title() const { return name(); }
+                virtual EType type() const { return _pack ? _pack->type : sUsrTypeField::eInvalid; }
+                virtual const BuiltinField* parent() const { return _pack && _pack->parent ? builtin_fields.get(_pack->parent) : 0; }
+                virtual ERole role() const { return _pack ? _pack->role : eRole_unknown; }
+                virtual idx dimChildren() const
+                {
+                    idx cnt = 0;
+                    if( _pack && _pack->children ) {
+                        for(; _pack->children[cnt]; cnt++);
+                    }
+                    return cnt;
+                }
+                virtual const BuiltinField * getChild(idx ichild) const { return _pack && _pack->children ? builtin_fields.get(_pack->children[ichild]) : 0; }
+                virtual idx getChildren(sVec<const sUsrTypeField*> &out) const
+                {
+                    idx cnt = 0;
+                    if( _pack && _pack->children ) {
+                        for(; _pack->children[cnt]; cnt++) {
+                            *out.add(1) = builtin_fields.get(_pack->children[cnt]);
+                        }
+                    }
+                    return cnt;
+                }
+                virtual bool isKey() const { return _pack ? _pack->is_key : false; }
+                virtual EReadOnly readonly() const { return _pack ? eReadWrite : eReadOnly; }
+                virtual bool isOptional() const { return _pack ? _pack->is_optional : true; }
+                virtual bool isMulti() const { return _pack ? _pack->is_multi : true; }
+                virtual bool isHidden() const { return false; }
+                virtual bool isSummary() const { return false; }
+                virtual bool isVirtual() const { return false; }
+                virtual bool isBatch() const { return false; }
+                virtual bool isWeakReference() const { return false; }
+                virtual bool isSysInternal() const { return false; }
+                virtual const char * brief() const { return 0; }
+                virtual real order() const { return _pack && _pack->order_string ? strtod(_pack->order_string, 0) : 0; }
+                virtual const char * orderString() const { return _pack ? _pack->order_string : 0; }
+                virtual const char * defaultValue() const { return 0; }
+                virtual idx defaultEncoding() const { return 0; }
+                virtual const char * constraint() const { return 0; }
+                virtual const char * constraintData() const { return 0; }
+                virtual const char * constraintDescription() const { return 0; }
+                virtual const char * description() const { return 0; }
+                virtual const char * linkUrl() const { return 0; }
+
+                virtual bool canSetValue() const { return canHaveValue(); }
+                virtual bool isArrayRow() const { return _pack ? _pack->is_array_row : false; }
+                virtual bool isGlobalMulti() const { return _pack ? _pack->is_global_multi : false; }
+                virtual bool isFlattenedDecor() const { return _pack ? _pack->is_flattened_decor : false; }
+                virtual bool isFlattenedMulti() const { return _pack ? _pack->is_flattened_multi : false; }
+                const sUsrTypeField* flattenedParent() const { return _pack && _pack->flattened_parent ? builtin_fields.get(_pack->flattened_parent) : 0; }
+                virtual idx ancestorCount() const { return _pack ? _pack->ancestor_count : false; }
+
+                virtual const sUsrType2 * ownerType() const;
+                virtual const sUsrType2 * definerType() const { return ownerType(); }
+                virtual const sUsrType2 * includedFromType() const { return 0; }
+        };
+
+        static class BuiltinType : public sUsrType2 {
+            public:
+                BuiltinType()
+                {
+                    if( !BuiltinField::builtin_fields.dim() ) {
+                        for(const BuiltinFieldPack * pack = BuiltinField::builtin_field_packs; pack && pack->name; pack++) {
+                            BuiltinField::builtin_fields.setString(pack->name)->_pack = pack;
+                        }
+                        for(idx i = 0; i < BuiltinField::builtin_fields.dim(); i++) {
+                            const BuiltinField * fld = BuiltinField::builtin_fields.ptr(i);
+                            if( !fld->parent() ) {
+                                *_root_fields.add(1) = fld;
+                            }
+                        }
+                    }
+                }
+
+                virtual ~BuiltinType() {}
+
+                virtual const sHiveId & id() const
+                {
+                    static const sHiveId _id("type", 1, 0);
+                    return _id;
+                }
+                virtual const char * name() const { return "type"; }
+                virtual const char * title() const { return 0; }
+                virtual const char * description() const { return 0; }
+                virtual bool isVirtual() const { return 0; }
+                virtual bool isPrefetch() const { return 1; }
+                virtual bool isUser() const { return 0; }
+                virtual bool isSystem() const { return 0; }
+                virtual ESingleton isSingleton() const { return eNotSingleton; }
+
+                virtual idx dimParents() const { return 0; }
+                virtual const sUsrType2 * getParent(idx iparent) const { return 0; }
+                virtual idx getParents(sVec<const sUsrType2*> & out) const { return 0; }
+                virtual idx dimChildren() const { return 0; }
+                virtual const sUsrType2 * getChild(idx ichild) const { return 0; }
+                virtual idx getChildren(sVec<const sUsrType2*> & out) const { return 0; }
+                virtual idx dimIncludes() const { return 0; }
+                virtual const sUsrType2 * getInclude(idx iinc) const { return 0; }
+                virtual idx getIncludes(sVec<const sUsrType2*> & out) const { return 0; }
+
+                virtual idx dimFields(const sUsr & user) const { return BuiltinField::builtin_fields.dim(); }
+                virtual idx dimRootFields(const sUsr & user) const { return _root_fields.dim(); }
+                virtual const BuiltinField* getField(const sUsr & user, idx ifield) const { return BuiltinField::builtin_fields.ptr(ifield); }
+                virtual const BuiltinField* getRootField(const sUsr & user, idx irootfld) const { return _root_fields[irootfld]; }
+                virtual const BuiltinField* getField(const sUsr & user, const char * field_name, idx field_name_len = 0) const { return BuiltinField::builtin_fields.get(field_name, field_name_len); }
+
+                virtual idx dimActions(const sUsr & user) const { return 0; }
+                virtual const sUsrAction * getAction(const sUsr & user, const char * act_name, idx act_name_len = 0) const { return 0; }
+                virtual const sUsrAction * getAction(const sUsr & user, idx iact) const { return 0; }
+                virtual idx getActions(const sUsr & user, sVec<const sUsrAction *> & out) const { return 0; }
+
+                virtual idx dimJSComponents(const sUsr & user) const { return 0; }
+                virtual const sUsrJSComponent * getJSComponent(const sUsr & user, const char * name, idx name_len = 0) const { return 0; }
+                virtual const sUsrJSComponent * getJSComponent(const sUsr & user, idx ijsco) const { return 0; }
+                virtual idx getJSComponents(const sUsr & user, sVec<const sUsrJSComponent *> & out) const { return 0; }
+
+                virtual idx dimViews(const sUsr & user) const { return 0; }
+                virtual const sUsrView * getView(const sUsr & user, const char * view_name, idx view_name_len = 0) const { return 0; }
+                virtual const sUsrView * getView(const sUsr & user, idx iview) const { return 0; }
+                virtual idx getViews(const sUsr & user, sVec<const sUsrView *> & out) const { return 0; }
+
+            private:
+                sVec<const BuiltinField*> _root_fields;
+        } _builtin_type;
+
+        sUsrLoadingType::LoadFromObjContext _ctx;
         sStr _value_buf;
 
     public:
-        JSONLoader(const sUsr & usr) : sUsrPropSet(usr), _ctx(usr)
-        {
-            if( !_builtin_fields_dic.dim() ) {
-                for(const BuiltinField * f = _builtin_fields; f && f->name; f++) {
-                    *_builtin_fields_dic.setString(f->name) = f;
-                }
-            }
-        }
+        JSONLoader(const sUsr & usr) : sUsrPropSet(usr), _ctx(usr) { }
 
-        sUsrType2::LoadFromObjContext & getCtx() { return _ctx; }
+        sUsrLoadingType::LoadFromObjContext & getCtx() { return _ctx; }
 
-        // overridden methods
         virtual bool ensureUTypeFor(ObjLoc * prop_obj, sJSONParser::ParseNode & node, sJSONParser & parser)
         {
             if( strncmp_exact(node.val.str, node.val_str_len, "type", 4) != 0 ) {
                 parser.setValueError(node, "type type expeced");
                 return false;
             }
+            prop_obj->obj.utype = &_builtin_type;
             return true;
-        }
-        virtual const char * getUTypeName(ObjLoc * prop_obj) const { return "type"; }
-        virtual const sHiveId & getUTypeId(ObjLoc * prop_obj) const
-        {
-            static sHiveId type_type_id;
-            if( !type_type_id) {
-                type_type_id.set("type", 1, 0);
-            }
-            return type_type_id;
         }
         virtual bool checkCurObjSanity(sJSONParser::ParseNode & node, sJSONParser & parser)
         {
@@ -1045,22 +1259,21 @@ class sUsrType2::JSONLoader : public sUsrPropSet
             }
 
             idx itype = -sIdxMax;
-            sUsrType2 * utype = 0;
+            sUsrLoadingType * utype = 0;
             if( idx * pitype = _name_or_id2itype.get(&prop_obj->obj.id, sizeof(sHiveId)) ) {
                 itype = *pitype;
                 utype = _types[itype];
                 if( utype->_is_fetched ) {
-                    // the entire type was already loaded
                     _ctx.resetType();
                     return true;
                 }
             } else {
-                itype = sUsrType2::_types.dim();
-                utype = new sUsrType2(true);
-                *sUsrType2::_types.add(1) = utype;
+                itype = sUsrLoadingType::_types.dim();
+                utype = new sUsrLoadingType(true);
+                *sUsrLoadingType::_types.add(1) = utype;
                 utype->_itype = itype;
                 utype->_id = prop_obj->obj.id;
-                *sUsrType2::_name_or_id2itype.set(&prop_obj->obj.id, sizeof(sHiveId)) = itype;
+                *sUsrLoadingType::_name_or_id2itype.set(&prop_obj->obj.id, sizeof(sHiveId)) = itype;
             }
 
             if( _ctx.utype != utype ) {
@@ -1080,95 +1293,148 @@ class sUsrType2::JSONLoader : public sUsrPropSet
         virtual bool updateComplete() { return true; }
         virtual bool propInit(ObjLoc * prop_obj)
         {
-            // TODO
             return true;
         }
-        virtual udx propSet(ObjLoc * prop_obj, const sUsrPropSet::TypeField * fld, const char * path, const char * value, udx value_len)
+        virtual udx propSet(ObjLoc * prop_obj, const sUsrTypeField * fld, const char * path, const char * value, udx value_len)
         {
             if( _ctx.utype ) {
                 _value_buf.cutAddString(0, value, value_len);
-                // ignore return value: allow partially-loaded types, just print debugging message
-                _ctx.accumulateProp(fldName(fld), _value_buf.ptr(), path);
+                _ctx.accumulateProp(fld->name(), _value_buf.ptr(), path);
             }
             return 1;
         }
         virtual bool setPermission(ObjLoc * prop_obj, sJSONParser::ParseNode & node, Perm & perm)
         {
-            // TODO
             return true;
         }
-        virtual const char * fldName(const TypeField * fld) const
+        virtual bool fldNeedsValidation(const sUsrTypeField * fld) const
         {
-            return static_cast<const BuiltinField*>(fld)->name;
-        }
-        virtual sUsrTypeField::EType fldType(const TypeField * fld) const
-        {
-            return static_cast<const BuiltinField*>(fld)->type;
-        }
-        virtual bool fldNeedsValidation(const TypeField * fld) const
-        {
-            return static_cast<const BuiltinField*>(fld) != &_unknown_field;
-        }
-        virtual bool fldCanHaveValue(const TypeField * fld) const
-        {
-            sUsrTypeField::EType t = static_cast<const BuiltinField*>(fld)->type;
-            return t != sUsrTypeField::eArray && t != sUsrTypeField::eList;
-        }
-        virtual bool fldCanSetValue(const TypeField * fld) const
-        {
-            return fldCanHaveValue(fld);
-        }
-        virtual bool fldIsArrayRow(const TypeField * fld) const
-        {
-            return static_cast<const BuiltinField*>(fld)->is_array_row;
-        }
-        virtual bool fldIsKey(const TypeField * fld) const
-        {
-            return static_cast<const BuiltinField*>(fld)->is_key;
-        }
-        virtual bool fldIsMulti(const TypeField * fld) const
-        {
-            return static_cast<const BuiltinField*>(fld)->is_multi;
-        }
-        virtual bool fldIsGlobalMulti(const TypeField * fld) const
-        {
-            return static_cast<const BuiltinField*>(fld)->is_global_multi;
-        }
-        virtual const TypeField * fldGet(ObjLoc * prop_obj, const char * name, idx name_len) const
-        {
-            const BuiltinField ** pret = _builtin_fields_dic.get(name, name_len);
-            if( pret && *pret ) {
-                return *pret;
-            } else {
-                return &_unknown_field;
-            }
-        }
-        virtual const TypeField * fldParent(const TypeField * fld) const
-        {
-            if( const char * parname = static_cast<const BuiltinField*>(fld)->parent ) {
-                const BuiltinField ** pret = _builtin_fields_dic.get(parname);
-                return pret ? *pret : 0;
-            } else {
-                return 0;
-            }
-        }
-        virtual const TypeField * fldFlattenedNonArrayRowParent(const sUsrPropSet::TypeField * fld) const
-        {
-            if( const char * parname = static_cast<const BuiltinField*>(fld)->flattened_non_array_row_parent ) {
-                const BuiltinField ** pret = _builtin_fields_dic.get(parname);
-                return pret ? *pret : 0;
-            } else {
-                return 0;
-            }
+            return dynamic_cast<const BuiltinField*>(fld) != &BuiltinField::unknown_field;
         }
 };
 
-//static
-bool sUsrType2::loadFromJSON(const sUsr & user, const char * buf, idx buf_len/* = 0 */)
+const sUsrType2 * sUsrLoadingType::JSONLoader::BuiltinField::ownerType() const { return &_builtin_type; }
+
+const sUsrTypeCache * sUsrType2::getBinCache(const sUsr * user)
 {
-    sUsrType2::JSONLoader json_loader(user);
+    bool need_regen = true;
+
+    static enum {
+        eNotCached,
+        eCached,
+        eFailed
+    } status = eNotCached;
+    static sUsrTypeCache bin_cache;
+
+    if( !useBinCache() ) {
+        return 0;
+    }
+
+    if( status == eCached ) {
+        return &bin_cache;
+    } else if( status == eFailed ) {
+        return 0;
+    }
+
+    if( !user ) {
+        return 0;
+    }
+
+    sStr dirname;
+    dirname.addString(getenv("QM_LOCAL_CACHE_DIRECTORY"));
+    if( !dirname.length() ) {
+        user->QPride()->cfgStr(&dirname, 0, "qm.localCacheDirectory");
+        dirname.shrink00();
+    }
+    if( !dirname.length() ) {
+        user->QPride()->cfgStr(&dirname, 0, "qm.resourceRoot");
+        dirname.shrink00();
+        dirname.printf("cache%c", sDir::sep);
+    }
+    if( dirname[dirname.length() - 1] != sDir::sep ) {
+        dirname.addString(&sDir::sep, 1);
+    }
+
+    if( !sDir::exists(dirname) ) {
+        if( !sDir::makeDir(dirname) ) {
+            LOG_ERROR("Failed to make directory \"%s\"", dirname.ptr());
+            return 0;
+        }
+    }
+
+    sStr filename("%sqpride_type_cache.v%d.%d.os%s.bin", dirname.ptr(), USR_TYPE_CACHE_MAJOR_VERSION, USR_TYPE_CACHE_MINOR_VERSION, SLIB_PLATFORM);
+
+    if( !bin_cache.load(filename) ) {
+        status = eCached;
+
+        idx cache_mtime = bin_cache.mtime();
+        idx db_mtime = 0;
+
+        std::unique_ptr<sSql::sqlProc> p(user->getProc("sp_type_get_latest_mtime"));
+        p->Add(sUsrLoadingType::type_type_id.domainId()).Add(sUsrLoadingType::type_type_id.objId());
+        if( p->resultOpen() && user->db().resultNext() ) {
+            if( !sUsrLoadingType::type_type_id && user->db().resultNextRow() ) {
+                const idx domain_id_icol = user->db().resultColId("domainID");
+                const idx obj_id_icol = user->db().resultColId("objID");
+                sUsrLoadingType::type_type_id.set(user->db().resultUValue(domain_id_icol), user->db().resultUValue(obj_id_icol), 0);
+            }
+            static const char * result_kind[] = { "type", "action", "view", "js_component" };
+            for(idx ikind = 0; ikind < sDim(result_kind); ikind++) {
+                if( user->db().resultNext() && user->db().resultNextRow() ) {
+                    const idx domain_id_icol = user->db().resultColId("domainID");
+                    const idx obj_id_icol = user->db().resultColId("objID");
+                    const idx value_icol = user->db().resultColId("value");
+
+                    sVariant date_parser;
+                    date_parser.parseDateTime(user->db().resultValue(value_icol));
+
+                    sHiveId latest_type_id;
+                    latest_type_id.set(user->db().resultUValue(domain_id_icol), user->db().resultUValue(obj_id_icol), 0);
+                    LOG_TRACE("Latest %s object mtime is %s for type \"%s\"", result_kind[ikind], date_parser.asString(), latest_type_id.print());
+
+                    db_mtime = sMax(db_mtime, date_parser.asDateTime());
+                } else {
+                    break;
+                }
+            }
+        }
+
+        if( db_mtime && db_mtime < sIdxMax && cache_mtime && cache_mtime < sIdxMax && cache_mtime > db_mtime ) {
+            need_regen = false;
+        }
+    }
+
+    if( need_regen ) {
+        status = eFailed;
+
+        sUsr superuser("qpride", true);
+        if( !superuser.Id() ) {
+            LOG_TRACE("%s", "Failed to enter superuser mode for type loading");
+            return 0;
+        }
+
+        sUsrLoadingType::load(superuser, "*", 0, 0, false, false);
+        sUsrLoadingType::loadActions(superuser);
+        sUsrLoadingType::loadJSComponents(superuser);
+        sUsrLoadingType::loadViews(superuser);
+
+        if( sRC rc = bin_cache.save(superuser, filename) ) {
+            LOG_ERROR("Failed to save type cache: %s", rc.print());
+        } else if( sRC rc = bin_cache.load(filename) ) {
+            LOG_ERROR("Failed to load type cache: %s", rc.print());
+        } else {
+            status = eCached;
+        }
+    }
+
+    return status == eCached ? &bin_cache : 0;
+}
+
+bool sUsrType2::loadFromJSON(const sUsr & user, const char * buf, idx buf_len)
+{
+    sUsrLoadingType::JSONLoader json_loader(user);
     json_loader.setSrc(buf, buf_len);
-    if( !json_loader.run(0, sUsrPropSet::fInvalidUserGroupNonFatal) ) {
+    if( !json_loader.run(0, sUsrPropSet::fInvalidUserGroupNonFatal | sUsrPropSet::fOverwriteExistingSameType) ) {
         fprintf(stderr, "Failed to load type(s) from JSON: %s\n", json_loader.getErr());
         return false;
     }
@@ -1178,9 +1444,7 @@ bool sUsrType2::loadFromJSON(const sUsr & user, const char * buf, idx buf_len/* 
     return true;
 }
 
-//static
-// Must not be called from sUsrType2::loadFromObj due to recursion
-bool sUsrType2::loadFromJSONCache(const sUsr & user)
+bool sUsrLoadingType::loadFromJSONCache(const sUsr & user)
 {
     bool need_regen = true;
 
@@ -1197,16 +1461,14 @@ bool sUsrType2::loadFromJSONCache(const sUsr & user)
         idx file_mtime = type_cache_fil.mtime();
         idx db_mtime = 0;
 
-        std::auto_ptr<sSql::sqlProc> p(user.getProc("sp_type_get_latest_mtime"));
+        std::unique_ptr<sSql::sqlProc> p(user.getProc("sp_type_get_latest_mtime"));
         p->Add(type_type_id.domainId()).Add(type_type_id.objId());
         if( p->resultOpen() && user.db().resultNext() ) {
-            // first result is domain and objid of type "type" for us to cache
             if( !type_type_id && user.db().resultNextRow() ) {
                 const idx domain_id_icol = user.db().resultColId("domainID");
                 const idx obj_id_icol = user.db().resultColId("objID");
                 type_type_id.set(user.db().resultUValue(domain_id_icol), user.db().resultUValue(obj_id_icol), 0);
             }
-            // second result is the type data
             if( user.db().resultNext() && user.db().resultNextRow() ) {
                 const idx domain_id_icol = user.db().resultColId("domainID");
                 const idx obj_id_icol = user.db().resultColId("objID");
@@ -1233,16 +1495,14 @@ bool sUsrType2::loadFromJSONCache(const sUsr & user)
     type_cache_fil.destroy();
 
     if( need_regen ) {
-        // for a systemwide cache, we want to read *all* types (with permissions), so superuser mode
         sUsr superuser("qpride", true);
         if( !superuser.Id() ) {
             LOG_TRACE("%s", "Failed to enter superuser mode for type loading");
             return false;
         }
 
-        // in order to use sUsr::objs2() on type type objects, we first must have type type loaded in sUsrType2.
         if( !sUsrType2::get("type") ) {
-            sUsrType2::loadFromObj(superuser, "type", 4, 0);
+            sUsrLoadingType::loadFromObj(superuser, "type", 4, 0);
             if( !sUsrType2::get("type") ) {
                 LOG_ERROR("%s", "Failed to get type type");
                 return false;
@@ -1270,7 +1530,7 @@ bool sUsrType2::loadFromJSONCache(const sUsr & user)
         }
 
         sJSONPrinter printer(&type_cache_temp_fil);
-        superuser.propExport(ids, printer, true, true);
+        superuser.propExport(ids, printer, sUsr::ePermExportGroups, 0, true);
         printer.finish();
 
         sFile::remove(type_cache_filename);
@@ -1284,251 +1544,87 @@ bool sUsrType2::loadFromJSONCache(const sUsr & user)
     return true;
 }
 
-// note: all of these are "string" to avoid future compatibility issues
-const sUsrType2::JSONLoader::BuiltinField sUsrType2::JSONLoader::_builtin_fields[] = {
-    { "created", sUsrTypeField::eString, false, false, false, false, 0, 0 },
-    { "modified", sUsrTypeField::eString, false, false, false, false, 0, 0 },
-    { "name", sUsrTypeField::eString, false, true, false, false, 0, 0 },
-    { "title", sUsrTypeField::eString, false, false, false, false, 0, 0 },
-    { "description", sUsrTypeField::eString, false, false, false, false, 0, 0 },
-    { "parent", sUsrTypeField::eString, false, false, true, true, 0, 0 },
-    { "is_abstract_fg", sUsrTypeField::eString, false, false, false, false, 0, 0 },
-    { "singleton", sUsrTypeField::eString, false, false, false, false, 0, 0 },
-    { "prefetch", sUsrTypeField::eString, false, false, false, false, 0, 0 },
-    { "fields", sUsrTypeField::eArray, false, false, false, false, 0, 0 },
-    { "_row_fields", sUsrTypeField::eList, true, false, true, true, "fields", 0 },
-    { "field_basics", sUsrTypeField::eList, false, false, true, true, "_row_fields", "fields" },
-    { "field_flags", sUsrTypeField::eList, false, false, true, true, "_row_fields", "fields" },
-    { "field_contraint_list", sUsrTypeField::eList, false, false, true, true, "_row_fields", "fields" },
-    { "field_presentation", sUsrTypeField::eList, false, false, true, true, "_row_fields", "fields" },
-    { "field_name", sUsrTypeField::eString, false, false, false, true, "field_basics", "fields" },
-    { "field_title", sUsrTypeField::eString, false, false, false, true, "field_basics", "fields" },
-    { "field_type", sUsrTypeField::eString, false, false, false, true, "field_basics", "fields" },
-    { "field_parent", sUsrTypeField::eString, false, false, false, true, "field_basics", "fields" },
-    { "field_order", sUsrTypeField::eReal, false, false, false, true, "field_basics", "fields" },
-    { "field_default_value", sUsrTypeField::eString, false, false, false, true, "field_basics", "fields" },
-    { "field_default_encoding", sUsrTypeField::eString, false, false, false, true, "field_basics", "fields" },
-    { "field_include_type", sUsrTypeField::eString, false, false, false, true, "field_basics", "fields" },
-    { "field_role", sUsrTypeField::eString, false, false, false, true, "field_flags", "fields" },
-    { "field_is_key_fg", sUsrTypeField::eString, false, false, false, true, "field_flags", "fields" },
-    { "field_is_readonly_fg", sUsrTypeField::eString, false, false, false, true, "field_flags", "fields" },
-    { "field_is_optional_fg", sUsrTypeField::eString, false, false, false, true, "field_flags", "fields" },
-    { "field_is_multi_fg", sUsrTypeField::eString, false, false, false, true, "field_flags", "fields" },
-    { "field_is_virtual_fg", sUsrTypeField::eString, false, false, false, true, "field_flags", "fields" },
-    { "field_is_hidden_fg", sUsrTypeField::eString, false, false, false, true, "field_flags", "fields" },
-    { "field_is_summary_fg", sUsrTypeField::eString, false, false, false, true, "field_flags", "fields" },
-    { "field_is_batch_fg", sUsrTypeField::eString, false, false, false, true, "field_flags", "fields" },
-    { "field_constraint", sUsrTypeField::eString, false, false, false, true, "field_contraint_list", "fields" },
-    { "field_constraint_data", sUsrTypeField::eString, false, false, false, true, "field_contraint_list", "fields" },
-    { "field_constraint_description", sUsrTypeField::eString, false, false, false, true, "field_contraint_list", "fields" },
-    { "field_brief", sUsrTypeField::eString, false, false, false, true, "field_presentation", "fields" },
-    { "field_link_url", sUsrTypeField::eString, false, false, false, true, "field_presentation", "fields" },
-    { "field_description", sUsrTypeField::eString, false, false, false, true, "field_presentation", "fields" },
+static const char * builtin_field_packs__row_fields_children[] = { "field_basics", "field_flags", "field_constraint_list", "field_presentation", 0 };
+static const char * builtin_field_packs_field_basics_children[] = { "field_name", "field_title", "field_type",  "field_parent",  "field_order", "field_default_value", "field_default_encoding", "field_include_type", 0 };
+static const char * builtin_field_packs_field_flags_children[] = { "field_role", "field_is_key_fg", "field_is_readonly_fg", "field_is_optional_fg", "field_is_multi_fg", "field_is_virtual_fg", "field_is_hidden_fg", "field_is_summary_fg", "field_is_batch_fg", "field_weakref", 0 };
+static const char * builtin_field_packs_field_constraint_list_children[] = { "field_constraint", "field_constraint_data", "field_constraint_description", 0 };
+static const char * builtin_field_packs_field_presentation_children[] = { "field_brief", "field_link_url",  "field_description", 0 };
+const sUsrLoadingType::JSONLoader::BuiltinFieldPack sUsrLoadingType::JSONLoader::BuiltinField::builtin_field_packs[] = {
+    { "created", sUsrTypeField::eString, sUsrTypeField::eRole_state, false, false, true, false, false, false, false, 0, 0, 0, 0, 0 },
+    { "modified", sUsrTypeField::eString, sUsrTypeField::eRole_state, false, false, true, false, false, false, false, 0, 0, 0, 0, 0 },
+    { "name", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, true, false, false, false, false, false, "1", 0, 0, 0, 0 },
+    { "title", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, false, false, false, "2", 0, 0, 0, 0 },
+    { "description", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, false, false, false, "3", 0, 0, 0, 0 },
+    { "parent", sUsrTypeField::eString, sUsrTypeField::eRole_input, false, false, true, true, true, false, true, "4", 0, 0, 0, 0 },
+    { "is_abstract_fg", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, false, false, false, "5", 0, 0, 0, 0 },
+    { "singleton", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, false, false, false, "6", 0, 0, 0, 0 },
+    { "prefetch", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, false, false, false, "7", 0, 0, 0, 0 },
+    { "fields", sUsrTypeField::eArray, sUsrTypeField::eRole_parameter, false, false, true, false, false, false, false, "8", 0, 0, 0, 0 },
+    { "_row_fields", sUsrTypeField::eList, sUsrTypeField::eRole_parameter, true, false, true, true, true, false, true, 0, "fields", 1, "fields", builtin_field_packs__row_fields_children },
+    { "field_basics", sUsrTypeField::eList, sUsrTypeField::eRole_parameter, false, false, true, true, true, true, false, "1", "_row_fields", 2, "_row_fields", builtin_field_packs_field_basics_children },
+    { "field_flags", sUsrTypeField::eList, sUsrTypeField::eRole_parameter, false, false, true, true, true, true, false, "2", "_row_fields", 2, "_row_fields", builtin_field_packs_field_flags_children },
+    { "field_constraint_list", sUsrTypeField::eList, sUsrTypeField::eRole_parameter, false, false, true, true, true, true, false, "3", "_row_fields", 2, "_row_fields", builtin_field_packs_field_constraint_list_children },
+    { "field_presentation", sUsrTypeField::eList, sUsrTypeField::eRole_parameter, false, false, true, true, true, true, false, "4", "_row_fields", 2, "_row_fields", builtin_field_packs_field_presentation_children },
+    { "field_name", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "1", "field_basics", 3, "_row_fields", 0 },
+    { "field_title", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "2", "field_basics", 3, "_row_fields", 0 },
+    { "field_type", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "3", "field_basics", 3, "_row_fields", 0 },
+    { "field_parent", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "4", "field_basics", 3, "_row_fields", 0 },
+    { "field_order", sUsrTypeField::eReal, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "5", "field_basics", 3, "_row_fields", 0 },
+    { "field_default_value", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "6", "field_basics", 3, "_row_fields", 0 },
+    { "field_default_encoding", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "7", "field_basics", 3, "_row_fields", 0 },
+    { "field_include_type", sUsrTypeField::eString, sUsrTypeField::eRole_input, false, false, true, false, true, false, false, "8", "field_basics", 3, "_row_fields", 0 },
+    { "field_role", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "1", "field_flags", 3, "_row_fields", 0 },
+    { "field_is_key_fg", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "2", "field_flags", 3, "_row_fields", 0 },
+    { "field_is_readonly_fg", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "3", "field_flags", 3, "_row_fields", 0 },
+    { "field_is_optional_fg", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "4", "field_flags", 3, "_row_fields", 0 },
+    { "field_is_multi_fg", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "5", "field_flags", 3, "_row_fields", 0 },
+    { "field_is_virtual_fg", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "6", "field_flags", 3, "_row_fields", 0 },
+    { "field_is_hidden_fg", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "7", "field_flags", 3, "_row_fields", 0 },
+    { "field_is_summary_fg", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "8", "field_flags", 3, "_row_fields", 0 },
+    { "field_is_batch_fg", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "9","field_flags", 3, "_row_fields", 0 },
+    { "field_weakref", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "10","field_flags", 3, "_row_fields", 0 },
+    { "field_constraint", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "1", "field_contraint_list", 3, "_row_fields", 0 },
+    { "field_constraint_data", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "2", "field_contraint_list", 3, "_row_fields", 0 },
+    { "field_constraint_description", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "3", "field_contraint_list", 3, "_row_fields", 0 },
+    { "field_brief", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "1", "field_presentation", 3, "_row_fields", 0 },
+    { "field_link_url", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "2", "field_presentation", 3, "_row_fields", 0 },
+    { "field_description", sUsrTypeField::eString, sUsrTypeField::eRole_parameter, false, false, true, false, true, false, false, "3", "field_presentation", 3, "_row_fields", 0 },
     0
 };
-const sUsrType2::JSONLoader::BuiltinField sUsrType2::JSONLoader::_unknown_field = { "__unknown_field__", sUsrTypeField::eInvalid, false, false, false, false, 0, 0 };
-sDic<const sUsrType2::JSONLoader::BuiltinField*> sUsrType2::JSONLoader::_builtin_fields_dic;
+sDic<sUsrLoadingType::JSONLoader::BuiltinField> sUsrLoadingType::JSONLoader::BuiltinField::builtin_fields;
+const sUsrLoadingType::JSONLoader::BuiltinField sUsrLoadingType::JSONLoader::BuiltinField::unknown_field;
+sUsrLoadingType::JSONLoader::BuiltinType sUsrLoadingType::JSONLoader::_builtin_type;
 
-
-//static
-void sUsrType2::loadDeps(const sUsr & user)
+sUsrType2 * sUsrType2::load(const sUsr & user, const char * name, idx name_len, const sHiveId * type_id, bool no_prefetch, bool lazy_fetch_fields)
 {
-    sStr case_buf;
-    sStr parent_names00;
-    sVec<idx> parent_names_vec(sMex::fSetZero);
-    // table of types
-    if( user.db().resultOpen("SELECT * FROM UPType") && user.db().resultNext() ) {
-        const idx type_id_icol = user.db().resultColId("type_id");
-        const idx name_icol = user.db().resultColId("name");
-        const idx title_icol = user.db().resultColId("title");
-        const idx description_icol = user.db().resultColId("description");
-        const idx parent_icol = user.db().resultColId("parent");
-        const idx is_virtual_fg_icol = user.db().resultColId("is_virtual_fg");
-        const idx prefetch_fg_icol = user.db().resultColId("prefetch_fg");
-        while( user.db().resultNextRow() ) {
-            sHiveId type_id(sUsrType2::type_type_domain_id, user.db().resultUValue(type_id_icol), 0);
-            const char * name = user.db().resultValue(name_icol);
-            const char * canon_name = canonicalCase(case_buf, name);
-            const char * title = user.db().resultValue(title_icol);
-            const char * description = user.db().resultValue(description_icol);
-            const char * parent_str = user.db().resultValue(parent_icol);
-            LOG_TRACE("Got row from UPType: \"%s\" (%s)", name, type_id.print());
-
-            bool is_virtual = sString::parseBool(user.db().resultValue(is_virtual_fg_icol));
-            bool is_prefetch = sString::parseBool(user.db().resultValue(prefetch_fg_icol));
-
-            idx itype = _types.dim();
-            sUsrType2 * utype = new sUsrType2;
-            *_types.add(1) = utype;
-            utype->_itype = itype;
-            parent_names_vec.resize(itype + 1);
-            if( canon_name[0] >= 'a' && canon_name[0] <= 'z' ) {
-                // valid type, not "--DELETED" or similar
-                utype->_id = type_id;
-                *_name_or_id2itype.setString(canon_name) = itype;
-                *_name_or_id2itype.set(&type_id, sizeof(type_id)) = itype;
-
-                utype->_pos_name = _name_buf.length();
-                _name_buf.addString(name);
-                _name_buf.add0();
-
-                utype->_pos_title = _name_buf.length();
-                _name_buf.addString(title);
-                _name_buf.add0();
-
-                utype->_pos_description = _name_buf.length();
-                _name_buf.addString(description);
-                _name_buf.add0();
-
-                utype->_is_virtual = is_virtual;
-                utype->_is_prefetch = is_prefetch;
-
-                parent_names00.add0();
-                parent_names_vec[itype] = parent_names00.length();
-                sString::searchAndReplaceSymbols(&parent_names00, parent_str, 0, ",", 0, 0, true, true, true, true);
-                parent_names00.add0(2);
-            }
-        }
-        user.db().resultClose();
-    }
-
-    // tie together parents and children
-    sMex deps_buf;
-    sVec< sLst<sUsrType2*> > includes_lists;
-    includes_lists.resize(_types.dim());
-    for(idx i=0; i<_types.dim(); i++) {
-        includes_lists[i].init(&deps_buf);
-    }
-    for(idx itype = 0; itype < _types.dim(); itype++) {
-        for(const char * par_name = parent_names00.ptr(parent_names_vec[itype]); par_name && *par_name; par_name = sString::next00(par_name)) {
-            sUsrType2 * par = getRaw(par_name);
-            if( !par ) {
-                LOG_ERROR("Type \"%s\" (%s) has invalid parent \"%s\"", _types[itype]->name(), _types[itype]->_id.print(), par_name);
-                continue;
-            }
-            LOG_TRACE("Type \"%s\" (%s) has parent %" DEC " \"%s\" (%s)", _types[itype]->name(), _types[itype]->_id.print(), _types[itype]->_parents.dim(), par->name(), par->_id.print());
-            *_types[itype]->_parents.add(1) = par->_itype;
-            *_types[par->_itype]->_children.add(1) = itype;
-        }
-        if( !_types[itype]->_parents.dim() ) {
-            *_roots.add(1) = _types[itype];
-        }
-    }
-    // tie together includers and includes
-    sDic<idx> unique_includes;
-    sStr unique_include_key;
-    if( user.db().resultOpen("SELECT type_id, name, constraint_data FROM UPTypeField WHERE type IN ('type2array', 'type2list')") && user.db().resultNext() ) {
-        const idx type_id_icol = user.db().resultColId("type_id");
-        const idx name_icol = user.db().resultColId("name");
-        const idx constraint_data_icol = user.db().resultColId("constraint_data");
-        while( user.db().resultNextRow() ) {
-            sHiveId type_id(sUsrType2::type_type_domain_id, user.db().resultUValue(type_id_icol), 0);
-            const char * fld_name = user.db().resultValue(name_icol);
-            const char * include_name = user.db().resultValue(constraint_data_icol);
-            sUsrType2 * utype = getRaw(type_id);
-
-            if( !utype || utype->_id != type_id ) {
-                LOG_ERROR("Field \"%s\" belongs to invalid type ID %s", fld_name, type_id.print());
-                continue;
-            }
-            sUsrType2 * inc = getRaw(include_name);
-            if( !inc ) {
-                LOG_ERROR("Type \"%s\" (%s) has invalid include \"%s\" pulled by field \"%s\"", utype->name(), utype->id().print(), include_name, fld_name);
-                continue;
-            }
-            LOG_TRACE("Type \"%s\" (%s) has include \"%s\" (%s) via field \"%s\"", utype->name(), utype->id().print(), include_name, inc->id().print(), fld_name);
-
-            unique_include_key.cut0cut(0);
-            utype->id().print(unique_include_key);
-            unique_include_key.add0();
-            inc->id().print(unique_include_key);
-            unique_include_key.add0(2);
-            if( !unique_includes.get(unique_include_key.ptr(), unique_include_key.length()) ) {
-                // includes may legitimately repeat; we only want the unique ones
-                *utype->_includes.add(1) = inc->_itype;
-                unique_includes.set(unique_include_key.ptr(), unique_include_key.length());
-            }
-            *includes_lists[utype->_itype].add(1) = inc;
-        }
-        user.db().resultClose();
-    }
-    // mark descendents of base_user_type and base_system_type
-    sDic<idx> seen_descendents;
-    if( sUsrType2 * base_user_type = getRaw("base_user_type") ) {
-        base_user_type->_is_user = eLazyTrue;
-        seen_descendents.empty();
-        base_user_type->recurseDescendents(seen_descendents);
-        for(idx i=0; i<seen_descendents.dim(); i++) {
-            if( *seen_descendents.ptr(i) ) {
-                _types[*static_cast<idx*>(seen_descendents.id(i))]->_is_user = eLazyTrue;
-            }
-        }
-    }
-    if( sUsrType2 * base_system_type = getRaw("base_system_type") ) {
-        base_system_type->_is_system = eLazyTrue;
-        seen_descendents.empty();
-        base_system_type->recurseDescendents(seen_descendents);
-        for(idx i=0; i<seen_descendents.dim(); i++) {
-            if( *seen_descendents.ptr(i) ) {
-                _types[*static_cast<idx*>(seen_descendents.id(i))]->_is_system = eLazyTrue;
-            }
-        }
-    }
+    return sUsrLoadingType::load(user, name, name_len, type_id, no_prefetch, lazy_fetch_fields);
 }
 
-//static
-sUsrType2 * sUsrType2::load(const sUsr & user, const char * name, idx name_len, const sHiveId * type_id, bool no_prefetch/* = false*/, bool lazy_fetch_fields/* = false */)
+sUsrLoadingType * sUsrLoadingType::load(const sUsr & user, const char * name, idx name_len, const sHiveId * type_id, bool no_prefetch, bool lazy_fetch_fields)
 {
-    sUsrType2 * utype = 0;
+    sUsrLoadingType * utype = 0;
     if( !name_len ) {
         name_len = sLen(name);
     }
 
-    // Important optimization for find(): do not perform any queries if name and type_id both empty.
     if( name_len || (type_id && *type_id) ) {
-        if( useTypeUPObj() ) {
-            if( useJSONCache() ) {
-                useJSONCache(true, false);
-                loadFromJSONCache(user);
-            }
-            loadFromObj(user, name, name_len, type_id, no_prefetch, lazy_fetch_fields);
+        if( useJSONCache() ) {
+            useJSONCache(true, false);
+            loadFromJSONCache(user);
+        }
+        loadFromObj(user, name, name_len, type_id, no_prefetch, lazy_fetch_fields);
 
-            if( name && strncmp(name, "*", name_len) != 0 ) {
-                utype = getRaw(name, name_len);
-            } else if( type_id ) {
-                utype = getRaw(*type_id);
-            }
-        } else {
-            DepForest forest;
-
-            if( !_types.dim() ) {
-                loadDeps(user);
-                for(idx itype = 0; itype < _types.dim(); itype++) {
-                    if( _types[itype]->_is_prefetch ) {
-                        LOG_TRACE("Prefetch \"%s\" (%s) in load forest", _types[itype]->name(), _types[itype]->id().print());
-                        forest.add(_types[itype]);
-                    }
-                }
-            }
-
-            if( name && strncmp(name, "*", name_len) != 0 ) {
-                utype = getRaw(name, name_len);
-            } else if( type_id ) {
-                utype = getRaw(*type_id);
-            }
-            if( utype ) {
-                LOG_TRACE("Add \"%s\" (%s) to load forest", utype->name(), utype->id().print());
-                forest.add(utype);
-            }
-
-            loadFields(user, &forest);
+        if( name && strncmp(name, "*", name_len) != 0 ) {
+            utype = getRaw(name, name_len);
+        } else if( type_id ) {
+            utype = getRaw(*type_id);
         }
     }
 
     return utype;
 }
 
-struct sUsrType2::SetFieldChildrenParam
+struct sUsrLoadingType::SetFieldChildrenParam
 {
     sDic<idx> done_dic;
     sMex children_buf;
@@ -1557,186 +1653,58 @@ struct sUsrType2::SetFieldChildrenParam
     }
 };
 
-static idx fldCompare(void * param, void * arr, idx i1, idx i2)
+static idx loadingFldCompare(void * param, void * arr, idx i1, idx i2)
 {
-    const sUsrTypeField * fields = static_cast<const sUsrTypeField*>(param);
+    const sUsrLoadingTypeField * fields = static_cast<const sUsrLoadingTypeField*>(param);
     const idx * indices = static_cast<const idx*>(arr);
     return fields[indices[i1]].cmp(fields + indices[i2]);
 }
 
-//static
-void sUsrType2::loadFields(const sUsr & user, sUsrType2::DepForest * type_forest)
-{
-    sStr case_buf;
-
-    sVec<idx> itypes;
-    type_forest->makeTraversal(itypes);
-    if( !itypes.dim() ) {
-        return;
-    }
-
-    // Own defined fields
-
-    // We want to turn list of type indices into an efficient sql WHERE clause. Assuming
-    // that the number of distinct domain IDs is small, this is best accomplished by sorting
-    // the ids using default sHiveId comparison (by domain ID first), then handling each
-    // domain ID separately.
-    sStr sql("SELECT * from UPTypeField WHERE ");
-    sVec<sHiveId> ids_for_sql(sMex::fExactSize);
-    sVec<udx> obj_ids_for_sql;
-    ids_for_sql.resize(itypes.dim());
-    for(idx i = 0; i < itypes.dim(); i++) {
-        ids_for_sql[i] = _types[itypes[i]]->id();
-    }
-    sSql::exprInList(sql, 0, "type_id", ids_for_sql);
-    sql.printf(" ORDER BY type_id");
-    LOG_TRACE("%s", sql.ptr());
-    if( user.db().resultOpen(sql.ptr()) && user.db().resultNext() ) {
-        const idx type_id_icol = user.db().resultColId("type_id");
-        const idx name_icol = user.db().resultColId("name");
-        const idx title_icol = user.db().resultColId("title");
-        const idx type_icol = user.db().resultColId("type");
-        const idx parent_icol = user.db().resultColId("parent");
-        const idx role_icol = user.db().resultColId("role");
-        const idx is_key_fg_icol = user.db().resultColId("is_key_fg");
-        const idx is_readonly_fg_icol = user.db().resultColId("is_readonly_fg");
-        const idx is_optional_fg_icol = user.db().resultColId("is_optional_fg");
-        const idx is_multi_fg_icol = user.db().resultColId("is_multi_fg");
-        const idx is_hidden_fg_icol = user.db().resultColId("is_hidden_fg");
-        const idx brief_icol = user.db().resultColId("brief");
-        const idx is_summary_fg_icol = user.db().resultColId("is_summary_fg");
-        const idx is_virtual_fg_icol = user.db().resultColId("is_virtual_fg");
-        const idx is_batch_fg_icol = user.db().resultColId("is_batch_fg");
-        const idx order_icol = user.db().resultColId("order");
-        const idx default_value_icol = user.db().resultColId("default_value");
-        const idx default_encoding_icol = user.db().resultColId("default_encoding");
-        const idx link_url_icol = user.db().resultColId("link_url");
-        const idx constraint_icol = user.db().resultColId("constraint");
-        const idx constraint_data_icol = user.db().resultColId("constraint_data");
-        const idx constraint_description_icol = user.db().resultColId("constraint_description");
-        const idx description_icol = user.db().resultColId("description");
-        while( user.db().resultNextRow() ) {
-            sHiveId type_id(sUsrType2::type_type_domain_id, user.db().resultUValue(type_id_icol), 0);
-            sUsrType2 * utype = getRaw(type_id);
-            if( !utype || !type_forest->has(utype->_itype) ) {
-                LOG_ERROR("Unexpected type id %s in db output", type_id.print());
-                continue;
-            }
-
-            LOG_TRACE("Get row from UPTypeField: \"%s\" for type \"%s\" (%s) to load forest", user.db().resultValue(name_icol), utype->name(), utype->id().print());
-
-            idx ifld = utype->_fields.dim();
-            *utype->_name2ifield.setString(canonicalCase(case_buf, user.db().resultValue(name_icol))) = ifld;
-            sUsrTypeField * fld = utype->_fields.addM(1);
-            new(fld) sUsrTypeField;
-
-            fld->_index = ifld;
-            fld->_owner_itype = fld->_definer_itype = utype->_itype;
-            fld->_pos_name = fld->_pos_orig_name = sUsrTypeField::setString(user.db().resultValue(name_icol));
-            fld->_pos_title = sUsrTypeField::setString(user.db().resultValue(title_icol));
-            const char * fld_type_name = user.db().resultValue(type_icol);
-
-            if( sIs(fld_type_name, "type2list") || sIs(fld_type_name, "type2array") ) {
-                sUsrType2 * include_utype = getRaw(user.db().resultValue(constraint_data_icol));
-                if( include_utype ) {
-                    fld->_included_from_itype = include_utype->_itype;
-                } else {
-                    LOG_ERROR("Invalid type name \"%s\" as constraint_data in type2* field \"%s\" in type \"%s\" (%s)", user.db().resultValue(constraint_data_icol), user.db().resultValue(name_icol), utype->name(), utype->id().print());
-                    fld->_is_broken = true;
-                }
-                fld->_type = sIs(fld_type_name, "type2list") ? sUsrTypeField::eList : sUsrTypeField::eArray;
-            } else {
-                fld->_included_from_itype = -1;
-                fld->_type = fieldTypeFromName(user.db().resultValue(type_icol));
-            }
-
-            fld->_pos_parent_name = sUsrTypeField::setString(user.db().resultValue(parent_icol));
-            fld->_pos_role = sUsrTypeField::setString(user.db().resultValue(role_icol));
-            fld->_is_key = sString::parseBool(user.db().resultValue(is_key_fg_icol));
-
-            switch(idx ro = user.db().resultIValue(is_readonly_fg_icol)) {
-                case sUsrTypeField::eReadWrite:
-                case sUsrTypeField::eWriteOnce:
-                case sUsrTypeField::eSubmitOnce:
-                case sUsrTypeField::eReadOnly:
-                case sUsrTypeField::eReadOnlyAutofill:
-                    fld->_readonly = (sUsrTypeField::EReadOnly)ro;
-                    break;
-                default:
-                    LOG_ERROR("Invalid is_readonly_fg code %" DEC " in field \"%s\" in type \"%s\" (%s)", ro, user.db().resultValue(name_icol), utype->name(), utype->id().print());
-                    fld->_readonly = sUsrTypeField::eReadOnly;
-                    fld->_is_broken = true;
-            }
-
-            fld->_is_optional = sString::parseBool(user.db().resultValue(is_optional_fg_icol));
-            fld->_is_multi = sString::parseBool(user.db().resultValue(is_multi_fg_icol));
-            fld->_is_hidden = sString::parseBool(user.db().resultValue(is_hidden_fg_icol));
-            fld->_is_summary = sString::parseBool(user.db().resultValue(is_summary_fg_icol));
-            fld->_is_virtual = sString::parseBool(user.db().resultValue(is_virtual_fg_icol));
-            fld->_is_batch = sString::parseBool(user.db().resultValue(is_batch_fg_icol));
-
-            fld->_pos_brief = sUsrTypeField::setString(user.db().resultValue(brief_icol));
-            fld->_pos_order = sUsrTypeField::setString(user.db().resultValue(order_icol));
-            fld->_pos_default_value = sUsrTypeField::setString(user.db().resultValue(default_value_icol));
-            fld->_default_encoding = user.db().resultIValue(default_encoding_icol);
-            fld->_pos_link_url = sUsrTypeField::setString(user.db().resultValue(link_url_icol));
-            fld->_pos_constraint = sUsrTypeField::setString(user.db().resultValue(constraint_icol));
-            fld->_pos_constraint_data = sUsrTypeField::setString(user.db().resultValue(constraint_data_icol));
-            fld->_pos_constraint_description = sUsrTypeField::setString(user.db().resultValue(constraint_description_icol));
-            fld->_pos_description = sUsrTypeField::setString(user.db().resultValue(description_icol));
-        }
-        user.db().resultClose();
-    }
-
-    linkFields(itypes);
-}
-
-//static
-void sUsrType2::linkFields(sVec<idx> & itypes)
+void sUsrLoadingType::linkFields(sVec<idx> & itypes)
 {
     sStr inc_buf, case_buf, subst_buf;
 
-    // builtin system fields
     struct
     {
         const char * name, * title;
         idx pos_name, pos_title;
         sUsrTypeField::EType type;
+        sUsrTypeField::ERole role;
+        sUsrTypeField::EReadOnly readonly;
         bool is_multi;
+        bool is_weak_reference;
         bool is_sysinternal;
     } system_fields[] = {
-        { "_type", "Type name", -1, -1, sUsrTypeField::eString, false, false },
-        { "_parent", "Parent object", -1, -1, sUsrTypeField::eObj, true, false },
-        { "_brief", "Summary", -1, -1, sUsrTypeField::eString, false, false },
-        { "_dir", "Location", -1, -1, sUsrTypeField::eString, true, true },
-        { "_perm", "Permissions", -1, -1, sUsrTypeField::eString, true, false }
+        { "_id", "ID", -1, -1, sUsrTypeField::eString, sUsrTypeField::eRole_state, sUsrTypeField::eReadOnly, false, false, false },
+        { "_type", "Type name", -1, -1, sUsrTypeField::eString, sUsrTypeField::eRole_state, sUsrTypeField::eWriteOnce, false, false, false },
+        { "_parent", "Parent object", -1, -1, sUsrTypeField::eObj, sUsrTypeField::eRole_state, sUsrTypeField::eReadOnly, true, true, false },
+        { "_brief", "Summary", -1, -1, sUsrTypeField::eString, sUsrTypeField::eRole_state, sUsrTypeField::eReadOnly, false, false, false },
+        { "_dir", "Location", -1, -1, sUsrTypeField::eString, sUsrTypeField::eRole_state, sUsrTypeField::eReadOnly, true, true, true },
+        { "_perm", "Permissions", -1, -1, sUsrTypeField::eString, sUsrTypeField::eRole_state, sUsrTypeField::eReadOnly, true, false, false },
+        { "_effperm", "Effective permissions", -1, -1, sUsrTypeField::eJSON, sUsrTypeField::eRole_state, sUsrTypeField::eReadOnly, true, false, false },
+        { "_domain", "Create in domain", -1, -1, sUsrTypeField::eJSON, sUsrTypeField::eRole_state, sUsrTypeField::eWriteOnce, false, false, false }
     };
 
-    // system fields, hierarchy
     sDic<idx> overridden_dic, broken_ifld_dic;
     SetFieldChildrenParam children_param;
     sStr array_row_name;
 
-    // inclusions and inherited fields
     for(idx it=0; it<itypes.dim(); it++) {
-        sUsrType2 & utype = *_types[itypes[it]];
-        utype._dim_explicit_fields = utype._fields.dim(); // fields explicitly defined in the database
+        sUsrLoadingType & utype = *_types[itypes[it]];
+        utype._dim_explicit_fields = utype._fields.dim();
 
         LOG_TRACE("Inheritance and inclusion for type '%s'", utype.name());
 
-        // add inherited fields : due to traversal of type_ids, at this point they are all ready
         overridden_dic.empty();
         idx cnt_utype_par = utype.dimParents();
         for(idx itp=0; itp<cnt_utype_par; itp++) {
-            sUsrType2 & utype_par = *_types[utype._parents[itp]];
-            // traverse from root fields down : if utype_par's list/array field with children is overridden by utype's scalar field, the children must be ignored
+            sUsrLoadingType & utype_par = *_types[utype._parents[itp]];
             LOG_TRACE("Inheriting %" DEC " fields from parent %s to child %s", utype_par._root_ifields.dim(), utype_par.name(), utype.name());
             for(idx irif=0; irif<utype_par._root_ifields.dim(); irif++) {
                 utype.inheritField(utype_par._fields.ptr(utype_par._root_ifields[irif]), overridden_dic, case_buf);
             }
         }
 
-        // add inclusions - but only from the fields explicitly defined for this type (inherited ones were handled by the type's parents)
         utype._dim_inherited_fields = utype._fields.dim() - utype._dim_explicit_fields;
         for(idx ifld=0; ifld<utype._dim_explicit_fields; ifld++) {
             idx included_from_itype = utype._fields[ifld]._included_from_itype;
@@ -1744,12 +1712,11 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
                 if( !_types[included_from_itype]->_is_fetched ) {
                     LOG_ERROR("Type \"%s\" (%s): field \"%s\" (%" DEC ") includes from type \"%s\" whose fields have not yet been processed!", utype.name(), utype.id().print(), utype._fields[ifld].name(), ifld, _types[included_from_itype]->name());
                 }
-                // inclusions : field "foo" included via type2* field "bar" gets added as "bar_foo"
                 inc_buf.printf(0, "$(%s_", utype._fields[ifld].name());
                 inc_buf.add0(2);
                 idx inc_buf_name_pos = inc_buf.length();
                 for(idx iinc = 0; iinc < _types[included_from_itype]->_fields.dim(); iinc++) {
-                    const sUsrTypeField * inc_src_fld = _types[included_from_itype]->_fields.ptr(iinc);
+                    const sUsrLoadingTypeField * inc_src_fld = _types[included_from_itype]->_fields.ptr(iinc);
                     if( !inc_src_fld->_is_broken && inc_src_fld->name()[0] != '_' ) {
                         LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%" DEC ") includes field \"%s\" from type \"%s\"", utype.name(), utype.id().print(), utype._fields[ifld].name(), ifld, inc_src_fld->name(),
                             _types[inc_src_fld->_definer_itype]->name());
@@ -1758,36 +1725,34 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
 
                         const char * canon_inc_name = canonicalCase(case_buf, inc_buf.ptr(inc_buf_name_pos));
                         if( utype._name2ifield.get(canon_inc_name) ) {
-                            LOG_ERROR("Type \"%s\" (%s) cannot add included field \"%s\" from type \"%s\" (%s) because field \"%s\" already exists in the type (via explicit definition or inheritance)", utype.name(), utype.id().print(), inc_src_fld->name(), _types[included_from_itype]->name(), _types[included_from_itype]->id().print(local_log_buf), inc_buf.ptr(inc_buf_name_pos));
-                            // Is this an error? or should it be a warning?
+                            LOG_WARNING("Type \"%s\" (%s) cannot add included field \"%s\" from type \"%s\" (%s) because field \"%s\" already exists in the type (via explicit definition or inheritance)", utype.name(), utype.id().print(), inc_src_fld->name(), _types[included_from_itype]->name(), _types[included_from_itype]->id().print(local_log_buf), inc_buf.ptr(inc_buf_name_pos));
                             continue;
                         }
 
                         idx iinc_dst = utype._fields.dim();
-                        sUsrTypeField * inc_dst_fld = utype._fields.addM(1);
-                        new (inc_dst_fld) sUsrTypeField;
+                        sUsrLoadingTypeField * inc_dst_fld = utype._fields.addM(1);
+                        new (inc_dst_fld) sUsrLoadingTypeField;
                         *utype._name2ifield.setString(canon_inc_name) = iinc_dst;
-                        canon_inc_name = 0; // guard against realloc
+                        canon_inc_name = 0;
 
                         *inc_dst_fld = *inc_src_fld;
                         inc_dst_fld->_index = iinc_dst;
-                        inc_dst_fld->_pos_name = sUsrTypeField::setString(inc_buf.ptr(inc_buf_name_pos));
+                        inc_dst_fld->_pos_name = sUsrLoadingTypeField::setString(inc_buf.ptr(inc_buf_name_pos));
                         inc_dst_fld->_owner_itype = utype._itype;
 
                         subst_buf.cut(0);
-                        // Are there other fields which are allowed to use "$(fldname)" syntax?
-                        sUsrTypeField::replaceString(inc_dst_fld->_pos_brief, "$(" __, inc_buf.ptr(0), subst_buf);
-                        sUsrTypeField::replaceString(inc_dst_fld->_pos_constraint_data, "$(" __, inc_buf.ptr(0), subst_buf);
-                        sUsrTypeField::replaceString(inc_dst_fld->_pos_default_value, "$(" __, inc_buf.ptr(0), subst_buf);
+                        sUsrLoadingTypeField::replaceString(inc_dst_fld->_pos_brief, "$(" __, inc_buf.ptr(0), subst_buf);
+                        sUsrLoadingTypeField::replaceString(inc_dst_fld->_pos_constraint_data, "$(" __, inc_buf.ptr(0), subst_buf);
+                        sUsrLoadingTypeField::replaceString(inc_dst_fld->_pos_default_value, "$(" __, inc_buf.ptr(0), subst_buf);
 
-                        if( sLen(sUsrTypeField::getString(inc_dst_fld->_pos_parent_name)) ) {
+                        if( sLen(sUsrLoadingTypeField::getString(inc_dst_fld->_pos_parent_name)) ) {
                             idx inc_buf_par_name_pos = inc_buf.length();
-                            inc_buf.printf("%s_%s", utype._fields[ifld].name(), sUsrTypeField::getString(inc_dst_fld->_pos_parent_name));
-                            inc_dst_fld->_pos_parent_name = sUsrTypeField::setString(inc_buf.ptr(inc_buf_par_name_pos));
+                            inc_buf.printf("%s_%s", utype._fields[ifld].name(), sUsrLoadingTypeField::getString(inc_dst_fld->_pos_parent_name));
+                            inc_dst_fld->_pos_parent_name = sUsrLoadingTypeField::setString(inc_buf.ptr(inc_buf_par_name_pos));
                         } else {
                             inc_dst_fld->_pos_parent_name = utype._fields[ifld]._pos_name;
                         }
-                        LOG_TRACE("Type \"%s\" (%s): create included field \"%s\" with parent \"%s\"", utype.name(), utype.id().print(), inc_dst_fld->name(), sUsrTypeField::getString(inc_dst_fld->_pos_parent_name));
+                        LOG_TRACE("Type \"%s\" (%s): create included field \"%s\" with parent \"%s\"", utype.name(), utype.id().print(), inc_dst_fld->name(), sUsrLoadingTypeField::getString(inc_dst_fld->_pos_parent_name));
                     }
                 }
             }
@@ -1797,49 +1762,51 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
         broken_ifld_dic.empty();
         children_param.empty();
 
-        // add system fields
         for(idx i=0; i<sDim(system_fields); i++) {
             idx ifield = utype._fields.dim();
             *utype._name2ifield.setString(system_fields[i].name) = ifield;
-            sUsrTypeField * fld = utype._fields.addM(1);
-            new(fld) sUsrTypeField;
+            sUsrLoadingTypeField * fld = utype._fields.addM(1);
+            new(fld) sUsrLoadingTypeField;
             if( it == 0 ) {
-                system_fields[i].pos_name = sUsrTypeField::setString(system_fields[i].name);
-                system_fields[i].pos_title = sUsrTypeField::setString(system_fields[i].title);
+                system_fields[i].pos_name = sUsrLoadingTypeField::setString(system_fields[i].name);
+                system_fields[i].pos_title = sUsrLoadingTypeField::setString(system_fields[i].title);
             }
             fld->_owner_itype = utype._itype;
             fld->_definer_itype = -1;
             fld->_pos_name = fld->_pos_orig_name = system_fields[i].pos_name;
             fld->_pos_title = system_fields[i].pos_title;
             fld->_type = system_fields[i].type;
+            fld->_role = system_fields[i].role;
             fld->_is_multi = system_fields[i].is_multi;
+            fld->_is_weak_reference = system_fields[i].is_weak_reference;
             fld->_is_sysinternal = system_fields[i].is_sysinternal;
             fld->_is_hidden = true;
             fld->_is_virtual = true;
-            fld->_readonly = sUsrTypeField::eReadOnly;
+            fld->_readonly = system_fields[i].readonly;
         }
+        LOG_TRACE("Type \"%s\" (%s) added default system fields", utype.name(), utype.id().print());
 
-        // hierarchy
-        // step 1 : link child -> parent; ensure array rows exist; preliminary parent -> child links; find orphans
         idx cnt_non_array_row = utype._fields.dim();
         for(idx ifld=0; ifld<cnt_non_array_row; ifld++) {
-            sUsrTypeField * fld = utype._fields.ptr(ifld);
-            const char * fld_parent_name = sUsrTypeField::getString(fld->_pos_parent_name);
+            sUsrLoadingTypeField * fld = utype._fields.ptr(ifld);
+            const char * fld_parent_name = sUsrLoadingTypeField::getString(fld->_pos_parent_name);
             if( sLen(fld_parent_name) ) {
                 if( const idx * pifld_par = utype._name2ifield.get(canonicalCase(case_buf, fld_parent_name)) ) {
-                    const idx ifld_par = *pifld_par; // stable value in case utype._name2ifield reallocs
-                    pifld_par = 0; // detect invalid use
-                    sUsrTypeField * par_fld = utype._fields.ptr(ifld_par);
+                    const idx ifld_par = *pifld_par;
+                    pifld_par = 0;
+                    sUsrLoadingTypeField * par_fld = utype._fields.ptr(ifld_par);
                     switch( par_fld->type() ) {
                         case sUsrTypeField::eList:
+                        case sUsrTypeField::eListTab:
                             fld->_parent = ifld_par;
                             children_param.addChild(ifld_par, ifld);
                             break;
-                        case sUsrTypeField::eArray: {
+                        case sUsrTypeField::eArray:
+                        case sUsrTypeField::eArrayTab:
+                        {
                             array_row_name.cut(0);
                             idx ifld_arr_row = utype.ensureArrayFieldRow(par_fld, array_row_name, case_buf);
 
-                            // realloc guard
                             fld = utype._fields.ptr(ifld);
                             par_fld = utype._fields.ptr(ifld_par);
 
@@ -1863,14 +1830,12 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
                 LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%" DEC ") is a root field", utype.name(), utype.id().print(), utype._fields[ifld].name(), ifld);
             }
         }
-        sSort::sortSimpleCallback<idx>(&fldCompare, utype._fields.ptr(), utype._root_ifields.dim(), utype._root_ifields.ptr());
+        sSort::sortSimpleCallback<idx>(&loadingFldCompare, utype._fields.ptr(), utype._root_ifields.dim(), utype._root_ifields.ptr());
 
-        // step 2 : pack parent -> child links for quick access
         for(idx irif=0; irif<utype._root_ifields.dim(); irif++) {
             utype.setFieldChildren(utype._root_ifields[irif], utype._root_ifields[irif], &children_param, case_buf);
         }
 
-        // step 3 : fields which were not seen by setFieldChildren() do not descend from any root field, so mark as broken
         for(idx ifld=0; ifld<utype._fields.dim(); ifld++) {
             const sUsrTypeField * fld = utype._fields.ptr(ifld);
             if( !children_param.done_dic.get(&ifld, sizeof(ifld)) ) {
@@ -1879,7 +1844,6 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
             }
         }
 
-        // step 4 : recursively exclude broken fields from name index
         for(idx ibrk=0; ibrk<broken_ifld_dic.dim(); ibrk++) {
             idx ifld = *static_cast<const idx *>(broken_ifld_dic.id(ibrk));
             utype.recurseField(ifld, broken_ifld_dic);
@@ -1903,40 +1867,38 @@ void sUsrType2::linkFields(sVec<idx> & itypes)
     }
 }
 
-void sUsrType2::inheritField(const sUsrTypeField * inh_fld, sDic<idx> & overridden, sStr & case_buf)
+void sUsrLoadingType::inheritField(const sUsrLoadingTypeField * inh_fld, sDic<idx> & overridden, sStr & case_buf)
 {
     if( !inh_fld ) {
         return;
     }
-    // do not copy array rows, system fields etc.
     if( !inh_fld->isArrayRow() && inh_fld->name()[0] != '_' ) {
         const char * inh_fld_name = canonicalCase(case_buf, inh_fld->name());
         if( const idx * pifld = _name2ifield.get(inh_fld_name) ) {
-            // we already have a field with this name
             if( *pifld < _dim_explicit_fields ) {
-                // we overrode it with an own field
                 if( overridden.get(inh_fld_name) ) {
-                    // ... already for a field from an earlier parent type - therefore we are stuck
-                    LOG_ERROR("Type \"%s\" (%s) overrides field \"%s\" inherited from multiple parents; keeping only the first", name(), id().print(), inh_fld->name());
+                    LOG_WARNING("Type \"%s\" (%s) overrides field \"%s\" inherited from multiple parents; keeping only the first", name(), id().print(), inh_fld->name());
                     return;
                 }
                 LOG_TRACE("Type \"%s\" (%s) overrides inherited field \"%s\"", name(), id().print(), inh_fld->name());
                 overridden.setString(inh_fld_name);
                 const sUsrTypeField * fld = _fields.ptr(*pifld);
-                if( fld->type() != sUsrTypeField::eArray && fld->type() != sUsrTypeField::eList ) {
-                    // ... and our own overriding field is a scalar. We cannot inherit any of inh_fld's children - therefore stop.
+                if( fld->type() != sUsrTypeField::eArray && fld->type() != sUsrTypeField::eList &&
+                    fld->type() != sUsrTypeField::eArrayTab && fld->type() != sUsrTypeField::eListTab ) {
                     return;
                 }
             } else {
-                // we already inherited a field of this name from an earlier parent type - therefore we are stuck.
-                LOG_ERROR("Type \"%s\" (%s) inherits field \"%s\" from multiple parents; keeping only the first", name(), id().print(), inh_fld->name());
+                if( _fields.ptr(*pifld)->_definer_itype == inh_fld->_definer_itype ) {
+                    LOG_TRACE("Type \"%s\" (%s) inherits field \"%s\" from multiple parents, both descending from the same type; keeping only one copy", name(), id().print(), inh_fld->name());
+                } else {
+                    LOG_WARNING("Type \"%s\" (%s) inherits field \"%s\" from multiple parents; keeping only the first", name(), id().print(), inh_fld->name());
+                }
                 return;
             }
         } else {
-            // we don't have a field of this name, so copy it
             idx idst = _fields.dim();
-            sUsrTypeField * dst_fld = _fields.addM(1);
-            new(dst_fld) sUsrTypeField;
+            sUsrLoadingTypeField * dst_fld = _fields.addM(1);
+            new(dst_fld) sUsrLoadingTypeField;
             *_name2ifield.setString(inh_fld_name) = idst;
 
             LOG_TRACE("Type \"%s\" (%s) inherits field \"%s\" from \"%s\" (%s)", name(), id().print(), inh_fld->name(), _types[inh_fld->_owner_itype]->name(), _types[inh_fld->_owner_itype]->id().print());
@@ -1952,9 +1914,9 @@ void sUsrType2::inheritField(const sUsrTypeField * inh_fld, sDic<idx> & overridd
     }
 }
 
-idx sUsrType2::ensureArrayFieldRow(sUsrTypeField * fld, sStr & name_buf, sStr & case_buf)
+idx sUsrLoadingType::ensureArrayFieldRow(sUsrLoadingTypeField * fld, sStr & name_buf, sStr & case_buf)
 {
-    if( fld->type() != sUsrTypeField::eArray ) {
+    if( fld->type() != sUsrTypeField::eArray && fld->type() != sUsrTypeField::eArrayTab ) {
         return -sIdxMax;
     }
 
@@ -1967,9 +1929,9 @@ idx sUsrType2::ensureArrayFieldRow(sUsrTypeField * fld, sStr & name_buf, sStr & 
     idx ifld = fld->_index;
     idx irow = _fields.dim();
     *_name2ifield.setString(canonicalCase(case_buf, name_buf.ptr())) = irow;
-    sUsrTypeField * fld_row = _fields.addM(1);
-    new(fld_row) sUsrTypeField;
-    fld = _fields.ptr(ifld); // in case realloc
+    sUsrLoadingTypeField * fld_row = _fields.addM(1);
+    new(fld_row) sUsrLoadingTypeField;
+    fld = _fields.ptr(ifld);
 
     fld_row->_index = irow;
     fld_row->_is_array_row = true;
@@ -1977,7 +1939,7 @@ idx sUsrType2::ensureArrayFieldRow(sUsrTypeField * fld, sStr & name_buf, sStr & 
     fld_row->_definer_itype = fld->_definer_itype;
     fld_row->_included_from_itype = fld->_included_from_itype;
 
-    fld_row->_pos_name = sUsrTypeField::setString(name_buf.ptr());
+    fld_row->_pos_name = sUsrLoadingTypeField::setString(name_buf.ptr());
     if( sIs(fld->name(), fld->originalName()) ) {
         fld_row->_pos_orig_name = fld_row->_pos_name;
     } else {
@@ -1985,14 +1947,14 @@ idx sUsrType2::ensureArrayFieldRow(sUsrTypeField * fld, sStr & name_buf, sStr & 
         idx l = name_buf.length();
         name_buf.addString("_row_");
         name_buf.addString(fld->originalName());
-        fld_row->_pos_orig_name = sUsrTypeField::setString(name_buf.ptr(l));
+        fld_row->_pos_orig_name = sUsrLoadingTypeField::setString(name_buf.ptr(l));
     }
 
     name_buf.add0();
     idx l = name_buf.length();
     name_buf.addString("Array row for ");
     name_buf.addString(fld->title());
-    fld_row->_pos_title = sUsrTypeField::setString(name_buf.ptr(l));
+    fld_row->_pos_title = sUsrLoadingTypeField::setString(name_buf.ptr(l));
 
     fld_row->_type = sUsrTypeField::eList;
     fld_row->_pos_parent_name = fld->_pos_name;
@@ -2002,15 +1964,17 @@ idx sUsrType2::ensureArrayFieldRow(sUsrTypeField * fld, sStr & name_buf, sStr & 
     fld_row->_is_virtual = true;
     fld_row->_is_multi = true;
 
+    LOG_TRACE("Type \"%s\" (%s) added array row field \"%s\" for \"%s\"", name(), id().print(), fld_row->name(), fld->name());
+
     return irow;
 }
 
-void sUsrType2::setFieldChildren(idx ifld, idx iroot_fld, SetFieldChildrenParam * param, sStr & case_buf)
+void sUsrLoadingType::setFieldChildren(idx ifld, idx iroot_fld, SetFieldChildrenParam * param, sStr & case_buf)
 {
     param->done_dic.set(&ifld, sizeof(idx));
     LOG_TRACE("Type \"%s\" (%s): field \"%s\" (%" DEC ") descends from root field \"%s\" (%" DEC ")", name(), id().print(), _fields[ifld].name(), ifld, _fields[iroot_fld].name(), iroot_fld);
-    sUsrTypeField * fld = _fields.ptr(ifld);
-    if( const sUsrTypeField * par = fld->parent() ) {
+    sUsrLoadingTypeField * fld = _fields.ptr(ifld);
+    if( const sUsrLoadingTypeField * par = fld->parent() ) {
         fld->_ancestor_count = par->_ancestor_count + 1;
         fld->_is_global_multi = fld->_is_multi || fld->_is_array_row || par->_is_global_multi;
     } else {
@@ -2029,25 +1993,25 @@ void sUsrType2::setFieldChildren(idx ifld, idx iroot_fld, SetFieldChildrenParam 
             _child_ifields[fld->_start_children + i] = ichild;
             setFieldChildren(ichild, iroot_fld, param, case_buf);
         }
-        _child_ifields[fld->_start_children + fld->_dim_children] = -sIdxMax; // guard value
-        sSort::sortSimpleCallback<idx>(fldCompare, _fields.ptr(), fld->_dim_children, _child_ifields.ptr(fld->_start_children));
+        _child_ifields[fld->_start_children + fld->_dim_children] = -sIdxMax;
+        sSort::sortSimpleCallback<idx>(loadingFldCompare, _fields.ptr(), fld->_dim_children, _child_ifields.ptr(fld->_start_children));
     }
 }
 
-void sUsrType2::recurseField(idx ifld, sDic<idx> & seen_dic)
+void sUsrLoadingType::recurseField(idx ifld, sDic<idx> & seen_dic)
 {
     idx * pseen = seen_dic.get(&ifld, sizeof(ifld));
     if( pseen && *pseen ) {
         return;
     }
     *seen_dic.set(&ifld, sizeof(ifld)) = 1;
-    const sUsrTypeField * fld = _fields.ptr(ifld);
+    const sUsrLoadingTypeField * fld = _fields.ptr(ifld);
     for(idx i=0; i<fld->dimChildren(); i++) {
         recurseField(fld->getChild(i)->_index, seen_dic);
     }
 }
 
-void sUsrType2::recurseDescendents(sDic<idx> & seen_dic) const
+void sUsrLoadingType::recurseDescendents(sDic<idx> & seen_dic) const
 {
     idx * pseen = seen_dic.get(&_itype, sizeof(_itype));
     if( pseen && *pseen ) {
@@ -2059,12 +2023,10 @@ void sUsrType2::recurseDescendents(sDic<idx> & seen_dic) const
     }
 }
 
-bool sUsrType2::PerUserRes::ensureUserForWriting(udx user_id)
+bool sUsrLoadingType::PerUserRes::ensureUserForWriting(udx user_id)
 {
     if( const idx * pilevel = _usr2ticlevel.get(&user_id, sizeof(user_id)) ) {
-        // user has bee written for ...
         if( *pilevel != _name2ires.dimStack() - 1 ) {
-            // ... but can be written no longer - it's not the top level in the tic
             return false;
         }
         return true;
@@ -2078,7 +2040,7 @@ bool sUsrType2::PerUserRes::ensureUserForWriting(udx user_id)
     return true;
 }
 
-idx sUsrType2::PerUserRes::dimForUser(udx user_id) const
+idx sUsrLoadingType::PerUserRes::dimForUser(udx user_id) const
 {
     if( const idx * pilevel = _usr2ticlevel.get(&user_id, sizeof(user_id)) ) {
         return _name2ires.dimLevel(*pilevel);
@@ -2086,7 +2048,7 @@ idx sUsrType2::PerUserRes::dimForUser(udx user_id) const
     return 0;
 }
 
-idx sUsrType2::PerUserRes::getILevel(udx user_id) const
+idx sUsrLoadingType::PerUserRes::getILevel(udx user_id) const
 {
     if( const idx * pilevel = _usr2ticlevel.get(&user_id, sizeof(user_id)) ) {
         return *pilevel;
@@ -2094,7 +2056,7 @@ idx sUsrType2::PerUserRes::getILevel(udx user_id) const
     return -sIdxMax;
 }
 
-idx sUsrType2::PerUserRes::getIRes(udx user_id, const char * name, idx name_len) const
+idx sUsrLoadingType::PerUserRes::getIRes(udx user_id, const char * name, idx name_len) const
 {
     if( const idx * pilevel = _usr2ticlevel.get(&user_id, sizeof(user_id)) ) {
         if( const idx * pires = _name2ires.get(*pilevel, name, name_len) ) {
@@ -2104,7 +2066,7 @@ idx sUsrType2::PerUserRes::getIRes(udx user_id, const char * name, idx name_len)
     return -sIdxMax;
 }
 
-idx sUsrType2::PerUserRes::getIRes(udx user_id, idx index) const
+idx sUsrLoadingType::PerUserRes::getIRes(udx user_id, idx index) const
 {
     if( const idx * pilevel = _usr2ticlevel.get(&user_id, sizeof(user_id)) ) {
         if( const idx * pires = _name2ires.ptr(*pilevel, index) ) {
@@ -2116,7 +2078,7 @@ idx sUsrType2::PerUserRes::getIRes(udx user_id, idx index) const
 
 struct LoadActionViewFinderVal
 {
-    idx ires; // negative for error
+    idx ires;
     idx utype_depth;
 
     LoadActionViewFinderVal()
@@ -2129,21 +2091,21 @@ struct LoadActionViewFinderVal
 struct LoadActionViewFinderParam
 {
     udx user_id;
-    sUsrAction * act;
-    sUsrView * view;
+    sUsrLoadingAction * act;
+    sUsrLoadingView * view;
+    sUsrLoadingJSComponent * jsco;
 
     sStr buf;
     sDic<LoadActionViewFinderVal> typeactview2val;
 };
 
-//static
-void sUsrType2::loadActionsViewsFinder(const sUsrType2 * utype_, const sUsrType2 * recurse_start, idx depth_from_start, void * param_)
+void sUsrLoadingType::loadActionsViewsFinder(const sUsrType2 * utype_, const sUsrType2 * recurse_start, idx depth_from_start, void * param_)
 {
-    sUsrType2 * utype = const_cast<sUsrType2*>(utype_);
+    sUsrLoadingType * utype = dynamic_cast<sUsrLoadingType*>(const_cast<sUsrType2*>(utype_));
     LoadActionViewFinderParam * param = static_cast<LoadActionViewFinderParam*>(param_);
 
-    const char * name = param->act ? param->act->name() : param->view->name();
-    idx ires = param->act ? param->act->_iaction : param->view->_iview;
+    const char * name = param->act ? param->act->name() : (param->view ? param->view->name() : param->jsco->name());
+    idx ires = param->act ? param->act->_iaction : (param->view ? param->view->_iview : param->jsco->_ijsco);
 
     param->buf.cut0cut();
     utype->id().print(param->buf);
@@ -2155,44 +2117,41 @@ void sUsrType2::loadActionsViewsFinder(const sUsrType2 * utype_, const sUsrType2
 
     LoadActionViewFinderVal * val = param->typeactview2val.set(param->buf.ptr(), param->buf.length());
 
-    PerUserRes & per_user_res = param->act ? utype->_actions : utype->_views;
+    PerUserRes & per_user_res = param->act ? utype->_actions : (param->view ? utype->_views : utype->_jscos);
     per_user_res.ensureUserForWriting(param->user_id);
 
 
     if( val->ires >= 0 ) {
-        // utype has an action/view of this name - overload if the existing action/view is less specific
         if( val->utype_depth > depth_from_start ) {
             val->ires = ires;
             *per_user_res._name2ires.setString(name) = ires;
             val->utype_depth = depth_from_start;
         }
     } else {
-        // utype doesn't have an action/view of this name yet
         val->ires = ires;
         *per_user_res._name2ires.setString(name) = ires;
         val->utype_depth = depth_from_start;
     }
 }
 
-//static
-void sUsrType2::loadActions(const sUsr & user)
+void sUsrLoadingType::loadActions(const sUsr & user)
 {
     udx user_id = user.Id();
-    if( sUsrAction::_usr2actres.get(&user_id, sizeof(user_id)) ) {
+    if( sUsrLoadingAction::_usr2actres.get(&user_id, sizeof(user_id)) ) {
         return;
     }
 
-    // load all actions for specified user and tie to type
-    sUsrAction::ActRes * act_res = sUsrAction::_usr2actres.set(&user_id, sizeof(user_id));
+    sUsrLoadingAction::ActRes * act_res = sUsrLoadingAction::_usr2actres.set(&user_id, sizeof(user_id));
     user.objs2("^action$", act_res->res);
     act_res->acts.init(sMex::fExactSize);
     act_res->acts.resize(act_res->res.dim());
     LoadActionViewFinderParam param;
     param.user_id = user_id;
+    param.jsco = 0;
     param.view = 0;
     idx iact = 0;
     for(sUsrObjRes::IdIter it = act_res->res.first(); act_res->res.has(it); act_res->res.next(it), iact++) {
-        sUsrAction * act = act_res->acts.ptr(iact);
+        sUsrLoadingAction * act = act_res->acts.ptr(iact);
         act->_id = *act_res->res.id(it);
         act->_user_id = user_id;
         act->_iaction = iact;
@@ -2204,31 +2163,59 @@ void sUsrType2::loadActions(const sUsr & user)
     }
 }
 
-//static
-void sUsrType2::loadViews(const sUsr & user)
+void sUsrLoadingType::loadJSComponents(const sUsr & user)
 {
     udx user_id = user.Id();
-    if( sUsrView::_usr2viewres.get(&user_id, sizeof(user_id)) ) {
+    if( sUsrLoadingJSComponent::_usr2jscores.get(&user_id, sizeof(user_id)) ) {
         return;
     }
 
-    // load all views for specified user and tie to type
+    sUsrLoadingJSComponent::JscoRes * res = sUsrLoadingJSComponent::_usr2jscores.set(&user_id, sizeof(user_id));
+    user.objs2("^js_component$", res->res);
+    res->jscos.init(sMex::fExactSize);
+    res->jscos.resize(res->res.dim());
+    LoadActionViewFinderParam param;
+    param.user_id = user_id;
+    param.act = 0;
+    param.view = 0;
+    idx i = 0;
+    for(sUsrObjRes::IdIter it = res->res.first(); res->res.has(it); res->res.next(it), ++i) {
+        sUsrLoadingJSComponent * c = res->jscos.ptr(i);
+        c->_id = *res->res.id(it);
+        c->_user_id = user_id;
+        c->_ijsco = i;
+        const sUsrObjRes::TObjProp * props = res->res.get(it);
+        const sUsrObjRes::TPropTbl * type_name_tbl = res->res.get(*props, "type_name");
+        const char * type_name = res->res.getValue(type_name_tbl);
+        param.jsco = c;
+        findRaw(&user, 0, type_name, loadActionsViewsFinder, &param, true, true);
+    }
+}
+
+void sUsrLoadingType::loadViews(const sUsr & user)
+{
+    udx user_id = user.Id();
+    if( sUsrLoadingView::_usr2viewres.get(&user_id, sizeof(user_id)) ) {
+        return;
+    }
+
     const sUsrType2 * view_type = ensure(user, "view");
-    sUsrView::ViewRes * view_res = sUsrView::_usr2viewres.set(&user_id, sizeof(user_id));
+    sUsrLoadingView::ViewRes * view_res = sUsrLoadingView::_usr2viewres.set(&user_id, sizeof(user_id));
     user.objs2("^view$", view_res->res);
     view_res->views.init(sMex::fExactSize);
     view_res->views.resize(view_res->res.dim());
     LoadActionViewFinderParam param;
     param.user_id = user_id;
     param.act = 0;
+    param.jsco = 0;
     sVarSet tree_table;
     idx iview = 0;
     for(sUsrObjRes::IdIter it = view_res->res.first(); view_res->res.has(it); view_res->res.next(it), iview++) {
-        sUsrView * view = view_res->views.ptr(iview);
+        sUsrLoadingView * view = view_res->views.ptr(iview);
         view->_id = *view_res->res.id(it);
         view->_user_id = user_id;
         view->_iview = iview;
-        view->_fields.init(&sUsrView::_fields_buf);
+        view->_fields.init(&sUsrLoadingView::_fields_buf);
 
         const sUsrObjRes::TObjProp * props = view_res->res.get(it);
         const sUsrObjRes::TPropTbl * type_name_tbl = view_res->res.get(*props, "type_name");
@@ -2236,7 +2223,6 @@ void sUsrType2::loadViews(const sUsr & user)
         param.view = view;
         findRaw(&user, 0, type_name, loadActionsViewsFinder, &param, true, true);
 
-        // the following is inefficient, but what else can we do?
         tree_table.empty();
         for(idx p = 0; props && p < props->dim(); ++p) {
             const char * prop_name = (const char *) props->id(p);
@@ -2249,26 +2235,29 @@ void sUsrType2::loadViews(const sUsr & user)
         sUsrObjPropsTree tree(user, view_type, tree_table);
         const sUsrObjPropsNode * fields_array = tree.find("fields");
         for(const sUsrObjPropsNode * fields_row = fields_array ? fields_array->firstChild() : 0; fields_row; fields_row = fields_row->nextSibling() ) {
-            sUsrView::Field * fld = view->_fields.add(1);
+            sUsrLoadingView::Field * fld = view->_fields.add(1);
             if( const char * field_name = fields_row->findValue("field_name") ) {
-                *sUsrView::_names.setString(field_name, 0, &fld->pos_name) = true;
+                *sUsrLoadingView::_names.setString(field_name, 0, &fld->pos_name) = true;
             } else {
                 fld->pos_name = -sIdxMax;
             }
             if( const char * field_default = fields_row->findValue("field_default") ) {
-                *sUsrView::_names.setString(field_default, 0, &fld->pos_default_value) = true;
+                *sUsrLoadingView::_names.setString(field_default, 0, &fld->pos_default_value) = true;
             } else {
                 fld->pos_default_value = -sIdxMax;
             }
-            fld->order = fields_row->findIValue("field_order");
+            if( const char * field_order_string = fields_row->findValue("field_order") ) {
+                *sUsrLoadingView::_names.setString(field_order_string, 0, &fld->pos_order_string) = true;
+            } else {
+                fld->pos_order_string = -sIdxMax;
+            }
             fld->readonly = fields_row->findBoolValue("field_readonly");
         }
     }
 }
 
-/// External API : sUsrAction ///
 
-const char * sUsrAction::name() const
+const char * sUsrLoadingAction::name() const
 {
     const sUsrObjRes & res = objRes();
     const sUsrObjRes::TObjProp & props = *res.get(_id);
@@ -2276,7 +2265,7 @@ const char * sUsrAction::name() const
     return res.getValue(tbl);
 }
 
-const char * sUsrAction::title() const
+const char * sUsrLoadingAction::title() const
 {
     const sUsrObjRes & res = objRes();
     const sUsrObjRes::TObjProp & props = *res.get(_id);
@@ -2284,16 +2273,29 @@ const char * sUsrAction::title() const
     return res.getValue(tbl);
 }
 
-real sUsrAction::order() const
+const char * sUsrLoadingAction::description() const
+{
+    const sUsrObjRes & res = objRes();
+    const sUsrObjRes::TObjProp & props = *res.get(_id);
+    const sUsrObjRes::TPropTbl * tbl = res.get(props, "description");
+    return res.getValue(tbl);
+}
+
+real sUsrLoadingAction::order() const
+{
+    const char * sord = orderString();
+    return sord ? strtod(sord, 0) : 0;
+}
+
+const char * sUsrLoadingAction::orderString() const
 {
     const sUsrObjRes & res = objRes();
     const sUsrObjRes::TObjProp & props = *res.get(_id);
     const sUsrObjRes::TPropTbl * tbl = res.get(props, "order");
-    const char * sord = res.getValue(tbl);
-    return sord ? strtod(sord, 0) : 0;
+    return res.getValue(tbl);
 }
 
-bool sUsrAction::isObjAction() const
+bool sUsrLoadingAction::isObjAction() const
 {
     const sUsrObjRes & res = objRes();
     const sUsrObjRes::TObjProp & props = *res.get(_id);
@@ -2301,7 +2303,7 @@ bool sUsrAction::isObjAction() const
     return sString::parseBool(res.getValue(tbl));
 }
 
-udx sUsrAction::requiredPermission() const
+udx sUsrLoadingAction::requiredPermission() const
 {
     const sUsrObjRes & res = objRes();
     const sUsrObjRes::TObjProp & props = *res.get(_id);
@@ -2315,41 +2317,37 @@ int sUsrAction::cmp(const sUsrAction * rhs) const
     if( !rhs ) {
         return 1;
     }
-    const sUsrObjRes & lhs_res = objRes();
-    const sUsrObjRes::TObjProp & lhs_props = *lhs_res.get(_id);
-    const sUsrObjRes::TPropTbl * lhs_order_tbl = lhs_res.get(lhs_props, "order");
-    const char * lhs_sord = lhs_res.getValue(lhs_order_tbl);
+    const char * lhs_sord = orderString();
     if( !lhs_sord) {
         lhs_sord = sStr::zero;
     }
-    const sUsrObjRes & rhs_res = rhs->objRes();
-    const sUsrObjRes::TObjProp & rhs_props = *rhs_res.get(rhs->_id);
-    const sUsrObjRes::TPropTbl * rhs_order_tbl = rhs_res.get(rhs_props, "order");
-    const char * rhs_sord = rhs_res.getValue(rhs_order_tbl);
+    const char * rhs_sord = rhs->orderString();
     if( !rhs_sord) {
         rhs_sord = sStr::zero;
     }
 
-    if( strcmp(lhs_sord, rhs_sord) != 0 ) {
-        return strtod(lhs_sord, 0) < strtod(rhs_sord, 0) ? -1 : 1;
+    if( !sIsExactly(lhs_sord, rhs_sord) ) {
+        real diff = order() - rhs->order();
+        if( diff < 0 ) {
+            return -1;
+        } else if( diff > 0 ) {
+            return 1;
+        }
     }
 
-    const sUsrObjRes::TPropTbl * lhs_name_tbl = lhs_res.get(lhs_props, "name");
-    const char * lhs_name = lhs_res.getValue(lhs_name_tbl);
+    const char * lhs_name = name();
     if( !lhs_name) {
         lhs_name = sStr::zero;
     }
-    const sUsrObjRes::TPropTbl * rhs_name_tbl = rhs_res.get(rhs_props, "name");
-    const char * rhs_name = rhs_res.getValue(rhs_name_tbl);
+    const char * rhs_name = rhs->name();
     if( !rhs_name) {
         rhs_name = sStr::zero;
     }
     return strcasecmp(lhs_name, rhs_name);
 }
 
-/// External API : sUsrView ///
 
-const char * sUsrView::name() const
+const char * sUsrLoadingJSComponent::name() const
 {
     const sUsrObjRes & res = objRes();
     const sUsrObjRes::TObjProp & props = *res.get(_id);
@@ -2357,29 +2355,103 @@ const char * sUsrView::name() const
     return res.getValue(tbl);
 }
 
-idx sUsrView::dimFields() const
+bool sUsrLoadingJSComponent::isPreview() const
+{
+    const sUsrObjRes & res = objRes();
+    const sUsrObjRes::TObjProp & props = *res.get(_id);
+    const sUsrObjRes::TPropTbl * tbl = res.get(props, "preview");
+    return res.getValue(tbl);
+}
+
+bool sUsrLoadingJSComponent::isAlgoview() const
+{
+    const sUsrObjRes & res = objRes();
+    const sUsrObjRes::TObjProp & props = *res.get(_id);
+    const sUsrObjRes::TPropTbl * tbl = res.get(props, "algoview");
+    return res.getValue(tbl);
+}
+
+real sUsrLoadingJSComponent::order() const
+{
+    const char * sord = orderString();
+    return sord ? strtod(sord, 0) : 0;
+}
+
+const char * sUsrLoadingJSComponent::orderString() const
+{
+    const sUsrObjRes & res = objRes();
+    const sUsrObjRes::TObjProp & props = *res.get(_id);
+    const sUsrObjRes::TPropTbl * tbl = res.get(props, "order");
+    return res.getValue(tbl);
+}
+
+int sUsrJSComponent::cmp(const sUsrJSComponent * rhs) const
+{
+    if( !rhs ) {
+        return 1;
+    }
+    const char * lhs_sord = orderString();
+    if( !lhs_sord) {
+        lhs_sord = sStr::zero;
+    }
+    const char * rhs_sord = rhs->orderString();
+    if( !rhs_sord) {
+        rhs_sord = sStr::zero;
+    }
+
+    if( strcmp(lhs_sord, rhs_sord) != 0 ) {
+        real diff = order() - rhs->order();
+        if( diff < 0 ) {
+            return -1;
+        } else if( diff > 0 ) {
+            return 1;
+        }
+    }
+
+    const char * lhs_name = name();
+    if( !lhs_name) {
+        lhs_name = sStr::zero;
+    }
+    const char * rhs_name = rhs->name();
+    if( !rhs_name) {
+        rhs_name = sStr::zero;
+    }
+    return strcasecmp(lhs_name, rhs_name);
+}
+
+
+const char * sUsrLoadingView::name() const
+{
+    const sUsrObjRes & res = objRes();
+    const sUsrObjRes::TObjProp & props = *res.get(_id);
+    const sUsrObjRes::TPropTbl * tbl = res.get(props, "name");
+    return res.getValue(tbl);
+}
+
+idx sUsrLoadingView::dimFields() const
 {
     return _fields.dim();
 }
 
-const char * sUsrView::fieldName(idx ifield) const
+const char * sUsrLoadingView::fieldName(idx ifield) const
 {
     idx pos = _fields[ifield].pos_name;
     return pos >= 0 ? static_cast<const char *>(_names.id(pos)) : sStr::zero;
 }
 
-const char * sUsrView::fieldDefaultValue(idx ifield) const
+const char * sUsrLoadingView::fieldDefaultValue(idx ifield) const
 {
     idx pos = _fields[ifield].pos_default_value;
     return pos >= 0 ? static_cast<const char *>(_names.id(pos)) : sStr::zero;
 }
 
-idx sUsrView::fieldOrder(idx ifield) const
+const char * sUsrLoadingView::fieldOrderString(idx ifield) const
 {
-    return _fields[ifield].order;
+    idx pos = _fields[ifield].pos_order_string;
+    return pos >= 0 ? static_cast<const char *>(_names.id(pos)) : sStr::zero;
 }
 
-bool sUsrView::fieldReadonly(idx ifield) const
+bool sUsrLoadingView::fieldReadonly(idx ifield) const
 {
     return _fields[ifield].readonly;
 }
@@ -2390,11 +2462,86 @@ int sUsrView::cmp(const sUsrView * rhs) const
         return 1;
     }
     const char * lhs_name = name();
+    if( !lhs_name) {
+        lhs_name = sStr::zero;
+    }
     const char * rhs_name = rhs->name();
+    if( !rhs_name) {
+        rhs_name = sStr::zero;
+    }
     return strcasecmp(lhs_name, rhs_name);
 }
 
-/// External API : sUsrType2 ///
+
+const sUsrType2 * sUsrType2::ensure(const sUsr & user, const char * type_name, idx type_name_len, bool no_prefetch, bool lazy_fetch_fields)
+{
+    if( const sUsrTypeCache * bincache = getBinCache(&user) ) {
+        return bincache->getType(type_name, type_name_len);
+    }
+    const sUsrLoadingType * ret = sUsrLoadingType::getRaw(type_name, type_name_len);
+    if( ret && (lazy_fetch_fields || ret->_is_fetched) ) {
+        return ret;
+    } else {
+        return load(user, type_name, type_name_len, 0, no_prefetch);
+    }
+}
+
+const sUsrType2 * sUsrType2::ensure(const sUsr & user, const sHiveId & type_id, bool no_prefetch, bool lazy_fetch_fields, bool ephemeral)
+{
+    const sUsrType2 * ret = 0;
+    const sUsrLoadingType * loading_ret = 0;
+
+    if( const sUsrTypeCache * bincache = getBinCache(&user) ) {
+        ret = bincache->getType(type_id);
+    } else {
+        ret = loading_ret = sUsrLoadingType::getRaw(type_id);
+        if( !(loading_ret && (lazy_fetch_fields || loading_ret->_is_fetched)) ) {
+            ret = load(user, 0, 0, &type_id, no_prefetch);
+        }
+    }
+
+    if( !ret && ephemeral ) {
+        ret = loading_ret = sUsrLoadingType::ensureEphemeral(type_id);
+    }
+
+    return ret;
+}
+
+const sUsrType2 * sUsrType2::ensureTypeType(const sUsr & user)
+{
+    const sUsrType2 * ret = ensure(user, "type");
+    return ret;
+}
+
+const sUsrType2 * sUsrType2::get(const char * type_name, idx type_name_len)
+{
+    if( const sUsrTypeCache * bincache = getBinCache(0) ) {
+        return bincache->getType(type_name, type_name_len);
+    }
+    return sUsrLoadingType::getRaw(type_name, type_name_len);
+}
+
+const sUsrType2 * sUsrType2::get(const sHiveId & type_id)
+{
+    const sUsrType2 * ret = 0;
+
+    if( const sUsrTypeCache * bincache = getBinCache(0) ) {
+        ret = bincache->getType(type_id);
+        if( !ret ) {
+            ret = sUsrLoadingType::getRawEphemeral(type_id);
+        }
+    } else {
+        ret = sUsrLoadingType::getRaw(type_id);
+    }
+
+    return ret;
+}
+
+const sUsrType2 * sUsrType2::getTypeType()
+{
+    const sUsrType2 * ret = get("type");
+    return ret;
+}
 
 class sUsrType2::FindWorker {
     public:
@@ -2429,7 +2576,6 @@ class sUsrType2::FindWorker {
                 Entry * e = found_entries.set(&utype->id(), sizeof(sHiveId));
                 e->added = !is_negate;
                 e->utype_id = utype->id();
-                // override recurse_from if not recursing, of if recursing from a more specific type (higher in the tree)
                 if( recurse_start_id ) {
                     if( recurse_depth < e->recurse_depth ) {
                         e->recurse_start_id = *recurse_start_id;
@@ -2451,7 +2597,7 @@ class sUsrType2::FindWorker {
         virtual void postRun(const char * qry, bool no_regexp)
         {
             if( num_queries == num_negates ) {
-                if( const sUsrType2 * utype = getRaw("base_user_type") ) {
+                if( const sUsrType2 * utype = get("base_user_type") ) {
                     sHiveId base_id = utype->id();
                     lister(utype, &base_id, 0, false);
                 }
@@ -2461,16 +2607,16 @@ class sUsrType2::FindWorker {
         virtual void checkQuery(const char * exact_name, regex_t * re, bool is_recurse, bool is_negate)
         {
             if( exact_name ) {
-                if( const sUsrType2 * utype = getRaw(exact_name) ) {
+                if( const sUsrType2 * utype = get(exact_name) ) {
                     sHiveId utype_id = utype->id();
                     lister(utype, is_recurse ? &utype_id : 0, 0, is_negate);
                 }
             } else if( re ) {
-                // only look for types that have names
-                for(idx itype = 0; itype < sUsrType2::_types.dim(); itype++) {
-                    const char * name = sUsrType2::_types[itype]->name();
+                const idx dim_raw = sUsrType2::dimRaw();
+                for(idx itype = 0; itype < dim_raw; itype++) {
+                    const sUsrType2 * utype = sUsrType2::getNthRaw(itype);
+                    const char * name = utype->name();
                     if( name && regexec(re, name, 0, 0, 0) == 0 ) {
-                        const sUsrType2 * utype = sUsrType2::_types[itype];
                         sHiveId utype_id = utype->id();
                         lister(utype, is_recurse ? &utype_id : 0, 0, is_negate);
                     }
@@ -2516,10 +2662,8 @@ class sUsrType2::FindWorker {
 
                     type_name_buf.cutAddString(0, qry + istart, iend - istart);
                     if( is_exact ) {
-                        // common case optimization
                         checkQuery(type_name_buf.ptr(), 0, is_recurse, is_negate);
                     } else if( regcomp(&re, type_name_buf.ptr(), REG_EXTENDED | REG_NOSUB | REG_ICASE) == 0 ) {
-                        // only look for types that have names
                         checkQuery(0, &re, is_recurse, is_negate);
                         regfree(&re);
                     }
@@ -2548,27 +2692,45 @@ static bool is_potential_type_name(const char * s, idx len)
     return true;
 }
 
-//static
-idx sUsrType2::find(const sUsr & user, sVec<const sUsrType2 *> * out, const char * qry, FindCallback cb/* = 0*/, void * cb_param/* = 0*/, bool manual_ensure/* = false */, bool lazy_fetch_fields/* = false*/)
+idx sUsrType2::find(const sUsr & user, sVec<const sUsrType2 *> * out, const char * qry, FindCallback cb, void * cb_param, bool manual_ensure, bool lazy_fetch_fields)
 {
     if( !manual_ensure ) {
-        // unless the caller has somehow already ensured that all necessary types are loaded ...
         idx qry_len = sLen(qry);
         if( is_potential_type_name(qry, qry_len) ) {
-            // if the query looks like the exact name of a type, ensure the type is loaded (if it exists)
             ensure(user, qry, qry_len);
         } else if( qry && qry[0] == '^' && qry[qry_len - 1] == '$' && is_potential_type_name(qry + 1, qry_len - 2) ) {
-            // if the query looks like a regexp for exactly matching a name of a type, ensure that type is loaded (if it exists)
             ensure(user, qry + 1, qry_len - 2);
         } else {
-            // if the query is not the exact name of a type, load all types (including non-prefetched ones)
-            load(user, "*", 1, 0);
+            if( !getBinCache(&user) ) {
+                load(user, "*", 1, 0);
+            }
         }
     }
     return findRaw(manual_ensure ? 0 : &user, out, qry, cb, cb_param, false, lazy_fetch_fields);
 }
 
-//static
+idx sUsrType2::dimRaw()
+{
+    idx cnt = 0;
+    if( const sUsrTypeCache * bincache = getBinCache(0) ) {
+        cnt += bincache->dimTypes();
+    }
+    cnt += sUsrLoadingType::_types.dim();
+    return cnt;
+}
+
+const sUsrType2 * sUsrType2::getNthRaw(idx itype)
+{
+    idx dim_cached = 0;
+    if( const sUsrTypeCache * bincache = getBinCache(0) ) {
+        dim_cached = bincache->dimTypes();
+        if( itype < dim_cached ) {
+            return bincache->getType(itype);
+        }
+    }
+    return sUsrLoadingType::_types[itype - dim_cached];
+}
+
 idx sUsrType2::findRaw(const sUsr * ensurer_usr, sVec<const sUsrType2 *> * out, const char * qry, sUsrType2::FindCallback cb, void * cb_param, bool no_regexp, bool lazy_fetch_fields)
 {
     if( !qry ) {
@@ -2583,12 +2745,12 @@ idx sUsrType2::findRaw(const sUsr * ensurer_usr, sVec<const sUsrType2 *> * out, 
     for(idx ia=0; ia<worker.found_entries.dim(); ia++) {
         const FindWorker::Entry * e = worker.found_entries.ptr(ia);
         if( e->added ) {
-            const sUsrType2 * utype = ensurer_usr ? ensure(*ensurer_usr, e->utype_id, false, lazy_fetch_fields) : getRaw(e->utype_id);
+            const sUsrType2 * utype = ensurer_usr ? ensure(*ensurer_usr, e->utype_id, false, lazy_fetch_fields) : get(e->utype_id);
             if( out ) {
                 *out->add(1) = utype;
             }
             if( cb ) {
-                cb(utype, ensurer_usr ? ensure(*ensurer_usr, e->recurse_start_id, false, lazy_fetch_fields) : getRaw(e->recurse_start_id), e->recurse_depth, cb_param);
+                cb(utype, ensurer_usr ? ensure(*ensurer_usr, e->recurse_start_id, false, lazy_fetch_fields) : get(e->recurse_start_id), e->recurse_depth, cb_param);
             }
         }
     }
@@ -2596,50 +2758,93 @@ idx sUsrType2::findRaw(const sUsr * ensurer_usr, sVec<const sUsrType2 *> * out, 
     return num_added;
 }
 
-//static
 idx sUsrType2::getRootTypes(const sUsr & user, sVec<const sUsrType2 *> & out)
 {
-    // root types might be non-prefetched - so ensure all types are loaded
+    idx start_pos = out.dim();
+
+    if( const sUsrTypeCache * bincache = getBinCache(&user) ) {
+        idx cnt = bincache->dimRootTypes();
+        for(idx i = 0; i < cnt; i++) {
+            out[start_pos + i] = bincache->getRootType(i);
+        }
+        return cnt;
+    }
+
     load(user, "*", 1, 0);
 
-    idx start_pos = out.dim();
-    out.add(_roots.dim());
-    for(idx i=0; i<_roots.dim(); i++) {
-        out[start_pos + i] = _roots[i];
+    out.add(sUsrLoadingType::_roots.dim());
+    for(idx i=0; i<sUsrLoadingType::_roots.dim(); i++) {
+        out[start_pos + i] = sUsrLoadingType::_roots[i];
     }
-    return _roots.dim();
+    return sUsrLoadingType::_roots.dim();
 }
 
-bool sUsrType2::isUser() const
+bool sUsrLoadingType::isUser() const
 {
     if( _is_user == eLazyNotLoaded ) {
-        if( strcmp(name(), "base_user_type" ) == 0 ) {
+        sDic<idx> seen_dic;
+        return isUser(seen_dic);
+    }
+
+    return (_is_user == eLazyTrue);
+}
+
+bool sUsrLoadingType::isUser(sDic<idx> & seen_dic) const
+{
+    if( _is_user == eLazyNotLoaded ) {
+        if( seen_dic.get(&id(), sizeof(sHiveId)) ) {
+            LOG_ERROR("Type \"%s\" (%s) is in a parentage loop; failed determine if it descends from base_user_type", name(), id().print());
+            _is_broken = true;
+            return false;
+        }
+        *seen_dic.set(&id(), sizeof(sHiveId)) = 1;
+
+        if( sIsExactly(name(), "base_user_type" ) ) {
             _is_user = eLazyTrue;
         } else {
+            _is_user = eLazyFalse;
             for(idx ip = 0; ip < dimParents(); ip++) {
-                if( getParent(ip)->isUser() ) {
+                if( getParent(ip)->isUser(seen_dic) ) {
                     _is_user = eLazyTrue;
+                    break;
                 }
             }
-            _is_user = eLazyFalse;
         }
     }
 
     return (_is_user == eLazyTrue);
 }
 
-bool sUsrType2::isSystem() const
+bool sUsrLoadingType::isSystem() const
 {
     if( _is_system == eLazyNotLoaded ) {
-        if( strcmp(name(), "base_system_type" ) == 0 ) {
+        sDic<idx> seen_dic;
+        return isSystem(seen_dic);
+    }
+
+    return (_is_system == eLazyTrue);
+}
+
+bool sUsrLoadingType::isSystem(sDic<idx> & seen_dic) const
+{
+    if( _is_system == eLazyNotLoaded ) {
+        if( seen_dic.get(&id(), sizeof(sHiveId)) ) {
+            LOG_ERROR("Type \"%s\" (%s) is in a parentage loop; failed determine if it descends from base_system_type", name(), id().print());
+            _is_broken = true;
+            return false;
+        }
+        *seen_dic.set(&id(), sizeof(sHiveId)) = 1;
+
+        if( sIsExactly(name(), "base_system_type" ) ) {
             _is_system = eLazyTrue;
         } else {
+            _is_system = eLazyFalse;
             for(idx ip = 0; ip < dimParents(); ip++) {
-                if( getParent(ip)->isSystem() ) {
+                if( getParent(ip)->isSystem(seen_dic) ) {
                     _is_system = eLazyTrue;
+                    break;
                 }
             }
-            _is_system = eLazyFalse;
         }
     }
 
@@ -2676,7 +2881,6 @@ class sUsrType2::NameMatchWorker : public sUsrType2::FindWorker {
 
         virtual void postRun(const char * qry, bool no_regexp) {}
 
-        // return true if matched (positively or negatively)
         bool checkQuery_nonrecursive(const sUsrType2 * utype, const char * name, regex_t * re, bool is_negate)
         {
             const char * utype_name = utype ? utype->name() : 0;
@@ -2731,7 +2935,7 @@ bool sUsrType2::nameMatch(const char * qry) const
     }
 }
 
-idx sUsrType2::getParents(sVec<const sUsrType2*> & out) const
+idx sUsrLoadingType::getParents(sVec<const sUsrType2*> & out) const
 {
     idx cnt = dimParents();
     idx start_dim = out.dim();
@@ -2742,7 +2946,7 @@ idx sUsrType2::getParents(sVec<const sUsrType2*> & out) const
     return cnt;
 }
 
-idx sUsrType2::getChildren(sVec<const sUsrType2*> & out) const
+idx sUsrLoadingType::getChildren(sVec<const sUsrType2*> & out) const
 {
     idx cnt = dimChildren();
     idx start_dim = out.dim();
@@ -2753,7 +2957,7 @@ idx sUsrType2::getChildren(sVec<const sUsrType2*> & out) const
     return cnt;
 }
 
-idx sUsrType2::getIncludes(sVec<const sUsrType2*> & out) const
+idx sUsrLoadingType::getIncludes(sVec<const sUsrType2*> & out) const
 {
     idx cnt = dimIncludes();
     for(idx i=0; i<cnt; i++) {
@@ -2780,7 +2984,7 @@ bool sUsrType2::isDescendentOf(const sUsrType2 * rhs) const
     return false;
 }
 
-const sUsrTypeField* sUsrType2::getField(const sUsr & user, const char * field_name, idx field_name_len/* = 0 */) const
+const sUsrLoadingTypeField* sUsrLoadingType::getField(const sUsr & user, const char * field_name, idx field_name_len) const
 {
     if( !_is_fetched ) {
         load(user, 0, 0, &_id);
@@ -2795,15 +2999,13 @@ const sUsrTypeField* sUsrType2::getField(const sUsr & user, const char * field_n
 
 idx sUsrType2::getFields(const sUsr & user, sVec<const sUsrTypeField*> & out) const
 {
-    if( !_is_fetched ) {
-        load(user, 0, 0, &_id);
-    }
+    ensure(user, id());
 
     idx start_dim = out.dim();
     idx cnt = dimFields(user);
     out.resize(start_dim + cnt);
     for(idx i=0; i<cnt; i++) {
-        out[start_dim + i] = _fields.ptr(i);
+        out[start_dim + i] = getField(user, i);
     }
     return cnt;
 }
@@ -2818,11 +3020,9 @@ static idx fldDicCompare(void * param, void * arr, idx i1, idx i2)
     return diff;
 }
 
-idx sUsrType2::findFields(const sUsr & user, sVec<const sUsrTypeField*> & out, const char * filter00/* = 0*/) const
+idx sUsrType2::findFields(const sUsr & user, sVec<const sUsrTypeField*> & out, const char * filter00) const
 {
-    if( !_is_fetched ) {
-        load(user, 0, 0, &_id);
-    }
+    ensure(user, id());
 
     bool with_brief = false, with_summary = false, with_all = !filter00;
     sDic<const sUsrTypeField*> fields;
@@ -2868,36 +3068,36 @@ idx sUsrType2::findFields(const sUsr & user, sVec<const sUsrTypeField*> & out, c
     return cnt;
 }
 
-idx sUsrType2::dimActions(const sUsr & user) const
+idx sUsrLoadingType::dimActions(const sUsr & user) const
 {
     loadActions(user);
     udx user_id = user.Id();
     return _actions.dimForUser(user_id);
 }
 
-const sUsrAction * sUsrType2::getAction(const sUsr & user, const char * act_name, idx act_name_len/* = 0 */) const
+const sUsrLoadingAction * sUsrLoadingType::getAction(const sUsr & user, const char * act_name, idx act_name_len) const
 {
     loadActions(user);
     udx user_id = user.Id();
     idx ires = _actions.getIRes(user_id, act_name, act_name_len);
     if( ires >= 0 ) {
-        return sUsrAction::_usr2actres.get(&user_id, sizeof(user_id))->acts.ptr(ires);
+        return sUsrLoadingAction::_usr2actres.get(&user_id, sizeof(user_id))->acts.ptr(ires);
     }
     return 0;
 }
 
-const sUsrAction * sUsrType2::getAction(const sUsr & user, idx iact) const
+const sUsrLoadingAction * sUsrLoadingType::getAction(const sUsr & user, idx iact) const
 {
     loadActions(user);
     udx user_id = user.Id();
     idx ires = _actions.getIRes(user_id, iact);
     if( ires >= 0 ) {
-        return sUsrAction::_usr2actres.get(&user_id, sizeof(user_id))->acts.ptr(ires);
+        return sUsrLoadingAction::_usr2actres.get(&user_id, sizeof(user_id))->acts.ptr(ires);
     }
     return 0;
 }
 
-idx sUsrType2::getActions(const sUsr & user, sVec<const sUsrAction *> & out) const
+idx sUsrLoadingType::getActions(const sUsr & user, sVec<const sUsrAction *> & out) const
 {
     loadActions(user);
     udx user_id = user.Id();
@@ -2906,7 +3106,7 @@ idx sUsrType2::getActions(const sUsr & user, sVec<const sUsrAction *> & out) con
     if( dim_act ) {
         idx start_dim = out.dim();
         idx ilevel = _actions.getILevel(user_id);
-        const sUsrAction::ActRes * act_res = sUsrAction::_usr2actres.get(&user_id, sizeof(user_id));
+        const sUsrLoadingAction::ActRes * act_res = sUsrLoadingAction::_usr2actres.get(&user_id, sizeof(user_id));
 
         out.add(dim_act);
         for(idx iact = 0; iact < dim_act; iact++) {
@@ -2917,36 +3117,84 @@ idx sUsrType2::getActions(const sUsr & user, sVec<const sUsrAction *> & out) con
     return dim_act;
 }
 
-idx sUsrType2::dimViews(const sUsr & user) const
+idx sUsrLoadingType::dimJSComponents(const sUsr & user) const
+{
+    loadJSComponents(user);
+    udx user_id = user.Id();
+    return _jscos.dimForUser(user_id);
+}
+
+const sUsrLoadingJSComponent * sUsrLoadingType::getJSComponent(const sUsr & user, const char * name, idx name_len) const
+{
+    loadJSComponents(user);
+    udx user_id = user.Id();
+    idx ires = _jscos.getIRes(user_id, name, name_len);
+    if( ires >= 0 ) {
+        return sUsrLoadingJSComponent::_usr2jscores.get(&user_id, sizeof(user_id))->jscos.ptr(ires);
+    }
+    return 0;
+}
+
+const sUsrLoadingJSComponent * sUsrLoadingType::getJSComponent(const sUsr & user, idx ijsco) const
+{
+    loadJSComponents(user);
+    udx user_id = user.Id();
+    idx ires = _jscos.getIRes(user_id, ijsco);
+    if( ires >= 0 ) {
+        return sUsrLoadingJSComponent::_usr2jscores.get(&user_id, sizeof(user_id))->jscos.ptr(ires);
+    }
+    return 0;
+}
+
+idx sUsrLoadingType::getJSComponents(const sUsr & user, sVec<const sUsrJSComponent *> & out) const
+{
+    loadJSComponents(user);
+    udx user_id = user.Id();
+    idx dim_jsco = _jscos.dimForUser(user_id);
+
+    if( dim_jsco ) {
+        idx start_dim = out.dim();
+        idx ilevel = _jscos.getILevel(user_id);
+        const sUsrLoadingJSComponent::JscoRes * jsco_res = sUsrLoadingJSComponent::_usr2jscores.get(&user_id, sizeof(user_id));
+        out.add(dim_jsco);
+        for(idx i = 0; i < dim_jsco; i++) {
+            idx ires = *_jscos._name2ires.ptr(ilevel, i);
+            out[start_dim + i] = jsco_res->jscos.ptr(ires);
+        }
+    }
+    return dim_jsco;
+}
+
+idx sUsrLoadingType::dimViews(const sUsr & user) const
 {
     loadViews(user);
     udx user_id = user.Id();
     return _views.dimForUser(user_id);
 }
 
-const sUsrView * sUsrType2::getView(const sUsr & user, const char * view_name, idx view_name_len/* = 0 */) const
+const sUsrLoadingView * sUsrLoadingType::getView(const sUsr & user, const char * view_name, idx view_name_len) const
 {
     loadViews(user);
     udx user_id = user.Id();
     idx ires = _views.getIRes(user_id, view_name, view_name_len);
     if( ires >= 0 ) {
-        return sUsrView::_usr2viewres.get(&user_id, sizeof(user_id))->views.ptr(ires);
+        return sUsrLoadingView::_usr2viewres.get(&user_id, sizeof(user_id))->views.ptr(ires);
     }
     return 0;
 }
 
-const sUsrView * sUsrType2::getView(const sUsr & user, idx iview) const
+const sUsrLoadingView * sUsrLoadingType::getView(const sUsr & user, idx iview) const
 {
     loadViews(user);
     udx user_id = user.Id();
     idx ires = _views.getIRes(user_id, iview);
     if( ires >= 0 ) {
-        return sUsrView::_usr2viewres.get(&user_id, sizeof(user_id))->views.ptr(ires);
+        return sUsrLoadingView::_usr2viewres.get(&user_id, sizeof(user_id))->views.ptr(ires);
     }
     return 0;
 }
 
-idx sUsrType2::getViews(const sUsr & user, sVec<const sUsrView *> & out) const
+idx sUsrLoadingType::getViews(const sUsr & user, sVec<const sUsrView *> & out) const
 {
     loadViews(user);
     udx user_id = user.Id();
@@ -2955,7 +3203,7 @@ idx sUsrType2::getViews(const sUsr & user, sVec<const sUsrView *> & out) const
     if( dim_views ) {
         idx start_dim = out.dim();
         idx ilevel = _views.getILevel(user_id);
-        const sUsrView::ViewRes * view_res = sUsrView::_usr2viewres.get(&user_id, sizeof(user_id));
+        const sUsrLoadingView::ViewRes * view_res = sUsrLoadingView::_usr2viewres.get(&user_id, sizeof(user_id));
 
         out.add(dim_views);
         for(idx iview = 0; iview < dim_views; iview++) {
@@ -2972,9 +3220,8 @@ idx sUsrType2::props(const sUsr & user, sVarSet & list, const char * filter00) c
     findFields(user, fields, filter00);
 
     if( list.rows == 0 ) {
-        // add header if output table is empty
         idx icol = 0;
-        list.setColId(icol++, "type_id"); // which maps to the type's *name* for legacy compatibility
+        list.setColId(icol++, "type_id");
         list.setColId(icol++, "name");
         list.setColId(icol++, "title");
         list.setColId(icol++, "type");
@@ -3001,14 +3248,13 @@ idx sUsrType2::props(const sUsr & user, sVarSet & list, const char * filter00) c
 
     for(idx i = 0; i < fields.dim(); i++) {
         const sUsrTypeField * fld = fields[i];
-        list.addRow().addCol(name()) // type's name
+        list.addRow().addCol(name())
             .addCol(fld->name())
             .addCol(fld->title())
             .addCol(fld->typeName());
 
         if( const sUsrTypeField * par = fld->parent() ) {
             if( par->isArrayRow() ) {
-                // for parent, use array instead of array row pseudo-field
                 par = par->parent();
             }
             list.addCol(par ? par->name() : "");
@@ -3016,7 +3262,8 @@ idx sUsrType2::props(const sUsr & user, sVarSet & list, const char * filter00) c
             list.addCol("");
         }
 
-        list.addCol(fld->role())
+        const char * old_role_name = fieldRoleToName(fld->role());
+        list.addCol(old_role_name ? old_role_name : "")
             .addCol(fld->isKey())
             .addCol((idx)fld->readonly())
             .addCol(fld->isOptional())
@@ -3045,11 +3292,23 @@ void sUsrType2::printJSON(const sUsr & user, sJSONPrinter & printer, bool into_o
         printer.startObject();
     }
     printer.addKey("_id");
-    printer.addValue(_id);
+    printer.addValue(id());
     printer.addKey("name");
     printer.addValue(name(), 0, true);
     printer.addKey("title");
     printer.addValue(title(), 0, true);
+    if( description() && *description() ) {
+        printer.addKey("description");
+        printer.addValue(description(), 0, true);
+    }
+    if( isVirtual() ) {
+        printer.addKey("is_virtual");
+        printer.addValue(isVirtual());
+    }
+    if( isPrefetch() ) {
+        printer.addKey("is_prefetch");
+        printer.addValue(isPrefetch());
+    }
     if( isUser() ) {
         printer.addKey("is_user");
         printer.addValue(true);
@@ -3058,9 +3317,9 @@ void sUsrType2::printJSON(const sUsr & user, sJSONPrinter & printer, bool into_o
         printer.addKey("is_system");
         printer.addValue(true);
     }
-    if( description() && *description() ) {
-        printer.addKey("description");
-        printer.addValue(description(), 0, true);
+    if( isSingleton() ) {
+        printer.addKey("singleton");
+        printer.addValue(isSingleton());
     }
     if( dimParents() ) {
         printer.addKey("_parents");
@@ -3097,23 +3356,101 @@ void sUsrType2::printJSON(const sUsr & user, sJSONPrinter & printer, bool into_o
     }
 
     if( !into_object ) {
-        printer.startObject();
+        printer.endObject();
     }
 }
 
-/// External API : sUsrTypeField ///
-
-sUsrTypeField::sUsrTypeField(bool default_zero)
+void sUsrType2::printJSON2(const sUsr & user, sJSONPrinter & printer, bool into_object) const
 {
-    sSet(this, 0);
-    _index = _pos_name = _pos_title = _pos_orig_name = _pos_parent_name = _pos_role = _pos_brief = _pos_order = _pos_default_value = _pos_constraint = _pos_constraint_data = _pos_constraint_description = _pos_description = _pos_link_url = -1;
+    if( !into_object ) {
+        printer.startObject();
+    }
+    printer.addKey("_id");
+    printer.addValue(id());
+    printer.addKey("name");
+    printer.addValue(name(), 0, true);
+    printer.addKey("title");
+    printer.addValue(title(), 0, true);
+    if( description() && *description() ) {
+        printer.addKey("descr");
+        printer.addValue(description(), 0, true);
+    }
+    if( isVirtual() ) {
+        printer.addKey("_abstr");
+        printer.addValue(isVirtual());
+    }
+    if( isPrefetch() ) {
+        printer.addKey("__is_prefetch");
+        printer.addValue(isPrefetch());
+    }
+    if( isUser() ) {
+        printer.addKey("__is_user");
+        printer.addValue(true);
+    }
+    if( isSystem() ) {
+        printer.addKey("__is_system");
+        printer.addValue(true);
+    }
+    if( isSingleton() ) {
+        printer.addKey("singleton");
+        printer.addValue(isSingleton());
+    }
+    if( dimParents() ) {
+        printer.addKey("__parents");
+        printer.startArray();
+        for(idx ic=0; ic<dimParents(); ic++) {
+            printer.addValue(getParent(ic)->name());
+        }
+        printer.endArray();
+    }
+    if( dimIncludes() ) {
+        printer.addKey("__includes");
+        printer.startArray();
+        for(idx ic=0; ic<dimIncludes(); ic++) {
+            printer.addValue(getInclude(ic)->name());
+        }
+        printer.endArray();
+    }
+    if( dimChildren() ) {
+        printer.addKey("__children");
+        printer.startArray();
+        for(idx ic=0; ic<dimChildren(); ic++) {
+            printer.addValue(getChild(ic)->name());
+        }
+        printer.endArray();
+    }
+
+    if( dimRootFields(user) ) {
+        printer.addKey("_field");
+        printer.startObject();
+        for(idx irif=0; irif<dimRootFields(user); irif++) {
+            getRootField(user, irif)->printJSON2(printer, true, true);
+        }
+        printer.endObject();
+    }
+
+    if( !into_object ) {
+        printer.endObject();
+    }
+}
+
+
+sUsrLoadingTypeField::sUsrLoadingTypeField(bool default_zero)
+{
+    _is_key = _is_optional = _is_multi = _is_hidden = _is_summary = _is_virtual = _is_batch = _is_weak_reference = _is_sysinternal =
+        _is_global_multi = _is_array_row = _is_broken = false;
+    _ancestor_count = _dim_children = _default_encoding = 0;
+
+    _index = _pos_name = _pos_title = _pos_orig_name = _pos_parent_name = _pos_brief = _pos_order = _pos_default_value = _pos_constraint = _pos_constraint_data = _pos_constraint_description = _pos_description = _pos_link_url = -1;
     _definer_itype = _owner_itype = _included_from_itype = -1;
     _type = eInvalid;
     _parent = -1;
     _start_children = -1;
     _is_flattened_decor = eLazyNotLoaded;
-    if( !default_zero ) {
-        // if not loading from a source where absence of data about the field means "0" or "false" or ""
+    _role = eRole_unknown;
+    if( default_zero ) {
+        _readonly = eReadWrite;
+    } else {
         _readonly = eReadOnly;
         _is_optional = true;
         _is_hidden = true;
@@ -3121,103 +3458,95 @@ sUsrTypeField::sUsrTypeField(bool default_zero)
     }
 }
 
-const sUsrTypeField & sUsrTypeField::operator=(const sUsrTypeField & rhs)
-{
-    memcpy(this, &rhs, sizeof(sUsrTypeField));
-    return *this;
-}
-
 int sUsrTypeField::cmp(const sUsrTypeField * rhs) const
 {
     if( !rhs ) {
         return 1;
     }
-    if( _owner_itype != rhs->_owner_itype ) {
-        return ownerType()->id() < rhs->ownerType()->id() ? -1 : 1;
+    const sHiveId & lhs_owner_type_id = ownerType() ? ownerType()->id() : sHiveId::zero;
+    const sHiveId & rhs_owner_type_id = rhs->ownerType() ? rhs->ownerType()->id() : sHiveId::zero;
+    if( lhs_owner_type_id != rhs_owner_type_id ) {
+        return lhs_owner_type_id < rhs_owner_type_id ? -1 : 1;
     }
     const sUsrTypeField * lhs = this;
-    idx lhs_orig_depth = lhs->_ancestor_count;
-    idx rhs_orig_depth = rhs->_ancestor_count;
-    // first, move up to equal depth in ancestor tree of both fields
-    while(lhs->_ancestor_count > rhs->_ancestor_count) {
+    idx lhs_orig_depth = lhs->ancestorCount();
+    idx rhs_orig_depth = rhs->ancestorCount();
+    while(lhs->ancestorCount() > rhs->ancestorCount()) {
         lhs = lhs->parent();
     }
-    while(rhs->_ancestor_count > lhs->_ancestor_count) {
+    while(rhs->ancestorCount() > lhs->ancestorCount()) {
         rhs = rhs->parent();
     }
     if( lhs == rhs ) {
         return lhs_orig_depth - rhs_orig_depth;
     }
-    // next, move up to level immediately below common ancestor, avoiding infinite loop even if field tree is messed up or circular
-    for(idx i = 0; lhs->parent() != rhs->parent() && i < lhs->_ancestor_count; i++) {
+    for(idx i = 0; lhs->parent() != rhs->parent() && i < lhs->ancestorCount(); i++) {
         lhs = lhs->parent();
         rhs = rhs->parent();
     }
-    const char * lhs_sorder = lhs->getString(lhs->_pos_order);
-    const char * rhs_sorder = rhs->getString(rhs->_pos_order);
-    if( strcmp(lhs_sorder, rhs_sorder) != 0 ) {
-        return strtod(lhs_sorder, 0) < strtod(rhs_sorder, 0) ? -1 : 1;
+    if( !sIsExactly(lhs->orderString(), rhs->orderString()) ) {
+        return lhs->order() < rhs->order() ? -1 : 1;
     }
-    return strcasecmp(lhs->name(), rhs->name());
+    const char * lhs_name = lhs->name();
+    if( !lhs_name) {
+        lhs_name = sStr::zero;
+    }
+    const char * rhs_name = rhs->name();
+    if( !rhs_name) {
+        rhs_name = sStr::zero;
+    }
+    return strcasecmp(lhs_name, rhs_name);
 }
 
 const char * sUsrTypeField::typeName() const
 {
-    return fieldTypeToName(_type);
+    return fieldTypeToName(type());
 }
 
-const sUsrTypeField* sUsrTypeField::parent() const
+const char * sUsrTypeField::typeName2() const
 {
-    return _parent >= 0 ? sUsrType2::_types[_owner_itype]->_fields.ptr(_parent) : 0;
+    return fieldTypeToName2(type());
 }
 
-const sUsrTypeField* sUsrTypeField::getChild(idx ichild) const
+const sUsrLoadingTypeField* sUsrLoadingTypeField::parent() const
 {
-    const sUsrType2 & utype = *sUsrType2::_types[_owner_itype];
+    return _parent >= 0 ? sUsrLoadingType::_types[_owner_itype]->_fields.ptr(_parent) : 0;
+}
+
+const sUsrLoadingTypeField* sUsrLoadingTypeField::getChild(idx ichild) const
+{
+    const sUsrLoadingType & utype = *sUsrLoadingType::_types[_owner_itype];
     return ichild >= 0 && ichild < _dim_children ? utype._fields.ptr(utype._child_ifields[_start_children + ichild]) : 0;
 }
 
-idx sUsrTypeField::getChildren(sVec<const sUsrTypeField*> &out) const
+idx sUsrLoadingTypeField::getChildren(sVec<const sUsrTypeField*> &out) const
 {
     idx start_dim = out.dim();
     out.resize(start_dim + _dim_children);
-    const sUsrType2 & utype = *sUsrType2::_types[_owner_itype];
+    const sUsrLoadingType & utype = *sUsrLoadingType::_types[_owner_itype];
     for(idx i=0; i<_dim_children; i++) {
         out[start_dim + i] = utype._fields.ptr(utype._child_ifields[_start_children + i]);
     }
     return _dim_children;
 }
 
-bool sUsrTypeField::canSetValue() const
+bool sUsrLoadingTypeField::canSetValue() const
 {
     const char * nm = name();
-    // For now, assume virtual fields cannot be set (reasonable for current set of
-    // fields that are marked virtual; maybe logic will change in the future).
-    return canHaveValue() && !isVirtual() && nm[0] != '_' && strcmp(nm, "created") != 0 && strcmp(nm, "modified") != 0;
+    return canHaveValue() && !isVirtual() && nm[0] != '_' && !sIsExactly(nm, "created") && !sIsExactly(nm, "modified");
 }
 
-bool sUsrTypeField::isFlattenedDecor() const
+bool sUsrLoadingTypeField::isFlattenedDecor() const
 {
     if( _is_flattened_decor == eLazyNotLoaded ) {
-        // We consider arrays non-decorative if
-        // a) the aray has multivalued cells (meaning multiple rows); or
-        // b) the array itself is multivalued
-        // We consider array rows non-decorative if there are multivalued cells (meaning multiple rows).
-        // We consider non-array-row lists non-decorative only if:
-        // 1) the list has >= 2 non-decorative children; and
-        // 2a) one of those children is multivalued, or
-        // 2b) the list itself is multivalued but is not the child of an array row.
-        //
-        // Note that if array row is non-decorative, the array must be non-decorative;
-        // sUsrPropSet::readFieldNode() relies on this behavior.
-        if( type() == eArray ) {
+        if( type() == eArray || type() == eArrayTab ) {
             if( isMulti() ) {
                 _is_flattened_decor = eLazyFalse;
             } else {
                 const sUsrTypeField * array_row = dimChildren() ? getChild(0) : 0;
                 _is_flattened_decor = array_row && !array_row->isFlattenedDecor() ? eLazyFalse : eLazyTrue;
             }
-        } else if( type() == eList ) {
+        } else if( type() == eList || type() == eListTab ) {
             if( isArrayRow() ) {
                 bool multi_row = false;
                 for(idx i = 0; i < dimChildren(); i++) {
@@ -3255,7 +3584,7 @@ bool sUsrTypeField::isFlattenedDecor() const
     return _is_flattened_decor == eLazyTrue;
 }
 
-bool sUsrTypeField::isFlattenedMulti() const
+bool sUsrLoadingTypeField::isFlattenedMulti() const
 {
     if( isMulti() && (!parent() || !parent()->isArrayRow()) ) {
         return true;
@@ -3289,25 +3618,30 @@ const sUsrTypeField * sUsrTypeField::flattenedParent() const
     return par;
 }
 
-const sUsrType2 * sUsrTypeField::ownerType() const
+const sUsrType2 * sUsrLoadingTypeField::ownerType() const
 {
-    return sUsrType2::_types[_owner_itype];
+    if( _owner_itype >= 0 ) {
+        const sUsrLoadingType * owner = sUsrLoadingType::_types[_owner_itype];
+        return owner->_id.objId() ? owner : 0;
+    } else {
+        return 0;
+    }
 }
 
-const sUsrType2 * sUsrTypeField::definerType() const
+const sUsrType2 * sUsrLoadingTypeField::definerType() const
 {
     if( _definer_itype >= 0 ) {
-        const sUsrType2 * definer = sUsrType2::_types[_definer_itype];
+        const sUsrLoadingType * definer = sUsrLoadingType::_types[_definer_itype];
         return definer->_id.objId() ? definer : 0;
     } else {
         return 0;
     }
 }
 
-const sUsrType2 * sUsrTypeField::includedFromType() const
+const sUsrType2 * sUsrLoadingTypeField::includedFromType() const
 {
     if( _included_from_itype >= 0 ) {
-        const sUsrType2 * included_from = sUsrType2::_types[_included_from_itype];
+        const sUsrLoadingType * included_from = sUsrLoadingType::_types[_included_from_itype];
         return included_from->_id.objId() ? included_from : 0;
     } else {
         return 0;
@@ -3315,8 +3649,7 @@ const sUsrType2 * sUsrTypeField::includedFromType() const
 }
 
 
-//static
-bool sUsrTypeField::parseValue(sVariant &var, sUsrTypeField::EType type, const char * value, idx flags/*=0*/)
+bool sUsrTypeField::parseValue(sVariant &var, sUsrTypeField::EType type, const char * value, idx flags)
 {
     if (!value) {
         var.setNull();
@@ -3333,6 +3666,9 @@ bool sUsrTypeField::parseValue(sVariant &var, sUsrTypeField::EType type, const c
     case eInteger:
         var.parseInt(value);
         break;
+    case eUnsigned:
+        var.parseUInt(value);
+        break;
     case eReal:
         var.parseReal(value);
         break;
@@ -3341,7 +3677,9 @@ bool sUsrTypeField::parseValue(sVariant &var, sUsrTypeField::EType type, const c
         break;
     case eList:
     case eArray:
-        var.parseIntList(value); // maybe parseObjectIdList() ?
+    case eListTab:
+    case eArrayTab:
+        var.parseIntList(value);
         break;
     case eDate:
         var.parseDate(value);
@@ -3371,6 +3709,13 @@ bool sUsrTypeField::parseValue(sVariant &var, sUsrTypeField::EType type, const c
         } else {
             var.setString(value);
         }
+        break;
+    case eMemory:
+    case eVersion:
+    case eBlob:
+    case eJSON:
+    case eXML:
+        var.setString(value);
         break;
     case eInvalid:
     default:
@@ -3417,8 +3762,6 @@ void sUsrTypeField::printJSON(sJSONPrinter & printer, bool recurse, bool into_ob
         const char * order_string = orderString();
         if( *order_string ) {
             printer.addValue(strtod(order_string, 0), order_string);
-        } else {
-            printer.addValue(0);
         }
         if( isKey() ) {
             printer.addKey("is_key");
@@ -3484,6 +3827,13 @@ void sUsrTypeField::printJSON(sJSONPrinter & printer, bool recurse, bool into_ob
             printer.addKey("is_batch");
             printer.addValue(true);
         }
+        if( isWeakReference() ) {
+            printer.addKey("is_weak_reference");
+            printer.addValue(true);
+        }
+        if( role() != eRole_unknown ) {
+            printer.addKeyValue("role", fieldRoleToName(role()));
+        }
         if( *brief() ) {
             printer.addKey("brief");
             printer.addValue(brief());
@@ -3505,12 +3855,12 @@ void sUsrTypeField::printJSON(sJSONPrinter & printer, bool recurse, bool into_ob
             printer.addValue(linkUrl());
         }
 
-        if( _definer_itype > 0 && _definer_itype != _owner_itype ) {
+        if( definerType() && definerType()->id() != ownerType()->id() ) {
             printer.addKey("_definer_type");
             printer.addValue(definerType()->name());
         }
 
-        if( _included_from_itype >= 0 && _included_from_itype != _owner_itype ) {
+        if( includedFromType() && includedFromType()->id() != ownerType()->id() ) {
             printer.addKey("_included_from_type");
             printer.addValue(includedFromType()->name());
         }
@@ -3553,8 +3903,363 @@ void sUsrTypeField::printJSON(sJSONPrinter & printer, bool recurse, bool into_ob
     }
 }
 
-//static
-idx sUsrTypeField::setString(const char *s, bool canonicalize, bool allow_empty)
+static void printParsedJSONValue(sJSONPrinter & printer, const sUsrTypeField * fld, const char * s, idx len = 0)
+{
+    sVariant val;
+    sStr buf;
+    if( len ) {
+        buf.addString(s, len);
+        s = buf.ptr();
+    }
+
+
+    if( fld->parseValue(val, s) ) {
+        if( s[0] && fld->type() == sUsrTypeField::eReal ) {
+            printer.addValue(val.asReal(), s);
+        } else {
+            printer.addValue(val);
+        }
+    } else {
+        printer.addValue(s);
+    }
+}
+
+void sUsrTypeField::printJSON2(sJSONPrinter & printer, bool recurse, bool into_object) const
+{
+    const char * nm = name();
+    if( !nm || !*nm ) {
+        return;
+    }
+
+    bool print_self = !isArrayRow();
+
+    if( !into_object ) {
+        printer.startObject();
+    }
+
+    if( print_self ) {
+        printer.addKey(nm);
+        printer.startObject();
+
+        if( canHaveValue() ) {
+            printer.addKey("_type");
+            printer.addValue(typeName2(), 0, true);
+        } else if( type() == eArray ) {
+            printer.addKeyValue("_layout", "table");
+        } else if( type() == eList ) {
+            printer.addKeyValue("_layout", "struct");
+        } else if( type() == eArrayTab ) {
+            printer.addKeyValue("_layout", "table_tab");
+        } else if( type() == eListTab ) {
+            printer.addKeyValue("_layout", "struct_tab");
+        }
+        if( canHaveValue() && *defaultValue() ) {
+            printer.addKey("_default");
+            printParsedJSONValue(printer, this, defaultValue());
+        }
+        if( defaultEncoding() ) {
+            printer.addKeyValue("_encode", defaultEncoding());
+        }
+        printer.addKey("title");
+        printer.addValue(title(), 0, true);
+        if( *description() ) {
+            printer.addKeyValue("descr", description());
+        }
+        const char * order_string = orderString();
+        if( order_string && *order_string ) {
+            printer.addKeyValue("_order", strtod(order_string, 0), order_string);
+        }
+        if( isKey() ) {
+            printer.addKeyValue("_is_key", isKey());
+        }
+        printer.addKey("_write");
+        switch( readonly() ) {
+            case eReadWrite:
+                printer.addValue(true);
+                break;
+            case eReadOnly:
+                printer.addValue(false);
+                break;
+            case eWriteOnce:
+                printer.addValue("once");
+                break;
+            case eSubmitOnce:
+                printer.addValue("noresub");
+                break;
+            case eReadOnlyAutofill:
+                printer.addValue("onlyauto");
+                break;
+        }
+        printer.addKeyValue("_vital", !isOptional());
+        if( isMulti() ) {
+            printer.addKeyValue("_plural", true);
+        }
+        if( isFlattenedDecor() ) {
+            printer.addKeyValue("__flattened_decor", true);
+        }
+        if( isFlattenedMulti() ) {
+            printer.addKeyValue("__flattened_plural", true);
+        }
+        if( isHidden() ) {
+            printer.addKeyValue("_hidden", true);
+        }
+        if( isSummary() ) {
+            printer.addKeyValue("_public", true);
+        }
+        if( isVirtual() ) {
+            printer.addKeyValue("_virtual", true);
+        }
+        if( isBatch() ) {
+            printer.addKeyValue("_batched", true);
+        }
+        if( role() != eRole_unknown ) {
+            printer.addKeyValue("_role", fieldRoleToName(role()));
+        }
+        if( isWeakReference() ) {
+            printer.addKeyValue("_weakref", true);
+        }
+        if( *brief() ) {
+            printer.addKeyValue("brief", brief());
+        }
+        if( *constraint() || *constraintDescription() ) {
+            printer.addKey("_limit");
+            printer.startObject();
+
+            if( sIsExactly(constraint(), "choice") || sIsExactly(constraint(), "choice+") ) {
+                printer.addKey(constraint());
+                printer.startArray();
+
+                sStr choices00, value_buf;
+                sVariant value_val;
+                sString::searchAndReplaceSymbols(&choices00, constraintData(), 0, "|", 0, 0, true, true, false);
+                choices00.add0(2);
+                choices00.shrink00();
+
+                for(const char * value = choices00.ptr(); value && *value; value = sString::next00(value)) {
+                    while(isspace(*value)) {
+                        value++;
+                    }
+                    idx value_len = 0;
+                    const char * title = 0;
+                    idx title_len = 0;
+                    if( const char * slashes = strstr(value, "///") ) {
+                        value_len = slashes - value;
+                        title = slashes + 3;
+                        while(isspace(*title)) {
+                            title++;
+                        }
+                        title_len = sLen(title);
+                        while (title_len > 0 && isspace(title[title_len - 1])) {
+                            title_len--;
+                        }
+                    } else {
+                        value_len = sLen(value);
+                    }
+
+                    while( value_len > 0 && isspace(value[value_len - 1]) ) {
+                        value_len--;
+                    }
+
+                    if( title_len ) {
+                        printer.startObject();
+                        printer.addKeyValue("title", title, title_len);
+                        printer.addKey("value");
+                    }
+
+                    printParsedJSONValue(printer, this, value, value_len);
+
+                    if( title_len ) {
+                        printer.endObject();
+                    }
+                }
+
+                printer.endArray();
+            } else if( sIsExactly(constraint(), "regexp") ) {
+                printer.addKeyValue("regexp", constraintData());
+            } else if( sIsExactly(constraint(), "range") ) {
+                printer.addKey("range");
+                printer.startObject();
+                const char * constraint_data = constraintData();
+                const char * dash = constraint_data ? strchr(constraint_data, '-') : 0;
+                if( constraint_data && (!dash || dash > constraint_data) ) {
+                    printer.addKey("min");
+                    printParsedJSONValue(printer, this, constraint_data, dash ? dash - constraint_data : 0);
+                }
+                if( dash && *dash ) {
+                    printer.addKey("max");
+                    printParsedJSONValue(printer, this, dash + 1);
+                }
+                printer.endObject();
+            } else if( sIsExactly(constraint(), "url") ) {
+                printer.addKey("search");
+                printer.startObject();
+                printer.addKeyValue("url", constraintData());
+                printer.endObject();
+            } else if( sIsExactly(constraint(), "search") || sIsExactly(constraint(), "search+") ) {
+                printer.addKey(constraint());
+                printer.startObject();
+
+                static qlang::Engine engine;
+                if( engine.parse(constraintData()) ) {
+                    sVariant * result = engine.run();
+                    if( result && result->isDic() ) {
+                        if( sVariant * url_val = result->getDicElt("url") ) {
+                            printer.addKeyValue("url", *url_val);
+                        }
+                        sVariant * fetch_val = result->getDicElt("fetch");
+                        if( fetch_val ) {
+                            printer.addKeyValue("value", *fetch_val);
+                        }
+                        if( sVariant * inline_val = result->getDicElt("inline") ) {
+                            sStr title;
+                            if( inline_val->isScalar() ) {
+                                sTxtTbl tbl;
+                                tbl.setBuf(inline_val->asString());
+                                tbl.parse();
+                                for(idx i = 0; i < tbl.cols(); i++) {
+                                    title.cut0cut();
+                                    tbl.printTopHeader(title, i);
+                                    if( sIs(title.ptr(), fetch_val ? fetch_val->asString() : "id") ) {
+                                        continue;
+                                    }
+                                    break;
+                                }
+                            } else if( inline_val->isList() ) {
+                                for(idx i = 0; i < inline_val->dim(); i++) {
+                                    title.cut0cut();
+                                    sVariant * col_val = inline_val->getListElt(i);
+                                    if( col_val->getDicElt("hidden") && col_val->getDicElt("hidden")->asBool() ) {
+                                        continue;
+                                    }
+                                    if( col_val->isString() ) {
+                                        col_val->print(title);
+                                    } else if( col_val->getDicElt("name") ) {
+                                        col_val->getDicElt("name")->print(title);
+                                    }
+                                    if( sIs(title.ptr(), fetch_val ? fetch_val->asString() : "id") ) {
+                                        continue;
+                                    }
+                                    break;
+                                }
+                            }
+                            if( title.length() ) {
+                                printer.addKeyValue("title", title.ptr());
+                            }
+                        }
+                        if( sVariant * outline_val = result->getDicElt("outline") ) {
+                            sStr buf;
+
+                            printer.addKey("show");
+                            printer.startArray();
+
+                            if( outline_val->isScalar() ) {
+                                sTxtTbl tbl;
+                                tbl.setBuf(outline_val->asString());
+                                tbl.parse();
+                                for(idx i = 0; i < tbl.cols(); i++) {
+                                    buf.cut0cut();
+                                    tbl.printTopHeader(buf, i);
+                                    printer.addValue(buf.ptr());
+                                }
+                            } else if( outline_val->isList() ) {
+                                for(idx i = 0; i < outline_val->dim(); i++) {
+                                    buf.cut0cut();
+                                    sVariant * col_val = outline_val->getListElt(i);
+                                    if( col_val->getDicElt("hidden") && col_val->getDicElt("hidden")->asBool() ) {
+                                        continue;
+                                    }
+                                    if( col_val->isString() ) {
+                                        col_val->print(buf);
+                                        printer.addValue(buf.ptr());
+                                    } else if( col_val->getDicElt("name") ) {
+                                        printer.addValue(*col_val);
+                                    }
+                                }
+                            }
+
+                            printer.endArray();
+                        }
+                        printer.addKeyValue("format", "csv");
+
+                        if( sVariant * qryLang_val = result->getDicElt("qryLang") ) {
+                            printer.addKeyValue("url", *qryLang_val);
+                        }
+                        if( sVariant * explorer_val = result->getDicElt("explorer") ) {
+                            printer.addKeyValue("url", explorer_val->asBool());
+                        }
+                    }
+                }
+                printer.endObject();
+            } else if( sIsExactly(constraint(), "type" ) ) {
+                printer.addKeyValue("type", constraintData());
+            } else if( sIsExactly(constraint(), "eval" ) ) {
+                sStr out;
+                sString::searchAndReplaceStrings(&out, constraintData(), 0, "$_(val)" __, "${_val}" __, 0, true);
+                printer.addKeyValue("eval", out.ptr());
+            }
+
+            if( *constraintDescription() ) {
+                printer.addKeyValue("descr", constraintDescription());
+            }
+
+            printer.endObject();
+        }
+
+        if( *linkUrl() ) {
+            sStr out;
+            sString::searchAndReplaceStrings(&out, linkUrl(), 0, "$_(val)" __, "${_val}" __, 0, true);
+            printer.addKeyValue("link_url", out.ptr());;
+        }
+
+        if( definerType() && definerType()->id() != ownerType()->id() ) {
+            printer.addKey("__definer_type");
+            printer.addValue(definerType()->name());
+        }
+
+        if( includedFromType() && includedFromType()->id() != ownerType()->id() ) {
+            printer.addKey("__included_from_type");
+            printer.addValue(includedFromType()->name());
+        }
+
+        if( dimChildren() ) {
+            printer.addKey("_field");
+        }
+    }
+
+    if( dimChildren() ) {
+        if( recurse ) {
+            if( print_self ) {
+                printer.startObject();
+            }
+            for(idx ic=0; ic<dimChildren(); ic++) {
+                getChild(ic)->printJSON2(printer, recurse, true);
+            }
+            if( print_self ) {
+                printer.endObject();
+            }
+        } else {
+            if( print_self ) {
+                printer.startArray();
+            }
+            for(idx ic=0; ic<dimChildren(); ic++) {
+                printer.addValue(getChild(ic)->name());
+            }
+            if( print_self ) {
+                printer.endArray();
+            }
+        }
+    }
+
+    if( print_self ) {
+        printer.endObject();
+    }
+
+    if( !into_object ) {
+        printer.endObject();
+    }
+}
+
+idx sUsrLoadingTypeField::setString(const char *s, bool canonicalize, bool allow_empty)
 {
     if( (!s || !*s) && !allow_empty ) {
         return -1;
@@ -3571,8 +4276,7 @@ idx sUsrTypeField::setString(const char *s, bool canonicalize, bool allow_empty)
     return ret;
 }
 
-//static
-void sUsrTypeField::replaceString(idx & pos, const char * find00, const char * replace00, sStr & buf)
+void sUsrLoadingTypeField::replaceString(idx & pos, const char * find00, const char * replace00, sStr & buf)
 {
     idx need_replace = false;
     if( pos >= 0 ) {

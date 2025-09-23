@@ -40,6 +40,8 @@ BEGIN
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+
      IF p_objIDs IS NOT NULL AND LENGTH(p_objIDs) > 0 THEN
 
         DROP TEMPORARY TABLE IF EXISTS tmp_obj_prop_list_v2;
@@ -56,7 +58,7 @@ BEGIN
 
         SELECT o.domainID, o.objID, f.`name`, f.`group`, f.`value`, f.`encoding`, f.`blob_value`
             FROM UPObjField f JOIN tmp_obj_prop_list_v2 o
-                ON f.domainID = o.domainID AND f.objID = o.objID
+                ON (f.domainID = o.domainID OR (f.domainID IS NULL AND o.domainID = 0)) AND f.objID = o.objID
             WHERE IF(LENGTH(p_prop_list) > 0, FIND_IN_SET(f.`name`, p_prop_list) > 0, TRUE);
 
         DROP TEMPORARY TABLE IF EXISTS tmp_obj_prop_list_v2;

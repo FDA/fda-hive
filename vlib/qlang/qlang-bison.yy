@@ -151,6 +151,7 @@
 %token  '?'
 
 /* scalar literals */
+%token  <intVal>    BOOL_LITERAL    "bool literal"
 %token  <intVal>    INT_LITERAL     "int literal"
 %token  <realVal>   REAL_LITERAL    "real literal"
 %token  <strVal>    TMPL_STRING     "template literal substring"
@@ -954,7 +955,11 @@ literal
     ;
 
 scalar_literal
-    : INT_LITERAL
+    : BOOL_LITERAL
+    {
+        $$ = new ast::BoolLiteral($1, @$.begin.line, @$.begin.column);
+    }
+    | INT_LITERAL
     {
         $$ = new ast::IntLiteral($1, @$.begin.line, @$.begin.column);
     }

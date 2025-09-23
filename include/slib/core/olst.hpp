@@ -47,10 +47,6 @@ namespace slib
                 m_dic.init(flnm);
                 return this;
             }
-            /**
-             * Add an object to list
-             * @return index != sNotIdx if success
-             */
             template<class TObj> idx set(TObj& obj)
                 {
                     idx ret = sNotIdx;
@@ -65,37 +61,22 @@ namespace slib
                     }
                     return ret;
                 }
-            /**
-             * Add a key to an object already in the list
-             */
             idx dict(idx index, const void* key, idx key_len = 0)
                 {
                     return m_dic.dict(index, key, key_len);
                 }
-            /**
-             * Remove item from list (make it not searchable)
-             */
             void undict(idx index)
                 {
                     m_dic.undict(index, 1);
                 }
-            /**
-             * Retrieve number of objs in list
-             */
             idx dim(void)
                 {
                     return m_dic.dim();
                 }
-            /**
-             * Drop list content
-             */
             void empty(void)
                 {
                     m_dic.empty();
                 }
-            /**
-             * Retrieve obj by its index
-             */
             template<class TObj> TObj* ptr(idx index) const
                 {
                     TObj* o = 0;
@@ -105,9 +86,6 @@ namespace slib
                     }
                     return o;
                 }
-            /**
-             * Retrieve obj by its key
-             */
             template<class TObj> TObj* get(const void* key, idx key_len = 0, idx* pNum = 0) const
                 {
                     TObj* o = 0;
@@ -123,4 +101,4 @@ namespace slib
 
 }
 
-#endif // sLib_core_olst_h
+#endif 

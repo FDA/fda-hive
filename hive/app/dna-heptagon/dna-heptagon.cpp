@@ -27,9 +27,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <qlib/QPrideProc.hpp>
+#include <qpsvc/qpsvc-dna-hexagon.hpp>
 #include <ssci/bio.hpp>
 #include <violin/violin.hpp>
+#include <violin/hiveproc.hpp>
 
 
 struct SNPRange{
@@ -50,10 +51,10 @@ struct SNPRange{
 };
 
 
-class DnaHeptagon : public sQPrideProc
+class DnaHeptagon : public sHiveProc
 {
     public:
-        DnaHeptagon(const char * defline00,const char * srv) : sQPrideProc(defline00,srv)
+        DnaHeptagon(const char * defline00,const char * srv) : sHiveProc(defline00,srv)
         {
         }
         virtual idx OnExecute(idx);
@@ -72,7 +73,6 @@ struct RANGEStartIdx {
         idx iStart, iEnd;
 };
 
-//static
 idx DnaHeptagon::partitionSNPRangeALO(void * param, void * i1, void * i2, sPart::sOperation op)
 {
     SNPRange * r1 = (SNPRange *)i1;
@@ -111,7 +111,6 @@ idx DnaHeptagon::partitionSNPRangeALO(void * param, void * i1, void * i2, sPart:
 }
 
 
-//static
 idx DnaHeptagon::partitionAARangeALO(void * param, void * i1, void * i2, sPart::sOperation op)
 {
     sBioseqSNP::AnnotAlRange * r1 = (sBioseqSNP::AnnotAlRange *)i1;
@@ -149,7 +148,6 @@ idx DnaHeptagon::partitionAARangeALO(void * param, void * i1, void * i2, sPart::
     return res;
 }
 
-//static
 idx DnaHeptagon::AARangesorter(void * param, void * arr, idx i1, idx i2)
 {
     sBioseqSNP::AnnotAlRange * aaArray = (sBioseqSNP::AnnotAlRange *)arr;
@@ -163,7 +161,6 @@ idx DnaHeptagon::AARangesorter(void * param, void * arr, idx i1, idx i2)
         return r2->Start - r1->Start;
 }
 
-//static
 idx DnaHeptagon::alphabeticalSortReferences (void * param, void * arr, idx i1, idx i2 ) {
     sHiveseq * subs = (sHiveseq*) param;
     SNPRange * r1 = &((SNPRange*)arr)[i1];
@@ -174,7 +171,7 @@ idx DnaHeptagon::alphabeticalSortReferences (void * param, void * arr, idx i1, i
 }
 
 idx DnaHeptagon::addToRanges(sDic<sBioseqSNP::AnnotAlRange> &aaRanges, sIonWander * wander, sBioseqAlignment::Al * hdr, idx * m, idx iAl, idx iSub, const char * original_seqID) {
-    idx alStart = hdr->subStart()+m[0], alEnd = hdr->subStart() + m[2 * hdr->lenAlign() - 2];
+    idx alStart = hdr->getSubjectStart(m), alEnd = hdr->getSubjectEnd_uncompressed(m);;
     idx lenStart = 0, lenEnd = 0 ;
     idx recSize = 4;
     char szStart[128], szEnd[128];
@@ -184,7 +181,13 @@ idx DnaHeptagon::addToRanges(sDic<sBioseqSNP::AnnotAlRange> &aaRanges, sIonWande
     memcpy(szEnd, "0:", 3);
     sIPrintf(szEnd + 2, lenEnd, alEnd, 10);
     lenEnd += 2;
-    wander->setSearchTemplateVariable("$seqID1", 7, original_seqID, sLen(original_seqID));
+    const char * seqID = strchr(original_seqID,' ');
+    if (seqID) {
+        wander->setSearchTemplateVariable("$seqID1", 7, original_seqID, seqID-original_seqID);
+    } else {
+        wander->setSearchTemplateVariable("$seqID1", 7, original_seqID, sLen(original_seqID));
+    }
+
     wander->setSearchTemplateVariable("$start", 6, szStart, lenStart);
     wander->setSearchTemplateVariable("$end", 4, szEnd, lenEnd);
 
@@ -216,8 +219,8 @@ idx DnaHeptagon::addToRanges(sDic<sBioseqSNP::AnnotAlRange> &aaRanges, sIonWande
 
 idx DnaHeptagon::launchCollector(sVec<SNPRange> &profileRegionsAll, sVec<idx> &profRegionsAll_alphabeticalSortInd){
 
-    reqSetData (grpId, "profileRegions", profileRegionsAll.mex());
-    reqSetData (grpId, "profileRegionsAlphabeticallySortedIndex", profRegionsAll_alphabeticalSortInd.mex());
+    reqSetData (masterId ? masterId : grpId, "profileRegions", profileRegionsAll.mex());
+    reqSetData (masterId ? masterId : grpId, "profileRegionsAlphabeticallySortedIndex", profRegionsAll_alphabeticalSortInd.mex());
 
     idx cntPosMapped = 0, chunkSize = 1024*1024, prevSub = -1, cntSub = 0;
     for( idx is=0; is<profileRegionsAll.dim() ; ++is ){
@@ -240,22 +243,28 @@ idx DnaHeptagon::launchCollector(sVec<SNPRange> &profileRegionsAll, sVec<idx> &p
     ion_splitPos.add(chunkCnt);hept_splitPos.add(chunkCnt);
 
     if(chunkCnt>1){
-        sPart::linearpartition(DnaHeptagon::partitionSNPRangeALO, 0, profileRegionsAll.ptr(),profileRegionsAll.dim(),chunkCnt,hept_splitPos.ptr(1));
-        sPart::linearpartition(DnaHeptagon::partitionSNPRangeALO, 0, profileRegionsAll.ptr(),profileRegionsAll.dim(),chunkCnt,ion_splitPos.ptr(1),profRegionsAll_alphabeticalSortInd.ptr());
+        if(profileRegionsAll.dim()<=1000) {
+            sPart::linearpartition(DnaHeptagon::partitionSNPRangeALO, 0, profileRegionsAll.ptr(),profileRegionsAll.dim(),chunkCnt,hept_splitPos.ptr(1));
+            sPart::linearpartition(DnaHeptagon::partitionSNPRangeALO, 0, profileRegionsAll.ptr(),profileRegionsAll.dim(),chunkCnt,ion_splitPos.ptr(1),profRegionsAll_alphabeticalSortInd.ptr());
+        } else {
+            for(idx i = 0 ; i < chunkCnt ; ++i ) {
+                hept_splitPos[i] = ion_splitPos[i] = i*(profileRegionsAll.dim()/chunkCnt);
+            }
+        }
     }
 
-    reqSetData (grpId, "ionChunkPos", ion_splitPos.mex());
-    reqSetData (grpId, "heptChunkPos", hept_splitPos.mex());
+    reqSetData (masterId ? masterId : grpId, "ionChunkPos", ion_splitPos.mex());
+    reqSetData (masterId ? masterId : grpId, "heptChunkPos", hept_splitPos.mex());
 
     sStr str;
     reqSetData(masterId,"formT.qpride",pForm);
 
     str.printf(0,"%s-collect",vars.value("serviceName") );
-    Request r;requestGet(reqId, &r) ; // to ensure we do not change our priority
+    Request r;requestGet(reqId, &r) ;
     idx newgrp=grpSubmit(str.ptr(),0,-r.priority,chunkCnt);
     sVec < idx > reqsnew; grp2Req(newgrp,&reqsnew, str.ptr());
     for(idx igg=0; igg<reqsnew.dim(); ++igg) {
-        grpAssignReqID(reqsnew[igg], grpId, igg+1);
+        grpAssignReqID(reqsnew[igg], masterId ? masterId : grpId, igg+1);
         reqSetAction(reqsnew[igg],eQPReqAction_Run);
     }
 
@@ -268,7 +277,7 @@ idx DnaHeptagon::launchAnnotator(sDic<sBioseqSNP::AnnotAlRange> &aaRanges){
         aaRangesAll[i] = *aaRanges.ptr(i);
     }
     aaRanges.empty();
-    reqSetData (grpId, "annotRegions", aaRangesAll.mex());
+    reqSetData (masterId ? masterId : grpId, "annotRegions", aaRangesAll.mex());
 
     sVec<idx> sind(sMex::fExactSize);
     sind.resizeM(aaRangesAll.dim());
@@ -291,22 +300,29 @@ idx DnaHeptagon::launchAnnotator(sDic<sBioseqSNP::AnnotAlRange> &aaRanges){
     sVec<idx> annot_splitPos(sMex::fExactSize|sMex::fSetZero);
     annot_splitPos.add(chunkCnt);
 
-    if(chunkCnt>1)
-        sPart::linearpartition(DnaHeptagon::partitionAARangeALO, 0, aaRangesAll.ptr(),aaRangesAll.dim(),chunkCnt,annot_splitPos.ptr(1));
+    if(chunkCnt>1) {
+        if(aaRangesAll.dim()<=1000) {
+            sPart::linearpartition(DnaHeptagon::partitionAARangeALO, 0, aaRangesAll.ptr(),aaRangesAll.dim(),chunkCnt,annot_splitPos.ptr(1));
+        } else {
+            for(idx i = 0 ; i < chunkCnt ; ++i ) {
+                annot_splitPos[i] = i*(aaRangesAll.dim()/chunkCnt);
+            }
+        }
+    }
 
 
-    reqSetData (grpId, "annotChunkPos", annot_splitPos.mex());
+    reqSetData (masterId ? masterId : grpId, "annotChunkPos", annot_splitPos.mex());
 
 
     sStr str;
     reqSetData(masterId,"formT.qpride",pForm);
 
     str.printf(0,"%s-annotate",vars.value("serviceName") );
-    Request r;requestGet(reqId, &r) ; // to ensure we do not change our priority
+    Request r;requestGet(reqId, &r) ;
     idx newgrp=grpSubmit(str.ptr(),0,-r.priority,chunkCnt);
     sVec < idx > reqsnew; grp2Req(newgrp,&reqsnew, str.ptr());
     for(idx igg=0; igg<reqsnew.dim(); ++igg) {
-        grpAssignReqID(reqsnew[igg], grpId, igg+1);
+        grpAssignReqID(reqsnew[igg], masterId ? masterId : grpId, igg+1);
         reqSetAction(reqsnew[igg],eQPReqAction_Run);
     }
 
@@ -317,11 +333,6 @@ idx DnaHeptagon::OnExecute(idx req)
 {
     sStr errS;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ initialize the parameters
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     sBioseqSNP::SNPParams SP;
     SP.lenPercCutoff=formIValue("lenPercCutoff",0);
     SP.maxMissmatchPercCutoff=formIValue("maxMissmatchPercCutoff",0);
@@ -332,19 +343,19 @@ idx DnaHeptagon::OnExecute(idx req)
     SP.minFreqPercent=formRValue("minFreqPercent",0);
     SP.entrCutoff=formRValue("entrCutoff",1);
 
-    SP.snpCompare=formIValue("snpCompare",0); // 0 is the consensus
+    SP.snpCompare=formIValue("snpCompare",0);
     SP.noiseProfileResolution=formRValue("noiseProfileResolution",0.0001);
     SP.noiseProfileMax=formRValue("noiseProfileMax",0.01);
     SP.maxLowQua=formIValue("maxLowQua",0);
     SP.useQuaFilter=formIValue("useQuaFilter",20);
     SP.minImportantEntropy=formRValue("minImportantEntropy",0.7);
-    SP.rangeSize=formIValue("rangeSize",4*1024*1024); //
+    SP.rangeSize=formIValue("rangeSize",4*1024*1024);
     SP.filterZeros=formIValue("filterZeros",1);
     SP.minFreqIgnoreSNP=formIValue("minFreqIgnoreSNP",0);
 
     SP.countAAs=formBoolIValue("countAAs",1);
+    SP.collapseRpts=formBoolValue("collapseRpts",false);
 
-    sVec <idx> uncompressMM;
     bool extraInfo=false;
     if(formIValue("histograms",0) || SP.entrCutoff)
         extraInfo=true;
@@ -354,52 +365,48 @@ idx DnaHeptagon::OnExecute(idx req)
     idx fpSize=0,fpXSize=0, fpASize=0;
 
     sBioal::ParamsAlignmentIterator PA;
-    // TODO : return  this mode functionality
-//    PA.repeatsOnly=formIValue("searchForRepeats",0);
 
-    // Here4areason28
 
-    idx slice=formIValue("slice",sHiveseq::defaultSliceSizeI);
+    idx slice=sHiveseq::defaultSliceSizeI;
+    const char * splitSize = getSplitSize(objs.ptr());
+    if( splitSize )
+        slice = atoidx(splitSize);
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Prepare a name for the resulting file profile.vioprof
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sStr profName;
     profName.printf(0,"file://profile.vioprof");
-    reqSetData(req,profName,0,0); // create and empty file for this request
+    reqSetData(req,profName,0,0);
     sStr reqProfPath;reqDataPath(req,profName.ptr(7),&reqProfPath);
     sFile::remove(reqProfPath);
 
     sStr reqProfPathX;
     if(extraInfo) {
         profName.printf(0,"file://profile.vioprofX");
-        reqSetData(req,profName,0,0); // create and empty file for this request
+        reqSetData(req,profName,0,0);
         reqDataPath(req,profName.ptr(7),&reqProfPathX);
         sFile::remove(reqProfPathX);
     }
 
+    sStr indelsPath;
+    profName.printf(0,"file://indels.dict");
+    reqSetData(req,profName,0,0);
+    reqDataPath(req,profName.ptr(7),&indelsPath);
+    sFile::remove(indelsPath);
+
     sStr reqAAPathX;
     if(SP.countAAs) {
         profName.printf(0,"file://aa.vioprofX");
-        reqSetData(req,profName,0,0); // create and empty file for this request
+        reqSetData(req,profName,0,0);
         reqDataPath(req,profName.ptr(7),&reqAAPathX);
         sFile::remove(reqAAPathX);
     }
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ prepare the Alignment file
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     sVec < idx > subsetN;sString::scanRangeSet(formValue("subSet",0,""), 0, &subsetN, -1, 0, 0);
     sSort::sort(subsetN.dim(),subsetN.ptr());
 
     sVec<sHiveId> alignerIDs;
     sHiveId::parseRangeSet(alignerIDs, formValue("parent_proc_ids"));
-    idx startSlice=0, sliceTot=0;//reqSliceId*slice;
+    idx startSlice=0, sliceTot=0;
 
     sHiveId alignerID;
     for(idx ia=0; ia<alignerIDs.dim(); ia++) {
@@ -426,7 +433,6 @@ idx DnaHeptagon::OnExecute(idx req)
     }
     sUsrFile aligner(alignerID, user);
 
-    // if profiling stage is not yet done
     sStr path;
     aligner.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __);
     sHiveal hiveal(user, path);
@@ -434,51 +440,38 @@ idx DnaHeptagon::OnExecute(idx req)
     bioal=&hiveal;
     if( !bioal->isok() || bioal->dimAl()==0){
         errS.printf("No alignments are detected or the alignment file %s is missing or corrupted\n", alignerID.print());
-        //logOut(eQPLogType_Error,"%s",errS.ptr());
         reqSetInfo(req, eQPInfoLevel_Error, "%s",errS.ptr());
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ load the subject and query sequences
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sStr subject;
-    aligner.propGet00("subject", &subject, ";");
-    sHiveseq Sub(user, subject.ptr(), hiveal.getSubMode(), false, false, &errS);//Sub.reindex();
+    QPSvcDnaHexagon::getSubject00(aligner,subject);
+    sHiveseq Sub(user, subject.ptr(), hiveal.getSubMode(), false, false, &errS);
     if(Sub.dim()==0) {
-        //logOut(eQPLogType_Error,"%s",errS.ptr());
         reqSetInfo(req, eQPInfoLevel_Error, "Reference '%s' sequences are missing or corrupted%s%s", subject.length() ? subject.ptr() : "unspecified", errS.length() ? ": " : "", errS.length() ? errS.ptr() : "");
         reqSetStatus(req, eQPReqStatus_ProgError);
 
-        return 0; // error
+        return 0;
     }
     errS.cut0cut();
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Determine the number of references needed to be profiled
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     idx numAlChunks=subsetN.dim() ? subsetN.dim() : Sub.dim() ;
 
     sStr str;
     idx cntSub=0;
 
 
-    // load the subject and query sequences
     sStr query;
-    aligner.propGet00("query",&query,";");
-    sHiveseq Qry(user, query, hiveal.getQryMode(), false, false, &errS);//Qry.reindex();
+    QPSvcDnaHexagon::getQuery00(aligner,query);
+    sHiveseq Qry(user, query, hiveal.getQryMode(), false, false, &errS);
     if(Qry.dim()==0) {
         reqSetInfo(req, eQPInfoLevel_Error, "Query '%s' sequences are missing or corrupted%s%s", query.length() ? query.ptr() : "unspecified", errS.length() ? ": " : "", errS.length() ? errS.ptr() : "");
         reqSetStatus(req, eQPReqStatus_ProgError);
 
-        return 0; // error
+        return 0;
     }
     errS.cut0cut();
 
@@ -494,15 +487,18 @@ idx DnaHeptagon::OnExecute(idx req)
 
 
     sIonWander * wander=0;
-    const char * refAnnot=formValue("referenceAnnot");
-    sHiveIon hionAnnot(user,refAnnot,"u-ionAnnot","ion");
+    sHiveIon hionAnnot(user);
 
     sDic < sBioseqSNP::AnnotAlRange > aaRanges;
     if(SP.countAAs) {
+        const char * refAnnot=formValue("referenceAnnot");
         if(refAnnot) {
+            hionAnnot.init(user,refAnnot,0,"ion");
             wander=hionAnnot.addIonWander("myion","seq=foreach($seqID1);a=find.annot(#range=possort-max,seq.1,$start,seq.1,$end);b=find.annot(seqID=a.seqID,record=a.record,id=\"CDS\");unique.1(b.pos);blob(b.record, b.pos);");
             aaRanges.init(reqAAPathX);
         } else {
+            logOut(eQPLogType_Warning,"No annotation file detected. Amino acid calls will be calculated assuming each subject is also an ORF\n");
+            reqSetInfo(req, eQPInfoLevel_Warning, "No annotation file detected. Amino acid calls will be calculated assuming each subject is also an ORF\n");
             SP.computeAAs = true;
         }
     }
@@ -511,40 +507,26 @@ idx DnaHeptagon::OnExecute(idx req)
 
     sVec < SNPRange > subRanges;
     sVec < RANGEStartIdx > rangeStartIndexes;
-//    sDic < sBioseqSNP::AnnotAlRange > aaRanges(reqAAPathX);
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ iterate through alignments
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// loop by bioals
-    // qry
 
-    //Determine how this req will report
     progress100End=50;
 
-    idx reportInterval = 1 ; // percent : 1: 1%. So every one percent. (1-100]
-    idx reqAl = ((reqSliceId - startSlice + 1) * slice > bioal->dimAl()) ? (bioal->dimAl() - (reqSliceId - startSlice) * slice) : slice; // # of alignments that will be processed by the req
+    idx reportInterval = 1 ;
+    idx reqAl = ((reqSliceId - startSlice + 1) * slice > bioal->dimAl()) ? (bioal->dimAl() - (reqSliceId - startSlice) * slice) : slice;
     idx curAl = 0 , reportIntervalSize = reportInterval * reqAl / 100 ;
     if(reportIntervalSize<=0)reportIntervalSize=1;
 
-    // // // sVec < sBioseqSNP::SNPFreq > Freq(sMex::fSetZero|sMex::fAlignPage|sMex::fMaintainAlignment);
+    sBioseqSNP::InDels my_indels;
 
     for( idx is=0; is<numAlChunks; ++is) {
 
-        // get information and the alignments to about the current subject
         idx iSub= subsetN.dim() ? subsetN[is] : is;
-        idx alListIndex = bioal->listSubAlIndex(iSub, &dimAl); // this returns the index of the first element to this particular subject
+        idx alListIndex = bioal->listSubAlIndex(iSub, &dimAl);
         if( !alListIndex ){
             continue;
-//            reqSetInfo(req, eQPInfoLevel_Error, "Alignments inaccessible.");
-//            reqSetStatus(req, eQPReqStatus_SysError);
-//            return 1; // error
         }
         idx sublen=Sub.len(iSub);
 
-        // determine the start and the end indexes of those alignment which are to be treated by this particular reqID
         idx start=(reqSliceId-startSlice)*slice, end=start+slice;
         start-=totalAls;end-=totalAls;
         if(start<0)start=0;
@@ -554,8 +536,6 @@ idx DnaHeptagon::OnExecute(idx req)
 
         logOut(eQPLogType_Info,"Profiling %s from subject %" DEC "\n",reqProfPath.ptr(0),iSub );
 
-        // now determine the first and last alignments touching each particular range
-        // for that we first initialize the range info for this subject
         idx rangeCount = SP.rangeSize ? (sublen-1)/SP.rangeSize+1 : 1 ;
         rangeStartIndexes.resizeM( rangeCount );
         for(idx ir=0; ir<rangeCount; ++ir ){
@@ -567,67 +547,50 @@ idx DnaHeptagon::OnExecute(idx req)
             logOut(eQPLogType_Warning,"Subject %" DEC " longer than %" DEC " limit. Amino acid calls will not be calculated\n",iSub, SP.rangeSize );
             reqSetInfo(req, eQPInfoLevel_Warning, "Subject %" DEC " longer than %" DEC " limit. Amino acid calls will not be calculated\n",iSub, SP.rangeSize);
         }
-        // now loop over subjects and see each alignment's impact to each subject range
         for (idx ia=start; ia<end; ++ia) {
-            // retrieve a particular alignment
             idx iAl=alListIndex+ia-1;
 
             sBioseqAlignment::Al *  hdr=bioal->getAl(iAl);
             if(hdr->idSub()!=iSub || !hdr->lenAlign())continue;
             idx * m=bioal->getMatch(iAl);
-            uncompressMM.resize(hdr->lenAlign()*2);
-            sBioseqAlignment::uncompressAlignment(hdr,m,uncompressMM.ptr());
-            // compute its start and end coordinates
-            idx alStart=hdr->subStart()+uncompressMM[0];
-            idx alEnd=hdr->subStart()+uncompressMM[2*hdr->lenAlign()-2] ;
+            idx alStart=hdr->getSubjectStart(m);
+            idx alEnd=hdr->getSubjectEnd(m);
             idx rangeStart=alStart/SP.rangeSize;
             idx rangeEnd=alEnd/SP.rangeSize;
-            // change the minimax of every range affected by this alignment
-            //if (rangeStart==0)
-            //    doBreak=!doBreak;
             for(idx ir=rangeStart; ir<=rangeEnd && ir<rangeCount; ++ir ) {
                 if(ia < rangeStartIndexes[ir].iStart )rangeStartIndexes[ir].iStart=ia;
                 if(ia > rangeStartIndexes[ir].iEnd )rangeStartIndexes[ir].iEnd=ia;
             }
         }
 
-        // now loop over ranges to profile those
         for( idx irange=0; irange<rangeCount ; ++irange){
-            // if nothing to do in this range - skip it
             if(rangeStartIndexes[irange].iStart >  rangeStartIndexes[irange].iEnd)
                 continue;
 
-            // this object maintains ranges
             SNPRange SR;
             SR.reqID=req;
             SR.iSub=iSub;
             SR.iRange=irange;
-            SR.rStart=0+irange*SP.rangeSize; // determine the boundaries of this particular range
+            SR.rStart=0+irange*SP.rangeSize;
             SR.rEnd=SR.rStart+SP.rangeSize;
             if(SR.rEnd>sublen)SR.rEnd=sublen;
             SR.posMapped=SR.posCovered=0;
-            //SR.ofsInFile=(totMapped)  ? sFile::size(reqProfPath) :0;
-            //SR.ofsInFileX=(totMapped && extraInfo)  ? sFile::size(reqProfPathX) :0;
             SR.ofsInFile=(totMapped)  ? fpSize :0;
             SR.ofsInFileX=(totMapped && extraInfo)  ? fpXSize :0;
             SR.ofsInFileA=(totMapped && SP.countAAs && SP.computeAAs)  ? fpASize :0;
 
-            // We are going to in-memory profile this particular chunk
             sVec < sBioseqSNP::SNPFreq > Freq(sMex::fSetZero|sMex::fAlignPage|sMex::fMaintainAlignment);
-            Freq.add( SR.rEnd-SR.rStart); // SP.rangeSize
-            // // // Freq.resizeM( SR.rEnd-SR.rStart );Freq.set(0);
+            Freq.add( SR.rEnd-SR.rStart);
 
             sVec < sBioseqSNP::ProfilePosInfo > Pinf(sMex::fSetZero|sMex::fAlignPage|sMex::fMaintainAlignment);
-            if(extraInfo)Pinf.add( SR.rEnd-SR.rStart); // SP.rangeSize
+            if(extraInfo)Pinf.add( SR.rEnd-SR.rStart);
 
             sVec < sBioseqSNP::ProfileAAInfo > Ainf(sMex::fSetZero|sMex::fAlignPage|sMex::fMaintainAlignment);
-            if(SP.countAAs && SP.computeAAs)Ainf.add((SR.rEnd-SR.rStart)/3+1); // for aminoacid position information
+            if(SP.countAAs && SP.computeAAs)Ainf.add((SR.rEnd-SR.rStart)/3+1);
 
             sBioseqSNP::ProfileExtraInfo PExIn;
             if(SP.entrCutoff)PExIn.EntroMap.add( SP.rangeSize);
-            //if(extraInfo)PExIn.HistogramMap.add( SP.rangeSize);
 
-            // loop over all alignments which are touching this particular range
             for ( idx ia= rangeStartIndexes[irange].iStart; ia<= rangeStartIndexes[irange].iEnd; ++ia) {
 
                 idx iAl=alListIndex+ia-1;
@@ -635,16 +598,13 @@ idx DnaHeptagon::OnExecute(idx req)
                 if(!hdr->lenAlign())continue;
                 idx * m=bioal->getMatch(iAl);
                 idx idQry=hdr->idQry();
-                uncompressMM.resize(hdr->lenAlign()*2);
-                sBioseqAlignment::uncompressAlignment(hdr,m,uncompressMM.ptr());
-                m = uncompressMM.ptr();
-                // SNP count all the profiles
+                m = sBioseqAlignment::uncompressAlignment(hdr,m);
 
                 const char * seqIDOriginal=Sub.id(iSub);
 
                 idx nowFound=0;
-                nowFound=sBioseqSNP::snpCountSingleSeq(Freq.ptr(0), Pinf.ptr(0), Ainf.ptr(0), SR.rStart, SR.rEnd-SR.rStart,Sub.seq(iSub),Sub.len(iSub), bioal->Qry->seq(idQry),
-                    bioal->Qry->len(idQry),bioal->Qry->qua(idQry), false, hdr, m, &SP, bioal->getRpt(iAl), &PExIn, 0, 0);
+                nowFound=sBioseqSNP::snpCountSingleSeq(Freq.ptr(0), Pinf.ptr(0), Ainf.ptr(0), SR.rStart, SR.rEnd-SR.rStart,Sub.seq(iSub), my_indels,Sub.len(iSub), bioal->Qry->seq(idQry),
+                    bioal->Qry->len(idQry),bioal->Qry->qua(idQry), false, hdr, m, &SP, SP.collapseRpts?1:bioal->getRpt(iAl), &PExIn, 0, 0);
 
                 if(nowFound){
                     if( !SP.computeAAs && SP.countAAs && nowFound && wander ) {
@@ -661,11 +621,9 @@ idx DnaHeptagon::OnExecute(idx req)
             }
             if(doBreak)break;
 
-            // perform entropic computations if needed
             if(SP.entrCutoff && SR.posMapped)
-                sBioseqSNP::snpCountPosInfo(Freq.ptr(0), Pinf.ptr(0), Sub.seq(iSub), SR.rStart, SR.rEnd-SR.rStart, &SP, &PExIn ); // , sVec < EntrPos > * entrPos
+                sBioseqSNP::snpCountPosInfo(Freq.ptr(0), Pinf.ptr(0), Sub.seq(iSub), SR.rStart, SR.rEnd-SR.rStart, &SP, &PExIn );
 
-            // copy the particular region info into the vioprof file for this request ID
             if(!SR.posMapped){
                 Freq.cut(0);
                 Pinf.cut(0);
@@ -677,39 +635,32 @@ idx DnaHeptagon::OnExecute(idx req)
                     if(Freq.ptr(i)->coverage())
                         ++SR.posCovered;
                 }
-                *subRanges.add(1)=SR; // remember the region object so we can retrieve back profiling info for this particular object
-                //FILE * fp=fopen(reqProfPath,"a");
+                *subRanges.add(1)=SR;
                 if(!fp)fp=fopen(reqProfPath,"a");
                 if(fp){
-                    // we do this through mex because these are page aligned object arrays and dim() might not be actual allocated size
                     idx written= fwrite((char*)Freq.mex()->ptr(),1,Freq.mex()->pos(),fp);
                     fpSize+=written;
-                    /// fclose(fp);
                     if(written!=Freq.mex()->pos() ) {
                         reqSetInfo(req, eQPInfoLevel_Error, "Insufficient resources to operate. Cannot write to results to file.");
                         reqSetStatus(req, eQPReqStatus_SysError);
                         fclose(fp);
-                        return 1; // error
+                        return 1;
                     }
 
                 }
                 if(extraInfo){
                     if(!fpX)fpX=fopen(reqProfPathX,"a");
                     if(fpX){
-                        // we do this through mex because these are page aligned object arrays and dim() might not be actual allocated size
                         idx written=fwrite((char*)Pinf.mex()->ptr(),1,Pinf.mex()->pos(),fpX);
                         fpXSize+=written;
-                        /// fclose(fpX);
                     }
                 }
 
                 if(SP.countAAs && SP.computeAAs){
                     if(!fpA)fpA=fopen(reqAAPathX,"a");
                     if(fpA){
-                        // we do this through mex because these are page aligned object arrays and dim() might not be actual allocated size
                         idx written=fwrite((char*)Ainf.mex()->ptr(),1,Ainf.mex()->pos(),fpA);
                         fpASize+=written;
-                        /// fclose(fpX);
                     }
                 }
 
@@ -723,10 +674,6 @@ idx DnaHeptagon::OnExecute(idx req)
             logOut(eQPLogType_Info,"\t %" DEC "/%" DEC ": mapping alignments %" DEC "-%" DEC " to range %" DEC "-%" DEC " = %" DEC " bases at offset %" DEC " \n",irange+1,rangeCount,rangeStartIndexes[irange].iStart, rangeStartIndexes[irange].iEnd, SR.rStart, SR.rEnd, SR.posMapped , SR.ofsInFile);
         }
 
-        //if( !reqProgress(cntFound, is, numAlChunks) ) {
-        //    doBreak = true;
-        //    break;
-        //}
         totalAls+=dimAl;
     }
 
@@ -737,39 +684,35 @@ idx DnaHeptagon::OnExecute(idx req)
     reqSetData(req,"subRanges",subRanges.mex());
     subRanges.destroy();
     rangeStartIndexes.destroy();
+    {
+        sFil my_indels_buf(indelsPath);
+        if( !my_indels_buf.ok() ) {
+            logOut(eQPLogType_Error, "Cannot create indels mapping file '%s'", indelsPath.ptr());
+            return 0;
+        }
+        my_indels.serialOut(my_indels_buf);
+    }
 
-
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Determine if this request is the last one in its group and if not - finish
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     if( doBreak ) {
         return 0;
     }
-    if( !isLastInMasterGroup() ) {
+    if( !isLastInMasterGroupWithLock() ) {
         reqSetProgress(req, cntFound, 100);
         reqSetStatus(req, eQPReqStatus_Done);
         return 0;
     }
+    reqSetStatus(req, eQPReqStatus_Running);
 
-
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ collapse the regions from different request if they belong to the same subject and same region
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     logOut(eQPLogType_Info,"\n\nCoalescing results\n");
 
     progress100Start=50;
     progress100End=100;
     reqSetProgress(req, cntFound, progress100Start );
 
-    sDic < SNPRange > profileRegions; // this one as a dictionary is used for uniqifying
-    sVec < SNPRange > profileRegionsAll; // this one is to be serialized for the next stage
+    sDic < SNPRange > profileRegions;
+    sVec < SNPRange > profileRegionsAll;
     idx tmpRange_subject=-1,tmpRange_irange=-1;
 
-    // through the use of dictionary of subject/ranges coalesce the overlaps
     sStr tt;
     sVec < idx > reqList; grp2Req(masterId, &reqList, vars.value("serviceName"));
     sVec <sBioseqSNP::SNPFreq> * dst=0 ;
@@ -787,10 +730,20 @@ idx DnaHeptagon::OnExecute(idx req)
             }
         }
     }
+    sBioseqSNP::InDels all_indels;
     sDic<sBioseqSNP::AnnotAlRange> aaRangesAll;
     for( idx ir=0; ir<reqList.dim() ; ++ir ){
+        sStr req_indels_path;
+        reqDataPath(reqList[ir],"indels.dict",&req_indels_path);
+        sFil req_indels_buf(req_indels_path,sMex::fReadonly);
+        if( !req_indels_buf.ok() ) {
+            logOut(eQPLogType_Error, "Cannot read indels mapping file '%s'", req_indels_buf.ptr());
+            return 0;
+        }
+        sBioseqSNP::InDels req_indels;
+        req_indels.serialIn(req_indels_buf.ptr(),req_indels_buf.length());
+        all_indels.merge(req_indels);
 
-        // from every request in this group retrieve the list of subject ranges it has mapped
         subRanges.cut(0);
         reqGetData(reqList[ir],"subRanges",subRanges.mex());
         if( !SP.computeAAs && SP.countAAs ) {
@@ -815,13 +768,11 @@ idx DnaHeptagon::OnExecute(idx req)
             }
 
         }
-        //if we decided to not execute the AA profile then we have to remove potential leftovers of profiler chunks that dealt with small chunks
         if( formIValue("countAAs", 1) != SP.countAAs ) {
             sStr r2X;
             reqDataPath(reqList[ir], "aa.vioprofX", &r2X);
             sFile::remove(r2X.ptr(0));
         }
-        // now scan all the subject ranges and collapse those into the first
         for( idx is=0; is<subRanges.dim() ; ++is ){
             if( !reqProgress(ir, curOverSubRange++, totSubRanges) ) {
                 doBreak = true;
@@ -829,7 +780,6 @@ idx DnaHeptagon::OnExecute(idx req)
             }
             tt.printf(0,"%" DEC "-%" DEC,subRanges[is].iSub,subRanges[is].iRange);
 
-            // the first occurence of the particular subject->range is held in profileRegions file
             SNPRange * v=profileRegions.get(tt.ptr());
             if(!v){
                 v=profileRegions.set(tt.ptr());if(!v)continue;
@@ -840,17 +790,16 @@ idx DnaHeptagon::OnExecute(idx req)
                 continue;
             }
             if(v->iSub!=tmpRange_subject || v->iRange!=tmpRange_irange){
-                // every region different from the previous will close the previously initialized destination buffer if open
                 if(dst){
-                    delete (dst); // if it has been open before : close it
+                    delete (dst);
                     dst=0;
                 }
                 if(dstX){
-                    delete (dstX); // if it has been open before : close it
+                    delete (dstX);
                     dstX=0;
                 }
                 if(dstA){
-                    delete (dstA); // if it has been open before : close it
+                    delete (dstA);
                     dstA=0;
                 }
             }
@@ -858,7 +807,6 @@ idx DnaHeptagon::OnExecute(idx req)
             logOut(eQPLogType_Info,"\t+range %" DEC "-%" DEC " mapping %" DEC " bases from req %" DEC " file offset %" DEC "\n",subRanges[is].rStart,subRanges[is].rEnd,subRanges[is].posMapped,subRanges[is].reqID,subRanges[is].ofsInFile);
 
 
-            // here we determine and partial map the particular subject/range source
             sStr r1;reqDataPath(v->reqID,"profile.vioprof",&r1);
             if(!dst) {
                 dst= new sVec <sBioseqSNP::SNPFreq>(sMex::fAlignPage, r1.ptr(0),v->ofsInFile,v->rEnd-v->rStart);
@@ -868,13 +816,9 @@ idx DnaHeptagon::OnExecute(idx req)
                 }else {
                     reqSetInfo(req, eQPInfoLevel_Error, "Insufficient resources. Cannot allocate space");
                     reqSetStatus(req, eQPReqStatus_SysError);
-                    return 1; // error
+                    return 1;
                 }
 
-                /*if(dst->dim()<v->rEnd-v->rStart){ // this must exist even if the first chunk did not produce any results
-                    dst->flagOn(sMex::fSetZero);
-                    dst->resize(v->rEnd-v->rStart);
-                }*/
 
             }
             sStr r2;reqDataPath(subRanges[is].reqID,"profile.vioprof",&r2);
@@ -882,12 +826,11 @@ idx DnaHeptagon::OnExecute(idx req)
             if(!src.ok()){
                 reqSetInfo(req, eQPInfoLevel_Error, "Insufficient resources. Cannot open intermediate file");
                 reqSetStatus(req, eQPReqStatus_SysError);
-                return 1; // error
+                return 1;
             }
 
             logOut(eQPLogType_Info,"\tappending %s->%s\n",r2.ptr(0),r1.ptr(0));
-            // now join all of the secondary subject/range computations with the first one in dst->
-            idx len=v->rEnd-v->rStart;//dst->dim();
+            idx len=v->rEnd-v->rStart;
             idx srclen=sFile::size(r2.ptr());
             if(len>srclen)len=srclen;
             for ( idx ipos=0 ; ipos< len ; ++ipos){
@@ -898,7 +841,7 @@ idx DnaHeptagon::OnExecute(idx req)
                 if(!lineDst->coverage())
                     ++v->posCovered;
                 lineDst->add(lineSrc);
-                sSet(lineSrc,0,sizeof(sBioseqSNP::SNPFreq)); // we set to zero in case if this request has to be reexecuted due to crash
+                sSet(lineSrc,0,sizeof(sBioseqSNP::SNPFreq));
             }
 
 
@@ -906,16 +849,11 @@ idx DnaHeptagon::OnExecute(idx req)
                 sStr r1X;reqDataPath(v->reqID,"profile.vioprofX",&r1X);
                 if(!dstX) {
                     dstX=new sVec <sBioseqSNP::ProfilePosInfo>(sMex::fAlignPage, r1X.ptr(0),v->ofsInFileX,v->rEnd-v->rStart);
-                    /*if(dstX->dim()<v->rEnd-v->rStart){ // this must exist even if the first chunk did not produce any results
-                        dstX->flagOn(sMex::fSetZero);
-                        dstX->resize(v->rEnd-v->rStart);
-                    }*/
                 }
                 sStr r2X;reqDataPath(subRanges[is].reqID,"profile.vioprofX",&r2X);
                 sVec <sBioseqSNP::ProfilePosInfo> src(sMex::fAlignPage, r2X.ptr(0),subRanges[is].ofsInFileX,v->rEnd-v->rStart);
                 logOut(eQPLogType_Info,"\tappending %s->%s\n",r2X.ptr(0),r1X.ptr(0));
-                // now join all of the secondary subject/range computations with the first one in dst->
-                idx len=v->rEnd-v->rStart;//dstX->dim();
+                idx len=v->rEnd-v->rStart;
                 idx srclen=sFile::size(r2X.ptr());
                 if(len>srclen)len=srclen;
                 for ( idx ipos=0 ; ipos< len ; ++ipos){
@@ -924,7 +862,7 @@ idx DnaHeptagon::OnExecute(idx req)
                     if(!lineSrc->coverage())
                         continue;
                     lineDst->sum(lineSrc);
-                    sSet(lineSrc,0,sizeof(sBioseqSNP::ProfilePosInfo)); // we set to zero in case if this request has to be reexecuted due to crash
+                    sSet(lineSrc,0,sizeof(sBioseqSNP::ProfilePosInfo));
                 }
 
             }
@@ -937,8 +875,7 @@ idx DnaHeptagon::OnExecute(idx req)
                 sStr r2X;reqDataPath(subRanges[is].reqID,"aa.vioprofX",&r2X);
                 sVec <sBioseqSNP::ProfileAAInfo> src(sMex::fAlignPage, r2X.ptr(0),subRanges[is].ofsInFileA,v->rEnd-v->rStart);
                 logOut(eQPLogType_Info,"\tappending %s->%s\n",r2X.ptr(0),r1X.ptr(0));
-                // now join all of the secondary subject/range computations with the first one in dst->
-                idx len=v->rEnd-v->rStart;//dstX->dim();
+                idx len=v->rEnd-v->rStart;
                 idx srclen=sFile::size(r2X.ptr());
                 if(len>srclen)len=srclen;
                 for ( idx ipos=0 ; ipos< 1+len/3 ; ++ipos){
@@ -947,7 +884,7 @@ idx DnaHeptagon::OnExecute(idx req)
                     if(!lineSrc->coverage())
                         continue;
                     lineDst->sum(lineSrc);
-                    sSet(lineSrc,0,sizeof(sBioseqSNP::ProfileAAInfo)); // we set to zero in case if this request has to be reexecuted due to crash
+                    sSet(lineSrc,0,sizeof(sBioseqSNP::ProfileAAInfo));
                 }
             }
 
@@ -956,15 +893,15 @@ idx DnaHeptagon::OnExecute(idx req)
 
         }
         if(dst){
-            delete (dst); // if it has been open before : close it
+            delete (dst);
             dst=0;
         }
         if(dstX){
-            delete (dstX); // if it has been open before : close it
+            delete (dstX);
             dstX=0;
         }
         if(dstA){
-            delete (dstA); // if it has been open before : close it
+            delete (dstA);
             dstA=0;
         }
         if( !reqProgress(ir, ir, reqList.dim()) ) {
@@ -975,6 +912,16 @@ idx DnaHeptagon::OnExecute(idx req)
     if(dst)delete dst;
     if(dstX)delete dstX;
     if(dstA)delete dstA;
+
+    sStr all_indels_path;
+    sHiveProc::destPath(&all_indels_path,"all_indels.dict");
+    sFile::remove(all_indels_path);
+    sFil all_indels_buf(all_indels_path);
+    if( !all_indels_buf.ok() ) {
+        logOut(eQPLogType_Error, "Cannot create indels mapping file '%s'", all_indels_path.ptr());
+        return 0;
+    }
+    all_indels.serialOut(all_indels_buf);
 
     for( idx is=0; is<numAlChunks; ++is) {
 
@@ -1031,7 +978,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     DnaHeptagon backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-heptagon",argv[0]));
     return (int)backend.run(argc,argv);

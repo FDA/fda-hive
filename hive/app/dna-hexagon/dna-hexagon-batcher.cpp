@@ -28,7 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-//#include <ssci/bio.hpp>
 #include <violin/svc-batcher.hpp>
 #include <violin/violin.hpp>
 
@@ -44,7 +43,6 @@ class DnaHexagonBatcher: public SvcBatcher
 
 idx cleanOverlappingAlignments(sBioal & ha,idx thresholdOverlap, sVec < sVec < idx > > * qryAl, bool setSelection=false)
 {
-    // Sort by id Qry
     sVec < idx > subScores(sMex::fSetZero);
     for (idx ial = 0; ial < ha.dimAl(); ial++) {
         sBioseqAlignment::Al * hdr = ha.getAl(ial);
@@ -60,8 +58,6 @@ idx cleanOverlappingAlignments(sBioal & ha,idx thresholdOverlap, sVec < sVec < i
         idx cntQryAls=qryAl->ptr(iQ)->dim();
         if(!cntQryAls)continue;
 
-        //idx jjQry;
-        //idx iiQry;
 
         sBioseqAlignment::Al * iihdr,* jjhdr;
         for (idx ii=0 ; ii < cntQryAls ; ++ii) {
@@ -100,7 +96,6 @@ idx cleanOverlappingAlignments(sBioal & ha,idx thresholdOverlap, sVec < sVec < i
                     }
                 }
                 if(overlap>=thresholdOverlap) {
-                    //if(iihdr->score()>=jjhdr->score() ) {
                     if(subScores[iihdr->idSub()]>=subScores[jjhdr->idSub()]) {
                         *qryAl->ptr(iQ)->ptr(jj)=(ii * (-1)) -1;
                         if( setSelection ) {
@@ -131,7 +126,7 @@ idx DnaHexagonBatcher::OnExecute(idx req)
     svcToSubmit="dna-hexagon";
 
 
-    idx thresholdOverlap=80; // percent
+    idx thresholdOverlap=80;
 
     SvcBatcher::OnExecute(req);
     if(alreadyDone == 0 && (killed || stillRunning)) {
@@ -145,48 +140,19 @@ idx DnaHexagonBatcher::OnExecute(idx req)
         reqSetStatus(req, eQPReqStatus_Done);
     }
 
-/*
-    if(killed) {
-        reqProgress(valueSets.dim(), 0, 100);
-        reqSetStatus(req, eQPReqStatus_ProgError); // change the status
-        return 0;
-    }
-    else if(stillRunning){
-        reqReSubmit(req,60);
-        return 0;
-    }
-*/
 
 
-    // at this point all subjobs are done - perform the rest of the operations
-    //idx bitsInIdx=(sizeof(idx)*8);
 
 
 
     for ( idx ig=0; ig<waitedReqs.dim() ; ++ig) {
         idx grpID=waitedReqs[ig];
-        //reqDataPath(grpID,"alignment.hiveal",&path);
 
         sStr pathHiveAl;
         reqDataPath(grpID,"reqself-alignment.hiveal",&pathHiveAl);
         sHiveal ha(user,pathHiveAl);
 
-        //idx qryNum,subNum;
-        //sStr tmp;
 
-        /*{
-            reqGetData(grpID,"subject",&tmp);
-            sHiveseq sub(tmp);
-            subNum=sub.dim();
-        }
-        */
-        /*
-        {
-            reqGetData(grpID,"query",&tmp,true);
-            sHiveseq qry(tmp);
-            qryNum=qry.dim();
-        }
-        */
 
         sVec < sVec < idx > > qryAl;
         cleanOverlappingAlignments(ha,thresholdOverlap, &qryAl, false);
@@ -196,51 +162,34 @@ idx DnaHexagonBatcher::OnExecute(idx req)
             if (qryAl[iQ].dim() == 0) continue;
             idx cntQryAls=qryAl[iQ].dim();
             if(!cntQryAls)continue;
-            //idx * qryal=qryAl[iQ].ptr();
 
 
             for (idx ii=0 ; ii < cntQryAls ; ++ii) {
                 if(*qryAl.ptr(iQ)->ptr(ii)==-1) continue;
-                //iihdr = ha.getAl(qryal[ii]);
-                //idx _tmp = ha.getAl(qryal[ii]);
                 idx alignNumber = *qryAl.ptr(iQ)->ptr(ii);
                 if (alignNumber < 0) {
                     alignNumber = (alignNumber * (-1)) - 1;
                 }
                 if (*qryAl.ptr(iQ)->ptr(ii) > 0) {
-                    // Get subject ID
                     idx idSub = ha.getAl(alignNumber)->idSub();
-                    // Resize if needed
                     coverages.resize(idSub + 1);
                     idx len = ha.getAl(alignNumber)->lenAlign();
-                    // Maintain list of culmative alignment lengths per subject
                     coverages[idSub] += len;
 
-                    /*
-                    idx score = ha.getAl(alignNumber)->score();
-                    idx start = ha.getAl(alignNumber)->subStart();
-                    idx qryStart = ha.getAl(alignNumber)->qryStart();
-                    ::printf("Qry: %" DEC "\tAlign: %" DEC "\tScore %" DEC "\tSubID:%" DEC "\tSubStart:%" DEC "\tQryStart:%" DEC "\tLen:%" DEC "\tSubEnd:%" DEC "\tQryEnd:%" DEC "\n", iQ, *qryAl.ptr(iQ)->ptr(ii), score, idSub,start,qryStart,len, len+start, len+qryStart);
-                    */
                 }
             }
 
         }
 
-        // Loop through and calculate which meets the 70% threshold of 5x coverage
-        // get subject
-        //idx mySubID = formIValue("mySubID",0);
         sHiveseq Sub(user, "3019630", sBioseq::eBioModeLong);
         sVec <idx> subjects;
 
         for (idx i = 0; i < Sub.dim(); i++) {
             idx subLength = Sub.len(i);
-            // set at ~75% length required
             subLength *= .75;
             idx _totCov = coverages[i];
             _totCov /= 10;
             if (_totCov > subLength) {
-                // Met requirement, mark subID
                 subjects.vadd(1, i);
             }
         }
@@ -255,8 +204,7 @@ idx DnaHexagonBatcher::OnExecute(idx req)
 
 
 
-//    reqProgress(cntFound, 100, 100);
-    reqSetStatus(req, eQPReqStatus_Done);// change the status
+    reqSetStatus(req, eQPReqStatus_Done);
 
     return 0;
 
@@ -268,7 +216,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     DnaHexagonBatcher backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-hexagon-batcher",argv[0]));
     return (int)backend.run(argc,argv);
@@ -276,12 +224,4 @@ int main(int argc, const char * argv[])
 
 
 
-//                if(hdr->score()>Scores[hdr->idSub])
-  //                  Scores[hdr->idSub]=hdr->score();
 
-    //            idx firstQryPos = hdr->qryStart() + m[1];
-        //        idx firstArrPos = hdr->idSub() * maxQryLen + firstQryPos ;
-      //          for (idx c = 0; c < hdr->lenAlign(); c++ ) {
-          //          QF[ (firstArrPos + c)/bitsInIdx ] |= ((idx)1) << ((firstArrPos + c)%bitsInIdx);
-            //    }
-            //}

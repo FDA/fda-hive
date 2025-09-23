@@ -34,6 +34,215 @@ regulatory personnel.  HIVE has additional applications for analysis of post mar
 </ul>
 
 
+    <span class='heading' id="algorithms">ALGORITHMICS:</span><br />
+    <span id="classic">Next Generation Sequencing Classical Analysis Tools:</span>
+    <ul>
+        <li>
+            <span class='pn'>HIVE-hexagon reference guided alignment</span> - This massively parallel, 
+            efficient algorithm was specifically designed to compute NGS alignments to reference genomes. 
+            NSG data has represented an explosion of biological genomic data that is being produced by 
+            today's scientists. This data is difficult to manage and even more difficult to analyze due 
+            to its size requiring new algorithms to process. A linearized diagonal adaptation of 
+            Smith-Waterman optimization and modifications to conventional heuristic seeding algorithms 
+            contribute to the enhanced performance of this tool with respect to other industry standard 
+            aligners. This algorithm is comparable in its quantitative and qualitative outcome with other 
+            well-received alignment algorithms, but is superior to competing tools with respect to speed 
+            and sensitivity.
+                <br/><br/>        
+                    <a href="img/HIVE_Hexagon_Results.png" data-lightbox="HIVE-results" 
+                                data-title="These are the Hexagon results for 100,000 Influenza reads against the 
+                                Influenza A genome. On the left is the pie chart showing the distribution of the 
+                                five matched segments. The right shows the alignments. Additional visualizations 
+                                are available.">
+                                    <img class="thumbborder centered" src="img/HIVE_Hexagon_Results_thumb.png">
+                    </a>
+                <br/><br/>   
+        </li>
+        <li>
+            <span class='pn'>HIVE-heptagon base-calling and SNP-profiling algorithm</span> - After aligning 
+            millions and millions of reads to a reference genome, individual variations which meet certain 
+            criteria need to be determined. This utility performs base-calling and SNP-calling, reports 
+            statistical significance, and produces a quality and sequencing noise profile with respect to a 
+            genomic reference position. Since Hexagon alignments are in a highly compressed format, Heptagon 
+            can optimize HIVE's infrastructure to quickly and accurately perform these operations. Other tools 
+            are restricted to command line interfaces or written as memory intensive Java applications that 
+            make it difficult to perform these operations on Big Data.
+                <br/><br/>
+                   <a href="img/HIVE_Heptagon_Results.png" data-lightbox="HIVE-results" 
+                        data-title="These are the Heptagon results for the previous alignment. On the left, the 
+                        summary results are shown for the alignment. On the right, three graphs have been 
+                        selected including a visualization of the forward and backwards coverage at any given 
+                        position on the reference (mousover information also shown); the disbalance graph for 
+                        the alignment; and the cumulative SNP frequency graph. Additional visualizations are 
+                        available.">
+                        <img class="thumbborder centered" src="img/HIVE_Heptagon_Results_thumb.png">
+                    </a>
+               <br/><br/> 
+        </li>
+        <li>
+            <span class='pn'>Pipeline for NGS data quality control</span> - NGS data received from sequencing 
+            centers or external collaborators may or may not be of high quality. Researchers are required to analyze 
+            the data to determine different quality metrics, but this process can be time consuming and tedious with 
+            large data sets. HIVE automates this process by analyzing various quality-related measures of genome 
+            sequencing data, such as
+                   <ul>
+                    <li type='a'>Base read quality versus position in the read (with standard deviations)</li>
+                    <li type='a'>Base count versus position in the read</li>
+                    <li type='a'>Average base quality in the read</li>
+                    <li type='a'>Total number of bases in the read</li>
+                    <li type='a'>Read length distribution</li>
+                    <li type='a'>Dependence of the read quality on the length</li>
+                   </ul>
+                <br/>
+                    <a href="img/HIVE_Reads_QC_Results.png" data-lightbox="HIVE-results" 
+                    data-title="These are the some of the quality control results for Influenza reads 
+                    retrieved from SRA. The first graph shows the number of bases at any given position 
+                    in the set of reads. The second graph is the average quality per reads position.">
+                            <img class="thumbborder centered" src="img/HIVE_Reads_QC_Results_thumb.png">                    
+                    </a>
+                <br/><br/>     
+        </li>
+           <li><span class='pn'>HIVE-octagon profile clustering</span> - This utility computes phylogenetic clustering of samples using variant profile similarity as the criterion for distance.</li>
+        <li><span class='pn'>Batch mode</span> - Experiments are rarely done on a single subject. Often, an experiment generates data from many different samples that need to be analyzed in the same manner. The HIVE Batch mode allows many of the tools in HIVE to be automated by the user, processing tens or hundreds of repetitive analytic jobs through a single easy to use interface nearly identical to the one for the tool itself. In contrast, most other tools require the user to spend time writing shell scripts to iterate through their experiments wasting valuable research time.</li>  
+        <li><span class='pn'>Third party tools</span> - Additional third party tools such as IDBA-UD, Velvet de Novo, 
+            PathoScope, BLASTN, BLASTX, TopHat, Bowtie (1 & 2), BWA, MAFFT, Clustal and others are integrated into the HIVE 
+            system to take advantage of the massively parallel processing environment. These tools cover certain tasks and 
+            contain default parameters based on these tasks, optimized by the HIVE team. These tools are also wrapped in 
+            simplified point and click interface with all of the advantages of HIVE's metadata storage and distributed 
+            computing environment and none of the downsides of trying to remember arcane command lines to launch them.
+                <br/><br/>     
+                    <a href="img/HIVE_IDBA-UD_Results.png" data-lightbox="HIVE-results" 
+                        data-title="The results from running IDBA-UD in the HIVE system. Output files by 
+                        the program are shown on the left, along with links to download them directly or 
+                        ingest them into the system for further analysis. When highlighted, the contents 
+                        of the output files are shown in the right panel.">
+                            <img class="thumbborder centered" src="img/HIVE_IDBA-UD_Results_thumb.png">
+                    </a>
+                     
+        </li>
+    </ul>
+    
+    <div>
+        <span id="novel">Next Generation Sequencing Novel Tools:</span>
+        <ul>
+            <li>
+                <span class='pn'>HIVE-hexahedron</span> - When a sample of viral or bacteria population is recovered, it 
+                is often not an individual clone but a 'cloud' of organisms that are similar, but not exact, genomically. 
+                Traditional techniques typically involve isolating a single clone from these samples and subsequently 
+                performing analysis on that clone leaving behind valuable data related to the genomic variation in the 
+                sample. In contras this clonal population discovery tool displays bifurcations of read mappings along the 
+                specified reference following reference-assisted de novo assembly. A Sankey diagram provides a graphical 
+                visualization of all possible clones.
+                    <br/><br/>
+                        <a href="img/HIVE_Clonal_Results.png" data-lightbox="HIVE-results" 
+                        data-title="The results from running Hexahedron on an alignment against Influenza A 
+                        with artificial mutations added. This is a visualization of the clones found in the 
+                        sample. Clone 1 is highlighted via mouse hover.">
+                            <img class="thumbborder centered" src="img/HIVE_Clonal_Results_thumb.png">
+                        </a>
+                    <br/><br/> 
+            </li>
+            <li>
+                <span class='pn'>Reference Recombination Tool</span> - This tool facilitates discovery of genetic recombination 
+                and allows resolution of subgroupings in viral, microbial, and other complex populations of environmental samples. 
+                    <br/><br/>
+                        <a href="img/HIVE_Recombination_Results.png" data-lightbox="HIVE-results" 
+                        data-title="In the Recombination results view, you can clearly see regions where 
+                        sample reads more closely resemble a particular genome among a set of related 
+                        genomes based on a previously computed multiple alignment. In this example, you can 
+                        see the majority of the sample corresponds to the Sabin 3 genome, but the range 
+                        from about 4400 to 5900 corresponds to the Sabin 2 genome.">
+                            <img class="thumbborder centered" src="img/HIVE_Recombination_Results_thumb.png">
+                        </a>
+                    <br/><br/>
+            </li>
+            <li>
+                <span class='pn'>CensuScope</span> - Metagenomic samples that are collected from soil, human gut, or other 
+                diverse areas can be sequenced with current technologies reducing the need to culture individual bacteria for 
+                species discovery. However, the genomic information that is produced is often many hundreds of millions, or 
+                more, of short read sequences. Sifting through this data is computationally difficult even with large 
+                computational resources. The CensuScope program uses a robust subsampling-based algorithm that detects the 
+                taxonomic composition of metagenomic datasets quickly and efficiently.
+                    <br/><br/>
+                        <a href="img/HIVE_Censuscope_Results.png" data-lightbox="HIVE-results" 
+                            data-title="These are sample results from the CensuScope program.">
+                                <img class="thumbborder centered" src="img/HIVE_Censuscope_Results_thumb.png">
+                        </a>
+                    <br/><br/>
+            </li>
+            <li>
+                <span class='pn'>Genome Randomizer</span> - After new pipelines are generated, rigorous testing needs to take 
+                place in order to validate these pipelines as effective for their intended purpose. The Genome Randomizer is 
+                a tool in HIVE that allows users to generate artificial read data from a reference genome quickly and easily. 
+                This data can be of any length required by the user and can include simulated mutation information. Paired-end 
+                reads can also be simulated. Other tools that exist are difficult to use while the Genome Randomizer offers a 
+                simple point and click interface for users.
+            </li>
+            <li>
+                <span class='pn'>Annotation Mapper</span> - Often the results of NGS analysis generate large data sets of 
+                information dumped into specifically formatted files. Wading through this information is a nightmare for researchers 
+                due to the extremely high computational demand of searching and matching. Given two or more datasets, the Annotation 
+                Mapper tool can quickly and efficiently cross-map annotation or profile files against each other. This tool report 
+                overlaps or exclusions among the files, quickly allowing a researcher to compare their generated VCF file with dbSNP 
+                or some other database for novel discoveries. The program is extremely flexible allowing filters to be used both on 
+                the reference level and the data level.
+                    <br/><br/>
+                        <a href="img/HIVE_Annotation_Mapper_Results.png" data-lightbox="HIVE-results" 
+                        data-title="These are sample results from the Annotation Mapper software where one 
+                        set of genomic functional elements was mapped against a set of cancer associated 
+                        single nucleotide variations.">
+                            <img class="thumbborder centered" src="img/HIVE_Annotation_Mapper_Results_thumb.png">
+                        </a>
+                    <br/><br/>
+            </li>
+            <li>
+                <span class='pn'>Table query analyzer</span> - Excel and other graphical spreadsheet viewers have a difficult time 
+                opening up very large data sets for manipulation. Occasionally, researchers need to remove parts of a table before 
+                they perform statistical analysis, send it to a collaborator, or otherwise interpret the results. Table query analyzer 
+                removes these limitations and allows the researcher to view and modify data from an uploaded CSV file and perform 
+                analysis on rows/columns to produce clustering diagrams, heatmaps, and other visual or numerical data summaries.
+            </li>
+            <li>
+                <span class='pn'>HIVE-Seq sequence manipulation toolkit</span> - Data received by researchers is rarely clean, and 
+                tools to clean and package data properly are difficult to use. Hive-Seq offers researchers a point and click platform 
+                to clean up NGS samples by filtering data with respect to position, quality, primer, adapter, or other characteristics. 
+                They can additionally organize data into subsets, or create synthetic reads from a genome with a defined level of noise.
+            </li>        
+        </ul>
+       
+       
+   
+    
+    
+    
+    
+    
+    
+           
+           
+           
+           
+            <!--  
+            <li><span class='pn'>Novel post-alignment quality control</span> - Using a positional base-frequency entropic information content paradigm from information theory 
+                methodologies, additional quality filters can be applied to alignment and base-calling results.  This technique helps to </li>
+               -->            
+            <!--  
+            <li><span class='pn'>Metagenomic recombination analysis</span> - Traditional techniques involved isolating a single clone from these samples and then performing analysis on that clone leaving behind valuable data related to
+                the genomic variation in the sample.  This tool can be is used study viral and bacterial population dynamics for possible recombination events and to recover some of this information from the sample.</li>
+            -->      
+            <!--  
+            <li><span class='pn'>SNV-dis SNV distribution tool</span> - Inquire about the statistically significant SNP occurrences in viruses, prokaryotes or eukaryotes. This tool 
+                is capable of analyzing either user-provided datasets or retrieving entries from dbSNP, Pfam, and UniProtKB in real time. These data are then searched for evidence of 
+                selection pressure on domains, structures, pathways, or other protein classification category provided by the user.</li> -->
+            <!--
+            <li><span class='pn'>Sequence to structure prediction tool</span> - Expedite and simplify the study of motif occurrence distribution in the proteome with respect to secondary 
+                structure localization.</li>
+            -->
+            
+    
+             
+        
+    </div>
 
 
 <span class='heading'>INTERFACES:</span><br/>
@@ -53,6 +262,15 @@ regulatory personnel.  HIVE has additional applications for analysis of post mar
     <li><span class='pn'>Quality control interface</span> enables visualization of different QC procedure outputs for simple validation and verification of NGS data.</li>
     <li><span class='pn'>A web-based application for analyzing ELISA</span> where an imported experiment can be evaluated and the resulting graph, data, and error analysis are displayed.</li>
 </ul>
+
+
+
+
+
+
+
 </description>
+
+
 
 <script src="//cdn.rawgit.com/noelboss/featherlight/1.4.0/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>

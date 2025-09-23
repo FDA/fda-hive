@@ -32,27 +32,35 @@
 #define dmCompressor_hpp
 
 #include <qpsvc/qpsvc.hpp>
-#include <dmlib/dmlib.hpp>
+#include <xlib/dmlib.hpp>
 
 class dmCompressor: public sQPSvc
 {
         typedef sQPSvc TParent;
     public:
 
-        dmCompressor(sQPride& qp, const char * file, const sHiveId & objId, dmLib::EPackAlgo algo);
+        dmCompressor(sQPride & qp, const char * file, const sHiveId & objId, dmLib::EPackAlgo algo);
+        dmCompressor(sQPride & qp, sVec<sHiveId> & objs, const char * hivepack_name);
+        dmCompressor(sQPride & qp, const char * query, const char * hivepack_name);
+        dmCompressor(sQPride & qp, sVec<sHiveId> & objs, const char * mask, const char * arc_name, dmLib::EPackAlgo algo = dmLib::eZip);
+        dmCompressor(sQPride & qp, const char * query, const char * mask, const char * arc_name, dmLib::EPackAlgo algo = dmLib::eZip);
         virtual ~dmCompressor();
 
-        virtual const char* getSvcName() const
+        virtual const char * getSvcName() const
         {
             return "dmCompressor";
         }
 
+        void setFunction(const char * function);
+
         void setFile(const char * file, ...) __attribute__((format(printf, 2, 3)));
-        void setObjId(const sHiveId & objId);
         void setCompression(dmLib::EPackAlgo algo);
 
-    protected:
-        sStr m_properties;
+        void setContainerName(const char * filename, ...) __attribute__((format(printf, 2, 3)));
+        void setObjs(const sHiveId & objId, const bool with_dependences = true);
+        void setObjs(sVec<sHiveId> & objs, const bool with_dependences = true);
+        void setObjs(const char * query);
+        void setFiles2Mask(const char * mask);
 };
 
-#endif // dmCompressor_hpp
+#endif 

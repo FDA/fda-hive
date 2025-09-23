@@ -60,33 +60,33 @@ idx sMathNR::gaussj(real * A, idx n, real *B, idx m)
                     }
                 }
             }
-            ++(ipiv[icol]);
+        ++(ipiv[icol]);
 
-            if (irow != icol) {
-                for (l=1;l<=n;l++) SWAP(a(irow,l),a(icol,l))
-                for (l=1;l<=m;l++) SWAP(b(irow,l),b(icol,l))
-            }
-            indxr[i]=irow;
-            indxc[i]=icol;
-            if (sAbs(a(icol,icol)) <= 1e-8)  {
-                sMathNRUtil::nrerror("gaussj: Singular Matrix");
-                return i;
-            }
-            
-            pivinv=1.0/a(icol,icol);
-            a(icol,icol)=1.0;
-            for (l=1;l<=n;l++) a(icol,l) *= pivinv;
-            for (l=1;l<=m;l++) b(icol,l) *= pivinv;
+        if (irow != icol) {
+            for (l=1;l<=n;l++) SWAP(a(irow,l),a(icol,l))
+            for (l=1;l<=m;l++) SWAP(b(irow,l),b(icol,l))
+        }
+        indxr[i]=irow;
+        indxc[i]=icol;
+        if (sAbs(a(icol,icol)) <= 1e-8)  {
+            sMathNRUtil::nrerror("gaussj: Singular Matrix");
+            return i;
+        }
+        
+        pivinv=1.0/a(icol,icol);
+        a(icol,icol)=1.0;
+        for (l=1;l<=n;l++) a(icol,l) *= pivinv;
+        for (l=1;l<=m;l++) b(icol,l) *= pivinv;
 
-            for (ll=1;ll<=n;ll++)
-                    if (ll != icol) {
-                            dum=a(ll,icol);
-                            a(ll,icol)=0.0;
-                            for (l=1;l<=n;l++) 
-                                a(ll,l) -= a(icol,l)*dum;
-                            for (l=1;l<=m;l++) 
-                                b(ll,l) -= b(icol,l)*dum;
-                    }
+        for (ll=1;ll<=n;ll++)
+                if (ll != icol) {
+                        dum=a(ll,icol);
+                        a(ll,icol)=0.0;
+                        for (l=1;l<=n;l++) 
+                            a(ll,l) -= a(icol,l)*dum;
+                        for (l=1;l<=m;l++) 
+                            b(ll,l) -= b(icol,l)*dum;
+                }
     }
     for (l=n;l>=1;l--) {
         if (indxr[l] != indxc[l])
@@ -108,7 +108,7 @@ idx sMathNR_gaussjMi(real * A, idx n, real *B, idx m)
         for (idx ibig=maxbig+1; ibig<=n; ++ibig) {
             if( sAbs( a(ibig,row)) > sAbs( a(maxbig,row)) ) maxbig=ibig;
         }
-        if(maxbig!=row) {  // switch rows 
+        if(maxbig!=row) {
             real t;
             for ( idx c=1; c<=n; ++c) {
                 t=a(row,c);
@@ -123,9 +123,7 @@ idx sMathNR_gaussjMi(real * A, idx n, real *B, idx m)
         }
 
 
-//        real coef=1./a(row,row);
         if(sAbs(a(row,row))<=1e-8){
-            //a(row,row)=1e-8;
             sMathNRUtil::nrerror("gaussj: Singular Matrix");
             return row;
         }
@@ -140,7 +138,6 @@ idx sMathNR_gaussjMi(real * A, idx n, real *B, idx m)
             coef=a(i,row);
             for( idx c=1; c<=n;++c)
                 a(i,c)= (c==row) ? 0 : (a(i,c)-a(row,c)*coef);
-                //a(i,c)= (c==row) ? 0 : (a(i,c)-a(row,c)*coef);
             for( idx c=1; c<=m;++c)
                 b(i,c)=b(i,c)-b(row,c)*coef;
         }
@@ -165,14 +162,10 @@ idx sMathNR::inverse_matrix(real *A, idx n)
     idx m=n+1;
     real* B=sMathNRUtil::vector(1,(n+1)*(m+1)+1);
 
-//long double * AA=new long double [n*n];
-//long double * BB=new long double [n*m];
             
     for ( idx i=1; i<=n; ++i ) {
         for ( idx j=1; j<=n; ++j ) {
-//bb(i,j)= (i==j ? 1. : 0.) ;
             b(i,j)= (i==j ? 1. : 0.) ;
-//aa(i,j)=a(i,j);
         }
     }
     for ( idx j=1; j<=n; ++j ) {
@@ -180,10 +173,7 @@ idx sMathNR::inverse_matrix(real *A, idx n)
     }
 
     idx res=sMathNR_gaussjMi(A, n, B, m);
-    //idx res=gaussj(A, n, B, m);
     
-    //delete AA;
-    //delete BB;
     
     sMathNRUtil::free_vector(B,1,(n+1)*(m+1)+1);
     return res;
@@ -195,7 +185,6 @@ void sMathNR::inverse_matrix_lud(real *A, idx n)
     real * cols=sMathNRUtil::vector(1,n);
     real ** amat =sMathNRUtil::matrix(1,n,1,n);
     
-    // copy yhe matrix 
     for(idx i=1; i<=n; ++i) {for(idx j=1; j<=n; ++j) {amat[i][j]=a(i,j);}}
 
     real d;

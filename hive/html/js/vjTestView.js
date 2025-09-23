@@ -30,14 +30,8 @@
 
 function vjTestView(viewer) {
 
-    vjDataViewViewer.call(this, viewer); // inherit default behaviours of the
-                                            // DataViewer
+    vjDataViewViewer.call(this, viewer);
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Test viewer constructors
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.composerFunction = function(viewer, content)
     {
@@ -52,7 +46,7 @@ function vjTestView(viewer) {
 
     this.refresh = function()
     {
-        this.div.innerHTML = "this is my text"; //this.generateTableViewText(this.tblArr);
+        this.div.innerHTML = "this is my text";
 
 
     };
@@ -60,4 +54,3 @@ function vjTestView(viewer) {
 
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjTestView.js"

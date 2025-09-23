@@ -33,14 +33,22 @@ PROGRAMS += dna-multi-qc
 PROGRAMS_LIBS = -lviolib -lqpsvc $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
+OBJECT_TYPES = svc-dna-multi-qc
+
 dna-multi-qc_SRCS = dna-multi-qc.cpp
+
+APPS = Multiple-NGS-QC:1
+
+MENUITEMS = \
+	/Portal/General_DNA_Filters_and_Tools/Multiple_QC
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-multi-qc,Next-Gen Sequence Quality Controls Between Files,/Sequencing/)
 	$(call dist-app,dna-multi-qc,dna-multi-qc)

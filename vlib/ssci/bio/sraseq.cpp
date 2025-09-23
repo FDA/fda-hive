@@ -49,9 +49,6 @@ const char* proc_names[] = {
         LIBSRA_PREFIX"GetQual"
 };
 
-/**
- *  ORDER OF NAMES ABOVE AND UNION ELEMENTS BELOW IS VERY IMPORTANT!!!
- */
 
 static union {
     sDll::Proc p[12];
@@ -90,7 +87,6 @@ static bool OpenDll(void)
         }
     }
     if(success) {
-        // verify version is 2, based on 2.1.16
         udx ver = vtbl.f.ver();
         if((ver >> 24) != 2) {
             success = false;
@@ -104,7 +100,6 @@ sSRASeq::sSRASeq(const char* path, udx cache_size)
 {
     if(OpenDll()) {
         m_handle = vtbl.f.open(path, cache_size);
-        // set to 2na by default
         vtbl.f.as2na();
         m_seq.resize(sSizePage);
         m_id.resize(sSizePage);
@@ -138,7 +133,6 @@ inline
 const char * sSRASeq_readbuf(const void* m_handle, idx num, idx iread, sStr& buf,
         idx (*func)(const void* handle, udx row, idx read_num, void* buf, idx buf_sz))
 {
-    // try to allocate finite number of times
     idx i = 0;
     do {
         idx q = func(m_handle, num, iread, buf.ptr(), buf.total());

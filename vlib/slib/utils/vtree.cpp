@@ -111,7 +111,7 @@ PERF_START("Loop inside Tree");
         curr=*pstack->ptr(pstack->dim()-1);
         pstack->cut(pstack->dim()-1);
 
-        if(curr.getInd()>_size){ //check if we are out of bounds of the real tree
+        if(curr.getInd()>_size){
             if(curr.getLevel()>0){
                 vTreeNode next;
                 level = curr.getLevel();
@@ -146,7 +146,7 @@ PERF_START("Loop inside Tree");
                     nextL.range.end=0;
                     *pstack->add() = nextL;
                 }
-            } else{ //we can always go left if already out of bounds. consider tree of size 9 (node 10)
+            } else{
                 *pstack->add() = nextL;
             }
             vTreeNode nextR;
@@ -164,7 +164,7 @@ PERF_START("Loop inside Tree");
                     nextR.range.end=0;
                     *pstack->add() = nextR;
                 }
-            } else if ( curr.getInd() < _size && _compare(end, curr.range.start, params, sVTree::eNC_ES)>=0 ){ //we can always go right if already out of bounds. consider tree of size 5
+            } else if ( curr.getInd() < _size && _compare(end, curr.range.start, params, sVTree::eNC_ES)>=0 ){
                 *pstack->add() = nextR;
             }
         }

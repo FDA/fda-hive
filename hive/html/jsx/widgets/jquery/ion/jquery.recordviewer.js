@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.recordviewer.js
 
 $(function () {
     $.widget("ion.ion_recordviewer", $.ion.field_complex, {
@@ -35,7 +34,7 @@ $(function () {
             url: null,
             spec: null,
             collapsed: true,
-            style: 'inline'    //    form|inline
+            style: 'inline'
         },
 
         _create: function () {
@@ -51,7 +50,6 @@ $(function () {
                         dataType: "json",
                         url: self.options.url,
                         success: function(data) {
-                            //    TODO: implement reading JSON object from URL.
                         }
                     });
                 }
@@ -59,7 +57,6 @@ $(function () {
                     self._super();
 
                     self.element.trigger('ready');
-                    //that.showJson(that.options.json)
                 }
             });
 
@@ -93,7 +90,6 @@ $(function () {
 
                         self.controlPanel.removeClass('hidden').css(position);
 
-                        //    remember element that triggered the control panel... 
                         self.hoveredElement = this;
                     }
                 },
@@ -135,7 +131,6 @@ $(function () {
 
                         self.controlPanel.removeClass('hidden').css(position);
 
-                        //    remember element that triggered the control panel... 
                         self.hoveredElement = this;
                     }
 
@@ -218,7 +213,6 @@ $(function () {
                             return false;
                         })
                         .click(function () {
-                            //    initiate event to delete element...
                             $(self.hoveredElement).trigger('delete-field');
 
                             self.hideCotrolPanel();
@@ -240,7 +234,6 @@ $(function () {
                             return false;
                         })
                         .click(function () {
-                            //    initiate event to rollback changes...
                             $(self.hoveredElement).trigger('rollback-field');
 
                             self.hideCotrolPanel();
@@ -272,32 +265,6 @@ $(function () {
                     self.hideCotrolPanel();
                 })
                 .appendTo(this.element);
-            /*
-                        if(this.element.is('.plural')) {
-                            $('.primitive,.ion-type', this.container).livequery(function () {
-                                if($(this).closest('div.field-container').is('.plural')) {
-                                    $(this).hover(function() {
-                                        if(self.container.children('.primitive,.ion-type').length > 1 ||
-                                            self.container.children('table').length == 1 && self.container.children('table').children('tbody').children('tr').length > 1) {
-                                            self.activeField = $(this);
-
-                                            clearTimeout(self.hideControlPanelTimer);
-
-                                            self.controlPanel.removeClass('hidden').css({
-                                                top: $(this).position().top,
-                                                left: $(this).position().left + $(this).outerWidth(true)
-                                            });
-                                        }
-                                    },
-                                    function() {
-                                        self.hideControlPanelTimer = setTimeout(function () {
-                                            self.controlPanel.addClass('hidden');
-                                        }, 500);
-                                    });
-                                }
-                            });
-                        }
-            */
         },
 
         hideCotrolPanel: function() {

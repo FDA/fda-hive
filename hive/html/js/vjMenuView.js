@@ -27,26 +27,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
-clickCallback
-popupMenu
-*/
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 function vjMenuView(viewer) {
-    vjDataViewViewer.call(this, viewer); // inherit default behavior of the DataViewer
+    vjDataViewViewer.call(this, viewer);
 
     if (!this.className) this.className = "MENU_table";
     if (!this.classNameTop) this.classNameTop = this.className + "_top";
     if (!this.classNameHighlight) this.classNameHighlight = this.className + "_highlight";
 
     if (!this.hideTimeout) this.hideTimeout = 10000;
-    if (!this.iconSize) this.iconSize = 0; //alerJ(this.iconSize,this);
+    if (!this.iconSize) this.iconSize = 0;
     if (!this.icons) {
         this.iconSizeimg = Math.round(parseInt(this.iconSize) * 0.6);
         this.icons = { expand: "<img width="+this.iconSizeimg+" border=0 src=\'img/recItem.gif\'>" };
@@ -54,8 +45,6 @@ function vjMenuView(viewer) {
 
     if (!this.maxMenuDepthOpen) this.maxMenuDepthOpen = 10;
     if (!this.rootMenuStyle) this.rootMenuStyle = "horizontal";
-    //    if (!this.lastSearch) this.lastSearch = '';
-    //    if (!this.lastSubmit) this.lastSubmit =[{name:'search',value:''}];
     if (!this.allowSearch) this.allowSearch = true;
 
     if (!this.selectedCounter) this.selectedCounter = 20;
@@ -66,17 +55,19 @@ function vjMenuView(viewer) {
     if (!this.showInfo) this.showInfo = false;
     if (!this.rowSpan) this.rowSpan = 1;
     if (!this.excludedDataRefresh) this.excludedDataRefresh = [0];
-    if (this.isNrefreshOnLoad===undefined) this.isNrefreshOnLoad=true;          //Don't refresh panels
+    if (this.isNrefreshOnLoad===undefined) this.isNrefreshOnLoad=true;
     if (!this.urlExchangeParameter) this.urlExchangeParameter = urlExchangeParameter;
     if (!this.computeSubmitableValue) this.computeSubmitableValue = docLocValue;
     if ( this.startArg === undefined ) this.startArg = "start";
     if ( this.cntArg === undefined ) this.cntArg = "cnt";
+    this.urlVar = {
+        start: 'rowStart',
+        cnt: 'selectedCounter'
+    }
 
     this.activeNodeAtDepth = [];
 
     this.rebuildTree = function(viewer, content, tbl) {
-        
-        //alerJ(this.getData(1).data,viewer);
         if (!tbl) {
             tbl = new vjTable(this.getData(0).data, 0, vjTable_propCSV);
         }
@@ -85,7 +76,9 @@ function vjMenuView(viewer) {
         var rowsLength=tbl.rows.length;
         for(var ir=0; ir<rowsLength; ++ir){
             var row=tbl.rows[ir];
-            if(row.data===undefined)continue;
+            if(row.data===undefined){
+                continue;
+            }
             if(row.data.source===undefined)continue;
             if(row.data.source.indexOf('eval')==0)row.data.source=eval(row.data.source.substring(5));
             var rowDataTbl=new vjTable(this.dataSourceEngine[row.data.source].data, 0, vjTable_propCSV);
@@ -119,6 +112,7 @@ function vjMenuView(viewer) {
                 else{
                     drow=rowDataTbl.rows[idr];
                 }
+                
 
                 var idc=0;
                 for(idc in row.data){
@@ -133,7 +127,6 @@ function vjMenuView(viewer) {
                             if(row.data[idc])value=row.data[idc];
                             else value='';
                         }
-//                        if(value===undefined)
                         dpath=value===undefined?row.data[idc]:value;
                     }
                     else {
@@ -171,24 +164,12 @@ function vjMenuView(viewer) {
                 delete node.children;
                 delete node.childrenCnt;
             }
-
-//            if (node.response && node.url) {
-//                if (!node.target)
-//                    node.target = null;
-//
-//                node.url='javascript:vjObjEvent("linkActionResponse","'+this_.objCls+'","'+node.url+'","'+node.target+'")';
-//                delete node.target;
-//            } else if (node.target && node.url) {
-//                node.url='javascript:linkURL("'+node.url+'","'+node.target+'")';
-//                delete node.target;
-//            }
         }, this);
 
-//        tbl.enumerate("if(node.target && node.url) {node.url='javascript:linkURL(\"'+node.url+'\",\"'+ node.target+'\")'; delete node.target;}");
         this.tree = new vjTree(tbl);
 
         if (this.precompute)
-            tbl.enumerate(this.precompute, this);
+            tbl.enumerate(this.precompute, this);        
 
         for( var ids = 1 ; ids < this.data.length ; ++ids) {
             if (this.dataSourceEngine && this.getData(ids) && this.getData(ids).url.indexOf("static")!=0) {
@@ -202,35 +183,42 @@ function vjMenuView(viewer) {
 
         if (this.allowSearch) {
             this.tree.enumerate("if(node.name=='search'){node.type='search';}");
-            /*if (this.formObject) {
-                alert("captured " + this.formObject.name);
-
-                this.formObject.onsubmit = function(e) {
-                    return false;
-                };
-            }*/
         }
+
 
         this.tree.root.menuHorizontal = (this.rootMenuStyle == "horizontal") ? true : false;
 
-        // for pagenators
         var tblArr = new vjTable((this.data.length > 1 && this.dataSourceEngine) ? this.getData(1).data : "id,name,path,value\n", 0, vjTable_propCSV);
+        if(this.useContent)
+            tblArr = new vjTable(content, 0, vjTable_propCSV);
         if(this.exclusionObjRegex)tblArr.mangleRows(this.exclusionObjRegex, "delete");
 
         if (tblArr.rows.length > 0) {
-
-            for (var ii = 0; ii < tblArr.rows.length && tblArr.rows[ii].id != "info"; ++ii);  // look for info
+            for (var ii = 0; ii < tblArr.rows.length && tblArr.rows[ii].id != "info"; ++ii);
             this.rowsShown = Int(tblArr.rows.length / this.rowSpan);
             if (ii == tblArr.rows.length) {
                 var isNotNewStart = this.computeSubmitableValue(this.startArg, this.rowStart, this.getData(1).url);
                 if (isNotNewStart == "0") this.rowStart = 0;
                 if (typeof this.LastIndexCol !== 'undefined')
                     this.queryStart = parseInt(tblArr.rows[tblArr.rows.length - (this.rowSpan ? this.rowSpan : -1)].cols[this.LastIndexCol]) + 1;
-                this.rowCnt = 'unknown'; // couldn't find info block .. presume the count
-            } else {
+                this.rowCnt = 'unknown';
+            } else if( tblArr.rows.length - ii === 2){
+                for(ii; ii < tblArr.rows.length;ii++){
+                    switch(tblArr.rows[ii].cols[1]){
+                        case 'total':
+                            this.rowCnt = parseInt(tblArr.rows[ii].cols[3])
+                            break;
+                        case 'start':
+                            this.rowStart = parseInt(tblArr.rows[ii].cols[3]);
+                            break;
+                    }
+                }
+                this.getData(1).dataSize=this.rowCnt;
+                this.rowsShown -= 2;
+            }else {
                 this.rowCnt = parseInt(tblArr.rows[ii].total);
                 this.rowStart = parseInt(tblArr.rows[ii].start);
-                if (isNaN(this.rowCnt) || isNaN(this.rowStart)) { // the info comes NOT in object format
+                if (isNaN(this.rowCnt) || isNaN(this.rowStart)) {
                     this.rowCnt = parseInt(tblArr.rows[ii].cols[2]);
                     this.rowStart = parseInt(tblArr.rows[ii].cols[1]);
                 }
@@ -238,13 +226,8 @@ function vjMenuView(viewer) {
                 --this.rowsShown;
             }
 
-            // read the counter
-           /* if (this.formObject && this.formObject.elements[this.container + "_pageCounter"])
-                this.selectedCounter = this.formObject.elements[this.container + "_pageCounter"].value;
-            else*/
-                this.selectedCounter = this.computeSubmitableValue(this.cntArg, this.selectedCounter, this.getData(1).url);
 
-            //this.rowCnt=this.selectedCounter;
+            this.selectedCounter = this.computeSubmitableValue(this.cntArg, this.selectedCounter, this.getData(1).url);
         }
         else {
             this.rowsShown = 0;
@@ -265,12 +248,18 @@ function vjMenuView(viewer) {
                 this.rowStart = 0;
             }
         }
+        
+        if(this.rebuildTreeCallback)
+            this.rebuildTreeCallback(this);
     };
 
     this.composerFunction = function (viewer, content) {
         this.rebuildTree(viewer, content);
         this.redrawMenuView(this.tree.root);
 
+        if(this.onFinishedDrawing)
+            this.onFinishedDrawing(viewer, content);
+        
         var t = "vjObjEvent(\"onHide\", \"" + this.objCls + "\",0,0,true);";
         if (gOnDocumentClickCallbacks.indexOf(t) == -1) gOnDocumentClickCallbacks += t;
     };
@@ -278,20 +267,20 @@ function vjMenuView(viewer) {
         this.redrawMenuView ();
     };
     this.isVertical = function(node) {
-        // depth 0 is root, depth 1 is top-level menu bar
         return node.menuHorizontal===undefined ? node.depth > 0 : !node.menuHorizontal;
     };
     this.redrawMenuView = function (node) {
         if (!node) node = this.tree.root;
+        
+        if(this.predrawMenuView) this.predrawMenuView(node);
+        
         if (this.div != document.getElementById(this.container)) {
-            // this.div may have become invalid because a parent div got re-rendered
             this.div = document.getElementById(this.container);
         }
         if (!this.div) {
             return;
         }
         gCreateFloatingElements(this.createFloatingLayers(this.maxMenuDepthOpen));
-        //alert(this.div.id + " --  " + this.outputNode(this.tree.root,node.menuHorizontal ? false : true ))
         var div;
         if (node.path == this.tree.root.path) {
             div = this.div;
@@ -317,10 +306,10 @@ function vjMenuView(viewer) {
         }
         else {
             if( target == "ajax" ) {
-                if(url.indexOf("http://")<0){
-                    url = "http://"+url;
+                if(url.indexOf("http:
+                    url = "http:
                 }
-                this.actions_DS.reload(url,true);
+                this.actions_DS.reload(url,true,node);
             }
             else {
                 linkSelf(url,target);
@@ -337,10 +326,87 @@ function vjMenuView(viewer) {
         if (!this.tree || !this.tree.root) return;
         return this.tree.findByOperation(checker, collector, params, ischecked, leaforbranch, node);
     };
+    
+    this.getClickUrl = function (node) {
 
+        if (this.callerObject && this.callerObject.onClickMenuNode) return false;
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/ event handlers
+        var res = true;
+        if (parseBool(node.confirmation)) return false;
+        if (node.target == "ajax") return false;
+
+        var func = this.clickCallback;
+        if (!func) func = node.clickCallback;
+        if (!func) {
+            func = node.url;
+            if (typeof (func) == 'string')
+                func = func.replace(/&amp;/g, "&");
+        }
+
+        if (typeof(func) == "string" && func.indexOf("$(") >= 0) {
+            func = this.nodeEvalVars(func, node);
+        }
+
+        return funcUrl(func);
+    };
+
+    this.nodeEvalVarsComp = function (node) {
+        var comp = cpyObj(node);
+
+        comp.dataname = this.getData(1) ? this.getData(1).name : "";
+        comp.dataurl = this.getData(1) ? this.getData(1).url : "";
+        var _dataUrl_sep = comp.dataurl.indexOf("
+        if (_dataUrl_sep >= 0) {
+            comp.dataurl = comp.dataurl.substr(_dataUrl_sep + 2);
+        }
+        comp.ids = new Array();
+        comp.types = new Array();
+        comp.objs=new Array();
+        comp.names=new Array();
+        if (this.evalVariables) {
+            for (var i in this.evalVariables) {
+                comp[i] = this.evalVariables[i];
+            }
+        }
+        if (this.objType) {
+            comp.objType=this.objType;
+        }
+        if (this.objectsIDependOn) {
+            for (var im = 0; im < this.objectsIDependOn.length; ++im) {
+                comp.objs = comp.objs.concat(this.objectsIDependOn[im].accumulate("node.checked>0 && node.id", "node", 0));
+                comp.names = comp.names.concat(this.objectsIDependOn[im].accumulate("node.checked>0 && node.id", "node.name", 0));
+                comp.ids = comp.ids.concat(this.objectsIDependOn[im].accumulate("node.checked>0 && node.id", "node.id", 0));
+                comp.types = comp.types.concat(this.objectsIDependOn[im].accumulate("node.checked>0 && node.id", "node._type", 0));
+                
+            }
+            if(this.objectsIDependOn.length === 1 && this.objectsIDependOn[0].accumulate("node.checked > 0 && node.id && node.submitter", "node.submitter", 0)){
+               comp.submitter = this.objectsIDependOn[0].accumulate("node.checked>0 && node.id && node.submitter", "node.submitter", 0); 
+            }
+        }
+        comp.type = comp.types.join(",");
+        comp.ids = comp.ids.join(",");
+        comp.objs=comp.objs.join(",");
+        comp.names=comp.names.join(",");
+        var srchEl = undefined;
+        if (this.formObject && this.formObject.elements) {
+            srchEl = this.formObject.elements[this.container + "_search"];
+        }
+        comp.search = srchEl ? srchEl.value : "";
+
+        return comp;
+    };
+
+    this.nodeEvalVars = function(text, node, comp) {
+        if (typeof(text) == "string" && text.indexOf("$(") >= 0) {
+            if (!comp) {
+                comp = this.nodeEvalVarsComp(node);
+            }
+            return evalVars(text, "$(", ")", comp);
+        } else {
+            return text;
+        }
+    };
+
 
     this.onClickMenuNode = function (container, nodepath) {
         var node = this.tree.findByPath(nodepath);
@@ -353,13 +419,11 @@ function vjMenuView(viewer) {
         }
 
         var res = true;
-        if (node.confirmation) {
+        if (parseBool(node.confirmation)) {
             res = confirm("Are you sure you want to " + node.title + " selected objects");
             if (!res) return;
         }
 
-
-        //document.location=node.url;
         var func = this.clickCallback;
         if (!func) func = node.clickCallback;
         if (!func) {
@@ -368,8 +432,7 @@ function vjMenuView(viewer) {
                 func = func.replace(/&amp;/g, "&");
         }
 
-        //var comp= {ids:new Array () };
-        var comp = cpyObj(node);
+        var comp = this.nodeEvalVarsComp(node);
 
         var prompt_res = false;
         if (node.prompt) {
@@ -378,48 +441,13 @@ function vjMenuView(viewer) {
                 return;
             comp.prompt_res = prompt_res;
         }
-//        comp.dcls = "\""+this.objCls+"\"";
-        comp.dataname=this.getData(1)?this.getData(1).name:"";
-        comp.dataurl=this.getData(1)?this.getData(1).url:"";
-        var _dataUrl_sep=comp.dataurl.indexOf("//");
-        if(_dataUrl_sep>=0)
-            comp.dataurl=comp.dataurl.substr(_dataUrl_sep+2);
-        comp.ids = new Array();
-        comp.types = new Array();
-        comp.objs=new Array();
-        if (this.evalVariables) {
-            for ( var i in this.evalVariables) {
-                comp[i] = this.evalVariables[i];
-            }
+
+        func = this.nodeEvalVars(func, node, comp);
+        if (!func) return;
+
+        if (node.refreshDelayCallback) {
+            node.refreshDelayCallback = this.nodeEvalVars(node.refreshDelayCallback, node, comp);
         }
-        if(this.objType)comp.objType=this.objType;
-        if (this.objectsIDependOn) {
-
-            for (var im = 0; im < this.objectsIDependOn.length; ++im) {
-                comp.objs = comp.objs.concat(this.objectsIDependOn[im].accumulate("node.checked>0 && node.id", "node", 0));
-                comp.ids = comp.ids.concat(this.objectsIDependOn[im].accumulate("node.checked>0 && node.id", "node.id", 0));
-                comp.types = comp.types.concat(this.objectsIDependOn[im].accumulate("node.checked>0 && node.id", "node._type", 0));
-            }
-        }
-        comp.type=comp.types.join(",");comp.ids=comp.ids.join(",");comp.objs=comp.objs.join(",");
-        var srchEl = undefined;
-        if (this.formObject && this.formObject.elements) srchEl = this.formObject.elements[this.container + "_search"];
-        comp.search = srchEl ? srchEl.value : "";
-
-        //alert( func  + " ="+evalVars(func,"$(",")",comp) )
-        func = evalVars(func, "$(", ")", comp);
-        if(!func)return ;
-
-        if(node.refreshDelayCallback) {
-            node.refreshDelayCallback = evalVars(node.refreshDelayCallback,"$(",")",comp);
-        }
-
-//        if( (node.response || node.backend || node.url_datasource) && func) {
-//            this.actions_DS.reload(func,true);
-//        }
-//        else {
-//            funcLink(func, this, node, comp);
-//        }
 
         this.executeUrl(func, node, comp);
 
@@ -436,7 +464,6 @@ function vjMenuView(viewer) {
             }
             else {
                 var refreshnode = this.tree.findByName("refresh");
-                //alerJ('found',node);
                 if (refreshnode)
                     setTimeout("vjObjEvent('onClickMenuNode','" + this.objCls + "','" + refreshnode.path + "');", node.refreshDelay);
             }
@@ -449,20 +476,10 @@ function vjMenuView(viewer) {
         var element = this.formObject.elements[eltname];
 
         this.initExplorer(node);
-        var that = this; // closure
+        var that = this;
         this.explorer.onSubmitObjsCallback = function(viewer, explorer_nodelist) {
-//            if (node.multiSelect)
-//            {
-//                explorerValues.push (explorer_node.id);
-//                if (gKeyCtrl)
-//                    return;
-//            }
-//            if (explorerValues.length == 0)
-//                node.value = explorer_node;
-//            else
             var explorer_nodelistString = "";
             if( explorer_nodelist && typeof(explorer_nodelist)=="object") {
-                //explorer_nodelistString = Object.keys(explorer_nodelist).join();
                 for (var i = 0; i < explorer_nodelist.length; i++){
                     explorer_nodelistString += explorer_nodelist[i].id + ",";
                 }
@@ -473,9 +490,6 @@ function vjMenuView(viewer) {
             if (element ) {
                 element.value = explorer_nodelistString;
             }
-//            else if (element)
-//                element.value = explorerValues.toString();
-            
             gObjectSet(that.container + "_explorer", "-", "-", "-", "hide", "-", "-");
 
             that.onChangeElementValue(container, nodepath, eltname);
@@ -529,13 +543,16 @@ function vjMenuView(viewer) {
         var node = this.tree.findByPath(nodepath);
         if (this.lastHighlightElement != element && element) {
             this.lastHighlightElementClass = element.className;
-            //element.className += " " + this.classNameHighlight;
             this.lastHighlightElement = element;
             $("#" + element.id).addClass(this.classNameHighlight);
         }
 
         if (!node)
             return; 
+        
+        if(node.onmouseover){
+            this.executeUrl(node.onmouseover, node);
+        }
         
         this.onHide(this.container, node.depth, this.maxMenuDepthOpen,undefined,true);
         if (node.children.length == 0) return;
@@ -553,9 +570,8 @@ function vjMenuView(viewer) {
 
         node.expanded = true;
     };
-    this.onMouseOutNode = function (container, nodepath, element) {  //!Now onMouseOver is triggered on mouseLeave
+    this.onMouseOutNode = function (container, nodepath, element) {
         if (this.lastHighlightElement == element) {
-            //this.lastHighlightElement.className = this.lastHighlightElementClass;
             this.lastHighlightElement = "";
             $("#" + element.id).removeClass(this.classNameHighlight);
         }
@@ -567,11 +583,11 @@ function vjMenuView(viewer) {
         setTimeout(function(){that.mouseLeave.call(that,container);},600);
     };
 
-    this.onMouseOver = function (container, nodepath, element) //!Now onMouseOver is triggered on mouseEnter
+    this.onMouseOver = function (container, nodepath, element)
     {
         gMenuOver=this.objCls ? (this.objCls + nodepath): null;
         var that=this;
-        setTimeout(function(){that.mouseEnter.call(that,container,nodepath,element);},200);//});
+        setTimeout(function(){that.mouseEnter.call(that,container,nodepath,element);},200);
     };
 
     this.getPageCounterElement = function()
@@ -587,76 +603,101 @@ function vjMenuView(viewer) {
         return currentPageCounter;
     };
     
+
+    this.recalculateCounterPagerInfo = function (page) {
+        let currentPageCounter = this.getCurrentPageCounterValue();
+        var tempst = this.rowStart;
+        if (page === 1){
+            this.rowStart += this.rowsShown;
+        } else if (page === -1){
+            this.rowStart -= this.selectedCounter;
+        } else {
+            this.rowStart = 0;
+        } 
+
+        if (this.selectedCounter != currentPageCounter) {
+            this.rowStart = 0;
+        }
+        if (this.rowStart < 0) {
+            this.rowStart = 0;
+        }
+        if (page != 1 || this.queryStart < tempst + parseInt(this.selectedCounter) ){
+            this.queryStart = this.rowStart;
+        }
+
+        this.selectedCounter = currentPageCounter;
+    }
+
     this.onUpdate = function (container, page) {
-        var el = this.getPageCounterElement();
-        var currentPageCounter = this.getCurrentPageCounterValue();
 
+        this.recalculateCounterPagerInfo(page);
 
-        this.needsUpdate = false;
         for (var d = 1; d < this.data.length; ++d) {
-            if (!this.getData(d)) continue;
-            var newurl = this.cmdUpdateURL ? this.cmdUpdateURL : this.getData(d).url;
+            let ds = this.getData(d)
+            if (!ds) continue;
+            var newurl = this.cmdUpdateURL ? this.cmdUpdateURL : ds.url;
 
-            if (d < 2) {
-                var tempst=this.rowStart;
-                if (page == 1)
-                    this.rowStart += this.rowsShown;
-                else if (page == -1)
-                    this.rowStart -= this.selectedCounter;
-                else this.rowStart = 0;
-                if (this.selectedCounter != currentPageCounter)
-                    this.rowStart = 0;
-                if (this.rowStart < 0)
-                    this.rowStart = 0;
-                if (page != 1 || this.queryStart<tempst+parseInt(this.selectedCounter))
-                    this.queryStart = this.rowStart;
-            }
-
-            this.selectedCounter = currentPageCounter;
             var skip = false;
             for (var k = 1; k < this.excludedDataRefresh.length; ++k) {
                 if (this.excludedDataRefresh[k] == d)
                     skip = true;
             }
-//            var submObj;
+
             var paramNodes = this.tree.accumulate("node.isSubmitable", "node");
             for (var i = 0; i < paramNodes.length; ++i) {
                 if (!skip || paramNodes[i].forceUpdate) {
-                    if (paramNodes[i].isNskip) skip = false;
-                    //                    var paramEl = this.formObject.elements[paramNodes[i].name];
-                    //                    if (!paramEl)
-                    //                        paramEl = this.formObject.elements[this.container + "_" + paramNodes[i].name];
-                    //                    //                if ((!paramNodes[i].value || !paramNodes[i].value.length) && paramEl.value.length) paramNodes[i].value = paramEl.value;
-                    //                    var lastSubmitableIndex = -1;
+                    if (paramNodes[i].isNskip) { skip = false; }
 
-                    //var parVal = this.computeSubmitableValue(paramNodes[i].name, 0, this.getData(d).url);
-                    //if (paramNodes[i].value != '.history')
-                    parVal = paramNodes[i].value; // ? paramNodes[i].value : (parVal ? parVal : '');
-                    //                    for (var j = 0; j < this.lastSubmit.length; ++j) { if (this.lastSubmit[j].name == paramNodes[i].name) { lastSubmitableIndex = j; break; } }
-                    //                    if (lastSubmitableIndex >= 0) {
-
-                    //                        submObj = this.lastSubmit[lastSubmitableIndex];
-                    //                        if (paramNodes[i].forceUpdate && (!submObj.value || submObj.value != parVal)) skip = false;
-                    //                        submObj.value = parVal; //(paramEl.type == 'checkbox') ? paramEl.checked : paramEl.value;
-                    //                    }
-                    //                    else {
-                    //                        this.lastSubmit.push({ 'name': paramNodes[i].name, value: parVal }); //(paramEl.type == 'checkbox') ? paramEl.checked : paramEl.value });
-                    //                        submObj = this.lastSubmit[this.lastSubmit.length - 1];
-                    //                    }
-                    //                    if (paramNodes[i].forceUpdate && (!submObj.value || submObj.value != parVal)) skip = false;
+                    parVal = paramNodes[i].value;
                     if (!paramNodes[i].parentDependant || paramNodes[i]===undefined){
-                        if (parVal === true) parVal = '1'; else if (parVal === false) parVal = '0';
 
-                        newurl = this.urlExchangeParameter(newurl, paramNodes[i].name, (parVal && parVal.length) ? (!paramNodes[i].isRgxpControl ? parVal : (paramNodes[i].rgxpOff ? parVal.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") : parVal)) : '-');
+                        parVal = parVal === true ? '1' : parVal === false ? '0' : parVal;
+
+                        if(paramNodes[i].isQry){ 
+                            let url_tmplt = `${paramNodes[i].url_tmplt}`
+                            if(parVal === ""){
+                                url_tmplt=`${ds.url_tmplt}`
+                            }
+                            let url_obj = Object.assign(ds.urlParams,{search: parVal})
+                            newurl=evalVars(url_tmplt,"$(",")", url_obj );
+                        }
+
+                        if(typeof paramNodes[i].qry_tmplt === 'string'){
+                            let qry_tmplt = `${paramNodes[i].qry_tmplt}`
+                            if(parVal === ""){
+                                qry_tmplt=`${ds.qry_tmplt}`
+                            }
+                            let variables = Object.assign({},ds.urlParams)
+                            for(key in variables){
+                                let menuViewUrlVar = this.urlVar[key]
+                                if(menuViewUrlVar){
+                                    variables[key] = this[menuViewUrlVar]
+                                }
+                            }
+                            Object.assign(variables,{search: parVal})
+                            let dsurl = evalVars( `${qry_tmplt}`,"$(",")", variables );
+                            newurl = `http:
+                        } else{
+                            let newvalue = (parVal && parVal.length) 
+                                            ?   ( !paramNodes[i].isRgxpControl 
+                                                    ?   parVal 
+                                                    :   ( paramNodes[i].rgxpOff 
+                                                            ? parVal.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") 
+                                                            : parVal
+                                                        )
+                                                ) 
+                                            : '-' ;
+                            newurl = this.urlExchangeParameter( newurl, paramNodes[i].name, newvalue);
+                        }
                     }
-                    if (paramNodes[i].parentDependant){ // when the element got clicked, it'll be shown like "parent=element" in the newUrl in stead of "element=1"
+                    if (paramNodes[i].parentDependant && !paramNodes[i].isQry && !ds.qry_tmplt){
 
                         var fieldElement = this.computeSubmitableValue(paramNodes[i].parent.name,null,newurl);
                         parVal = (parVal!="0" || parVal==true) ? paramNodes[i].name : "0";
 
-                        if (!fieldElement)
+                        if (!fieldElement){
                             newurl = this.urlExchangeParameter(newurl, paramNodes[i].parent.name, parVal.length ? (!paramNodes[i].isRgxpControl ? parVal : (paramNodes[i].rgxpOff ? parVal.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") : parVal)) : '-');
-                        else {
+                        } else {
                             fieldElement = fieldElement.split(";");
                             var indexEl = fieldElement.indexOf(paramNodes[i].name);
                             if (indexEl!=-1) (parVal!="0") ? 1 :fieldElement.splice(indexEl,1);
@@ -676,22 +717,32 @@ function vjMenuView(viewer) {
 
             if (!skip) {
                 if(!this.isNpagerUpdate) {
-                    newurl = this.urlExchangeParameter(newurl, "pageRevDir", page == -1 ? '1' : '-');
-                    newurl = this.urlExchangeParameter(newurl, this.startArg, this.queryStart ? this.queryStart : this.rowStart);
-                    newurl = this.urlExchangeParameter(newurl, this.cntArg, this.selectedCounter);
-                }
-                //if (submObj) newurl = this.urlExchangeParameter(newurl, "prop_val", submObj.value.length ? submObj.value : '-');
-
-                //alert("from Menu  " + newurl )
-                if (newurl != this.getData(d).url) {
-                    if(this.datastack){
-                        if(!isok(this.getData(d).urlStack)){
-                            this.getData(d).urlStack=new Array();
+                    if(typeof ds.qry_tmplt === 'string' && page != undefined){
+                        let variables = Object.assign({},ds.urlParams)
+                        for(key in variables){
+                            let menuViewUrlVar = this.urlVar[key]
+                            if(menuViewUrlVar){
+                                variables[key] = this[menuViewUrlVar]
+                            }
                         }
-                        this.getData(d).urlStack.push(this.getData(d).url);
+                        let dsurl = evalVars( `${ds.qry_tmplt}`,"$(",")", variables );
+                        newurl = `http:
+                    } else if(!ds.qry_tmplt){
+                        newurl = this.urlExchangeParameter(newurl, "pageRevDir", page == -1 ? '1' : '-');
+                        newurl = this.urlExchangeParameter(newurl, this.startArg, this.queryStart ? this.queryStart : this.rowStart);
+                        newurl = this.urlExchangeParameter(newurl, this.cntArg, this.selectedCounter);
                     }
-                    this.getData(d).url = newurl;
-                    this.getData(d).load();
+                    
+                }
+                if (newurl != ds.url) {
+                    if(this.datastack){
+                        if(!isok(ds.urlStack)){
+                            ds.urlStack=new Array();
+                        }
+                        ds.urlStack.push(ds.url);
+                    }
+                    ds.url = newurl;
+                    ds.load();
                 }
             }
         }
@@ -700,15 +751,23 @@ function vjMenuView(viewer) {
 
     this.displayNode = function(node,actList){
         var display=true;
-        if (node.is_forced_action) {
-            if (node.is_obj_action &&  actList.checkCnt == 0)
+        if (parseBool(node.is_forced_action)) {
+            if (parseBool(node.is_obj_action) && actList.checkCnt == 0)
                 return false;
         }
         else {
-            if (node.is_obj_action && (!actList[node.name] || actList[node.name] != actList.checkCnt))
+            if ( parseBool(node.is_obj_action)  && (!actList[node.id] || actList[node.id] != actList.checkCnt)){
                 return false;
+            } else if ( typeof node.url === 'string' && node.url.indexOf('submitter') > -1
+                    && this.objectsIDependOn 
+                    && this.objectsIDependOn.length === 1 
+                    && this.objectsIDependOn[0].selectedNodes.length === 1 
+                    && !this.objectsIDependOn[0].selectedNodes[0].submitter)
+            {
+                        return false;  
+            }
         }
-        if (node.single_obj_only && actList.checkCnt != 1)
+        if (parseBool(node.single_obj_only) && actList.checkCnt != 1)
             return false;
         if (node.type == "hidden" || node.hidden == true)
             return false;
@@ -736,12 +795,9 @@ function vjMenuView(viewer) {
         }
     };
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // _/ generators
 
     this.outputNode = function (node, isvertical) {
 
-        //document.getElementById("DV_dvTable_Result_0_cell").parentElement.offsetWidth
         var minWidth = -1; 
         if (this.tab && this.tab.parent.frame!="notab" && this.tab.parent.container != "dvMenu" && this.tab.name != "menu" && document.getElementById(this.tab.container) &&document.getElementById(this.tab.container).offsetParent && document.getElementById(this.tab.container).offsetParent.offsetParent)
         {
@@ -758,10 +814,6 @@ function vjMenuView(viewer) {
         t += "<table " + (isvertical ? "" : "width=" + (minWidth > -1 ? minWidth : "100%")) + " " + clsTbl + " onmouseout='mouseLeave(event,this,function(){vjObjEvent(\"onMouseOutList\", \"" + this.objCls + "\")})'>";
 
         if (!isvertical) t += "<tr>";
-        //else if(this.showPopupTitle) {
-        //    t+="<tr><td colspan=4 class='MENU_table_title' >"+(node.title ? node.title: node.name )+"</td></tr>";
-        // }
-
         var children = node.children.sort(function (a, b) {
 
             if (a.align > b.align) return 1; else if (a.align < b.align) return -1;
@@ -772,7 +824,6 @@ function vjMenuView(viewer) {
             else return 0;
         });
 
-        // check the action list for optional items
         var actList = new Object({ checkCnt: 0 });
         if (this.objectsIDependOn) {
             for (var im = 0; im < this.objectsIDependOn.length; ++im) {
@@ -780,25 +831,19 @@ function vjMenuView(viewer) {
                 depObj.enumerate("if(node.checked>0 " + ((depObj.tree && !depObj.actionsOnLeaves) ? " && node.leafnode" : "") + " ){var act=isok(node._action) ? node._action.split(',') : new Array();for(var iv=0; iv<act.length; ++iv){ if(node._actionCancel && node._actionCancel[act[iv]]) continue; if(!params[act[iv]])params[act[iv]]=1;else ++params[act[iv]];} ++params.checkCnt;}", actList);
             }
         }
-        // alerJ("objectsIDependOn " , actList);
-
-
         var side = "left";
         var spaceOccupied = 0;
+        
         for (var ic = 0; ic < children.length; ++ic) {
             var nc = children[ic];
-            //            var lastSubmitableIndex = -1;
-            //            for (var i = 0; i < this.lastSubmit.length; ++i) {
-            //                if (nc.name == this.lastSubmit[i].name) {
-            //                    lastSubmitableIndex = i;
-            //                    break;
-            //                }
-            //            }
+   
             var nodeDisplay=this.displayNode(nc,actList);
             var nodeActive=!this.isNodeInactive(nc,nodeDisplay);
             if(nc.inactive===undefined && !nodeDisplay){
                 continue;
             }
+            
+            var useAnchor = this.getClickUrl(nc);
 
             var realVal = nc.title ? nc.title : nc.name;
 
@@ -813,17 +858,16 @@ function vjMenuView(viewer) {
             if (isvertical && nc.name == "-") t += "<hr/>";
             if (!isvertical && nc.align == "right" && side == "left") {
                 t += "<td style='border:0px;cursor:default' width='" + (100 - spaceOccupied) + "%'></td>"; side = "right";
-                //t += "<td style='border:0px' width='" + (100 - children.length) + "%'></td>"; side = "right";
             }
-            t += "<td " + clsCell + " id=" + (nc.name ? nc.name : "") + "_menuButton " ;
+            
+            t += "<td " + clsCell + " id=" + ( nc.name ? nc.name : nc.id ? nc.id : "") + "_menuButton " ;
             if( nodeActive && nodeDisplay){
-                if (nc.url && nc.type != 'search' && nc.type != 'text')
+                if (nc.url && nc.type != 'search' && nc.type != 'text' && !useAnchor)
                     t += " onclick='" + a + "' ";
                 else if(!nc.type && nc.isSubmitter){
                     t += "onclick='javascript:vjObjEvent(\"onUpdate\",\"" + this.objCls + "\")'";
                 }
-//                else
-//                    alerJ('node:',nc);
+
                 if (nc.type != 'empty' && nc.type != 'separator') {
                     t += " onmouseover='var that=this;mouseEnter(event,this,function(){vjObjEvent(\"onMouseOver\", \"" + this.objCls + "\",\"" + sanitizeElementAttrJS(nc.path) + "\", that)})' ";
                     t += "onmouseout='var that=this;mouseLeave(event,this,function(){vjObjEvent(\"onMouseOutNode\", \"" + this.objCls + "\",\"" + sanitizeElementAttrJS(nc.path) + "\", that)})' ";
@@ -853,10 +897,15 @@ function vjMenuView(viewer) {
 
             t += " >";
 
+            if (useAnchor != false && useAnchor != undefined && nc.type != 'search' && nc.type != 'text') {
+                t += "<a href='" + sanitizeElementAttr(useAnchor) + "'";
+                if (nc.target && nc.target != "ajax") {
+                    t +=  `target='${nc.target === 'new' ? '_blank' : sanitizeElementAttr(nc.target)}'`;
+                }
+                t += ">";
+            }
 
-            //if(this.titlesOnBottom)t += "<span >";
-            //else
-                t += "<span style='white-space:nowrap;'>";
+            t += "<span style='white-space:nowrap;'>";
             if (nc.icon && nc.type != 'search' && nc.type != 'pager' && nc.type != 'select') {
                 t += "<table border=0><tr><td ";
                 if (nc.type == 'text') t += " onclick='" + a + "' ";
@@ -864,7 +913,6 @@ function vjMenuView(viewer) {
                 t += this.formDataValue(nc.icon, "icon", nc, undefined, nc.icon_srcset ? {srcset: nc.icon_srcset} : undefined);
                 t += "</td><td>";
             }
-            //t += "<table border='0'><tr><td valign='center'><img border='0' width='" + this.iconSize + "' height=" + this.iconSize + " src='img/" + nc.icon + ".gif' ></td><td>";
             if(nc.type=='select'){
 
                 var optarr;
@@ -878,7 +926,7 @@ function vjMenuView(viewer) {
                 for(var ioR=0;ioR<optarr.length;++ioR){
                     var opCols=(nc.options instanceof Array) ? optarr[ioR] : optarr[ioR].cols;
                     if(!opCols.length)continue;
-                    var value,title,opTxt;
+                    var value,title,opTxt, disabled = false;
                     value=title=opTxt=opCols[0];
                     if(opCols.length==2){
                         title=opTxt=opCols[1];
@@ -886,10 +934,16 @@ function vjMenuView(viewer) {
                     else if(opCols.length>=3){
                         title=opCols[1];
                         opTxt=opCols[2];
+                        if (opCols.length >=4 ) {
+                            disabled = opCols[3];
+                        }
                     }
                     rr += "<option value='" + sanitizeElementAttr(value) + "' title='"+sanitizeElementAttr(title)+"' ";
                     if (value == (nc.selectedCounter ? nc.selectedCounter : nc.value))
                         rr += " selected ";
+                    if(disabled) {
+                        rr += " disabled";
+                    }
                     rr += " >"+ opTxt+ "</option>";
                 }
                 t += "<table border=0 ><tr>";
@@ -936,7 +990,6 @@ function vjMenuView(viewer) {
                   }
                   t += "/></td>";
                 if (this.iconSize) {
-//                    t += "</tr></table></td></tr></table></span><span style='white-space:nowrap;'><table border=0><tr><td valign=center></td><td><table border='0'><tr>";
                     t += "<td valign='center' aligh='left'>";
                     t += "<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onUpdate\",\"" + this.objCls + "\"); stopDefault(event);'>";
                     t += "<img src='img/search.gif' border='0' width='" + this.iconSize + "' height='" + this.iconSize + "' />";
@@ -961,7 +1014,6 @@ function vjMenuView(viewer) {
                 t += "</button></td></tr></table>";
             } else if (nc.type == 'pager' && (this.rowsShown>0 || this.rowStart != 0) ) {
                 var rr = "", rr1 = "", rr2 = "", rr3 = "";
-                //alerJ("pager", this)
                 if (this.rowStart != 0) rr1 += "<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onUpdate\",\"" + this.objCls + "\",-1);stopDefault(event);'><img border=0 valign=center width=" + this.iconSize + " src='img/previous.gif'/></button>";
                 if ((this.rowCnt == 'unknown' || this.rowStart + this.rowsShown < this.rowCnt) && this.rowsShown) rr2 += "<button class='linker' type='button' onclick='javascript:vjObjEvent(\"onUpdate\",\"" + this.objCls + "\",1);stopDefault(event);'><img border=0 valign=center width=" + this.iconSize + " src='img/next.gif'/></button>";
                 if (this.showInfo) {
@@ -980,10 +1032,6 @@ function vjMenuView(viewer) {
                 if (this.selectedCounter == 1000000) tmpCounter = "all";
 
                 for (var ij = 0; ij < nc.counters.length; ++ij) {
-                    //if( (nc.counters[ij]!="all" && this.rowCnt!="unknown" ) && nc.counters[ij]>this.rowCnt )
-                    //    continue;
-                    //if( nc.counters[ij]=="all" && this.rowsShown>=this.rowCnt)
-                    //    continue;
                     rr += "<option value='" + sanitizeElementAttr(nc.counters[ij]) + "' ";
                     if (nc.counters[ij] == tmpCounter)
                         rr += " selected ";
@@ -1003,7 +1051,6 @@ function vjMenuView(viewer) {
                         if (!nc.icon) t += "per page";
                         t += "</span></td>";
                         if (nc.icon) t += "<td><img border=0 width=" + this.iconSize + " height=" + this.iconSize + " src='img/" + nc.icon + ".gif' ></td>";
-                        //t+="<td><a href='javascript:vjObjEvent(\"onUpdate\",\"" + this.objCls +"\")' > per page</a></td>";
                     }
 
                     t += "</tr></table>";
@@ -1032,7 +1079,7 @@ function vjMenuView(viewer) {
                     t += " value=\"" + sanitizeElementAttr(nc.value) + "\" ";
                 } else {
                     t += " value=\"\" placeholder=\"" + sanitizeElementAttr(realVal) + "\" ";
-                    showTitle = false; // we already have the title in placeholder
+                    showTitle = false;
                 }
                 var eltname = sanitizeElementId(nc.name ? this.objCls + "_" + nc.name : this.objCls + "-" + nc.type + "-" + i);
                 t += " name=\"" + eltname + "\" ";
@@ -1054,7 +1101,6 @@ function vjMenuView(viewer) {
                 if (gdata) {
                     nc.viewer.container = sanitizeElementId(this.container + "_help_" + nc.path);
                     nc.viewer._rendered = false;
-                    // override parent span's white-space:nowrap
                     t += "<div id='" + nc.viewer.container + "' style='white-space:normal;width:"+viewerWidth+"px'>" + nc.viewer.composeText(gdata.data) + "</div>";
                 }
             }
@@ -1072,20 +1118,22 @@ function vjMenuView(viewer) {
                 } else {
                     if (nc.type == "text") {
                         t += " value='' placeholder='" + sanitizeElementAttr(realVal) + "' ";
-                        showTitle = false; // we already have the title in placeholder
+                        showTitle = false;
                     } else {
                         t += " value='" + sanitizeElementAttr(realVal) + "' ";
                     }
                 }
-                if (nc.name) t += " name='" + sanitizeElementId(this.objCls + "_" + nc.name) + "' ";
-                else t += " name='" + this.objCls + "-" + nc.type + "-" + i + "' ";
+                
+                let nametag = nc.name ? sanitizeElementId(this.objCls + "_" + nc.name) : `${this.objCls}-${nc.type}-${i}`;
+                t += ` name='${nametag}' `
                 if (nc.size) t += " size=" + nc.size + " ";
                 if (nc.readonly) t += " readonly disabled ";
-                //                t+=" onChange='vjObjEvent(\"onElementChange\",\"" + this.objCls + "\",\""+nc.path+"\",this)' ";
-                // if somebody presses "Enter" while in a text box, we want to react
-                if (nc.type == 'text') t+= " onkeypress='vjObjEvent(\"onKeyPress\",\"" + this.objCls + "\",event,\"" + sanitizeElementAttrJS(nc.path) + "\",\"" + sanitizeElementAttrJS(nc.value) + "\")' oninput='vjObjEvent(\"onInput\",\"" + this.objCls + "\",\"" + sanitizeElementAttrJS(nc.path) + "\",\"" + sanitizeElementAttrJS(nc.value) + "\")'";
-                t += " onchange='vjObjEvent(\"onChangeElementValue\",\"" + this.objCls + "\",\"" + sanitizeElementAttrJS(nc.path) + "\",\"" + sanitizeElementAttrJS(nc.value) + "\");"+(nc.onChange ? nc.onChange : "")+"' ";
-                if (nc.type == 'checkbox' && nc.value=='1') t += " checked "; // (lastSubmitableIndex >= 0 ? this.lastSubmit[lastSubmitableIndex].value : nc.value)) t += " checked />";
+                if (nc.type == 'text'){
+                    t+= " onkeypress='vjObjEvent(\"onKeyPress\",\"" + this.objCls + "\",event,\"" + sanitizeElementAttrJS(nc.path) + "\",\"" + sanitizeElementAttrJS(nc.value) + "\")' oninput='vjObjEvent(\"onInput\",\"" + this.objCls + "\",\"" + sanitizeElementAttrJS(nc.path) + "\",\"" + sanitizeElementAttrJS(nc.value) + "\")'";
+                }  
+                t +=` onchange='vjObjEvent(\"onChangeElementValue\",\"${this.objCls}\",\"${sanitizeElementAttrJS(nc.path)}\",\"${sanitizeElementAttrJS(nc.value)}\",\"${nc.name ? sanitizeElementId(nc.name) : null}\");${(nc.onChange ? nc.onChange : "")}' `
+
+                if (nc.type == 'checkbox' && nc.value=='1') t += " checked ";
                 else if (nc.type == "color" && nc.readonly) 
                     t+= " onClick='"+a+"' ";
                 
@@ -1103,21 +1151,14 @@ function vjMenuView(viewer) {
                if (nc.type == "color" && nc.readonly) t+= "</input>";
             }
             else if (this.showTitles || nc.showTitle || !nc.icon) {
-                //if(this.titlesOnBottom)
-                    //t+="<br/>";
                 t += "<span style='white-space:nowrap;"+(nc.bgColor ? ";background-color:"+nc.bgColor+";" : "")+"' >";
-                //if(nc.url)t += "<a href='"+nc.url+"' >";
                 t += realVal;
-                //if(nc.url)t+="</a>";
                 t += "</span>";
             }
 
             t += "</span>";
-            //t+="<span style='white-space:nowrap;'>"+nc.title+"</span>";
-            //if(isvertical && nc.children.length && isok(this.icons.expand))
-            //    t+="&nbsp;"+this.icons.expand;
-            //t+=" /// "+nc.order  + "-"+nc.align;
-            //if(nc.icon)
+            
+            if (useAnchor != false && useAnchor != undefined && nc.type != 'search' && nc.type != 'text') t += "</a>";
             if (nc.icon && nc.type != 'search' && nc.type != 'pager')
                 t += "</td></tr></table>";
             t += "</td>";
@@ -1154,8 +1195,6 @@ function vjMenuView(viewer) {
         
         if (node.type == 'search' || node.type == 'text') {
             var ev = e || event;
-//            alert("HERE" + ev.keyCode || ev.which || 0);
-            /* If enter is pressed */
             if ((ev.keyCode || ev.charCode || ev.which || 0) == 13) {
                 if (el) node.value = (el.type == 'checkbox' ? el.checked : el.value);
                 vjObjEvent('onUpdate', container);
@@ -1175,14 +1214,14 @@ function vjMenuView(viewer) {
         if (el) node.value = (el.type == 'checkbox' ? el.checked : el.value);
     };
 
-    this.onChangeElementValue = function (container, nodepath, elname)
+    this.onChangeElementValue = function (container, nodepath, elname , nodenamesanitized)
     {
-
         var node = this.tree.findByPath(nodepath);
-        var el = this.findElement(node.name, container);
+        let nodename = nodenamesanitized ? nodenamesanitized : node.name;
+        
+        var el = this.findElement(nodename, container);
         if (el && node.forceUpdate && node.value != (el.type == 'checkbox' ? el.checked : el.value)) node.isNskip = true;
         if (el) node.value = (el.type == 'checkbox' ? el.checked : el.value);
-        //alerJ(el.value,node)
 
         if (node.type == 'search') {
             if (node.isRgxpControl && elname.indexOf("rgxp") >= 0) {
@@ -1218,7 +1257,6 @@ function vjMenuView(viewer) {
             elt_t += " ></span>";
             var elt = gObject(id);
             if (elt) {
-                // don't duplicate a previously created span with same id
                 elt.outerHTML = elt_t;
             } else {
                 t += elt_t;
@@ -1245,7 +1283,6 @@ function vjMenuView(viewer) {
 
         var elt = gObject(explorer_id);
         if (elt) {
-            // don't duplicate a previously created span with same id
             elt.outerHTML = elt_t;
         } else {
             t += elt_t;
@@ -1333,11 +1370,23 @@ function vjMenuView(viewer) {
     this.actionResponseGlobalHandlers = [];
 
     this.onActionResponse = function(text, page_request) {
+        var responseType = "json";
+        if( page_request.parameter && page_request.parameter.response ) {
+            responseType = page_request.parameter.response;
+        }
         var response;
-        try {
-            response = JSON.parse(text);
-        } catch (e) {
-            return false;
+        switch(responseType)
+        {
+            case "qpProcSubmit":
+                var response = {"0":{"signal":"qpProcSubmit","data":text}};
+                break;
+            case "json":
+            default:
+            try {
+                response = JSON.parse(text);
+            } catch (e) {
+                return false;
+            }
         }
 
         for (var ih=0; ih<this.actionResponseGlobalHandlers.length; ih++) {
@@ -1399,9 +1448,8 @@ function vjMenuView(viewer) {
     };
 
     var that = this;
-    this.actions_DS = vjDS.add("","ds_"+this.objCls+"_actions","static://",function(unused_param,text,page_request){that.onActionResponse(text,page_request);});
+    this.actions_DS = vjDS.add("","ds_"+this.objCls+"_actions","static:
 }
-
 
 function vjMenuPopup(viewer, content, pos) {
 
@@ -1416,13 +1464,11 @@ function vjMenuPopup(viewer, content, pos) {
     popupViewer.callerObject = viewer;
     popupViewer.popupMenu = popupMenuName;
     popupViewer.menuConstructed = new Date();
-    //alert("opening " + popupMenuName + " - " +popupViewer.menuConstructed);
 
-    if (!pos) pos = { x: gMoX, y: gMoY, cx: 0, cy: 0 }; //gObjPos(element);
+    if (!pos) pos = { x: gMoX, y: gMoY, cx: 0, cy: 0 };
     gObjectPositionShow(popupMenuName, pos.x + pos.cx, pos.y + pos.cy, 1000 + 1);
-    //gObjectSet(popupViewer.container,'-','-','-','show','-','-');
 
-    ds.url = "static://" + content;
+    ds.url = "static:
     ds.load();
 }
 
@@ -1441,7 +1487,7 @@ function vjPanelView(viewer) {
             viewer.data.push(row.data.source);
         }
     }
-    vjMenuView.call(this, viewer); // inherit default behaviours of the MenuViewer
+    vjMenuView.call(this, viewer);
 
 }
 
@@ -1455,7 +1501,6 @@ function vjSubmitPanelView(viewer)
         this.rows=this.rows.concat( [
                 {name:'refresh', title: 'Refresh' ,order:-1, icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS['$(dataname)'].reload(null,true);"},
                 {name:'pager', icon:'page' , title:'per page',order:2, description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']}
-//                {name: 'search', align: 'right', type: ' search',order:10, isSubmitable: true, title: 'Search', description: 'search sequences by ID',order:'1', url: "?cmd=objFile&ids=$(ids)" }
                 ]);
     }
 
@@ -1489,4 +1534,3 @@ function vjBasicPanelView(viewer)
     vjPanelView.call(this,viewer);
 };
 
-//# sourceURL = getBaseUrl() + "/js/vjMenuView.js"

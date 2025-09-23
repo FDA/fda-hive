@@ -28,6 +28,7 @@
 # * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # * DEALINGS IN THE SOFTWARE.
 # */
+
 # !!! THIS SCRIPT IS AUTOMATICALLY GENERATED !!!
 
 DB=$1
@@ -71,6 +72,25 @@ if [[ "${DBPORT}" = "" ]]; then
   fi
 fi
 
+# adjust DBHOST to be localhost if provided server name is local/sock
+if [[ "${DBHOST}" != "localhost" && "${DBHOST}" != "127.0.0.1" ]]; then
+   PING=`which ping 2>/dev/null`
+   IPAD=`which ip 2>/dev/null`
+   if [[ "x${IPAD}" == "x" ]]; then
+       IPAD=/sbin/ip
+   fi
+   if [[ "x${PING}" != "x" ]]; then
+       if [[ "x${IPAD}" != "x" ]]; then
+           IP4=`ping -c 1 ${DBHOST} | head -2 | tail -1 | gawk '{print substr($5,2,length($5)-3)}'`
+           if [[ "x${IP4}" != "x" ]]; then
+               ${IPAD} ad | grep "${IP4}" 1>/dev/null 2>&1
+               if [[ $? -eq 0 ]]; then
+                   DBHOST=localhost
+               fi
+fi
+fi
+fi
+fi
 echo "Initializing stored procedure(s) for database '${DB}' on host ${DBHOST}:${DBPORT} for user '${DBUSER}':'${MYSQL_PWD}'"
 
 echo  'SELECT IFNULL(GROUP_CONCAT(CONCAT('"'"'DROP PROCEDURE IF EXISTS '"'"', SPECIFIC_NAME) SEPARATOR '"'"'; '"'"'), '"'"'SELECT 1;'"'"') FROM information_schema.ROUTINES WHERE ROUTINE_TYPE = '"'"'PROCEDURE'"'"' AND ROUTINE_SCHEMA = DATABASE()' | mysql -h ${DBHOST} -P${DBPORT} -u ${DBUSER} -p${MYSQL_PWD} -N ${DB} | mysql -h ${DBHOST} -P${DBPORT} -u ${DBUSER} -p${MYSQL_PWD} ${DB}

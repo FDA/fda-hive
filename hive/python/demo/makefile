@@ -28,15 +28,17 @@
 # * DEALINGS IN THE SOFTWARE.
 # */
 
+OBJECT_TYPES = svc-pyhive-demo
+
 ifeq ($(devdir),)
 	devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,pyhive_demo,PyHIVE API demo,/Test/System/, \
 		capacity=1 \
 	)
 	$(call dist-src,pyhive_demo,pyhive_demo.py,pyhive_demo.py)
-	$(call run-qapp,pyhive_demo,\\-\>pyhive_demo.os$(SLIB_PLATFORM),content://py-modrun.os$(SLIB_PLATFORM))
+	$(call dist-link,pyhive_demo,py-modrun.os$(SLIB_PLATFORM),pyhive_demo.os$(SLIB_PLATFORM))

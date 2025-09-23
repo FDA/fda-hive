@@ -27,22 +27,20 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.record.list.js
 
 $(function () {
-    $.widget("recordviewer.record_list", {
+    $.widget("recordviewer.record_list", $.recordviewer.record_children, {
 
         options: {
             spec: null,
-            name: null,
-            children: null
+            name: null
         },
 
         _create: function () {
-            this._render();
+            this._super();
         },
 
-        _render: function() {
+        generateField: function() {
             if(this.element.prop("tagName") != 'UL') {
                 console.log('ERROR: RECORD_LIST widget must be applyed to UL element only!');
                 return;
@@ -56,22 +54,25 @@ $(function () {
                 .addClass('field');
 
             this.showList();
+            
+            return this.element;
         },
 
         showList: function() {
             var oThis = this;
+            var curPath = this.options.spec.path;
 
-            if(this.options.spec._children) {
-                $(Object.keys(this.options.children)).each(function(index, name) {
-                    var spec = oThis.options.children[name];
-
-                    //    do not process hidden fields...
-                    if(spec.is_hidden)
+            if(this.options.spec._field) {
+                $(Object.keys(this.options.spec._field)).each(function(index, name) {
+                    var spec = oThis.options.spec._field[name];
+                    spec.path = curPath + "." + spec.tmpObjName;
+                    
+                    if(spec._hidden)
                         return;
 
                     var li = $(document.createElement('li'))
-                        .addClass(spec.type)
-                        .addClass('clearfix')
+                        .addClass(spec._type)
+                        .attr("id", spec.path + "-li")
                         .on('field-changed', function() {
                             if($(this).is('.list') || $(this).is('.array')) {
                                 if($('.undo', $(this).children('label')).length == 0) {
@@ -105,105 +106,12 @@ $(function () {
                         })
                         .text(spec.title)
                         .appendTo(li);
+
+                    var div = $(document.createElement('div'))
+                        .addClass('field-container')
+                        .appendTo(li);
                     
-                    if(spec.type == 'string') {
-                        var div = $(document.createElement('div'))
-                                        .addClass('field-container')
-                                        .appendTo(li);
-                
-                        if(spec.constraint == 'choice') {
-                            div.record_choice({
-                                name: name,
-                                spec: spec
-                            });
-                        }
-                        else {
-                            div.record_string({
-                                name: name,
-                                spec: spec
-                            });
-                        }
-                    }
-                    else if(spec.type == 'integer') {
-                        var div = $(document.createElement('div'))
-                                        .addClass('field-container')
-                                        .appendTo(li);
-                
-                        if(spec.constraint == 'choice' || spec.constraint == 'search') {
-                            div.record_choice({
-                                name: name,
-                                spec: spec
-                            });
-                        }
-                        else {
-                            div.record_integer({
-                                name: name,
-                                spec: spec
-                            });
-                        }
-                    }
-                    else if(spec.type == 'text') {
-                        $(document.createElement('div'))
-                            .addClass('field-container')
-                            .appendTo(li)
-                            .record_text({
-                                name: name,
-                                spec: spec
-                            });
-                    }
-                    else if(spec.type == 'datetime') {
-                        $(document.createElement('div'))
-                            .addClass('field-container')
-                            .appendTo(li)
-                            .record_datetime({
-                                name: name,
-                                spec: spec
-                            });
-                    }
-                    else if(spec.type == 'real') {
-                        $(document.createElement('div'))
-                            .addClass('field-container')
-                            .appendTo(li)
-                            .record_real({
-                                name: name,
-                                spec: spec
-                            });
-                    }
-                    else if(spec.type == 'bool') {
-                        $(document.createElement('div'))
-                            .addClass('field-container')
-                            .appendTo(li)
-                            .record_bool({
-                                name: name,
-                                spec: spec
-                            });
-                    }
-                    else if(spec.type == 'list') {
-                        $(document.createElement('ul'))
-                            .appendTo(li)
-                            .record_list({
-                                name: name,
-                                spec: spec,
-                                children: spec._children
-                            });
-                    }
-                    else if(spec.type == 'array') {
-                        $(document.createElement('table'))
-                            .appendTo(li)
-                            .record_array({
-                                name: name,
-                                spec: spec
-                            });
-                    }
-                    else {
-                        $(document.createElement('div'))
-                            .addClass('field-container')
-                            .record_base({
-                                name: name,
-                                spec: spec
-                            })
-                            .appendTo(li);
-                    }
+                    oThis.appendCorrectChild (div, li, spec);
                 });
 
                 this.addCollapser();
@@ -234,24 +142,6 @@ $(function () {
                 
             });
         },
-/*
-        createUndoButtons: function(field) {
-            var oThis = this;
-
-            $(field).after(this.createUndoButton());
-
-            $(field).parentsUntil(this.element, 'li.list, li.array').each(function() {
-                var label = $(this).children('label.title');
-                if($('.undo', label).length == 0)
-                    label.append(oThis.createUndoButton())
-                        .append(oThis.createSaveButton());
-            });
-
-            if($('.undo', this.title).length == 0)
-                this.title.append(this.createUndoButton())
-                .append(this.createSaveButton());
-        },
-*/
         createUndoButton: function() {
             var oThis = this;
 
@@ -263,7 +153,6 @@ $(function () {
                         .addClass('undo')
                         .click(function() {
                             if($(this).parent().is('.field-control') && $(this).parent().prev().is('input.field, select.field, textarea.field, div.field.choice')) {
-                                //    one field undo...
                                 $(this).parent().prev().trigger('field-undo');
                                 $(this).remove();
                             }

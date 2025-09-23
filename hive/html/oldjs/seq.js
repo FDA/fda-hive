@@ -28,11 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/******************************************************
-*
-* Sequence data manipulation routines
-*
-******************************************************/
     
 var gSeq_Parsing="";
 var gSeq_dirListDest="";
@@ -70,25 +65,6 @@ function vSeq_fastaInfo(seqfile, prfx)
     setTimeout("vis(\"floatDiv\",\"sectHid\")",10000);
 }
 
-/*
-function vSeq_vioinfoDownloaded (container, text)
-{
-    var o=document.forms[gVDir_formName].elements[container];
-    if( o ){o.value=text; return ;}
-    o=gObject(container);
-    if(o)o.innerHTML=text;
-}
-
-function vSeq_vioinfoUpload (pathcontainer,infocontainer)
-{
-    if(!gSeq_dirInfo || !gSeq_dirInfo.length)return;
-    var o=document.forms[gVDir_formName].elements[infocontainer];
-    if( !o || !o.value || o.value.length==0)return ;
-    url="?cmd=infoSet&file="+document.forms[gVDir_formName].elements[pathcontainer].value+"vioinfo.html&info="+protectFields(o.value);
-    //alert(url);
-    ajaxDynaRequestAction(url,false);
-}
-*/
 function vSeq_dirListItemClicked(dirtxt,container, callback, isdir)
 {
     var inf=dirtxt.split(":");
@@ -97,25 +73,19 @@ function vSeq_dirListItemClicked(dirtxt,container, callback, isdir)
     if(!isdir){
         
         if(dir.indexOf(".vioseq")!=-1) {
-            //if(gSeq_dirSingleSel || !(gVDir_concatMode) )document.forms[gVDir_formName].elements[gSeq_dirListDest].value="";
             
             var ls=document.forms[gVDir_formName].elements[gSeq_dirListDest].value.split("; ");
             var isin=0, allbut="";
             for ( var li=0 ; li<ls.length; ++li ){ 
-                if(ls[li]==dir )isin=1; // this field was in the list
-                //else {
+                if(ls[li]==dir )isin=1;
                     if(allbut.length>0)allbut+="; ";
                     allbut+=ls[li];
-                //}
             }
-            //if(isin) document.forms[gVDir_formName].elements[gSeq_dirListDest].value=allbut;
-            //else {
             if(!isin){
                 if(allbut.length>0)allbut+="; ";
                 allbut+=dir;
             }
             document.forms[gVDir_formName].elements[gSeq_dirListDest].value=allbut;
-            //}
             
             cookieSet("vSeq_selected_"+gSeq_dirListDest,allbut);
             return dir;
@@ -132,7 +102,6 @@ function vSeq_dirListItemClicked(dirtxt,container, callback, isdir)
     }
     if(isdir){
         linkCmd("dirList&raw=1&path="+dir, container, callback);
-        //if(gSeq_dirInfo && gSeq_dirInfo.length)linkCmd("infoGet&raw=1&file="+dir+"vioinfo.html", gSeq_dirInfo, vSeq_vioinfoDownloaded);
     }
     return dir;
 }
@@ -159,12 +128,8 @@ function vSeq_dirListItemText(isdir, itmtxt, txt, curdir)
         
     if(isdir)return "-";
     if(itm.indexOf(".vioseq")!=-1){
-        //var ccmd=protectFields('-verbose 0 -cnt 100 -print len=1 -fSeq %QUERY%'+curdir+itm);
-        //sdim="&nbsp;<a href=\"javascript:linkSelf('viotools&raw=1&exec="+ccmd+"','new');\" >"+sdim+"</a>";
-        //var idim=parseInt(sdim);
         
         t="<img border=0 src='img/ok.gif' height=12 >&nbsp;"+itm + "&nbsp;&nbsp<small>["+idim+"]</small>";
-        //if(!gSeq_dirSingleSel)t+="&nbsp;<img border=0 src='img/plus.gif' height=12 ></a>";
         if(gSeq_fastaInfo && gSeq_fastaInfo.length!=0)t+="&nbsp;<a href=\"javascript:"+gSeq_fastaInfo+"('"+curdir+itm+"','%QUERY%');\" >"+sdim+"</a>";
         return t;
         
@@ -177,7 +142,7 @@ function vSeq_dirListItemText(isdir, itmtxt, txt, curdir)
         if(!isfound) return "<img border=0 src='img/process.gif' height=12 >&nbsp;"+itm;
     }
     
-    return "";//<img border=0 src='ok.gif' height=12 >&nbsp;"+fnd+"vioseq";
+    return "";
 }
 
 
@@ -206,7 +171,7 @@ function vSeq_loadedAvailableFiles(container, txt)
     for ( var im=0; im<arrt.length; ++im) {
         var inf=arrt[im].split(":");
         var flnm=inf[0];
-        var dim= (inf.length>1) ? "  // "+vSeq_size(inf[1])+"" : "";
+        var dim= (inf.length>1) ? "
         selt+="<option value='"+flnm+"' "+((defval==flnm) ? "selected" : "") +">"+flnm+dim+"</option>";
     }
     selt+="</select>";

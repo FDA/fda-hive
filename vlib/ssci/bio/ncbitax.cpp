@@ -35,7 +35,6 @@
 #define NAME_TYPE 3 
 #define Project_TYPE 4 
 
-// keep in sync with EColumns in ncbitax.hpp!
 const char *sNCBITaxTree::columnNames =
     "taxid" _
     "parentid" _
@@ -73,7 +72,6 @@ const char * sNCBITaxTree::printColumnNames(sStr & out, idx whatToPrint)
 
 idx sNCBITaxTree::getNodeIndex(idx taxid){
     if( taxid <= 0) return 0;
-    //else return DB.GetRecordIndexByBody2(TAXID_TYPE,(void *)&taxid);
     else return DB.GetRecordIndexByBody((void *)&taxid,TAXID_TYPE);
 }
 
@@ -84,7 +82,6 @@ idx sNCBITaxTree::getTaxIdCnt(void){
 
 idx sNCBITaxTree::getNodeIndexByProID(idx projectID){
     if( projectID <= 0) return 0;
-    //else return DB.GetRecordIndexByBody2(TAXID_TYPE,(void *)&taxid);
     idx index= DB.GetRecordIndexByBody((void *)&projectID,Project_TYPE);
     if(index>0 && *DB.GetRelationPtr(Project_TYPE,index, 1, 0, 0)>0)
     return  *(idx *)DB.Getbody(TAXID_TYPE,*DB.GetRelationPtr(Project_TYPE,index, 1, 0, 0),0);
@@ -116,7 +113,6 @@ bool sNCBITaxTree::getNameTaxid(sVec <idx> * TaxidList, const char * srch){
 
 idx sNCBITaxTree::getChildCnt(idx taxid){
     idx whichOne=5;
-    //if(taxid==1) whichOne=3;
     idx nodeIndex = sNCBITaxTree::getNodeIndex(taxid);
     if(nodeIndex)
     return DB.GetRelationCnt(TAXID_TYPE, nodeIndex, whichOne);
@@ -140,17 +136,15 @@ idx sNCBITaxTree::getParentIndex(idx taxid){
 
 bool sNCBITaxTree::getChildrenIndexList(sVec <idx> * lontosa, idx taxid, const char * rankFilters, idx depth)
 {
-  //  buf->cut(0);
     idx nodeIndex = sNCBITaxTree::getNodeIndex(taxid);
     idx ChildCnt = sNCBITaxTree::getChildCnt(taxid);
     if(ChildCnt && ChildCnt!=-1){
         idx cntChildren, relationType;
         idx * ChildrenIndexListPtr=DB.GetRelationPtr(TAXID_TYPE ,nodeIndex, 5, &cntChildren, &relationType);
         for(idx i=0; ChildrenIndexListPtr && i< ChildCnt; i++, ChildrenIndexListPtr++){
-            // check for filter .. and if not good continue]
             idx IfAmongRanks=0;
             if(rankFilters && *rankFilters)
-                IfAmongRanks=sString::compareChoice(getRankByIndex(*ChildrenIndexListPtr),rankFilters ,0,false,0,true);//if nothing, it return what???
+                IfAmongRanks=sString::compareChoice(getRankByIndex(*ChildrenIndexListPtr),rankFilters ,0,false,0,true);
             if(IfAmongRanks!=-1){
                 lontosa->vadd(1,*ChildrenIndexListPtr);
             }
@@ -196,7 +190,7 @@ bool sNCBITaxTree::getPathByIndex(sStr * buf, idx index, idx WhatToPrintFlags,co
         while(taxid!=1){
             idx IfAmongRanks=0;
             if(RankFilters && *RankFilters)
-                IfAmongRanks=sString::compareChoice(getRankByIndex(index),RankFilters ,0,false,0,true);//if nothing, it return what???
+                IfAmongRanks=sString::compareChoice(getRankByIndex(index),RankFilters ,0,false,0,true);
             if(IfAmongRanks!=-1){
                 TaxidList.vadd(1,index);
             }
@@ -281,28 +275,6 @@ idx sNCBITaxTree::getProjIDByIndex(idx index){
     return *(idx *)DB.Getbody(relationType,*relationPtr,&bodysize);
     else return 0;
 }
-/*
-idx sNCBITaxTree::getGIByIndex(idx index,sStr *buf){
-    idx bodysize, relationCnt=0;
-    idx relationType=0;
-    idx * relationPtr = DB.GetRelationPtr(TAXID_TYPE ,index, 5, &relationCnt, &relationType);
-    if(relationPtr){
-        idx firstOne =  *(idx *)DB.Getbody(relationType,*relationPtr,&bodysize);
-        if(buf){
-            idx printSize=relationCnt>5?5:relationCnt;
-          //  buf->printf("\"");
-            if(relationCnt>5)   buf->printf("First 5:");
-            for(idx i=0; i <printSize ; i++,relationPtr++){
-                if(i>0) buf->printf("|");
-                buf->printf("%" DEC "",*relationPtr);
-            }
-          //  buf->printf("\"");
-        }
-        return firstOne;
-    }
-    else return 0;
-}
-*/
 
 
 idx sNCBITaxTree::getRankCount(const char * rank )
@@ -318,7 +290,7 @@ const char * sNCBITaxTree::getRankByIndex(idx index){
     idx relationType=0;
     idx * relationPtr = DB.GetRelationPtr(TAXID_TYPE ,index, 2, &relationCnt, &relationType);
     if(relationPtr)
-    return (char *)DB.Getbody(relationType,*relationPtr,&bodysize);//!hasto return the actual taxonomy node name
+    return (char *)DB.Getbody(relationType,*relationPtr,&bodysize);
     else return 0;
 } 
 
@@ -329,7 +301,6 @@ bool sNCBITaxTree::getNameByIndex(sStr * buf, idx index, idx whichName){
     whichName = whichName > realCntNames ? realCntNames: whichName;
     if(!relationPtr) return false;
     for(idx i=1; relationPtr && i <= whichName; i++){
-        //if(i>0) buf->printf(",");
         if (i==whichName){
             sStr t;
             sString::searchAndReplaceSymbols(&t, (const char *)DB.Getbody(relationType,*relationPtr++,&bodysize),0, "/\"\'", "   " , 0, true , true, false , true);
@@ -483,7 +454,6 @@ void sNCBITaxTree::printByFlags(sStr * buf, idx index, idx WhatToPrintflags, idx
         if(buf->length())
             buf->printf(",");
         if (extra) {
-            // \302\261 is octal code for UTF8 encoding of plus/minus
             if (WhatToPrintflags & eOutFile){
                 buf->printf("%0.1f+/-%0.2f", extra->mean, extra->confIntval);
             }
@@ -492,28 +462,14 @@ void sNCBITaxTree::printByFlags(sStr * buf, idx index, idx WhatToPrintflags, idx
             }
         }
     }
-/*
-    if(WhatToPrintflags & eHierachy){
-        if(buf->length())
-            buf->printf(",");
-        sStr t;
-        bool ifFind = sNCBITaxTree::getGIByIndex(index,&t);
-        if(ifFind)
-            sString::escapeForCSV(*buf, t.ptr(0), t.length());
-        else buf->printf(" ");
-    }
-*/
 }
 
 
 void sNCBITaxTree::Parsefile(const char* nodesName, const char* namesName, const char* inputfilename, bool combinedFile)
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/
     
-    sVioDB db(inputfilename,"ncbiTaxTree",3,4);//constructor: 3 types, 4 is the maximum raltionship 
+    sVioDB db(inputfilename,"ncbiTaxTree",3,4);
     sFil NodesFile(nodesName,sMex::fReadonly);
     sFil NamesFile(namesName,sMex::fReadonly);
     const char * src=NodesFile.ptr();
@@ -526,65 +482,49 @@ void sNCBITaxTree::Parsefile(const char* nodesName, const char* namesName, const
     if(!nsrc || !src)return;
 
     sStr line;
-    char buf[sSizePage];//change it to a bufer
+    char buf[sSizePage];
     idx taxid=0;
     idx parentid=0;
     sStr string;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Here we intialized the list of types we have 
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    idx relationlistID[4]={1,1,2,3}; // the realtionships here are telling that taxID is linked to parent-taxid 1->1 ,  to child-taxids 1->1 , to names 1->2 and to rsanks 1->3
-    idx relationlistRank[1]={1}; // the realtionships here are telling that ranks are linked to taxids 2->1
-    idx relationlistName[1]={1}; // the realtionships here are telling that names are linked to taxids 3->1
+    idx relationlistID[4]={1,1,2,3};
+    idx relationlistRank[1]={1};
+    idx relationlistName[1]={1};
 
-    //void AddType(sVioDB::ctype type,idx relCnt,idx MaxrelCnt,idx * relationlist,const char * tayename, idx indexOneBased);
-    db.AddType(sVioDB::eInt,4,relationlistID,"taxID", 1); // taxids are integers having 4 out of four relations (children, parents, ranks and names) 
-    db.AddType(sVioDB::eString,1,relationlistRank,"rank",2); // ranks ahve a single 1/4 relations to taxids 
+    db.AddType(sVioDB::eInt,4,relationlistID,"taxID", 1);
+    db.AddType(sVioDB::eString,1,relationlistRank,"rank",2);
     db.AddType(sVioDB::eString,1,relationlistName,"name",3);
 
 
-    // Run the first time
-    // we only count the records and adding the records to record blobs
     for ( idx i=0 ; i<length && *src; ++i)
     {
         src=getonelinefromBuffer(buf,src);
-        ParseOneline(2,buf,&string,&taxid,&parentid); // this function reads two integers followed by a string 
+        ParseOneline(2,buf,&string,&taxid,&parentid);
         char * rank=string.ptr(0);
 
         idx IDrecordsize=sizeof(taxid);
         idx Rankrecordsize=strlen(rank)+1;
 
-        //idx myRecordID=typelist_taxid->cnt+1;
         idx myRecordID=0;
 
-        // bool sVioDB::SetRecordIndexByBody(void * body,idx typeIndexOneBased, idx * recordIndexOneBased)
         if(db.SetRecordIndexByBody((const void *)&taxid, TAXID_TYPE, &myRecordID))
-        //void AddRecord(idx indexOneBased, idx typeIndexOneBased, void * record, idx recordsize);
             db.AddRecord(TAXID_TYPE,(const void *)&taxid, IDrecordsize);
-        //void AddRecordRelationshipCounter(idx typeIndexOneBased,idx recordIndexOneBased, idx relationIndexOneBased);
-        db.AddRecordRelationshipCounter(TAXID_TYPE, myRecordID, 2); // 2 here means that this node has one more parent relationship 
-        db.AddRecordRelationshipCounter(TAXID_TYPE, myRecordID, 3); // 3 here means that this node has one more rank relationship
+        db.AddRecordRelationshipCounter(TAXID_TYPE, myRecordID, 2);
+        db.AddRecordRelationshipCounter(TAXID_TYPE, myRecordID, 3);
 
 
-        //??How about want to set two relationship??
-        //idx myParentRecordID=typelist_taxid->cnt+1;
         myRecordID=0;
         if( db.SetRecordIndexByBody((const void *)&parentid,TAXID_TYPE, &myRecordID) ) 
             db.AddRecord(TAXID_TYPE,(const void *)&parentid, IDrecordsize);
         if(parentid!=taxid) 
-            db.AddRecordRelationshipCounter(TAXID_TYPE, myRecordID, 1); // 0 here means that this node has one more child relationship
-        //idx myRankRecordID=typelist_rank->cnt+1;
+            db.AddRecordRelationshipCounter(TAXID_TYPE, myRecordID, 1);
         myRecordID=0;
         if( db.SetRecordIndexByBody((const void*)rank,RANK_TYPE,&myRecordID) ) 
             db.AddRecord(RANK_TYPE,(const void *)rank, Rankrecordsize);
-        db.AddRecordRelationshipCounter(RANK_TYPE, myRecordID, 1); // by Vahan
+        db.AddRecordRelationshipCounter(RANK_TYPE, myRecordID, 1);
     }
 
-    //name part
     for ( idx k=0; k<nlength && *nsrc; ++k)
     {
         nsrc=getonelinefromBuffer(buf,nsrc);    
@@ -593,30 +533,19 @@ void sNCBITaxTree::Parsefile(const char* nodesName, const char* namesName, const
         idx IDrecordsize=sizeof(taxid);
         idx Namerecordsize=strlen(names)+1;
 
-        //idx myRecordID=typelist_taxid->cnt+1;
         idx myRecordID=0;
         if(db.SetRecordIndexByBody((const void *)&taxid,TAXID_TYPE,&myRecordID)) 
             db.AddRecord(TAXID_TYPE,(const void *)&taxid, IDrecordsize);
-        db.AddRecordRelationshipCounter(TAXID_TYPE, myRecordID, 4); // 4 here means that this node has one more name relationship 
+        db.AddRecordRelationshipCounter(TAXID_TYPE, myRecordID, 4);
         
-        //idx myNameRecordID=typelist_name->cnt+1;
-        //if( !sVioDB::SetHashFun((void*)rank,&myRankRecordID,typelist_rank->ctype) ) 
         db.AddRecord(NAME_TYPE ,(const void *)names, Namerecordsize);
-        db.AddRecordRelationshipCounter(NAME_TYPE, 0, 1); // 1 here means that this node has one more child relationship
+        db.AddRecordRelationshipCounter(NAME_TYPE, 0, 1);
     } 
     
-    //_*_*_We use this function to allocate space for the a relationship
-    //_*_*_AllocRelation()
     db.AllocRelation();
     
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Fill Relationship lists
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    // run the second time
     src=NodesFile.ptr();
     nsrc=NamesFile.ptr();
 
@@ -630,23 +559,21 @@ void sNCBITaxTree::Parsefile(const char* nodesName, const char* namesName, const
         idx myParentRecordID=db.GetRecordIndexByBody((const void *)&parentid, TAXID_TYPE);
         idx myRankRecordID=db.GetRecordIndexByBody((const void*)rank, RANK_TYPE, strlen(rank)+1);
 
-        //bool AddRelation(idx typeIndexOneBased_from, idx typeIndexOneBased_to, idx reocrdIndexOneBased_from, idx recordIndexOneBased_to,idx relationIndexOneBased_to);
-        if(parentid!=taxid) db.AddRelation(TAXID_TYPE, 1, myParentRecordID, myRecordID ); // TAXID_TYPE
-        db.AddRelation(TAXID_TYPE, 2, myRecordID , myParentRecordID ); // TAXID_TYPE
-        db.AddRelation(TAXID_TYPE, 3 , myRecordID ,myRankRecordID ); // RANK_TYPE
+        if(parentid!=taxid) db.AddRelation(TAXID_TYPE, 1, myParentRecordID, myRecordID );
+        db.AddRelation(TAXID_TYPE, 2, myRecordID , myParentRecordID );
+        db.AddRelation(TAXID_TYPE, 3 , myRecordID ,myRankRecordID );
 
-        db.AddRelation(RANK_TYPE, 1 , myRankRecordID ,myRecordID ); // By Vahan
+        db.AddRelation(RANK_TYPE, 1 , myRankRecordID ,myRecordID );
 
     }
     
     for ( idx k=0 ; k< nlength  && *nsrc ; ++k) {
         nsrc=getonelinefromBuffer(buf,nsrc); 
         ParseOneline(1,buf,&string,&taxid);
-        //char * names= string.ptr(0);
 
         idx myRecordID=db.GetRecordIndexByBody((const void *)&taxid, TAXID_TYPE);
-        db.AddRelation(TAXID_TYPE, 4, myRecordID , k+1 ); // NAME_TYPE
-        db.AddRelation(NAME_TYPE, 1, k+1 , myRecordID ); // TAXID_TYPE
+        db.AddRelation(TAXID_TYPE, 4, myRecordID , k+1 );
+        db.AddRelation(NAME_TYPE, 1, k+1 , myRecordID );
         
     }
 
@@ -665,9 +592,7 @@ void sNCBITaxTree::ParseOneline(idx idCnt, const char * buf, sStr * string, idx 
     const char * ptr1=line.ptr(); 
     for(idx i=0; i<idCnt ;i++)
     {
-        //const char * ptr1=line.ptr();//get the taxid
         sscanf(ptr1,"%" DEC,id);
-        //sFile::copy(filenamesrc,filenamedest, true);
         id = va_arg( marker, idx *);
         ptr1=sString::next00(ptr1);
     }
@@ -676,7 +601,6 @@ void sNCBITaxTree::ParseOneline(idx idCnt, const char * buf, sStr * string, idx 
     string->printf(0,"%s",ptr1);
     sString::searchAndReplaceSymbols(string->ptr(0), 0, sString_symbolsBlank, " ", 0, true , true, false , true);
     sString::cleanEnds(string->ptr(0),0,sString_symbolsBlank,true);
-    //string->ptrint(0,"%s",ptr1);
 }
 
 const char * sNCBITaxTree::getonelinefromBuffer(char * buf, const char * fileContent)

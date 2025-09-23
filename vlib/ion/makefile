@@ -27,25 +27,18 @@
 # * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # * DEALINGS IN THE SOFTWARE.
 # */
+LIBRARIES += ion
+
+ion_SRCS =  \
+	sIon-core.cpp sIon-load.cpp sIon-transaction.cpp sIon-info.cpp \
+	sIon-range.cpp sIon-sorder.cpp \
+	sIon-wander.cpp \
+	sIon-birel.cpp sIon-birel-iterate.cpp \
+	sIon-hc.cpp sIon-client.cpp sIon-utils.cpp \
+	vax.cpp
 
 ifeq ($(devdir),)
     devdir = $(abspath ../..)
 endif
-
 include $(devdir)/build/makefile.meta
 
-LIB_NAME = libion.a
-LIB_STAMP = $(libdir)/$(LIB_NAME).stamp
-
-.PHONY: all makefile
-
-all:: $(LIB_STAMP) $(LIB_NAME)
-
-$(LIB_STAMP):: makefile
-	cp -pv $(LIB_NAME) $(libdir)
-	@touch -d "$$(stat -c %y $$(ls -t $(LIB_NAME) | head -1))" $(LIB_STAMP)
-
-.PHONY: clean
-clean::
-	rm -f $(libdir)/$(LIB_NAME)
-	rm -f $(LIB_STAMP)

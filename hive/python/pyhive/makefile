@@ -28,33 +28,35 @@
 # * DEALINGS IN THE SOFTWARE.
 # */
 
-MODULES += pyhive
-PROGRAMS += py-modrun
+OBJECT_TYPES = svc-test-pyhive
 
-# subdir to allow future expansion: we may also want a python-3.x module called 'pyhive.so'
-pyhive_NAME = python2.7/pyhive
-pyhive_SRCS = pyhiveid.cpp pymex.cpp pytime.cpp pyutype.cpp pyuobj.cpp pyproc.cpp qpysvc.cpp pyion.cpp pyionwander.cpp pyseq.cpp
-py-modrun_SRCS = py-modrun.cpp
+MODULES += py3hive
+PROGRAMS += py3-modrun
 
-# python API docs specifically ask to add $incldir/python2.7 to search path instead of #including <python2.7/Python.h>
-# -fno-strict-aliasing needed because core parts of Python C API require aliasing (PyTypeObject* cast to PyObject* etc.)
-CXXFLAGS=$(shell pkg-config python-2.7 --cflags) -fno-strict-aliasing
+py3hive_NAME = python3/pyhive
+py3hive_SRCS = pyhiveid.cpp pymex.cpp pytime.cpp pyutype.cpp pyuobj.cpp pyproc.cpp qpysvc.cpp pyion.cpp pyionwander.cpp pyseq.cpp
+py3-modrun_SRCS = py-modrun.cpp
 
-pyhive_LIBS = -lviolib -lqpsvc $(VLIB_LIB)
-pyhive_XLIBS = $(MYSQL_LIB) $(shell pkg-config python-2.7 --libs)
-py-modrun_LIBS = $(VLIB_LIB)
-py-modrun_XLIBS = $(PCRE_LIB)
+CXXFLAGS+=$(shell pkg-config --cflags 'python-3.9')
+LDFLAGS+=$(shell pkg-config --libs 'python-3.9')
+
+py3hive_LIBS = -lviolib -lqpsvc $(VLIB_LIB)
+py3hive_XLIBS = $(MYSQL_LIB)
+py3-modrun_LIBS = $(VLIB_LIB)
+py3-modrun_XLIBS = $(PCRE_LIB)
 
 ifeq ($(devdir),)
 	devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-doc: $(libdir)/$(pyhive_NAME).so
-	PYTHONPATH="${libdir}/python2.7:${PYTHONPATH}" sphinx-build -b html . "${devdir}"/hive/html/doc/pyhive/
+doc: $(libdir)/$(py3hive_NAME).$(DLL_EXT)
+	PYTHONPATH="${libdir}/python3:${PYTHONPATH}" sphinx-build -b html . "${devdir}"/hive/html/doc/pyhive/
 
 PHONY: dist
 dist::
-	$(call run-qapp,qm,$(pyhive_NAME).so,$(libdir)/$(pyhive_NAME).so)
-	$(call dist-src,qm,py-modrun.sh.os$(SLIB_PLATFORM),py-modrun.sh.os$(SLIB_PLATFORM))
-	$(call dist-app,qm,py-modrun,py-modrun.os$(SLIB_PLATFORM))
+	$(call dist-lib,qm,$(py3hive_NAME).$(DLL_EXT))
+	$(call dist-app,qm,py3-modrun,py-modrun.os$(SLIB_PLATFORM))
+	$(call dist-service-register,test_pyhive,PyHive Test,/Utils/, \
+		capacity=1 \
+	)

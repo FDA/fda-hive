@@ -40,7 +40,6 @@ function vjHiveObjects() {
         this[this.length]=this[hiveObjType];
         this[hiveObjType].parent=this;
         ++this.length;
-        //alerJ(hiveObjType,this[hiveObjType])
         vjRegisterJavaScriptEngine(hiveObjType, this);
 
         vjHiveObjectBase.call(hiveObject);
@@ -73,7 +72,6 @@ function vjHiveObjects() {
     {
         this.mode='mobileview';
         params.node=node;
-        //this.callbackDone=callbackDone;
         return this.execute(typeName,"node=params.node;obj['"+typeName+"'].mode='"+this.mode+"';if(obj['"+typeName+"'].mobileview)obj['"+typeName+"'].mobileview(node,params);else if(obj['"+typeName+"'].defaultView)obj['"+typeName+"'].defaultView(node,params);",params,callbackDone,callbackConstructed);
     };
 
@@ -81,21 +79,18 @@ function vjHiveObjects() {
     {
         this.mode='preview';
         params.node=node;
-        //this.callbackDone=callbackDone;
         return this.execute(typeName,"node=params.node;obj['"+typeName+"'].mode='"+this.mode+"';if(obj['"+typeName+"'].preview)obj['"+typeName+"'].preview(node,params);else if(obj['"+typeName+"'].defaultView)obj['"+typeName+"'].defaultView(node,params);",params,callbackDone,callbackConstructed);
     };
     this.fullview=function (typeName, node, params,callbackDone,callbackConstructed)
     {
         params.node=node;
         this.mode='fullview';
-        //this.callbackDone=callbackDone;
         return this.execute(typeName,"node=params.node;obj['"+typeName+"'].mode='"+this.mode+"';if(obj['"+typeName+"'].fullview)obj['"+typeName+"'].fullview(node,params);else if(obj['"+typeName+"'].defaultView)obj['"+typeName+"'].defaultView(node,params);",params,callbackDone,callbackConstructed);
     };
     this.setUpJsonForAlgo = function (typeName, node, params,callbackDone,callbackConstructed)
     {
         params.node=node;
         this.mode='setUpJsonForAlgo';
-        //this.callbackDone=callbackDone;
         return this.execute(typeName,"node=params.node;obj['"+typeName+"'].mode='"+this.mode+"';if(obj['"+typeName+"'].fullview)obj['"+typeName+"'].setUpJsonForAlgo(node,params);else if(obj['"+typeName+"'].defaultView)obj['"+typeName+"'].defaultView(node,params);",params,callbackDone,callbackConstructed);
     };
 
@@ -127,8 +122,6 @@ function vjHiveObjects() {
 
         }
         else if(t.inherit || t.jsFile ){
-//                if(!this.params)
-//                    this.params=new Object();
             this[typeName].params=params;
 
             var ttjs= (t.inherit ) ? t.inherit : (t.jsFile==true ? typeName : t.jsFile );
@@ -150,17 +143,6 @@ function vjHiveObjects() {
 
 
 
-    /*
-    this.preview=function (node, params)
-    {
-            params.node=node;
-            this.execute(node._type,"javascript:node=params.node;obj['"+node._type+"'].preview(node,params)",params);
-    }
-    this.fullview=function (node, params)
-    {
-            params.node=node;
-            this.execute(node._type,"javascript:node=params.node;obj['"+node._type+"'].fullview(node,params)",params);
-    }*/
 
 }
 
@@ -182,25 +164,18 @@ function vjHiveObjectBase() {
 
     this.dsName = {};
 
-    // Takes a list of viewer names (comma separated string) and an array of viewer objects (vjSVGGeneView, etc.)
-    // and adds them to the viewer list to render.
-    
+
     this.addviewer = function(viewname, viewobj) {
-        // Takes a comma separated list (viewname) and appends them to the current viewer list (global viewersToAdd)
-        // For example, in profiler it will add each of the different graphs to the list to render
-        
-        // Create the viewers object if doesn't already exist
+
         if(!this.viewers) {
             this.viewers=new Object();
             this.viewers.length=0;
         }
-        
-        // Create the array if doesn't already exist
+
         if(!this.viewersToAdd)
             this.viewersToAdd=[];
 
-        // Split viewer list by comma, loop through and add each new viewer with some error handling
-        var vlist = verarr(viewobj); // What does verarr do?
+        var vlist = verarr(viewobj);
         var nlist = viewname.split(",");
 
         for ( var iv = 0; iv < vlist.length; ++iv) {
@@ -212,7 +187,7 @@ function vjHiveObjectBase() {
                 var vn = ddd[id];
 
                 if (vn != "dsVoid") {
-                    var dsname = this.makeDSName(vn, true); // Add to dsName global dictionary
+                    var dsname = this.makeDSName(vn, true);
                     vlist[iv].data.push(dsname);
                 }
                 else
@@ -223,16 +198,12 @@ function vjHiveObjectBase() {
 
             this.viewers[nlist[iv]] = vlist[iv];
             this.viewers[this.viewers.length] = vlist[iv];
-            // Add new separated out viewer
             this.viewersToAdd.push(this.viewers[this.viewers.length]);
             ++this.viewers.length;
         }
 
-        // Loops through the list of datasources associated with the added viewers
-        // dsName is dictionary (object) of data sources associating the programmer given name of the data source
-        // to the javascript given name.
         for (var nm in this.dsName) {
-            var us = this.urlSet[nm]; // us = vjDS object {LoadInactive:bool, active_url: string, title, string)
+            var us = this.urlSet[nm];
 
             var ds = vjDS[this.dsName[nm]];
 
@@ -253,6 +224,12 @@ function vjHiveObjectBase() {
         }
     };
 
+    this.makeAllDS = function(force) {
+        for (var i in this.urlSet) {
+            this.makeDS(i,force);
+        }
+    };
+
     this.makeDSName = function(nm, force) {
         if (this.dsName[nm] && !force)
             return this.dsName[nm];
@@ -262,6 +239,32 @@ function vjHiveObjectBase() {
         this.dsName[nm] = dsname;
         return dsname;
     };
+
+    this.reloadDSobjID = function(nm, objID) {
+        if ( arguments.length < 1) {
+            console.error("missing argument in " + arguments.callee.name)
+            return;
+        }
+        var ds = this.getDS(nm);
+        if ( typeof(ds) == "undefined") {
+            console.error("No datasource available :" + arguments.callee.name)
+            return
+        }
+        var us = this.urlSet[nm];
+
+        if ( typeof(us) == "undefined") {
+            console.error("No object url available :" + arguments.callee.name)
+            return
+        }
+
+        var url = ds.url;
+        if ( typeof(objID) == "udnefined" ) {
+            url = us.inactive_url ? us.inactive_url : "static:
+        } else {
+            url = urlExchangeParameter(url, us.objs ? us.objs : "objs", objID);
+        }
+        ds.reload(url, true);
+    }
 
     this.makeDS = function(nm, force) {
         var dsname = this.makeDSName(nm);
@@ -279,11 +282,11 @@ function vjHiveObjectBase() {
             return us.make_ds.call(this, this.dsTitle, dsname, active, this.loadedID);
 
         if (active) {
-            url = us.active_url ? us.active_url : "static://";
+            url = us.active_url ? us.active_url : "static:
             if (us.make_active_url)
                 url = us.make_active_url.call(this, url, this.loadedID);
         } else {
-            url = us.inactive_url ? us.inactive_url : "static://";
+            url = us.inactive_url ? us.inactive_url : "static:
         }
 
         if(!us.make_active_url && !us.doNotChangeMyUrl)
@@ -293,10 +296,39 @@ function vjHiveObjectBase() {
         return vjDS.add(title, dsname, url, us.callback, us.header);
     };
 
+    this.getDSName = function(nm) {
+        if (this.dsName[nm])
+            return this.dsName[nm];
+        return "";
+    }
+
     this.getDS = function(nm) {
         if (this.dsName[nm])
             return vjDS[this.dsName[nm]];
         return vjDS["dsVoid"];
+    };
+
+    this.reload = function(loadedID) {
+        if ( typeof(loadedID) == "undefined" ) {
+            delete this.loadedID;
+        } else {
+            this.loadedID = loadedID;
+        }
+
+        for ( var nm in this.dsName ) {
+            this.reloadDSobjID(nm,this.loadedID);
+        }
+    }
+
+    this.reset = function (loadedID) {
+        this.resetDS();
+        this.resetViewers();
+    };
+
+    this.resetDS = function() {
+        for ( var nm in this.dsName ) {
+            delete vjDS[this.dsName[nm]];
+        }
     };
 
     this.resetViewers = function(){
@@ -318,12 +350,12 @@ function vjHiveObjectBase() {
             this.urlSet[item] = set[item];
         }
     };
-    
+
     this.defaultView = function (node,params){
         this._node = node;
         this._params = params;
     }
-    
+
     this.inheritType = function(typeName, callbackDone) {
         var that=this.parent.execute(typeName,"",{node:""});
         var _this = this;
@@ -356,7 +388,7 @@ function vjHiveObjectSvcBase() {
         this.defaultDownloadWildcard="*.{csv,json,png,tsv,txt}";
 
     if(!this.defaultDownloadURL)
-        this.defaultDownloadURL="http://?cmd=propget&files="+vjDS.escapeQueryLanguage(this.defaultDownloadWildcard)+"&mode=csv&prop=none";
+        this.defaultDownloadURL="http:
 
     this.urlSet = {
         "downloadables": {
@@ -370,9 +402,8 @@ function vjHiveObjectSvcBase() {
     this.addDownloadViewer = function(descriptions) {
         this.addviewer('download', new vjTableView({
             debug:0,
-            parsemode: vjTable_hasHeader, // we want 1 row per file
+            parsemode: vjTable_hasHeader,
             data: "downloadables" ,
-            //prefixHTML: whereToJump  ? ("<a href='?cmd="+whereToJump+"&id="+id+"'><table width='100%' border=0 class='HIVE_section_title'><tr><td width='1' ><img border=0 src='img/eye.gif' width=64 /></td><td width='99%'>"+whatText+"</td></tr></table></a>") : "",
             formName: this.formName,
             selectCallback: function (viewer,node,ir,col){
                 if (col>1)
@@ -499,29 +530,20 @@ vjHO.register('notification' , {
     icon : 'rec'
 });
 
-vjHO.register('sra-common-lib' , {
-    icon : 'rec'
-});
-
-vjHO.register('sra-experiment' , {
-    icon : 'bio-experiment'
-});
-
-vjHO.register('sra-run' , {
-    icon : 'bio-run'
-});
-
-vjHO.register('sra-sample' , {
-    icon : 'bio-sample'
-});
-
-vjHO.register('sra-study' , {
-    icon : 'bio-study'
-});
-
 vjHO.register('svc' , {
     inherit: 'svc',
     icon:"process"
+});
+
+vjHO.register('svc-algorlda2' , {
+    icon : 'img/scope.png',
+    inherit: 'svc',
+    jsDir: "js-obj-new"
+});
+
+vjHO.register('svc-algorlda' , {
+    jsFile: true,
+    icon:"img/64/rlda.png"
 });
 
 vjHO.register('svc-align' , {
@@ -534,13 +556,28 @@ vjHO.register('svc-align-blat' , {
     , inherit: 'svc-alignment'
 });
 
+vjHO.register('svc-align-blat-36' , {
+    icon : 'img-algo/svc-align-blat.gif'
+    , inherit: 'svc-align-blat'
+});
+
 vjHO.register('svc-align-blast' , {
     icon : 'img-algo/==.gif'
     , inherit: 'svc-alignment'
 });
 
+vjHO.register('svc-align-blast-2.9' , {
+    icon : 'img-algo/svc-align-blast.gif'
+    , inherit: 'svc-alignment'
+});
+
+
 vjHO.register('svc-align-blastx' , {
     icon : 'img-algo/==.gif'
+    , jsFile:true
+});
+vjHO.register('svc-align-blastx-2.9' , {
+    icon : 'img-algo/svc-align-blastx.gif'
     , jsFile:true
 });
 
@@ -549,9 +586,19 @@ vjHO.register('svc-align-tblastx' , {
     , inherit: 'svc-align-blastx'
 });
 
+vjHO.register('svc-align-tblastx-2.9' , {
+    icon : 'img-algo/svc-align-tblastx.gif'
+    , inherit: 'svc-align-blastx'
+});
+
 vjHO.register('svc-align-bowtie' , {
     icon : 'img-algo/==.gif'
     , inherit: 'svc-alignment'
+});
+
+vjHO.register('svc-align-bowtie-1.2.2' , {
+    icon : 'img-algo/svc-align-bowtie.gif'
+    , inherit: 'svc-align-bowtie'
 });
 
 vjHO.register('svc-align-bwa' , {
@@ -582,22 +629,24 @@ vjHO.register('svc-align-tophat' , {
 vjHO.register('svc-align-multiple' , {
     icon : 'img/processSvc.gif',
     inherit: 'svc-alignment-multiple',
-//  jsDir: "js-obj-new" (commented out by Dinos until svc-alignment in js-obj-new is fixed)
 });
 
 vjHO.register('svc-alignment-multiple' , {
     icon : 'img/processSvc.gif',
     inherit: 'svc-alignment',
-//  jsDir: "js-obj-new" (commented out by Dinos until svc-alignment in js-obj-new is fixed)
 });
 
 vjHO.register('svc-alignment' , {
     icon : 'img/processSvc.gif'
-//    jsDir: "js-obj-new" (commented out by Dinos until svc-alignment in js-obj-new is fixed)
 });
 
 vjHO.register('svc-align-mafft' , {
     icon : 'img-algo/==.gif',
+    inherit: 'svc-alignment-multiple'
+});
+
+vjHO.register('svc-align-mafft-7.407' , {
+    icon : 'img-algo/svc-align-mafft.gif',
     inherit: 'svc-alignment-multiple'
 });
 
@@ -607,15 +656,21 @@ vjHO.register('svc-align-clustal' , {
 });
 
 vjHO.register('svc-archiver' , {
-    icon : 'process',
+    icon : 'upload',
     inherit: 'svc'
+});
+
+vjHO.register('svc-compressor' , {
+    icon : 'process',
+    inherit: 'svc',
+    defaultDownloadWildcard : '*.hivepack'
+
 });
 
 vjHO.register('svc-dna-screening' , {
     icon : 'img/scope.png',
     inherit: 'svc',
     jsDir: "js-obj-new"
-    //jsFile:true
 });
 
 vjHO.register('svc-align-screening' , {
@@ -635,7 +690,6 @@ vjHO.register('svc-profiler-refcmp', {
 vjHO.register('user-info' , {
     icon : 'help'
     ,inherit: 'user-info'
-    //jsFile:true
 });
 
 
@@ -680,6 +734,12 @@ vjHO.register('svc-hiveseq' , {
     ,inherit: 'svc'
 });
 
+vjHO.register('svc-panel' , {
+    icon : 'process'
+    ,jsFile: true
+    ,jsDir: 'js-obj-new'
+});
+
 vjHO.register('svc-popul' , {
     icon : 'img-algo/==.gif'
         ,inherit: 'svc-popul'
@@ -691,7 +751,9 @@ vjHO.register('svc-profiler' , {
 });
 
 vjHO.register('svc-diprofiler' , {
-    icon : 'process'
+    icon : 'process',
+    jsDir:"js-obj-new",
+    jsFile:true
 });
 
 vjHO.register('svc-profiler-heptagon' , {
@@ -735,7 +797,6 @@ vjHO.register('svc-sb-Treatment' , {
 vjHO.register('svc-spectraPeakDetection' , {
     jsFile:true,
      icon : 'img-algo/==.jpg'
-//         inherit: 'svc-spectraPeakDetection'
 });
 
 vjHO.register('spectra' , {
@@ -844,13 +905,24 @@ vjHO.register('svc-generic-launcher' , {
     inherit: 'svc'
 });
 
+vjHO.register('svc-msgfplus' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-glymps' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+
+
 vjHO.register('svc-affinity-viz-peak-detect', {
     icon: 'process',
     jsFile: true,
     jsDir: 'js-obj-new'
 });
 
-//added so that all of the linkage works on the new algoview pages
 vjHO.register('svc-align2' , {
     icon : 'img/processSvc.gif',
     inherit: 'svc-alignment2',
@@ -905,36 +977,50 @@ vjHO.register('svc-align-tophat2' , {
     , inherit: 'svc-alignment2'
 });
 
+vjHO.register('svc-align-hisat2' , {
+    icon : 'img-algo/==.gif'
+    , inherit: 'svc-alignment2'
+});
+
+vjHO.register('svc-align-hisat2-2.1.0', {
+    icon: 'img-algo/hisat2.png',
+    inherit: 'svc-alignment2'
+});
 vjHO.register('svc-align-blat2' , {
     icon : 'img-algo/==.gif'
     , inherit: 'svc-alignment2'
 });
 
-vjHO.register('svc-align-multiple2' , {
-    icon : 'img/processSvc.gif',
-    inherit: 'svc-alignment-multiple2',
-  jsDir: "js-obj-new"
+vjHO.register('svc-align-bowtie2' , {
+    icon : 'img-algo/svc-align-bowtie.gif'
+    , inherit: 'svc-alignment2'
 });
 
-vjHO.register('svc-alignment-multiple2' , {
-    icon : 'img/processSvc.gif',
-    inherit: 'svc-alignment2',
-  jsDir: "js-obj-new" 
+vjHO.register('svc-align-bowtie2-2.3.5' , {
+    icon : 'img-algo/svc-align-bowtie.gif'
+    , inherit: 'svc-align-bowtie2'
 });
+
 
 vjHO.register('svc-alignment2' , {
     icon : 'img/processSvc.gif',
-    jsDir: "js-obj-new" 
+    jsDir: "js-obj-new"
 });
 
-vjHO.register('svc-align-mafft' , {
+vjHO.register('svc-align-mafft2' , {
     icon : 'img-algo/==.gif',
     inherit: 'svc-alignment-multiple2'
 });
 
-vjHO.register('svc-align-clustal' , {
+vjHO.register('svc-align-clustal2' , {
     icon : 'img-algo/==.gif',
     inherit: 'svc-alignment-multiple2'
+});
+
+vjHO.register('svc-alignment-remapper' , {
+    icon : 'process'
+    , inherit: 'svc-alignment2',
+    jsDir: 'js-obj-new'
 });
 
 vjHO.register('svc-dna-codonQC' , {
@@ -952,6 +1038,11 @@ vjHO.register('svc-dna-alignQC' , {
     jsDir: "js-obj-new"
 });
 
+vjHO.register('svc-dna-targetQC' , {
+    icon : 'process',
+    jsDir: "js-obj-new"
+});
+
 vjHO.register('svc-dna-kmerQC' , {
     icon : 'process',
     jsDir: "js-obj-new"
@@ -965,4 +1056,589 @@ vjHO.register('svc-differential-profiler' , {
 vjHO.register('svc-clust2' , {
     icon : 'img-algo/==.png',
     jsDir: "js-obj-new"
+});
+
+vjHO.register('svc-orfFinder' , {
+    icon : 'img-algo/==.png',
+    jsDir: "js-obj-new"
+});
+
+vjHO.register('svc-bcl2fastq' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-canu' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-canu-1x' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dna-spades' , {
+    icon : 'process',
+});
+
+vjHO.register('svc-velvet-single' , {
+    icon : 'process',
+});
+
+vjHO.register('svc-samtools-index-1.9.1' , {
+    icon : 'process',
+});
+
+vjHO.register('svc-samtools-view-1.9.1' , {
+    icon : 'process',
+});
+
+vjHO.register('svc-agilent-mbc' , {
+    icon : 'process',
+});
+
+vjHO.register('svc-test_gl_callbacks' , {
+    icon : 'process',
+});
+
+vjHO.register('svc-clin-data-uploader' , {
+    jsFile:true,
+    jsDir: 'js-obj-new'
+});
+
+vjHO.register('svc-gut-feeling' , {
+    jsFile:true,
+    jsDir: 'js-obj-new'
+});
+
+vjHO.register('svc-dragen-index' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-dnaseq' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-full' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-full-3.6' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-germline-aligner' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-tumor-aligner' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-germline-small-variant' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-tumor-only-small-variant' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-tumor-normal-small-variant' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-germline-cnv' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-germline-panel-cnv1' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-germline-panel-cnv2' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-tumor-only-cnv' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-tumor-normal-cnv' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-germline-small-variant-cnv' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-germline-sv' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-tumor-only-sv' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-tumor-normal-sv' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-short-tandem-repeats' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-dragen-methylation' , {
+    icon : 'img-algo/dragen_logo.png',
+    inherit: 'svc'
+});
+
+
+vjHO.register('svc-adverse-event-dedup' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-ncbi-prefetch' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-ncbi-fasterq-dump' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-ncbi-sam-dump' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-2stp' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-3stp' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-aad-full' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-aad-test' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-aad4step' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-debug' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-sra-fastq' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-sra-sam' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-upload' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-amr-short' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-upload-processor' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-run-deepvariant-1.0.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-multiqc-1.9' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-multiqc-1.11' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-fastp-0.20.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-variant-conserv-gen-1.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-HIVE-RNA-Seq' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-lofreq-alnqual-2.1.5' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('lofreq-call-2.1.5' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-lofreq-checkref-2.1.5' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-lofreq-indelqual-2.1.5' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-lofreq-somatic-2.1.5' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-lofreq-viterbi-2.1.5' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pyir-1.3.3' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-alphafold-2.1.2' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+
+vjHO.register('svc-download-http' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-download-ftp' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-download-dropbox' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-download-ncbi-genome' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-download-ncbi-exome' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-download-ncbi-genbank' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-download-http' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-download-ftp' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-download-ncbi-genbank' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-download-ncbi-genome' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-download-ncbi-exome' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-download-dropbox' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-cellranger-aggr-3.0.2' , {
+    icon : 'img-algo/10x_Genomix_logo.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-cellranger-mkref-3.0.2' , {
+    icon : 'img-algo/10x_Genomix_logo.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-cellranger-mkfastq-3.0.2' , {
+    icon : 'img-algo/10x_Genomix_logo.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-cellranger-count-3.0.2' , {
+    icon : 'img-algo/10x_Genomix_logo.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-cellranger_arc-mkfastq-2.0.1' , {
+    icon : 'img-algo/10x_Genomix_logo.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-cellranger_arc-count-2.0.1' , {
+    icon : 'img-algo/10x_Genomix_logo.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-minimap2-align-2.17' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-minimap2-index-2.17' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-trimmomatic-0.39' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-kallisto-quant-0.46.2' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-kallisto-index-0.46.2' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-price-1.2.1' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-hive-umitools.0.5.5' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-ANARCI-1.2' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-deseq' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-hisat2-align-2.1.0', {
+    icon: 'img-algo/hisat2.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-hisat2-index-2.1.0', {
+    icon: 'img-algo/hisat2.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-align-hisat2-2.2.1' , {
+    icon : 'img-algo/hisat2.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-hisat2-index-2.2.1' , {
+    icon : 'img-algo/hisat2.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-featureCounts-2.0.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-fastqc-0.11.9' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-humann2' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-docket-1.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-dna-insilico' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-snpEff-5.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-fdms-download-1.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-rgi-5.2.1' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-picard-markduplicates-2.26.11' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-picard-collectrnaseqmetrics-2.26.11' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-picard-collectinsertsizemetrics-2.26.11' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-picard-collecthsmetrics-2.26.11' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-unicycler-0.5.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-unicycler-0.4.8' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-docket' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-amr-merge' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-amr-merge-long' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-amr-merge-hybrid' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-dcgt_json_converter-1.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-dcgt-rnaseq' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-dcgt-dnaseq' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-otp-rnaseq-2', {
+    icon: 'pipeline_512.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-otp-dnaseq-2', {
+    icon: 'pipeline_512.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-rnaseqc-2.4.2', {
+    icon: 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-docket-ai-summary-1.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-docket-2.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-samtools-fastq-1.17' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-pipeline-DRM-oneclick' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-regulatory_keyword_search-1.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp-report-qc-1.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp-excel-qc-1.0' , {
+    icon : 'processSvc',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp-excel-qc-2.0', {
+    icon: 'processSvc',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp-excel-qc-3.0' , {
+    icon: 'processSvc',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp-excel-qc-4.0' , {
+    icon: 'processSvc',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp-qc-conversion-1.0' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-codon-usage' , {
+    icon : 'process',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp_qc_rna_pipeline-1.0' , {
+    icon: 'pipeline_512.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp_qc_dna_pipeline-1.0' , {
+    icon: 'pipeline_512.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp_qc_rna_pipeline-2.0' , {
+    icon: 'pipeline_512.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-otp_qc_dna_pipeline-2.0' , {
+    icon: 'pipeline_512.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-alphafold-2.3.2', {
+    icon: 'img-algo/alphafold_logo.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-hive-igv-3.0.8', {
+    icon: 'img-algo/igv.png',
+});
+vjHO.register('svc-pepmatch-preprocess-1.0.5', {
+    icon: 'img-algo/pepmatch_logo.png',
+    inherit: 'svc'
+});
+vjHO.register('svc-pepmatch-match-1.0.5', {
+    icon: 'img-algo/pepmatch_logo.png',
+    inherit: 'svc'
 });

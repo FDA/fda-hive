@@ -33,9 +33,9 @@ DROP TABLE IF EXISTS `QPCfg`;
 CREATE TABLE `QPCfg` (
   `par` varchar(256) NOT NULL,
   `val` varchar(4096) NOT NULL DEFAULT '',
-  `permID` bigint(20) NOT NULL DEFAULT '0',
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `permID` bigint(20) NOT NULL DEFAULT 0,
+  `date` timestamp NOT NULL DEFAULT current_timestamp(),
   `cleanUpDays` int(11) DEFAULT NULL,
   `nameMasks` varchar(4096) DEFAULT NULL COMMENT '/-separated patterns, @reqID@ and @objID@ is replaced with object id upon comparison',
   PRIMARY KEY (`par`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

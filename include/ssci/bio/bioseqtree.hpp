@@ -35,13 +35,7 @@
 #include <ssci/bio/bioseqalign.hpp>
 
 using namespace slib;
-//    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-//    // _/
-//    // _/ Classes and Data Structures
-//    // _/
-//    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-// This class contains the tree with all the nodes
 class BioseqTree
 {
 
@@ -49,25 +43,16 @@ class BioseqTree
         struct NodeTree
         {
 
-                // A list of the nodes of this node
                 idx offsets[4];
-                // ID of the original sequence
                 idx seqOriginalID;
-                // index of the original sequence
                 idx seqIndex;
-                // Number of sequences that end at this node
                 idx rptcount;
-                // End index of the sequence
                 idx seq_end;
-                // is the Reverse complement
                 bool revcomp;
 
         };
-        // maintain the list of all nodes
         sVec < NodeTree > iseq;
 
-        //  All nodes contain only indices of this sequence
-        //sFil * qryTree;
         idx ofsSeq;
         idx numSeq;
         idx lastNode;
@@ -81,16 +66,6 @@ class BioseqTree
 
     public:
 
-        //    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        //    // _/
-        //    // _/ Auxiliary functions to the Nodes
-        //    // _/
-        //    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        //  createNode :
-        //   Initialize the node with different parameters.
-        //
-        //   Input : The node, the last position of the sequence it reaches and the sequence ID 
-        //   Output: The node will adopt all these values and initialize itself with no offsets.
         void createNode(NodeTree *node, idx end, idx index, idx seq, bool rev)
         {
             node->seqOriginalID = seq;
@@ -102,13 +77,6 @@ class BioseqTree
         }
         ;
 
-        //  printNode :
-        //   Initialize the node with different parameters.
-        //
-        //   Input : It requires the node to be printed: it will print the sequence ID, the 
-        //           number of sequences that end at this node, the value of the offsets 
-        //           to different nodes and the end index of the sequence.
-        //   Output: A printout of the subtree to the screen.
         static void printNode(NodeTree *node, idx pos)
         {
             ::printf("\n \t pos = %lld ", pos);
@@ -167,25 +135,17 @@ class BioseqTree
             return;
         }
 
-        //    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        //    // _/
-        //    // _/ Constructor of the class BioseqTree
-        //    // _/
-        //    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
         BioseqTree()
         {
         }
-        // Initialize sVec vector with fSetZero, set it at the beginning of the buffer and
-        // adds the root node to the first position
         void init(idx ofs)
         {
             iseq.mex()->flags |= sMex::fSetZero;
-            iseq.cut(0); // set at the beginning of the buffer
-            NodeTree *rot = iseq.add(1); // add the root to the tree
-            createNode(rot, -1, 0, 0, false); // create the root
+            iseq.cut(0);
+            NodeTree *rot = iseq.add(1);
+            createNode(rot, -1, 0, 0, false);
             numSeq = 0;
             ofsSeq = ofs;
-            //qryTree = Qry;
             seqFunc = 0;
             bioseqPtr = 0;
             basicMemPtr = 0;
@@ -215,14 +175,9 @@ class BioseqTree
 
         void printTree(bool generalInfo = false);
 
-        //  printNode:  
-        //      It prints a specific node of the tree
-        //   Input : It requires the index of the sequence to print.
-        //   Output: A printout of the node to the screen.
         static void printNode(idx pos)
         {
             ::printf("\n Unique sequence pos = %lld \n", pos);
-            //    ::printf("%s\n", qryTree->id(pos));
         }
 
         void inOrderTree(idx root);
@@ -263,4 +218,4 @@ class BioseqTree
 
 };
 
-#endif // sBio_bioseqtree_hpp
+#endif 

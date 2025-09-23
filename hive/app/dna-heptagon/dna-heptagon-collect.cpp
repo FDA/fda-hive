@@ -56,6 +56,8 @@ class DnaHeptagonCollect : public sQPrideProc
             fileNames00 = "Noise" _ "FreqProfile" _ "HistProfile" _
                         "SNPprofile" _ "AAprofile" _ "ProfileInfo" _ "SNPthumb" _ "ThumbInfo" __;
             fileSuffix00 = "" _ "MergeL" _ "MergeR" _ "MergeF" __;
+            filePaths = 0;
+            fileList = 0;
         }
         virtual idx OnExecute(idx);
 
@@ -70,7 +72,7 @@ class DnaHeptagonCollect : public sQPrideProc
         const char * fileNames00;
 
         enum eMergeStates {eNoMerge=0x01,eLeftMerge=0x02,eMaxConcat=eLeftMerge,eRightMerge=0x04,eFullMerge=0x08, eLastMerge};
-        const char * fileSuffix00;// = ""_"MergeL" _ "MergeR" _ "MergeF" __;
+        const char * fileSuffix00;
 
         const char * getFileName(sStr &name, idx v_enum, idx mergestate = eNoMerge);
         const char * getFilePath(idx v_enum, idx mergeState, idx * req , bool cleanold) {
@@ -205,7 +207,7 @@ bool DnaHeptagonCollect::getChunkRanges(idx &heptagonStart, idx &heptagonEnd, id
         heptagonEnd = 0;
     }
     if( l_t_reqSliceId < ion_Chunks.dim() - 1 ) {
-        ionStart = ion_Chunks[l_t_reqSliceId];
+        ionEnd= ion_Chunks[l_t_reqSliceId+1];
     } else {
         ionEnd = 0;
     }
@@ -272,7 +274,7 @@ idx DnaHeptagonCollect::OnExecute(idx req)
     SP.minCover=formIValue("minCover",50);
     SP.minFreqPercent=formRValue("minFreqPercent",0);
     SP.entrCutoff=formRValue("entrCutoff",1);
-    SP.snpCompare=formIValue("snpCompare",0); // 0 is the consensus
+    SP.snpCompare=formIValue("snpCompare",0);
     SP.noiseProfileResolution=formRValue("noiseProfileResolution",sBioseqSNP::noiseProfileResolution);
     SP.freqProfileResolution=formRValue("freqProfileResolution",sBioseqSNP::freqProfileResolution);
     SP.histProfileResolution=formRValue("histProfileResolution",sBioseqSNP::histCoverResolution);
@@ -285,13 +287,14 @@ idx DnaHeptagonCollect::OnExecute(idx req)
     SP.directionalityInfo=formBoolValue("directionalityInfo",false);
     SP.supportedDeletions=formBoolValue("supportedDeletions",true);
     SP.countAAs=formBoolIValue("countAAs",1);
+    SP.collapseRpts=formBoolValue("collapseRpts",false);
     const char * refAnnot=formValue("referenceAnnot");
     bool computeAAs = (SP.countAAs && !refAnnot);
 
     bool generateIon = formBoolValue("generateIon",false);
 
-    sStr noiseCutoff( formValue("noiseFilterParams") ); // from here we read the noise params to filter
-    sHiveId noiseFilterBase(formValue("noiseFilterBase")); // we can do the same from existing precomputation
+    sStr noiseCutoff( formValue("noiseFilterParams") );
+    sHiveId noiseFilterBase(formValue("noiseFilterBase"));
     idx noiseFilterBaseThreshold=formIValue("noiseFilterBaseThreshold",sBioseqSNP::noiseCutoffThresholdsIdx_DEFAULT);
 
     bool extraInfo=false;
@@ -299,49 +302,35 @@ idx DnaHeptagonCollect::OnExecute(idx req)
         extraInfo=true;
 
     for(idx f=0;f<6;++f){for(idx to=0;to<6;++to)SP.noiseCutoffs[f][to]=(f==to)?0:0.00;}
-//    const char * scanNoiseFrom=0;
-//
-//    if(noiseCutoff.ptr() && strcmp(noiseCutoff,"none")!=0 && strcmp(noiseCutoff,"auto")!=0 )
-//        scanNoiseFrom=noiseCutoff.ptr();
 
 
     sDic<sFil> l_fileList; fileList = &l_fileList;
     sDic<sStr> l_filePaths; filePaths = &l_filePaths;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ prepare the Alignment file
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sHiveId alignerID(formValue("parent_proc_ids"));
     sUsrFile aligner(alignerID,sQPride::user);
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ load the subject and query sequences
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     sStr subject;
     aligner.propGet00("subject", &subject, ";");
-    sHiveseq Sub(sQPride::user, subject.ptr());Sub.reindex();
+
+    sStr parentAlignmentPath;
+    aligner.getFilePathname00(parentAlignmentPath, "alignment.hiveal" _ "alignment.vioal" __);
+
+    sHiveal hiveal(user);
+
+    sHiveseq Sub(sQPride::user, subject.ptr(), hiveal.parseSubMode(parentAlignmentPath));Sub.reindex();
     if(Sub.dim()==0) {
         errS.printf("Reference '%s' sequences are missing or corrupted\n", subject.length() ? subject.ptr() : "unspecified");
         logOut(eQPLogType_Error,"%s",errS.ptr());
         reqSetInfo(req, eQPInfoLevel_Error, "%s",errS.ptr());
         reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0; // error
+        return 0;
     }
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Determine the information about preious stages of computations
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    // profileRegions contain iformation about every segment of every which has been mapped
     sVec < SNPRange > profileRegionsAll;
     reqGetData(grpId,"profileRegions",profileRegionsAll.mex());
 
@@ -365,7 +354,6 @@ idx DnaHeptagonCollect::OnExecute(idx req)
     sDic < sVec < idx > > freqProfile;
     sVec < sBioseqSNP::HistogHistog > histogramCoverage;
 
-    // output chunks has information on the number of chunks to be analyzed
     if( !getChunkRanges(heptagonStart, heptagonEnd, ionStart, ionEnd) ) {
         logOut(eQPLogType_Warning,"Empty chunk");
         reqSetInfo(req, eQPInfoLevel_Warning, "%s","Empty chunk");
@@ -388,16 +376,9 @@ idx DnaHeptagonCollect::OnExecute(idx req)
 
     idx iHaveDoneThat=0;
 
-    //sIonAnnot iannot(dstIonPath,sMex::fMapRemoveFile);
     bool doBreak = false;
     {
-        //idx iIonSubs=0;
 
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ iterate through alignments
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         logOut(eQPLogType_Debug,"\n\nComputing\n");
 
@@ -436,16 +417,13 @@ idx DnaHeptagonCollect::OnExecute(idx req)
                         sStr r1;reqDataPath(ion_v->reqID,"profile.vioprof",&r1);
                         sVec <sBioseqSNP::SNPFreq> dstIn(sMex::fAlignPage, r1.ptr(0),ion_v->ofsInFile,ion_v->rEnd-ion_v->rStart), dst;
                         if(dstIn.dim()) {
-    //                    sVec <sBioseqSNP::SNPFreq> dst(sMex::fAlignPage, r1.ptr(0),ion_v->ofsInFile,ion_v->rEnd-ion_v->rStart);
-    //                    if(dst.dim()) {
                             dst.cut(0);sBioseqSNP::SNPFreq * f=dst.addM(dstIn.dim());
                             memcpy(f,dstIn.ptr(0),dstIn.dim()*sizeof(sBioseqSNP::SNPFreq));
 
-                            logOut(eQPLogType_Debug,"ionizing # %" DEC " from %" DEC "\n",is,profileRegionsAll.dim());
+                            logOut(eQPLogType_Debug,"ionizing # %" DEC " out of %" DEC "\n",is+1,profileRegionsAll.dim());
                             logOut(eQPLogType_Debug,"\t range %" DEC "-%" DEC " mapping %" DEC " bases from req %" DEC " file offset %" DEC "\n",ion_v->rStart,ion_v->rEnd,ion_v->posMapped,ion_v->reqID,ion_v->ofsInFile);
                             const char * ion_seq=Sub.seq(curSub);
                             if(iSubPrev!=curSub){
-                            // prepare the noise
                                 generateNoiseFilters(SP,noiseFilterBase,noiseFilterBaseThreshold,curSub);
                             }
                             sBioseqSNP::snpCleanTable( dst.ptr(), ion_seq, ion_v->rStart, dst.dim(), &SP);
@@ -469,7 +447,6 @@ idx DnaHeptagonCollect::OnExecute(idx req)
 
         for( idx is=heptagonStart; is<heptagonEnd; ++is ){
 
-            //if( !reqProgress(icntr, is, profileRegionsAll.dim()) ) {
             if( !reqProgress(iHaveDoneThat, iHaveDoneThat, iHeptRanges+iIonRanges) ) {
                 doBreak = true;
                 break;
@@ -499,7 +476,6 @@ idx DnaHeptagonCollect::OnExecute(idx req)
 
 
             if(iSubPrev!=curSub){
-            // prepare the noise
                 generateNoiseFilters(SP,noiseFilterBase,noiseFilterBaseThreshold,curSub);
             }
 
@@ -511,7 +487,7 @@ idx DnaHeptagonCollect::OnExecute(idx req)
 
 
             if(iSubPrev!=curSub){
-                subMergeState = getCurSubMergeState(iSubPrev,prevSub,nextSub); //is the sub split between jobs?
+                subMergeState = getCurSubMergeState(iSubPrev,prevSub,nextSub);
                 if(noiseProfile.dim()) {
                     fl = ensureFile(eNoise,subMergeState);
                     sBioseqSNP::snpOutNoise(fl,0, SP.noiseProfileResolution, &noiseProfile,0,0,iSubPrev+1,false);
@@ -563,7 +539,7 @@ idx DnaHeptagonCollect::OnExecute(idx req)
 
         }
     }
-    idx subMergeState = getCurSubMergeState(curSub,prevSub,nextSub); //is the sub split between jobs?
+    idx subMergeState = getCurSubMergeState(curSub,prevSub,nextSub);
     if(noiseProfile.dim())
         sBioseqSNP::snpOutNoise(ensureFile(eNoise,subMergeState),0, SP.noiseProfileResolution, &noiseProfile,0,0,curSub+1,false);
     if(freqProfile.dim())
@@ -585,13 +561,14 @@ idx DnaHeptagonCollect::OnExecute(idx req)
     fileList->empty();
     filePaths->empty();
 
-    if( !isLastInMasterGroup() ) {
-        if( !doBreak ) { //Do not change status if request was stopped.
+    if( !isLastInMasterGroupWithLock() ) {
+        if( !doBreak ) {
             reqSetProgress(req, iHaveDoneThat, 100);
-            reqSetStatus(req, eQPReqStatus_Done); // change the status
+            reqSetStatus(req, eQPReqStatus_Done);
         }
         return 0;
     }
+    reqSetStatus(req, eQPReqStatus_Running);
 
 
     progress100Start=50;
@@ -771,7 +748,7 @@ idx DnaHeptagonCollect::OnExecute(idx req)
         }
 
         if( !reqProgress(ic, ic, reqs.dim()) ) {
-            doBreak = true;   //wait to clean after breaking
+            doBreak = true;
             break;
         }
     }
@@ -844,7 +821,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     DnaHeptagonCollect backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-heptagon-collect",argv[0]));
     return (int)backend.run(argc,argv);

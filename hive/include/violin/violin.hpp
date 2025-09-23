@@ -35,18 +35,14 @@
 #include <violin/hiveal.hpp>
 #include <violin/viotools.hpp>
 #include <violin/hiveannot.hpp>
-
-#include <violin/hivetools.hpp>
 #include <violin/hiveidmap.hpp>
 #include <violin/hivetaxtree.hpp>
 #include <violin/hivealtax.hpp>
 #include <violin/hivespecobj.hpp>
+
 #include <violin/hiveqlang.hpp>
-
-#include <violin/dna-generic-launcher.hpp>
-#include <violin/svc-batcher.hpp>
-
 #include <violin/hiveion.hpp>
+
 using namespace sviolin;
 
 

@@ -29,9 +29,6 @@
  */
 
 #include "pyhive.hpp"
-
-#include <datetime.h>
-
 #include <ulib/utype2.hpp>
 
 using namespace slib;
@@ -46,14 +43,14 @@ static PyObject * Obj_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static void Obj_dealloc(pyhive::Obj *self)
 {
     delete self->uobj;
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int Obj_init(pyhive::Obj *self, PyObject * args, PyObject * kwds);
 
 static PyObject* Obj_repr(pyhive::Obj * self)
 {
-    sStr buf("<%s ", self->ob_type->tp_name);
+    sStr buf("<%s ", Py_TYPE(self)->tp_name);
     if( self->uobj ) {
         self->uobj->Id().print(buf);
         buf.addString(" of type ");
@@ -61,7 +58,7 @@ static PyObject* Obj_repr(pyhive::Obj * self)
         buf.addString(" ");
     }
     buf.printf("at %p>", self);
-    return PyString_FromString(buf.ptr());
+    return PyUnicode_FromString(buf.ptr());
 }
 
 static PyObject * Obj_get_id(pyhive::Obj * self, void * closure)
@@ -75,7 +72,7 @@ static PyObject * Obj_get_id(pyhive::Obj * self, void * closure)
 
 static PyObject * Obj_get_type(pyhive::Obj * self, void * closure)
 {
-    return (PyObject*)pyhive::Type::find(self->uobj->getType()->id());
+    return (PyObject*)pyhive::Type::ensure(self->uobj->getType()->id());
 }
 
 static PyObject * FileObj_get_file_path(pyhive::Obj * self, void * closure)
@@ -83,15 +80,32 @@ static PyObject * FileObj_get_file_path(pyhive::Obj * self, void * closure)
     if( sUsrFile * ufile = dynamic_cast<sUsrFile*>(self->uobj) ) {
         sStr buf;
         if( const char * path = ufile->getFile(buf) ) {
-            return PyString_FromString(path);
+            return PyUnicode_FromString(path);
         } else {
-            PyErr_SetString(PyExc_SystemError, "Failed to find primary file for HIVE file object");
+            PyErr_SetString(pyhive::RuntimeError, "Failed to find primary file for HIVE file object");
             return NULL;
         }
     } else {
         PyErr_SetString(PyExc_TypeError, "HIVE object is not a file object, has no primary filels");
         return NULL;
     }
+}
+
+static PyObject * Obj_is_type_of(pyhive::Obj *self, PyObject * args, PyObject * kwds)
+{
+    const char * query = 0;
+    static const char * kwlist[] = { "query", NULL };
+    if( !PyArg_ParseTupleAndKeywords(args, kwds, "s", (char**)kwlist, &query) ) {
+        return NULL;
+    }
+
+    if( !query ) {
+        query = "";
+    }
+    if( self->uobj->isTypeOf(query) ) {
+        Py_RETURN_TRUE;
+    }
+    Py_RETURN_FALSE;
 }
 
 static PyObject * Obj_files(pyhive::Obj *self, PyObject * args, PyObject * kwds)
@@ -109,7 +123,7 @@ static PyObject * Obj_files(pyhive::Obj *self, PyObject * args, PyObject * kwds)
     idx nfiles = self->uobj ? self->uobj->files(file_list, sFlag(sDir::bitFiles), mask) : 0;
     PyObject * out = PyList_New(nfiles);
     for(idx i = 0; i < nfiles; i++) {
-        PyObject * s = PyString_FromString(file_list.getEntryPath(i));
+        PyObject * s = PyUnicode_FromString(file_list.getEntryPath(i));
         PyList_SET_ITEM(out, i, s);
     }
     return out;
@@ -131,9 +145,9 @@ static PyObject * Obj_add_file_path(pyhive::Obj *self, PyObject * args, PyObject
 
     sStr buf;
     if( const char * path = self->uobj->addFilePathname(buf, overwrite, name) ) {
-        return PyString_FromString(path);
+        return PyUnicode_FromString(path);
     } else {
-        PyErr_SetString(PyExc_SystemError, "Failed to add file to HIVE object");
+        PyErr_SetString(pyhive::RuntimeError, "Failed to add file to HIVE object");
         return NULL;
     }
 }
@@ -153,9 +167,9 @@ static PyObject * Obj_get_file_path(pyhive::Obj *self, PyObject * args, PyObject
 
     sStr buf;
     if( const char * path = self->uobj->getFilePathname(buf, name) ) {
-        return PyString_FromString(path);
+        return PyUnicode_FromString(path);
     } else {
-        PyErr_SetString(PyExc_SystemError, "Failed to retrieve file from HIVE object");
+        PyErr_SetString(pyhive::RuntimeError, "Failed to retrieve file from HIVE object");
         return NULL;
     }
 }
@@ -176,7 +190,7 @@ static PyObject * Obj_del_file_path(pyhive::Obj *self, PyObject * args, PyObject
     if( self->uobj->delFilePathname(name) ) {
         Py_RETURN_TRUE;
     } else {
-        PyErr_SetString(PyExc_SystemError, "Failed to delete file from HIVE object");
+        PyErr_SetString(pyhive::RuntimeError, "Failed to delete file from HIVE object");
         return NULL;
     }
 }
@@ -196,7 +210,7 @@ static PyObject * Obj_parse_field_value(const char * s, sUsrTypeField::EType typ
         case sUsrTypeField::eUrl:
         case sUsrTypeField::eText:
         case sUsrTypeField::eFile:
-            return PyString_FromString(s);
+            return PyUnicode_FromString(s);
         case sUsrTypeField::eInteger:
             return pyhive::idx2py(strtoidx((char*)s, 0, 10));
         case sUsrTypeField::eReal:
@@ -235,12 +249,10 @@ static const char * Obj_print_field_value(sStr & buf, sUsrTypeField::EType type,
         case sUsrTypeField::eUrl:
         case sUsrTypeField::eText:
         case sUsrTypeField::eFile:
-            if( PyString_Check(val) ) {
-                buf.addString(PyString_AsString(val));
+            if( PyUnicode_Check(val) ) {
+                buf.addString(PyUnicode_AsUTF8AndSize(val, NULL));
             } else if( PyLong_Check(val) ) {
                 buf.addNum((idx)PyLong_AsLongLong(val));
-            } else if( PyInt_Check(val) ) {
-                buf.addNum((idx)PyInt_AsLong(val));
             } else if( val == Py_None ) {
                 buf.add0cut();
             } else {
@@ -251,8 +263,6 @@ static const char * Obj_print_field_value(sStr & buf, sUsrTypeField::EType type,
         case sUsrTypeField::eInteger:
             if( PyLong_Check(val) ) {
                 buf.addNum((idx)PyLong_AsLongLong(val));
-            } else if( PyInt_Check(val) ) {
-                buf.addNum((idx)PyInt_AsLong(val));
             } else if( val == Py_None ) {
                 buf.add0cut();
             } else {
@@ -265,8 +275,6 @@ static const char * Obj_print_field_value(sStr & buf, sUsrTypeField::EType type,
                 buf.printf("%lf", PyFloat_AsDouble(val));
             } else if( PyLong_Check(val) ) {
                 buf.addNum((idx)PyLong_AsLongLong(val));
-            } else if( PyInt_Check(val) ) {
-                buf.addNum((idx)PyInt_AsLong(val));
             } else if( val == Py_None ) {
                 buf.add0cut();
             } else {
@@ -319,8 +327,9 @@ static PyObject * Obj_prop_get(pyhive::Obj *self, PyObject * args, PyObject * kw
     }
 
     const char * name = 0;
-    static const char * kwlist[] = { "name", NULL };
-    if( !PyArg_ParseTupleAndKeywords(args, kwds, "s:pyhive.Obj.prop_get", (char**)kwlist, &name) ) {
+    int allow_sys_internal = false;
+    static const char * kwlist[] = { "name", "allow_sys_internal", NULL };
+    if( !PyArg_ParseTupleAndKeywords(args, kwds, "s|i:pyhive.Obj.prop_get", (char**)kwlist, &name, &allow_sys_internal) ) {
         return NULL;
     }
 
@@ -337,9 +346,8 @@ static PyObject * Obj_prop_get(pyhive::Obj *self, PyObject * args, PyObject * kw
     sVarSet tbl;
     idx rows = 0;
     if( strcasecmp(name, "_brief") == 0 ) {
-        // _brief is special: must be fetched via propBulk since it's generated from other fields
         sVarSet brief_tbl;
-        self->uobj->propBulk(brief_tbl, 0, "_brief" __);
+        self->uobj->propBulk(brief_tbl, 0, "_brief" __, allow_sys_internal);
         for(idx i=0; i<brief_tbl.rows; i++) {
             const char * row_name = brief_tbl.val(i, 1);
             if( row_name && strcmp(row_name, "_brief") == 0 ) {
@@ -351,11 +359,10 @@ static PyObject * Obj_prop_get(pyhive::Obj *self, PyObject * args, PyObject * kw
             }
         }
     } else {
-        rows = self->uobj->propGet(name, tbl, true);
+        rows = self->uobj->propGet(name, tbl, true, allow_sys_internal);
     }
 
     if( fld->isGlobalMulti() ) {
-        // for fields that *can* have multiple values, always return a list for safety and developer sanity
         PyObject * lst = PyList_New(rows);
         for(idx ir = 0; ir < rows; ir++) {
             PyList_SET_ITEM(lst, ir, Obj_parse_field_value(tbl.val(ir, 0), fld->type()));
@@ -399,13 +406,83 @@ static PyObject * Obj_prop_set(pyhive::Obj *self, PyObject * args, PyObject * kw
         return NULL;
     }
     if( !self->uobj->propSet(name, 0, &val_string, 1) ) {
-        PyErr_SetString(PyExc_SystemError, "failed to set property value");
+        PyErr_SetString(pyhive::RuntimeError, "failed to set property value");
         return NULL;
     }
     Py_RETURN_TRUE;
 }
 
+static PyObject * Obj_obj_list(PyObject *cls, PyObject * args, PyObject * kwds)
+{
+    pyhive::Proc * pyhive_proc = pyhive::Proc::singleton();
+    if( !pyhive_proc ) {
+        PyErr_SetString(PyExc_TypeError, "pyhive.proc has not been initialized");
+        return NULL;
+    }
+
+    PyObject * types = 0;
+    const char * prop_val = 0;
+    const char * prop_name = 0;
+    idx start = 0;
+    idx cnt = 1000;
+    static const char * kwlist[] = { "types", "prop_val", "prop_name", "start", "cnt", NULL };
+    if( !PyArg_ParseTupleAndKeywords(args, kwds, "|OzzLL:pyhive.Obj.obj_list", (char**)kwlist, &types, &prop_val, &prop_name, &start, &cnt) ) {
+        return NULL;
+    }
+
+    sStr type_names_csv;
+    if( types ) {
+        if( PyUnicode_Check(types) ) {
+            type_names_csv.addString(PyUnicode_AsUTF8AndSize(types, NULL));
+        } else if( PySequence_Check(types) ) {
+            idx len = PySequence_Length(types);
+            for(idx i = 0; i < len; i++) {
+                if( i ) {
+                    type_names_csv.addString(",");
+                }
+                if( pyhive::Type * type_obj = pyhive::Type::check(types) ) {
+                    type_names_csv.printf("^%s$", type_obj->utype->name());
+                } else {
+                    PyErr_SetString(PyExc_TypeError, "Invalid types parameter; query string or pyhive.Type or list of pyhive.Type expected");
+                    return NULL;
+                }
+            }
+        } else if( pyhive::Type * type_obj = pyhive::Type::check(types) ) {
+            type_names_csv.printf("^%s$", type_obj->utype->name());
+        } else {
+            PyErr_SetString(PyExc_TypeError, "Invalid types parameter; query string or pyhive.Type or list of pyhive.Type expected");
+            return NULL;
+        }
+    }
+
+    sUsrObjRes res;
+    pyhive_proc->proc->user->objs2(type_names_csv ? type_names_csv.ptr() : 0, res, 0, prop_name, prop_val, 0, false, start, cnt);
+    PyObject * lst = PyList_New(res.dim());
+    idx i = 0;
+    for(sUsrObjRes::IdIter it = res.first(); res.has(it); res.next(it), i++) {
+        pyhive::Obj * obj = pyhive::Obj::create();
+        const sHiveId * phive_id = res.id(it);
+        if( phive_id && obj->init(*phive_id) ) {
+            PyList_SET_ITEM(lst, i, (PyObject*)obj);
+        } else {
+            Py_DECREF(obj);
+            Py_DECREF(lst);
+            return 0;
+        }
+    }
+
+    return lst;
+}
+
 static PyMethodDef Obj_methods[] = {
+    { "is_type_of", (PyCFunction)Obj_is_type_of, METH_VARARGS | METH_KEYWORDS,
+      "is_type_of(query)\nCheck if object's type matches a query (same syntax as `pyhive.Type.find`)\n\n"\
+      ":arg query: comma-separated list of regexps, each optionally prefixed with `'!'` to negate, or suffixed with `'+'` to retrieve all children of match; "\
+      "`''` is equivalent to `'^base_user_type$+'`\n"\
+      ":type query: str\n"\
+      ":returns: `True` or `False`\n"\
+      ":raises TypeError: if parameters are of the wrong type\n"
+    },
     { "files", (PyCFunction)Obj_files, METH_VARARGS | METH_KEYWORDS,
       "files(mask = '*')\nList of data file names belonging to object (without paths)\n\n"\
       ":arg mask: shell-style glob pattern for which file names to select\n"\
@@ -422,7 +499,7 @@ static PyMethodDef Obj_methods[] = {
       ":returns: path to new data file\n"\
       ":rtype: str\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
-      ":raises SystemError: if for whatever reason the path could not be retrieved; or if *overwrite* is `False` and the file exists already\n"
+      ":raises pyhive.RuntimeError: if for whatever reason the path could not be retrieved; or if *overwrite* is `False` and the file exists already\n"
     },
     { "get_file_path", (PyCFunction)Obj_get_file_path, METH_VARARGS | METH_KEYWORDS,
       "get_file_path(name)\nRetrieve a path for an existing file in a HIVE object\n\n"\
@@ -431,7 +508,7 @@ static PyMethodDef Obj_methods[] = {
       ":returns: path to existing data file\n"\
       ":rtype: str\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
-      ":raises SystemError: if for whatever reason the path could not be retrieved\n"
+      ":raises pyhive.RuntimeError: if for whatever reason the path could not be retrieved\n"
     },
     { "del_file_path", (PyCFunction)Obj_del_file_path, METH_VARARGS | METH_KEYWORDS,
       "del_file_path(name)\nDelete an existing file in a HIVE object\n\n"\
@@ -439,12 +516,14 @@ static PyMethodDef Obj_methods[] = {
       ":type name: str\n"\
       ":returns: `True`\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
-      ":raises SystemError: if the file's path could not be retrieved, or if the file did not exist or could not be deleted\n"
+      ":raises pyhive.RuntimeError: if the file's path could not be retrieved, or if the file did not exist or could not be deleted\n"
     },
     { "prop_get", (PyCFunction)Obj_prop_get, METH_VARARGS | METH_KEYWORDS,
-      "prop_get(name)\nRetrieve property value(s) with specified field name.\n\n"\
+      "prop_get(name, allow_sys_internal = False)\nRetrieve property value(s) with specified field name.\n\n"\
       ":arg name: property field name\n"\
       ":type name: str\n"\
+      ":arg allow_sys_internal: allow retrieval of system-internal fields which cannot be exposed to web UI -- dangerous!\n"\
+      ":type allow_sys_internal: bool\n"\
       ":returns: if the field can have only one value for this object type, returns a single "
       "value: `str`, `int`, `long`, `float`, `bool`, `pyhive.Id`, `datetime.date`, `datetime.time`, `datetime.datetime`, or `None`; "\
       "if the field potentially can have multiple values, returns a list of values "\
@@ -462,7 +541,18 @@ static PyMethodDef Obj_methods[] = {
       ":returns: `True`\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
       ":raises KeyError: if the field name is invalid or named field cannot have a value or can have multiple values\n"\
-      ":raises SystemError: if the property could not be set\n"
+      ":raises pyhive.RuntimeError: if the property could not be set\n"
+    },
+    { "obj_list", (PyCFunction)Obj_obj_list, METH_CLASS | METH_VARARGS | METH_KEYWORDS,
+      "obj_list(types = `None`, prop_val = `None`, prop_name = `None`, start = 0, cnt = 1000)\n"\
+      "Retrieve list of matching objects\n\n"\
+      ":arg types: `pyhive.Type` object, or list of `pyhive.Type` objects, or type query string (`pyhive.Type.find` format)\n:type types: `str` or `pyhive.Type` or `list`\n"\
+      ":arg prop_val: value or comma-separated list of values of fields to search for by substring match\n:type prop_val: str\n"\
+      ":arg prop_name: name or comma-separated list of names of fields to search prop_val in\n:type prop_name: `str` or `list`\n"\
+      ":arg start: from result set, return objects starting with this index\n:type start: int\n"\
+      ":arg cnt: from result set, return up to this number of objects\n:type cnt: int\n"\
+      ":returns: list of `pyhive.Obj` objects\n"\
+      ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"
     },
     { NULL }
 };
@@ -481,27 +571,26 @@ static PyGetSetDef FileObj_getsetters[] = {
 };
 
 PyTypeObject ObjType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.Obj",              // tp_name
-    sizeof(pyhive::Obj),       // tp_basicsize
-    0,                         // tp_itemsize
-    (destructor)Obj_dealloc,   // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    (reprfunc)Obj_repr,        // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    0,                         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.Obj",
+    sizeof(pyhive::Obj),
+    0,
+    (destructor)Obj_dealloc,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)Obj_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     "HIVE object\n\n"\
     "Initialized from the HIVE ID (as integer or string or `pyhive.Id` object):\n"\
     "    >>> pyhive.Obj(12345)\n"\
@@ -511,78 +600,71 @@ PyTypeObject ObjType = {
     "    >>> pyhive.Obj(123456)\n"\
     "    Traceback (most recent call last):\n"\
     "      File \"<stdin>\", line 1, in <module>\n"\
-    "    SystemError: Failed to load HIVE object with requested ID", // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    Obj_methods,               // tp_methods
-    0,                         // tp_members
-    Obj_getsetters,            // tp_getset
-    0,                         // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    (initproc)Obj_init,        // tp_init
-    0,                         // tp_alloc
-    Obj_new,                   // tp_new
+    "    pyhive.RuntimeError: Failed to load HIVE object with requested ID",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Obj_methods,
+    0,
+    Obj_getsetters,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (initproc)Obj_init,
+    0,
+    Obj_new,
 };
 
 PyTypeObject FileObjType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.FileObj",          // tp_name
-    sizeof(pyhive::Obj),       // tp_basicsize
-    0,                         // tp_itemsize
-    (destructor)Obj_dealloc,   // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    (reprfunc)Obj_repr,        // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    0,                         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.FileObj",
+    sizeof(pyhive::Obj),
+    0,
+    (destructor)Obj_dealloc,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)Obj_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     "HIVE file object\n\nChild class of `pyhive.Obj`; `pyhive.Obj(id)` will automatically\n"\
     "construct a `pyhive.FileObj` instance if the *id* refers to a HIVE object of HIVE type 'u-file'\n"\
-    "or a descendent.",        // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    0,                         // tp_methods
-    0,                         // tp_members
-    FileObj_getsetters,        // tp_getset
-    &ObjType,                  // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    (initproc)Obj_init,        // tp_init
-    0,                         // tp_alloc
-    Obj_new,                   // tp_new
+    "or a descendent.",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    FileObj_getsetters,
+    &ObjType,
+    0,
+    0,
+    0,
+    0,
+    (initproc)Obj_init,
+    0,
+    Obj_new,
 };
 
 static int Obj_init(pyhive::Obj *self, PyObject * args, PyObject * kwds)
 {
-    pyhive::Proc * pyhive_proc = pyhive::Proc::singleton();
-    if( !pyhive_proc ) {
-        PyErr_SetString(PyExc_AssertionError, "pyhive.proc has not been initialized");
-        return -1;
-    }
-
     if( self->uobj ) {
         delete self->uobj;
         self->uobj = 0;
@@ -604,30 +686,17 @@ static int Obj_init(pyhive::Obj *self, PyObject * args, PyObject * kwds)
         }
     }
 
-    self->uobj = pyhive_proc->proc->user->objFactory(id_obj->hive_id);
+    int ret = -1;
+    if( self->init(id_obj->hive_id) ) {
+        ret = 0;
+    }
+
     Py_DECREF(id_obj);
     id_obj = 0;
 
-    if( !self->uobj ) {
-        PyErr_SetString(PyExc_SystemError, "Failed to load HIVE object with requested ID");
-        return -1;
-    }
-
-    sUsrFile* ufile = dynamic_cast<sUsrFile*>(self->uobj);
-    if( ufile && self->ob_type == &ObjType ) {
-        // if we got a u-file, auto-cast to FileObj
-        self->ob_type = &FileObjType;
-    } else if( !ufile && self->ob_type == &FileObjType ) {
-        // if we did not get a u-file and requested a FileObj, error out
-        delete self->uobj;
-        self->uobj = 0;
-        PyErr_SetString(PyExc_SystemError, "HIVE object with requested ID is not a HIVE file object");
-        return -1;
-    }
-    return 0;
+    return ret;
 }
 
-//static
 bool pyhive::Obj::typeinit(PyObject * mod)
 {
     if( PyType_Ready(&ObjType) < 0 ) {
@@ -643,7 +712,6 @@ bool pyhive::Obj::typeinit(PyObject * mod)
     return true;
 }
 
-//static
 pyhive::Obj * pyhive::Obj::check(PyObject * o)
 {
     if( o && (o->ob_type == &ObjType || o->ob_type == &FileObjType) ) {
@@ -653,7 +721,6 @@ pyhive::Obj * pyhive::Obj::check(PyObject * o)
     }
 }
 
-//static
 pyhive::Obj * pyhive::Obj::create()
 {
     pyhive::Obj * self = (pyhive::Obj*)Obj_new(&ObjType, 0, 0);
@@ -667,4 +734,36 @@ bool pyhive::Obj::init(PyObject * arg)
     bool ret = !Obj_init(this, args, 0);
     Py_XDECREF(args);
     return ret;
+}
+
+bool pyhive::Obj::init(const sHiveId & hive_id)
+{
+    if( uobj ) {
+        delete uobj;
+        uobj = 0;
+    }
+
+    pyhive::Proc * pyhive_proc = pyhive::Proc::singleton();
+    if( !pyhive_proc ) {
+        PyErr_SetString(PyExc_AssertionError, "pyhive.proc has not been initialized");
+        return false;
+    }
+
+    uobj = pyhive_proc->proc->user->objFactory(hive_id);
+
+    if( !uobj ) {
+        PyErr_SetString(pyhive::RuntimeError, "Failed to load HIVE object with requested ID");
+        return -1;
+    }
+
+    sUsrFile* ufile = dynamic_cast<sUsrFile*>(uobj);
+    if( ufile && Py_TYPE(this) == &ObjType ) {
+        Py_TYPE(this) = &FileObjType;
+    } else if( !ufile && Py_TYPE(this) == &FileObjType ) {
+        delete uobj;
+        uobj = 0;
+        PyErr_SetString(pyhive::RuntimeError, "HIVE object with requested ID is not a HIVE file object");
+        return false;
+    }
+    return true;
 }

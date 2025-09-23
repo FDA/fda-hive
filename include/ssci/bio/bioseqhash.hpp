@@ -33,30 +33,20 @@
 
 #include <slib/core/def.hpp>
 #include <slib/core/index.hpp>
+#include <slib/utils/sort.hpp>
 
-//#define HASH_SINDEX
 
 namespace slib
 {
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Sequence Collection Hashing class
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     class sBioseqHash {
 
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ construction/destruction
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
     public:
 
         struct RefPos { 
-            idx _pos; // the position on a reference sequence
+            idx _pos;
             idx pos(void){return (_pos&0x000FFFFFFFF); }
             idx id(void){
                 #ifdef SLIB64 
@@ -67,11 +57,11 @@ namespace slib
             }
         };
 
-        struct Hdr { // bioseq Hash file/blob header
+        struct Hdr {
             idx lenUnit,lenAlpha,lenTbl, hashMask;
         };
     
-        struct HLitem{RefPos ref; int next;}; // the first keeps either the count (for the first one in the list) and the position to the next  in the list
+        struct HLitem{RefPos ref; int next;};
         sVec < HLitem > hList; 
 
         #ifdef HASH_SINDEX
@@ -83,13 +73,7 @@ namespace slib
 
         idx collisionReducer;
         
-        //typedef sLst < RefPos , 2 > HashBinType;
-        //sMex lstMex; /// here we hold all the hash bins
-        //typedef sLst < RefPos , 2 > HashBinType;
 
-        //sVec < HashBinType >  hashTbl;
-        //struct HashRefPos{ idx defint; HashBinType list;};
-        //sIndex < HashRefPos  > hashDic;
 
 
         sVec < char > hashBloom;
@@ -105,21 +89,16 @@ namespace slib
 
     public:
 
-        // sBioseqHash
         sBioseqHash( idx llenunit=11 , idx llenalphabet=4 ) {
             ofs=0;rFl=0;rFos=0;forceReset=1;hb=0;
             collisionReducer=4;
             hashStp=1;
-            //hList.add(1);// we add a single element so the offset of the next ones is never zero
-            //lookHash=0, lookBloom=0;
             init(llenunit ,llenalphabet);
         }
         sBioseqHash ( const char * flnm ) {
             ofs=0;rFl=0;rFos=0;forceReset=1;hb=0;
             collisionReducer=4;
             hashStp=1;
-            //hList.add(1);// we add a single element so the offset of the next ones is never zero
-            //lookHash=0, lookBloom=0;
             if(!flnm)return ;
             init( flnm);
         }
@@ -137,29 +116,12 @@ namespace slib
         idx initFile(const char * filename, idx flags);
 
         void destroy(void){
-            //if(hashInList.dim())hashInList.empty();
-            /////if(hashDic.dim())hashDic.empty();
-            //if(hashTbl.dim())hashTbl.destroy();
             if(hashBloom.dim())hashBloom.destroy();
             if(rFl)delete rFl;
         }
 
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ hash compilation and access functions
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
     public:
 
-                // hash is being manipulated at sBioSeqhash::compile
-                // to match manipulated hash keys we have to perform the same manipulation here
-        /*idx find (idx hash) {
-            #ifdef HASH_SINDEX
-                hash=(hash<<8)| ((hash>>(2*(hdr.lenUnit-4)))&0xFF);
-                hash&=hdr.hashMask;
-            #endif
-            return hashInd.find(hash);
-        }*/
 
         enum eCompileFlags{ eCompileReset=0x01, eCompileDic=0x02, eCompileBloom=0x04, eCompileOnlyBloom=0x08,eCompileReverse=0x10 };
         void reset(void){forceReset=1;}
@@ -169,36 +131,10 @@ namespace slib
         void fossilize(idx refseq, const char * seq, idx lenseq, idx granule,idx fosblock, idx fosstp, idx history, idx flags=0);
         idx  dumpCompiled (const char * flnm, idx * maxBin=0, idx * aveBin=0, idx  * totBin=0);
         idx  dumpFossilized (const char * flnm);
-        //static idx fossilizeQuick(idx * fossillist, idx foscnt, const char * seq, idx lenseq, idx granule, idx granstep , idx fosblock, idx history, idx flags);
         static idx dynamicMatch( short int * matP, const char * seq1, const char * seq2, idx st1, idx len1, idx st2 , idx len2, idx maxDiag, idx nMereKeep, const short int * costs, idx lenseq=0);
         static char * dbgH(idx hash, idx len);
         static idx longestDynamicMatch( short int * matP, const char * seq1, const char * seq2, idx st1, idx len1, idx st2, idx len2, idx maxDiag, idx lenseq,  idx * matchPos=0 );
 
-        /*idx cnt(idx hash){
-            //++lookBloom;
-            //if( (hb [hash/8] & (((udx)1)<<(hash%8))) ==0 ) return 0;
-            //++lookHash;
-            //if(ofs) return ofs[hash*2+1];
-            //else 
-            if(hashTbl.dim() )return hashTbl[hash].dim();
-            //else if(hashInList.dim() )return hashInList[&hash];
-            else { 
-                idx iFnd=hashDic.find(hash);
-                return iFnd ? hashDic[iFnd-1].list.dim() : 0 ;
-            }
-        }
-        HashBinType * lst(idx hash){
-            //if( hb [hash/8]& ((udx)1<<hash%8)  ) return 0;
-            //++lookHash;
-            //if(ofs) return (RefPos*)((char *)ofs+ofs[hash*2]) ;
-            //else 
-            if(hashTbl.dim()) return &hashTbl[hash];//.ptr(0);
-            else {
-                idx iFnd=hashDic.find(hash);
-                return iFnd ? &(hashDic[iFnd-1].list) : 0 ;
-            }
-        }
-        */
         static idx * fos(idx * pstart, idx seqnum ){
             if(!pstart)return 0;
             idx ofs=pstart[seqnum+1];
@@ -215,9 +151,110 @@ namespace slib
 
     };
 
+    class sBioHashHits {
+        private:
+            idx _kmer, _avHashHits, _strlen;
+            idx _rng_cnt, _hp_cnt;
+
+            struct hrng {
+                int ref,isHit,start,end;
+                void setrng(idx lref, idx rngstart, idx rngend, bool lisHit = false) {
+                    ref= lref;
+                    isHit= lisHit;
+                    start= rngstart;
+                    end= rngend;
+                }
+
+                void updaterng(idx rngstart, idx rngend, bool lisHit) {
+                    isHit= lisHit;
+                    start= rngstart;
+                    end= rngend;
+                }
+
+            };
+
+            hrng _cmp;
+
+            inline idx _get_hashpos(idx ihp){
+                return ((_hpvec[ihp]>>48)&0xFFFF);
+            }
+            inline idx _get_hashcnt(idx ihp) {
+                return ((_hpvec[ihp]>>32)&0xFFFF);
+            }
+            inline idx _get_hashoffs(idx ihp) {
+                return (_hpvec[ihp]&0xFFFFFFFF);
+            }
 
 
-} // namespace 
+            inline void _increase_hashcnt( idx inc = 1) {
+                _hpvec[_hp_cnt-1] += (inc << 32);
+            }
+            inline void _set_hp(idx pos) {
+                _hpvec.resizeM(++_hp_cnt);
+                _hpvec[_hp_cnt-1]= (pos<<48)|((idx)1<<32)|((_rng_cnt)&0xFFFFFFFF);
+            }
 
-#endif // sBio_seqhash_hpp
 
+            static idx rngComparator (void * param, hrng * current, hrng * arr) {
+                idx diff = current->ref - arr->ref;
+                if( diff )
+                    return diff<<32;
+                if(arr->start <= current->start && current->end <= arr->end )
+                    return 0;
+                diff = current->start - arr->start;
+                return diff;
+            }
+            sVec<idx> _hpvec;
+            sVec<hrng> _rngvec;
+
+        public:
+            sBioHashHits(int lkmer, int lavHasHits = 2, int lstrlen = 0 ) {
+                init(lkmer, lavHasHits, lstrlen);
+            }
+            void init(int lkmer, int lavHasHits = 2, int lstrlen = 0) {
+                _avHashHits = lavHasHits;
+                _strlen = lstrlen;
+                _kmer = lkmer;
+                reset();
+            }
+            void reset(idx lstrlen = 0) {
+                if(lstrlen > _strlen) {
+                    _strlen = lstrlen;
+                }
+                _hp_cnt = _rng_cnt = 0;
+                _hpvec.resizeM(_strlen - _kmer);
+                _rngvec.resizeM(_hpvec.dim() * _avHashHits);
+            }
+            idx addHashHit(idx hashpos, idx ref, idx hitpos, idx rangeend, bool isHit) {
+                if(_hp_cnt && hashpos == _get_hashpos(_hp_cnt-1)) {
+                    _increase_hashcnt();
+                } else {
+                    _set_hp(hashpos);
+                }
+                _rngvec.resizeM(++_rng_cnt);
+                _rngvec[_rng_cnt-1].setrng(ref,hitpos,rangeend,isHit);
+                return _get_hashcnt(_hp_cnt - 1);
+            }
+            inline void updateHashHit(idx hitpos, idx rangeend,bool isHit) {
+                _rngvec[_rng_cnt-1].updaterng(hitpos,rangeend,isHit);
+            }
+            inline idx hashOverlaps(idx hpos) {
+                if(!_hp_cnt)return false;
+                return ( hpos - _kmer <=  _get_hashpos(_hp_cnt -1) );
+            }
+
+            inline idx hitExists(idx ref, idx hpos, idx ihpodend,idx iq = -1, idx delta =-1) {
+                if(!_hp_cnt)return false;
+                _cmp.setrng(ref,hpos,ihpodend);
+                for (idx i = _hp_cnt -1 ; i >= 0 ; --i) {
+                    idx res = sSort::binarySearch((sSort::sCallbackSearch)rngComparator,0,&_cmp,_get_hashcnt(i),_rngvec.ptr(_get_hashoffs(i)));
+                    if( res >= 0 && (iq < 0 || _rngvec[_get_hashoffs(i)+res].isHit || ((iq - _get_hashpos(i)) - (hpos - _rngvec[_get_hashoffs(i)+res].start)) == delta) )
+                        return true;
+                }
+                return false;
+            }
+
+    };
+
+}
+#endif 

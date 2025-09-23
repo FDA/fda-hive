@@ -32,7 +32,6 @@ vjHO.register('svc').Constructor=function ()
 {
     if(this.objCls)return;
     vjHiveObjectSvcBase.call(this);
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.mode='fullview';
@@ -54,7 +53,6 @@ vjHO.register('svc').Constructor=function ()
     this.objCls="obj-svc"+Math.random();
     vjObj.register(this.objCls,this);
 
-    //this.tabs={icons:["process"],names:["progress"]};
 
     this.active_url=new Object();
     this.inactive_url=new Object();
@@ -62,29 +60,29 @@ vjHO.register('svc').Constructor=function ()
     this.viewersToAdd=[];
     this.viewers=new Object();
     this.viewers.length=0;
-    this.active_url={'progress' : "http://?cmd=-qpRawCheck"};
-    this.inactive_url={'progress':"static://"};
+    this.active_url={'progress' : "http:
+    this.inactive_url={'progress':"static:
 
     this.addUrlSet({
         'progress': {
-            active_url:"http://?cmd=-qpRawCheck&showreqs=0",
+            active_url:"http:
             objs:"reqObjID",
             title: "infrastructure: Showing progress"
         },
         'download': {
-            active_url:"http://?cmd=-qpRawCheck&showreqs=0",
+            active_url:"http:
             objs:"reqObjID",
             title: "infrastructure: Preparing progress downloadable report"
         },
         'info': {
-            active_url:"static://",   //for both hitpie and hitlist
+            active_url:"static:
             objs:"req",
             parser: this.onGetInfo,
             title: "infrastructure: Showing progress info"
         },
         'inputs': {
             make_ds: function(title, name, active, id) {
-                var ds = new vjProgressControl_InputsDataSource({name: name, url: "static://", title: title});
+                var ds = new vjProgressControl_InputsDataSource({name: name, url: "static:
                 ds.registerDS();
                 if (active)
                     ds.makeURL({id:id, count:20}, true);
@@ -97,7 +95,7 @@ vjHO.register('svc').Constructor=function ()
         },
         'outputs': {
             make_ds: function(title, name, active, id) {
-                var ds = new vjProgressControl_OutputsDataSource({name: name, url: "static://", title: title});
+                var ds = new vjProgressControl_OutputsDataSource({name: name, url: "static:
                 ds.registerDS();
                 if (active)
                     ds.makeURL({id:id, count:20}, true);
@@ -135,7 +133,6 @@ vjHO.register('svc').Constructor=function ()
             if(!this.hideProgress){ 
                 this.addviewer('progress,inputs,outputs,info,progress_download', new vjProgressControl({
                     data: { progress: 'progress',progress_download: 'download', inputs: 'inputs', outputs: 'outputs', progress_info:'info' },
-                    prefixHTML: whereToJump  ? ("<a href='?cmd="+whereToJump+"&id="+id+"'><table width='100%' border=0 class='HIVE_section_title'><tr><td width='1' ><img border=0 src='img/eye.gif' width=64 /></td><td width='99%'>"+whatText+"</td></tr></table></a>") : "",
                     formName: this.formName
                 }));
             }
@@ -146,7 +143,9 @@ vjHO.register('svc').Constructor=function ()
         }
         this.constructed=true;
 
-        var dv=this.current_dvORtab.obj;
+        
+        var dv = this.current_dvORtab ? this.current_dvORtab.obj : dvORtab.obj;
+        if( !dv ) return;
         if(!this.hideProgress){
             dv.addTab("progress","process",[this.viewers.progress, this.viewers.inputs, this.viewers.outputs,this.viewers.info,this.viewers.progress_download]).viewtoggles = -1;
         }

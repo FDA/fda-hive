@@ -28,7 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 function vjDataSeries(source, wantRegisterDS) {
-//    if(source.name && !vjDS[source.name])
 
     vjDataSource.call(this, source);
     if (wantRegisterDS === undefined) wantRegisterDS = true;
@@ -37,7 +36,6 @@ function vjDataSeries(source, wantRegisterDS) {
     this.callbacks.series_loaded = new Array();
     this.isDataSeries = true;
 
-//    vjSVG_primitive.call(this, source);
     if (this.bump === undefined)                this.bump = false;
     if (this.type == 'sankey' || this.type == "anotBox")                    this.bump = true;
     if (this.type == 'column') this.computeColumnFlag = true;
@@ -65,7 +63,6 @@ function vjDataSeries(source, wantRegisterDS) {
         url = urlExchangeParameters(url, "start", newXStart ? newXStart : '-');
         url = urlExchangeParameters(url, "end", newXEnd ? newXEnd : '-');
         url = urlExchangeParameters(url, "resolution", resolution ? resolution : '-');
-        //alert(url)
         this.reload(url);
     };
 
@@ -80,10 +77,8 @@ function vjDataSeries(source, wantRegisterDS) {
         this.tblArr = new vjTable(content, 0, vjTable_propCSV);
         if (this.coordinates)
             delete this.coordinates;
-        //alert("tabl length " + this.tblArr.rows.length)
         if(this.precompute)
             this.tblArr.enumerate(this.precompute);
-        //alert("serie " + this.data.length)
         if (this.bump)
             this.bumpRawData();
         if (this.type != "raw")
@@ -91,7 +86,6 @@ function vjDataSeries(source, wantRegisterDS) {
         if (this.computeColumnFlag)
             this.computeColumn();
         this.call_callbacks("series_loaded");
-        //alert("table length Serie" + this.tblArr.rows.length)
     };
 
 
@@ -107,13 +101,11 @@ function vjDataSeries(source, wantRegisterDS) {
                 z : -1e+300
             };
         if (this.columnDefinition.y === undefined)    this.columnDefinition.y = this.columnDefinition.weight;
-        //alert("max X before" + this.max.x)
         if (this.tblArr.rows !== undefined && this.tblArr.rows.length){
             if (this.valueMax){
                 if (this.valueMax.x) {
                     if(typeof(this.valueMax.x)=="number") this.max.x = this.valueMax.x;
                     if(typeof(this.valueMax.x)=="string") {
-                        //alerJ("valueMax ", this.valueMax.x)
                         this.max.x = this.tblArr.rows[0][this.valueMax.x];
                     }
                 }
@@ -181,7 +173,6 @@ function vjDataSeries(source, wantRegisterDS) {
 
         this.min.x = parseFloat(this.min.x);
         this.max.x = parseFloat(this.max.x);
-        //alert("max X after" + this.max.x)
         this.min.y = parseFloat(this.min.y);
         if (this.type == "anotBox") this.max.y = 1;
         else this.max.y = parseFloat(this.max.y);
@@ -190,8 +181,6 @@ function vjDataSeries(source, wantRegisterDS) {
         if(!this.isNXminBased) this.min.x = 0;
         if(!this.isNYminBased)  this.min.y = 0;
         if (!this.isNZminBased) this.min.z = 0;
-        //alert("dataSerie" + this.max.y)
-        //alert("level" + level)
 
     };
 
@@ -203,7 +192,7 @@ function vjDataSeries(source, wantRegisterDS) {
     this.bumpRawData = function() {
         var defStart = 0, defStep = 0, defWeight = 0;
         var nodes = new Array();
-        var layers = new Array(); // use for anotBox
+        var layers = new Array();
         for ( var ip = 0; ip < this.tblArr.rows.length; ++ip) {
             var node = new Object();
             
@@ -248,13 +237,10 @@ function vjDataSeries(source, wantRegisterDS) {
     };
 
     this.computeColumn = function() {
-        // var tblCompute = new Object();
 
     }
-    this.computeLayers = function(layersArray,elementToPut, levelHeight){ // this function tries to determine the level for an element of anotBox set
+    this.computeLayers = function(layersArray,elementToPut, levelHeight){
         if (levelHeight==undefined || !levelHeight) levelHeight = 0.25;
-        //------- layersArray is the array of array [[],[],[],[]]------//
-        // first iteration, there is no layer and no element 
         if (!layersArray.length){ 
             var layer = new Array();
             elementToPut.y = levelHeight;
@@ -263,62 +249,50 @@ function vjDataSeries(source, wantRegisterDS) {
             return elementToPut;
         }
         
-        // from second iteration and so on
         var layersCnt = layersArray.length;
         var createNewLevel = true;
-        for (var l=0; l < layersCnt; l++){ // START LOOP through layers
+        for (var l=0; l < layersCnt; l++){
             var cur_layer = layersArray[l];
             var elementCnt = cur_layer.length;
             createNewLevel = false;
-            for (var ielement=0; ielement<elementCnt; ielement++){ // START LOOP through the element of one layer
-                // comparison of the elementToPut with the current one                
+            for (var ielement=0; ielement<elementCnt; ielement++){
                 var cur_element = cur_layer[ielement];
                 var next_element = undefined;
                 if (ielement+1 < elementCnt) next_element = cur_layer[ielement+1];
                                 
-                if (next_element==undefined){ // there is no next element 
-                    //  => just compare to the cur_element
-                    // compare the end of the cur_element with the start of the elementToPut
+                if (next_element==undefined){
                     if ((elementToPut.start < cur_element.start && elementToPut.end < cur_element.start) || (elementToPut.start > cur_element.end && elementToPut.end > cur_element.end)) { 
-                        // if not overlap => push elemtnToPut to the current layer  
-                        elementToPut.y = levelHeight * (l+1); // because l is 0 based                        
-                        cur_layer.splice(ielement+1,0,elementToPut); // try to insert the elementToPut in between
+                        elementToPut.y = levelHeight * (l+1);
+                        cur_layer.splice(ielement+1,0,elementToPut);
                         return elementToPut;    
-                    } else {  // if overlap => move to the next level                        
-                        // if no next level => create one
+                    } else {
                         if (l+1 == layersCnt) { 
-                            var new_level = new Array();             // create a new level
-                            elementToPut.y = levelHeight * (l+1+1);    // compute the y coordinate for the elementToPut
-                            new_level.push(elementToPut); //         // push the elementToPut to the new level
+                            var new_level = new Array();
+                            elementToPut.y = levelHeight * (l+1+1);
+                            new_level.push(elementToPut);
                             layersArray.push(new_level);                            
                             return elementToPut;
                         }
-                        // if there is next level => compare to the elements of the next level
                         else{
                             break;
                         }
                     }
-                } else { // there is next element
-                    //  => compare to the end position of the current element and the start position of the next element
+                } else {
                     if (elementToPut.start > cur_element.end && elementToPut.end < next_element.start){
-                        // if not overlap
                         elementToPut.y = levelHeight*(l+1);
-                        cur_layer.splice(ielement+1,0,elementToPut); // try to insert the elementToPut in between                        
+                        cur_layer.splice(ielement+1,0,elementToPut);
                         return elementToPut;
                     }
                     if (elementToPut.end <= next_element.start){ 
-                        // move to next level if elementToPut passes the range => dont need to compare further
                         break;
                     }
                     else {
-                        // if not fit in 
                         continue;
                     }
                 }
-            } // END LOOP through the element of one layer
-        } // END LOOP through layers
+            }
+        }
         if (createNewLevel){ 
-            // in case we are at the top level, and comparing the elementToPut to the cur_element and the next Element, but overlaping 
             var layer = new Array();
             elementToPut.y = levelHeight * (layersCnt+1);
             layer.push(elementToPut);
@@ -328,4 +302,3 @@ function vjDataSeries(source, wantRegisterDS) {
     }
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjDataSeries.js"

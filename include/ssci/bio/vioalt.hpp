@@ -65,7 +65,8 @@ class sVioal : public sBioal
             eTypeSubject,
             eTypeQry,
             eTypeStat,
-            eTypeRpt
+            eTypeRpt,
+            eTypeSAMContent
         };
 
         struct ALFact {
@@ -75,21 +76,22 @@ class sVioal : public sBioal
             int rpt;
             idx ofsFile;
             idx idQry;
+            idx ofsSam;
         };
         sVec < ALFact > AlFactors, * alFactors;
         idx DigestPairedEnds( sVec<ALFact> &als, sVec<sFil> & fileList, digestParams &params, sDic < sBioal::LenHistogram > * lenHistogram = 0, sVec< idx > * totSubjectCoverage = 0);
         inline bool filterPair(sVioal::ALFact * _i1, sVioal::ALFact * _i2, sBioseqAlignment::Al *_hdr1, sBioseqAlignment::Al *_hdr2, digestParams &params);
+
+        inline  sBioseqAlignment::Al * _getHdrFromAlFact(ALFact * _al, sVec<sFil> & fileList) {return (sBioseqAlignment::Al *)fileList[_al->iFile].ptr( _al->ofsFile );};
+        inline void _countForConflicts(ALFact * al1, sVec< sFil> & fileList, idx * pSubHits, idx sublen, digestParams &params);
+        inline void _countForConflicts(sBioseqAlignment::Al * hdr, idx * pSubHits, idx sublen, digestParams &params);
+        inline void _scaleConflictScores(sVec<idx> & pSubHits, digestParams & params);
+        inline idx _getConflictScore( idx * pSubHits, idx l_sub, digestParams &params);
+
+        sBioseqAlignment::Al * getConflictResolvedHDR(sBioseqAlBundleAscIter & it, sVec<idx> &subHits, digestParams &params);
+
     public:
 
-        /*!
-         * This is the constructor function for the sVioalt class.
-         * \param InputFilename The vioalt file used to initiate a vioDB object.
-         * \param sub A sBioseq object containing the reference sequence.
-         * \param qry A sBioseq object containing the query sequence.
-         * \param mode An optional tag specifying the mode that the sVioalt container should be opened in, values allowed:
-         * <i>fReadonly </i>(the default)<i>, ...</i>
-         * \param biomode Needed to create the sVioDB wrapper; the file open flags such as <i>sMex::fSetZero|sMex::fBlockDoubling</i>
-         */
         sVioal (const char * InputFilename=0, sBioseq * sub=0, sBioseq * qry=0, idx mode=sMex::fReadonly, idx bioMode=0): sBioal()
         {
             myCallbackFunction=0;
@@ -103,17 +105,6 @@ class sVioal : public sBioal
         }
 
 
-        /*!
-         * Initiation function called from the constructor to set up an sVioalt wrapper by setting the vioDB, Sub, and Qry
-         * attributes.
-         * \param InputFilename The vioalt file used to initiate a vioDB object.
-         * \param sub A sBioseq object containing the reference sequence.
-         * \param qry A sBioseq object containing the query sequence.
-         * \param mode An optional tag specifying the mode that the sVioalt container should be opened in, values allowed:
-         * <i>fReadonly </i>(the default)<i>, ...</i>
-         * \param biomode Needed to create the sVioDB wrapper; the file open flags such as <i>sMex::fSetZero|sMex::fBlockDoubling</i>
-         * \returns sVioalt object.
-         */
         sVioal* init (const char * InputFilename=0, sBioseq * sub=0, sBioseq * qry=0, idx mode=sMex::fReadonly, idx bioMode=0)
         {
             if(InputFilename) vioDB.init(InputFilename,"vioalt",0,0,mode);
@@ -130,73 +121,43 @@ class sVioal : public sBioal
         void * myCallbackParam;
 
 
-        /*!
-         * Checks on the internal sVioDB object to see if it is valid.
-         * \returns True/False
-         */
         virtual bool isok(void)
         {
             return vioDB.isok("vioalt")? true : false;
         }
 
-        /*!
-         * Returns the number of alignment records in the sVioalt object.
-         * \returns idx of the number of records.
-         */
         virtual idx dimAl(void){
             return vioDB.GetRecordCnt(eTypeAlignment);
         }
-        /*!
-         * Returns an alignment in the sVioalt object.
-         * \param iAlIndex The Alignment index of interest.
-         * \returns sBioseqAlignment::Al type alignment.
-         */
 
         virtual sBioseqAlignment::Al * getAl(idx iAlIndex){
             return (sBioseqAlignment::Al * )vioDB.Getbody (eTypeAlignment, iAlIndex+1, 0);
         }
         virtual idx * getMatch (idx iAlIndex) {
             idx * pMatch=(idx*)vioDB.GetRelationPtr(eTypeAlignment, (idx)iAlIndex+1, 1, 0,0 );
+            if(!pMatch)return sBioseqAlignment::zeroAlignment;
             return (idx*)vioDB.Getbody (eTypeMatch, *pMatch, 0);
         }
 
         virtual idx getRpt (idx iAlIndex) {
             idx * pMatch=(idx*)vioDB.GetRelationPtr(eTypeAlignment, (idx)iAlIndex+1, 2, 0,0 );
-            return pMatch?*(idx*)vioDB.Getbody (eTypeRpt, *pMatch, 0):0;
+            if(pMatch) {
+                idx* ret = (idx*)vioDB.Getbody (eTypeRpt, *pMatch, 0);
+                if(ret)
+                    return *ret; 
+            }
+            return 0;
         }
-        /*!
-         * Returns the number of reference sequence records in the sVioalt object.
-         * \returns idx type number of records.
-         */
         virtual idx dimSub(){
             return vioDB.GetRecordCnt(eTypeSubject);
         }
 
-        virtual idx listSubAlIndex(idx idSub, idx * relCount){ // ,sVec < idx > * alIndexes
+        virtual idx listSubAlIndex(idx idSub, idx * relCount){
             idx iRec=vioDB.GetRecordIndexByBody((const void *)&(idSub), eTypeSubject);
             idx * res=vioDB.GetRelationPtr(eTypeSubject, iRec, 1, (idx*)relCount,0 );
-            /*
-            if(relCount && *relCount && alIndexes ) {
-                idx * cpy=alIndexes->add(*relCount);
-                memcpy(cpy,res,sizeof(idx)*(*relCount));
-                return cpy;
-            }
-            */
             return res ? *res : 0 ;
         }
 
-        /*!
-         * Returns the number of query sequence records in the sVioalt object.
-         * \returns idx type number of records.
-         */
-    /*    idx dimQry() {
-            return vioDB.GetRecordCnt(eTypeQry);
-        }
-        idx * listQryAl(idx idQry, idx * relCount){
-            idx iRec=vioDB.GetRecordIndexByBody((const void *)&(idQry), eTypeQry);
-            return (idx*)vioDB.GetRelationPtr(eTypeQry, iRec, 1, (idx*)relCount,0 );
-        }
-     */
         virtual idx dimStat() {
             return vioDB.GetRecordCnt(eTypeStat);
         }
@@ -204,6 +165,16 @@ class sVioal : public sBioal
             Stat * pI=(Stat *)vioDB.Getbody (eTypeStat, iStat+1, size);
             if(size)*size/=sizeof(Stat);
             return pI+iSub;
+        }
+
+        virtual const char * getSAMContent(idx iAlIndex, idx * samContentSize = 0) {
+            if (vioDB.GetTypeCnt() >= 7 && vioDB.GetRecordCnt(eTypeSAMContent) > 0) {
+                idx * pSAMContent = vioDB.GetRelationPtr(eTypeAlignment, iAlIndex+1, 4, 0, 0);
+                if (pSAMContent) {
+                    return static_cast<char *> (vioDB.Getbody (eTypeSAMContent, *pSAMContent, samContentSize) );
+                }
+            }
+            return NULL;
         }
 
         static void setMode(sVioDB &db, sBioseq::EBioMode qrymode, sBioseq::EBioMode submode){
@@ -244,22 +215,8 @@ class sVioal : public sBioal
             getStat(0,0,&size);
             return size == 2*Sub->dim()+1;
         }
-        /*
-        idx dimFailed( idx isdetail=0) {
-            if(!isdetail){
-                idx * pCount=(idx*)vioDB.Getbody (eTypeFailed, 1, 0);
-                return (pCount) ? *pCount : 0 ;
-            }
-            return vioDB.GetRecordCnt(eTypeFailed);
-        }
-*/
 
-/*                idx * listFailed(idx iFailedIndex) {
-            return (idx*)vioDB.Getbody (eTypeFailed, iFailedIndex+1, 0);
-        }
-*/
 
-        //typedef idx (callbackType)(void * data, real percentDone);
 
         static idx DigestInit(sVioDB * db , const char * outputfilename);
         static idx DigestFirstStage(sVioDB * db, sBioseqAlignment::Al * hdr, sBioseqAlignment::Al * hdre, sBioseq * qry, sBioal::Stat *  stat, bool selectedOnly  , bool doQueries, idx biomode, idx oneRepeatForall=0);
@@ -289,7 +246,7 @@ class sVioal : public sBioal
         static idx __sort_totalAlignmentSorter_onSubject(void * param, void * arr , idx i1, idx i2);
         static idx __sort_totalAlignmentSorter_onQuery(void * param, void * arr , idx i1, idx i2);
         static idx __sort_totalAlignmentSorter_onPosition(void * param, void * arr , idx i1, idx i2);
-        idx DigestCombineAlignmentsRaw(const char* outputfilename, const char * filenames00, digestParams &params, sDic < sBioal::LenHistogram > * lenHistogram=0, sVec < idx > * totSubjectCoverage=0, idx sortFlags = 0 ) ;
+        idx DigestCombineAlignmentsRaw(const char* outputfilename, const char * filenames00, digestParams &params, sDic < sBioal::LenHistogram > * lenHistogram=0, sVec < idx > * totSubjectCoverage=0, idx sortFlags = 0, const char * samFilenames00 = 0) ;
 
 }; 
 

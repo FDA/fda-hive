@@ -40,7 +40,7 @@ namespace slib {
 
         public:
             sCGI(idx argc = 0, const char * * argv = 0, const char * * envp = 0, FILE * readfrom = stdin, bool isCookie = false, bool immediate = true, const char * forcedMethod = 0)
-                : sHtml(immediate), m_headersPrinted(false)
+                : sHtml(immediate), m_headersPrinted(false), m_cookieSecureOverHTTP(false)
             {
                 init(argc, argv, envp, readfrom, isCookie, forcedMethod);
             }
@@ -67,10 +67,21 @@ namespace slib {
             virtual void outHeaders(sStr* str = 0);
             virtual void outHtml(sHtml * html = 0);
             virtual void headerSet(const char * nm, const char * fmt, ...) __attribute__((format(printf, 3, 4)));
-            // in Content-Disposition, filename value requires special encoding if it contains whitespace, unicode etc.
             void headerSetContentDispositionAttachment(const char * flnm_fmt, ...) __attribute__((format(printf, 2, 3)));
             virtual void headerDelete(const char * nm);
+            udx getStatus(void);
+
+            enum {
+                eCookie_None = 0,
+                eCookie_Secure= 0x01,
+                eCookie_HttpOnly = 0x02,
+                eCookie_SameSiteStrict = 0x04,
+                eCookie_SameSiteLax = 0x08,
+                eCookie_SameSiteNone = 0x10
+            };
+            virtual void cookieSet(const char * nm, const idx flags, const char * fmt, ...) __attribute__((format(printf, 4, 5)));
             virtual void cookieSet(const char * nm, const char * fmt, ...) __attribute__((format(printf, 3, 4)));
+            void cookieSecureOverHTTP(const bool & always) { m_cookieSecureOverHTTP = always; };
             virtual void cookieDelete(const char * nm);
             virtual void alert(const char * fmt, ...) __attribute__((format(printf, 2, 3)));
             virtual void error(const char * fmt, ...) __attribute__((format(printf, 2, 3)));
@@ -95,12 +106,14 @@ namespace slib {
                 sCallVargResPara(ret, outSectionVa, 0, sectionFmt);
                 return ret;
             }
+
+            virtual idx outBinByteRange(sStr *flPath,char * flName,sHtml::sPartPair::TParts *ranges);
             virtual void outBin(const void * buf, idx len, idx timeStamp, bool asAttachment, const char * flnmFormat, ...) __attribute__((format(printf, 6, 7)));
             virtual void outBinHeaders(bool asAttachment, const char * flnmFormat, ...) __attribute__((format(printf, 3, 4)));
             virtual void outBinData(const void * buf, idx len) { fwrite(buf, len, 1, flOut); }
             virtual bool outFile(const char * flnmReal, bool asAttachment, const char * flnmFormat, ...) __attribute__((format(printf, 4, 5)));
 
-            const char* selfURL(sStr& url);
+            virtual const char* selfURL(sStr& url);
 
             void setFlOut(FILE * f)
             {
@@ -128,13 +141,15 @@ namespace slib {
             virtual bool checkETag(sStr & etagBuf, idx len, idx timeStamp);
             virtual void outBinCached(const char * etag);
             virtual void voutBinUncached(const void * buf, idx len, const char * etag, bool asAttachment, const char * flnmFormat, va_list marker);
+            virtual bool resolveFile(const char * filename) {return false;}
 
         private:
 
             sVar m_headers;
             bool m_headersPrinted;
             sVar m_cookies;
+            bool m_cookieSecureOverHTTP;
     };
 
 }
-#endif // sLib_std_cgi_hpp
+#endif 

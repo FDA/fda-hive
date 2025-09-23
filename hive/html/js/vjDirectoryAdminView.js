@@ -27,11 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 function vjDirectoryAdminView(viewer) {
     vjDirectoryView.call(this,viewer);
@@ -78,18 +73,10 @@ function vjDirectoryAdminView(viewer) {
         for(var ii=0;ii<idList.length;ii++){
             idString += ","+ idList[ii];
         }
-        //alert(idString)
         var url = "";
         if (node[this.idtype] == "all")
             url = "?cmd=allStat&raw=1&mode=csv&type=base_system_type%2B";
         else{
-            /*if(node[this.idtype]){
-                url = "?cmd=allStat&userPerspective=" + idString.substring(1)
-                        + "&raw=1&mode=csv&type=base_system_type%2B";
-            }
-            else{
-                alert("this one do not have obj id")
-            }*/
             if(idList.length>0){
                 url = "?cmd=allStat&userPerspective=" + idString.substring(1)
                 + "&raw=1&mode=csv&type=base_system_type%2B";
@@ -150,4 +137,3 @@ function vjDirectoryAdminControl(viewer) {
 
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjDirectoryAdminView.js"

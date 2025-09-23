@@ -27,11 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
-    Papa Parse
-    v4.0.7
-    https://github.com/mholt/PapaParse
-*/
 (function(global)
 {
     "use strict";
@@ -39,15 +34,14 @@
     var IS_WORKER = !global.document, SCRIPT_PATH;
     var workers = {}, workerIdCounter = 0;
 
-    // A configuration object from which to draw default settings
     var DEFAULTS = {
-        delimiter: "",    // empty: auto-detect
-        newline: "",    // empty: auto-detect
+        delimiter: "",
+        newline: "",
         header: false,
         dynamicTyping: false,
         preview: 0,
         step: undefined,
-        encoding: "",    // browser should default to "UTF-8"
+        encoding: "",
         worker: false,
         comments: false,
         complete: undefined,
@@ -69,12 +63,10 @@
     global.Papa.BAD_DELIMITERS = ["\r", "\n", "\"", global.Papa.BYTE_ORDER_MARK];
     global.Papa.WORKERS_SUPPORTED = !!global.Worker;
 
-    // Configurable chunk sizes for local and remote files, respectively
-    global.Papa.LocalChunkSize = 1024 * 1024 * 10;    // 10 MB
-    global.Papa.RemoteChunkSize = 1024 * 1024 * 5;    // 5 MB
-    global.Papa.DefaultDelimiter = ",";                // Used if not specified and detection fails
+    global.Papa.LocalChunkSize = 1024 * 1024 * 10;
+    global.Papa.RemoteChunkSize = 1024 * 1024 * 5;
+    global.Papa.DefaultDelimiter = ",";
 
-    // Exposed for testing and development only
     global.Papa.Parser = Parser;
     global.Papa.ParserHandle = ParserHandle;
     global.Papa.NetworkStreamer = NetworkStreamer;
@@ -95,7 +87,7 @@
                                 && global.FileReader;
 
                 if (!supported || !this.files || this.files.length == 0)
-                    return true;    // continue to next input element
+                    return true;
 
                 for (var i = 0; i < this.files.length; i++)
                 {
@@ -107,8 +99,8 @@
                 }
             });
 
-            parseNextFile();    // begin parsing
-            return this;        // maintains chainability
+            parseNextFile();
+            return this;
 
 
             function parseNextFile()
@@ -131,11 +123,11 @@
                         if (returned.action == "abort")
                         {
                             error("AbortError", f.file, f.inputElem, returned.reason);
-                            return;    // Aborts all queued files immediately
+                            return;
                         }
                         else if (returned.action == "skip")
                         {
-                            fileComplete();    // parse the next file in the queue, if any
+                            fileComplete();
                             return;
                         }
                         else if (typeof returned.config === 'object')
@@ -143,12 +135,11 @@
                     }
                     else if (returned == "skip")
                     {
-                        fileComplete();    // parse the next file in the queue, if any
+                        fileComplete();
                         return;
                     }
                 }
 
-                // Wrap up the user's complete callback, if any, so that ours also gets executed
                 var userCompleteFunc = f.instanceConfig.complete;
                 f.instanceConfig.complete = function(results)
                 {
@@ -177,8 +168,6 @@
 
     if (IS_WORKER)
         global.onmessage = workerThreadReceivedMessage;
-    //else if (Papa.WORKERS_SUPPORTED)
-    //    SCRIPT_PATH = getScriptPath();
 
 
 
@@ -201,7 +190,7 @@
             config.chunk = isFunction(config.chunk);
             config.complete = isFunction(config.complete);
             config.error = isFunction(config.error);
-            delete config.worker;    // prevent infinite loop
+            delete config.worker;
 
             w.postMessage({
                 input: _input,
@@ -225,7 +214,7 @@
                     return results;
                 }
             }
-            else if ((global.File && _input instanceof File) || _input instanceof Object)    // ...Safari. (see issue #106)
+            else if ((global.File && _input instanceof File) || _input instanceof Object)
             {
                 if (config.step || config.chunk)
                 {
@@ -272,10 +261,9 @@
         var _output = "";
         var _fields = [];
 
-        // Default configuration
-        var _quotes = false;    // whether to surround every datum with quotes
-        var _delimiter = ",";    // delimiting character
-        var _newline = "\r\n";    // newline character(s)
+        var _quotes = false;
+        var _delimiter = ",";
+        var _newline = "\r\n";
 
         unpackConfig();
 
@@ -302,13 +290,12 @@
                                     : objectKeys(_input.data[0]);
 
                 if (!(_input.data[0] instanceof Array) && typeof _input.data[0] !== 'object')
-                    _input.data = [_input.data];    // handles input like [1,2,3] or ["asdf"]
+                    _input.data = [_input.data];
             }
 
             return serialize(_input.fields || [], _input.data || []);
         }
 
-        // Default (any valid paths should return before this)
         throw "exception: Unable to serialize unrecognized input";
 
 
@@ -333,7 +320,6 @@
         }
 
 
-        // Turns an object's keys into an array
         function objectKeys(obj)
         {
             if (typeof obj !== 'object')
@@ -344,7 +330,6 @@
             return keys;
         }
 
-        // The double for loop that iterates the data and writes out a CSV string including header row
         function serialize(fields, data)
         {
             var csv = "";
@@ -357,7 +342,6 @@
             var hasHeader = fields instanceof Array && fields.length > 0;
             var dataKeyedByField = !(data[0] instanceof Array);
 
-            // If there a header row, write it first
             if (hasHeader)
             {
                 for (var i = 0; i < fields.length; i++)
@@ -370,7 +354,6 @@
                     csv += _newline;
             }
 
-            // Then write out the data
             for (var row = 0; row < data.length; row++)
             {
                 var maxCol = hasHeader ? fields.length : data[row].length;
@@ -390,7 +373,6 @@
             return csv;
         }
 
-        // Encloses a value around quotes if needed (makes a value safe for CSV insertion)
         function safe(str, col)
         {
             if (typeof str === "undefined" || str === null)
@@ -419,7 +401,6 @@
 
 
 
-    // TODO: Many of the functions of NetworkStreamer and FileStreamer are similar or the same. Consolidate?
     function NetworkStreamer(config)
     {
         config = config || {};
@@ -475,7 +456,7 @@
                 };
             }
 
-            nextChunk();    // Starts streaming
+            nextChunk();
         };
 
         function readChunk()
@@ -498,8 +479,8 @@
             
             if (config.step || config.chunk)
             {
-                var end = start + configCopy.chunkSize - 1;    // minus one because byte range is inclusive
-                if (fileSize && end > fileSize)    // Hack around a Chrome bug: http://stackoverflow.com/q/24745095/1048862
+                var end = start + configCopy.chunkSize - 1;
+                if (fileSize && end > fileSize)
                     end = fileSize;
                 xhr.setRequestHeader("Range", "bytes="+start+"-"+end);
             }
@@ -528,7 +509,6 @@
                 return;
             }
 
-            // Rejoin the line we likely just split in two by chunking the file
             aggregate += partialLine + xhr.responseText;
             partialLine = "";
 
@@ -543,13 +523,11 @@
 
                 if (lastLineEnd != -1)
                 {
-                    partialLine = aggregate.substring(lastLineEnd + 1);    // skip the line ending character
+                    partialLine = aggregate.substring(lastLineEnd + 1);
                     aggregate = aggregate.substring(0, lastLineEnd);
                 }
                 else
                 {
-                    // For chunk sizes smaller than a line (a line could not fit in a single chunk)
-                    // we simply build our aggregate by reading in the next chunk, until we find a newline
                     nextChunk();
                     return;
                 }
@@ -606,14 +584,10 @@
 
         function replaceConfig(config)
         {
-            // Deep-copy the config so we can edit it; we need
-            // to call the complete function if we are to ensure
-            // that the last chunk callback, if any, will be called
-            // BEFORE the complete function.
             configCopy = copy(config);
             userComplete = configCopy.complete;
             configCopy.complete = undefined;
-            configCopy.chunkSize = parseInt(configCopy.chunkSize);    // VERY important so we don't concatenate strings!
+            configCopy.chunkSize = parseInt(configCopy.chunkSize);
             handle = new ParserHandle(configCopy);
             handle.streamer = this;
         }
@@ -645,9 +619,7 @@
         var userComplete, handle, configCopy;
         replaceConfig(config);
 
-        // FileReader is better than FileReaderSync (even in worker) - see http://stackoverflow.com/q/24708649/1048862
-        // But Firefox is a pill, too - see issue #76: https://github.com/mholt/PapaParse/issues/76
-        var usingAsyncReader = typeof FileReader !== 'undefined';    // Safari doesn't consider it a function - see issue #105
+        var usingAsyncReader = typeof FileReader !== 'undefined';
 
         this.stream = function(f)
         {
@@ -656,14 +628,14 @@
 
             if (usingAsyncReader)
             {
-                reader = new FileReader();        // Preferred method of reading files, even in workers
+                reader = new FileReader();
                 reader.onload = chunkLoaded;
                 reader.onerror = chunkError;
             }
             else
-                reader = new FileReaderSync();    // Hack for running in a web worker in Firefox
+                reader = new FileReaderSync();
 
-            nextChunk();    // Starts streaming
+            nextChunk();
         };
 
         this.finished = function()
@@ -700,15 +672,13 @@
             var end = Math.min(start + configCopy.chunkSize, file.size);
             var txt = reader.readAsText(slice.call(file, start, end), config.encoding);
             if (!usingAsyncReader)
-                chunkLoaded({ target: { result: txt } });    // mimic the async signature
+                chunkLoaded({ target: { result: txt } });
         }
 
         function chunkLoaded(event)
         {
-            // Very important to increment start each time before handling results
             start += configCopy.chunkSize;
 
-            // Rejoin the line we likely just split in two by chunking the file
             aggregate += partialLine + event.target.result;
             partialLine = "";
 
@@ -716,20 +686,18 @@
 
             if (!finishedWithEntireFile)
             {
-                var lastLineEnd = aggregate.lastIndexOf("\r");    // TODO: Use an auto-detected line ending?
+                var lastLineEnd = aggregate.lastIndexOf("\r");
 
                 if (lastLineEnd == -1)
                     lastLineEnd = aggregate.lastIndexOf("\n");
 
                 if (lastLineEnd != -1)
                 {
-                    partialLine = aggregate.substring(lastLineEnd + 1);    // skip the line ending character (TODO: Not always length 1? \r\n...)
+                    partialLine = aggregate.substring(lastLineEnd + 1);
                     aggregate = aggregate.substring(0, lastLineEnd);
                 }
                 else
                 {
-                    // For chunk sizes smaller than a line (a line could not fit in a single chunk)
-                    // we simply build our aggregate by reading in the next chunk, until we find a newline
                     nextChunk();
                     return;
                 }
@@ -782,14 +750,10 @@
 
         function replaceConfig(config)
         {
-            // Deep-copy the config so we can edit it; we need
-            // to call the complete function if we are to ensure
-            // that the last chunk callback, if any, will be called
-            // BEFORE the complete function.
             configCopy = copy(config);
             userComplete = configCopy.complete;
             configCopy.complete = undefined;
-            configCopy.chunkSize = parseInt(configCopy.chunkSize);    // VERY important so we don't concatenate strings!
+            configCopy.chunkSize = parseInt(configCopy.chunkSize);
             handle = new ParserHandle(configCopy);
             handle.streamer = this;
         }
@@ -800,20 +764,18 @@
 
 
 
-    // Use one ParserHandle per entire CSV file or string
     function ParserHandle(_config)
     {
-        // One goal is to minimize the use of regular expressions...
         var FLOAT = /^\s*-?(\d*\.?\d+|\d+\.?\d*)(e[-+]?\d+)?\s*$/i;
 
         var self = this;
-        var _stepCounter = 0;    // Number of times step was called (number of rows parsed)
-        var _input;                // The input being parsed
-        var _parser;            // The core parser being used
-        var _paused = false;    // Whether we are paused or not
-        var _delimiterError;    // Temporary state between delimiter detection and processing results
-        var _fields = [];        // Fields are from the header row of the input, if there is one
-        var _results = {        // The last results returned from the parser
+        var _stepCounter = 0;
+        var _input;
+        var _parser;
+        var _paused = false;
+        var _delimiterError;
+        var _fields = [];
+        var _results = {
             data: [],
             errors: [],
             meta: {}
@@ -828,11 +790,10 @@
 
                 if (needsHeaderRow())
                     processResults();
-                else    // only call user's step function after header row
+                else
                 {
                     processResults();
 
-                    // It's possbile that this line was empty and there's no row here after all
                     if (_results.data.length == 0)
                         return;
 
@@ -858,7 +819,7 @@
                     _config.delimiter = delimGuess.bestDelimiter;
                 else
                 {
-                    _delimiterError = true;    // add error after parsing (otherwise it would be overwritten)
+                    _delimiterError = true;
                     _config.delimiter = Papa.DefaultDelimiter;
                 }
                 _results.meta.delimiter = _config.delimiter;
@@ -866,7 +827,7 @@
 
             var parserConfig = copy(_config);
             if (_config.preview && _config.header)
-                parserConfig.preview++;    // to compensate for header row
+                parserConfig.preview++;
 
             _input = input;
             _parser = new Parser(parserConfig);
@@ -892,7 +853,7 @@
             if (!_paused)
             {
                 if (self.streamer && !self.streamer.finished())
-                    self.streamer.resume();        // more of the file yet to come
+                    self.streamer.resume();
                 else if (isFunction(_config.complete))
                     _config.complete(_results);
             }
@@ -1045,7 +1006,7 @@
 
         function guessLineEndings(input)
         {
-            input = input.substr(0, 1024*1024);    // max length 1 MB
+            input = input.substr(0, 1024*1024);
 
             var r = input.split('\r');
 
@@ -1083,10 +1044,8 @@
 
 
 
-    // The core parser implements speedy and correct CSV parsing
     function Parser(config)
     {
-        // Unpack the config object
         config = config || {};
         var delim = config.delimiter;
         var newline = config.newline;
@@ -1095,13 +1054,11 @@
         var preview = config.preview;
         var fastMode = config.fastMode;
 
-        // Delimiter must be valid
         if (typeof delim !== 'string'
             || delim.length != 1
             || Papa.BAD_DELIMITERS.indexOf(delim) > -1)
             delim = ",";
 
-        // Comment character must be valid
         if (comments === delim)
             throw "Comment character same as delimiter";
         else if (comments === true)
@@ -1110,29 +1067,23 @@
             || Papa.BAD_DELIMITERS.indexOf(comments) > -1)
             comments = false;
 
-        // Newline must be valid: \r, \n, or \r\n
         if (newline != '\n' && newline != '\r' && newline != '\r\n')
             newline = '\n';
 
-        // We're gonna need these at the Parser scope
         var cursor = 0;
         var aborted = false;
 
         this.parse = function(input)
         {
-            // For some reason, in Chrome, this speeds things up (!?)
             if (typeof input !== 'string')
                 throw "Input must be a string";
 
-            // We don't need to compute these every time parse() is called,
-            // but having them in a more local scope seems to perform better
             var inputLen = input.length,
                 delimLen = delim.length,
                 newlineLen = newline.length,
                 commentsLen = comments.length;
             var stepIsFunction = typeof step === 'function';
 
-            // Establish starting state
             cursor = 0;
             var data = [], errors = [], row = [];
 
@@ -1141,7 +1092,6 @@
 
             if (fastMode)
             {
-                // Fast mode assumes there are no quoted fields in the input
                 var rows = input.split(newline);
                 for (var i = 0; i < rows.length; i++)
                 {
@@ -1168,31 +1118,25 @@
             var nextDelim = input.indexOf(delim, cursor);
             var nextNewline = input.indexOf(newline, cursor);
 
-            // Parser loop
             for (;;)
             {
-                // Field has opening quote
                 if (input[cursor] == '"')
                 {
-                    // Start our search for the closing quote where the cursor is
                     var quoteSearch = cursor;
 
-                    // Skip the opening quote
                     cursor++;
 
                     for (;;)
                     {
-                        // Find closing quote
                         var quoteSearch = input.indexOf('"', quoteSearch+1);
 
                         if (quoteSearch == -1)
                         {
-                            // No closing quote... what a pity
                             errors.push({
                                 type: "Quotes",
                                 code: "MissingQuotes",
                                 message: "Quoted field unterminated",
-                                row: data.length,    // row has yet to be inserted
+                                row: data.length,
                                 index: cursor
                             });
                             return finish();
@@ -1200,7 +1144,6 @@
 
                         if (quoteSearch == inputLen-1)
                         {
-                            // Closing quote at EOF
                             row.push(input.substring(cursor, quoteSearch).replace(/""/g, '"'));
                             data.push(row);
                             if (stepIsFunction)
@@ -1208,7 +1151,6 @@
                             return returnable();
                         }
 
-                        // If this quote is escaped, it's part of the data; skip it
                         if (input[quoteSearch+1] == '"')
                         {
                             quoteSearch++;
@@ -1217,7 +1159,6 @@
 
                         if (input[quoteSearch+1] == delim)
                         {
-                            // Closing quote followed by delimiter
                             row.push(input.substring(cursor, quoteSearch).replace(/""/g, '"'));
                             cursor = quoteSearch + 1 + delimLen;
                             nextDelim = input.indexOf(delim, cursor);
@@ -1227,10 +1168,9 @@
 
                         if (input.substr(quoteSearch+1, newlineLen) == newline)
                         {
-                            // Closing quote followed by newline
                             row.push(input.substring(cursor, quoteSearch).replace(/""/g, '"'));
                             saveRow(quoteSearch + 1 + newlineLen);
-                            nextDelim = input.indexOf(delim, cursor);    // because we may have skipped the nextDelim in the quoted field
+                            nextDelim = input.indexOf(delim, cursor);
 
                             if (stepIsFunction)
                             {
@@ -1249,10 +1189,9 @@
                     continue;
                 }
 
-                // Comment found at start of new line
                 if (comments && row.length == 0 && input.substr(cursor, commentsLen) == comments)
                 {
-                    if (nextNewline == -1)    // Comment ends at EOF
+                    if (nextNewline == -1)
                         return returnable();
                     cursor = nextNewline + newlineLen;
                     nextNewline = input.indexOf(newline, cursor);
@@ -1260,7 +1199,6 @@
                     continue;
                 }
 
-                // Next delimiter comes before next newline, so we've reached end of field
                 if (nextDelim != -1 && (nextDelim < nextNewline || nextNewline == -1))
                 {
                     row.push(input.substring(cursor, nextDelim));
@@ -1269,7 +1207,6 @@
                     continue;
                 }
 
-                // End of row
                 if (nextNewline != -1)
                 {
                     row.push(input.substring(cursor, nextNewline));
@@ -1295,22 +1232,16 @@
             return finish();
 
 
-            // Appends the remaining input from cursor to the end into
-            // row, saves the row, calls step, and returns the results.
             function finish()
             {
                 row.push(input.substr(cursor));
                 data.push(row);
-                cursor = inputLen;    // important in case parsing is paused
+                cursor = inputLen;
                 if (stepIsFunction)
                     doStep();
                 return returnable();
             }
 
-            // Appends the current row to the results. It sets the cursor
-            // to newCursor and finds the nextNewline. The caller should
-            // take care to execute user's step function and check for
-            // preview and end parsing if necessary.
             function saveRow(newCursor)
             {
                 data.push(row);
@@ -1319,7 +1250,6 @@
                 nextNewline = input.indexOf(newline, cursor);
             }
 
-            // Returns an object with the results, errors, and meta.
             function returnable(stopped)
             {
                 return {
@@ -1334,7 +1264,6 @@
                 };
             }
 
-            // Executes the user's step function and resets data & errors.
             function doStep()
             {
                 step(returnable());
@@ -1342,13 +1271,11 @@
             }
         };
 
-        // Sets the abort flag
         this.abort = function()
         {
             aborted = true;
         };
 
-        // Gets the cursor position
         this.getCharIndex = function()
         {
             return cursor;
@@ -1356,8 +1283,6 @@
     }
 
 
-    // If you need to load Papa Parse asynchronously and you also need worker threads, hard-code
-    // the script path here. See: https://github.com/mholt/PapaParse/issues/87#issuecomment-57885358
     function getScriptPath()
     {
         var id = "worker" + String(Math.random()).substr(2);
@@ -1376,7 +1301,6 @@
         return w;
     }
 
-    // Callback when main thread receives a message
     function mainThreadReceivedMessage(e)
     {
         var msg = e.data;
@@ -1396,7 +1320,7 @@
                         meta: msg.results.meta
                     });
                 }
-                delete msg.results;    // free memory ASAP
+                delete msg.results;
             }
             else if (isFunction(worker.userChunk))
             {
@@ -1414,7 +1338,6 @@
         }
     }
 
-    // Callback when worker thread receives a message
     function workerThreadReceivedMessage(e)
     {
         var msg = e.data;
@@ -1430,7 +1353,7 @@
                 finished: true
             });
         }
-        else if ((global.File && msg.input instanceof File) || msg.input instanceof Object)    // thank you, Safari (see issue #106)
+        else if ((global.File && msg.input instanceof File) || msg.input instanceof Object)
         {
             var results = Papa.parse(msg.input, msg.config);
             if (results)
@@ -1442,7 +1365,6 @@
         }
     }
 
-    // Replaces bad config values with good, default ones
     function copyAndValidateConfig(origConfig)
     {
         if (typeof origConfig !== 'object')

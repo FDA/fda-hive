@@ -27,42 +27,20 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- * Renders an SVG phylogram with collapsible branches and selectable leaves from a vjTreeSeries
- * (circular or rectangular, depending on the vjTreeSeries type). Basic usage:
- *
- * var p = new vjSVG_Phylogram({
- *   nodeLabel: function(node) { // labels nodes in the tree
- *      if (node.leafnode) return "leaf " + node.name;
- *      return this.defaultNodeLabel.apply(this, arguments);
- *   },
- *   nodeTooltip: function(node) { // adds tooltips to node symbols and labels
- *      return this.defaultNodeTooltip.apply(this, arguments) + "\n" + foo(node);
- *   },
- *   nodeSymbolSize: function(node) { // controls size of node
- *      return this.defaultNodeSymbolSize.apply(this, arguments) * node.customSizeFactor;
- *   },
- * });
- * p.add(new vjTreeSeries(type: "circular"));
- * p.registerLeafCheckedCallback(nodeName, function(checked) {if(checked) alert(nodeName + " is now checked");});
- * var v = new vjSVGView({ plots: [p], ... });
- */
 function vjSVG_Phylogram(source)
 {
     vjSVG_Plot.call(this, source);
     if (!this.name) this.name = this.objID;
     if (!this.branchLengthScale) this.branchLengthScale = "linear";
 
-    // determine this experimentally based on leaf label font size
     if (!this.glyphHeight) this.glyphHeight = 0.020;
     if (this.equalizeLeaves == undefined) this.equalizeLeaves = false;
     if (this.enableExpander == undefined) this.enableExpander = true;
     if (this.enableRerooter == undefined) this.enableRerooter = true;
 
-    this.leafCheckedCallbacks = new Object(); // { "nodeId1" : [ {func: function(checked){}, "this": this, param: null}, ... }, .... ], ....}
+    this.leafCheckedCallbacks = new Object();
     this.onclickCallbacks = new Object();
 
-    // FIXME: what if there is more than 1 series in a collection?
     this.depthCoordCache = {};
     this.depthToParent = function(node) {
         if (!node.parent) {
@@ -152,7 +130,6 @@ function vjSVG_Phylogram(source)
     };
     this.crdNodeToPlot = function(type, node, param, parent_crd) {
         if (type == "unrooted" && parent_crd && node.parent) {
-            // unrooted node is drawn on a line from parent_crd to node's leafCoord on circle boundary
             var r = this.crdTreeToPlot(type, node.leafCoord, this.depthToParent(node), {polar: true}).r;
             var edge_crd = this.crdTreeToPlot(type, node.leafCoord, this.maxDepthCoord());
             var dist = Math.sqrt((edge_crd.x - parent_crd.x) * (edge_crd.x - parent_crd.x) + (edge_crd.y - parent_crd.y) * (edge_crd.y - parent_crd.y));
@@ -173,7 +150,7 @@ function vjSVG_Phylogram(source)
                 return {r: r, theta: theta};
             else
                 return {x: 0.5 + r * Math.cos(theta), y: 0.5 + r * Math.sin(theta), z: 0};
-        } else { // rectangular
+        } else {
             var label_space = this.nodeLabel ? 0.3 : 0;
             var crd = {x: (1 - label_space) * (depthCoord / this.maxDepthCoord()), y: 1 - leafCoord / this.maxLeafCoord(type), z: 0};
             return crd;
@@ -190,19 +167,16 @@ function vjSVG_Phylogram(source)
     this.defaultSeriesSymbolSize = function() {
         return this.isNodeSymbolSizeUnscaled ? 5 : 0.012;
     }
-    this.constructorFunction = new Object(); // elements indexed by vjTreeSeries.type
-    // series is a vjTreeSeries instance
+    this.constructorFunction = new Object();
     this.constructorFunction.rectangular = function(series)
     {
         if(!series.symbolSize) series.symbolSize=this.defaultSeriesSymbolSize();
-        // FIXME: can series.tree have no nodes?
         this.depthCoordCache = {};
         this.constructorHelper("rectangular", series, series.tree.root);
     };
     this.constructorFunction.circular = function(series)
     {
         if(!series.symbolSize) series.symbolSize=this.defaultSeriesSymbolSize();
-        // FIXME: can series.tree have no nodes?
         this.leftLabels = [];
         this.rightLabels = [];
         this.depthCoordCache = {};
@@ -213,7 +187,6 @@ function vjSVG_Phylogram(source)
     this.constructorFunction.unrooted = function(series)
     {
         if(!series.symbolSize) series.symbolSize=this.defaultSeriesSymbolSize();
-        // FIXME: can series.tree have no nodes?
         this.leftLabels = [];
         this.rightLabels = [];
         this.depthCoordCache = {};
@@ -286,7 +259,7 @@ function vjSVG_Phylogram(source)
             }
         }
 
-        var plot = this; // for use in closures
+        var plot = this;
 
         var label = this.nodeLabel ? this.nodeLabel(node, series) : undefined;
         if (label) {
@@ -305,7 +278,6 @@ function vjSVG_Phylogram(source)
                     else
                         labelCrd.x += 1.5 * this.nodeSymbolSize(node, series);
 
-                    //labelCrd.y -= this.glyphHeight/2;
                     dy = ".3em";
                     textWidth = this.max.x - labelCrd.x;
                 } else {
@@ -319,14 +291,10 @@ function vjSVG_Phylogram(source)
                 }
             } else if (type === "circular" || type === "unrooted") {
                 var polar = this.crdNodeToPlot(type, node, {polar:true});
-                // on sides of circle, align label to center of leaf
                 if (polar.theta < Math.PI/3 || polar.theta > 2*Math.PI/3)
                     dy = ".3em";
-//                    labelCrd.y -= this.glyphHeight/2;
-                // on bottom of circle, align label to bottom of leaf
                 if (polar.theta >= 4*Math.PI/3 && polar.theta <= 5*Math.PI/3)
                     dy = "1em";
-                // on left of circle, move label a bit to left and anchor its end to the ccoordinate
                 if (polar.theta > Math.PI/2 && polar.theta < 3*Math.PI/2) {
                     textAnchor = "end";
                     if (this.isNodeSymbolSizeUnscaled)
@@ -337,7 +305,6 @@ function vjSVG_Phylogram(source)
                     textWidth = labelCrd.x - this.min.x;
                     bounceList = this.leftLabels;
                 } else {
-                    // on right side of circle, move label a tiny bit to the right
                     if (this.isNodeSymbolSizeUnscaled)
                         dx = 1.5 * this.nodeSymbolSize(node, series) + "px";
                     else
@@ -369,7 +336,6 @@ function vjSVG_Phylogram(source)
             for (var i=0; i<node.children.length; i++)
                 this.constructorHelper(type, series, node.children[i], crd_node);
 
-        /* We draw the node symbols last so they go on top of lines etc. */
         if (node.leafnode) {
             if (this.leafSymbolType) {
                 var leafSvgID = this.name + " leaf id=" + node.name;
@@ -392,14 +358,13 @@ function vjSVG_Phylogram(source)
                     }},
                     title: this.nodeTooltip(node, series)
                 });
-                // TODO: should we run mimicLeafChecked(node.name, node.checked) now?
 
                 if (node.checked)
-                    leafSymbol.brush.fill = this.nodeCheckedColor(node); //"red";
+                    leafSymbol.brush.fill = this.nodeCheckedColor(node);
 
                 this.children.push(leafSymbol);
             }
-        } else if (node.expanded && node.children.length &&(!node.childrenCnt||node.childrenCnt <=node.children.length)) { // expanded inner node
+        } else if (node.expanded && node.children.length &&(!node.childrenCnt||node.childrenCnt <=node.children.length)) {
             this.children.push(new vjSVG_symbol({
                 definition:"box-minus",
                 crd:crd,
@@ -420,7 +385,7 @@ function vjSVG_Phylogram(source)
                 }},
                 title: this.nodeTooltip(node, series)
             }));
-        } else { // collapsed inner node
+        } else {
             this.children.push(new vjSVG_symbol({
                 definition:"box-plus",
                 crd:crd,
@@ -441,7 +406,6 @@ function vjSVG_Phylogram(source)
     };
 
     this.preferredScale = function(proposed) {
-        // Estimate: 50 pixels for average branch; 20 pixels of vertical space per leaf in rectangular mode
         if (!this.collection[0])
             return proposed;
 
@@ -468,7 +432,6 @@ function vjSVG_Phylogram(source)
             return;
 
         node.expanded = value;
-      //  alert(node.childrenCnt)
         if ( node.childrenCnt && node.childrenCnt > node.children.length && !recursing) {
             this.collection[0].getMoreNodes(node);
             return;
@@ -477,8 +440,6 @@ function vjSVG_Phylogram(source)
             this.nodeExpander(node.children[i], value, depth-1, true);
     };
 
-    // A Monte-Carlo type function to prevent a list of items from overlapping each other too much
-    // along one axis.
     this.bounceLabels = function(list, separation, axis)
     {
         if (!list || !list.length)
@@ -516,11 +477,6 @@ function vjSVG_Phylogram(source)
             }
         }
 
-/*
-        var crdNew = [];
-        for (var i=0; i<list.length; i++)
-            crdNew.push(getCrd(i));
-*/
 
         return;
 
@@ -566,7 +522,6 @@ function vjSVG_Phylogram(source)
         return this.collection[0].tree.findByName(nodeName);
     };
 
-    // rotate through the HCL color wheel based on node's leaf coordinate
     this.defaultNodeCheckedColor = function(node, wantHCL)
     {
         var hue = this.crdTreeToPlot("circular", node.leafCoord, this.depthCoord(node), {polar:true}).theta * 180 / Math.PI;
@@ -629,7 +584,6 @@ function vjSVG_Phylogram(source)
     {
         var size = series ? series.symbolSize : this.defaultSeriesSymbolSize();
 
-        // want expand/collapse boxes a bit larger by default for easier clicking
         if (!node.leafnode)
             size *= 1.5;
         return size;

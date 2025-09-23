@@ -41,20 +41,17 @@ namespace slib
                         
             typedef real (*callBackOptim)(real [] , void * );
 
-                        // optimization taskks
             static void linmin(real p[], real xi[], idx n, real *fret, callBackOptim func, void * usr);
             static real f1dim(real x, void * usr);
             static real brent(real ax, real bx, real cx, real (*f)(real, void * ), real tol, real *xmin, void * usr);
             static void mnbrak(real *ax, real *bx, real *cx, real *fa, real *fb, real *fc,  real (*func)(real, void * ), void * usr);
             static idx powell(idx maxiter, real p[], idx n, real ftol, real *fret,callBackOptim func, void * usr);
 
-                        // matrix inversion
             static idx gaussj(real * A, idx n, real *B, idx m);
             static idx inverse_matrix(real *A, idx n);
             static void inverse_matrix_lud(real *A, idx n);
 
 
-                        /// smoothing
             static void savgol(real c[], idx np, idx nl, idx nr, idx ld, idx m);
 
             class SavGol{
@@ -68,18 +65,12 @@ namespace slib
                 void smooth( real * dst, real * src ) ;
             };
             
-            // matrix division
             static void ludcmp(real **a, idx n, idx *indx, real *d);
             static void lubksb(real **a, idx n, idx *indx, real b[]);
             
-/*            static void ludcmpR(real *A, idx n, idx *indx, real *d);
-            static void lubksbR(real *A, idx n, idx *indx, real *b);
-*/
-            // matrix diagonalizaion
             static idx jacobi(real *arr, idx n, real * evals, real * evecs, real jactol, idx maxiter);
 
 
-            // fourier transforms
             static void four1(real data[], udx nn, idx isign);
             static void realft(real data[], udx n, idx isign);
             static void twofft(real data1[], real data2[], real fft1[], real fft2[], udx n);
@@ -87,7 +78,6 @@ namespace slib
             
             static void fftCutoff(real * src, real * dst , idx cnt, idx daubNum, idx cutMin, idx cutMax);
 
-            // wavelets 
             typedef void (*waveletfunc)(real [], udx, idx);
             static void wt1(real a[], idx n, idx isign, waveletfunc func );
             struct wavefilt{
@@ -99,14 +89,13 @@ namespace slib
             static void daub4(real a[], udx n, idx isign);
             static void pwt(real a[], udx n, idx isign);
 
-            static real select(udx k, udx n, real arr[]) ; // select k-th largest member of the array of n
+            static real select(udx k, udx n, real arr[]) ;
 
     };
 
 }
 
-#endif // sMath_nr_hpp
-
+#endif 
 
 
 

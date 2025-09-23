@@ -33,14 +33,36 @@ PROGRAMS += dna-insilico
 PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
+OBJECT_TYPES = svc-dna-insilico
+
+USER_PROJ = insilico_readme_to_bin
+
 dna-insilico_SRCS = dna-insilico.cpp
+
+APPS = Insilico-sequence-generator:1
+
+MENUITEMS = \
+/Portal/General_DNA_Filters_and_Tools/Genome_Randomizer \
+/Portal/General_DNA_Filters_and_Tools/Insilico_sequence_generator
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-insilico,Next-Gen Genome Sequence Randomizer,/Sequencing/)
 	$(call dist-app,dna-insilico,dna-insilico)
+
+$(bindir)/hive_insilico_README.txt: README.txt
+	cp -p README.txt $(bindir)/hive_insilico_README.txt
+
+.PHONY: insilico_readme_to_bin clean_local
+insilico_readme_to_bin:: $(bindir)/hive_insilico_README.txt
+
+clean: clean_local
+clean_local::
+	rm -f $(bindir)/hive_insilico_README.txt
+

@@ -31,13 +31,11 @@ var gDatasourceViewerDebug=0;
 
 function vjDatasourceView(viewer)
 {
-    //this.prefixHTML="<table width='100%'><tr><td><img border='0' src='img/progress.gif' width='16' /></td><td>Loading data from server</td></tr></table>";
     this.delayRefresh=100;
     this.delayHide=1000;
 
-    vjProgressView.call(this,viewer); // inherit default behaviours of the MenuViewer
+    vjProgressView.call(this,viewer);
 
-//    this.postcompute = "node.Progress = node.Progress+'|'+node.status; ";
 
     this.action_onDepth = 0;
     this.refreshOnEmpty = true;
@@ -45,7 +43,6 @@ function vjDatasourceView(viewer)
     this.cols=[{ name: new RegExp(/.*/),hidden:true},
                { name: 'name', title:'Loading',hidden:false },
                { name: 'stat', type: 'reqstatus',hidden:true },
-//               { name: 'status', type: 'reqstatus', hidden:true },
                { name:'progress100', title: 'Status',  type:'qp_progress' ,width:200,hidden:false }
                ];
     this.iconSize=24;
@@ -53,8 +50,6 @@ function vjDatasourceView(viewer)
 
     this.composerFunction=function (viewer, content )
     {
-        //var t="Title,Status,Url\n";
-//        var t = "";
         var timeNow=new Date();
         var t="name,progress100,stat,reqID,grpID\n";
         var icnt=0,icntNotDone=0;
@@ -69,11 +64,10 @@ function vjDatasourceView(viewer)
 
             if( !gDatasourceViewerDebug ) {
                 if(!ds.url)continue;
-                if(ds.url.indexOf("http://")!=0 && ds.url.indexOf("qp_")!=0 && ds.url.indexOf("qpbg_")!=0)continue;
+                if(ds.url.indexOf("http:
                 if(!ds.title || ds.title.indexOf("infrastructure:")==0)continue;
-    //            if(!isok(ds.state))continue;
-                if(ds.url.indexOf("http://help/")==0 ) continue;
-                if(!isok(ds.state) ) continue;//st='pending';
+                if(ds.url.indexOf("http:
+                if(!isok(ds.state) ) continue;
             }
 
             var st=ds.state;
@@ -98,8 +92,6 @@ function vjDatasourceView(viewer)
                     status = 6;
                 }
 
-                //var tmEnd= (ds.timeDone) ?  ds.timeDone : timeNow;
-                //var tmStart= (ds.timeLoad) ?  ds.timeLoad : timeNow;
                 timeDiff=timeNow.getTime()-(ds.timeDone ? ds.timeDone : ds.timeLoad ).getTime();
                 timeDiff/=1000;
                 if(st!='-1' && timeDiff>10)continue;
@@ -117,11 +109,10 @@ function vjDatasourceView(viewer)
             }
 
 
-            t+=""+ds.title+","+st+","+status+","+reqID+","+grpID+"\n";//+timeDiff+"\n"; //,'"+protectFields(ds.url)+"'\n";
+            t+=""+ds.title+","+st+","+status+","+reqID+","+grpID+"\n";
             ++icnt;
         }
 
-//alert(icnt + "\n"+t)
         if( !(this.current_content && this.current_content==t ) ) {
             this.baseComposerFunction(viewer,t);
             this.current_content = t;
@@ -131,7 +122,6 @@ function vjDatasourceView(viewer)
             setTimeout("vjObjEvent('refreshContent','"+this.objCls+"')",this.delayRefresh);
         else
             vjDatasourceViewerDiv_hide('dvDatasourceDiv');
-            //setTimeout("vjDatasourceViewerDiv_hide('dvDatasourceDiv')",this.delayHide);
     };
 
 
@@ -159,11 +149,11 @@ function vjDatasourceViewerDiv_show(x,y, layername)
     ++gvjDatasourceIsShown;
 
     this.display = function(x,y,layername){
-        if (x == 'center') x = gPgW;// gMoX-(0.4*gMoX);
+        if (x == 'center') x = gPgW;
         if(y=='center')y=4*gPgH/5-30;
-        if (x == 'mouse') x = gMoX-200;// gMoX-(0.4*gMoX);
+        if (x == 'mouse') x = gMoX-200;
         if(y=='mouse')y=gMoY-20;
-        if (x == 'auto') x = parseInt(gPgW/2-200);// gMoX-(0.4*gMoX);
+        if (x == 'auto') x = parseInt(gPgW/2-200);
         if(y=='auto')y=10;
 
         if(x<0)x=gMoX;
@@ -176,7 +166,6 @@ function vjDatasourceViewerDiv_show(x,y, layername)
 
     if( vjDS.dsDatasourceViewDatasource )
         vjDS.dsDatasourceViewDatasource.reload(null,true);
-    //setTimeout("gObjectSet('"+layername+"',"+x+","+y+",'-','show','-','-',true);",this.delayRefresh);
 
 
 }
@@ -184,7 +173,7 @@ function vjDatasourceViewerDiv_show(x,y, layername)
 
 function vjDatasourceViewer_init()
 {
-     var ds = vjDS.add("infrastructure: Datasource List","dsDatasourceViewDatasource","static://");
+     var ds = vjDS.add("infrastructure: Datasource List","dsDatasourceViewDatasource","static:
      ds.refreshOnEmpty = true;
      vjDV.add("dvDatasourceViewer", 400, 100).frame='none';
      var viewerDatasourceView=new vjDatasourceView({
@@ -200,4 +189,3 @@ function vjDatasourceViewer_init()
 
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjDataSourceView.js"

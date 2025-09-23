@@ -32,6 +32,7 @@
 
 #include <slib/utils.hpp>
 
+#include <qpsvc/qpsvc-dna-hexagon.hpp>
 #include <ssci/bio.hpp>
 #include <violin/violin.hpp>
 
@@ -51,21 +52,22 @@ class DnaAlignMulti : public sQPrideProc
 idx DnaAlignMulti::OnExecute(idx req)
 {
     idx cntFound=0;
-    const char * subject=formValue("subject");
+    sStr sSubj;
+    const char * subject = QPSvcDnaHexagon::getSubject00(objs[0],sSubj);
     sHiveseq Sub(sQPride::user, subject);Sub.reindex();
     if(Sub.dim()==0) {
         logOut(eQPLogType_Error,"Reference '%s' sequences are missing or corrupted\n",subject ? subject : "unspecified");
         reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0; // error
+        return 0;
     }
 
-    // load the subject and query sequences
-    const char * query=formValue("query");
+    sStr sQry;
+    const char * query=QPSvcDnaHexagon::getSubject00(objs[0],sQry);
     sHiveseq Qry(sQPride::user, query);Qry.reindex();
     if(Qry.dim()==0) {
         logOut(eQPLogType_Error,"Query '%s' sequences are missing or corrupted\n",query ? query : "unspecified");
         reqSetStatus(req, eQPReqStatus_ProgError);
-        return 0; // error
+        return 0;
     }
 
 
@@ -74,11 +76,6 @@ idx DnaAlignMulti::OnExecute(idx req)
 
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Perform computations
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     ::printf("Subject has %" DEC " sequences inside\n",sub->dim());
     ::printf("Query has %" DEC " sequences inside\n",qry->dim());
@@ -86,42 +83,16 @@ idx DnaAlignMulti::OnExecute(idx req)
     for( idx i=0; i< sub->dim() ; ++i ){
         const char * seq=sub->seq(i);
         idx len=sub->len(i);
-        // const char * id = sub->id(i);
 
         for ( idx ipos=0; ipos<len; ++ipos) {
-            char letter=sBioseqAlignment::_seqBits(seq, ipos, 0)  ;
-            // ...
+            char letter=sBioseqAlignment::_seqBits(seq, ipos)  ;
         }
 
     }
 
 
-    // sStr  str;
-    // str.printf("aaaa %s","my god");
-    // str.length() and str.ptr();
-
-    // struct ATGC_Count {idx countA, countC, countG, countT;}
-    // sVec < ATGC_Count > array;
-    // ATGC_Count  * pointer=array.add(100); pointer[0].countT pointer[99].countA
-
-
-    // sDic < ATGC_Count > dic;
-    // absolutely like sVec but has additional functions
-    // dic["A"]=0;
-    // dic["A"]++;
-    // ATGC_Count * dic.set(keypointer, keysize);
-    // ATGC_Count * c=dic.get(keypointer, keysize);
-    // idx index=dic.find(keypointer, keysize)
-
-
-
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Analyse results and report
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     reqSetProgress(req, cntFound, 100 );
-    reqSetStatus(req, eQPReqStatus_Done);// change the status
+    reqSetStatus(req, eQPReqStatus_Done);
 
 return 0;
 }
@@ -131,7 +102,7 @@ int main(int argc, const char * argv[])
 {
     sBioseq::initModule(sBioseq::eACGT);
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
     DnaAlignMulti backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-alignmulti",argv[0]));
     return (int)backend.run(argc,argv);
 }

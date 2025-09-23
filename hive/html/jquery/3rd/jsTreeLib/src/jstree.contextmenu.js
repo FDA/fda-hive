@@ -27,12 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/**
- * ### Contextmenu plugin
- *
- * Shows a context menu when a node is right-clicked.
- */
-/*globals jQuery, define, exports, require, document */
 (function (factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
@@ -49,47 +43,15 @@
 
     if($.jstree.plugins.contextmenu) { return; }
 
-    /**
-     * stores all defaults for the contextmenu plugin
-     * @name $.jstree.defaults.contextmenu
-     * @plugin contextmenu
-     */
     $.jstree.defaults.contextmenu = {
-        /**
-         * a boolean indicating if the node should be selected when the context menu is invoked on it. Defaults to `true`.
-         * @name $.jstree.defaults.contextmenu.select_node
-         * @plugin contextmenu
-         */
         select_node : true,
-        /**
-         * a boolean indicating if the menu should be shown aligned with the node. Defaults to `true`, otherwise the mouse coordinates are used.
-         * @name $.jstree.defaults.contextmenu.show_at_node
-         * @plugin contextmenu
-         */
         show_at_node : true,
-        /**
-         * an object of actions, or a function that accepts a node and a callback function and calls the callback function with an object of actions available for that node (you can also return the items too).
-         *
-         * Each action consists of a key (a unique name) and a value which is an object with the following properties (only label and action are required):
-         *
-         * * `separator_before` - a boolean indicating if there should be a separator before this item
-         * * `separator_after` - a boolean indicating if there should be a separator after this item
-         * * `_disabled` - a boolean indicating if this action should be disabled
-         * * `label` - a string - the name of the action (could be a function returning a string)
-         * * `action` - a function to be executed if this item is chosen
-         * * `icon` - a string, can be a path to an icon or a className, if using an image that is in the current directory use a `./` prefix, otherwise it will be detected as a class
-         * * `shortcut` - keyCode which will trigger the action if the menu is open (for example `113` for rename, which equals F2)
-         * * `shortcut_label` - shortcut label (like for example `F2` for rename)
-         *
-         * @name $.jstree.defaults.contextmenu.items
-         * @plugin contextmenu
-         */
-        items : function (o, cb) { // Could be an object directly
+        items : function (o, cb) {
             return {
                 "create" : {
                     "separator_before"    : false,
                     "separator_after"    : true,
-                    "_disabled"            : false, //(this.check("create_node", data.reference, {}, "last")),
+                    "_disabled"            : false,
                     "label"                : "Create",
                     "action"            : function (data) {
                         var inst = $.jstree.reference(data.reference),
@@ -102,13 +64,8 @@
                 "rename" : {
                     "separator_before"    : false,
                     "separator_after"    : false,
-                    "_disabled"            : false, //(this.check("rename_node", data.reference, this.get_parent(data.reference), "")),
+                    "_disabled"            : false,
                     "label"                : "Rename",
-                    /*!
-                    "shortcut"            : 113,
-                    "shortcut_label"    : 'F2',
-                    "icon"                : "glyphicon glyphicon-leaf",
-                    */
                     "action"            : function (data) {
                         var inst = $.jstree.reference(data.reference),
                             obj = inst.get_node(data.reference);
@@ -119,7 +76,7 @@
                     "separator_before"    : false,
                     "icon"                : false,
                     "separator_after"    : false,
-                    "_disabled"            : false, //(this.check("delete_node", data.reference, this.get_parent(data.reference), "")),
+                    "_disabled"            : false,
                     "label"                : "Delete",
                     "action"            : function (data) {
                         var inst = $.jstree.reference(data.reference),
@@ -210,7 +167,7 @@
                         }
                     }, this))
                 .on("click.jstree", ".jstree-anchor", $.proxy(function (e) {
-                        if(this._data.contextmenu.visible && (!last_ts || (+new Date()) - last_ts > 250)) { // work around safari & macOS ctrl+click
+                        if(this._data.contextmenu.visible && (!last_ts || (+new Date()) - last_ts > 250)) {
                             $.vakata.context.hide();
                         }
                         last_ts = 0;
@@ -236,27 +193,6 @@
                         }
                     });
 
-            /*!
-            if(!('oncontextmenu' in document.body) && ('ontouchstart' in document.body)) {
-                var el = null, tm = null;
-                this.element
-                    .on("touchstart", ".jstree-anchor", function (e) {
-                        el = e.currentTarget;
-                        tm = +new Date();
-                        $(document).one("touchend", function (e) {
-                            e.target = document.elementFromPoint(e.originalEvent.targetTouches[0].pageX - window.pageXOffset, e.originalEvent.targetTouches[0].pageY - window.pageYOffset);
-                            e.currentTarget = e.target;
-                            tm = ((+(new Date())) - tm);
-                            if(e.target === el && tm > 600 && tm < 1000) {
-                                e.preventDefault();
-                                $(el).trigger('contextmenu', e);
-                            }
-                            el = null;
-                            tm = null;
-                        });
-                    });
-            }
-            */
             $(document).on("context_hide.vakata.jstree", $.proxy(function () { this._data.contextmenu.visible = false; }, this));
         };
         this.teardown = function () {
@@ -266,16 +202,6 @@
             parent.teardown.call(this);
         };
 
-        /**
-         * prepare and show the context menu for a node
-         * @name show_contextmenu(obj [, x, y])
-         * @param {mixed} obj the node
-         * @param {Number} x the x-coordinate relative to the document to show the menu at
-         * @param {Number} y the y-coordinate relative to the document to show the menu at
-         * @param {Object} e the event if available that triggered the contextmenu
-         * @plugin contextmenu
-         * @trigger show_contextmenu.jstree
-         */
         this.show_contextmenu = function (obj, x, y, e) {
             obj = this.get_node(obj);
             if(!obj || obj.id === $.jstree.root) { return false; }
@@ -303,17 +229,6 @@
                 this._show_contextmenu(obj, x, y, i);
             }
         };
-        /**
-         * show the prepared context menu for a node
-         * @name _show_contextmenu(obj, x, y, i)
-         * @param {mixed} obj the node
-         * @param {Number} x the x-coordinate relative to the document to show the menu at
-         * @param {Number} y the y-coordinate relative to the document to show the menu at
-         * @param {Number} i the object of items to show
-         * @plugin contextmenu
-         * @trigger show_contextmenu.jstree
-         * @private
-         */
         this._show_contextmenu = function (obj, x, y, i) {
             var d = this.get_node(obj, true),
                 a = d.children(".jstree-anchor");
@@ -323,20 +238,10 @@
             }, this));
             this._data.contextmenu.visible = true;
             $.vakata.context.show(a, { 'x' : x, 'y' : y }, i);
-            /**
-             * triggered when the contextmenu is shown for a node
-             * @event
-             * @name show_contextmenu.jstree
-             * @param {Object} node the node
-             * @param {Number} x the x-coordinate of the menu relative to the document
-             * @param {Number} y the y-coordinate of the menu relative to the document
-             * @plugin contextmenu
-             */
             this.trigger('show_contextmenu', { "node" : obj, "x" : x, "y" : y });
         };
     };
 
-    // contextmenu helper
     (function ($) {
         var right_to_left = false,
             vakata_context = {
@@ -417,15 +322,6 @@
                 });
                 str  = str.replace(/<li class\='vakata-context-separator'\><\/li\>$/,"");
                 if(is_callback) { str += "</ul>"; }
-                /**
-                 * triggered on the document when the contextmenu is parsed (HTML is built)
-                 * @event
-                 * @plugin contextmenu
-                 * @name context_parse.vakata
-                 * @param {jQuery} reference the element that was right clicked
-                 * @param {jQuery} element the DOM element of the menu itself
-                 * @param {Object} position the x & y coordinates of the menu
-                 */
                 if(!is_callback) { vakata_context.html = str; $.vakata.context._trigger("parse"); }
                 return str.length > 10 ? str : false;
             },
@@ -439,7 +335,6 @@
                     h = e.height(),
                     dw = $(window).width() + $(window).scrollLeft(),
                     dh = $(window).height() + $(window).scrollTop();
-                // може да се спести е една проверка - дали няма някой от класовете вече нагоре
                 if(right_to_left) {
                     o[x - (w + 10 + o.outerWidth()) < 0 ? "addClass" : "removeClass"]("vakata-context-left");
                 }
@@ -508,15 +403,6 @@
                         .show()
                         .find('a').first().focus().parent().addClass("vakata-context-hover");
                     vakata_context.is_visible = true;
-                    /**
-                     * triggered on the document when the contextmenu is shown
-                     * @event
-                     * @plugin contextmenu
-                     * @name context_show.vakata
-                     * @param {jQuery} reference the element that was right clicked
-                     * @param {jQuery} element the DOM element of the menu itself
-                     * @param {Object} position the x & y coordinates of the menu
-                     */
                     $.vakata.context._trigger("show");
                 }
             },
@@ -524,15 +410,6 @@
                 if(vakata_context.is_visible) {
                     vakata_context.element.hide().find("ul").hide().end().find(':focus').blur().end().detach();
                     vakata_context.is_visible = false;
-                    /**
-                     * triggered on the document when the contextmenu is hidden
-                     * @event
-                     * @plugin contextmenu
-                     * @name context_hide.vakata
-                     * @param {jQuery} reference the element that was right clicked
-                     * @param {jQuery} element the DOM element of the menu itself
-                     * @param {Object} position the x & y coordinates of the menu
-                     */
                     $.vakata.context._trigger("hide");
                 }
             }
@@ -547,8 +424,6 @@
                     e.stopImmediatePropagation();
 
                     if($.contains(this, e.relatedTarget)) {
-                        // премахнато заради delegate mouseleave по-долу
-                        // $(this).find(".vakata-context-hover").removeClass("vakata-context-hover");
                         return;
                     }
 
@@ -560,7 +435,6 @@
                         .parentsUntil(".vakata-context", "li").addBack().addClass("vakata-context-hover");
                     $.vakata.context._show_submenu(this);
                 })
-                // тестово - дали не натоварва?
                 .on("mouseleave", "li", function (e) {
                     if($.contains(this, e.relatedTarget)) { return; }
                     $(this).find(".vakata-context-hover").addBack().removeClass("vakata-context-hover");
@@ -576,8 +450,6 @@
                 })
                 .on("click", "a", function (e) {
                     e.preventDefault();
-                //})
-                //.on("mouseup", "a", function (e) {
                     if(!$(this).blur().parent().hasClass("vakata-context-disabled") && $.vakata.context._execute($(this).attr("rel")) !== false) {
                         $.vakata.context.hide();
                     }
@@ -628,7 +500,6 @@
                                 e.preventDefault();
                                 break;
                             default:
-                                //console.log(e.which);
                                 break;
                         }
                     })
@@ -651,10 +522,8 @@
                     if(right_to_left) {
                         vakata_context.element.addClass("vakata-context-rtl").css("direction", "rtl");
                     }
-                    // also apply a RTL class?
                     vakata_context.element.find("ul").hide().end();
                 });
         });
     }($));
-    // $.jstree.defaults.plugins.push("contextmenu");
 }));

@@ -27,14 +27,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.field.base.js
 
 $(function () {
     $.widget("ion.field_base", {
         options: {
-            recordviewer: null, //  main record viewer where field belongs to
-            name: null,         //  field's name
-            spec: {}            //  field's specification
+            recordviewer: null,
+            name: null,
+            spec: {}
         },
 
         _create: function () {
@@ -69,15 +68,11 @@ $(function () {
                             var value = self.options.spec._hidden.evalJs();
 
                             if (value) {
-                                //  hide the field...
                                 self.hide();
-                                //  ... and send notification that it's hidden
                                 self.element.trigger('hide-field');
                             }
                             else {
-                                //  show the field...
                                 self.show();
-                                //  ... and send notification that it's visible
                                 self.element.trigger('show-field');
                             }
                         });
@@ -142,7 +137,6 @@ $(function () {
         },
 
         isReadonly: function () {
-            //return this.options.spec.is_readonly;
         },
 
         getValue: function () {
@@ -174,13 +168,9 @@ $(function () {
 
         resetInitialValue: function () {
             this.setValue($(this.field).data('initial-value'));
-            //$(this.field).removeAttr('data-changed');
         },
 
         buildLayoutContainer: function () {
-            //  *******************************************************************************************
-            //  override this method in order to add additional component layout (list of array views etc.)
-            //  *******************************************************************************************
 
             if (this.isPlural()) {
                 return $(document.createElement('div')).appendTo(this.element);
@@ -216,9 +206,6 @@ $(function () {
         },
 
         generateControl: function () {
-            //  ***************************************************
-            //  override this method to proper control's generation
-            //  ***************************************************
             return $(document.createElement('span')).html('<i>Not supported type yet: ' + this.options.type + '</i>');
         },
 
@@ -242,7 +229,6 @@ $(function () {
         },
 
         setReadonly: function () {
-            //this.field.addClass('readonly').prop('readonly', true);
         },
 
         isPlural: function () {
@@ -301,7 +287,6 @@ $(function () {
             var control = this.generateControl();
 
             control.focusin(function () {
-                //    save initial value in case we will have to undo it...
                 if ($(this).data('initial-value') == undefined) {
                     $(this).data({ 'initial-value': $(this).val() });
                 }

@@ -1,4 +1,3 @@
-
 /*
  *  ::718604!
  * 
@@ -30,10 +29,11 @@
  */
 
 
+
 function vjD3JS_ProgressCircular ( viewer )
 {
     loadCSS("d3js/css/progress_circular.css");
-    vjD3View.call(this,viewer); // inherit default behaviors of the DataViewer
+    vjD3View.call(this,viewer);
     
     this.data=viewer.data;
     viewer.marin ? this.margin = viewer.margin : this.margin = {top:0, right:0, bottom:30, left:0};
@@ -50,7 +50,7 @@ function vjD3JS_ProgressCircular ( viewer )
         _maxValue = 100;
 
     var _arc = d3.svg.arc()
-        .startAngle(0); //just radians
+        .startAngle(0);
 
     this.d3Compose=function(data)
     {
@@ -93,7 +93,6 @@ function vjD3JS_ProgressCircular ( viewer )
             .startAngle(0)    
             .endAngle(parseInt(progressPercentage)*36/10 * (Math.PI/180));
         
-        // Select the svg element, if it exists.
         this.d3Compose_prv(progressPercentage);
         var svg = this.d3svg;
     
@@ -126,8 +125,6 @@ function vjD3JS_ProgressCircular ( viewer )
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     
     
-        //check if the current data has error in the progress data (if errors, then color red)
-       //if 100, color green
        var classOfArc = "arc";
        if (status == 5)
            classOfArc = "arcComplete";

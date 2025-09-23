@@ -41,11 +41,10 @@ namespace slib
     {
 
         public:
-        // a single lexem in expression
         struct Lexem {
-            idx content; // points to the content of the text
-            idx data; // points to the data 
-            idx datasize; // size of the data 
+            idx content;
+            idx data;
+            idx datasize;
             idx status; 
             enum fStatus {fReady=0x0000001,fQuoted=0x00000002,fSubComplete=0x00000004};
             idx type,precendence;
@@ -62,17 +61,11 @@ namespace slib
                 fLogical    =0x0000007
 
             };
-            /*
-            bool operator > (Lexem &o)  { return (precendence > o.precendence );  }
-            bool operator < (Lexem &o)  { return (precendence < o.precendence );  }
-            bool operator >= (Lexem &o)  { return (precendence >= o.precendence ); }
-            bool operator <= (Lexem &o)  { return (precendence<= o.precendence );  }
-*/
         } ;
 
-        sVec < Lexem > _lxit; // dictionary of Lexems 
+        sVec < Lexem > _lxit;
         sStr _expression;
-        sMex _mex; // we keep content and data here
+        sMex _mex;
         Lexem * lexem(idx cur) { return (cur>=0 && cur<_lxit.dim()) ? _lxit.ptr(cur) : 0;}
         
         idx flags; 
@@ -100,7 +93,6 @@ namespace slib
         enum MathPrecendence {
             eMathNumerical=0,
             eMathBitwise,
-            //eMathTranscendental,
             eMathMultiplicative,
             eMathAdditive,
             eMathComparative,
@@ -136,7 +128,7 @@ namespace slib
 
     public:
 
-        sCalc(CallbackFuncType func=0, void * funcparam=0, const char * lgs=0 , const char * lgsnon=0, const idx * lprecendence=0) //: _lxit(0)
+        sCalc(CallbackFuncType func=0, void * funcparam=0, const char * lgs=0 , const char * lgsnon=0, const idx * lprecendence=0)
         {
             _lgs=lgs ? lgs : _defaultTokenizingSymbols;
             _lgsnon=lgsnon ? lgsnon : _defaultNonTokenizingSymbols;
@@ -178,14 +170,12 @@ namespace slib
 
         char * _data(idx isda, idx num, idx siz , const char * pdata, va_list ap );
 
-        char * cont(idx num, idx siz=0, const char * pdata=0, ... ) // the content ... the text of the expression 
+        char * cont(idx num, idx siz=0, const char * pdata=0, ... )
             { va_list ap;va_start(ap,pdata);char * res=_data(0,num,siz,pdata,ap);va_end(ap); return res;}
-        char * data(idx num, idx siz=0, const char * pdata=0, ... ) // the value .... the result of expressions evaluation
+        char * data(idx num, idx siz=0, const char * pdata=0, ... )
             { va_list ap;va_start(ap,pdata);char * res=_data(1,num,siz,pdata,ap);va_end(ap); return res;}
-            //{return (char *)_mex.ptr(_lxit.ptr(num)->content);}
         
 
-        //Lexem * lexem(idx num){return _lxit.ptr(num);}
 
         idx textCallback(idx cur,idx whattodo);
         idx mathCallback(idx cur, idx whattodo, idx stage);
@@ -198,7 +188,6 @@ namespace slib
 
         
         idx prep(idx cur);
-            //{return (_lxit.ptr(cur)->status&vLexicItem_READY) ? cur+1 : _func( _funcparam, _par, this, cur, _lxit.dim() );}
         
         void del (idx pos, idx cnt=1)
             {return _lxit.del(pos,cnt);};
@@ -206,7 +195,6 @@ namespace slib
         char * collectResult (sStr * out, idx autoSpace, const char * spcSymb, idx * spcCounter, bool isMissInfo);
 
 
-        //char * debugPrint(void);
         idx errnum(void);
         char * result(void)
             {return data(0);}
@@ -221,8 +209,7 @@ namespace slib
 
 }
 
-#endif // sLib_utils_calc_hpp
-
+#endif 
 
 
 

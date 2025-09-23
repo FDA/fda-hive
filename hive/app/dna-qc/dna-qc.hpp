@@ -39,8 +39,7 @@
 
 using namespace slib;
 
-#endif // sDnaQC_hpp
-
+#endif 
 class DnaQCProc: public sQPrideProc
 {
     public:
@@ -55,14 +54,9 @@ class DnaQCProc: public sQPrideProc
         static idx TbGroup[];
 
         const char *stopCODONS;
-        idx numTable, numUniqTable;     //number of selected, unique selected
-//        idx numStop[7];                   //numStopCodons
-//        unsigned char StopBase[7][4 * 3];
-//        sVec <unsigned char> stopBase;
+        idx numTable, numUniqTable;
         sVec <sVec<unsigned char> > stopBase;
-//        sVec <idx> numStop;
-//        static idx TbGroup[];                //store the table group info
-        unsigned char * SBpt;           //pointer to StopBase
+        unsigned char * SBpt;
 
     private:
         idx progressReport(idx req, idx progress, idx percent);
@@ -95,7 +89,7 @@ class DnaQCProc: public sQPrideProc
         }
 
 
-        bool stopCodon(char b1, char b2, char b3, idx id) //is it stop codon of idth table
+        bool stopCodon(char b1, char b2, char b3, idx id)
         {
             for(idx i = 0; i < stopBase[id].dim(); i+=3) {
                 if( b1 == stopBase[id][i] && b2 == stopBase[id][i+1] && b3 == stopBase[id][i+2] ) {
@@ -119,38 +113,36 @@ class DnaQCProc: public sQPrideProc
 
 
 
-/*! Structure that we use to calculate Positional Statistics like:
- * min, max, Std. Dev. and Average
- */
-struct QCstats
+struct DnaQCstats
 {
-        idx cACGT[4];   //! array that stores the count of A,C,G,T's
-        idx cqACGT[4];  //! array that stores the quality count of A,C,G,T's
-        idx min[4];     //! array that stores the minimum value
-        idx max[4];     //! array that stores the maximum value
-        real num[4];    //! array that stores the number of A,C,G,T's only if they have a quality value associated
-        real sum[4];    //! array that stores the quality sum of A,C,G,T's only if they have a quality value associated
-        real sumsq[4];  //! array that stores the sum square of A,C,G,T's only if they have a quality value associated
+        DnaQCstats()
+        {
+            sSet(this);
+        }
+
+        idx cACGT[5];
+        idx cqACGT[5];
+        idx min[5];
+        idx max[5];
+        real num[5];
+        real sum[5];
+        real sumsq[5];
 };
 
-/*! Structure that we use to calculate Lengthwise Statistics of the Reads
-*/
 struct Lenstats
 {
-        idx num;    //! the length value
-        idx sum;    //! the count of length value
+        idx num;
+        idx sum;
 };
 
-//! Function to Calculate the Average
-real Stats_mean(QCstats * st, idx i)
+real Stats_mean(DnaQCstats * st, idx i)
 {
     if (st->num[i] == 0)
         return 0;
     return (st->sum[i] / st->num[i]);
 }
 
-//! Function to Calculate the Std. Dev.
-real Stats_stddev(QCstats * st, idx i)
+real Stats_stddev(DnaQCstats * st, idx i)
 {
     if (st->num[i] <= 1)
         return 0;
@@ -158,14 +150,13 @@ real Stats_stddev(QCstats * st, idx i)
 }
 
 
-//! Function that process each sample to register into the Statistics Library (structure)
-void Stats_sample(QCstats *st, idx s, idx q, idx rpt)
+void Stats_sample(DnaQCstats *st, idx s, idx q, idx rpt)
 {
     st->cACGT[s] += rpt;
 
     if( q != -1 ) {
         st->cqACGT[s] += (q * rpt);
-        st->sum[s] += (q * rpt);    //! It could be a redundant variable that we can remove
+        st->sum[s] += (q * rpt);
         st->sumsq[s] += ((q * q) * rpt);
 
         if( st->num[s] == 0 ) {
@@ -183,7 +174,6 @@ void Stats_sample(QCstats *st, idx s, idx q, idx rpt)
     }
 }
 
-//! Function to Report Progress taking into consideration the time and percentage
 idx DnaQCProc::progressReport(idx req, idx progress, idx percent)
 {
     idx rc = 1;

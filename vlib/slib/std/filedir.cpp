@@ -27,15 +27,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <ctype.h> // toupper
+#include <ctype.h>
 #ifdef WIN32
-#include <direct.h> // _getdrive
-//#include <io.h> // _findfirst
+#include <direct.h>
 #else
-//#include <unistd.h>
-#include <dirent.h> // for DIR
+#include <dirent.h>
 #endif
-#include <fcntl.h> // O_RDONLY
+#include <fcntl.h>
 #include <glob.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
@@ -54,8 +52,7 @@ const char sDir::sysSep = '/';
 
 const char sDir::sep = '/';
 
-// glob "?" means "any character, as long as it's not a '.' at the beginning of a filename"
-#define GLOB_ANY_CHAR "(^[^.]|.)"
+const char * ALL_FILES_GLOB = "{*,.*,*.*}";
 
 static void escapeReSpecialChar(sStr & out, char c)
 {
@@ -75,14 +72,12 @@ static void escapeReSpecialChar(sStr & out, char c)
         case '^':
         case '$':
             out.addString("\\");
-            /* no break */
         default:
             out.addString(&c, 1);
-            /* no break */
     }
 }
 
-bool sFileGlob::compile(const char * glob /* = "*" */, bool caseSensitive /* = false */)
+bool sFileGlob::compile(const char * glob, bool caseSensitive)
 {
     if( compiled ) {
         regfree(&re);
@@ -94,85 +89,107 @@ bool sFileGlob::compile(const char * glob /* = "*" */, bool caseSensitive /* = f
         return true;
     }
 
-    // translate a bash-like glob pattern into a POSIX regular expression
     trivial = false;
-    sStr sre("^");
+    sStr sre;
     idx curly = 0;
-    for(char c = *glob; c; c = *(++glob)) {
-        switch(c) {
-            case '\\':
-                c = *(++glob);
-                if( !c )
-                    return false;
 
-                escapeReSpecialChar(sre, c);
-                break;
-            case '?':
-                sre.addString(GLOB_ANY_CHAR);
-                break;
-            case '*':
-                sre.addString(GLOB_ANY_CHAR "*");
-                break;
-            case '[': {
-                sre.addString("[");
-                idx len = 0;
-                for(char cc = *(++glob); cc && cc != ']'; cc = *(++glob), len++) {
-                    if( len == 0 ) {
-                        if( cc == '!' ) {
-                            sre.addString("^");
-                            cc = *(++glob);
-                        }
-                        if( !cc )
-                            return false;
-                        if( cc == ']' ) {
-                            sre.addString("]");
-                            cc = *(++glob);
-                        }
-                        if( !cc )
-                            return false;
+    if (sLen(glob) >= 6 && strncmp(glob, "regex:", 6) == 0) {
+        sre.addString(&glob[6]);
+    } else {
+        sre.addString("^");
+        bool first_char = true;
+        for(char c = *glob; c; c = *(++glob)) {
+            switch(c) {
+                case '\\':
+                    c = *(++glob);
+                    if( !c ) {
+                        return false;
                     }
-                    sre.addString(&cc, 1);
-                }
-
-                if( *glob != ']' )
-                    return false;
-
-                sre.addString("]");
-            }
-                break;
-            case '{':
-                sre.addString("(");
-                curly++;
-                break;
-            case ',':
-                sre.addString(curly ? "|" : ",");
-                break;
-            case '}':
-                if( curly ) {
-                    sre.addString(")");
-                    curly--;
-                } else {
                     escapeReSpecialChar(sre, c);
+                    first_char = false;
+                    break;
+                case '?':
+                    if( first_char ) {
+                        sre.addString("(^[^.])");
+                        first_char = false;
+                    } else {
+                        sre.addString("(.)");
+                    }
+                    break;
+                case '*':
+                    if( first_char ) {
+                        sre.addString("(^[^.]+)");
+                        first_char = false;
+                    } else {
+                        sre.addString("(.*)");
+                    }
+                    break;
+                case '[': {
+                    sre.addString("[");
+                    idx len = 0;
+                    for(char cc = *(++glob); cc && cc != ']'; cc = *(++glob), len++) {
+                        if( len == 0 ) {
+                            if( cc == '!' ) {
+                                sre.addString("^");
+                                cc = *(++glob);
+                            }
+                            if( !cc ) {
+                                return false;
+                            }
+                            if( cc == ']' ) {
+                                sre.addString("]");
+                                cc = *(++glob);
+                            }
+                            if( !cc ) {
+                                return false;
+                            }
+                        }
+                        sre.addString(&cc, 1);
+                    }
+                    if( *glob != ']' ) {
+                        return false;
+                    }
+                    sre.addString("]");
+                    first_char = false;
                 }
-                break;
-            default:
-                escapeReSpecialChar(sre, c);
-                break;
+                    break;
+                case '{':
+                    first_char = true;
+                    sre.addString("(");
+                    curly++;
+                    break;
+                case ',':
+                    sre.addString(curly ? "|" : ",");
+                    first_char = true;
+                    break;
+                case '}':
+                    if( curly ) {
+                        sre.addString(")");
+                        curly--;
+                    } else {
+                        escapeReSpecialChar(sre, c);
+                    }
+                    first_char = false;
+                    break;
+                default:
+                    escapeReSpecialChar(sre, c);
+                    first_char = false;
+                    break;
+            }
         }
+        sre.addString("$");
     }
 
-    sre.addString("$");
-
-    if( curly )
+    if( curly ) {
         return false;
-
+    }
     int flags = REG_EXTENDED | REG_NOSUB;
-    if( !caseSensitive )
+    if( !caseSensitive ) {
         flags |= REG_ICASE;
-
-    if( regcomp(&re, sre.ptr(), flags) != 0 )
+    }
+    if( regcomp(&re, sre.ptr(), flags) != 0 ) {
         return false;
-
+    }
     compiled = true;
     return true;
 }
@@ -184,7 +201,6 @@ bool sFileGlob::match(const char * path) const
             return false;
 
         path = sFilePath::nextToSlash(path);
-        // Hidden files are not matched by "*" !
         if( !path || !*path || *path == '.' )
             return false;
 
@@ -280,7 +296,6 @@ static inline bool dir_islink_unix(const struct dirent * dt, StatStat & fst)
 {
 #ifdef _DIRENT_HAVE_D_TYPE
     if( dt->d_type != DT_UNKNOWN ) {
-        // dirent d_type is not supported on some filesystems
         return dt->d_type == DT_LNK;
     }
 #endif
@@ -294,11 +309,9 @@ static inline bool dir_isdir_unix(const struct dirent * dt, StatStat & fst)
 {
 #ifdef _DIRENT_HAVE_D_TYPE
     if( dt->d_type != DT_UNKNOWN ) {
-        // dirent d_type is not supported on some filesystems
         if( dt->d_type == DT_DIR ) {
             return true;
         } else if( dt->d_type == DT_LNK && fst.getStat() ) {
-            // this might be a symlink to a directory...
             return S_ISDIR(fst.st.st_mode);
         } else {
             return false;
@@ -316,11 +329,10 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
 {
     idx cnt = 0;
 #define dir_symb "/"
-    //sFilePath dCur();
     if( !dirini )
         dirini = ".";
     if( !wildcard )
-        wildcard = "*";
+        wildcard = "{*,*.*}";
 
     if( isFlag(flags, bitFollowLinks) && isFlag(flags, bitNamesOnly) )
     {
@@ -330,7 +342,6 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
         flags &= ~(sFlag(bitFollowLinks));
     }
 
-    // If we are following links, go through non-link entries first to cache their inodes as seen
     bool onlyLinks = false;
     if( isFlag(flags, bitFollowLinks) && !isFlag(flags, bitNoLinks) )
     {
@@ -345,24 +356,20 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
         isFlag(flags, bitFollowLinks) ||
         isFlag(flags, bitNoLinks) )
     {
-        flags |= sFlag(bitEntryFlags); // need to record entry flags to distinguish files, dirs, and symlinks
+        flags |= sFlag(bitEntryFlags);
     }
 
 #ifdef WIN32
-    if(isFlag(flags,bitDrives)) { // drive list
-        //  Save current drive.
+    if(isFlag(flags,bitDrives)) {
         idx drive, curdrive = _getdrive();
-        // If we can switch to the drive, it exists.
         for( drive = 3; drive <= 26; drive++ ) {
             if( !_chdrive( (int)drive ) ) {
-                if(cnt) sStr::separ(separ); //if(sStr::length())
+                if(cnt) sStr::separ(separ);
                 sStr::printf("%c:%c",drive + 'A' - 1,dir_symb[0]);
                 ++cnt;
-                //printf( "%c: ", drive + 'A' - 1 );
             }
         }
 
-        // Restore original drive.
         _chdrive( (int)curdrive );
     }
 #endif
@@ -378,7 +385,6 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
         struct stat followst;
         sDirLinkFollower linkFollower(tmpBuf, &followst, _seen);
 
-        // quoted names are treated a little differently
         if( dirini[0] == '\"' || dirini[0] == '\'' ) {
             quote = dirini[0];
             ++dirini;
@@ -392,8 +398,6 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
         }
         drl.addString(wildcard);
         flnm = sFilePath::nextToSlash(wildcard);
-        //if( (flnm=strrchr(wildcard,'/'))==0 && (flnm=strrchr(wildcard,'\\'))==0 )flnm=wildcard;  // the pointer to the position of filename in the wildcard which may contain subdirectory path
-        //else ++flnm;
 
 #ifdef WIN32
 #define dir_filename c_file.name
@@ -404,7 +408,7 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
         idx res;
 
         if( (hFile=_findfirst(drl.ptr(), &c_file ))!=-1 ) {
-            char * dir=drl.ptr(0), * ptr;if( (ptr=strrchr(dir,'/'))==0 && (ptr=strrchr(ptr,'\\'))==0 )dir=drl.printf(0,"."); else *ptr=0;        // the pointer to the position of filename in the wildcard which may contain subdirectory path
+            char * dir=drl.ptr(0), * ptr;if( (ptr=strrchr(dir,'/'))==0 && (ptr=strrchr(ptr,'\\'))==0 )dir=drl.printf(0,"."); else *ptr=0;
             len=sLen(dir);
             for(res=0;res==0;res=_findnext( hFile, &c_file )) {
 #else
@@ -419,13 +423,12 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
         char * dir = drl.ptr(0);
         char * ptr;
         if( (ptr = strrchr(dir, '/')) == 0 && (ptr = strrchr(dir, '\\')) == 0 )
-            dir = curd;        //"./";
+            dir = curd;
         else
-            *ptr = 0;        // the pointer to the position of filename in the wildcard which may contain subdirectory path
+            *ptr = 0;
         len = sLen(dir);
         if( (mdr = opendir(dir)) != 0 ) {
             int dir_fd = dirfd(mdr);
-            // cache directory inode to make sure we don't reopen it via symlink loops
             if( isFlag(flags, bitFollowLinks) ) {
                 linkFollower.follow(dir);
             }
@@ -459,11 +462,9 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
 
                     if( isFlag(flags, bitFollowLinks) ) {
                         sSet(&followst);
-                        if( linkFollower.follow(outpath) /* updates followst */ ) {
+                        if( linkFollower.follow(outpath)) {
                             if( entry_flags & fIsSymLink )
                                 entry_targetpath.addString(linkFollower.getPath().ptr());
-                            //if( strcmp(outpath, linkFollower.getPath().ptr()) )
-                                //printf("%s -> %s (%d)\n", outpath, targetpath.ptr(), dir_isdir)
                         } else {
                             entry_flags |= fIsDuplicate;
                         }
@@ -471,7 +472,7 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
                     if( dir_isdir ) {
                         entry_flags |= fIsDir;
                     }
-                    if( entry_flags & fIsSymLink && !fst.getStat() ) {
+                    if( (entry_flags & fIsSymLink) && !fst.getStat() ) {
                         entry_flags |= fIsDangling;
                     }
 
@@ -486,25 +487,21 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
                             continue;
                         }
                     } else {
-                        // file or symlink that does not point to a directory
                         if( !isFlag(flags, bitFiles) ) {
                             continue;
                         }
                         if( isFlag(flags, bitOpenable) ) {
                             if( (fh = open(outpath, O_RDONLY, S_IREAD)) > 0 )
-                                close((int) fh); // try opening and close the file
+                                close((int) fh);
                             if( fh < 1 )
                                 continue;
                         }
                     }
                 }
 
-                // prepare the filename
                 if( quote ) {
                     entry_path.addString(&quote, 1);
                 }
-                //sStr::add(dirini,len);
-                //sStr::printf("%s%s",(dirini[len-1]!='/' && dirini[len-1]!='\\') ? dir_symb : "", (flags&sFile_DIRLIST_SINGLEPATH) ? wildcard : dir_filename );
                 if( relativePath && *relativePath && strstr(outpath, relativePath) == outpath ) {
                     outpath += sLen(relativePath);
                     while( *outpath && (*outpath == '/' || *outpath == '\\') )
@@ -515,7 +512,7 @@ idx sDir::list(idx flags, const char * dirini, const char * wildcard, const char
                     if( ext )
                         *ext = 0;
                 }
-                entry_path.addString(isFlag(flags, bitNamesOnly) ? sFilePath::nextToSlash(outpath) : outpath);                //drl.ptr(0));
+                entry_path.addString(isFlag(flags, bitNamesOnly) ? sFilePath::nextToSlash(outpath) : outpath);
                 if( isFlag(flags, bitSubdirSlash) && dir_isdir )
                     entry_path.addString(dir_symb, 1);
                 if( quote )
@@ -591,9 +588,8 @@ idx sDir::find(idx flags, const char * dirini, const char * wildcard, const char
                 return cntAll;
             if( !isFlag(flags, bitRecursive) )
                 return cntAll;
-            // If we did not list subdirectories, slist needs to list them now
             if( sflags )
-                slist.list(sflags, dir, "*", 0);
+                slist.list(sflags, dir, ALL_FILES_GLOB, 0);
         }
         dirs00.cut(0);
 
@@ -620,7 +616,6 @@ const char * sDir::findMany(idx flags, const char * dirs, const char * flnm, con
 
     for(sfl = flnm; sfl && *sfl;) {
 
-        // extract filename
         tmp.cut(0);
         dfl.cut(0);
         sfl = sString::extractSubstring(&tmp, sfl, 0, 0, " " _ "," _ "\t" __, true, true);
@@ -630,7 +625,6 @@ const char * sDir::findMany(idx flags, const char * dirs, const char * flnm, con
 
         for(srch = dirs; srch && *srch;) {
 
-            // extract dirname
             tmp.cut(0);
             dst.cut(0);
             srch = sString::extractSubstring(&tmp, srch, 0, 0, " " _ "," _ "\t" __, 1, 1);
@@ -644,11 +638,9 @@ const char * sDir::findMany(idx flags, const char * dirs, const char * flnm, con
             sFilePath dir(path, "%%dir");
             sFilePath fln(path, "%%flnm");
 
-            // search for the filename
             if( cnt != cntDone ) {
                 cntDone = cnt;
             }
-            //cnt+=sDir::find(flags, dst, dfl, separ, maxfind);
             cnt += sDir::find(flags, dir, fln, separ, maxfind);
         }
     }
@@ -668,20 +660,18 @@ const char * sDir::includes(const char * incdir, const char * flnm, idx maxlen, 
     idx slen = sLen(incstart);
     idx elen = sLen(incend);
 
-    // find the include statements filename
     sDic<bool> seenPaths;
     for(; s < e; ++s) {
 
-        if( strncmp(s, incstart, slen) ) // not found here
+        if( strncmp(s, incstart, slen) )
             continue;
 
-        // found the start
         s += slen;
         p = s;
 
         while( s++ < e && strncmp(s, incend, elen) )
-            ; // scan until the end is found
-        if( s == e ) // scanned to the end and was not able to locate an include statement end
+            ;
+        if( s == e )
             break;
 
         tmp.cut(0);
@@ -724,7 +714,7 @@ bool sDir::chDir(const char* dir)
     return chdir(dir) == 0;
 }
 
-bool sDir::removeDir(const char* dir, bool recursive /* = true */)
+bool sDir::removeDir(const char * dir, bool recursive, sFile::copyCallback func, void * callbackParam)
 {
     sDir slt;
     const char * ptr;
@@ -732,18 +722,26 @@ bool sDir::removeDir(const char* dir, bool recursive /* = true */)
     if( isSymLink(dir) ) {
         return sFile::remove(dir);
     }
+    bool retval = true;
     if( recursive ) {
-        slt.find(sFlag(bitFiles), dir, "*");
+        slt.find(sFlag(bitFiles), dir, ALL_FILES_GLOB);
         for(ptr = slt.ptr(); ptr && *ptr; ptr = sString::next00(ptr, 1)) {
-            sFile::remove(ptr);
+            if( func && func(callbackParam, NULL, 0) ) {
+                return false;
+            }
+            retval &= sFile::remove(ptr);
         }
         slt.cut();
-        slt.find(sFlag(bitSubdirs) | sFlag(bitSubdirSlash), dir, "*");
+        slt.find(sFlag(bitSubdirs) | sFlag(bitSubdirSlash), dir, ALL_FILES_GLOB);
         for(ptr = slt.ptr(); ptr && *ptr; ptr = sString::next00(ptr, 1)) {
-            removeDir(ptr);
+            if( func && func(callbackParam, NULL, 0) ) {
+                return false;
+            }
+            retval &= removeDir(ptr);
         }
     }
-    return rmdir(dir) == 0;
+    retval &= (rmdir(dir) == 0);
+    return retval;
 }
 
 bool sDir::makeDir(const char* dir, idx mode)
@@ -758,7 +756,6 @@ bool sDir::makeDir(const char* dir, idx mode)
                 if( p > path.ptr() ) {
                     *--p = '/';
                 } else if( p == path.ptr() && !p[0] ) {
-                    // skip root directory since it always exists
                     continue;
                 }
 #ifdef WIN32
@@ -767,8 +764,6 @@ bool sDir::makeDir(const char* dir, idx mode)
                 errno = 0;
                 r = ::mkdir(path.ptr(), mode);
 #endif
-                // FIXME: under unclear conditions (NFS bug? cosmic ray?), errno == EEPERM instead of EEXIST
-                // is returned for an existing directory after mkdir(). Try to work around it.
                 if( r != 0 && (errno == EEXIST || sDir::exists(path.ptr())) ) {
                     r = 0;
                 }
@@ -778,7 +773,6 @@ bool sDir::makeDir(const char* dir, idx mode)
     return r == 0;
 }
 
-// static
 bool sDir::exists(const char * path)
 {
     struct stat buf;
@@ -787,13 +781,12 @@ bool sDir::exists(const char * path)
     return r == 0 && (buf.st_mode & S_IFDIR);
 }
 
-// static
 udx sDir::freeSpace(const char * path)
 {
     udx r = 0;
     if( path && path[0] ) {
 #ifdef WIN32
-        GetDiskFreeSpaceEx // TODO
+        GetDiskFreeSpaceEx
 #else
         struct statvfs buf;
         if( statvfs(path, &buf) == 0 ) {
@@ -804,13 +797,11 @@ udx sDir::freeSpace(const char * path)
     return r;
 }
 
-// static
 udx sDir::fileSystemSize(const char * path)
 {
     udx r = 0;
     if( path && path[0] ) {
 #ifdef WIN32
-        // TODO
 #else
         struct statvfs buf;
         if( statvfs(path, &buf) == 0 ) {
@@ -821,55 +812,51 @@ udx sDir::fileSystemSize(const char * path)
     return r;
 }
 
-//static
-bool sDir::copyDir(const char * src, const char * dst, bool follow_link /* = false */, idx * pnumcopied /* = 0 */)
+bool sDir::copyDir(const char * src, const char * dst, bool follow_link, idx * pnumcopied, sFile::copyCallback func, void * callbackParam)
 {
 #ifdef _DEBUG_SDIR_COPY
     fprintf(stderr, "sDir::copyDir(\"%s\", \"%s\", %d)\n", src, dst, follow_link);
 #endif
-
     idx numcopied = 0;
     if( pnumcopied ) {
         *pnumcopied = 0;
     } else {
         pnumcopied = &numcopied;
     }
-
-    if( !sDir::exists(src) )
+    if( !sDir::exists(src) ) {
         return false;
-
+    }
     if( sDir::exists(dst) ) {
-        // copying a directory onto itself is pointless
-        if( sFile::sameInode(src, dst) )
+        if( sFile::sameInode(src, dst) ) {
             return false;
+        }
     } else {
-        if( isSymLink(dst) && !sFile::remove(dst) )
+        if( isSymLink(dst) && !sFile::remove(dst) ) {
             return false;
-        if( sFile::exists(dst) )
+        }
+        if( sFile::exists(dst) ) {
             return false;
-
-        // trivial case: src is a link, and we can create a link at dst pointing to the same target
+        }
         if( !follow_link && isSymLink(src) ) {
-            *pnumcopied = sFile::copy(src, dst, false, false) ? 1 : 0;
+            *pnumcopied = sFile::copy(src, dst, false, false, func, callbackParam) ? 1 : 0;
             return *pnumcopied;
         }
-
         if( makeDir(dst) ) {
             (*pnumcopied)++;
         } else {
             return false;
         }
     }
-
     idx src_len = sLen(src);
-    while( src_len > 0 && (src[src_len-1] == sep || src[src_len-1] == sysSep) )
+    while( src_len > 0 && (src[src_len-1] == sep || src[src_len-1] == sysSep) ) {
         src_len--;
-
+    }
     sDir srcDir;
     idx flags = sFlag(bitFiles) | sFlag(bitSubdirs) | sFlag(bitRecursive) | sFlag(bitEntryFlags);
-    if( follow_link )
+    if( follow_link ) {
         flags |= sFlag(bitFollowLinks);
-    srcDir.find(flags, src);
+    }
+    srcDir.find(flags, src, ALL_FILES_GLOB);
 
     sStr dst_entry_path;
 
@@ -882,7 +869,7 @@ bool sDir::copyDir(const char * src, const char * dst, bool follow_link /* = fal
 #ifdef _DEBUG_SDIR_COPY
             fprintf(stderr, "\tlink => trying sFile::copy(\"%s\", \"%s\", 0, 0)\n", srcDir.getEntryPath(i), dst_entry_path.ptr());
 #endif
-            if( sFile::copy(srcDir.getEntryPath(i), dst_entry_path, false, false) ) {
+            if( sFile::copy(srcDir.getEntryPath(i), dst_entry_path, false, false, func, callbackParam) ) {
                 (*pnumcopied)++;
             } else {
                 return false;
@@ -904,14 +891,13 @@ bool sDir::copyDir(const char * src, const char * dst, bool follow_link /* = fal
 #ifdef _DEBUG_SDIR_COPY
             fprintf(stderr, "\tfile => trying sFile::copy(\"%s\", \"%s\", 0, %d)\n", srcDir.getEntryPath(i), dst_entry_path.ptr(), follow_link);
 #endif
-            if( sFile::copy(srcDir.getEntryPath(i), dst_entry_path, false, follow_link) ) {
+            if( sFile::copy(srcDir.getEntryPath(i), dst_entry_path, false, follow_link, func, callbackParam) ) {
                 (*pnumcopied)++;
             } else {
                 return false;
             }
         }
     }
-    // fix up attributes at the end to preserve timestamps
     for(idx i=0; i<srcDir.dimEntries(); i++) {
         struct stat st;
         idx entry_flags = srcDir.getEntryFlags(i);
@@ -919,15 +905,13 @@ bool sDir::copyDir(const char * src, const char * dst, bool follow_link /* = fal
             dst_entry_path.cut(0);
             dst_entry_path.addString(dst);
             dst_entry_path.addString(srcDir.getEntryPath(i) + src_len);
-            // ignore failure to set attributes, since destination filesystem may not allow some
             sFile::setAttributes(dst_entry_path, &st);
         }
     }
     return true;
 }
 
-//static
-sRC sDir::copyContents(const char * src, const char * wildcard, const char * dst, bool follow_link /* = false */, idx * pnumcopied /* = 0 */)
+sRC sDir::copyContents(const char * src, const char * wildcard, const char * dst, bool follow_link, idx * pnumcopied, sFile::copyCallback func, void * callbackParam)
 {
 #ifdef _DEBUG_SDIR_COPY
     fprintf(stderr, "sDir::copyContents(\"%s\", \"%s\", \"%s\", %d)\n", src, wildcard, dst, follow_link);
@@ -939,41 +923,36 @@ sRC sDir::copyContents(const char * src, const char * wildcard, const char * dst
     } else {
         pnumcopied = &numcopied;
     }
-
     if( !sDir::exists(src) ) {
-        return sRC(sRC::eCopying, sRC::eDirectory, sRC::eSource, sRC::eInvalid);
+        return RC(sRC::eCopying, sRC::eDirectory, sRC::eSource, sRC::eInvalid);
     }
-
     if( !sDir::exists(dst) ) {
         if( makeDir(dst) ) {
             (*pnumcopied)++;
         } else {
             switch(errno) {
                 case EACCES:
-                    return sRC(sRC::eCreating, sRC::eDestination, sRC::ePath, sRC::eNotPermitted);
+                    return RC(sRC::eCreating, sRC::eDestination, sRC::ePath, sRC::eNotPermitted);
                 case ENOMEM:
-                    return sRC(sRC::eCreating, sRC::eDestination, sRC::eMemory, sRC::eInsufficient);
+                    return RC(sRC::eCreating, sRC::eDestination, sRC::eMemory, sRC::eInsufficient);
                 case ENOSPC:
-                    return sRC(sRC::eCreating, sRC::eDestination, sRC::eDiskSpace, sRC::eInsufficient);
+                    return RC(sRC::eCreating, sRC::eDestination, sRC::eDiskSpace, sRC::eInsufficient);
                 case EPERM:
-                    return sRC(sRC::eCreating, sRC::eDestination, sRC::eOperation, sRC::eNotSupported);
+                    return RC(sRC::eCreating, sRC::eDestination, sRC::eOperation, sRC::eNotSupported);
                 case EROFS:
-                    return sRC(sRC::eCreating, sRC::eDestination, sRC::eFileSystem, sRC::eReadOnly);
+                    return RC(sRC::eCreating, sRC::eDestination, sRC::eFileSystem, sRC::eReadOnly);
                 default:
-                    return sRC(sRC::eCreating, sRC::eDestination, sRC::ePath, sRC::eInvalid);
+                    return RC(sRC::eCreating, sRC::eDestination, sRC::ePath, sRC::eInvalid);
             }
         }
     }
-
     idx src_len = sLen(src);
-    while( src_len > 0 && (src[src_len-1] == sep || src[src_len-1] == sysSep) )
+    while( src_len > 0 && (src[src_len-1] == sep || src[src_len-1] == sysSep) ) {
         src_len--;
-
+    }
     sDir srcDir;
     srcDir.list(sFlag(bitFiles) | sFlag(bitSubdirs) | sFlag(bitEntryFlags), src, wildcard);
-
     sStr dst_entry_path;
-
     for( idx i=0; i<srcDir.dimEntries(); i++ ) {
         dst_entry_path.cut(0);
         dst_entry_path.addString(dst);
@@ -983,23 +962,22 @@ sRC sDir::copyContents(const char * src, const char * wildcard, const char * dst
             fprintf(stderr, "\tdir => trying sDir::copyDir(\"%s\", \"%s\", %d)\n", srcDir.getEntryPath(i), dst_entry_path.ptr(), follow_link);
 #endif
             idx subnumcopied = 0;
-            bool subcopied = sDir::copyDir(srcDir.getEntryPath(i), dst_entry_path.ptr(), follow_link, &subnumcopied);
+            bool subcopied = sDir::copyDir(srcDir.getEntryPath(i), dst_entry_path.ptr(), follow_link, &subnumcopied, func, callbackParam);
             *pnumcopied += subnumcopied;
             if( !subcopied ) {
-                return sRC(sRC::eCopying, sRC::eDirectory, sRC::eOperation, sRC::eFailed);
+                return RC(sRC::eCopying, sRC::eDirectory, sRC::eOperation, sRC::eFailed);
             }
         } else {
 #ifdef _DEBUG_SDIR_COPY
             fprintf(stderr, "\tfile => trying sFile::copy(\"%s\", \"%s\", 0, %d)\n", srcDir.getEntryPath(i), dst_entry_path.ptr(), follow_link);
 #endif
-            if( sFile::copy(srcDir.getEntryPath(i), dst_entry_path, false, follow_link) ) {
+            if( sFile::copy(srcDir.getEntryPath(i), dst_entry_path, false, follow_link, func, callbackParam) ) {
                 (*pnumcopied)++;
             } else {
-                return sRC(sRC::eCopying, sRC::eFile, sRC::eOperation, sRC::eFailed);
+                return RC(sRC::eCopying, sRC::eFile, sRC::eOperation, sRC::eFailed);
             }
         }
     }
-    // fix up attributes at the end to preserve timestamps
     for(idx i=0; i<srcDir.dimEntries(); i++) {
         struct stat st;
         idx entry_flags = srcDir.getEntryFlags(i);
@@ -1007,32 +985,29 @@ sRC sDir::copyContents(const char * src, const char * wildcard, const char * dst
             dst_entry_path.cut(0);
             dst_entry_path.addString(dst);
             dst_entry_path.addString(srcDir.getEntryPath(i) + src_len);
-            // ignore failure to set attributes, since destination filesystem may not allow some
             sFile::setAttributes(dst_entry_path, &st);
         }
     }
     return sRC::zero;
 }
 
-// static
-bool sDir::rename(const char * src, const char * dst)
+bool sDir::rename(const char * src, const char * dst, sFile::copyCallback func, void * callbackParam)
 {
-    if( ::rename(src, dst) == 0 )
+    errno = 0;
+    if( !func && ::rename(src, dst) == 0 ) {
         return true;
-
-    // check that we are not trying to move src into its own subdirectory
-    if( errno == EINVAL )
+    }
+    if( errno == EINVAL ) {
         return false;
-
-    if( copyDir(src, dst, false) ) {
+    }
+    if( copyDir(src, dst, false, NULL, func, callbackParam) ) {
         removeDir(src, true);
         return true;
     }
     return false;
 }
 
-// static
-idx sDir::size(const char * dir, bool recursive /* = true */, bool follow_link /* = false */)
+idx sDir::size(const char * dir, bool recursive, bool follow_link)
 {
     sDir slt;
 
@@ -1044,9 +1019,8 @@ idx sDir::size(const char * dir, bool recursive /* = true */, bool follow_link /
     if( follow_link ) {
         flags |= sFlag(bitFollowLinks);
     }
-    slt.find(flags, dir, "*");
+    slt.find(flags, dir, ALL_FILES_GLOB);
     for( idx i=0; i<slt.dimEntries(); i++ ) {
-        // even if follow_link is true, find() may have returned some dangling links
         idx entry_flags = slt.getEntryFlags(i);
         sum += sFile::size(slt.getEntryPath(i), follow_link && !(entry_flags & fIsDangling) && !(entry_flags & fIsDuplicate));
 #ifdef _DEBUG_SDIR_SIZE
@@ -1116,11 +1090,10 @@ const char * sDir::aliasResolve(sStr & filenameResolved, const char * configFile
                         filenameResolved.addString(slash);
                         if( filenamesrcIsGlob ) {
                             cntok += resolveGlob(filenameResolved, blen, filenameResolved.ptr(blen), ensureExist);
-                        } else if( ensureExist && !sFile::exists(filenameResolved.ptr(blen)) ) {
+                        } else if( ensureExist && (!sFile::exists(filenameResolved.ptr(blen)) || sDir::exists(filenameResolved.ptr(blen))) ) {
                             filenameResolved.cut(blen);
                             continue;
                         } else {
-                            // single file resolved
                             ++cntok;
                             filenameResolved.add0(1);
                         }
@@ -1130,7 +1103,7 @@ const char * sDir::aliasResolve(sStr & filenameResolved, const char * configFile
         }
         if( filenamesrcIsGlob ) {
             cntok += resolveGlob(filenameResolved, filenameResolved.length(), filenamesrc, ensureExist);
-        } else if( !ensureExist || sFile::exists(filenamesrc) ) {
+        } else if( !ensureExist || (sFile::exists(filenamesrc) && !sDir::exists(filenamesrc)) ) {
             filenameResolved.addString(filenamesrc);
             ++cntok;
         }
@@ -1172,10 +1145,9 @@ void sDir::updateList() const
     _listUpdated = true;
 }
 
-// static
-const char * sDir::cleanUpName(const char * path, sStr & buf, bool applyToDisk /* = false */)
+const char * sDir::cleanUpName(const char * path, sStr & buf, bool applyToDisk)
 {
-    if( !path || !path[0] || (applyToDisk && !exists(path) && !sFile::exists(path)) ) {
+    if( !path || !path[0] || (applyToDisk && !exists(path) && !sFile::exists(path, false)) ) {
         return 0;
     }
     const idx pos = buf.length();
@@ -1183,7 +1155,7 @@ const char * sDir::cleanUpName(const char * path, sStr & buf, bool applyToDisk /
     if( c != path ) {
         buf.add(path, c - path);
     }
-    idx dot = -1; // 1st dot in name - point of counter injection when name collide on disk
+    idx dot = -1;
     for(; *c; ++c) {
         if( *c == '-' || *c == '.' || *c == '_' || (*c >= '0' && *c <= '9') || (*c >= 'A' && *c <= 'Z') || (*c >= 'a' && *c <= 'z') ) {
             if( dot < 0 && *c == '.' ) {
@@ -1197,17 +1169,15 @@ const char * sDir::cleanUpName(const char * path, sStr & buf, bool applyToDisk /
     buf.add0();
     if( applyToDisk && strcmp(path, buf.ptr(pos)) ) {
         bool isFile = !exists(path);
-        //check for dup names!!!
         udx q = 0;
         dot = dot < 0 ? buf.length() - 1 : dot;
         sStr ext("%s", buf.ptr(dot));
-        while( exists(buf.ptr(pos)) || sFile::exists(buf.ptr(pos)) ) {
+        while( exists(buf.ptr(pos)) || sFile::exists(buf.ptr(pos), false) ) {
             buf.printf(dot, "_%" UDEC "%s", ++q, ext.ptr());
         }
         if( isFile && sFile::rename(path, buf.ptr(pos)) ) {
         } else if( rename(path, buf.ptr(pos)) ) {
         } else {
-            // failed to rename - no result!
             *buf.ptr(pos) = '\0';
             buf.cut(pos);
         }
@@ -1215,7 +1185,6 @@ const char * sDir::cleanUpName(const char * path, sStr & buf, bool applyToDisk /
     return buf.length() != pos ? buf.ptr(pos) : 0;
 }
 
-// static
 const char * sDir::uniqueName(sStr & buf, const char * path, ...)
 {
     const idx pos = buf.length();
@@ -1226,7 +1195,7 @@ const char * sDir::uniqueName(sStr & buf, const char * path, ...)
         const idx dot = p ? p - buf.ptr() : buf.length() - 1;
         sStr ext("%s", buf.ptr(dot));
         udx q = 0;
-        while( exists(buf.ptr(pos)) || sFile::exists(buf.ptr(pos)) ) {
+        while( exists(buf.ptr(pos)) || sFile::exists(buf.ptr(pos)) || sFile::exists(buf.ptr(pos), false) ) {
             buf.printf(dot, "_%" UDEC "%s", ++q, ext.ptr());
         }
     }
@@ -1246,8 +1215,7 @@ static bool tempDirTester(const char * path)
     return true;
 }
 
-// static
-const char * sDir::mktemp(sStr & outPath, const char * dir, const char * pattern/*=0*/)
+const char * sDir::mktemp(sStr & outPath, const char * dir, const char * pattern)
 {
     return sFile::mktemp(outPath, dir, 0, pattern, tempDirTester);
 }
@@ -1269,12 +1237,11 @@ static void escapeForGlob(sStr & out, const char * s, idx len)
     out.add0cut();
 }
 
-// static
-idx sDir::cleantemp(const char * dir, const char * pattern/*=0*/)
+idx sDir::cleantemp(const char * dir, const char * pattern, sFile::copyCallback func, void * callbackParam)
 {
-    if( !pattern )
+    if( !pattern ) {
         pattern = DEFAULT_MKTEMP_PATTERN;
-
+    }
     const char * xxx = strstr(pattern, "XXXXXX");
     if( !xxx ) {
 #ifdef _DEBUG
@@ -1282,27 +1249,21 @@ idx sDir::cleantemp(const char * dir, const char * pattern/*=0*/)
 #endif
         return 0;
     }
-
-    // create a shell glob that matches pattern followed by any extension
     sStr wildcard;
     escapeForGlob(wildcard, pattern, xxx - pattern);
     wildcard.addString("*");
     escapeForGlob(wildcard, xxx + 6, strlen(xxx + 6));
     wildcard.addString("{,.*}");
-
     sDir temps;
     temps.list(sFlag(bitSubdirs)|sFlag(bitFiles)|sFlag(bitEntryFlags), dir, wildcard.ptr());
-
     idx count = 0;
-
-    for( idx i=0; i<temps.dimEntries(); i++ ) {
+    for( idx i = 0; i < temps.dimEntries(); i++ ) {
         if( temps.getEntryFlags(i) & fIsDir ) {
-            count += removeDir(temps.getEntryPath(i));
+            count += removeDir(temps.getEntryPath(i), true, func, callbackParam);
         } else {
             count += sFile::remove(temps.getEntryPath(i));
         }
     }
-
     return count;
 }
 

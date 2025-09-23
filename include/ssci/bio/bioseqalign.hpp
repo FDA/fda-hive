@@ -27,36 +27,33 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//#pragma once
 #ifndef sBio_seqalign_hpp
 #define sBio_seqalign_hpp
 
 #include <ssci/bio/bioseq.hpp>
 #include <ssci/bio/bioseqhash.hpp>
+#include <slib/core/iter.hpp>
+#include <slib/core/heap.hpp>
+
+
+#define scanHitsMethodNEW
+#undef scanHitsMethodOLD
+#undef printMethodComparisonHits
 
 namespace slib
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Sequence Collection Hashing class
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-    //! Sequence Collection Hashing class.
-    /*!
-     *
-     */
+
     class sBioseqAlignment {
 
     public:
-
         enum fAlignFlags{
-            fAlignCompressed            =0x00000001, // fAlignLocal                    =0x00000000,
+            fAlignCompressed            =0x00000001,
 
             fAlignForward               =0x00000010,
-            fAlignBackward              =0x00000020, // vs Forward
-            fAlignGlobal                =0x00000040, // vs Local
+            fAlignBackward              =0x00000020,
+            fAlignGlobal                =0x00000040,
             fAlignForwardComplement     =0x00000080,
             fAlignBackwardComplement    =0x00000100,
             fAlignMaxExtendTail         =0x00000200,
@@ -72,119 +69,164 @@ namespace slib
             fAlignKeepUniqueMatch       =0x00040000,
             fAlignKeepUniqueBestMatch   =0x00080000,
 
-            fAlignKeepMarkovnikovMatch  =0x00100000, //!rich become richest
+            fAlignKeepResolveMarkovnikov=0x00100000,
+            fAlignKeepResolveBalanced   =0x00200000,
+            fAlignKeepResolvedHits      =0x00400000,
+            fAlignKeepResolvedSymmetry  =0x00800000,
+            fAlignKeepResolveUnique     =0x01000000,
 
-            fAlignSearchRepeats         =0x00200000,
-            fAlignSearchTranspositions  =0x00400000,
-            fAlignReverseEngine         =0x00800000,
-            fAlign32BitPositions        =0x01000000,
+            fAlignSearchRepeats         =0x02000000,
+            fAlignSearchTranspositions  =0x04000000,
+            fAlignReverseEngine         =0x08000000,
+            fAlign32BitPositions        =0x10000000,
 
-            fSelectedAlignment          =0x02000000,
+            fSelectedAlignment          =0x20000000,
 
-            fAlignKeepPairedOnly        =0x04000000,
-            fAlignKeepPairOnSameSubject =0x08000000,
+            fAlignKeepPairedOnly        =0x40000000,
+            fAlignKeepPairOnSameSubject =0x80000000,
             fAlignKeepPairDirectionality=0x10000000,
-            fAlignIsPairedEndMode       =0x20000000,
+            fAlignIsPairedEndMode       =0x200000000,
 
             fAlignLast
         };
 
-        /*! This represents a single alignment */
-        struct Al { // represents a single alignment
-            /*! Both the subject and query IDs */
-            idx ids; // idSub,idQry;
-            /*! Both the subject and query start on the sequences. */
-            idx starts; // subStart, qryStart; // where the alignment start on the sequences and
-            /*! The size of the alignments. */
-            idx lengths; // lenAlign , dimAlign // lenAlign is the size of the alignment and dimAlign is the size of the memory  (lenAlign maybe shorter especially after remappings )
-            /*! Represents the flags for the structure and the score. */
-            idx flscore; // flags and score
+        class Al {
+        public:
+            idx ids;
+            idx starts;
+            idx lengths;
+            idx flscore;
+            inline idx idSub() {return ((idx)(ids&(0xFFFFFFFF))^0x80000000)-0x80000000;}
+            inline idx idQry() {return (ids>>32)&(0xFFFFFFFF);}
+            inline idx subStart() {return starts&(0xFFFFFFFF);}
+            inline idx qryStart() {return (starts>>32)&(0xFFFFFFFF);}
+            
+            static inline idx getQueryIndex(idx * m, idx i){return m[2*i+1];}
+            static inline idx getSubjectIndex(idx * m, idx i){return m[2*i];}
 
-            /*! \return ID of the Subject of the alignment (the reference sequence). */
-            inline idx idSub() {return ((idx)(ids&(0xFFFFFFFF))^0x80000000)-0x80000000;} //!< Returns the ID of the Subject of the alignment (the reference sequence). extend sign for negative subjects (mutual alignment)
-            /*! \return ID of the Query of the alignment (the read ID). */
-            inline idx idQry() {return (ids>>32)&(0xFFFFFFFF);} //!< Returns the ID of the Query of the alignment (the read ID).
-            /*! \return Place value where the alignment starts on the subject (reference) sequence. */
-            inline idx subStart() {return starts&(0xFFFFFFFF);} //!< Returns the value where the alignment starts on the subject (reference) sequence.
-            /*! \return Place value where the alignment starts on the reference sequence. */
-            inline idx qryStart() {return (starts>>32)&(0xFFFFFFFF);} //!< Returns the value where the alignment starts on the reference sequence.
-            /*! \return The size of the alignment (length). */
-            public:
-            /*! \returns Subject starting position of alignment with un/compressed train 'm'. */
-            inline idx getSubjectStart(idx * m) { return subStart() + m[0]; }
-            /*! \returns Subject ending position of alignment with compressed train 'm'. */
-            inline idx getSubjectEnd(idx * m) { idx last = m[0]; for(idx i=0 ; i<dimAlign();++i) last = ((m[i] < -1) ? last - m[i] - 1 : m[i++]); return subStart()+last; }
-            /*! \returns Query starting position of alignment with un/compressed train 'm'. */
-            inline idx getQueryStart(idx * m) { return qryStart() + m[1]; }
-            /*! \returns Query endging position of alignment with compressed train 'm'. */
-            inline idx getQueryEnd(idx * m) {idx last = m[1]; for(idx i=0 ; i<dimAlign();++i) last = (m[i] < -1) ? last - m[i] - 1 : m[++i]; return qryStart()+last; }
-            /*! \returns Subject ending position of alignment with uncompressed train 'm'. */
-            inline idx getSubjectEnd_uncompressed(idx * m) { return subStart()+m[2*lenAlign()-2]; }
-            /*! \returns Query endging position of alignment with uncompressed train 'm'. */
-            inline idx getQueryEnd_uncompressed(idx * m) { return qryStart()+m[2*lenAlign()-1]; }
+            inline idx getSubjectStart(idx * m) { return subStart() + getSubjectIndex(m,0); }
+            inline idx getSubjectEnd(idx * m) {
+                if(!dimAlign()) return subStart() + lenAlign()-1;
+                idx last = m[0];
+                for(idx i=0 ; i<dimAlign();++i)
+                    last = ((m[i] < -1) ? last - m[i] - 1 : (m[i++]==-1?last:m[i-1]));
+                return subStart()+last;
+            }
+            inline idx getQueryStart(idx * m) { return qryStart() + getQueryIndex(m,0); }
+            inline idx getQueryEnd(idx *m)
+            {
+                if (!dimAlign())
+                    return qryStart() + lenAlign() - 1;
+                idx last = m[1];
+                for (idx i = 0; i < dimAlign(); ++i)
+                    last = (m[i] < -1) ? last - m[i] - 1 : (m[i++] == -1 ? last : m[i]);
+                return qryStart() + last;
+            }
+            inline idx getSubjectEnd_uncompressed(idx * m) { return subStart()+getSubjectIndex(m,lenAlign()-1); }
+            inline idx getQueryEnd_uncompressed(idx * m) { return qryStart()+getQueryIndex(m,lenAlign()-1); }
 
-            inline idx lenAlign() {return (lengths)&(0xFFFFFFFF);} //!< Returns the size of the alignment (length).
-            /*! \return The size of the alignment in terms of memory. */
-            inline idx dimAlign() {return (lengths>>32)&(0xFFFFFFFF);} //!< Returns the size of the alignment in terms of memory.
-            /*! \return Flags associated with this alignment. */
-            inline idx flags() {return (flscore&0xFFFFFFFF);}//!< Returns the flgags associated with this alignment.
-            /*! \return Score associated with this alignment. */
-            inline idx score() {return (flscore>>32)&(0xFFFFFFFF);}//!< Returns the score associated with this alignment.
-            /*! \return true if Forward (nonComplement)*/
+            inline idx getQueryPosition(idx i, idx qrylen) { return isReverseComplement() ? (qrylen - 1 - getQueryPositionRaw(i)) : getQueryPositionRaw(i); }
+
+            inline idx getQueryPosition(idx *m, idx i, idx qrylen) { return isDeletion(m, i) ? getQueryIndex(m, i) : getQueryPosition(getQueryIndex(m, i), qrylen); }
+            inline idx getQueryPositionRaw(idx i) { return qryStart() + i; }
+
+            inline idx getQueryPositionRaw(idx *m, idx i) { return getQueryPositionRaw(getQueryIndex(m, i)); }
+
+            inline idx getSubjectPosition(idx i) { return subStart() + i; }
+
+            inline idx getSubjectPosition(idx *m, idx i) { return isInsertion(m, i) ? getSubjectIndex(m, i) : getSubjectPosition(getSubjectIndex(m, i)); }
+
+            inline char getQueryChar(idx *m, idx i, idx qrylen, const char *seq, const char * qua = 0, bool isquabit = 0) { return isDeletion(m, i) ? '-' : getQueryCharByPosition(getQueryPosition(m, i, qrylen), seq, qua, isquabit); }
+
+            inline char getQueryChar(idx i, idx qrylen, const char *seq, const char  * qua = 0, bool isquabit = 0) { return getQueryCharByPosition(getQueryPosition(i, qrylen), seq, qua, isquabit); }
+
+            inline char getQueryCharByPosition(idx i, const char *seq, const char * qua = 0, bool isquabit = 0) { return sBioseq::mapRevATGC[getQueryLetterByPosition(i, seq, qua, isquabit)]; }
+
+            inline idx getQueryLetter(idx *m, idx i, idx qrylen, const char *seq, const char * qua = 0, bool isquabit = 0) { return isDeletion(m, i) ? getQueryIndex(m, i) : getQueryLetterByPosition(getQueryPosition(m, i, qrylen), seq, qua, isquabit); }
+
+            inline idx getQueryLetter(idx i, idx qrylen, const char *seq, const char * qua = 0, bool isquabit = 0) { return getQueryLetterByPosition(getQueryPosition(i, qrylen), seq, qua, isquabit); }
+
+            inline idx getQueryLetterByPosition(idx pos, const char *seq, const char * qua = 0, bool isquabit = 0) { return (qua && sBioseq::Qua(qua, pos, isquabit) == 0) ? 4 : (idx)sBioseqAlignment::_seqBits(seq, pos, flags()); }
+            
+            inline char getSubjectChar(idx *m, idx i, const char *seq) { return isInsertion(m, i) ? '-' : getSubjectCharByPosition(getSubjectPosition(m, i), seq); }
+            
+            inline char getSubjectChar(idx i, const char *seq) { return getSubjectCharByPosition(getSubjectPosition(i), seq); }
+            inline char getSubjectCharByPosition(idx pos, const char *seq) { return sBioseq::mapRevATGC[getSubjectLetterByPosition(pos,seq)]; }
+
+            inline idx getSubjectLetter(idx *m, idx i, const char *seq) { return isInsertion(m, i) ? getSubjectIndex(m, i) : getSubjectLetterByPosition(getSubjectPosition(m, i), seq); }
+            
+            inline idx getSubjectLetter(idx i, const char *seq) { return getSubjectLetterByPosition(getSubjectPosition(i), seq); }
+            
+            inline idx getSubjectLetterByPosition(idx pos, const char *seq) { return (idx)sBioseqAlignment::_seqBits(seq, pos); }
+
+            idx countMatches(idx *m, idx qrylen, const char *qry, const char *sub, const char * qua = 0, bool isquabit = 0)
+            {
+                idx matches = 0;
+
+                for (idx i = 0; i < lenAlign(); i++)
+                {
+                    idx qLet = getQueryLetter(m, i, qrylen, qry, qua, isquabit);
+                    idx sLet = getSubjectLetter(m, i, sub);
+                    if (qLet == sLet && qLet >= 0)
+                        ++matches;
+                }
+                return matches;
+            }
+
+            real percentIdentity(idx *m, idx qrylen, const char *qry, const char *sub, const char * qua = 0, bool isquabit = 0) {
+                return 100*(real)countMatches(m,qrylen,qry,sub,qua,isquabit)/lenAlign();
+            }
+
+            inline idx lenAlign() {return (lengths)&(0xFFFFFFFF);}
+            inline idx dimAlign() {return (lengths>>32)&(0xFFFFFFFF);}
+            inline idx flags() {return (flscore&0xFFFFFFFF);}
+            inline idx score() {return (flscore>>32)&(0xFFFFFFFF);}
+            inline idx isCompressed() {return flags()&fAlignCompressed;}
             inline idx isForward() {idx fl = flags(); return (fl&fAlignForward) && !(fl&fAlignForwardComplement);}
-            /*! \return true if Forward Complement */
             inline idx isForwardComplement() {idx fl = flags(); return (fl&fAlignForward) && (fl&fAlignForwardComplement);}
-            /*! \return true if Backward (nonComplement)*/
-            inline idx isBackward() {idx fl = flags(); return (fl&fAlignBackward) && !(fl&fAlignBackwardComplement);}
-            /*! \return true if Backward Complement*/
-            inline idx isBackwardComplement() {idx fl = flags(); return (fl&fAlignBackward) && (fl&fAlignBackwardComplement);}
+            inline idx isReverse() {idx fl = flags(); return (fl&fAlignBackward) && !(fl&fAlignBackwardComplement);}
+            inline idx isReverseComplement() {idx fl = flags(); return (fl&fAlignBackward) && (fl&fAlignBackwardComplement);}
+            inline idx isComplement() {idx fl = flags(); return (fl&fAlignForwardComplement) || (fl&fAlignBackwardComplement);}
+            inline idx hasGaps() { return dimAlign() && (isCompressed() ? (dimAlign() != 3) : dimAlign() != (lenAlign() * 2) ); }
+            inline bool isPerfect(idx readlen) {return !hasGaps() && lenAlign()==readlen;}
+            inline bool hasOverhang(idx * m, idx readlen) {return hasLeftOverhang(m) || hasRightOverhang(m,readlen);}
+            inline bool hasLeftOverhang(idx * m) {return m[1]>0;}
+            inline bool hasRightOverhang(idx * m, idx readlen) {return getQueryEnd(m) < readlen;}
 
-            /*! \param val is the sequence ID.*/
-            inline void setIdSub(idx val) {ids=(ids&0xFFFFFFFF00000000ull)|(val&(0xFFFFFFFF));} //!< Set the subject (reference) sequence ID.
-            /*! \param val is the sequence ID.*/
-            inline void setIdQry(idx val) {ids=(ids&0x00000000FFFFFFFFull)|((val&(0xFFFFFFFF))<<32);} //!< Set the query (read) sequence ID.
-            /*! \param val is the reference start position with respect to this alignment. */
-            inline void setSubStart(idx val) {starts=(starts&0xFFFFFFFF00000000ull)|(val&(0xFFFFFFFF));} //!< Set the start position of the subject (reference) sequence with respect to this alignment
-            /*! \param val is the query start position with respect to this alignment.*/
-            inline void setQryStart(idx val) {starts=(starts&0x00000000FFFFFFFFull)|((val&(0xFFFFFFFF))<<32);}  //!< Set the start position of the query (read) sequence with respect to this alignment.
-            /*! \param val is the length of the alignment in bases. */
-            inline void setLenAlign(idx val) {lengths=(lengths&0xFFFFFFFF00000000ull)|(val&(0xFFFFFFFF));}//!< Set the length of the alignment (in bases).
-            /*! \param val is the size of the alignment in bites. */
-            inline void setDimAlign(idx val) {lengths=(lengths&0x00000000FFFFFFFFull)|((val&(0xFFFFFFFF))<<32);}//!< Set the size of the alignment in memory.
-            /*! \param val is bitwise container for all applicable flags. */
-            inline void setFlags(idx val) {flscore=(flscore&0xFFFFFFFF00000000ull)|(val&(0xFFFFFFFF));} //!< Set the flags for the alignment.
-            /*! \param val is the score for the alignment.
-             */
-            inline void setScore(idx val) {flscore=(flscore&0x00000000FFFFFFFFull)|((val&(0xFFFFFFFF))<<32);}//!< Set the score value for the alignment.
+            inline sBioseq::ESeqDirection getDirectionality() {idx fl = flags(); if (fl&fAlignBackward) {return (fl&fAlignBackwardComplement)?sBioseq::eSeqReverseComplement:sBioseq::eSeqReverse;} else {return (fl&fAlignForwardComplement)?sBioseq::eSeqForwardComplement:sBioseq::eSeqForward;}}
+
+            inline void setIdSub(idx val) {ids=(ids&0xFFFFFFFF00000000ull)|(val&(0xFFFFFFFF));}
+            inline void setIdQry(idx val) {ids=(ids&0x00000000FFFFFFFFull)|((val&(0xFFFFFFFF))<<32);}
+            inline void setSubStart(idx val) {starts=(starts&0xFFFFFFFF00000000ull)|(val&(0xFFFFFFFF));}
+            inline void setQryStart(idx val) {starts=(starts&0x00000000FFFFFFFFull)|((val&(0xFFFFFFFF))<<32);}
+            inline void setLenAlign(idx val) {lengths=(lengths&0xFFFFFFFF00000000ull)|(val&(0xFFFFFFFF));}
+            inline void setDimAlign(idx val) {lengths=(lengths&0x00000000FFFFFFFFull)|((val&(0xFFFFFFFF))<<32);}
+            inline void setFlags(idx val) {flscore=(flscore&0xFFFFFFFF00000000ull)|(val&(0xFFFFFFFF));}
+            inline void setScore(idx val) {flscore=(flscore&0x00000000FFFFFFFFull)|((val&(0xFFFFFFFF))<<32);}
 
             inline void setFlagsOn(idx val) {flscore|=(val&(0xFFFFFFFF));}
             inline void setFlagsOff(idx val) {flscore&=((~val)&(0xFFFFFFFF));}
 
-            /*! If the alignment exists, shifts the size of the alignment in memory by the size of the Al structure.  The function then
-             * returns a pointer.
-             * \return A pointer to the new Al structure memory position.
-             */
-            idx * match (void){ return dimAlign() ? (idx*)(sShift(this,sizeof(Al))) : zeroAlignment;} //idx * match (void){ return match(this);}
-            /*! If the alignment exists and the alignment is not compressed, returns a pointer to the new memory location of Al once the structure
-             * is shifted by an amount equal to the length of the alignment in nucleotides, multiplied by 2, multiplied by the integer size on the system
-             * (for the full amount of memory needed to accommodate the flat).
-             * \return A pointer to the new memory location of Al.
-             */
+            idx * match (void){ return dimAlign() ? (idx*)(sShift(this,sizeof(Al))) : zeroAlignment;}
             idx * lookup(void){ return (dimAlign() && !(flags()&fAlignCompressed))?(idx*)(sShift(this,sizeof(Al)+(2*lenAlign())*sizeof(idx))):zeroAlignment;}
 
-            /*! This is amount of memory required for the (1,1,2,2,3,3, etc.) structure representing the alignment
-             * and also the memory needed for the Al structure itself.
-             * \return The amount of memory needed for the alignment.
-             */
-            idx sizeofFlat(void) { return (sizeof(Al)+dimAlign()*sizeof(idx)); } //!< Return the size of the Flat needed for the structure.
+            idx sizeofFlat(void) { return (sizeof(Al)+dimAlign()*sizeof(idx)); }
+
+            inline static bool isInsertion(idx * m, idx i){return getSubjectIndex(m,i)<0;};
+            
+            inline static bool isDeletion(idx * m, idx i){return getQueryIndex(m,i)<0;};
+
+            inline static bool isGap(idx * m, idx i){return isDeletion(m,i) || isInsertion(m,i);};
 
         };
 
 
         sBioseqHash bioHash;
-        sVec < char > MatSW; // working buffer for coefficients of smith watermann
-        sVec < char > MatBR; // for backtracking
+        sBioHashHits hashHits;
+        sVec < char > MatSW;
+        sVec < char > MatBR;
         sVec < idx > SubScanQPos;
+        sVec < idx > qryHashHits;
         idx cntScanQPos;
         sVec < idx > ExtensionGapBuff;
         char * QHitBitmask;
@@ -195,39 +237,53 @@ namespace slib
 
 
         idx costMatch,costGapOpen,costGapNext,costMismatch,costMismatchNext;
+        idx costMatchFirst,costMatchSecond;
         idx computeDiagonalWidth;
-        idx compactSWMatrix;
         real maxMissQueryPercent;
         idx minMatchLen, maxExtensionGaps;
+        bool isMinMatchPercentage;
+        idx trimLowScoreEnds, trimLowScoreEndsMaxMM;
         idx scoreFilter, hashStp,considerGoodSubalignments;
         idx allowShorterEnds;
         static idx zeroAlignment[2];
+        static idx resolveConflicts;
         idx looseExtenderMismatchesPercent;
         idx looseExtenderMinimumLengthPercent;
         idx maxHitsPerRead;
         idx maxSeedSearchQueryPos;
-        idx selfSubjectPosJumpInNonPerfectAlignment,selfQueryPosJumpInNonPerfectAlignment;
+        idx ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment,ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment;
         idx selfSimilairityBufferSize;
         idx minFragmentLength;
         idx maxFragmentLength;
-
+        
         public:
 
         sBioseqAlignment (const char * fl=0, idx lenunit=11, idx lenalphabet=4) :
-            bioHash(lenunit,lenalphabet) ,
+            bioHash(lenunit,lenalphabet),
+            hashHits(lenunit),
             MatSW(sMex::fSetZero),
             MatBR(sMex::fSetZero),
             SubScanQPos(sMex::fSetZero),
-            SimilarityBuf(sMex::fSetZero)
+            SimilarityBuf(sMex::fSetZero),
+            localBitMatch(sMex::fSetZero)
             {
-
+                minMatchLen=0;
                 QHitBitmask=0;SHitBitmask=0;
                 extGapMidPos=1024;
                 ExtensionGapBuff.resizeM(extGapMidPos*2);
                 extGapMidPos-=4;
                 hashStp=1;
-                selfSubjectPosJumpInNonPerfectAlignment=0;
                 cntScanQPos=0;
+                isMinMatchPercentage = false;
+                selfSimilairityBufferSize = minFragmentLength = maxFragmentLength = ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment = ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment = 0;
+                maxMissQueryPercent = maxSeedSearchQueryPos = looseExtenderMinimumLengthPercent = looseExtenderMismatchesPercent = allowShorterEnds = trimLowScoreEnds = trimLowScoreEndsMaxMM = scoreFilter = maxExtensionGaps = 0;
+                costMatch = costMatchFirst = costMatchSecond = 5;
+                computeDiagonalWidth = 0;
+                costGapOpen  = -12;
+                costGapNext = costMismatch = -4;
+                costMismatchNext = -6;
+                considerGoodSubalignments = 1;
+                maxHitsPerRead = 50;
             }
 
             sBioseqAlignment * init ( idx lenunit, idx lenalphabet) {
@@ -236,19 +292,14 @@ namespace slib
                 return this;
             }
 
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        // _/
-        // _/ Computational Functions
-        // _/
-        // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     public:
 
-        inline static char _seqBits(const char * seq, idx is, idx flags)
+        inline static char _seqBits(const char * seq, idx is, idx flags = 0)
         {
             idx ibyte=is/4;
-            idx ishift=(is%4)*2; // determine the byte number and the shift count
-            idx val=(idx)((seq[ibyte]>>ishift)&0x3) ; // this particular base introduces this two bits
+            idx ishift=(is%4)*2;
+            idx val=(idx)((seq[ibyte]>>ishift)&0x3) ;
             if( ( (flags&fAlignForwardComplement) &&(flags&fAlignForward) ) ||
                 ( (flags&fAlignBackwardComplement) &&(flags&fAlignBackward) )
                 ) return (char)sBioseq::mapComplementATGC[val];
@@ -260,7 +311,7 @@ namespace slib
             for( idx i=0 ; i<bytes; ++i) {
                 idx ibyte=(is+i)/4;
                 idx ishift=((is+i)%4)*2;
-                res=( res<<2 ) | (idx)((seq[ibyte]>>ishift)&0x3) ; // this particular base introduces this two bits
+                res=( res<<2 ) | (idx)((seq[ibyte]>>ishift)&0x3) ;
             }
             return (udx)res;
         }
@@ -270,40 +321,24 @@ namespace slib
             if(position % 32 == 0 && (len - position + 1) > 31)
                     return binarysequence[position/32];
 
-            // In all other cases:
 
             udx k = binarysequence[position/32];
             udx l = binarysequence[(position/32) + 1];
             udx shift_k = (position % 32) * 2;
 
-            k >>= shift_k; // Shift the k to the right by the position number (counting from the beginning of the memory block)
-            l <<= (64 - shift_k); // shift the l to the left by the position number - 32
+            k >>= shift_k;
+            l <<= (64 - shift_k);
 
             k = k | l;
 
-            if((len - position + 1) < 32){ // In case at the end of the sequence
-                // Need to return some from the beginning of the sequence
-                // This if statement doesn't take into account if there are less than 32 characters in the genome
+            if((len - position + 1) < 32){
 
-                // Set the end of character
-                //*endOfChar = (len - position + 1);
                 *endOfChar = (len - position);
 
-                //idx additionalShift = (64 - ((len - position) * 2));
 
-                //udx mask = 0xFFFFFFFFFFFFFFFFUL;
-                //udx mask = ~0;
-                //mask >>= additionalShift;
-                //mask >>= 5;
-                //k &= mask;
 
-                l = binarysequence [0]; // Start at the beginning again.
-                //l <<= (((32 - (position % 32)) * 2) + 1);
-                //mask = 0xFFFFFFFFFFFFFFFF;
+                l = binarysequence [0];
 
-                //mask <<= (len - position + 1) * 2;
-                //if ((len - position + 1) * 2 != 64) mask = ~mask;
-                //k &= mask;
 
                 l <<= (len - position + 1) * 2;
                 udx mask = 0xFFFFFFFFFFFFFFFFUL;
@@ -312,48 +347,37 @@ namespace slib
 
                 k = k | l;
             }
-            //printBWTstream (&k, 32);
 
             return k;
         }
         idx alignSeq( sVec < idx > * allHits ,sBioseq * Subs, const char * qry, idx qrylen, idx idSub, idx idQry, idx flagset, idx qrysim, idx * subfos=0, idx * qryfos=0);
         idx alignSmithWaterman( sVec < idx > * al, const char * sub, idx substart, idx sublen, const char * qry, idx qrystart, idx qrylen, idx flags, idx subbuflen, idx  qrybuflen, idx startFloatingDiagonal=0, idx * pLastQryEnd=0,  idx * pLastSubEnd=0);
+        Al * alignSWProfile(sVec < idx > & al, const char ** sub, idx ** sub_m, idx substart, idx sublen, idx subcnt, const char ** qry, idx ** qry_m, idx qrybuflen, idx qrystart, idx qrylen, idx qrycnt, idx flags);
+        Al * backTracking(sVec < idx > * allHits, idx substart, idx sublen, idx qrystart, idx qrylen, idx SWMatrixWidth, idx floatSZ, idx maxS, idx maxQ, idx maxAll, idx flags);
         bool align2bioseqDefaultParameters (idx *flags);
 
         enum eReadAlignmentFlags{eAlRelativeToMultiple=0x00000001, eAlKeepGaps=0x00000002, eAlKeepSelfAlignment=0x00000004};
         static idx readMultipleAlignment(sVec < idx > * alSub,const char * src,idx len, idx flags=0, idx * alLen=0 , bool withIdLines=0, sBioseq * qry = 0);
         static idx getLUTMultipleAlignment(sVec < Al * > * alSub,sVec< sVec<idx> > & lutAlSub);
 
-//        /*! \returns true if all bits for alignment filtering are 0. */
-//        static bool keepAllMatches(idx flag) { return flag&(sBioseqAlignment::fAlignKeepFirstMatch|sBioseqAlignment::fAlignKeepBestFirstMatch|
-//            sBioseqAlignment::fAlignKeepUniqueBestMatch|sBioseqAlignment::fAlignKeepAllBestMatches|
-//            sBioseqAlignment::fAlignKeepRandomBestMatch|sBioseqAlignment::fAlignKeepUniqueMatch); }//!< Returns the true if no alignment filtering bit flag is set.
 
-        /*! \returns true if bits for alignment filtering are set. */
         inline static bool doSelectMatches(idx flagSet) {
             return ( !(flagSet&sBioseqAlignment::fAlignIsPairedEndMode) && ( (flagSet&sBioseqAlignment::fAlignKeepBestFirstMatch) ||
                         (flagSet&sBioseqAlignment::fAlignKeepRandomBestMatch) ||
                         (flagSet&sBioseqAlignment::fAlignKeepAllBestMatches) ||
                         (flagSet&sBioseqAlignment::fAlignKeepUniqueMatch) ) ) ;
         }
+
         static idx remapAlignment(Al * from, Al * to, idx * mfrom0=0, idx * mto0=0,idx maxlen=0,idx readonly=0,sVec<idx> * lookup=0 ) ;
+
         static idx truncateAlignment(Al * hdr, idx maskBefore, idx maskAfter, idx issuborqry) ;
-        /*! Returns the subject position of the query position provided by "pos" given an
-         * alignment "hdr" and the train "to0".
-         * If "valid" = 0 In/Dels are returned as -1
-         * If "valid" = 1 last valid position is return instead of In/Del
-         * If "valid" = 2 next valid position is return instead of In/Del! */
         static idx remapQueryPosition(Al * hrd, idx * to0, idx pos, idx valid = 0 );
-        /*! Returns the query position of the subject position provided by "pos" given an
-         * alignment "hdr" and the train "to0".
-         * If "valid" = 0 In/Dels are returned as -1
-         * If "valid" = 1 last valid position is return instead of In/Del
-         * If "valid" = 2 next valid position is return instead of In/Del! */
         static idx remapSubjectPosition(Al * hrd, idx * to0, idx pos, idx valid = 0 );
         
+
         static idx selectBestAlignments(Al * alignmentMap,idx alignmentMapSize, idx qryOrSub=0, idx flags=0);
         static idx compressAlignment(Al * hdr, idx * m, idx * mdst );
-        static idx uncompressAlignment(Al * hdr, idx * m, idx * mdst, bool reverse=false  );
+        static idx * uncompressAlignment(Al *hdr, idx *m, idx *mdst = 0, bool reverse = false);
         static idx reverseAlignment(Al * hdr, idx * m);
 
         static idx filterChosenAlignments(sVec< idx> * alignmentMap,idx idQryShift,idx flagSet, sStr * dst);
@@ -361,7 +385,208 @@ namespace slib
         static idx prepareMultipleAlignmentSrc(sStr * tempStr, const char * src, idx len,  bool  withIdlines);
     };
 
-} // namespace 
+    class sBioseqAlIter: public sIter<sBioseqAlignment::Al * const, sBioseqAlIter>
+    {
+        protected:
+            sBioseqAlignment::Al *_alstart, *_alend, * _alrec;
+            idx _i;
+            bool _valid;
 
-#endif // sBio_seqalign_hpp
+            inline bool isEof() const { return _alstart == 0 || _alrec == 0 || _alrec >= _alend; }
 
+            void nextRec() {
+                if( unlikely(isEof()) ) {
+                    _valid = false;
+                } else {
+                    _valid = true;
+                    _alrec = sShift(_alrec, _alrec->sizeofFlat() );
+                    if( unlikely(isEof()) ) {
+                        _valid = false;
+                    }
+                }
+            }
+
+            void init(const char * buf, const char * bufend)
+            {
+                _alrec = _alstart = static_cast<sBioseqAlignment::Al *>((void*)buf);
+                _alend = static_cast<sBioseqAlignment::Al *>((void*)(!buf ? NULL : bufend ? bufend : buf + strlen(buf)));
+                _i = 0;
+                _valid = false;
+                if( !isEof() ) {
+                    _valid = true;
+                }
+            }
+
+
+        public:
+            inline void requestData_impl() {}
+            inline void releaseData_impl() {}
+            inline bool readyData_impl() const { return true; }
+            inline bool validData_impl() const { return _valid; }
+            inline idx pos_impl() const { return _i; }
+            inline idx segmentPos_impl() const { return 0; }
+
+            inline void reset( const sBioseqAlIter &rhs ) {
+                _alrec = rhs._alrec;
+                _i = rhs._i;
+                _valid = rhs._valid;
+            }
+
+            sBioseqAlIter(const char *buf = NULL, const char *bufend = NULL) { init(buf, bufend); }
+            sBioseqAlIter(const sFil *f) { init(f->ptr(), f->last()); }
+            sBioseqAlIter(const sFil &f) { init(f.ptr(), f.last()); }
+
+            sBioseqAlIter(const sBioseqAlIter &rhs) : _alstart(rhs._alstart), _alend(rhs._alend) { reset(rhs); }
+
+
+            inline sBioseqAlIter* clone_impl() const { return new sBioseqAlIter(*this); }
+            inline sBioseqAlIter& operator++()
+            {
+                ++_i;
+                nextRec();
+                return *this;
+            }
+
+            inline sBioseqAlignment::Al * const dereference_impl() const { return _alrec; }
+    };
+
+    struct isAlLessThanOrEqual {
+        inline bool operator()( sBioseqAlignment::Al * x, sBioseqAlignment::Al * y ) const {
+            return x->idQry() == y->idQry() ? (x->idSub() <= y->idSub()) : (x->idQry() <= y->idQry());
+        }
+    };
+
+    template<class Tcmp = isAlLessThanOrEqual>
+    class sBioseqAlBundleIter : public sIter<sBioseqAlignment::Al * const, sBioseqAlBundleIter<Tcmp> >
+    {
+        protected:
+            sVec<sBioseqAlIter> _iters;
+            sBioseqAlignment::Al * _val;
+            idx _i, _minIndex;
+            Tcmp tcmp;
+            sHeap<sBioseqAlignment::Al *, Tcmp> _heap;
+
+            void init( const sBioseqAlBundleIter &rhs )
+            {
+                if( rhs._iters.dim() ) {
+                    _iters.resize( rhs._iters.dim() );
+                    for( idx i = 0; i < rhs._iters.dim() ; ++i) {
+                        _iters[i] = rhs._iters[i];
+                    }
+                }
+
+                _val = rhs._val;
+                _i = rhs._i;
+                _minIndex = rhs._minIndex;
+                _heap.setCmp(&tcmp);
+                _heap.reset( rhs._heap );
+            }
+
+            void init(const sBioseqAlIter * iters, idx iters_cnt) {
+                _i = _minIndex = 0;
+                _heap.setCmp(&tcmp);
+
+                if(iters_cnt) {
+                    _iters.resize(iters_cnt);
+                    for( idx i = 0; i < iters_cnt ; ++i) {
+                        _iters[i] = iters[i];
+                        _heap.push(static_cast<sBioseqAlignment::Al *>(*iters[i]));
+                    }
+                    _minIndex = _heap.peekIndex();
+                }
+                getVal();
+            }
+
+            inline void getVal()
+            {
+                if( _heap.dim() ) {
+                    _val = *_iters[_minIndex];
+                }
+            }
+
+            inline void incrementMin()
+            {
+                if( _iters[_minIndex].valid() && _heap.dim() ) {
+                    if( (++_iters[_minIndex]).valid() ) {
+                        _heap.adjust(_minIndex,static_cast<sBioseqAlignment::Al *>(*_iters[_minIndex]));
+                    } else {
+                        _heap.remove(_minIndex);
+                    }
+                }
+                if( _heap.dim() ) {
+                    _minIndex = _heap.peekIndex();
+                }
+            }
+
+        public:
+
+            sBioseqAlBundleIter(const sBioseqAlIter * iters = 0, idx iters_cnt = 0) : _heap(NULL) { init(iters,iters_cnt); }
+            sBioseqAlBundleIter(const sVec<sBioseqAlIter> & iters) : _heap(NULL) { init(iters.ptr(),iters.dim()); }
+            sBioseqAlBundleIter(const sBioseqAlBundleIter &rhs) : _heap(NULL) { init(rhs); }
+
+            sBioseqAlBundleIter& operator=(const sBioseqAlBundleIter &rhs) { init(rhs); return *this; }
+
+            inline void reset( const sBioseqAlBundleIter &rhs ) {
+                if( rhs._iters.dim() ) {
+                    for( idx i = 0; i < rhs._iters.dim() ; ++i) {
+                        _iters[i].reset( rhs._iters[i] );
+                    }
+                }
+
+                _val = rhs._val;
+                _i = rhs._i;
+                _minIndex = rhs._minIndex;
+                _heap.reset( rhs._heap );
+            }
+
+            inline idx cnt() { return _i; }
+            inline void requestData_impl() {}
+            inline void releaseData_impl() {}
+            inline bool readyData_impl() const { return true; }
+            inline bool validData_impl() const { return _heap.dim(); }
+            inline sBioseqAlBundleIter& increment_impl()
+            {
+                incrementMin();
+                getVal();
+                ++_i;
+                return *this;
+            }
+
+            inline sBioseqAlignment::Al * const dereference_impl() const { return _val; }
+
+
+            static idx getIters(sFil & f, sVec<sBioseqAlIter> & iters) { return getIters(&f, iters);}
+            static idx getIters(sFil * f, sVec<sBioseqAlIter> & iters) {
+                sBioseqAlIter it(f);
+                if( !it.valid() )
+                    return 0;
+
+                sBioseqAlignment::Al *prv = *it, *hdr = *it, *f_hdr = *it, *s_hdr = 0;
+                idx ii=0;
+                for(; it.valid(); ++it) {
+                    ++ii;
+                    hdr = *it;
+                    if( prv->idQry() > hdr->idQry() ) {
+                        if( !s_hdr ) {
+                            s_hdr = f_hdr;
+                        }
+                        *iters.add() = sBioseqAlIter((const char *)s_hdr,(const char *)hdr);
+                        s_hdr = hdr;
+                    }
+                    prv = hdr;
+                }
+                if( s_hdr != hdr ) {
+                    if( !s_hdr )
+                        s_hdr = f_hdr;
+                    *iters.add() = sBioseqAlIter((const char *) s_hdr, f->last());
+                }
+
+                return iters.dim();
+            }
+    };
+
+    typedef sBioseqAlBundleIter<> sBioseqAlBundleAscIter;
+
+}
+
+#endif 

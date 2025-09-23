@@ -32,82 +32,49 @@
 
 using namespace slib;
 
-// http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/source1.c
 
-    // each edge is defined by its vertix number and one of its 18 possible directions 
-    // 6 directions are along +x,-x,+y,-y,+z,-z axes and 
-    // 12 directions are along +x+y,+x-y,+x+z,+x-z, -x+y,-x-y,-x+z,-x-z, +y+z,+y-z,-y+z,-y-z, 
-    // however only 9 of those are unique since each edge is on a flat surface of the cube
-    // and is repeated twice . We take the following nine as unique 
-    // +x,+y,+z, +x+y,+x+z,+y+z, +x-y, +x-z, +y-z
-    //  0, 1, 2,    3,   4,   5,    6,    7,    8 
 struct IVec {idx x,y,z;};
 struct EdgeDef {idx dir; IVec cub;};
 
 
 static  EdgeDef edgeDir[8][8]={
     {
-        {0,{0,0,0}},// 0->1, +x in the current cube ix,iy,iz    +
-        {1,{0,0,0}},// 0->2, +y in ix,iy,iz                     +
-        {3,{0,0,0}},// 0->3, +x+y in ix,iy,iz                   +
-        {2,{0,0,0}},// 0->4, +z in ix,iy,iz                     +
-        {4,{0,0,0}},// 0->5, +x+z in ix,iy,iz                   +
-        {5,{0,0,0}},// 0->6, +y+z in ix,iy,iz                   +
-        {-1,{0,0,0}},// 0->7, not possible 
+        {0,{0,0,0}},
+        {1,{0,0,0}},
+        {3,{0,0,0}},
+        {2,{0,0,0}},
+        {4,{0,0,0}},
+        {5,{0,0,0}},
+        {-1,{0,0,0}},
     },{
-        {6,{0,1,0}},// 1->2, +x-y in ix,iy+1,iz                 +
-        {1,{1,0,0}},// 1->3, +y in ix+1,iy,iz                   +
-        {7,{0,0,1}},// 1->4, +x-z in ix,iy,iz+1                 +
-        {2,{1,0,0}},// 1->5, +z in ix+1,iy,iz                   +
-        {-1,{0,0,0}},// 1->6, not possible 
-        {5,{1,0,0}},// 1->7, +y+z in ix+1,iy,iz                 +
+        {6,{0,1,0}},
+        {1,{1,0,0}},
+        {7,{0,0,1}},
+        {2,{1,0,0}},
+        {-1,{0,0,0}},
+        {5,{1,0,0}},
     },{
-        {0,{0,1,0}},// 2->3, +x in ix,iy+1,iz                   +
-        {8,{0,0,1}},// 2->4, +y-z in ix,iy,iz+1                 +
-        {-1,{0,0,0}},// 2->5, not possible 
-        {2,{0,1,0}},// 2->6, +z in ix,iy+1,iz                   +
-        {4,{0,1,0}},// 2->7, +x+z in ix,iy+1,iz                 +
+        {0,{0,1,0}},
+        {8,{0,0,1}},
+        {-1,{0,0,0}},
+        {2,{0,1,0}},
+        {4,{0,1,0}},
     },{
-        {-1,{0,0,0}},// 3->4, not possible 
-        {8,{1,0,1}},// 3->5, +y-z in ix+1,iy,iz+1               +
-        {7,{0,1,1}},// 3->6, +x-z in ix,iy+1,iz+1               +
-        {2,{1,1,0}},// 3->7, +z in ix+1,iy+1,iz                 +
+        {-1,{0,0,0}},
+        {8,{1,0,1}},
+        {7,{0,1,1}},
+        {2,{1,1,0}},
     },{
-        {0,{0,0,1}},// 4->5, +x in ix,iy,iz+1                   +
-        {1,{0,0,1}},// 4->6, +y in ix,iy,iz+1                   +
-        {3,{0,0,1}},// 4->7, +x+y in ix,iy,iz+1                 +
+        {0,{0,0,1}},
+        {1,{0,0,1}},
+        {3,{0,0,1}},
     },{
-        {6,{0,1,1}},// 5->6, +x-y in ix,iy+1,iz+1               +
-        {1,{1,0,1}},// 5->7, +y in ix+1,iy,iz+1                 +
+        {6,{0,1,1}},
+        {1,{1,0,1}},
     },{
-        {0,{0,1,1}},// 6->7, +x in ix, iy+1, iz+1               +
+        {0,{0,1,1}},
     }
 };
-/*
-    Each small cube is numbered as 0,1,2,3,4,5,6,7 and is divided into 5 tetrahedrons with vertices 
-    matching those of this cube. Below is the map (idxTetrahedrons) of the vertixes of tetrahedrons 
-    defined in this index notation. 
-
-    Z                                             Z
-    ^                                             ^
-    |   6-------------------7                     |  011-----------------111
-    |  /|                  /|                     |  /|                  /| 
-    | / |                 / |                     | / |                 / |
-    |/  |                /  |                     |/  |                /  |
-    4-------------------5   |                    001-----------------101  |
-    |   |               |   |                     |   |               |   |
-    |   |  y            |   |                     |   |  y            |   |
-    |   | /             |   |                     |   | /             |   |
-    dz  |/              |   |                     |   |/              |   |
-    |   2---------------|---3                     |  010--------------|--110
-    |  /                |  /                      |  /                |  /
-    | dy                | /                       | /                 | /
-    |/                  |/                        |/                  |/
-    0----------dx-------1----------->x           000-----------------100--------->x
-     If this cube is not at the origin - but shifted by ix, iy, iz then the idxTetraShift index mapping 
-     will show the ix,iy,iz of the tetrahedron's vertixes relative to ix,iy,iz of the base point of 
-     the marchine cube: 0 means the indexes correspond, 1 means that they are shifted by d[xyz] 
-     a*/
 idx idxTetrahedrons[2][5][4]={
     {
         {0,1,2,4},
@@ -125,8 +92,8 @@ idx idxTetrahedrons[2][5][4]={
     }
 };
 IVec idxCubeShift[8]={
-    {0,0,0}, // the 0-th pont of the cube 
-    {1,0,0}, // the 1st pont of the cube 
+    {0,0,0},
+    {1,0,0},
     {0,1,0}, 
     {1,1,0}, 
     {0,0,1}, 
@@ -157,7 +124,6 @@ void sMesh::fix_triangle( Polygon & po , sPnt & ou)
     vec2o.z=ou.z-v2.crd.z;
 
 
-    // compute the triple product of these two vectors with the arrow to outside 
     real det=  vec12.x*vec23.y*vec2o.z
                 +vec12.y*vec23.z*vec2o.x
                 +vec12.z*vec23.x*vec2o.y
@@ -165,7 +131,6 @@ void sMesh::fix_triangle( Polygon & po , sPnt & ou)
                 -vec12.y*vec23.x*vec2o.z
                 -vec12.x*vec23.z*vec2o.y;
 
-    //compute the real perpendicular normal
     if(doNormals){
         po.n.x=vec12.y*vec23.z-vec12.z*vec23.y;
         po.n.y=-vec12.x*vec23.z+vec12.z*vec23.x;
@@ -176,16 +141,14 @@ void sMesh::fix_triangle( Polygon & po , sPnt & ou)
     }
 
     idx itmp;
-    if(det<0){ // different signs means rotation is not counterclockwise 
-        // swap 
+    if(det<0){
         itmp=po.triangles[1];po.triangles[1]=po.triangles[2];po.triangles[2]=itmp;
         if(doNormals){
             po.n.x*=-1;po.n.y*=-1;po.n.z*=-1;
         }
-    }//else tmp=1;
+    }
     
     if(doNormals) { 
-        // add this triangle normals to vertix normals 
         for(idx ii=0; ii<po.cnt;++ii) {
             vlist[po.triangles[ii]].nrm.x+=po.n.x*po.srfc;
             vlist[po.triangles[ii]].nrm.y+=po.n.y*po.srfc;
@@ -221,7 +184,6 @@ idx sMesh::crossTetrahedron(idx tau, sVec <idx > * queue)
     idx iCube=(tau&0xFFFFFF);
     idx it=(tau>>24)&0xFF;
 
-    // TOO make degrees of two to make this operation much faster 
     idx rest=iCube;
     idx ix=rest/stpyz;rest-=ix*stpyz;
     idx iy=rest/stpz;rest-=iy*stpz;
@@ -233,14 +195,14 @@ idx sMesh::crossTetrahedron(idx tau, sVec <idx > * queue)
     real x=bmin.x+ix*d.x;
     real y=bmin.y+iy*d.y;
     real z=bmin.z+iz*d.z;
-    idx iout=-1; // remember one of the outside vertixes
+    idx iout=-1;
     
     sPnt ou;
     EdgeDef * edd, * fdd;
     Vertix v={0,0,sPnt(0,0,0),sPnt(0,0,0),0,0};
               
 
-    if (!(cub.situation&0x00000100)) { // this 8th bit is set means it has been computed 
+    if (!(cub.situation&0x00000100)) {
         cub.situation=0;
 
         for( idx ip=0; ip<8; ++ip) {
@@ -248,22 +210,19 @@ idx sMesh::crossTetrahedron(idx tau, sVec <idx > * queue)
             ++funCalls;
 
             if(cub.val[ip] <= 0)  
-                cub.situation|=(((idx)1)<<ip); // now we collect the in|out-ness of tetrahedron vertixes as bits in this number 
+                cub.situation|=(((idx)1)<<ip);
             if(cub.val[ip]==0) 
                 cub.val[ip]=d.x/(10*stpx);
         }
-        cub.situation|=0x00000100; // set the 8th bit means it has been computed 
+        cub.situation|=0x00000100;
         ++cubeSplits;
     }
         
-    // all points are in one side: all bits are set or none is set ?
     if(cub.situation==0x1FF || cub.situation==0x100) 
         return 0; 
     
     ++tetraHedrons;
-    // scan through the 4 points of the tetrahedron 
     for( idx ip1=0; ip1<(idx) (sizeof(idxTetrahedrons[0][0])/sizeof(idxTetrahedrons[0][0][0])); ++ip1) {
-        // get the cube vertix matching tetrahedrons vertix
         idx ic1=idxTetrahedrons[iParity][it][ip1];
         IVec & shift1= idxCubeShift[ ic1 ];
 
@@ -271,21 +230,17 @@ idx sMesh::crossTetrahedron(idx tau, sVec <idx > * queue)
             iout=ic1;
             ou.x=x+d.x*shift1.x;
             ou.y=y+d.y*shift1.y;
-            ou.z=z+d.z*shift1.z; // this contributes to the position of the outside points center 
+            ou.z=z+d.z*shift1.z;
         }
         
         for( idx ip2=ip1+1; ip2<(idx) (sizeof(idxTetrahedrons[0][0])/sizeof(idxTetrahedrons[0][0][0])); ++ip2) {
-            // get the cube vertix matching tetrahedrons vertix
             idx ic2=idxTetrahedrons[iParity][it][ip2];
             IVec & shift2= idxCubeShift[ ic2 ];
 
-            // do nothing if they are at the same side of the curve 
             if(  ((cub.situation>>ic1)&0x01) == ((cub.situation>>ic2)&0x01) ) 
                 continue;
 
             
-            // now lets see if this pair has alread been considered 
-            // first find the real cube number which this pair belongs to
             idx ie1,ie2;
             if(ic1<ic2){ie1=ic1;ie2=ic2;}
             else {ie1=ic2;ie2=ic1;}
@@ -310,27 +265,24 @@ idx sMesh::crossTetrahedron(idx tau, sVec <idx > * queue)
                 v.crd.z=z+d.z*( shift1.z + (shift2.z - shift1.z)*weight1 );
 
                 iVert=vlist.dim();
-                cubes[v.cube].vrt[v.edge]=iVert;// remember this cube 
+                cubes[v.cube].vrt[v.edge]=iVert;
                 v.nrm.x=0;v.nrm.y=0;v.nrm.z=0;v.adj=0;
-                *vlist.add(1)=v;// remember this vertix
+                *vlist.add(1)=v;
 
 
                 if(queue){ 
-                    // now lets determine what other tetrahedrons are to be affected.
-                    // first find the difference between the indexes of vertexes involved
                     for(idx if1=0; if1<(idx)(sizeof(edgeDir)/sizeof(edgeDir[0])); ++if1) {
                         for(idx if2=if1+1; if2<8; ++if2) {
-                            if(ie1==if1 && ie2==if2) // ignore self : we are looking for other edges of the same direction
+                            if(ie1==if1 && ie2==if2)
                                 continue;
                             fdd=&(edgeDir[if1][if2-if1-1]);
                             if(edd->dir==fdd->dir) {
-                                //now look at the differences in cube indexes 
                                 idx cx=ix+edd->cub.x-fdd->cub.x;
                                 idx cy=iy+edd->cub.y-fdd->cub.y;
                                 idx cz=iz+edd->cub.z-fdd->cub.z;
                                 idx rParity=(cx+cy+cz)&0x01;
 
-                                if( cx>=stpx || cy>=stpy || cz>=stpz || cx<0 || cy<0 || cz<0)  // out of boundaries
+                                if( cx>=stpx || cy>=stpy || cz>=stpz || cx<0 || cy<0 || cz<0)
                                     continue;
 
                                 idx rcube=cx*stpyz+cy*stpz+cz;
@@ -342,7 +294,7 @@ idx sMesh::crossTetrahedron(idx tau, sVec <idx > * queue)
                                         else if(pts[k]==if2)f2exists=true;
                                     }
                                     if(f1exists && f2exists)  {
-                                        if( !( cubes[rcube].situation&(((idx)1)<<(16+tt)) ) ){ // if this bit is set .. .we already have pushed this to the queue 
+                                        if( !( cubes[rcube].situation&(((idx)1)<<(16+tt)) ) ){
                                             queue->vadd(1,rcube|(tt<<24));  
                                             cubes[rcube].situation|=(((idx)1)<<(16+tt));
                                         }
@@ -401,7 +353,6 @@ idx sMesh::build( const sPnt & lbmin, const sPnt & lbmax, idx lstpx, idx lstpy, 
     isComputed=false;
 
 
-    //bmin.x=lxmin;ymin=lymin,zmin=lzmin;
     bmin=lbmin;
     stpx=lstpx;stpy=lstpy;stpz=lstpz;
     stpyz=stpy*stpz;
@@ -412,20 +363,17 @@ idx sMesh::build( const sPnt & lbmin, const sPnt & lbmax, idx lstpx, idx lstpy, 
     d.z=(lbmax.z-bmin.z)/stpz;
     
 
-    //Vertix v={0,0,0,0,0};
     Vertix v={0,0,sPnt(0,0,0),sPnt(0,0,0),0};
     *vlist.add()=v;
     cubes.resize(stpx*stpyz);memset(&cubes[0],0,sizeof(Cube)*cubes.dim());
 
 
     
-    //vector < idx > cuberef;cuberef.resize(stpx*stpyz);memset(&cuberef[0],0,sizeof(idx)*cuberef.dim());
     sVec <idx > queue;
     bool run=true;
 
-    // if seeds are defined then we use neighboring technique 
 
-    if(cntseeds) { // first we try from seeds walking down to bmin.x,ymin,zmin
+    if(cntseeds) {
         if(seeds) {
             for( idx ic=0; ic<cntseeds; ++ic) {
                 idx ix=(idx)((seeds[3*ic+0]-bmin.x)/d.x);if(ix>=stpx || ix<0)continue;
@@ -433,12 +381,12 @@ idx sMesh::build( const sPnt & lbmin, const sPnt & lbmax, idx lstpx, idx lstpy, 
                 idx iz=(idx)((seeds[3*ic+2]-bmin.z)/d.z);if(iz>=stpz || iz<0 )continue;
          
                 bool runthis=true;
-                while(runthis && ix+iy+iz>0 ) { // now start walking down towards minimum 
+                while(runthis && ix+iy+iz>0 ) {
                     idx iCube=ix*stpyz+iy*stpz+iz;
 
                     for( idx it=0; it<(idx) (sizeof(idxTetrahedrons[0])/sizeof(idxTetrahedrons[0][0])); ++it )  {
                         idx cc=crossTetrahedron(iCube|(it<<24), &queue);
-                        if( cc ){// for each seed its enough to find a single triangle
+                        if( cc ){
                             runthis=false;
                             run=false;
                         }
@@ -452,7 +400,7 @@ idx sMesh::build( const sPnt & lbmin, const sPnt & lbmax, idx lstpx, idx lstpy, 
         }
     }
 
-    if(run){ // and now plainly try all the cubes if no other way we were able to find  at least one 
+    if(run){
         for ( idx ix=0 , iCube=0; ix<stpx && run; ++ix ) {
             for ( idx iy=0; iy<stpy && run; ++iy ) {
                 for ( idx iz=0; iz<stpz && run; ++iz , ++iCube) {

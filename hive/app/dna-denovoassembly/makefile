@@ -28,18 +28,22 @@
 # * DEALINGS IN THE SOFTWARE.
 # */
 
-PROGRAMS += dnadenovoassembly
+PROGRAMS += dna-denovoassembly
 
 PROGRAMS_LIBS = -lviolib -ldna-denovo $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
-dnadenovoassembly_SRCS = dna-denovoassembly.cpp
+OBJECT_TYPES = \
+    svc-denovo-oases \
+    svc-denovo-abyss 
+
+dna-denovoassembly_SRCS = dna-denovoassembly.cpp
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-denovoassembly,Next-Gen Sequence De Novo Assembly Engine,/Sequencing/)

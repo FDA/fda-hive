@@ -40,29 +40,24 @@
 #include <ssci/bio/bioseqsnp.hpp>
 
 namespace slib {
-    //! Class containing members to work with SAM and VCF formats, or to convert to these formats.
-    /*!
-     *  Uses vioalt internal objects as well as reference and query sequences to generate both SAM and VCF formats.
-     *  Can also parse both SAM files and Alignments.
-     */
     class sViosam
     {
 
         public:
             enum eSamFlags
             {
-                 eSamMultisegs    = 0x1 // template having multiple segments in sequencing
-                ,eSamAligned      = 0x2 // each segment properly aligned according to the aligner
-                ,eSamUnmapped     = 0x4 // segment unmapped
-                ,eSamNextSeg      = 0x8 // next segment in the template unmapped
-                ,eSamRevComp      = 0x10 // SEQ being reverse complemented
-                ,eSamNextRevComp  = 0x20 // SEQ of the next segment in the template being reverse complemented
-                ,eSamFirstNextSeg = 0x40 // the first segment in the template
-                ,eSamLastSeg      = 0x80 // the last segment in the template
-                ,eSamSecAlign     = 0x100 // secondary alignment
-                ,eSamFilters      = 0x200 // not passing filters, such as platform/vendor quality controls
-                ,eSamPCR          = 0x400 // PCR or optical duplicate
-                ,eSamSupAlign     = 0x800 // supplementary alignment
+                 eSamMultisegs    = 0x1
+                ,eSamAligned      = 0x2
+                ,eSamUnmapped     = 0x4
+                ,eSamNextSeg      = 0x8
+                ,eSamRevComp      = 0x10
+                ,eSamNextRevComp  = 0x20
+                ,eSamFirstNextSeg = 0x40
+                ,eSamLastSeg      = 0x80
+                ,eSamSecAlign     = 0x100
+                ,eSamFilters      = 0x200
+                ,eSamPCR          = 0x400
+                ,eSamSupAlign     = 0x800
             };
             typedef idx (*callbackType)(void * param, idx countDone, idx curPercent, idx maxPercent);
 
@@ -75,37 +70,26 @@ namespace slib {
             {
                 eRecID_TYPE = 1, eRecREC_TYPE, eRecSEQ_TYPE, eRecQUA_TYPE
             };
-            /*!
-             * Converts the Vioalt format into SAM format for export.
-             * \param vioal The vioalt format alignment file.
-             * \param subId The reference sequence ID to use.  A value of -1 means use all available reference sequences.  For example, a value of 2 might
-             * refer to the second chromosome (depending on how the ID structure is set up for a particular reference).  Upon passing in the human genome as a reference,
-             * the value of -1 would tell the program to use all chromosomes (or however it is broken down by ID in the \a Sub object.
-             * \param Qry A pointer to the query sequence in sBioseq format.
-             * \param Sub A pointer to the reference sequence in sBioseq format.
-             * \param outputFilename The filename that the resulting SAM file should be output to.
-             * \param fstream A FILE type that is not currently used (this is what the parameter's outF is set to in the event there is no outputFilename specified).
-             * \param myCallbackParam A callback parameter that can be typecasted as a sQPrideProc object containing the reqID.
-             * \param myCallbackFunction A callback function that meets the requirements of callbackType typedef.
-             * \returns 1 if successful.
-             */
-            static idx convertVioaltIntoSam(sBioal *bioal, idx subId = -1, sBioseq *Qry = 0, sBioseq *Sub = 0, bool originalrefIds = true, const char * outputFilename = 0, FILE * fstream = 0, void * myCallbackParam=0,callbackType myCallbackFunction=0);
-            /*! Converts a vioalt object into a VCF formatted file for export.
-             * \param snpRecord A SNPRecord object that contains the SNPs at a particular position on a reference sequence.
-             * \param params A parameter object of type ParamsProfileIterator.  This is used to pass in a number of parameter values to the
-             * function as needed.  \a param.userIndex is used to denote the ID of the used reference sequence (an ID for a chromosome perhaps),
-             * \a param.userPointer is a pointer to the sBioseq object representing the reference sequence.
-             * \param iNum An optional argument that is currently not used.
-             * \returns 1 if successful, -1 on failure.
-             */
+            static idx convertVioaltIntoSam(sBioal *bioal, sFil & samHeader, sFil & samFooter, idx subId = -1, sBioseq *Qry = 0, sBioseq *Sub = 0, bool originalrefIds = true, const char * outputFilename = 0, FILE * fstream = 0, void * myCallbackParam=0,callbackType myCallbackFunction=0);
+
+            static void convertDIProfIntoSam(sBioal *bioal, bool originalrefIds, const char * outputFilename, FILE * fstream, sVec<idx> * readsArray); 
+
             static idx convertSNPintoVCF(sBioseqSNP::SNPRecord * snpRecord, sBioseqSNP::ParamsProfileIterator * params, idx iNum = 0);
-            /*! Creates the header to a VCF file
-             * \param stream A pointer to the stream that the header should be written to.
-             * \param refname An optional field that captures where the data came from (NCBI, etc.)
-             * \returns 1 if successful.
-             */
             static idx createVCFheader(FILE * stream, const char * refname = 0, real threshold = 0.5);
 
+            static void printSam ( sBioseq *Qry, sStr * samData, sStr *outFile);
+
+            static void printHeaderHD(sStr & out) { out.printf("@HD\tVN:1.0\tSO:unsorted\n"); }
+
+            static void printHeaderSQ(sStr & out, sBioseq & Sub, idx i, bool originalIds) {
+                sStr buf;
+                if ( originalIds )
+                    sString::copyUntil(&buf, Sub.id(i), 0, " ");
+                else
+                    buf.addNum(i + 1);
+                buf.add0(2);
+                out.printf("@SQ\tSN:%s\tLN:%" DEC "\n", buf.ptr(0), Sub.len(i)); 
+            }
 
         private:
 
@@ -113,18 +97,18 @@ namespace slib {
             {
                     idx lenSeq;
                     idx countSeq;
-                    idx ofsSeq; // used for record tracking first and then used as user data
+                    idx ofsSeq;
             };
 
             char * cigar_parser(const char * ptr, const char * lastpos, sVec<idx> * alignOut, idx * lenalign, idx * qryStart);
             char * scanUntilLetterOrSpace(const char * ptr, idx * pVal, const char * lastpos);
             char * scanNumUntilEOL(const char * ptr, idx * pVal, const char * lastpos);
             char * skipBlanks(const char * ptr, const char * lastpos);
-            char * skipUntilEOL(const char * ptr, const char * lastpos);
+            static char * skipUntilEOL(const char * ptr, const char * lastpos);
             char * scanAllUntilSpace(const char * ptr, sStr * strVal, const char * lastpos);
             char * scanAllUntilSpace(const char * ptr, const char * lastpos);
 
-            static idx vioaltIteratorFunction(sBioal * bioal, sBioal::ParamsAlignmentIterator * param, sBioseqAlignment::Al * hdr, idx * m, idx iNum );
+            static idx vioaltIteratorFunction(sBioal * bioal, sBioal::ParamsAlignmentIterator * param, sBioseqAlignment::Al * hdr, idx * m, idx iNum, idx iAl = 0 );
 
     };
 

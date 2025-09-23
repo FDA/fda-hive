@@ -39,7 +39,6 @@ namespace slib {
     class sHeatmap
     {
         public:
-            //! Min/max HSL parameters for a heatmap, for turning a 0-1 heat value into a color
             struct ColorLimits
             {
                 real min_hue, mid_hue_min, mid_hue_max, max_hue;
@@ -49,9 +48,6 @@ namespace slib {
 
                 void set(const sClr & min_clr, const sClr & mid_clr, const sClr & max_clr, const sClr & missing_clr);
 
-                /*! \param[out] result resulting color
-                    \param val heat value; 0 is mininum, 1 is maximum, and values
-                               outside 0-1 range will be colored as missing */
                 void makeColor(sClr & result, real val) const
                 {
                     val *= 2;
@@ -74,9 +70,7 @@ namespace slib {
                 ColorLimits();
             };
             static idx generateRangeMap(sVec<sVec<real> > * rgbs, sTabular * tbl, sVec<idx> * columnsToUse, sVec<idx> * rowsToUse, idx colorMethod);
-            //static idx createImage (const char * filename, idx height, idx width, const char * title, sVec < sVec < sClr > > & colors, idx cx, idx cy);
             static idx generatePNG(const char * filename, sVec<sVec<real> > * rgbs, idx cx, idx cy, ColorLimits * limits, sVec<sVec<sClr> > * colors);
-            //static idx create (const char * filename, idx height, idx width, const char * title, sVec < sVec < sClr > > & colors, idx cx, idx cy);
 
             static idx generatePNG(const char * filename, sTabular * tbl, sVec<idx> * columnsToUse, sVec<idx> * rowsToUse, idx colorMethod, idx cx, idx cy, sHeatmap::ColorLimits * limits, sVec<sVec<real> > * pvals = 0)
             {
@@ -94,4 +88,4 @@ namespace slib {
     };
 
 }
-#endif // sLib_utils_heatmap_hpp
+#endif 

@@ -50,7 +50,6 @@ idx QPrideHunt::OnExecute(idx req)
     const char * query=pForm->value("query");
 
 
-    // ...calculations
     sStr buf;
     buf.printf("jnfckejrn  %d",12);
     buf.add("pointer",5);

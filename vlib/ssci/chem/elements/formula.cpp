@@ -33,9 +33,7 @@
 
 using namespace slib;
 
-//#define ALGO_PRINTFS
 
-// parses a string into a formula "C6H12ONa24"
 idx sChem::formula::parse(const char * frml)
 {
     char symbs[24];
@@ -62,7 +60,6 @@ idx sChem::formula::parse(const char * frml)
 }
 
 
-// printfs the formula either nomrally C14H24O12 or isotopic C[12]13C[13]1H[1]23H[2]1O12
 void sChem::formula::printfAtomList(sStr * dst, bool isotopic)
 {
     sChem::formula * frml=this;
@@ -75,12 +72,10 @@ void sChem::formula::printfAtomList(sStr * dst, bool isotopic)
             if(isotopic)dst->printf("%s[%" DEC "]%" DEC "", ee->symbol, (al[ia].element>>16) , al[ia].count); 
             else dst->printf("%s%" DEC "", ee->symbol,al[ia].count); 
         }
-        //dst->printf(" ");
     }
 }
 
 
-/// the number of atoms in the formula
 idx sChem::formula::countAtoms(void) 
 {
     formula * frml=this;
@@ -91,7 +86,6 @@ idx sChem::formula::countAtoms(void)
 }
 
 
-// computes a mass 
 real sChem::formula::mass(idx type, bool integralonly) 
 {
     real totMass=0;
@@ -114,13 +108,12 @@ real sChem::formula::mass(idx type, bool integralonly)
                 for(idx j=1; j<el->cntIsotops; ++j) if(abundance<iso[j].abundance)pick=j;
                 break; 
             case eIsotopicLightest:
-                // pick=0;
                 break;
             case eIsotopicHeaviest:
                 pick=el->cntIsotops-1;
                 break; 
             default :
-                pick=type>el->cntIsotops-1 ? el->cntIsotops-1 : type; // we pick up the isotop number specified 
+                pick=type>el->cntIsotops-1 ? el->cntIsotops-1 : type;
         }
         real mass=integralonly ? iso[pick].iMass : iso[pick].rMass;
 
@@ -144,129 +137,8 @@ real sChem::formula::mass(idx type, bool integralonly)
 
 
 
-/*
-#ifdef ALGORITHM_DESCRIPTION
-5 0 0 0 0 // we start at first cell 
-4 1 0 0 0 // move a single unit of the rightmost nonzero cell to the right 
-4 0 1 0 0 // continue until we can 
-4 0 0 1 0 
-4 0 0 0 1 // if the last cell is non -zero this is the last we can continue this way
-3 2 0 0 0 // now not counting the last one we start doing the same with previous rightmost cell , the rightmost cell adds up to the destination 
-3 1 1 0 0 
-3 1 0 1 0
-3 1 0 0 1 
-3 0 2 0 0
-3 0 1 1 0
-3 0 1 0 1 
-3 0 0 2 0 
-3 0 0 1 1
-3 0 0 0 2 
-2 3 0 0 0
-....
-#endif
-
-// generates a new isotopic formula (where different isotops of the same elements are presented as different places in formula * dst. 
-
-idx sChem::formula::isotopicList(sChem::formula * dst, idx totIsoStart, idx totIsoEnd)
-{    
-    sChem::formula & frml=*this;
-
-    idx kinds=frml.countAtoms();
-    atomcount * atm=frml.add(1), * prvAtm;
-    atm->element=0;atm->count=1; // add a dummy element  
-    ++kinds;
-
-    // allocate space for all atoms and for all places in formula Cs Hs Os Ns etc 
-    sVec < idx > elems; idx * el=elems.add(kinds);
-    sVec < idx > bases; idx * b = bases.add(frml.dim());
-    idx ik,ie,id;
-    for(ik=0, id=0; ik<frml.dim(); ++ik) { // remember the bases of each kind of atoms
-        b[ik]=id;
-        for(ie=0; ie<frml[ik].count; ++ie)el[id++]=ik;
-    }
-
-    // queueue for pending isotopes 
-    sVec <idx> massDist; idx * km=massDist.add(kinds);  // here we keep the ways we can implement totIsoCnt mutations
 
 
-    for(int curIsoCnt=totIsoStart; curIsoCnt<=totIsoEnd; ++curIsoCnt) {
-        memset(km,0,sizeof(idx)*kinds);
-        km[0]=curIsoCnt; // everything is in the first element 
-        idx ie=0, last, ii  ;
-
-        while( ie>=0 ){ // we do until we have non zero components in the first kinds-1 cells (in any cell but the last one ) 
-
-            const char * inValid=0;// check validity 
-            
-            if(km[kinds-1]!=0)inValid="Xatom";
-//            printf("%" DEC "  ", ++iter);for(ik=0; ik<kinds; ++ik ) printf("%s",element((frml[el[ik]].element)->symbol);printf("\n");
-
-//            printf("%" DEC "  ", iter);
-            for(ik=0; ik<kinds; ++ik ) {  // perform some checks 
-                element * ee=element::ptr(frml[el[ik]].element);
-                isotop * isos=element::isoTable.ptr(ee->ofsIsotops);
-                
-                if(!inValid && km[ik]>0) {
-                    for( ii=1; ii<ee->cntIsotops; ++ii )  {
-                        if(km[ik]<=isos[ii].iMass-isos[0].iMass)
-                            break; 
-                    }// check if the atom is too heavy and there is no such isotop for that 
-                    if(ii==ee->cntIsotops)inValid="tooHeavy"; 
-                }
-                if(!inValid && el[ik]==el[ik+1] && km[ik]<km[ik+1])inValid="repeat";
-//                printf("%" DEC "",km[ik]);
-            }
-//            if(inValid)printf(" %s ", inValid);printf("\n");
-            
-            if(!inValid) {
-                prvAtm=0;
-                for(ik=0; ik<kinds; ++ik ) { 
-                    if(km[ik]!=0) { 
-                        idx isoElementToAdd=element::makeIsotopicElement( frml[el[ik]].element , km[ik] );
-                        if( prvAtm && prvAtm->element == isoElementToAdd ){
-                            ++prvAtm->count;
-                        }else{
-                            atm=dst->add();
-                            atm->element=isoElementToAdd;
-                            //atm->count=km[ik];
-                            atm->count=1;
-                            prvAtm = atm;
-                        }
-                    }
-                }
-                atm=dst->add();
-                atm->element=0;
-                atm->count=0;
-            }
-
-            
-            ie=kinds-1; // we start running from back to front in search of the first non zero
-            //if(km[ie]!=0)last= // the last cell has a zero- remember this fact , we have to sum this thing up with others 
-            for(--ie; ie>=0 && km[ie]==0; --ie) ; // find the next non zero 
-            // if(el[ie]==frml.dim()-1) // if this is the last non zero element of the last kind 
-
-            if(ie>=0) {
-                last=km[kinds-1]; // the last one we always remember 
-                km[kinds-1]=0;
-                
-                id=ie+1; // the destination is the next cell 
-                if(km[ie]==1) // however if this cell is not splitting but just moving ... 
-                    id=b[el[ie]+1];
-                    //while(el[ie]==el[id])++id; // we make sure it moves to the cell with different element id 
-                
-                --km[ie]; // this cell had something - we decrement 
-                ++km[id]; // this cell borrows from previus one 
-                km[id]+=last; // the last one adds its content to this destination as well 
-            }
-        }
-    }
-
-    return dst->dim();
-}
-*/
-
-
-/// computes distribution ... 
 idx sChem::formula::isotopicDistr(sVec < sChem::formula > * dst, real cutoff, real finalcutoff) 
 {    
     sChem::formula & frml=*this;
@@ -274,34 +146,32 @@ idx sChem::formula::isotopicDistr(sVec < sChem::formula > * dst, real cutoff, re
     idx kinds=frml.countAtoms();
     sVec < idx > elems; idx * el=elems.add(kinds);
     idx ik,ie,id;
-    for(ik=0, id=0; ik<frml.dim(); ++ik) {for(ie=0; ie<frml[ik].count; ++ie)el[id++]=frml[ik].element;} // now prepare the list of atoms 
+    for(ik=0, id=0; ik<frml.dim(); ++ik) {for(ie=0; ie<frml[ik].count; ++ie)el[id++]=frml[ik].element;}
     
-    sVec < sChem::formula > & peaks = *dst; // each item in the isotop compoisition list has associated isotopic formula 
+    sVec < sChem::formula > & peaks = *dst;
     
-    idx genFirst=0, genLast=1, ig; // the offset for the last generation indexes
+    idx genFirst=0, genLast=1, ig;
 
-    // add a dummy atom zero
     sChem::formula * pc=peaks.add();
     pc->prob=1;
 
-    for(ie=0; ie<elems.dim(); ++ie) { // add elements one by one 
+    for(ie=0; ie<elems.dim(); ++ie) {
         element * ee=element::ptr(el[ie]);
         isotop * iso=element::isoTable.ptr(ee->ofsIsotops);
 
-        idx genPos=peaks.dim(); // here we start adding for the next generation
+        idx genPos=peaks.dim();
         #ifdef ALGO_PRINTFS
             printf("---------------- Adding element #%" DEC " %s\n", ie, ee->symbol);
         #endif
         for(idx ip=genFirst; ip<genLast ; ++ip )  {
             
             
-            for(idx ii=0; ii<ee->cntIsotops; ++ii) { // add the very first atoms isotopes
+            for(idx ii=0; ii<ee->cntIsotops; ++ii) {
                 idx curiso=element::makeIsotopicElement(el[ie],iso[ii].iMass);
                 
                 
-                // copy the current formula and add the current isotop
                 sChem::formula  * newPeak=peaks.add();
-                sChem::formula  * srcpeak=peaks(ip); // we do it here because the previous command can move the srcpeak 
+                sChem::formula  * srcpeak=peaks(ip);
 
                 atomcount * atmdst, * atmsrc;
                 bool found=false;
@@ -309,35 +179,33 @@ idx sChem::formula::isotopicDistr(sVec < sChem::formula > * dst, real cutoff, re
                     atmdst=newPeak->add();
                     atmsrc=srcpeak->ptr(infrml); 
                     *atmdst=*atmsrc;
-                    if(atmsrc->element==curiso){++atmdst->count;found=true;} // if this element exists - just add it to the existing forumla 
+                    if(atmsrc->element==curiso){++atmdst->count;found=true;}
                 }
                 if(!found){atmdst=newPeak->add();atmdst->element=curiso;atmdst->count=1;}
                 
 
-                // perform convolution of probabilities 
                 newPeak->prob=srcpeak->prob*iso[ii].abundance;
 
 
-                // now we need to make sure current isotop is not already in the list of this generation peaks 
                 
-                found=false; // reuse the variable as a marker for finding a hole formula in this generation list 
+                found=false;
                 atmdst=newPeak->ptr();
                 for ( ig=genPos; ig<peaks.dim()-1; ++ig) {
                     idx icnt=peaks(ig)->dim();
-                    if(icnt!=newPeak->dim())continue; // different number of atoms - can not be a match 
+                    if(icnt!=newPeak->dim())continue;
                     
                     atmsrc=peaks(ig)->ptr();
-                    idx diff=icnt; // number of difference in formulas
+                    idx diff=icnt;
                     for( idx i1=0; i1<icnt && diff; ++i1 ){
                         for( idx i2=0; i2<icnt && diff; ++i2 ){
                             if( atmsrc[i1].element==atmdst[i2].element && atmsrc[i1].count==atmdst[i2].count ){--diff; continue;}
                         }
-                    }// this one is not a difference
+                    }
                     if(!diff){found=true;break;}
                 }
 
 
-                if(found ) {  // an old formula - need to add up probablities and remove the one added 
+                if(found ) {
                     peaks(ig)->prob+=newPeak->prob;
                     peaks.cut(peaks.dim()-1);
                     newPeak=peaks(ig);
@@ -349,13 +217,12 @@ idx sChem::formula::isotopicDistr(sVec < sChem::formula > * dst, real cutoff, re
         if(ie==elems.dim()-1) 
             cutoff=finalcutoff;
 
-        // now we move staff around to minimize the memory usage 
         sChem::formula * pk=peaks.ptr();
         real totSum=0, totSumFiltr=0;
-        idx il, id;
+        idx il;
         peaks.del(0,genPos);
         genPos=0;
-        for(il=genPos, id=0; il < peaks.dim() ; ++il ) {
+        for(il=genPos; il < peaks.dim() ; ++il ) {
             totSum+=pk[il].prob;
             #ifdef ALGO_PRINTFS
                 printf("#  %" DEC "\t",il);
@@ -378,14 +245,12 @@ idx sChem::formula::isotopicDistr(sVec < sChem::formula > * dst, real cutoff, re
                 printf("\n"); 
             #endif
             
-            //pk[id++]=pk[il];
             totSumFiltr+=pk[il].prob;
         }
         #ifdef ALGO_PRINTFS
             printf("##### Probs = %lg %lg\n", totSum, totSumFiltr);
         #endif
 
-        // finally adjust probabilities to  after cutoffs 
         for(il=0; il < peaks.dim() ; ++il ) {
             pk[il].prob/=totSumFiltr;
         }
@@ -407,7 +272,6 @@ void sChem::formula::printfIsotopicDistribution(sStr * dst,sVec < sChem::formula
 {
 
     if(finish==-1)finish=peaks->dim();
-        // now we move staff around to minimize the memory usage 
     real totSum=0;
     for(idx il=start; il < finish ; ++il ) {
         totSum+=peaks->ptr(il)->prob;

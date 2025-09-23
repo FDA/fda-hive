@@ -34,11 +34,7 @@
 #include <ulib/ulib.hpp>
 #include <xlib/md5.hpp>
 
-#ifdef HAS_IMAGEMAGICK
-#include <xlib/image.hpp>
-#endif
-#include <xlib/xls2csv/Xls.h>
-#include <dmlib/dmlib.hpp>
+#include <xlib/dmlib.hpp>
 #include <qpsvc/archiver.hpp>
 #include <qpsvc/dna-parser.hpp>
 #include <qpsvc/qpsvc-dna-align-parser.hpp>
@@ -65,49 +61,87 @@ namespace slib {
             }
             virtual idx OnExecute(idx);
 
-            bool loadProp(idx req, sStr * outlog, const char * file_location, const char * file_path, sDic<sHiveId> * new_ids_map = 0)
+            void logTextToReq(idx lvl, sStr & txt)
             {
-                sStr log;
-                outlog = outlog ? outlog : &log;
-                logOut(eQPLogType_Info, "Parsing property table '%s' %" DEC " bytes", file_location, sFile::size(file_location));
-                sVec<sHiveId> uids;
-                sDic<sHiveId> nmap;
-                new_ids_map = new_ids_map ? new_ids_map : &nmap;
-                bool ok = user->propSet(file_location, log, 0, &uids, new_ids_map);
+                sString::searchAndReplaceSymbols(txt.ptr(), txt.length(), "\n\r", 0, 0, true, true, true, false);
+                txt.add0(3);
+                for( const char * l = txt.ptr(); l; l = sString::next00(l) ) {
+                    if( l && *l ) {
+                        if( lvl < eQPInfoLevel_Min ) {
+                            logOut((eQPLogType)lvl, "%s", l);
+                        } else {
+                            reqSetInfo(reqId, lvl, "%s", l);
+                        }
+                    }
+                }
+            }
+
+            bool importHivepack(const char * propfile, const char * import_folder, udx & cnt)
+            {
+                sStr log, l2;
+                logOut(eQPLogType_Info, "Parsing property table '%s' %" DEC " bytes", sFilePath::nextToSlash(propfile), sFile::size(propfile));
+                sVec<sHiveId> newids, uids;
+                sDic<sHiveId> new_ids_map;
+                bool ok = user->propSet(propfile, log, &newids, &uids, &new_ids_map);
                 if( !ok ) {
-                    sStr l;
-                    sString::searchAndReplaceSymbols(&l, log.ptr(), log.length(), "\n", 0, 0, true, true, false, true);
-                    for(const char * p = l.ptr(); p; p = sString::next00(p)) {
-                        reqSetInfo(req, eQPInfoLevel_Error, "File '%s' load failed: %s", file_path, p);
+                    if( !log ) {
+                        log.printf("Parsing property table '%s' %" DEC " bytes - failed", sFilePath::nextToSlash(propfile), sFile::size(propfile));
+                    }
+                    for (idx o = 0; o < newids.dim(); ++o) {
+                        sUsrObj* obj = user->objFactory(*newids.ptr(o));
+                        if (obj) {
+                            obj->purge();
+                        }
                     }
                 } else {
-                    const udx qty = uids.dim() + new_ids_map->dim();
-                    log.cut(0);
-                    if( new_ids_map->dim() ) {
-                        outlog->printf("new ids:");
-                        for(idx i = 0; i < new_ids_map->dim(); ++i) {
-                            outlog->printf(" %s->", (const char *) new_ids_map->id(i));
-                            new_ids_map->ptr(i)->print(*outlog);
-                            std::auto_ptr<sUsrObj> o(user->objFactory(*(new_ids_map->ptr(i))));
-                            if( o.get() ) {
-                                toFolder(req, qty > 1 ? file_path : 0, *(o.get()));
+                    const udx qty = uids.dim() + (newids.dim() ? newids.dim() : new_ids_map.dim());
+                    l2.cut(0);
+                    if( newids.dim() ) {
+                        cnt += newids.dim();
+                        l2.printf(0, "new ids:");
+                        for(idx i = 0; i < newids.dim(); ++i) {
+                            log.printf(" ");
+                            newids[i].print(l2);
+                            sUsrObj * o = user->objFactory(newids[i]);
+                            if( o ) {
+                                toFolder(reqId, qty > 1 ? import_folder : 0, *o);
+                                delete o;
                             }
                         }
+                        reqSetInfo(reqId, eQPInfoLevel_Info, "%s", l2.ptr());
+                    } else if( new_ids_map.dim() ) {
+                        cnt += new_ids_map.dim();
+                        l2.printf(0, "new ids:");
+                        for(idx i = 0; i < new_ids_map.dim(); ++i) {
+                            l2.printf(" %s->", (const char *) new_ids_map.id(i));
+                            new_ids_map.ptr(i)->print(l2);
+                            sUsrObj * o = user->objFactory(*(new_ids_map.ptr(i)));
+                            if( o ) {
+                                toFolder(reqId, qty > 1 ? import_folder : 0, *o);
+                                delete o;
+                            }
+                        }
+                        reqSetInfo(reqId, eQPInfoLevel_Info, "%s", l2.ptr());
                     }
                     if( uids.dim() ) {
-                        outlog->printf(" updated ids:");
+                        cnt += uids.dim();
+                        l2.printf(0, " updated ids:");
                         for(idx i = 0; i < uids.dim(); ++i) {
-                            outlog->printf(" ");
-                            uids[i].print(*outlog);
-                            std::auto_ptr<sUsrObj> o(user->objFactory(uids[i]));
-                            if( o.get() ) {
-                                toFolder(req, qty > 1 ? file_path : 0, *(o.get()));
+                            l2.printf(" ");
+                            uids[i].print(l2);
+                            sUsrObj * o = user->objFactory(uids[i]);
+                            if( o ) {
+                                toFolder(reqId, qty > 1 ? import_folder : 0, *o);
+                                delete o;
                             }
                         }
+                        reqSetInfo(reqId, eQPInfoLevel_Info, "%s", l2.ptr());
                     }
-                    if( outlog == &log ) {
-                        reqSetInfo(req, eQPInfoLevel_Info, "%s", log.ptr());
-                    }
+                }
+                l2.cut0cut();
+                sString::searchAndReplaceSymbols(&l2, log.ptr(), log.length(), "\n", 0, 0, true, true, false, true);
+                for(const char * p = l2.ptr(); p; p = sString::next00(p)) {
+                    reqSetInfo(reqId, ok ? eQPInfoLevel_Info : eQPInfoLevel_Error, "File '%s': %s", sFilePath::nextToSlash(propfile), p);
                 }
                 return ok;
             }
@@ -116,10 +150,9 @@ namespace slib {
                 if( !_folder.get() ) {
                     sHiveId folder(formValue("folder"));
                     if( !folder && objs.dim() && user ) {
-                        // grab folder from process object
                         sUsrObjRes res;
-                        user->objs2("folder", res, 0, "child", objs[0].IdStr(), "", false, 0, 1);
-                        if(  res.dim()) {
+                        user->objs2("^folder$+", res, 0, "child", objs[0].IdStr(), "", false, 0, 1);
+                        if( res.dim()) {
                             folder = *res.firstId();
                         }
                     }
@@ -153,103 +186,42 @@ namespace slib {
                 }
                 return true;
             }
-#ifdef HAS_IMAGEMAGICK
-            bool subImage(sUsrObj & obj, sImage & img, const char * name, const char * type, const udx dim)
-            {
-                if( name && type ) {
-                    sStr nm("%s.%s", name, type), pbuf;
-                    if( obj.addFilePathname(pbuf, true, "%s", nm.ptr()) ) {
-                        sFilePath tmp(img.filename(), "%%dir/~%s-1-%s", obj.Id().print(), nm.ptr());
-                        std::auto_ptr<sImage> icon(img.convert(tmp, type));
-                        if( icon.get() ) {
-                            if( (icon->width() > dim || icon->height() > dim) &&
-                                ((dim * 1. / icon->width()) < .1 || (dim * 1. / icon->height()) < .1) &&
-                                (((icon->width() * 1.0 / icon->height()) > 5) || ((icon->height() * 1.0 / icon->width()) > 5)) ) {
-                                udx l = 0, t = 0, w, h;
-                                // square down to a lesser dimension
-                                if( icon->width() > icon->height() ) {
-                                    l = (icon->width() - icon->height()) / 2;
-                                    w = h = icon->height();
-                                } else {
-                                    t = (icon->height() - icon->width()) / 2;
-                                    w = h = icon->width();
-                                }
-                                sFilePath tmp1(img.filename(), "%%dir/~%s-2-%s", obj.Id().print(), nm.ptr());
-                                sImage * n = icon->crop(tmp1, l, t, w, h);
-                                if( n ) {
-                                    sFile::remove(icon->filename());
-                                    icon.reset(n);
-                                } else {
-                                    icon.reset(0);
-                                }
-                            }
-                            if( icon.get() ) {
-                                udx w = 0, h = 0;
-                                sImage::EAspect asp;
-                                if( icon->width() < dim && icon->height() < dim ) {
-                                    w = icon->width();
-                                    h = icon->height();
-                                    asp = sImage::eAspectExact;
-                                } else if( icon->width() >= icon->height() ) {
-                                    w = dim;
-                                    asp = sImage::eAspectWidth;
-                                } else {
-                                    h = dim;
-                                    asp = sImage::eAspectHeight;
-                                }
-                                sImage * n = icon->resize(pbuf, w, h, asp);
-                                if( n ) {
-                                    sFile::remove(icon->filename());
-                                    icon.reset(n);
-                                } else {
-                                    icon.reset(0);
-                                }
-                            }
-                        }
-                        if( icon.get() && icon->ok() ) {
-                            return obj.propSet(name, nm) == 1;
-                        }
-                    }
-                }
-                return false;
-            }
-#endif
             void addProps(sUsrObj & obj, const char * properties1, const char * properties2)
             {
-                // set properties defined by the submitter or by extension table: nm1=val1[,nm2=val2,...]
-                logOut(eQPLogType_Debug, "Property for obj %s '%s','%s'", obj.Id().print(), properties1 ? properties1 : "" , properties2 ? properties2 : "");
-                sTxtTbl props1;
-                props1.setBuf(properties1, sLen(properties1));
-                props1.parseOptions().flags = sTblIndex::fSaveRowEnds;
-                props1.parse();
-                sTxtTbl props2;
-                props2.setBuf(properties2, sLen(properties2));
-                props2.parseOptions().flags = sTblIndex::fSaveRowEnds;
-                props2.parse();
-                sCatTabular all;
-                all.pushSubTable(&props1, false);
-                all.pushSubTable(&props2, false);
-                logOut(eQPLogType_Debug, "Property for obj %s rows %" DEC " cols %" DEC, obj.Id().print(), all.rows(), all.cols());
-                for(idx ir = 0; ir < all.rows(); ++ir) {
-                    if( all.cell(ir, 0, 0) ) {
-                        sStr buf1, buf2;
-                        all.printCell(buf1, ir, 0);
-                        all.printCell(buf2, ir, 1);
-                        if( buf1 && buf1.ptr()[0] ) {
-                            logOut(eQPLogType_Debug, "Property set for obj %s '%s'='%s'", obj.Id().print(), buf1.ptr(), buf2.ptr());
-                            if( obj.propSet(buf1, buf2) != 1 ) {
-                                logOut(eQPLogType_Warning, "Property '%s'='%s' is not assigned to '%s' type object", buf1.ptr(), buf2.ptr(), obj.getTypeName());
+                if( properties1 && properties1[0] && properties2 && properties2[0] ) {
+                    logOut(eQPLogType_Debug, "Property for obj %s '%s','%s'", obj.Id().print(), properties1 ? properties1 : "" , properties2 ? properties2 : "");
+                    sTxtTbl props1;
+                    props1.setBuf(properties1, sLen(properties1));
+                    props1.parseOptions().flags = sTblIndex::fSaveRowEnds;
+                    props1.parse();
+                    sTxtTbl props2;
+                    props2.setBuf(properties2, sLen(properties2));
+                    props2.parseOptions().flags = sTblIndex::fSaveRowEnds;
+                    props2.parse();
+                    sCatTabular all;
+                    all.pushSubTable(&props1, false);
+                    all.pushSubTable(&props2, false);
+                    logOut(eQPLogType_Debug, "Property for obj %s rows %" DEC " cols %" DEC, obj.Id().print(), all.rows(), all.cols());
+                    for(idx ir = 0; ir < all.rows(); ++ir) {
+                        if( all.cell(ir, 0, 0) ) {
+                            sStr buf1, buf2;
+                            all.printCell(buf1, ir, 0);
+                            all.printCell(buf2, ir, 1);
+                            if( buf1 && buf1.ptr()[0] ) {
+                                logOut(eQPLogType_Debug, "Property set for obj %s '%s'='%s'", obj.Id().print(), buf1.ptr(), buf2.ptr());
+                                if( obj.propSet(buf1, buf2) != 1 ) {
+                                    logOut(eQPLogType_Warning, "Property '%s'='%s' is not assigned to '%s' type object", buf1.ptr(), buf2.ptr(), obj.getTypeName());
+                                }
+                            } else if( buf2 && buf2[0] ) {
+                                logOut(eQPLogType_Warning, "Property for obj %s with value '%s' has empty name", obj.Id().print(), buf2.ptr());
                             }
-                        } else if( buf2 && buf2[0] ) {
-                            logOut(eQPLogType_Warning, "Property for obj %s with value '%s' has empty name", obj.Id().print(), buf2.ptr());
                         }
                     }
                 }
             }
-            bool isFinal(idx progress, sVec<TObjsProp> & objects, const char * properties, const char* inPath)
+            bool isFinal(idx progress, sVec<TObjsProp> & objects, const char * properties, const char* inPath, const bool keepFiles)
             {
                 if( progress >= 0 ) {
-                    // save intermediate data
                     reqSetData(reqId, "progress", "%" DEC, progress);
                     if( objects.dim() ) {
                         reqSetData(reqId, "objects", objects.mex());
@@ -263,25 +235,20 @@ namespace slib {
                     }
                     sscanf(final, "%" DEC, &progress);
                 }
-                // wait for all in group to finish
-                bool keepSrc = false;
+                bool keepSrc = (progress != 100);
                 sVec<sQPrideBase::Request> r;
-                requestGetForGrp(grpId, &r);
-                serviceID(); // init self svcID
+                requestGetForGrp(reqId, &r);
+                serviceID();
                 for(idx ri = 0; ri < r.dim(); ++ri) {
                     const idx st = r[ri].stat;
-                    // do not wait for other archivers in the group, they must be parallel to this one
                     if( r[ri].svcID != svcID && st <= eQPReqStatus_Running ) {
-                        // some are not done yet
                         reqReSubmit(reqId, 60);
                         reqProgress(-1, 99, 100);
                         logOut(eQPLogType_Debug, "waiting for %" DEC " to finish ", r[ri].reqID);
                         return true;
                     }
-                    // do not cleanup download area in case smth on hold or went wrong
                     keepSrc |= st == eQPReqStatus_Suspended || st > eQPReqStatus_Done;
                 }
-                // assign submitter properties on more time since they might be for specific type and were not assigned above
                 objects.empty();
                 reqGetData(reqId, "objects", objects.mex());
                 if( objects.dim() ) {
@@ -289,19 +256,20 @@ namespace slib {
                     reqGetData(reqId, "objects_props", TObjsProp::props.mex());
                 }
                 for(idx i = 0; i < objects.dim(); ++i) {
-                    std::auto_ptr<sUsrObj> obj(user->objFactory(objects[i].id));
+                    std::unique_ptr<sUsrObj> obj(user->objFactory(objects[i].id));
                     if( obj.get() ) {
                         addProps(*obj.get(), properties, TObjsProp::props.ptr(objects[i].pos));
                     }
+
+                    recordLoadedID(objects[i].id);
                 }
-                if( !keepSrc ) {
+                if( !keepSrc && !keepFiles ) {
                     if( sDir::exists(inPath) ) {
                         sDir::removeDir(inPath, true);
                     } else {
                         sFilePath dir(inPath, "%%dir");
                         sFile::remove(inPath);
                         dmLib::clean(dir);
-                        // if something left in 'dir' (next to original source), do not erase it!
                         sDir::removeDir(dir, false);
                     }
                 }
@@ -309,7 +277,29 @@ namespace slib {
                 reqSetStatus(reqId, progress == 100 ? eQPReqStatus_Done : eQPReqStatus_ProgError);
                 return true;
             }
-            std::auto_ptr<sUsrFolder> _folder;
+
+            void recordLoadedID(sHiveId& pid)
+            {
+                sStr buf;
+                pid.print(buf);
+                buf.add0(3);
+
+                sVec<const char *> id_values;
+                const char * id_value = buf.ptr();
+                id_values.resize(1);
+                id_values[0] = id_value;
+
+                if( pid && objs.dim() ) {
+                    sVec<sHiveId> res;
+                    objs[0].propGetHiveIds("objID", res);
+                    sHiveId * id = res.add();
+                    if( id ) {
+                        *id = pid;
+                        objs[0].propSetHiveIds("objID", res);
+                    }
+                }
+            }
+            std::unique_ptr<sUsrFolder> _folder;
     };
 }
 
@@ -318,57 +308,60 @@ using namespace slib;
 idx dmArchiverProc::OnExecute(idx req)
 {
     sStr inPath, inName, ds, properties, formatHint, convert2Type, sExmap;
+
     formValue("properties", &properties);
     formValue("inputFile", &inPath);
-    if( !inPath ) {
+    const bool keepSrc = formBoolValue("keep_source", false);
+    if( !inPath || inPath[0] == '\0' ) {
         reqSetInfo(req, eQPInfoLevel_Error, "Missing input");
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
+    if( inPath[0] != '/' ) {
+        sStr tmp;
+        cfgStr(&tmp, 0, "user.download");
+        if( tmp ) {
+            tmp.printf("%s", inPath.ptr());
+            inPath.printf(0, "%s", tmp.ptr());
+        }
+    }
     const udx dissect = dmArchiver::getDepth(*this);
-    const idx run_index = dmArchiver::getIndexFlag(*this);
     formValue("inputName", &inName);
-    if( !inName ) {
+    if( !inName && inPath[inPath.length() - 1] != '/' ) {
         inName.printf("%s", sFilePath::nextToSlash(inPath));
     }
     formValue("datasource", &ds);
-    // object type conversion indicator
     const sHiveId cnvObjID(formValue("convertObj"));
     formValue("datatype", &formatHint);
     if( cnvObjID ) {
         formValue("convertTypeName", &convert2Type);
         logOut(eQPLogType_Info, "conversion for object %s to '%s' requested", cnvObjID.print(), convert2Type.ptr());
-        if( !convert2Type ) {
-            reqSetInfo(req, eQPInfoLevel_Error, "Missing new type name");
+        if( !convert2Type || !sUsrType2::ensure(*user, convert2Type.ptr()) ) {
+            reqSetInfo(req, eQPInfoLevel_Error, "Invalid new type name '%s'", convert2Type ? convert2Type.ptr() : "<empty>");
             reqSetStatus(req, eQPReqStatus_ProgError);
             return 0;
         }
+        convert2Type.add0(3);
     }
     sDic<sHiveId> exmap;
     formValue("existing_map", &sExmap);
     if( sExmap ) {
         exmap.serialIn(sExmap.ptr(), sExmap.length());
-#if _DEBUG
-        for(idx i = 0; i < exmap.dim(); ++i) {
-            logOut(eQPLogType_Info, "Existing object: '%s' -> '%s'", (char *)exmap.id(i), exmap.ptr(i)->print());
-        }
-#endif
     }
-    sVec<TObjsProp> objects; // all object id and there additional properties
-    if( isFinal(-1, objects, properties, inPath) ) {
+    sVec<TObjsProp> objects;
+    if( isFinal(-1, objects, properties, inPath, keepSrc ) ) {
         return 0;
     }
     reqProgress(-1, 1, 100);
-    // unpack archives and retrieve the list of files to work with
     sStr dmlog, dmmsg;
     dmLib DM(dissect);
     bool ok = DM.unpack(inPath, inName, &dmlog, &dmmsg, reqProgressFSStatic, this, svc.lazyReportSec / 3);
-    logOut(eQPLogType_Info, "%s", dmlog.ptr());
+    logTextToReq(eQPLogType_Info, dmlog);
     if( cnvObjID && DM.dim() > 1 ) {
         reqSetInfo(req, eQPInfoLevel_Error, "Only single object is accepted for conversion");
         ok = false;
     } else if( dmmsg ) {
-        reqSetInfo(req, eQPInfoLevel_Error, "%s", dmmsg.ptr());
+        logTextToReq(eQPInfoLevel_Error, dmmsg);
     }
     if( !ok ) {
         if( reqGetStatus(req) != eQPReqStatus_Killed ) {
@@ -376,7 +369,6 @@ idx dmArchiverProc::OnExecute(idx req)
         }
         return 0;
     }
-    // scan files one by one
     idx good_files = 0;
     _folder.reset();
     for(const dmLib::File * curFile = DM.first(); !DM.end(curFile); curFile = DM.next(curFile)) {
@@ -386,32 +378,17 @@ idx dmArchiverProc::OnExecute(idx req)
             idx objTypeID = 0;
             const dmArchiver::TKnownTypes * knownTypes = dmArchiver::getKnownTypes();
             while(knownTypes[++objTypeID].ext00);
-            defaultObjType = knownTypes[objTypeID].objType00; //last in list is THE default
+            defaultObjType = knownTypes[objTypeID].objType00;
             if( !dissect && !cnvObjID ) {
                 objType00 = defaultObjType;
             } else if( cnvObjID ) {
-                // conversion
-                for(idx objTypeID = 0; knownTypes[objTypeID].ext00; ++objTypeID) {
-                    if( sString::compareChoice(convert2Type, knownTypes[objTypeID].objType00, 0, true, 0, true) != sNotIdx ) {
-                        objType00 = knownTypes[objTypeID].objType00;
-                        break;
-                    }
-                }
-                if( !objType00 ) {
-                    reqSetInfo(req, eQPInfoLevel_Error, "Conversion of object %s failed", cnvObjID.print());
-                    logOut(eQPLogType_Error, "Conversion for object %s to unrecognized type '%s' failed", cnvObjID.print(), convert2Type.ptr());
-                    reqSetStatus(req, eQPReqStatus_ProgError);
-                    break;
-                }
+                objType00 = convert2Type.ptr();
             } else {
-                // Determine the type of the file by its extension
                 const sFilePath ext(curFile->name(), "%%ext");
                 if( ext && strcmp(ext, "md5") == 0 ) {
-                    // TODO add handling of md5 files as a list of checksums for uploads being processed
                     continue;
                 }
                 isHiveseq = ext && strcmp(ext, "hiveseq") == 0;
-                // loop must always happen, at least to set objTypeID to last one (default)
                 for(objTypeID = 0; knownTypes[objTypeID].ext00; ++objTypeID) {
                     if( ext && sString::compareChoice(ext, knownTypes[objTypeID].ext00, 0, true, 0, true) != sNotIdx ) {
                         objType00 = knownTypes[objTypeID].objType00;
@@ -420,21 +397,10 @@ idx dmArchiverProc::OnExecute(idx req)
                 }
                 if( !objType00 ) {
                     objType00 = defaultObjType;
-                    logOut(eQPLogType_Debug, "input file '%s' set to '%s'", curFile->path(), objType00);
                 }
             }
-            // special files not of u-file derived type
             if( dissect ) {
-                if( strcmp(objType00, "prop-auto-detect") == 0 ) {
-                    sDic<sHiveId>  new_ids_map;
-                    success = loadProp(req, 0, curFile->location(), curFile->path(), &new_ids_map);
-                    if( success ) {
-                        reqSetInfo(req, eQPInfoLevel_Info, "Loaded %" DEC " object(s) from %s", new_ids_map.dim(), curFile->path());
-                    }
-                    objType00 = 0;
-                    break;
-                    objType00 = defaultObjType;
-                } else if( strcmp(objType00, "hivepack") == 0 ) {
+                if( strcmp(objType00, "hivepack") == 0 ) {
                     sStr hl("%s-zip", curFile->location());
                     if( !sFile::symlink(curFile->location(), hl) ) {
                         reqSetInfo(req, eQPInfoLevel_Error, "Failed to open package");
@@ -444,33 +410,20 @@ idx dmArchiverProc::OnExecute(idx req)
                         dmmsg.cut(0);
                         dmLib hp(1, 2);
                         bool ok = hp.unpack(hl, 0, &dmlog, &dmmsg, reqProgressFSStatic, this, svc.lazyReportSec / 3);
-                        logOut(eQPLogType_Error, "%s", dmlog.ptr());
+                        logTextToReq(eQPLogType_Info, dmlog);
                         if( dmmsg ) {
-                            reqSetInfo(req, eQPInfoLevel_Error, "%s", dmmsg.ptr());
+                            logTextToReq(eQPInfoLevel_Error, dmmsg);
                         }
                         sFile::remove(hl);
-                        idx cnt = 0;
+                        udx cnt = 0;
                         if( ok ) {
-                            sStr maps;
-                            sDic<sHiveId> new_ids_map;
                             success = hp.dim();
                             for(const dmLib::File * pf = hp.first(); !hp.end(pf); pf = hp.next(pf)) {
                                 const char * nm = pf->name();
-                                if( sLen(nm) > 5 && strcmp(&nm[sLen(nm) - 5], ".prop") == 0 ) {
-                                    const bool res = loadProp(req, &maps, pf->location(), pf->name(), &new_ids_map);
+                                if( (sLen(nm) > 14 && sIs("hivepack-", nm) && strcmp(&nm[sLen(nm) - 5], ".json") == 0) || (sLen(nm) > 5 && strcmp(&nm[sLen(nm) - 5], ".prop") == 0) ) {
+                                    sFilePath folder("%%dir", curFile->path());
+                                    const bool res = importHivepack(pf->location(), folder.ptr(), cnt);
                                     success &= res;
-                                }
-                            }
-                            if( success && new_ids_map.dim() ) {
-                                cnt = new_ids_map.dim();
-                                reqSetInfo(req, eQPInfoLevel_Info, "%s", maps.ptr());
-                            } else {
-                                // cleanup all imported objects
-                                for(idx o = 0; o < new_ids_map.dim(); ++o) {
-                                    sUsrObj * obj = user->objFactory(*new_ids_map.ptr(o));
-                                    if( obj ) {
-                                        obj->purge();
-                                    }
                                 }
                             }
                         }
@@ -488,7 +441,6 @@ idx dmArchiverProc::OnExecute(idx req)
             }
             idx prev_reqid = 0;
             for(const char * objType = objType00, * objProp = knownTypes[objTypeID].props00; objType; objType = sString::next00(objType), objProp = sString::next00(objProp)) {
-                // create/get appropriate object
                 const sUsrType2 * typ = sUsrType2::ensure(*user, objType);
                 if( !typ ) {
                     reqSetInfo(req, eQPInfoLevel_Error, "Internal error (%d)", __LINE__);
@@ -497,42 +449,35 @@ idx dmArchiverProc::OnExecute(idx req)
                 }
                 const bool notAFile = !typ->isDescendentOf("file");
                 sRC rc;
-                std::auto_ptr<sUsrObj> obj;
+                std::unique_ptr<sUsrObj> obj;
                 const sHiveId * exId = cnvObjID ? &cnvObjID : exmap.get(curFile->name());
-                // TODO create temporary object location until successfully processed or
-                // better yet run all this under special "file-owner" account and
-                // share processes with user but reassign file to user only upon success
                 if( !exId ) {
                     sHiveId nid;
                     rc = user->objCreate(nid, objType);
                     if( !rc.isSet() ) {
                         obj.reset(user->objFactory(nid));
                         if( obj.get() ) {
-                            reqSetInfo(req, eQPInfoLevel_Info, "created object %s", obj->Id().print());
                         }
                     }
                 } else {
                     obj.reset(user->objFactory(*exId));
                     if( !obj.get() ) {
-                        rc.set(sRC::eAccessing, sRC::eObject, sRC::eFactory, sRC::eFailed);
+                        RCSET(rc, sRC::eAccessing, sRC::eObject, sRC::eFactory, sRC::eFailed);
                     }
                 }
                 if( rc.isSet() ) {
                     reqSetInfo(req, eQPInfoLevel_Error, "Internal error (%d)", __LINE__);
-                    logOut(eQPLogType_Error, "Cannot find/create object %s: %s", exId->print(), rc.print());
+                    logOut(eQPLogType_Error, "Cannot find/create object %s: %s", exId ? exId->print() : "null", rc.print());
                     continue;
                 }
-                logOut(eQPLogType_Info, "Using object %s", obj->Id().print());
                 sUsrFile* fobj = dynamic_cast<sUsrFile*>(obj.get());
                 if( !notAFile && !fobj ) {
                     reqSetInfo(req, eQPInfoLevel_Error, "Internal error (%d)", __LINE__);
                     logOut(eQPLogType_Error, "Cannot cast object type, not 'u-file'-based type, check inheritance of types for '%s'", objType);
                     continue;
                 }
-                // !!below only sourceFile variable must be used to obtain original file location!!
                 sStr sourceFile("%s", curFile->location());
                 if( !exId ) {
-                    // new object, not cast, it is critical to have certain props set
                     toFolder(req, curFile->dir(), *obj.get());
                     sStr src("archiver/");
                     if( objs.dim() ) {
@@ -540,43 +485,36 @@ idx dmArchiverProc::OnExecute(idx req)
                     } else {
                         src.printf("%" DEC, grpId);
                     }
-                    // this property is not that important to fail the object
                     obj->propSet("base_tag", src.ptr());
                     obj->propSet("name", curFile->name());
                     if( !notAFile ) {
                         fobj->propSet("orig_name", curFile->name());
                         const char * ext = strrchr(curFile->name(), '.');
-                        bool prop_ok = fobj->propSet("ext", ext ? &ext[1] : 0);
-                        prop_ok &= fobj->propSetI("size", curFile->size());
+                        udx prop_ok = fobj->propSet("ext", ext ? &ext[1] : 0);
+                        prop_ok += fobj->propSetI("size", curFile->size());
                         src.printf(0, "file://%s", inName.ptr());
                         fobj->propSet("source", ds ? ds : src);
-                        if( !prop_ok ) {
-                            // delete the object since it will be invalid
+                        if( prop_ok != 2 ) {
                             fobj->actDelete();
                             reqSetInfo(req, eQPInfoLevel_Error, "Internal error (%d)", __LINE__);
                             logOut(eQPLogType_Error, "Cannot assign major properties, object deleted");
                             continue;
                         }
                         dmCompressor cmp(*this, sourceFile, fobj->Id(), knownTypes[objTypeID].compressor);
-                        idx rcmp = cmp.launch(*user, grpId);
+                        idx rcmp = cmp.launch(*user, reqId);
                         if( !rcmp ) {
-                            // fall back to simple copy
                             logOut(eQPLogType_Error, "Failed to launch Compressor, trying a simple copying: '%s' to object %s", sourceFile.ptr(), fobj->Id().print());
-                            if( !fobj->setFile(sourceFile, curFile->name(), strrchr(curFile->name(), '.'), curFile->size()) ) {
+                            if( !fobj->setFile_donotuse(sourceFile, curFile->name(), 0, curFile->size()) ) {
                                 reqSetInfo(req, eQPInfoLevel_Error, "Internal error (%d)", __LINE__);
                                 logOut(eQPLogType_Error, "FATAL: File assignment failed '%s' to object %s - object deleted", sourceFile.ptr(), fobj->Id().print());
                                 fobj->actDelete();
                                 continue;
                             }
-                            // above call to setFile MOVES the file so we need to adjust our paths
                             sourceFile.cut(0);
                             fobj->getFile(sourceFile);
-                        } else {
-                            logOut(eQPLogType_Info, "%s request submission %" DEC " %s", cmp.getSvcName(), rcmp, rcmp ? "submitted" : "failed");
                         }
                     }
                 }
-                // remember objid and its extra props
                 TObjsProp * p = objects.add();
                 if( p ) {
                     p->id = obj->Id();
@@ -588,19 +526,15 @@ idx dmArchiverProc::OnExecute(idx req)
                     fobj->actDelete();
                     continue;
                 }
-                // set properties once, they might be needed by other service launched below
                 addProps(*obj.get(), properties, objProp);
-                // next special ops for certain files, not critical if fail
                 if( dissect ) {
                     bool svc_set = true;
-                    std::auto_ptr<sQPSvc> svc;
+                    std::unique_ptr<sQPSvc> svc;
                     if( strcasecmp(objType, "nuc-read") == 0 || strcasecmp(objType, "genome") == 0 ) {
-                        if( run_index ) {
-                            svc.reset(new DnaParser(*this, sourceFile, obj->Id(), objType, isHiveseq, ((udx) 2) * 1024 * 1024 * 1024, formatHint, curFile->path()));
-                            svc_set = !svc.get();
-                        }
+                        svc.reset(new DnaParser(*this, sourceFile, obj->Id(), objType, isHiveseq, formatHint, curFile->path()));
+                        svc_set = !svc.get();
                     } else if( strcasecmp(objType, "svc-align-dnaseq") == 0 || strcasecmp(objType, "svc-align-multiple") == 0 ) {
-                        if( run_index && prev_reqid ) {
+                        if( prev_reqid ) {
                             svc.reset(new QPSvcDnaAlignParser(*this, sourceFile, prev_reqid, obj->Id(), formValue("upload_subject"), objects.last(-2)->id, ((udx) 2) * 1024 * 1024 * 1024, curFile->path()));
                             svc_set = !svc.get();
                         }
@@ -648,42 +582,15 @@ idx dmArchiverProc::OnExecute(idx req)
                         fobj = 0;
                         addProps(*obj.get(), properties, objProp);
                     }
-                    // fobj pointer is invalid after this point
                     if( svc.get() ) {
-                        prev_reqid = svc->launch(*user, grpId);
+                        svc->setForm(pForm, false);
+                        svc->setVar("splitOnFrontEnd", "%s", "false");
+                        prev_reqid = svc->launch(*user, reqId);
                         logOut(eQPLogType_Info, "%s request %s: %" DEC, svc->getSvcName(), prev_reqid ? "submitted" : "failed", prev_reqid);
                     } else if( !svc_set ) {
                         reqSetInfo(req, eQPInfoLevel_Error, "Internal error (%d)", __LINE__);
                         logOut(eQPLogType_Info, "Failed to allocate service launcher for '%s'", objType);
                         continue;
-#ifdef HAS_IMAGEMAGICK
-                    } else if( strcasecmp(objType, "image") == 0 ) {
-                        // extend image attributes, create icon and thumbnail
-                        sImage img(sourceFile);
-                        if( img.ok() &&
-                            subImage(*obj, img, "icon", "png", 64) &&
-                            subImage(*obj, img, "thumb", "png", 800) ) {
-                            obj->propSetU("height", img.height());
-                            obj->propSetU("width", img.width());
-                            obj->propSetR("x_res", img.xResolution());
-                            obj->propSetR("y_res", img.yResolution());
-                            if( img.taken() ) {
-                                obj->propSetDTM("taken", img.taken());
-                            }
-                        } else {
-                            obj->cast("u-file");
-                            reqSetInfo(req, eQPInfoLevel_Warning, "Unsupported image format '%s'", sFilePath::nextToSlash(sourceFile));
-                            logOut(eQPLogType_Warning, "Image properties are not assigned '%s'", sourceFile.ptr());
-                        }
-#endif
-                    } else if( strcasecmp(objType, "excel-file") == 0 ) {
-                        sStr path, error_buf;
-                        obj->addFilePathname(path, true, "~tmp");
-                        path.cut0cut( -4);
-                        if( Xls::excel2csv(sourceFile, path, 0, &error_buf) < 1 ) {
-                            reqSetInfo(req, eQPInfoLevel_Error, "Failed to parse file '%s'%s%s", sFilePath::nextToSlash(sourceFile), error_buf.ptr() ? ": " : "", error_buf.ptr() ? error_buf.ptr() : "");
-                            obj->cast("u-file");
-                        }
                     }
                 }
                 success |= true;
@@ -698,8 +605,8 @@ idx dmArchiverProc::OnExecute(idx req)
     logOut(eQPLogType_Info, "Successfully processed %" UDEC " of %" UDEC " files", good_files, DM.dim());
     _folder.reset();
     const idx prgs = good_files * (100. / DM.dim());
-    reqProgress(-1, sMin(prgs, (idx)100) - 10, 100); // (100 - 10)%
-    isFinal(prgs, objects, properties, inPath);
+    reqProgress(-1, sMin(prgs, (idx)100) - 10, 100);
+    isFinal(prgs, objects, properties, inPath, keepSrc);
     return 0;
 }
 
@@ -707,7 +614,7 @@ int main(int argc, const char * argv[])
 {
     sBioseq::initModule(sBioseq::eACGT);
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
     dmArchiverProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dmArchiver", argv[0]));
     return (int) backend.run(argc, argv);
 }

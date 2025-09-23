@@ -48,4 +48,4 @@ class DnaGenericLauncherProc: public sQPrideGenericLauncher
 
 };
 
-#endif // dnaGenericLauncher_hpp
+#endif 

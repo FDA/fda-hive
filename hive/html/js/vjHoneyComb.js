@@ -30,36 +30,19 @@
 function vjHoneyComb ()
 {
     this.ok=true;
-    /*
-    this.recordView=function(ids, dvViewerName, dsSpecName, dsRecordName)
-    {
-        var viewer=vjDV.select(dvViewerName, true);
-        vjDS[dsSpecName].url="http://?cmd=propspec&type="+viewer.objType;
-        vjDS[dsRecordName].url="http://?cmd=propget&mode=csv&ids="+ids;
-        vjDS[dsSpecName].load();
-        vjDS[dsRecordName].load();
-    }
-    */
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Records
-    // _/
 
-    // this function opens a metadata of an node-object in associated record viewer
     this.recordViewNode=function(viewer,node)
     {
-        //var rv=vjDV[viewer.associatedRecordViewer];
         if(!viewer.vjHCAssociatedRecordViewer)return ;
-        //var rv=vjDV.select(viewer.vjHCAssociatedRecordViewer, true);
         var rv=vjDV.locate(viewer.vjHCAssociatedRecordViewer);
         if(!rv)return ;
         var dsSpecName=rv.data[0];
         var dsRecordName=rv.data[1];
 
         if(!node){
-            vjDS[dsSpecName].url="static://";
-            vjDS[dsRecordName].url="static://preview:Select objects to see detail metadata";
+            vjDS[dsSpecName].url="static:
+            vjDS[dsRecordName].url="static:
             vjDS[dsSpecName].load();
             vjDS[dsRecordName].load();
             return ;
@@ -71,27 +54,24 @@ function vjHoneyComb ()
         if(node.id)rv.hiveId=node.id;
         else rv.hiveId=viewer.objType;
 
-        vjDS[dsSpecName].url="http://?cmd=propspec&type="+rv.objType;
-        vjDS[dsRecordName].url="http://?cmd=propget&mode=csv&ids="+node.id;
+        vjDS[dsSpecName].url="http:
+        vjDS[dsRecordName].url="http:
         vjDS[dsSpecName].load();
         vjDS[dsRecordName].load();
     };
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Permissions
-    // _/
 
-    this.permissionComputer=function(view,node )
+    this.permissionComputer=function(view, node, perm_key)
     {
-        if(!node._perm)return;
-        if( typeof(node._perm[0]) !='string')return;
+        perm_key = perm_key || "_perm";
+        if(!node[perm_key])return;
+        if( typeof(node[perm_key][0]) !='string')return;
 
         var perm=new Object({group:new Array(),bits:new Array(),flag:new Array(),view:new Array() } );
-        node._perm=verarr(node._perm);
-        for(var ip=0;ip<node._perm.length;++ip){
-            var spl=node._perm[ip].split(',');
+        node[perm_key]=verarr(node[perm_key]);
+        for(var ip=0;ip<node[perm_key].length;++ip){
+            var spl=node[perm_key][ip].split(',');
             perm.group.push(spl[0]);
             perm.view.push(spl[1]);
 
@@ -111,8 +91,7 @@ function vjHoneyComb ()
             }
             perm.flag.push(bt);
         }
-        node._perm=perm;
-        //alert(jjj(node))
+        node[perm_key]=perm;
 
     };
 
@@ -201,11 +180,6 @@ function vjUserShareTreeView(viewer)
     if (!viewer.className) viewer.className = "permission";
     vjTreeView.call(this, viewer);
 
-    // data = [ "dsGrpList", "dsUsrList", "dsObjs", "dsDeps" ];
-    // where: dsGrpList is name of ds for cmd=grpList
-    //        dsUsrList is name of ds for cmd=usrList
-    //        dsObjs is name of ds for cmd=propget&perm=1&ids=12345
-    //        dsDeps is name of ds for cmd=propget&perm=1&objQry=allusedby("12345",{recurse:true})
     this.data = verarr(this.data);
     for (var i=0; i<4; i++) {
         if (!this.data[i]) {
@@ -217,7 +191,7 @@ function vjUserShareTreeView(viewer)
         this.treeSourceName = null;
 
     if (this.treeSourceName && !vjDS[this.treeSourceName]) {
-        vjDS[this.treeSourceName] = new vjUserShareTreeSource(  { title: "infrastructure: User Sharing Tree", name: this.treeSourceName, url: "static://"} );
+        vjDS[this.treeSourceName] = new vjUserShareTreeSource(  { title: "infrastructure: User Sharing Tree", name: this.treeSourceName, url: "static:
     }
 
     if (this.permsInTitle === undefined) this.permsInTitle = false;
@@ -251,13 +225,11 @@ function vjUserShareTreeView(viewer)
 
         this.maintainPreviousData=false;
 
-        // augment tree with permission data
         var email2primary_grp = {};
         this.tree.enumerate(function(view, node) {
             if (node.path) {
                 var mtch = node.path.match(/\/users\/(.+)/);
                 if (mtch && mtch[1] && mtch[1].length) {
-                    // user primary group
                     node.email = mtch[1];
                     email2primary_grp[node.email] = node;
                 }
@@ -345,7 +317,6 @@ function vjUserShareTreeView(viewer)
                 }
             }
 
-            // users who are direct members of the group get the group's bits
             if (dst.users) {
                 dst.users.forEach(function(user) {
                     set_bits(user, obj_id, bits, flag, flag_key, true);
@@ -389,7 +360,6 @@ function vjUserShareTreeView(viewer)
             }
         }
 
-        // allow then deny
         obj_tbl.enumerate(enum_set_perm);
         dep_tbl.enumerate(enum_set_perm);
         obj_tbl.enumerate(enum_set_perm, true);
@@ -413,6 +383,11 @@ function vjUserShareTreeView(viewer)
 
         if(this.postcompute)
             this.tree.enumerate(this.postcompute, this);
+        if (this.doNotDraw){
+            this.objTbl = obj_tbl;
+            this.depTbl = dep_tbl;
+            return;
+        }
         this.refresh();
     };
 
@@ -432,7 +407,6 @@ function vjUserShareTreeView(viewer)
                             has_direct = true;
                         }
                         if (this.highlightAnyFlag) {
-                            // highlight nodes that have some bit set somewhere
                             for (flag_key in node._perm[obj_id].flag_bits) {
                                 for (bit_name in node._perm[obj_id].flag_bits[flag_key]) {
                                     if (node._perm[obj_id].flag_bits[flag_key][bit_name]) {
@@ -442,7 +416,6 @@ function vjUserShareTreeView(viewer)
                                 }
                             }
                         } else {
-                            // highlight effectively allowed nodes
                             for (bit_name in node._perm[obj_id].effective_bits) {
                                 if (node._perm[obj_id].effective_bits[bit_name]) {
                                     bits.push(bit_name);
@@ -486,7 +459,7 @@ function vjUserShareTreeColorView(viewer)
     vjHTMLView.call(this, viewer);
     this.data = [ "ds_vjUserShareTreeColorView" ];
     if (!vjDS[this.data[0]]) {
-        vjDS.add("infrastructure: Retrieving User/Group Color Key", this.data[0], "static://" +
+        vjDS.add("infrastructure: Retrieving User/Group Color Key", this.data[0], "static:
             "<table class='HIVE_variable'>" +
                 "<tr>" +
                     "<td class='permission_selected1'>Have direct permissions</td>" +
@@ -496,4 +469,3 @@ function vjUserShareTreeColorView(viewer)
     }
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjHoneyComb.js"

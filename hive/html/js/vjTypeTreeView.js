@@ -34,10 +34,8 @@ function vjTypeTreeView(viewer) {
     this.showLeaf = true;
     this.preTreatNodesBeforeParsing = function(tbl) {
         if (tbl.rows) {
-            // vjTree constructor expects parents of a node to be in source table before children
             tbl.rows.sort(function(a, b) { return a.path < b.path ? -1 : a.path > b.path ? 1 : 0; });
             tbl.rows.forEach(function(node) {
-                // vjTree.findByPath() expects path to be made of node.name items
                 node.type_name = node.name;
                 node.name = node.id;
             });
@@ -58,8 +56,7 @@ function vjTypeTreeView(viewer) {
 
     if (!this.data) {
         this.data = "dsTypeTree_" + this.objCls;
-        vjDS.add("Type Hierarchy", this.data, "http://?cmd=typeTree&utype2=1&useTypeDomainId=1&useTypeUPObj=1");
+        vjDS.add("Type Hierarchy", this.data, "http:
     }
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjTypeTreeView.js"

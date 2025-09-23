@@ -31,28 +31,24 @@
 #define _QPride_qLib_hpp
 #include <qlib/QPrideBase.hpp>
 
-namespace slib
-{
+namespace slib {
     class sQPrideConnection;
     class sSql;
 
-    class sQPride:public sQPrideBase
+    class sQPride: public sQPrideBase
     {
 
-        sQPrideConnection * conn;
+            sQPrideConnection *conn;
 
         public:
-            sQPride(const char * defline=0, const char * service="qm");
+            sQPride(const char *defline = 0, const char *service = "qm");
             virtual ~sQPride();
 
-            bool usesQPSvcTable() const; //!< Are services defined in QPSvc table (and not as objects)?
+            bool usesQPSvcTable() const;
 
-            sSql * sql(void);
+            sSql* sql(void);
 
     };
 }
 
-#endif // _QPride_qLib_hpp
-
-
-
+#endif 

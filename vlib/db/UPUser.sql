@@ -32,21 +32,24 @@ DROP TABLE IF EXISTS `UPUser`;
 
 CREATE TABLE `UPUser` (
   `userID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `is_active_fg` tinyint(1) NOT NULL DEFAULT '0',
-  `is_admin_fg` tinyint(1) NOT NULL DEFAULT '0',
-  `is_email_valid_fg` tinyint(1) NOT NULL DEFAULT '0',
+  `is_active_fg` tinyint(1) NOT NULL DEFAULT 0,
+  `is_admin_fg` tinyint(1) NOT NULL DEFAULT 0,
+  `is_email_valid_fg` tinyint(1) NOT NULL DEFAULT 0,
   `type` enum('user','group','system','service') NOT NULL,
   `email` varchar(128) NOT NULL,
   `pswd` varchar(128) NOT NULL,
   `pswd_reset_id` int(10) unsigned DEFAULT NULL,
   `pswd_changed` datetime DEFAULT NULL,
-  `pswd_prev_list` mediumtext,
+  `pswd_prev_list` mediumtext DEFAULT NULL,
   `first_name` varchar(128) NOT NULL,
   `last_name` varchar(128) NOT NULL,
-  `logCount` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `logCount` bigint(20) unsigned NOT NULL DEFAULT 0,
   `createTm` datetime NOT NULL,
   `modifTm` datetime DEFAULT NULL,
   `loginTm` datetime DEFAULT NULL,
-  `max_sessions` int(10) unsigned NOT NULL DEFAULT '1',
+  `max_sessions` int(10) unsigned NOT NULL DEFAULT 1,
+  `is_billable_fg` tinyint(1) DEFAULT NULL,
+  `login_failed_date` datetime DEFAULT NULL,
+  `login_failed_count` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`userID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

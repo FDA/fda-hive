@@ -34,21 +34,32 @@ endif
 
 include $(devdir)/build/makefile.meta
 
-DIST_LIST = app python
+DIST_LIST = objects core app pipeline python html react
 BUILD_LIST = libs $(DIST_LIST)
+DOC_LIST = html python
 
-.PHONY: all clean
-all clean::
+.PHONY: sync
+sync::
 	$(call make-list,$@,$(BUILD_LIST))
+
+.PHONY: doc
+doc::
+	$(call make-list,$@,$(DOC_LIST))
 
 .PHONY: dist
 dist::
 	$(call make-list,$@,$(DIST_LIST))
+	$(call copy-src,wwwinst.sh)
+	$(call copy-src,makefile)
+	$(call copy-src,gwu)
 
 VER ?= 0
 
 www_help:
 	@echo "Usage: make <target> WDIR=installation_path [VER=123]"
-        
+
 www: www_help
 	@$(srcdir)/wwwinst.sh $(WDIR) $(VER) $(bindir) $(srcdir)/html
+
+wwwGWU: www_help
+	@$(srcdir)/wwwinst.sh $(WDIR) $(VER) $(bindir) $(srcdir)/html $(srcdir)/gwu/

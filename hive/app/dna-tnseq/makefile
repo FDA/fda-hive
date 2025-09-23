@@ -33,14 +33,22 @@ PROGRAMS = dna-tnseq
 PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
+OBJECT_TYPES = svc-tnseq
+
 dna-tnseq_SRCS = dna-tnseq.cpp
+
+APPS = Tn-Seq:1
+
+MENUITEMS = \
+/Portal/Post-Alignment/Tn-Seq
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-tnseq,HIVE TN-seq analyzer,/Sequencing/)
 	$(call dist-app,dna-tnseq,dna-tnseq)

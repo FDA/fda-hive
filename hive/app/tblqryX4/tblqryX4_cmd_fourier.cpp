@@ -104,17 +104,16 @@ bool FourierCommand::init(const char * op_name, sVariant * arg)
 
 bool FourierCommand::compute(sTabular * tbl)
 {
-    if (!rowSet || rowSet.dim() < 1)
-    {
-        char p [16];
-        sprintf(p, "0-%" DEC, tbl->rows()-1);
-        sString::scanRangeSet(p,0,&(rowSet),0ll,0ll,0ll);
+    if( !rowSet || rowSet.dim() < 1 ) {
+        char p[24];
+        sprintf(p, "0-%" DEC, tbl->rows() - 1);
+        sString::scanRangeSet(p, 0, &(rowSet), 0ll, 0ll, 0ll);
     }
     categories.cut(1);
 
     if (!colSet || colSet.dim() < 1)
     {
-        colSet.add (tbl->cols() - 1); //to account for the 1 category
+        colSet.add (tbl->cols() - 1);
 
         idx pos = 0;
         for (idx i = 0; i < tbl->cols(); i++)
@@ -140,12 +139,6 @@ bool FourierCommand::compute(sTabular * tbl)
     dstFilePath = _ctx.qproc().reqAddFile(dstFilePathBuf, "FourierTransform.csv");
     sFil fFourier(dstFilePath);
 
-    /*
-    dstFilePath.cut(0);
-    dstFilePath = qp->reqAddFile(dstFilePathBuf, "FourierTransformOdd.csv");
-    sFil odd(dstFilePath);
-    odd.printf("ID");
-    */
 
     idx count2power = 2;
     while (count2power <= rowSet.dim())
@@ -207,13 +200,11 @@ bool FourierCommand::compute(sTabular * tbl)
             if (coef[a] > max)
                 max = coef[a];
         }
-        //real scale = max-min;
         sVec <real> scaledCoef;
         scaledCoef.add(count2power);
-        //now we are going to scale to -1 to 1
         for (idx a = 1; a < count2power+1; a++)
         {
-            scaledCoef[a-1] =coef[a];// (coef[a]-min)/scale*2-1;
+            scaledCoef[a-1] =coef[a];
         }
 
 
@@ -242,8 +233,6 @@ bool FourierCommand::compute(sTabular * tbl)
         tmpTbl->addEndRow();
     }
 
-    /*sReorderedTabular * output_tbl = new sReorderedTabular(tbl, true  FIXME );
-    output_tbl->setTransposed(true);*/
 
 
     for (idx ic = 0; ic < tmpTbl->cols(); ic++)
@@ -257,11 +246,10 @@ bool FourierCommand::compute(sTabular * tbl)
                 tmpTbl->printCell(tmpCell, ir, ic);
             if (ir >= 0)
                 fFourier.printf (",");
-            fFourier.printf(tmpCell);
+            fFourier.printf("%s", tmpCell.ptr());
         }
         fFourier.printf("\n");
     }
 
     return true;
 }
-

@@ -35,8 +35,6 @@
 using namespace slib;
 
 
-// reads the list of choices/sizeos separated by separ
-// col1:30,col2:100,col3:-100
 idx sString::readChoiceList(idx * visCols, idx * sizCols, const char * cols00, const char * defline, const char * separ, bool isCaseInsensitive)
 {
     idx i=0,cnt=0,num=0;
@@ -53,7 +51,6 @@ idx sString::readChoiceList(idx * visCols, idx * sizCols, const char * cols00, c
     return cnt;
 }
 
-// make a choice list based on the visCols and sizCols: see the readChoiceList function
 idx sString::composeChoiceList(sStr * dfl,const char * cols00, idx * visCols, idx * sizCols, const char * separ)
 {
     idx i=0,cnt=0;
@@ -68,16 +65,9 @@ idx sString::composeChoiceList(sStr * dfl,const char * cols00, idx * visCols, id
     return cnt;
 }
 
-//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-//_/
-//_/ Ranges scannign functions
-//_/
-//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// reads something like 1,2,3-6,8-14
 
 idx sString::scanRangeSet(const char * src, idx len, sVec<idx> * range, idx shift, idx cidfirst, idx cidlast)
 {
-    // scan the cidlist if specified
     if( !*src ) {
         return 0;
     }
@@ -102,13 +92,12 @@ idx sString::scanRangeSet(const char * src, idx len, sVec<idx> * range, idx shif
         } else if( !sscanf(mbyf, "%" DEC, &icid) ) {
             break;
         }
-        if( icid < 0 && ptr != src ) { // range specified
+        if( icid < 0 && ptr != src ) {
             for(int ii = prvcid + 1; ii <= (-icid); ++ii) {
                 range->vadd(1, ii + shift);
             }
         } else {
             if( cidfirst == cidlast || (icid >= (long) cidfirst && icid <= (long) cidlast) ) {
-                // this is not out of our range
                 range->vadd(1, icid + shift);
             }
         }
@@ -130,23 +119,19 @@ idx sString::scanRangeSetSet(const char * src00,  sVec < sVec < idx >  > * colse
         sString::scanRangeSet(p,0, cur,0,0,0);
     }
     if(cur && !cur->dim())
-        colset->del(colset->dim()-1,1); // we do not keep empty sets
+        colset->del(colset->dim()-1,1);
     return colset->dim();
 }
 
 
 
 
-// splits the range of sVal->fVal into cntTicks ranges and computes the numbers which
-// are shortest to fit into that range . Returns the minimal degree of 10 which, when
-// multiplied to original ticks will generate unique set of values .
-// Thoose values are returned in vec.
 idx sString::splitRange(real sVal, real fVal, idx cntTicks, sVec < real > * vec, bool filterBoundaries )
 {
     if(cntTicks<2)cntTicks=2;
-    real vd=fVal-sVal;  // the difference in min max values
+    real vd=fVal-sVal;
     if(vd==0)return 0;
-    real vstp=vd/cntTicks; // the step in value space
+    real vstp=vd/cntTicks;
     cntTicks+=2;
     sVec < idx > VV; VV.resize(cntTicks);
 
@@ -158,14 +143,13 @@ idx sString::splitRange(real sVal, real fVal, idx cntTicks, sVec < real > * vec,
 
     while( acc != bestacc) {
 
-        //sprintf(fmt,"%%.%" DEC "le",acc);
         for(i=0; i<cntTicks; ++i) {
             VV[i]=(idx)((sVal+vstp*i)*acc);
 
-            for(il=0; il<i && VV[i]!=VV[il]; ++il ); // see if this number has already appeared in the list
-            if(il<i)break; // this number has already appeared in our list
+            for(il=0; il<i && VV[i]!=VV[il]; ++il );
+            if(il<i)break;
         }
-        if(i<cntTicks){ // this accuracy generates twoo identical number ticks
+        if(i<cntTicks){
             acc*=10;
             ++iAcc;
         }
@@ -190,7 +174,6 @@ idx sString::splitRange(real sVal, real fVal, idx cntTicks, sVec < real > * vec,
 }
 
 namespace {
-    // number, or sequence of whitespace, or '.' / '-' / '_', or string
     struct NaturalSeg {
         enum {
             eString,
@@ -205,7 +188,6 @@ static inline bool isDotDash(char c) {
     return c == '.' || c == '-' || c == '_';
 }
 
-// reads "natural" prefix of a string; returns length of it
 static idx readNaturalSeg(NaturalSeg & seg, const char * s)
 {
     sSet(&seg);
@@ -230,7 +212,6 @@ static idx readNaturalSeg(NaturalSeg & seg, const char * s)
     return seg.len;
 }
 
-// "natural" string comparison: "x10.csv" > "x9.csv"
 int sString::cmpNatural(const char * a, const char * b, bool caseSensitive)
 {
     if( a == b ) {
@@ -254,13 +235,13 @@ int sString::cmpNatural(const char * a, const char * b, bool caseSensitive)
         if( sega.type == NaturalSeg::eInt ) {
             if( segb.type == NaturalSeg::eInt ) {
                 if( idx diff = sega.len - segb.len ) {
-                    return diff; // compare numbers first by number of digits; then fall back to strcmp (don't use atoidx etc. to avoid fixed-width integer overflow)
+                    return diff;
                 }
             } else {
-                return -1; // number < non-number
+                return -1;
             }
         } else if( segb.type == NaturalSeg::eInt ) {
-            return 1; // non-number > numbe
+            return 1;
         }
         int diff = caseSensitive ? strncmp(a, b, sMin<idx>(sega.len, segb.len)) : strncasecmp(a, b, sMin<idx>(sega.len, segb.len));
         if( !diff ) {
@@ -279,32 +260,49 @@ int sString::cmpNatural(const char * a, const char * b, bool caseSensitive)
 
 bool sString::extractNCBIInfoSeqID(sStr *ginum, sStr *accnum, const char *seqid, idx seqlen)
 {
-    sStr buf;
+    sStr buf, idseq;
     if (!seqlen){
         seqlen = sLen (seqid);
     }
+    sString::copyUntil(&idseq, seqid, seqlen, " ");
+    idseq.shrink00();
     buf.cut(0);
-    searchAndReplaceSymbols(&buf, seqid, seqlen, "|", 0, 0, true, true, false, false);
+    searchAndReplaceSymbols(&buf, idseq.ptr(), idseq.length(), "|", 0, 0, true, true, false, false);
     if (cnt00(buf) > 1){
-        // ) If it has '|', we will put the second as GI number and the fourth one as Accession
-        idx ir = 1;
-        for(const char * p = buf; p; p = next00(p), ++ir) {
-            if( ir == 2 ) {
-//                ginum->cut(0);
-                copyUntil(ginum, p, 0, ".");
-            }
-            else if (ir == 4){
-//                accnum->cut(0);
-                accnum->printf("%s",p);
-//                copyUntil(accnum, p, 0, ".");
-            }
+        idx gipos = 2;
+        idx accpos = 4;
+        if (cnt00(buf) == 5){
+            gipos = 3;
+            accpos = 5;
+        }
+        if (strncmp(next00(buf, accpos-2), "gi", 2) == 0){
+            idx t = gipos;
+            gipos = accpos;
+            accpos = t;
+        }
+        if (ginum){
+            const char *p = next00(buf, gipos-1);
+            copyUntil(ginum, p, 0, ".");
+        }
+        if (accnum){
+            const char *p = next00(buf, accpos-1);
+            accnum->addString(p);
         }
     }
-    else {
-        // If not, we remove '.' and ' ' and try again
-//        accnum->cut(0);
+    else if (accnum){
         accnum->addString(buf.ptr(), buf.length());
-//        copyUntil(accnum, buf.ptr(), buf.length(), ". ");
     }
     return true;
+}
+
+bool sString::stringEndsWith (const char *str, idx str_len, const char *suffix, idx suffix_len)
+{
+    if (str_len <= 0){
+        str_len = sLen (str);
+    }
+    if (suffix_len <= 0){
+        suffix_len = sLen (suffix);
+    }
+    return ((str_len >= suffix_len) && (strncmp(str + (str_len-suffix_len), suffix, suffix_len) == 0));
+
 }

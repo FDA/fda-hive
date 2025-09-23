@@ -19,6 +19,8 @@ vim: set et ts=4 sts=4:
 <script  type="text/javascript" src="d3js/stackable_group_bars.js"></script>
 <script  type="text/javascript" src="d3js/phylog_tree.js"></script>
 
+<link rel="stylesheet" href="css/modal.css" type="text/css"/>
+
 <script>
 if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
 javaScriptEngine.include("js-graph/vjSVG_plot.js");
@@ -33,7 +35,7 @@ javaScriptEngine.include("js-graph/vjSVG_General.js");
     $.loadLayoutManager();
     $.loadCSS('css/look_and_feel/velvet.css');
     $.loadCSS('css/tabs.css');
-    $.loadScript('jsx/widgets/jquery/jquery.tableWidgetController.js');
+    $.loadScript('jsx/widgets/jquery/view/jquery.tableWidgetController.js');
 </script>
 
 <script type="application/javascript">
@@ -43,8 +45,9 @@ google.load("visualization", "1", {
 });
 
 setLocationTitle("TableQuery");
- 
- $(document).ready(function(){
+
+gInitList += "tblqryInit();";
+function tblqryInit () {
         var objs = docLocValue("objs", -1);
         var tqsId = docLocValue("tqsId", -1);
         var tbls = docLocValue("tbl", -1);
@@ -86,11 +89,9 @@ setLocationTitle("TableQuery");
         if (objs !=-1 && fromHitList != -1){
             var ionObjs = docLocValue("ionObjs");
             var cnt = docLocValue('cnt') ? docLocValue('cnt') : 50;
+            urlToPut = "cmd=alCount&extendAnnot=1&cnt="+cnt +"&reportTotals=0" + "&objs=" + objs;
             if (ionObjs.length){
-                urlToPut = "cmd=alCount&extendAnnot=1&cnt="+cnt+"&objs=" + objs + "&ionObjs=" + ionObjs;
-            }
-            else {
-                urlToPut = "cmd=alCount&extendAnnot=1&cnt=50&objs=" + objs;
+                urlToPut += "&objs=" + objs + "&ionObjs=" + ionObjs;
             }
             var profilerID = docLocValue("profilerID");
             if (profilerID.length){
@@ -135,7 +136,7 @@ setLocationTitle("TableQuery");
             saveState: false,
             config: config
         });
- });
+ };
 
 </script>
 

@@ -28,17 +28,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*********************
- *
- *      VIEWS
- *
- **********************/
 function vjAnnotationMapView(viewer)
 {
     this.maxTxtLen = 100;
     this.defaultEmptyText = 'no annotations to show';
     this.bgColors = [ '#f2f2f2', '#ffffff' ];
-    //this.checkable = true;
     this.cols = [ {
         name : 'Reference',
         hidden : false
@@ -65,7 +59,6 @@ function vjAnnotationHitsView(viewer)
     this.maxTxtLen = 32;
     this.defaultEmptyText = 'no annotations to show';
     this.bgColors = [ '#f2f2f2', '#ffffff' ];
-//    this.isNheader = true;
     this.cols = [ {
         name : 'query',
         hidden : true
@@ -103,19 +96,12 @@ function vjAnnotationHitsGraphView(viewer)
     this.icon = 'graph2';
     this.name = "annotation";
 
-    // Used for graph
     this.data = viewer.data;
 
-    // If width already exists then use it
-    /*if (viewer.width) this.width = viewer.width;
-    else this.width = 700;
-    if (viewer.height) this.height = viewer.height;
-    else this.height = 200;*/
     
     this.selectCallback = viewer.anotSelectCallback;
     this.margin = {right: 20,left:20};
 
-    //vjD3JS_annotationBox.call(this,viewer);
     this.type = "column";
     this.series = [
                    {name: "Type" , label: true}, 
@@ -139,19 +125,12 @@ function vjAnnotationDownloadView(viewer)
     this.defaultEmptyText = "select a reference genome to see detail information";
     this.geometry = { width: 500 };
     this.bgColors = [ '#f2f2f2', '#ffffff' ];
-    //this.cols = [{ name: 'icon', type: 'icon', hidden: true }, { name: 'operation', hidden: true }, { name: 'arguments', hidden: true}, { name: 'params', hidden: true}];
-    //this.maxTxtLen = 32;
 
     this.parentCls = viewer.parentCls;
     vjTableView.call(this,viewer);
 }
 
 
-/*********************
- *
- *      CONTROLS
- *
- **********************/
 
 function vjAnnotationMapControl(viewer)
 {
@@ -175,7 +154,7 @@ function vjAnnotationMapControl(viewer)
         formObject: this.formObject
     });
     var download = [
-                    { name: 'download', align: 'left', showTitle: true, hidden: false, order: 1, title: 'Download', description: 'Download result', icon: 'download', url: "javascript:var url = \"http://?cmd=objFile&ids=\" + docLocValue(\"id\") + \"&filename=crossingRanges.csv\";vjDS.dsVoid.reload(url, true ,\"download\");"}
+                    { name: 'download', align: 'left', showTitle: true, hidden: false, order: 1, title: 'Download', description: 'Download result', icon: 'download', url: "javascript:var url = \"http:
                     ];
     this.panelViewer.rows = this.panelViewer.rows.concat(download);
 
@@ -187,18 +166,24 @@ function vjAnnotationMapControl(viewer)
         selectCallback: this.selectCallback
     });
 
-    return [this.panelViewer,this.mapViewer];
+    var combMapTable = new vjTableControlX2({
+        data: this.data,
+        maxTxtLen:32,
+        onClickCellCallback: this.selectCallback,
+        formObject:this.formObject
+    });
+    return combMapTable.arrayPanels;
 }
 
 function downloadResult(panel,row) {
-    var url = "http://?cmd=objFile&ids=" + docLocValue("id") + "&filename=crossingRanges.csv";
+    var url = "http:
     
      var anotArr = panel.tree.findByName("ionObjs").value;
     if (!anotArr || anotArr.length <2) {
         return;
     } 
      
-    url = "http://?cmd=anotMapperResults&procID="+docLocValue("id")+"&anotFiles="+ anotArr +"&isIon=1";
+    url = "http:
     
     vjDS.dsVoid.reload(url, true ,"download");
      
@@ -224,7 +209,6 @@ function vjAnnotationHitsControl(viewer)
     }
     this.panelViewer=new vjPanelView({
         data: ["dsVoid", this.data[0]],
-       // annotFileData:viewer.annotFileData,
         width:this.width,
         parentCls: this.parentCls,
         formObject: this.formObject,
@@ -290,12 +274,10 @@ function vjAnnotationHitsGraphControl(viewer){
     this.orf_panelViewer=new vjPanelView({
         data: ["dsVoid",this.data],
         width:this.width,
-        //annotFileData:this.data,
         formObject: this.formObject,
         parentCls: this.parentCls,
         iconSize: "22",
         rows: [
-             //  {name:'refresh', align: "left", title: 'Refresh' ,order:-1, icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS['$(dataname)'].reload(null,true);"},
                {name: "cnt", prefix: "Count: ", order: 5,align: 'left', title: "Count",isSubmitable: true, hidden: false, type:"text", value: "1000", showTitle: true, size: 6, description: "how many elements to show. Trying to show all when value is -1"},
                {name: "start",prefix: "Start From: ", order:4, align: 'left',title: "Start",isSubmitable: true, hidden:false, type:"text", value: "0", showTitle: true, size:6, description: "start from"},
                {
@@ -309,7 +291,6 @@ function vjAnnotationHitsGraphControl(viewer){
                     type : "explorer",
                     explorerObjType : "u-ionAnnot",
                     value: preload_anot
-                    //multiSelect : true 
                  },
                  {name: "typeToShow", prefix: "Type: ", order: 3,align: 'left', title: "Count",isSubmitable: true, hidden: false, type:"text", value: "Gene Name", showTitle: true, size: 10, description: "type to show"},
                  {name: "graphType", order: 1, align: 'left', title: "Graph", icon: "graph",hidden: false, showTitle: true, size: 10, description: "Graph Type"},
@@ -337,7 +318,6 @@ function vjAnnotationHitsGraphControl(viewer){
         width:this.width,
         formObject: this.formObject,
         parentCls: this.parentCls
-        //selectCallback: this.selectCallback.orf
     });
     
     this.orf_table = new vjTableView({
@@ -363,7 +343,7 @@ function showAnnotationStat(viewer, node,ir,ic) {
     if (!anotFiles)
         return alert("Please select an annotation file");
     
-    var url = "http://?cmd=anotMapperResults&procID="+docLocValue("id")+"&anotFiles="+anotFiles+"&isIon=1&showStat=1&typeToShow="+type + "&cnt="+count+"&start=" + start;
+    var url = "http:
     if (node.fromDownload){
         url = urlExchangeParameter(url, "cnt", "-1");
         url = urlExchangeParameter(url, "start", "0");
@@ -375,4 +355,3 @@ function showAnnotationStat(viewer, node,ir,ic) {
     }
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjAnnotationView.js"

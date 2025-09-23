@@ -56,7 +56,6 @@ static void * updateTimeCoarse(void * param)
     return 0;
 }
 
-//static
 void sTime::initTimeCoarse(void)
 {
     if( threadTimeCoarseRunning ) {
@@ -69,7 +68,6 @@ void sTime::initTimeCoarse(void)
     }
 }
 
-//static
 bool sTime::cancelTimeCoarse(void)
 {
     if( threadTimeCoarseRunning && pthread_cancel(threadTimeCoarse) == 0 ) {

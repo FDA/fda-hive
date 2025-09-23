@@ -37,105 +37,113 @@
 
 using namespace slib;
 
-#define _costMatch(_v_sbits, _v_qbits) (((_v_sbits) != (_v_qbits)) ? ( prevCost<=costMismatch ?  costMismatchNext : costMismatch) : costMatch)
+#define _costMatch(_v_sbits, _v_qbits) (((_v_sbits) != (_v_qbits)) ? ( prevCost<=costMismatch ?  costMismatchNext : costMismatch) : (prevCost!=costMatch?(prevCost==costMatchFirst?costMatchSecond:(prevCost==costMatchSecond?costMatch:costMatchFirst)):costMatch))
+#define _profile_costMatch(_v_sbits, _v_qbits) (((_v_sbits) != (_v_qbits)) ?costMismatch : costMatch)
 #define QIDX(_v_iq, _v_len)    ((flags&sBioseqAlignment::fAlignBackward) ? ((_v_len)-1-(_v_iq)) : (_v_iq))
 #define SIDX(_v_is, _v_len)    ( (_v_is) )
-//#define SIDX(_v_is, _v_len)    ( ( (!(flags&fAlignCircular)) || (_v_is)<(_v_len) ) ? (_v_is) : ( (_v_is) -(_v_len) ) )
-#define FIXFQFS(_v_fq, _v_fs)   { \
-    _v_fq=iq; \
-    if(_v_fq<(scanQPos[refid]&0xFFFFFFFF) ) \
-        _v_fq=(scanQPos[refid]&0xFFFFFFFF); \
-    iQForQPosFiltering=iq; \
-    if(_v_fs<((scanQPos[refid]>>((idx)32))&0xFFFFFFFF) ) \
-        _v_fs=((scanQPos[refid]>>((idx)32))&0xFFFFFFFF); \
-    if(scanQPos[refid]==0) { \
-        scanQIdxes[cntScanQPos]=refid; \
-        cntScanQPos++; \
+#define FIXFQFS(_v_fqh, _v_fsh) {\
+    if(docontinueOLD) {\
+        _v_fqh=iq; \
+        if(_v_fqh<(scanQPos[refid]&0xFFFFFFFF) ) \
+            _v_fqh=(scanQPos[refid]&0xFFFFFFFF); \
+        iQForQPosFiltering=iq; \
+        if(_v_fsh<((scanQPos[refid]>>((idx)32))&0xFFFFFFFF) ) \
+            _v_fsh=((scanQPos[refid]>>((idx)32))&0xFFFFFFFF)-1; \
+        if(scanQPos[refid]==0) { \
+            scanQIdxes[cntScanQPos]=refid; \
+            cntScanQPos++; \
+        } \
+        scanQPos[refid]= fq|((fs+1)<<((idx)32)); \
+    }\
+}
+#define FIXHHS(_v_fqh, _v_fsh, _v_fse, _vNew, _vfsV) { \
+    if( docontinueNEW && _v_fse>=0  && _v_fsh>=0 && _v_fqh>=0) {\
+        if(_vNew) \
+            hashHits.addHashHit(_v_fqh,refid,_v_fsh, _v_fse, _vfsV); \
+        else \
+            hashHits.updateHashHit(_v_fsh, _v_fse,_vfsV);\
+        _vNew = false; \
     } \
-    scanQPos[refid]= fq|(fs<<((idx)32)); \
-    }
+}
 
+#if defined(scanHitsMethodNEW) && defined(scanHitsMethodOLD)
+    #ifdef printMethodComparisonHits
+sStr cmpMethodsOutput;
+    #endif
+idx cntAlignmentsNEWonly = 0, cntAlignmentsOLDonly = 0, cntAlignmentsBOTH = 0, cntAlignmentsNONE = 0, cntFilteredNEWonly = 0, cntFilteredOLDonly = 0, cntFilteredBOTH = 0, cntFilteredNONE = 0;
+bool cmpMethodsOutputISDIFF = false;
+#define CNTMETHODFILTERS() { \
+    if(docontinueNEW && docontinueOLD){++cntFilteredBOTH;}\
+    else if(docontinueNEW) {++cntFilteredNEWonly;cmpMethodsOutputISDIFF=true;}\
+    else if(docontinueOLD) {++cntFilteredOLDonly;cmpMethodsOutputISDIFF=true;} \
+    else {++cntFilteredNONE;} \
+}
 
+#define CNTMETHODALIGNMENTS() { \
+    if(docontinueNEW && docontinueOLD){++cntAlignmentsBOTH;}\
+    else if(docontinueNEW){++cntAlignmentsNEWonly;cmpMethodsOutputISDIFF=true;}\
+    else if(docontinueOLD) {++cntAlignmentsOLDonly;cmpMethodsOutputISDIFF=true;}\
+    else {++cntAlignmentsNONE;}\
+}
+#endif
 
 
 idx cntHashLookup=0,cntBloomLookup=0,cntAlignmentSW=0,cntExtension=0, cntTotLetters=0,  cntCrossPass=0, cntSuccessSW=0;
-//idx maxHashBinFound=0;
-//idx falseNeg=0,falsePos=0, trueNeg=0,truePos=0, noFos=0;
 
-//sPerf gPerf;
-//#define DEBUGGING_SMITHWATERMANN 1
 idx sBioseqAlignment::zeroAlignment[2]={0,0};
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/  Major Alignment Procedures
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+idx sBioseqAlignment::resolveConflicts =(sBioseqAlignment::fAlignKeepResolvedHits|sBioseqAlignment::fAlignKeepResolvedSymmetry);
 
-idx sBioseqAlignment::alignSeq(sVec < idx > * allHits , sBioseq * Subs, const char * qry, idx qrylen, idx idSub, idx idQry, idx flagset, idx qrysim, idx *  , idx * ) // subFosList qryfos
+idx sBioseqAlignment::alignSeq(sVec < idx > * allHits , sBioseq * Subs, const char * qry, idx qrylen, idx idSub, idx idQry, idx flagset, idx qrysim, idx *  , idx * )
 {
-
-
-    if(!computeDiagonalWidth)computeDiagonalWidth=bioHash.hdr.lenUnit;// /2;
+    if(!computeDiagonalWidth)computeDiagonalWidth=bioHash.hdr.lenUnit;
 
     idx oldHashList[32];
 
     idx flags;
-
-    // here we maintain what position is already scanned on a query for each subject
-
-    SubScanQPos.resizeM(Subs->dim()*2); // make sure there is enough space
-    idx * scanQPos=SubScanQPos;//+Subs->dim();
-    idx * scanQIdxes=scanQPos+Subs->dim(); // we remember the refids and the number of scanQPos-es hit-to zero them later
-    //idx * ssim=SimilarityBuf.ptr();
+#ifdef scanHitsMethodOLD
+        SubScanQPos.resizeM(Subs->dim()*2);
+#endif
+    idx * scanQPos=SubScanQPos;
+    idx * scanQIdxes=scanQPos+Subs->dim();
 
     idx * extensionGapBuff=ExtensionGapBuff.ptr();
-    idx cntIn=0,fq,fs;
-//    sBioseqHash::HLitem * hi2_0=0;
-    //sBioseqHash::HLitem * hi2=0;
-//    idx lstdim2;
+    idx cntIn=0,fq,fs, hh_delta = 0;
     idx iQForQPosFiltering=0;
 
-    ///#ifdef _DEBUG
-    ///::printf("\n\n\n\n\n--- #################################################### \n ");
-    ///#endif
 
 PERF_START("ALIGNSEQ");
 
     for ( idx idir=0; idir < 2; ++idir)  {
 
         PERF_START("ALIGN-MEM");
-        //SubScanQPos.set(0);
+
+#ifdef scanHitsMethodOLD
         for(idx isqp=0; isqp<cntScanQPos; ++isqp)
             scanQPos[scanQIdxes[isqp]]=0;
         cntScanQPos=0;
+#endif
+
+#ifdef scanHitsMethodNEW
+            hashHits.reset(qrylen);
+#endif
         PERF_END();
 
-        idx mask = (idir==0) ? fAlignForward : fAlignBackward; // direction considering now
-        if( !(flagset&mask) ) continue;  // this does not seem to be required to compute now
+        idx mask = (idir==0) ? fAlignForward : fAlignBackward;
+        if( !(flagset&mask) ) continue;
         flags=( flagset&(~(fAlignForward|fAlignBackward)) ) | mask;
 
-        udx chash=0,chash2=0; // this is unsigned due to rotations sign digit overload
+        udx chash=0,chash2=0;
         idx iStp=0;
         udx crememberHash=0;
 
-        ///#ifdef _DEBUG
-        ///::printf("\n\n\n\n\n--- DIR \n ");
-        ///#endif
 
 
         for( idx iq=0; iq<qrylen; ++iq ) {
             if(maxSeedSearchQueryPos && iq>maxSeedSearchQueryPos)break;
 
-            ////PERF_START("PRE_FILT");
 
-            //if(iq && callbackFunc && (iq%1000000)==0 ){
-                //if( callbackFunc(callbackParam, cntIn, qrylen , 0)==1 )return cntIn; // (iq+idir*qrylen)/2
-            //    PERF_PRINT();
-            //}
 
-//            ++cntTotLetters;
 
-            // prepare the hash for this position
             chash=crememberHash;
             chash <<= 2;
             idx iqx=QIDX(iq,qrylen);
@@ -152,7 +160,7 @@ PERF_START("ALIGNSEQ");
                 sBioseq::uncompressATGC(dbg, (const char * ) &crememberHash, 0,bioHash.hdr.lenUnit, 0);
             #endif
             if(chash>=(udx)bioHash.hashTbl.dim())
-                {////PERF_END();
+                {
                 continue;
                 }
             #endif
@@ -173,9 +181,8 @@ PERF_START("ALIGNSEQ");
 
             }
 
-            // this is the position where the sequence has a hit of N-mer
-            idx qrypos=iq-bioHash.hdr.lenUnit+1, refid=0;
-            if(!(flagset&fAlignSearchRepeats)) {
+            idx qrypos=iq-bioHash.hdr.lenUnit+1;
+#if defined(scanHitsMethodOLD)             if(!(flagset&fAlignSearchRepeats)) {
                 idx cntSub=Subs->dim();
                 if(cntSub<128){
                     for( ; refid<cntSub ; ++refid ) {
@@ -186,29 +193,34 @@ PERF_START("ALIGNSEQ");
                         continue;
                 }
             }
+#endif
 
+#ifdef scanHitsMethodNEW
+            if(!(flagset&fAlignSearchRepeats) && hashHits.hashOverlaps(iq)){
+                continue;
+            }
+#endif
             if( hashStp>1 && iStp<(hashStp-1)){
                 ++iStp;
-                {////PERF_END();
+                {
                 continue;
                 }
             }else iStp=0;
             if(iq<bioHash.hdr.lenUnit-1)
-                {////PERF_END();
+                {
                 continue;
                 }
 
-            // bloom filter if this hash even exists in table
             ++cntBloomLookup;
             if( bioHash.hb &&  ( (bioHash.hb[chash>>3] & (((udx)1)<<(chash&0x7))   ) ==0)  )
-                {////PERF_END();
+                {
                 continue;
                 }
 
 
-            if( useDoubleHash ){ // bloom
-                if( bioHash.hb && (bioHash.hb [chash2>>3] & (((udx)1)<<(chash2&0x7))) ==0 ) // bloom
-                    {////PERF_END();
+            if( useDoubleHash ){
+                if( bioHash.hb && (bioHash.hb [chash2>>3] & (((udx)1)<<(chash2&0x7))) ==0 )
+                    {
                     continue;
                     }
             }
@@ -216,9 +228,9 @@ PERF_START("ALIGNSEQ");
 
             ++cntHashLookup;
             #ifdef HASH_SINDEX
-                idx iref=bioHash.hashInd.find(chash)-1; // bloom will never let 0 to be returned
+                idx iref=bioHash.hashInd.find(chash)-1;
                 if( iref<0 )
-                    {////PERF_END();
+                    {
                     continue;
                     }
 
@@ -227,7 +239,7 @@ PERF_START("ALIGNSEQ");
                 idx ofs=bioHash.hashTbl[chash];
             #endif
             if( !ofs)
-                {////PERF_END();
+                {
                 continue;
                 }
 
@@ -236,88 +248,85 @@ PERF_START("ALIGNSEQ");
             idx lstdim=hi0->ref._pos;
 
 
-/*
-            if( useDoubleHash ){ // bloom
-                #ifdef HASH_SINDEX
-                    idx iref2=bioHash.hashInd.find(chash2)-1; // bloom will never let 0 to be returned
-                    if( iref2<0 )continue;//{PERF_END();continue;}  // since bloom might not be used
-                    idx ofs2=bioHash.hashInd[iref2].ofs;
-                #else
-                    idx ofs2=bioHash.hashTbl[chash2];
-                #endif
-                if( !ofs2 )
-                    {PERF_END();continue;}
-                    //continue;
-
-                hi2_0=bioHash.hList.ptr(ofs2);
-                hi2=hi0+1;
-                lstdim2=hi2_0->ref._pos;
-            }
-            PERF_END();
-*/
-            // for all of the hits at this position
             for (  idx il=0; il<lstdim ; ++il ) {
 
-                // get the match position
                 sBioseqHash::RefPos & ref=hi->ref;
                 hi=bioHash.hList.ptr(hi->next);
 
                 idx refid=ref.id();
 
                 if(idSub!=sNotIdx && refid!=idSub)
-                    continue; // this reference is to a different sequen
+                    continue;
 
                 if( (flagset & fAlignKeepFirstMatch) && (flagset & fAlignReverseEngine) && SHitBitmask && (SHitBitmask[refid / 8] & (((idx) 1) << (refid % 8))) )
                     continue;
 
 
                 idx subpos=ref.pos();
+                idx ihsubpos = subpos;
 
 
-                /* idx *ss=ssim ? ssim+(refid*selfSimilairityBufferSize+iq*2+idir) : 0 ;
-                if(ss && iq<selfSimilairityBufferSize ) {
-                    // the previous sequence on this reference for this iq has not have a successful extension until the subpos=
-                    idx prevExt=(*ss);
-                    if(qrysim<prevExt)// up to the position of extension the previous and this sequence are identical - hence no extension is possible
-                        continue;
 
-                }*/
+                bool docontinueOLD = false, docontinueNEW = false;
+                bool doAddNEWHit = true;
 
+#ifdef scanHitsMethodNEW
+                docontinueNEW=true;
+#endif
+#ifdef scanHitsMethodOLD
+                docontinueOLD=true;
+#endif
+
+#ifdef scanHitsMethodOLD
                 if(flagset&fAlignSearchRepeats) {
-                    //if((flagset&fAlignSearchTranspositions)) {
-                    if(qrypos>(scanQPos[refid]&0xFFFFFFFF)) // if transpositions are searched: the right part of the query may still hit the left part of the subject
-                        scanQPos[refid]&=0xFFFFFFFF; // shut of subject scan position
-                //}
-                }
-
-                if(!(flagset&fAlignSearchRepeats)) {
-                    if(iq>iQForQPosFiltering && qrypos < (scanQPos[refid]&0xFFFFFFFF) )
+                    if(qrypos>(scanQPos[refid]&0xFFFFFFFF) )
+                        scanQPos[refid]&=0xFFFFFFFF;
+                } else {
+                    if(iq>iQForQPosFiltering && qrypos < (scanQPos[refid]&0xFFFFFFFF) ) {
+    #ifdef scanHitsMethodNEW
+                        docontinueOLD = false;
+    #else
                         continue;
+    #endif
+                    }
                 }
 
                 {
-                    if(subpos<(((scanQPos[refid]>>((idx)32))&0xFFFFFFFF))+1)
-                        continue; //  this position is a definite miss - we tried extending this before
+                    if(subpos<(((scanQPos[refid]>>((idx)32))&0xFFFFFFFF)))
+    #ifdef scanHitsMethodNEW
+                        docontinueOLD = false;
+    #else
+                        continue;
+    #endif
                 }
+#endif
+#ifdef scanHitsMethodNEW
 
-                ///#ifdef _DEBUG
-                ///::printf(" --- considering qryID=%" DEC " iqry=%" DEC " idir=%" DEC " refid=%" DEC " subpos=%" DEC " il/lstdim=%" DEC "/%" DEC " \n", idQry, iq, idir, refid, subpos,il,lstdim);
-                ///#endif
+                fs = ihsubpos + (bioHash.hdr.lenUnit);
+                if(hashHits.hitExists(refid,ihsubpos, fs, (flagset&fAlignSearchRepeats)?iq:-1, hh_delta)) {
+#    ifdef scanHitsMethodOLD
+                    docontinueNEW = false;
+#    else
+                    continue;
+#    endif
+                }
+#endif
+
+#if defined(scanHitsMethodNEW) && defined(scanHitsMethodOLD)
+    #if defined(printMethodComparisonHits)
+                cmpMethodsOutput.printf("FILTER HIT : Read=%10" DEC " idir=%" DEC " iq=%3" DEC " refid=%4" DEC " subpos=%10" DEC " OLD=\'%c\' NEW=\'%c\' \t%s\n",idQry,idir,iq,refid,ihsubpos, (docontinueOLD?'+':'-'), (docontinueNEW?'+':'-'), (docontinueNEW!=docontinueOLD)?"DIFFFF":"");
+    #endif
+                CNTMETHODFILTERS();
+                if( !(docontinueNEW || docontinueOLD) ) {
+                    continue;
+                }
+#endif
                 const char * sub=Subs->seq(refid);
 
 
                 if( useDoubleHash ) {
-                    /*
-                    idx i2;
-                    for( hi2=hi2_0+1, i2=0; i2<lstdim2 ; ++i2){
-                        sBioseqHash::RefPos & ref2=hi2->ref;
-                        hi2=bioHash.hList.ptr(hi2->next);
-                        if( ref2.id() == refid && ref2.pos()==subpos-(bioHash.hdr.lenUnit) )break;
-                    }
-                    if(i2==lstdim2) continue; /// didn't find the second piece of a hash
-                    */
                     idx p=subpos-(bioHash.hdr.lenUnit);
-                    if( p < 0 ) // this hit is too early , cannot be the second hash
+                    if( p < 0 )
                         continue;
                     udx  h2ash=_seqBytes(sub, p, bioHash.hdr.lenUnit );
                     #ifdef _DEBUG
@@ -331,19 +340,18 @@ PERF_START("ALIGNSEQ");
 
 
                 idx sublen=Subs->len(refid);
-                idx curofs=allHits->dim(); // remember the working position
+                idx curofs=allHits->dim();
 
                 idx matchesAll=sIdxMax;
                 idx qryposN=qrypos;
                 if( maxMissQueryPercent >= 0 ){
 
                     PERF_START("EXTENDER");
-                    // extend on the left and right
                     matchesAll=0;
                     idx inShift=0;
                     iqx=QIDX(qrypos,qrylen);
-                    char prvSubLet=_seqBits(sub, subpos , 0);
-                    char prvQryLet=_seqBits(qry, iqx , flags); // the last matching position letters
+                    char prvSubLet=_seqBits(sub, subpos);
+                    char prvQryLet=_seqBits(qry, iqx , flags);
 
                     idx isub=0,iqry=0, isubfirstnonmatch=-1,iqryfirstnonmatch=-1;
                     idx isubleft=subpos,iqryleft=qrypos;
@@ -351,7 +359,7 @@ PERF_START("ALIGNSEQ");
                     ++cntExtension;
                     idx iGapMinus=extGapMidPos,iGapPlus=extGapMidPos;
 
-                    for ( idx ext = -1; ext<2 ; ext+=2 ) { // extension directions left and right
+                    for ( idx ext = -1; ext<2 ; ext+=2 ) {
 
                         if(ext<0){
                             isub=subpos-1;iqry=qrypos-1;
@@ -360,41 +368,32 @@ PERF_START("ALIGNSEQ");
                                 iqry-=(bioHash.hdr.lenUnit-1);
                                 isubleft-=(bioHash.hdr.lenUnit);
                                 iqryleft-=(bioHash.hdr.lenUnit);
-
-
                             }
-                        } // the next position under consideration
+                        }
                         else {
                             isub=subpos+bioHash.hdr.lenUnit;
-                            //if( useDoubleHash ) {
-                            //    isub+=bioHash.hdr.lenUnit;
-                            //}
                             iqry=qrypos+bioHash.hdr.lenUnit;
                         }
-                        idx diffs=0 ,gaps=0 ;//, matches= (ext==-1) ? bioHash.hdr.lenUnit : 0 ;//, isubshift=0, iqryshift=0 ;
+                        idx diffs=0 ,gaps=0 ;
                         idx matches=bioHash.hdr.lenUnit ;
                         if( useDoubleHash && ext<0)
                             matches+=bioHash.hdr.lenUnit ;
 
-//                        char qryLet = 0;
-//                        char subLet = 0;
 
-                        while( gaps<=(maxExtensionGaps+1) && diffs*100 <= sMin((real)looseExtenderMismatchesPercent,maxMissQueryPercent)*((considerGoodSubalignments == 2)?qrylen:((considerGoodSubalignments == 1)?minMatchLen:(matches +diffs))) ) { // maxExtensionGaps+1 in gaps because we are comparing a differential
+                        while( gaps<=(maxExtensionGaps+1) && diffs*100 <= sMin((real)looseExtenderMismatchesPercent,maxMissQueryPercent)*((considerGoodSubalignments == 2)?qrylen:((considerGoodSubalignments == 1)?minMatchLen:(matches +diffs))) ) {
 
                             if(ext>0 && (isub>=sublen || iqry>=qrylen) ){isubright=isub;iqryright=iqry;break;}
                             if(ext<0 && (isub<0 || iqry<0) )break;
-                            //if(ext<0 && (isub<0 || iqry<0) )break;
 
                             iqx=QIDX(iqry,qrylen);
                             char qryLet = _seqBits(qry, iqx , flags);
-                            char subLet = _seqBits(sub, isub , 0);
+                            char subLet = _seqBits(sub, isub);
 
                             if(qryLet!=subLet){
-                                // QRY TO SUB filtering
                                 if( iqryfirstnonmatch==-1 && ext>0 )iqryfirstnonmatch=iqry;
                                 if( isubfirstnonmatch==-1 && ext>0 )isubfirstnonmatch=isub;
 
-                                if(gaps==1){ // the previous letter is a no match ?
+                                if(gaps==1){
                                     idx gapPos=0;
                                     if( prvSubLet==qryLet) {
                                         if(!maxExtensionGaps)
@@ -405,7 +404,7 @@ PERF_START("ALIGNSEQ");
                                     else if( prvQryLet==subLet ) {
                                         if(!maxExtensionGaps)
                                             break;
-                                        gapPos=(isub+(ext>0 ? 1 : 1 )); // it can be zero as well that is why we keep one more and negatives mean on qry
+                                        gapPos=(isub+(ext>0 ? 1 : 1 ));
                                         iqry-=ext;qryLet=prvQryLet;
                                     }
 
@@ -430,7 +429,6 @@ PERF_START("ALIGNSEQ");
                                     gaps=0;
                                     if(inShift==0)++diffs;
                                     inShift=1;
-                                    //++diffs;
                                 }
                                 else {
                                     ++diffs;++gaps;
@@ -438,7 +436,7 @@ PERF_START("ALIGNSEQ");
                                 }
 
                             }
-                            else { // if(qryLet==subLet){
+                            else {
                                 ++matches;
                                 gaps=0;
                                 inShift=0;
@@ -462,12 +460,6 @@ PERF_START("ALIGNSEQ");
                         matchesAll+=matches;
                         if(ext!=-1)matchesAll-=bioHash.hdr.lenUnit ;
                         else --matchesAll;
-                        /*if(ext<0) {
-                            if(qryLet==subLet){
-                                isubleft=isub;
-                                iqryleft=iqry;
-                            }
-                        }*/
                         if( iqryfirstnonmatch==-1 && ext>0 )iqryfirstnonmatch=iqry;
                         if( isubfirstnonmatch==-1 && ext>0 )isubfirstnonmatch=isub;
                     }
@@ -483,46 +475,43 @@ PERF_START("ALIGNSEQ");
 
                     PERF_END();
 
-
-                    if(selfSubjectPosJumpInNonPerfectAlignment)
-                        fs = (isubfirstnonmatch==-1) ? (subpos+bioHash.hdr.lenUnit) : isubfirstnonmatch; // last considered query extension position on this subject
+#ifdef scanHitsMethodOLD
+                    if(ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment) {
+                        fs = (isubfirstnonmatch==-1) ? (subpos+bioHash.hdr.lenUnit) : isubfirstnonmatch;
+                    }
                     else fs=-1;
-                    if(selfQueryPosJumpInNonPerfectAlignment)
-                        fq=(iqryfirstnonmatch==-1) ? (qryposN+bioHash.hdr.lenUnit) : iqryfirstnonmatch; // last considered query extension position on this subject
+                    if(ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment)
+                        fq=(iqryfirstnonmatch==-1) ? (qryposN+bioHash.hdr.lenUnit) : iqryfirstnonmatch;
                     else fq=-1;
-                    if(fs!=-1 || fq!=-1)
+                    if(fs!=-1 || fq!=-1) {
                         FIXFQFS(fq,fs);
+                    }
+#endif
 
-                    // QRY TO SUB filtering
-                    idx compareLength=(flags&fAlignIdentityOnly) ? minMatchLen : minMatchLen/2;
-                    if( matchesAll < compareLength){  // do not attempt to align smith watermann
-                        if( matchesAll>=allowShorterEnds && ((idir==0 && isub>=sublen-3) || (idir==1 && subpos<3)) ) { // if the length is short because of the reference boundary ?? do not cut it
+#ifdef scanHitsMethodNEW
+                    if(isubfirstnonmatch<ihsubpos) {
+                        isubright = ihsubpos+bioHash.hdr.lenUnit;
+                    }
+                    fs = (isubfirstnonmatch==-1) ? isubright : isubfirstnonmatch;
+                    FIXHHS(iq,subpos ,fs,doAddNEWHit,false);
+#endif
+
+                    idx compareLength=(flags&fAlignIdentityOnly) ? minMatchLen : 0;
+                    if( matchesAll < compareLength){
+                        if( matchesAll>=allowShorterEnds && ((idir==0 && isub>=sublen-3) || (idir==1 && subpos<3)) ) {
                         } else {
                             continue;
                         }
                     }
 
-                    // remember the length we were able to extend for this sequence from the seed at position iq
-                    /*
-                    if(ss && ( ( (*ss)>>32 )&0xFFFFFFFF) ) {
-                        *ss=(iqryright-ref.pos())<<32;
-                        qrysim=qrylen;
-                    }*/
-                    ///#ifdef _DEBUG
-                    ///::printf(" ----- extension ok  \n");
-                    ///#endif
-
-                    fs = (isubfirstnonmatch==-1) ? (subpos+bioHash.hdr.lenUnit) : isubfirstnonmatch; // last considered query extension position on this subject
-                    fq= (iqryfirstnonmatch==-1) ? (qryposN+bioHash.hdr.lenUnit) : iqryfirstnonmatch; // last considered query extension position on this subject
-                    //fs = (subpos+bioHash.hdr.lenUnit) ; // last considered query extension position on this subject
-                    //fq= (qryposN+bioHash.hdr.lenUnit) ; // last considered query extension position on this subject
+#ifdef scanHitsMethodOLD
+                    fs = (isubfirstnonmatch==-1) ? (subpos+bioHash.hdr.lenUnit) : isubfirstnonmatch;
+                    fq= (iqryfirstnonmatch==-1) ? (qryposN+bioHash.hdr.lenUnit) : iqryfirstnonmatch;
                     FIXFQFS(fq,fs);
+#endif
 
-//
 
-                    if( matchesAll==qrylen || flags&fAlignIdentityOnly){ // we do not need to run smith watermann here
-                    //if( flags&fAlignIdentityOnly){ // we do not need to run smith watermann here
-                        //iGapPlus=iGapMinus;
+                    if( matchesAll==qrylen || flags&fAlignIdentityOnly){
                         if(matchesAll<minMatchLen*looseExtenderMinimumLengthPercent/100) {
                             continue;
 
@@ -545,7 +534,7 @@ PERF_START("ALIGNSEQ");
                         idx dimal=3;
                         if(matchesAll!=qrylen)
                             dimal+=(iGapPlus-iGapMinus)*5;
-                        allHits->addM(sizeof(Al)/sizeof(idx)+dimal); // 3 for alignment train
+                        allHits->addM(sizeof(Al)/sizeof(idx)+dimal);
                         Al * hdr=(Al*)allHits->ptr(curofs);
                         sSet(hdr);
 
@@ -553,22 +542,16 @@ PERF_START("ALIGNSEQ");
                         hdr->setDimAlign(dimal);
                         hdr->setSubStart(subpos);
                         hdr->setQryStart(qryposN);
-                        //hdr->subEnd=isub;
-                        //hdr->qryEnd=iqry;
-                        // //hdr->setLenAlign(iqry-qryposN+1);
                         hdr->setLenAlign(iqry-qryposN);
                         hdr->setIdSub(refid);
                         hdr->setIdQry(idQry);
-                        // // hdr->setScore((iqry-qryposN+1)*costMatch); //
-                        hdr->setScore((iqry-qryposN)*costMatch); //
-
+                        hdr->setScore((iqry-qryposN)*costMatch);
 
                         idx * m=(idx*)sShift(hdr,sizeof(Al) );
                         m[0]=0;m[1]=0;
-                        m[2]=-matchesAll;//-(iqry-qryposN+1);
-
+                        m[2]=-matchesAll;
                         if(matchesAll!=qrylen) {
-                            idx extent,ig=2;
+                            idx extent, ig = 2;
 
                             for( idx iG=iGapMinus; iG<iGapPlus; ++iG){
                                 if(extensionGapBuff[iG]<0)
@@ -595,16 +578,26 @@ PERF_START("ALIGNSEQ");
                                 m[ig++]=isubleft-subpos;
                                 m[ig++]=iqryleft-qryposN;
                             }
-                            // // m[ig]=-(iqry-iqryleft+1);
                             m[ig]=-(iqry-iqryleft);
+                            isubright = hdr->subStart() + m[ig-2];
                         }
 
 
-                        // QRY TO SUB filtering
                         fq=iqry;
                         fs=isub;
-                        FIXFQFS(fq, fs);
+#ifdef scanHitsMethodNEW
+                        FIXHHS(iq,hdr->subStart() ,isubright,doAddNEWHit,true);
+#endif
+#ifdef scanHitsMethodOLD
+                        FIXFQFS(fq,fs);
+#endif
 
+#if defined(scanHitsMethodNEW) && defined(scanHitsMethodOLD)
+    #ifdef printMethodComparisonHits
+                    cmpMethodsOutput.printf("FAST ALIGN : Read=%10" DEC " idir=%" DEC " iq=%3" DEC " refid=%4" DEC " ihsubpos=%10" DEC " substart=%10" DEC " subend=%10" DEC " OLD=\'%c\' NEW=\'%c\' \t%s\n",idQry,idir,iq,refid,ihsubpos, subpos, isubright,(docontinueOLD?'+':'-'), (docontinueNEW?'+':'-'), (docontinueNEW!=docontinueOLD)?"DIFFFF":"");
+    #endif
+                    CNTMETHODALIGNMENTS();
+#endif
                         ++cntIn;
                         if(flags&fAlignReverseEngine)
                             reverseAlignment(hdr, 0);
@@ -615,34 +608,28 @@ PERF_START("ALIGNSEQ");
                             QHitBitmask[idQry/8]|=(((idx)1)<<(idQry%8));
                         if(SHitBitmask)
                             SHitBitmask[refid/8]|=(((idx)1)<<(refid%8));
-                        if( (flagset&fAlignKeepFirstMatch) && (flagset&fAlignReverseEngine)==0 ){  // if we are interested only in the first hit
-                            ////PERF_END();
-                            return cntIn; // for direct engine ... once we find a hit - break it
+                        if( (flagset&fAlignKeepFirstMatch) && (flagset&fAlignReverseEngine)==0 ){
+                            return cntIn;
                         }
                         if(maxHitsPerRead && cntIn>maxHitsPerRead){
-                            ////PERF_END();
                             return cntIn;
                         }
 
                         continue;
                     }
-                } // if (looseExtenderMismatchesPercent)
+                }
 
 
                 PERF_START("ALIGNSMITHWATERMAN");
 
-                idx lenBeforeNmerMatch=sMin ( qryposN, subpos) ; // the letters before the match cann not be on a negative side of either sequecne
+                idx lenBeforeNmerMatch=sMin ( qryposN, subpos) ;
                 idx qryStart=qryposN-lenBeforeNmerMatch;
                 idx subStart=subpos-lenBeforeNmerMatch;
-                idx qryLenAlign= computeDiagonalWidth+sMin ( (sublen-subStart) , (qrylen-qryStart) ); // the length to be aligned cannot be behind the end of either sequence
+                idx qryLenAlign= computeDiagonalWidth+sMin ( (sublen-subStart) , (qrylen-qryStart) );
                 idx subLenAlign = qryLenAlign;
-                //if( qryLenAlign>qrylen)qryLenAlign=qrylen;
-                //if( subLenAlign>sublen)subLenAlign=sublen;
                 if( qryStart+qryLenAlign>qrylen)qryLenAlign=qrylen-qryStart;
                 if( subStart+subLenAlign>sublen)subLenAlign=sublen-subStart;
 
-                //sVec <idx > * al=allHits->add();
-                //idx  matchcounters[4]; sSet(matchcounters,0,sizeof(idx)*4);
 
                 idx lastQryEnd=qryStart, lastSubEnd=subStart, okhit=false;
                 if(matchesAll>=minMatchLen*looseExtenderMinimumLengthPercent/100) {
@@ -654,33 +641,27 @@ PERF_START("ALIGNSEQ");
                 Al * hdr=(Al*)allHits->ptr(curofs);
 
 
-                // QRY TO SUB filtering
                 if(okhit) {
-                    fq=lastQryEnd-bioHash.hdr.lenUnit+1; // last considered query extension position on this subject
+                    fq=lastQryEnd-bioHash.hdr.lenUnit+1;
                     fs=lastSubEnd-bioHash.hdr.lenUnit+1;
-                    FIXFQFS(fq, fs);
-                //A }
-                //A fq = lastSubEnd-bioHash.hdr.lenUnit+1; // last considered query extension position on this subject
-                //A if(fq>subScanQPos[refid] && !(flagset&fAlignSearchRepeats)  )
-                //A     subScanQPos[refid]=fq;
-                } // A
+                    FIXHHS(iq,hdr->getSubjectStart(hdr->match()),lastSubEnd,doAddNEWHit,true);
+                    FIXFQFS(fq,fs);
+#if defined(scanHitsMethodNEW) && defined(scanHitsMethodOLD)
+    #ifdef printMethodComparisonHits
+                    cmpMethodsOutput.printf("SLOW ALIGN : Read=%10" DEC " idir=%" DEC " iq=%3" DEC " refid=%4" DEC " ihsubpos=%10" DEC " substart=%10" DEC " subend=%10" DEC " OLD=\'%c\' NEW=\'%c\' \t%s\n",idQry,idir,iq,refid,ihsubpos,subStart, lastSubEnd, (docontinueOLD?'+':'-'), (docontinueNEW?'+':'-'), (docontinueNEW!=docontinueOLD)?"DIFFFF":"");
+    #endif
+                    CNTMETHODALIGNMENTS();
+#endif
+                }
                 PERF_END();
 
 
                 if(okhit) {
                     ++cntSuccessSW;
-                    ///#ifdef _DEBUG
-                    ///::printf(" ---- smit ok \n");
-                    ///#endif
                     hdr->setIdSub ( (flags&fAlignReverseEngine) ? idQry : refid );
                     hdr->setIdQry ( (flags&fAlignReverseEngine) ? refid : idQry ) ;
 
 
-                    //if(flags&fAlignReverseEngine) viewAlignment(&dst,hdr, hdr->match() ,qry, sub, qrylen , sublen , "-SM-", 0, 0,0);
-                    //else
-                    //sStr dst;
-                    //viewAlignment(&dst,hdr, hdr->match() ,sub, qry, sublen , qrylen , "-SM-", 0, 0,0);
-                    //::printf("%s\n",dst.ptr());
 
                     ++cntIn;
                     if(QHitBitmask)
@@ -688,8 +669,8 @@ PERF_START("ALIGNSEQ");
                     if(SHitBitmask)
                         SHitBitmask[refid/8]|=(((idx)1)<<(refid%8));
 
-                    if( (flagset&fAlignKeepFirstMatch) && (flagset&fAlignReverseEngine)==0 )  // if we are interested only in the first hit
-                        return cntIn;  // for direct engine (reads are queries) ... once we find a hit - break it
+                    if( (flagset&fAlignKeepFirstMatch) && (flagset&fAlignReverseEngine)==0 )
+                        return cntIn;
                     if(maxHitsPerRead && cntIn>maxHitsPerRead)
                         return cntIn;
 
@@ -704,72 +685,57 @@ PERF_START("ALIGNSEQ");
     }
     PERF_END();
 
+    if(iQForQPosFiltering)
+        iQForQPosFiltering=0;
+
     return cntIn;
 }
 
 
-//#define DEBUGGING_SMITHWATERMANN
 
-/*! Align using the Smith-Waterman algorithm. */
 
-idx sBioseqAlignment::alignSmithWaterman( sVec < idx > * al, const char * sub, idx substart, idx sublen, const char * qry, idx qrystart, idx qrylen, idx flags , idx , idx qrybuflen, idx startFloatingDiagonal, idx * pLastQryEnd,  idx * pLastSubEnd ) // subbuflen
+idx sBioseqAlignment::alignSmithWaterman( sVec < idx > * al, const char * sub, idx substart, idx sublen, const char * qry, idx qrystart, idx qrylen, idx flags , idx , idx qrybuflen, idx startFloatingDiagonal, idx * pLastQryEnd,  idx * pLastSubEnd )
 {
-//vioPerf.start("alignSW1");
 
-//    #ifndef sBIO_ATGC_SEQ_2BIT
-//        idx isComp=( (flags&fAlignForwardComplement) && (flags&fAlignForward) ) || ( (flags&fAlignBackwardComplement) &&(flags&fAlignBackward) ) ? true : false;
-//    #endif
 PERF_START("SMITHWATERMANN-PREPARATION");
     if(!qrybuflen)qrybuflen=qrylen;
 
+    if(2*computeDiagonalWidth + 1 > qrylen) {
+        flags &= ~((idx)fAlignOptimizeDiagonal);
+    }
 
     idx reserve=1024*1024;
-    idx maxSeq=qrylen*2+computeDiagonalWidth; /// the maximum number of sequence letters to be considered cannot be bigger than this.
+    idx maxSeq=qrylen*2+computeDiagonalWidth;
     idx SWMatrixWidth=qrylen ;
-    ///idx ofsMatrixS=0;
-    if(compactSWMatrix && computeDiagonalWidth) {
-        // // // 2015/Feb/14 SWMatrixWidth=computeDiagonalWidth*2;
-        //SWMatrixWidth=computeDiagonalWidth;
+    if((flags&fAlignOptimizeDiagonal) && computeDiagonalWidth) {
         SWMatrixWidth=computeDiagonalWidth*2;
     }
 
     idx sz=(maxSeq+2)*(SWMatrixWidth+1);if(sz<reserve)sz=reserve;
-    // // MatSW.resizeM(sz*2+sublen*2); // make sure there is enough space to hold the matrix
-    // // short int * matP=(short int *)MatSW.ptr();
-    // // short int * floatDiag=matP+sz;
-    MatSW.resizeM(sz*sizeof(long)+sublen*sizeof(long)); // make sure there is enough space to hold the matrix
+    MatSW.resizeM(sz*sizeof(long)+(sublen+1)*sizeof(long));
     long * matP=(long *)MatSW.ptr();
-    long * floatDiag=matP+sz;
-//memset(matP,0,sz*sizeof(short int));
+    long * floatStart = matP+sz;
     sz=(maxSeq+1)*SWMatrixWidth;if(sz<reserve)sz=reserve;
-    MatBR.resizeM(sz); // this matrix doesn't have the zeroth elements , so it is one less
+    MatBR.resizeM(sz);
     char * matB=MatBR.ptr();
-//memset(matB,0,sz*sizeof(char));
 
-    // we keep a matrix of for smith waterman algorithm
-    /// /// #define mat(_v_i, _v_j) matP[(SWMatrixWidth+1)*(_v_i)+(_v_j-ofsMatrixS)]
-    /// /// #define bak(_v_i, _v_j) matB[(SWMatrixWidth)*(_v_i)+(_v_j-ofsMatrixS)]
 
-    #define mat(_v_i, _v_j) matP[(SWMatrixWidth+1)*(_v_i)+(_v_j)]
-    #define bak(_v_i, _v_j) matB[(SWMatrixWidth)*(_v_i)+(_v_j)]
 
-    idx fv,cv=0;//,bestCasePotential;
-    idx maxAll=0, maxAllLastLetter=0; // the maximal score
-    idx maxS=0, maxQ=0, maxRowLastLetter=0, maxColLastLetter=0; // maxS,maxQ: the position of the maxAll
+    #define mat(_v_i, _v_j) matP[(SWMatrixWidth+1)*(_v_i)+((_v_j)-floatStart[(_v_i)])]
+    #define bak(_v_i, _v_j) matB[(SWMatrixWidth)*(_v_i)+((_v_j)-floatStart[(_v_i+1)])]
 
-//    cellsComputed=0;
-    idx qStart=0, qEnd=(flags&fAlignOptimizeDiagonal ) ? computeDiagonalWidth : qrylen; // definition of the diagonal width where we compute
 
-    //DEBUG_OUT_SMITHWATERMANN_TABLE_HEADER
+    idx fv,cv=0;
+    idx maxAll=0, maxAllLastLetter=0;
+    idx maxS=0, maxQ=0, maxRowLastLetter=0, maxColLastLetter=0;
+
+
 
     idx is, iq ,iFloatingDiagonal;
-    //idx nonCompFlags=(flags&(~(fAlignBackwardComplement|fAlignForwardComplement)));
     idx prevCost=0;
 
 PERF_END();
 
-//vioPerf.end();
-//vioPerf.start("alignSW2");
 #ifdef DEBUGGING_SMITHWATERMANN
 ::printf("   \n\n");
 #endif
@@ -779,29 +745,54 @@ PERF_END();
             ( (flags&fAlignBackwardComplement) &&(flags&fAlignBackward) ) ) ?
             true : false;
 
+PERF_START("SMITHWATERMANN-RECOVERY");
+
+    idx qStart=0, qEnd=(flags&fAlignOptimizeDiagonal ) ? (SWMatrixWidth+1) : qrylen;
+    static idx last_qEnd=(flags&fAlignGlobal)?0:qEnd;
+
+    floatStart[0]=0;
+    static long initBoundValue = (flags&fAlignGlobal)?costGapNext:0;
+    long initSWvalue = (sublen+qrylen)*initBoundValue;
+
+    for( is=0; is<sublen; ++is ) {
+        floatStart[is+1]=0;
+        for( iq=qStart; iq<qEnd; ++iq ) {
+            mat(is+1,iq+1)=initSWvalue;
+            bak(is,iq)=0;
+        }
+    }
+    if( last_qEnd != qEnd ) {
+        for( iq=qStart; iq<qEnd; ++iq ) {
+            mat(0,iq+1)=(iq+1)*initBoundValue;
+        }
+        for( is=0; is<sublen; ++is ) {
+            mat(is+1,0)=(is+1)*initBoundValue;
+        }
+        last_qEnd = qEnd;
+    }
+PERF_END();
+
+    qEnd=(flags&fAlignOptimizeDiagonal ) ? (1+computeDiagonalWidth) : qrylen;
+
+
+    idx lastqEnd = qEnd;
 PERF_START("SMITHWATERMANN-ACTUAL-ALGORITHM");
     for(  is=0, iFloatingDiagonal=0; is<sublen; ++is, ++iFloatingDiagonal ) {
-    //vioPerf.start("alignSW2 - 1 ");
 
         #ifdef old_stile
             idx isx=SIDX( (substart+is) , subbuflen);
-            idx sBits=_seqBits(sub, isx, nonCompFlags ); // this is the current sequence letter (bits) on the subject
+            idx sBits=_seqBits(sub, isx, nonCompFlags );
         #else
             idx isx=substart+is;
-            idx sBits=(idx)((sub[(isx>>2)]>>((isx&3)<<1))&0x3) ; // this particular base introduces this two bits
-        #endif // oldstyle
-
-        //#else
-        //    idx sBits=sub[isx];
-        //#endif
+            idx sBits=(idx)((sub[(isx>>2)]>>((isx&3)<<1))&0x3) ;
+        #endif 
 
         idx maxRow=0;
         idx maxRowPos=0;
 #ifdef DEBUGGING_SMITHWATERMANN
 ::printf( "%" DEC " %c  :" , is , sBioseq::mapRevATGC[sBits]);
 #endif
-//vioPerf.end();
-//vioPerf.start("alignSW2 - 2 ");
+        floatStart[is+1]=qStart;
 
         for( iq=qStart; iq<qEnd; ++iq ) {
 
@@ -809,39 +800,30 @@ PERF_START("SMITHWATERMANN-ACTUAL-ALGORITHM");
 
             #ifdef old_stile
                 idx iqx=QIDX((qrystart+iq),qrybuflen);
-                idx qBits=_seqBits(qry, iqx, flags)  ; // this is the current sequence letter (bits) on the query
+                idx qBits=_seqBits(qry, iqx, flags)  ;
             #else
                 idx iqx=((flags&sBioseqAlignment::fAlignBackward) ? (qbqs-iq) : (qrystart+iq));
-                idx qBits=(idx)((qry[(iqx>>2)]>>((iqx&3)<<1))&0x3) ; // this particular base introduces this two bits
+                idx qBits=(idx)((qry[(iqx>>2)]>>((iqx&3)<<1))&0x3) ;
                 if( complementQ)
                     qBits=sBioseq::mapComplementATGC[qBits];
             #endif
-            //#else
-            //    idx qBits= ( isComp ) ?  sBioseq::mapComplementATGC[(idx)qry[iqx]] : qry[iqx];
-            //#endif
 
 
             cv=mat(is+1,iq+1);
-
-            // consider a match
             idx costMMatch=_costMatch( sBits , qBits   );
             fv=mat(is,iq)+costMMatch;
             prevCost=costMMatch;
-            if( cv<=fv ) {cv=fv; bak(is,iq)=3; };// if(is && iq)back(is-1,iq-1)|=0x30; }
-            // consider insertion
-            fv=mat(is,iq+1)+ ( (is==0 || bak(is-1,iq)==3) ? costGapOpen : costGapNext);//_costMatch(-1, sBits);
-            if( cv<fv ) {cv=fv; bak(is,iq)=1; }// if(is)back(is-1,iq)|=0x30; }
-            // consider deletion
-            fv=mat(is+1,iq)+( (iq==0 || bak(is,iq-1)==3) ? costGapOpen : costGapNext);//_costMatch(sBits,-1);
-            if( cv<fv ) {cv=fv; bak(is,iq)=2;};// if(iq)back(is,iq-1)|=0x20; }
+            if( cv<=fv ) {cv=fv; bak(is,iq)=3; };
+            fv=(( iq+1 < lastqEnd )?mat(is,iq+1):0) + ( (is==0 || bak(is-1,iq)==3) ? costGapOpen : costGapNext);
+            if( cv<fv ) {cv=fv; bak(is,iq)=1; }
+            fv=((iq > qStart)?mat(is+1,iq):0)+( (iq==0 || bak(is,iq-1)==3) ? costGapOpen : costGapNext);
+            if( cv<fv ) {cv=fv; bak(is,iq)=2;};
 
-            // is still better to be aligned or start a new one ?
             if(cv>0){
-                // // mat(is+1,iq+1)=(short int)cv;
                 mat(is+1,iq+1)=(long)cv;
 
-                if(cv>=maxRow){ // we remember the Rows maximum value and its position for local alignment
-                    maxRow=cv; // it will be useful for exit criteria
+                if(cv>=maxRow){
+                    maxRow=cv;
                     maxRowPos=iq;
                 }
             }
@@ -850,142 +832,162 @@ PERF_START("SMITHWATERMANN-ACTUAL-ALGORITHM");
 #endif
 
         }
-
+        lastqEnd = qEnd;
 #ifdef DEBUGGING_SMITHWATERMANN
 ::printf("\n");
 #endif
-//vioPerf.end();
-//vioPerf.start("alignSW2 - 3 ");
 
-        // for global alignments we remember the max score and row for the last letter (all sequence is aligned)
         if( flags&fAlignGlobal) {
             if( maxAllLastLetter< cv ) {
                 maxAllLastLetter=cv;
-                maxRowLastLetter=is; // qEnd-1; //is
-                maxColLastLetter=qEnd-1; // qEnd-1; //is
+                maxRowLastLetter=is;
+                maxColLastLetter=qEnd-1;
             }
         }
 
-        // we remember where the maximum score alignment starts
-        if(maxAll<maxRow || ( (flags&fAlignMaxExtendTail) && maxAll==maxRow) ) { // for local alignment
+        if(maxAll<maxRow || ( (flags&fAlignMaxExtendTail) && maxAll==maxRow) ) {
             maxAll=maxRow;
             maxS=is;
             maxQ=maxRowPos;
         }
 
+
+
         if(flags&fAlignOptimizeDiagonal) {
             if(startFloatingDiagonal!=0 && is>startFloatingDiagonal) {
                 if(maxRowPos>iFloatingDiagonal)++iFloatingDiagonal;
                 if(maxRowPos<iFloatingDiagonal)--iFloatingDiagonal;
+                if((flags&fAlignGlobal) && iFloatingDiagonal+computeDiagonalWidth < is) {
+                    iFloatingDiagonal++;
+                }
             }
-            //floatDiag[is]=(short int)iFloatingDiagonal;
-            floatDiag[is]=(long)iFloatingDiagonal;
 
-            //qStart=is-computeDiagonalWidth;
             qStart=iFloatingDiagonal-computeDiagonalWidth;
             if(qStart<0)qStart=0;
-            //qEnd=is+computeDiagonalWidth;
             qEnd=iFloatingDiagonal+computeDiagonalWidth;
             if(qEnd>qrylen)qEnd=qrylen;
         }
 
-        //DEBUG_OUT_SMITHWATERMANN_TABLE_ROW
 
         if(qStart>=qrylen-1)
             break;
 
     }
-//vioPerf.end();
-//vioPerf.start("alignSW3");
 PERF_END();
 
 PERF_START("SMITHWATERMANN-COINTAINERIZATION");
-    //
-    // traceback mechanism
-    //
-    //al->resizeM(sizeof(Al)/sizeof(idx)); // initialize the header
     idx curofs=al->dim();
     al->addM(sizeof(Al)/sizeof(idx));
     Al * hdr=(Al*)al->ptr(curofs);
     sSet(hdr);
 
-    //hdr->scoreLocal=maxAll;
-    //hdr->scoreGlobal=maxAllLastLetter;
     hdr->setFlags(flags);
 
     if(flags&fAlignGlobal) {
         maxAll=maxAllLastLetter;
         maxS=maxRowLastLetter;
-        maxQ=maxColLastLetter;    // qrylen-1
-        hdr->setScore(maxAllLastLetter);//hdr->scoreGlobal;
+        maxQ=maxColLastLetter;
     }else
-        hdr->setScore(maxAll);//hdr->scoreLocal;
 
 
-    hdr->setDimAlign(0); // to be counted a little later
+    hdr->setDimAlign(0);
     hdr->setSubStart(substart);
     hdr->setQryStart(qrystart);
-    //hdr->subEnd=maxS+hdr->subStart; // the maximum subject window used for alignment : +1 is because maxS was an index
-    //hdr->qryEnd=maxQ+hdr->qryStart; // qryLen // the maximum query window used for alignment
     if(pLastQryEnd)*pLastQryEnd=maxQ+qrystart+1;
     if(pLastSubEnd)*pLastSubEnd=maxS+substart+1;
 
     if(flags&fAlignReverseEngine){
-        //idx t=hdr->subStart;hdr->subStart=hdr->qryStart;hdr->qryStart=t;
         hdr->starts=sSwapHiLo(hdr->starts);
-//        t=hdr->subEnd;hdr->subEnd=hdr->qryEnd;hdr->qryEnd=t;
     }
 
-    //
-    // first we determine the length
-    //
     idx  matchcounters[4]; sSet(matchcounters,0,sizeof(idx)*4);
     idx dlen =1+( (minMatchLen<=0?1:minMatchLen))/(sizeof(idx)*8);
     bool oklocal = false, match = false;
     localBitMatch.resize(dlen);sSet(localBitMatch.ptr(),0,sizeof(idx)*dlen);
-//    idx insideIsGood=0;
-PERF_END();
 
-PERF_START("SMITHWATERMANN-BACKTRACKING");
-    for(dlen=0, is=maxS, iq=maxQ, cv=maxAll;  ; cv=mat(is+1,iq+1) , dlen+=2) {  // start walking back on backtrace pointers
-        if(flags&fAlignGlobal){ if(iq<0 || is<0) break;} // break when we reach the first letter in global alignment
-        else if(cv<=0) break;// break if we reach the 0 score in local alignment
-        //else if(cv<=0 || is<0 || iq<0) break;// break if we reach the 0 score in local alignment
+    static sVec<idx> tails_window_m(sMex::fSetZero|sMex::fExactSize),tails_window_iq(sMex::fSetZero|sMex::fExactSize),tails_window_is(sMex::fSetZero|sMex::fExactSize);
+    tails_window_m.resize(trimLowScoreEnds);tails_window_iq.resize(trimLowScoreEnds);tails_window_is.resize(trimLowScoreEnds);
+    tails_window_m.set(0);tails_window_iq.set(0);tails_window_is.set(0);
+    idx tails_window_score = 0, iqL = -1, iqR = -1, isL = -1, isR = -1, idL = -1, idR = -1, itw = 0;
+    for(dlen=0, is=maxS, iq=maxQ, cv=maxAll;  ; cv=mat(is+1,iq+1) , dlen+=2) {
+        if(flags&fAlignGlobal){ if(iq<0 || is<0) break;}
+        else if(cv<=0) break;
         match = false;
         char bw=bak(is,iq);
-        if( (!(flags&fAlignMaxExtendTail)) && cv<costMatch ){ break;} // if we want compact alignment ... no reason to walk left without gaining anything
+        if( ((!(flags&fAlignMaxExtendTail)) && !(flags&fAlignGlobal)) && cv<costMatchFirst ){ break;}
 
         if(bw==0x02)++matchcounters[2];
         else if(bw==0x01)++matchcounters[3];
-        else if(cv<mat(is,iq))++matchcounters[1];
+        else if(cv<mat(is,iq)+costMatchFirst)++matchcounters[1];
         else { ++matchcounters[0];match=true;}
 
-        if( considerGoodSubalignments == 1 && !oklocal){
-            if( matchcounters[0]*100 < minMatchLen*(100-maxMissQueryPercent) ){// because maximum score may have more than allowed number of missmatches : we want to know that inside we have a region satisfying our missmatch criteria
-                idx bitptr = (( dlen / 2)%minMatchLen) / (sizeof(idx) * 8), bitpos = ((( dlen / 2)%minMatchLen) % (sizeof(idx) * 8));
-                if( localBitMatch[bitptr] & ((idx)1 << bitpos ) ) {
-                    --matchcounters[0];
-                    if(!match)
-                        localBitMatch[bitptr] &= ~((idx)1 << bitpos );
+        if( trimLowScoreEnds > 0 ) {
+            itw = (dlen/2)%trimLowScoreEnds;
+            if( dlen>=2*trimLowScoreEnds )
+                tails_window_score -= tails_window_m[itw];
+            tails_window_m[itw]=match?1:0;
+            tails_window_score += tails_window_m[itw];
+            tails_window_iq[itw]=iq;
+            tails_window_is[itw]=is;
+
+            if( dlen>=2*trimLowScoreEnds ) {
+                if( tails_window_score*100 > trimLowScoreEndsMaxMM*trimLowScoreEnds) {
+                    if(iqL < 0 && tails_window_m[(itw+1)%trimLowScoreEnds] > 0 ) {
+                        idL = dlen-2*(trimLowScoreEnds-1);
+                        iqL = tails_window_iq[(itw+1)%trimLowScoreEnds];
+                        isL = tails_window_is[(itw+1)%trimLowScoreEnds];
+                    }
+                    if( match ) {
+                        idR = dlen; iqR = iq; isR = is;
+                    }
                 }
-                localBitMatch[bitptr] |= (idx)match << bitpos;
             }
-            else oklocal = true;
+            if( iqL < 0 && match ) {
+                idR = dlen;iqR = iq;isR = is;
+            }
+        }
+        if( considerGoodSubalignments == 1 && !oklocal){
+            idx bitptr = (( dlen / 2)%minMatchLen) / (sizeof(idx) * 8), bitpos = ((( dlen / 2)%minMatchLen) % (sizeof(idx) * 8));
+            if( localBitMatch[bitptr] & ((idx)1 << bitpos ) ) {
+                --matchcounters[0];
+                if(!match) {
+                    localBitMatch[bitptr] &= ~((idx)1 << bitpos );
+                }
+            }
+            localBitMatch[bitptr] |= (idx)match << bitpos;
+            if( matchcounters[0]*100 >= minMatchLen*(100-maxMissQueryPercent) ){
+                oklocal = true;
+            }
         }
         if(!bw) break;
-        if(bw & 0x1)--is; // backstep
+        if(bw & 0x1)--is;
         if(bw & 0x2)--iq;
     }
+    idx firstIS = is + 1, firstIQ = iq + 1;
+
 PERF_END();
 
 PERF_START("SMITHWATERMANN-FETCHING");
 
     bool okhit=true;
+
+    if(trimLowScoreEnds > 0 ) {
+        if(idL < 0 ) {
+            dlen = 0;
+            okhit = false;
+        } else {
+            dlen = idR-idL+2;
+            maxQ = iqL;
+            maxS = isL;
+            maxAll = mat(maxS,maxQ) - mat(isR,iqR);
+        }
+    }
+
     if( dlen<2*minMatchLen) {
         if( !(flags&fAlignBackward) && maxS+substart+1>=sublen-3 && dlen>=2*allowShorterEnds )
             okhit=true;
         else if( (flags&fAlignBackward) && substart<3 && dlen>=2*allowShorterEnds )
-            okhit=true; // if the length is short because of the reference boundary ?? do not cut it
+            okhit=true;
         else okhit=false;
     }
     else if(scoreFilter && hdr->score()<scoreFilter ) okhit=false;
@@ -1000,12 +1002,11 @@ PERF_START("SMITHWATERMANN-FETCHING");
         }
     }
     if(!okhit) {
-        //al->cut(curofs);
     } else
     {
 
-        idx * m=al->addM(dlen);//+(sizeof(Alignment::Hdr)/sizeof(idx)) ); // this is the real number of elements needed
-        hdr=(Al*)al->ptr(curofs); // because it may have been reallocated
+        idx * m=al->addM(dlen);
+        hdr=(Al*)al->ptr(curofs);
 
         bak(0,0)=3;
         hdr->setDimAlign(dlen);
@@ -1015,64 +1016,387 @@ PERF_START("SMITHWATERMANN-FETCHING");
             qq=1;ss=0;
         }
 
-        for(dlen-=2, is=maxS, iq=maxQ, cv=maxAll;  dlen>=0 ; cv=mat(is+1,iq+1) , dlen-=2) {  // start walking back on backtrace pointers
+        for(dlen-=2, is=maxS, iq=maxQ, cv=maxAll;  dlen>=0 ; cv=mat(is+1,iq+1) , dlen-=2) {
 
             char bw=bak(is,iq);
 
-            m[dlen+qq]= bw==0x02 ? -1 : is; // here we remember the matching pairs: the fact that subject position goes after
-            m[dlen+ss]= bw==0x01 ? -1 : iq; // query position is reverted in the next loop during reversal of the array to forward order
+            m[dlen+qq]= bw==0x02 ? -1 : (is - firstIS);
+            m[dlen+ss]= bw==0x01 ? -1 : (iq - firstIQ);
 
-            if(bw & 0x1)--is; // backstep
+            if(bw & 0x1)--is;
             if(bw & 0x2)--iq;
         }
+
+        hdr->setSubStart(substart+firstIS);
+        hdr->setQryStart(qrystart+firstIQ);
+
+        hdr->setScore(maxAll);
         hdr->setLenAlign(hdr->dimAlign()/2);
 
         hdr->setDimAlign(compressAlignment(hdr, m, m ));
         al->cut(curofs+sizeof(sBioseqAlignment::Al)/sizeof(idx)+hdr->dimAlign());
 
-//        hdr->missMatches= ((matchcounters[1]&0xFFFF)) | ((matchcounters[2]&0xFFFF)<<16) | ((matchcounters[3]&0xFFFF)<<32);
 
     }
 
 PERF_END();
 
-//vioPerf.end();
-//vioPerf.start("alignSW4");
 
-PERF_START("SMITHWATERMANN-RECOVERY");
 
-    //set back things to zero
-    qStart=0;
-    qEnd=(flags&fAlignOptimizeDiagonal ) ? computeDiagonalWidth : qrylen; // definition of the diagonal width where we compute
-    for(  is=0; is<sublen; ++is ) {
-        for( iq=qStart; iq<qEnd; ++iq ) {
-            mat(is+1,iq+1)=0;
-            bak(is,iq)=0;
-
-            if(flags&fAlignOptimizeDiagonal) {
-                //qStart=is-computeDiagonalWidth;
-                qStart=floatDiag[is]-computeDiagonalWidth;
-                if(qStart<0)qStart=0;
-                //qEnd=is+computeDiagonalWidth;
-                qEnd=floatDiag[is]+computeDiagonalWidth;
-                if(qEnd>qrylen)qEnd=qrylen;
-
-            }
-        }
-    }
-PERF_END();
-
-//vioPerf.end();
 
 
     return okhit ? 1 : 0 ;
     #undef mat
 }
 
+
+typedef real SWMType;
+#define DEBUGGING_SMITHWATERMANN
+sBioseqAlignment::Al * sBioseqAlignment::alignSWProfile (sVec < idx > & al, const char ** subs, idx ** sub_ms, idx substart, idx sublen, idx subcnt, const char ** qrys, idx ** qry_ms, idx qrybuflen, idx qrystart, idx qrylen, idx qrycnt, idx flags)
+{
+    if(2*computeDiagonalWidth + 1 > qrylen) {
+        flags &= ~((idx)fAlignOptimizeDiagonal);
+    }
+    idx startFloatingDiagonal = computeDiagonalWidth;
+
+    idx reserve=1024*1024;
+    idx maxSeq=sMax(qrylen,sublen)*2+computeDiagonalWidth;
+    idx SWMatrixWidth=qrylen ;
+    if((flags&fAlignOptimizeDiagonal) && computeDiagonalWidth) {
+        SWMatrixWidth=computeDiagonalWidth*2;
+    }
+
+    idx sz=(maxSeq+2)*(SWMatrixWidth+1);if(sz<reserve)sz=reserve;
+
+
+    MatSW.resizeM(sz*sizeof(SWMType)+(sublen+1)*sizeof(SWMType));
+    SWMType * matP=(SWMType *)MatSW.ptr();
+    long * floatStart=(long*)(matP+sz);
+
+    sz=(maxSeq+1)*SWMatrixWidth;if(sz<reserve)sz=reserve;
+    MatBR.resizeM(sz);
+    char * matB=MatBR.ptr();
+
+    #define mat(_v_i, _v_j) matP[(SWMatrixWidth+1)*(_v_i)+((_v_j)-floatStart[(_v_i)])]
+    #define bak(_v_i, _v_j) matB[(SWMatrixWidth)*(_v_i)+((_v_j)-floatStart[(_v_i+1)])]
+
+    SWMType fv,cv=0, costMMatch = 0;;
+    idx maxAll=0, maxAllLastLetter=0;
+    idx maxS=0, maxQ=0, maxRowLastLetter=0, maxColLastLetter=0;
+
+
+    idx is, isx, iis, * sub_m, iq, iqx, iiq, * qry_m;
+    const char * sub, *qry;
+    idx iFloatingDiagonal;
+
+    idx qStart=0, qEnd=(flags&fAlignOptimizeDiagonal ) ? (SWMatrixWidth+1) : qrylen;
+    static idx last_qEnd=(flags&fAlignGlobal)?0:qEnd;
+
+    floatStart[0]=0;
+    static long initBoundValue = (flags&fAlignGlobal)?costGapNext:0;
+    idx initSWvalue = (flags&fAlignGlobal)?-(REAL_MAX/2):0;
+
+    for( is=0; is<sublen; ++is ) {
+        floatStart[is+1]=0;
+        for( iq=qStart; iq<qEnd; ++iq ) {
+            mat(is+1,iq+1)=initSWvalue;
+            bak(is,iq)=0;
+        }
+    }
+    if( last_qEnd != qEnd ) {
+        for( iq=qStart; iq<qEnd; ++iq ) {
+            mat(0,iq+1)=(iq+1)*initBoundValue;
+        }
+        for( is=0; is<sublen; ++is ) {
+            mat(is+1,0)=(is+1)*initBoundValue;
+        }
+        last_qEnd = qEnd;
+    }
+
+    qEnd=(flags&fAlignOptimizeDiagonal ) ? computeDiagonalWidth : qrylen;
+    idx qbqs = qrybuflen - qrystart - 1;
+    bool complementQ=( ( (flags&fAlignForwardComplement) && (flags&fAlignForward) ) ||
+            ( (flags&fAlignBackwardComplement) &&(flags&fAlignBackward) ) ) ?
+            true : false;
+
+#ifdef _DBG_PROF_SW
+    sStr dbgout;
+#endif
+    real profSub[5];idx sBits;
+    for(  is=0, iFloatingDiagonal=0; is<sublen; ++is, ++iFloatingDiagonal ) {
+        idx maxRow = -sIdxMax;
+        idx maxRowPos=0;
+        floatStart[is+1]=qStart;
+#ifdef _DBG_PROF_SW
+        for(iq=0; iq < qStart ; ++iq) {
+            dbgout.printf(",");
+        }
+#endif
+        sSet(profSub,0,5*sizeof(real));
+        for( iis = 0 ; iis < subcnt ; ++iis) {
+            sub = subs[iis];
+            sBits = 0;
+            isx=substart+is;
+            if( !sub_ms ) {
+                sBits=(idx)((sub[(isx>>2)]>>((isx&3)<<1))&0x3) ;
+            } else {
+                sub_m = sub_ms[iis];
+                if( sub_m[2*isx+1] < 0 ) {
+                    sBits = 4;
+                } else {
+                    isx = sub_m[2*isx+1];
+                    sBits=(idx)((sub[(isx>>2)]>>((isx&3)<<1))&0x3) ;
+                }
+            }
+            profSub[sBits]++;
+        }
+        for(idx isp = 0 ; isp < 5 ; ++isp)profSub[isp]/=subcnt;
+
+        for( iq=qStart; iq<qEnd; ++iq ) {
+            costMMatch = 0;
+            for( iis = 0 ; iis < 5 ; ++iis) {
+                if(profSub[iis]==0)continue;
+
+                for ( iiq = 0 ; iiq < qrycnt ; ++iiq )  {
+                    qry = qrys[iiq];
+                    idx qBits = -1;
+                    iqx=((flags&sBioseqAlignment::fAlignBackward) ? (qbqs-iq) : (qrystart+iq));
+                    if( !qry_ms ) {
+                        qBits=(idx)((qry[(iqx>>2)]>>((iqx&3)<<1))&0x3) ;
+                    } else {
+                        qry_m = qry_ms[iiq];
+                        if( qry_m[2*iqx+1] < 0 ) {
+                            qBits = -2;
+                        } else {
+                            iqx = qry_m[2*iqx+1];
+                            qBits=(idx)((qry[(iqx>>2)]>>((iqx&3)<<1))&0x3) ;
+                        }
+                    }
+                    if( complementQ)
+                        qBits=sBioseq::mapComplementATGC[qBits];
+
+                    costMMatch += _profile_costMatch(iis , qBits)*profSub[iis];
+                }
+
+            }
+            costMMatch = costMMatch/qrycnt;
+            cv=mat(is+1,iq+1);
+            fv=mat(is,iq)+costMMatch;
+            if( cv<=fv ) {cv=fv; bak(is,iq)=3; };
+            fv=mat(is,iq+1) + ( (is==0 || bak(is-1,iq)==3) ? costGapOpen : costGapNext);
+            if( cv<fv ) {cv=fv; bak(is,iq)=1; }
+            fv=mat(is+1,iq)+( (iq==0 || bak(is,iq-1)==3) ? costGapOpen : costGapNext);
+            if( cv<fv ) {cv=fv; bak(is,iq)=2;};
+#ifdef _DBG_PROF_SW
+            dbgout.printf(",%3.2lf",cv);
+#endif
+            if(cv>0 || (flags&fAlignGlobal)){
+                mat(is+1,iq+1)=(SWMType)cv;
+
+                if(cv>=maxRow){
+                    maxRow=cv;
+                    maxRowPos=iq;
+                }
+            }
+        }
+#ifdef _DBG_PROF_SW
+        dbgout.printf("\n");
+#endif
+        if( flags&fAlignGlobal) {
+                maxAllLastLetter=maxRow;
+                maxRowLastLetter=is;
+                maxColLastLetter=qEnd-1;
+        }
+
+        if(maxAll<maxRow || ( (flags&fAlignMaxExtendTail) && maxAll==maxRow) ) {
+            maxAll=maxRow;
+            maxS=is;
+            maxQ=maxRowPos;
+        }
+
+        if(flags&fAlignOptimizeDiagonal) {
+            if(startFloatingDiagonal!=0 && is>startFloatingDiagonal) {
+                if(maxRowPos>iFloatingDiagonal)++iFloatingDiagonal;
+                if(maxRowPos<iFloatingDiagonal)--iFloatingDiagonal;
+                if((flags&fAlignGlobal) && iFloatingDiagonal+computeDiagonalWidth < is) {
+                    iFloatingDiagonal++;
+                }
+            }
+            qStart=iFloatingDiagonal-computeDiagonalWidth;
+            if(qStart<0)qStart=0;
+            qEnd=iFloatingDiagonal+computeDiagonalWidth;
+            if(qEnd>qrylen)qEnd=qrylen;
+        }
+
+
+        if(qStart>=qrylen-1)
+            break;
+
+    }
+
+    if(flags&fAlignGlobal) {
+        maxAll=maxAllLastLetter;
+        maxS=maxRowLastLetter;
+        maxQ=maxColLastLetter;
+    }
+
+    return backTracking(&al,substart,sublen,qrystart,qrylen,SWMatrixWidth,(idx)(floatStart - (long*)matP),maxS,maxQ,maxAll,flags);
+}
+
+sBioseqAlignment::Al * sBioseqAlignment::backTracking(sVec < idx > * al, idx substart, idx sublen, idx qrystart, idx qrylen, idx SWMatrixWidth, idx floatSZ, idx maxS, idx maxQ, idx maxScore, idx flags) {
+    SWMType * matP=(SWMType *)MatSW.ptr();
+    char * matB=MatBR.ptr();
+
+    long * floatStart = (long *)(matP+floatSZ);
+    #define mat(_v_i, _v_j) matP[(SWMatrixWidth+1)*(_v_i)+((_v_j)-floatStart[(_v_i)])]
+    #define bak(_v_i, _v_j) matB[(SWMatrixWidth)*(_v_i)+((_v_j)-floatStart[(_v_i+1)])]
+
+    idx curofs=al->dim();
+    al->addM(sizeof(Al)/sizeof(idx));
+    Al * hdr=(Al*)al->ptr(curofs);
+    sSet(hdr);
+
+    hdr->setFlags(flags);
+
+
+    hdr->setDimAlign(0);
+    hdr->setSubStart(substart);
+    hdr->setQryStart(qrystart);
+
+    if(flags&fAlignReverseEngine){
+        hdr->starts=sSwapHiLo(hdr->starts);
+    }
+
+    idx  matchcounters[4]; sSet(matchcounters,0,sizeof(idx)*4);
+    idx dlen =1+( (minMatchLen<=0?1:minMatchLen))/(sizeof(idx)*8),  is=0, iq=0;
+    SWMType cv=0;
+    bool oklocal = false, match = false;
+    localBitMatch.resize(dlen);sSet(localBitMatch.ptr(),0,sizeof(idx)*dlen);
+
+    static sVec<idx> tails_window_m(sMex::fSetZero|sMex::fExactSize),tails_window_iq(sMex::fSetZero|sMex::fExactSize),tails_window_is(sMex::fSetZero|sMex::fExactSize);
+    tails_window_m.resize(trimLowScoreEnds);tails_window_iq.resize(trimLowScoreEnds);tails_window_is.resize(trimLowScoreEnds);
+    tails_window_m.set(0);tails_window_iq.set(0);tails_window_is.set(0);
+    idx tails_window_score = 0, iqL = -1, iqR = -1, isL = -1, isR = -1, idL = -1, idR = -1, itw = 0;
+    for(dlen=0, is=maxS, iq=maxQ, cv=maxScore;  ; cv=mat(is+1,iq+1) , dlen+=2) {
+        if(flags&fAlignGlobal){ if(iq<0 || is<0) break;}
+        else if(cv<=0) break;
+
+        match = false;
+        char bw=bak(is,iq);
+        if( (!(flags&fAlignMaxExtendTail) && !(flags&fAlignGlobal)) && cv<costMatchFirst ){ break;}
+
+        if(bw==0x02)++matchcounters[2];
+        else if(bw==0x01)++matchcounters[3];
+        else if(cv<mat(is,iq)+costMatchFirst)++matchcounters[1];
+        else { ++matchcounters[0];match=true;}
+
+        if( trimLowScoreEnds > 0 ) {
+            itw = (dlen/2)%trimLowScoreEnds;
+            if( dlen>=2*trimLowScoreEnds )
+                tails_window_score -= tails_window_m[itw];
+            tails_window_m[itw]=match?1:0;
+            tails_window_score += tails_window_m[itw];
+            tails_window_iq[itw]=iq;
+            tails_window_is[itw]=is;
+
+            if( dlen>=2*trimLowScoreEnds ) {
+                if( tails_window_score*100 > trimLowScoreEndsMaxMM*trimLowScoreEnds) {
+                    if(iqL < 0 && tails_window_m[(itw+1)%trimLowScoreEnds] > 0 ) {
+                        idL = dlen-2*(trimLowScoreEnds-1);
+                        iqL = tails_window_iq[(itw+1)%trimLowScoreEnds];
+                        isL = tails_window_is[(itw+1)%trimLowScoreEnds];
+                    }
+                    if( match ) {
+                        idR = dlen; iqR = iq; isR = is;
+                    }
+                }
+            }
+            if( iqL < 0 && match ) {
+                idR = dlen;iqR = iq;isR = is;
+            }
+        }
+        if( considerGoodSubalignments == 1 && !oklocal){
+            if( matchcounters[0]*100 < minMatchLen*(100-maxMissQueryPercent) ){
+                idx bitptr = (( dlen / 2)%minMatchLen) / (sizeof(idx) * 8), bitpos = ((( dlen / 2)%minMatchLen) % (sizeof(idx) * 8));
+                if( localBitMatch[bitptr] & ((idx)1 << bitpos ) ) {
+                    --matchcounters[0];
+                    if(!match)
+                        localBitMatch[bitptr] &= ~((idx)1 << bitpos );
+                }
+                localBitMatch[bitptr] |= (idx)match << bitpos;
+            }
+            else oklocal = true;
+        }
+        if(!bw) break;
+        if(bw & 0x1)--is;
+        if(bw & 0x2)--iq;
+    }
+
+    bool okhit=true;
+
+    if(trimLowScoreEnds > 0 ) {
+        if(idL < 0 ) {
+            dlen = 0;
+            okhit = false;
+        } else {
+            dlen = idR-idL+2;
+            maxQ = iqL;
+            maxS = isL;
+            maxScore = mat(maxS,maxQ) - mat(isR,iqR);
+        }
+    }
+
+    if( dlen<2*minMatchLen) {
+        if( !(flags&fAlignBackward) && maxS+substart+1>=sublen-3 && dlen>=2*allowShorterEnds )
+            okhit=true;
+        else if( (flags&fAlignBackward) && substart<3 && dlen>=2*allowShorterEnds )
+            okhit=true;
+        else okhit=false;
+    }
+    else if(scoreFilter && hdr->score()<scoreFilter ) okhit=false;
+
+     else {
+        if(considerGoodSubalignments == 1 ) {
+            if( !oklocal ) okhit=false;
+        } else if(considerGoodSubalignments == 2){
+            if( matchcounters[0]*200 < 2*qrylen*(100-maxMissQueryPercent)) okhit=false;
+        } else {
+            if( matchcounters[0]*200 < dlen*(100-maxMissQueryPercent)  ) okhit=false;
+        }
+    }
+    if(okhit) {
+        idx * m=al->addM(dlen);
+        hdr=(Al*)al->ptr(curofs);
+
+        bak(0,0)=3;
+        hdr->setDimAlign(dlen);
+
+        idx qq=0,ss=1;
+        if(flags&fAlignReverseEngine) {
+            qq=1;ss=0;
+        }
+
+        for(dlen-=2, is=maxS, iq=maxQ;  dlen>=0 ; dlen-=2) {
+
+            char bw=bak(is,iq);
+
+            m[dlen+qq]= bw==0x02 ? -1 : is;
+            m[dlen+ss]= bw==0x01 ? -1 : iq;
+
+            if(bw & 0x1)--is;
+            if(bw & 0x2)--iq;
+        }
+        hdr->setScore(maxScore);
+        hdr->setLenAlign(hdr->dimAlign()/2);
+
+        hdr->setDimAlign(compressAlignment(hdr, m, m ));
+        al->cut(curofs+sizeof(sBioseqAlignment::Al)/sizeof(idx)+hdr->dimAlign());
+    }
+    return okhit?hdr:0;
+}
+
 idx sBioseqAlignment::remapAlignment(Al * from, Al * to, idx * mfrom0, idx * mto0 ,idx maxlen,idx readonly,sVec<idx> * lookup )
 {
-    //idx * mfrom0=from->match();
-    //idx * mto0=to->match();
     if(!mfrom0)mfrom0=from->match();
     if(!mto0)mto0=to->match();
     if(!maxlen)maxlen=sIdxMax;
@@ -1080,15 +1404,13 @@ idx sBioseqAlignment::remapAlignment(Al * from, Al * to, idx * mfrom0, idx * mto
     idx ofsfrom=from->subStart(), ofsto=to->qryStart();
 
     idx * mfrom, * mto=mto0+1, *mfromEnd=mfrom0+cntfrom, * mtoEnd=mto0+cntto,cntr=0;
-//    for( mfrom=mfrom0, mto=mto0+1; mfrom < mfromEnd && mto<mtoEnd && cntr<maxlen; mfrom+=2 , ++cntr) { // mto0+1 because in master alignment to amplicon , amplicon is the query
     for( mfrom=mfrom0, mto=mto0+1; mfrom < mfromEnd && mto<mtoEnd && cntr<maxlen; mfrom+=2 , ++cntr) {
-        // find the position  where we have and overlap of the two mappings on amplicon
-        while ( mfrom<mfromEnd &&  (*mfrom)+ofsfrom < (*mto)+ofsto)   // TODO : sortsearch instead of scanning
+        while ( mfrom<mfromEnd &&  (*mfrom)+ofsfrom < (*mto)+ofsto)
           mfrom+=2;
         if(mfrom>=mfromEnd)break;
 
 
-        if(lookup){   //if((*mfrom)+ofsfrom>(to->dimAlign()-cntto))break;
+        if(lookup){
             mto=mto0+( (*(lookup->ptr( (*mfrom)+ofsfrom )) )*2)+1;
             if(mto>=mtoEnd)break;
         }
@@ -1096,34 +1418,29 @@ idx sBioseqAlignment::remapAlignment(Al * from, Al * to, idx * mfrom0, idx * mto
           mto+=2;
         if(mto>=mtoEnd)break;
 
-        if ( (*mfrom)+ofsfrom!=(*mto)+ofsto) // this position is not aligned (?in the multiple alignment?)
-            *(mfrom+1)=-1; // query points to -1
+        if ( (*mfrom)+ofsfrom!=(*mto)+ofsto)
+            *(mfrom+1)=-1;
         else {
             *mfrom=*(mto-1);
             if(*mfrom!=-1) {
                 *mfrom+=-ofsfrom;
-//                from->subEnd=*mfrom;
                 if(!readonly)from->setLenAlign((mfrom-mfrom0)/2);
             }
         }
 
         if( *(mfrom+1)!=-1){
-//             from->qryEnd=*(mfrom+1);
             if(!readonly)from->setLenAlign((mfrom-mfrom0+2)/2);
          }
 
     }
 
-    if(!readonly)from->setIdSub(to->idSub());// now we are aligned with master
+    if(!readonly)from->setIdSub(to->idSub());
     if(!readonly)from->setSubStart(to->subStart()+from->subStart());
-//    from->subEnd+=from->subStart;
-//  from->qryEnd+=from->qryStart;
 
-    return from->lenAlign(); // how many elements in a new array
+    return from->lenAlign();
 }
 
-//static
-idx sBioseqAlignment::remapSubjectPosition(Al * hdr, idx * to0, idx pos, idx valid /*= 0*/ )
+idx sBioseqAlignment::remapSubjectPosition(Al * hdr, idx * to0, idx pos, idx valid)
 {
     if(!hdr || !to0) {
         return 0;
@@ -1147,7 +1464,7 @@ idx sBioseqAlignment::remapSubjectPosition(Al * hdr, idx * to0, idx pos, idx val
         m_pos = -1;
 
     if( (*to)+ofS != pos )
-        m_pos =  -1; // query points to -1
+        m_pos =  -1;
     else {
         if( m_pos < 0 && valid > 0) {
             if( valid == 1 ) {
@@ -1164,8 +1481,7 @@ idx sBioseqAlignment::remapSubjectPosition(Al * hdr, idx * to0, idx pos, idx val
     return m_pos;
 }
 
-//static
-idx sBioseqAlignment::remapQueryPosition(Al * hdr, idx * to0, idx pos, idx valid /*= 0*/ )
+idx sBioseqAlignment::remapQueryPosition(Al * hdr, idx * to0, idx pos, idx valid)
 {
     if(!hdr || !to0) {
         return 0;
@@ -1189,7 +1505,7 @@ idx sBioseqAlignment::remapQueryPosition(Al * hdr, idx * to0, idx pos, idx valid
         m_pos = -1;
 
     if( (*(to+1))+ofQ != pos )
-        m_pos =  -1; // query points to -1
+        m_pos =  -1;
     else {
         if( m_pos < 0 && valid > 0) {
             if( valid == 1 ) {
@@ -1205,77 +1521,62 @@ idx sBioseqAlignment::remapQueryPosition(Al * hdr, idx * to0, idx pos, idx valid
     }
     return m_pos;
 }
-/*! Truncate the alignment */
 
 idx sBioseqAlignment::truncateAlignment(Al * hdr, idx maskBefore, idx maskAfter, idx issuborqry)
 {
     idx * m=hdr->match();
 
-    idx subend=hdr->subStart()+m[0]+1+hdr->lenAlign();
+    idx subend=hdr->getSubjectEnd(m);
     if ( issuborqry==0)  {
-        //if(maskAfter<0)maskAfter=hdr->subEnd()+maskAfter;
         if(maskAfter<0)maskAfter=subend+maskAfter;
 
         if( subend<=maskBefore ) return 0;
-        if( hdr->subStart()>maskAfter )return 0; // this is before the requested region
+        if( hdr->subStart()>maskAfter )return 0;
     }
 
-    idx len=hdr->lenAlign()*2, idst, isrc;
+    idx len=hdr->lenAlign(), idst, isrc;
     idx newsubstart=-1, newqrystart=-1;
 
-    for ( isrc=0, idst=0; isrc<len; isrc+=2 ) {
+    for ( isrc=0, idst=0; isrc<len; isrc++ ) {
         if ( issuborqry==0)  {
-            if( m[isrc]+hdr->subStart()<maskBefore ) continue; // this is before the requested region
-            if( m[isrc]+hdr->subStart()>=maskAfter ) break; // this is before the requested region
+            if( hdr->getSubjectPosition(m,isrc)<maskBefore ) continue;
+            if( hdr->getSubjectPosition(m,isrc)>=maskAfter ) break;
         } else if ( issuborqry==1)  {
-            if( m[isrc+1]+hdr->qryStart()<maskBefore ) continue; // this is before the requested region
-            if( m[isrc+1]+hdr->qryStart()>=maskAfter ) break; // this is before the requested region
+            if( hdr->getQueryPositionRaw(m,isrc)<maskBefore ) continue;
+            if( hdr->getQueryPositionRaw(m,isrc)>=maskAfter ) break;
         }
 
-
         if(newsubstart==-1)
-            newsubstart=hdr->subStart()+m[isrc]; // we remember the new start position
+            newsubstart=hdr->getSubjectPosition(m,isrc);
         if(newqrystart==-1)
-            newqrystart=hdr->qryStart()+m[isrc+1];
-
-/*
-        if(m[isrc]!=-1)
-            hdr->subEnd=m[idst]=hdr->subStart+m[isrc]-newsubstart;
-        if(m[idst+1]!=-1)
-            hdr->qryEnd=m[idst+1]=hdr->qryStart+m[isrc+1]-newqrystart;
-*/
-        idst+=2;
+            newqrystart=hdr->getQueryPositionRaw(m,isrc);
+        idst++;
 
     }
-    hdr->setLenAlign(idst/2);
+    hdr->setLenAlign(idst);
     hdr->setSubStart(newsubstart);
-//    hdr->subEnd+=newsubstart;
     hdr->setQryStart(newqrystart);
-//    hdr->qryEnd+=newqrystart;
 
-    return hdr->lenAlign(); // how many elements in a new array
+    return hdr->lenAlign();
 }
 
 idx sBioseqAlignment::getLUTMultipleAlignment(sVec < Al * > * alSub,sVec< sVec<idx> > & lutAlSub){
     if(!alSub)return 0;
     if(lutAlSub.dim())lutAlSub.cut(0);
     lutAlSub.add(alSub->dim());
-    sVec < idx > uncompressMM;
     idx i,iA,it,ip,qS;
     for(iA=0; iA<alSub->dim();++iA){
         Al * hdr=*(alSub->ptr(iA));
         idx * m =hdr->match();qS=hdr->qryStart();
-        if(hdr->flags()&sBioseqAlignment::fAlignCompressed){ // deal with compressed alignments
-            uncompressMM.resize(2*hdr->lenAlign());
-            sBioseqAlignment::uncompressAlignment(hdr,m,uncompressMM.ptr());
-            m=uncompressMM.ptr();
+        if(hdr->flags()&sBioseqAlignment::fAlignCompressed){
+            m = sBioseqAlignment::uncompressAlignment(hdr,m);
         }
         lutAlSub.ptr(iA)->add(hdr->lenAlign()+qS);
         lutAlSub.ptr(iA)->set(-1);
         it=0;ip=0;
-        for( i=0 ; i<2*hdr->lenAlign(); i+=2) {
-            if( m[i + 1] >= 0 ) {
-                ip = qS + m[i + 1];
+        for( i=0 ; i<hdr->lenAlign(); i++) {
+            ip = hdr->getQueryPosition(m,i,0);
+            if( ip >= 0 ) {
                 *(lutAlSub.ptr(iA)->ptr(ip)) = it;
             }
             ++it;
@@ -1324,8 +1625,11 @@ idx sBioseqAlignment::readMultipleAlignment(sVec<idx> * alSub, const char * src,
     for(ib = 0; p0; ++ib, p0 = sString::next00(p0)) {
         const char * p1 = p0;
         if( !(flags & eAlRelativeToMultiple) )
-            p1 = sString::next00(p1); // in multiple mode we keep alignments of all to the block
+            p1 = sString::next00(p1);
         for( il = ib + ((flags & eAlRelativeToMultiple) ? 0 : 1); p1; ++il, p1 = sString::next00(p1)) {
+            if (strncmp("mafft", p1, 5) == 0) {
+                return -1;
+            }
             idx curOfs = alSub->dim();
             sBioseqAlignment::Al * hdr = (sBioseqAlignment::Al *) alSub->add(sizeof(sBioseqAlignment::Al) / sizeof(idx));
 
@@ -1362,7 +1666,7 @@ idx sBioseqAlignment::readMultipleAlignment(sVec<idx> * alSub, const char * src,
         }
         if( flags & eAlRelativeToMultiple )
             ib = il;
-            break;
+        break;
     }
     if( alLen )
         *alLen = maxlen;
@@ -1371,25 +1675,21 @@ idx sBioseqAlignment::readMultipleAlignment(sVec<idx> * alSub, const char * src,
 
 idx sBioseqAlignment::selectBestAlignments(sBioseqAlignment::Al * alignmentMap,idx alignmentMapSize, idx qryOrSub, idx flags)
 {
-    // find start and end of the alignment map
     sBioseqAlignment::Al  * hdr=(sBioseqAlignment::Al  *)(alignmentMap);
     sBioseqAlignment::Al  * hdre=hdr ? sShift(hdr,alignmentMapSize*sizeof(idx)) : hdr ;
 
     sVec < idx > bestHit(sMex::fSetZero);
     sVec < idx > hitCnt(sMex::fSetZero);
 
-    // accumulate best hits in the bestHit array and meanwhile computes statistics for All mode
     idx ofsPrv,idQry;
     sBioseqAlignment::Al * hdrFirst = 0;
 
-    for( ; hdr<hdre ; hdr=sShift(hdr,hdr->sizeofFlat())  ) { // get the list of best alignments
+    for( ; hdr<hdre ; hdr=sShift(hdr,hdr->sizeofFlat())  ) {
         idQry = qryOrSub==0 ? hdr->idQry() : hdr->idSub();
 
-        // make sure we have enough space
         hitCnt.resizeM(idQry+1);
         bestHit.resizeM(idQry+1);
 
-        // here we remember the best hit for each query
         if( ++hitCnt[idQry] > 1 && (flags&sBioseqAlignment::fAlignKeepUniqueMatch) ) {
             bestHit[idQry] = 0;
             continue;
@@ -1399,22 +1699,20 @@ idx sBioseqAlignment::selectBestAlignments(sBioseqAlignment::Al * alignmentMap,i
 
         if( ofsPrv ){
             sBioseqAlignment::Al * hdrPrv = (sBioseqAlignment::Al *)((idx*)alignmentMap+(ofsPrv-1));
-            if( hdrPrv->score() > hdr->score() ) // the previous alignment is better than the current one
+            if( hdrPrv->score() > hdr->score() )
                 continue;
             else if( hdrPrv->score() == hdr->score() ) {
                 if(flags&sBioseqAlignment::fAlignKeepAllBestMatches){
                     hdrPrv->setFlagsOn(sBioseqAlignment::fSelectedAlignment);
                 }else if(flags&sBioseqAlignment::fAlignKeepRandomBestMatch){
-                    //if((rand())%2) // generate a random number and decide if we switch or not
-                    //if( (sRand::rand_xorshf96()%RAND_MAX)*hitCnt[idQry]<RAND_MAX ) // generate a random number and decide if we switch or not
-                    if( ((sRand::rand_xorshf96()&0x7FFFFFFF)-1)*hitCnt[idQry]<RAND_MAX ) // generate a random number and decide if we switch or not
+                    if( ((sRand::rand_xorshf96()&0x7FFFFFFF)-1)*hitCnt[idQry]<RAND_MAX )
                         continue;
                 }
                 else
                     continue;
             }
-            else { // the new alignment has better score ...
-                if(flags&sBioseqAlignment::fAlignKeepAllBestMatches){ // remove previous selected flag
+            else {
+                if(flags&sBioseqAlignment::fAlignKeepAllBestMatches){
                     while(hdrFirst && hdrFirst<hdr){
                         hdrFirst->setFlagsOff(sBioseqAlignment::fSelectedAlignment);
                         hdrFirst=sShift(hdrFirst,hdrFirst->sizeofFlat());
@@ -1429,14 +1727,14 @@ idx sBioseqAlignment::selectBestAlignments(sBioseqAlignment::Al * alignmentMap,i
         else {
             hdrFirst = hdr;
         }
-        bestHit[idQry]=(((idx*)hdr)-((idx *)alignmentMap)) + 1 ; // + 1 signifies the fact that this is a hit (for zero-th element)
+        bestHit[idQry]=(((idx*)hdr)-((idx *)alignmentMap)) + 1 ;
     }
 
     idx iCnt=0;
 
-    for ( idx iFnd = 0 ; iFnd < bestHit.dim() ;  ++iFnd ){ // print the best alignments and failed alignments
+    for ( idx iFnd = 0 ; iFnd < bestHit.dim() ;  ++iFnd ){
         idx ofs=bestHit[iFnd];if(!ofs )continue;
-        --ofs;  /// remember +1 above, when accumulating the best hits  ?
+        --ofs;
 
         sBioseqAlignment::Al * hdr = (sBioseqAlignment::Al *)((idx*)alignmentMap+(ofs));
         hdr->setFlagsOn(sBioseqAlignment::fSelectedAlignment);
@@ -1456,7 +1754,6 @@ idx sBioseqAlignment::filterChosenAlignments(sVec< idx> * alignmentMap,idx qStar
     for( hdr=hdr0; hdr<hdre; hdr=sShift(hdr,hdr->sizeofFlat()), ++cnt ) {
         hdr->setIdQry( hdr->idQry()+qStart);
     }
-    ::printf("%" DEC "\n",cnt);
     idx newcnt = 0;
     if(dst->ok()){
         if( doSelect ) {
@@ -1484,9 +1781,7 @@ idx sBioseqAlignment::compressAlignment(Al * hdr, idx * m, idx * mdst )
 
     idx dimAlign=hdr->dimAlign();
     for( i=2,iprv=idst=0 ; i<dimAlign; i+=2) {
-
-        if(i==dimAlign-2)++counter;
-        if( m[i]!=m[i-2]+1 || m[i+1]!=m[i-1]+1 || i==dimAlign-2){
+        if( m[i]!=m[i-2]+1 || m[i+1]!=m[i-1]+1 ){
 
             mdst[idst++]=m[iprv];
             mdst[idst++]=m[iprv+1];
@@ -1500,17 +1795,42 @@ idx sBioseqAlignment::compressAlignment(Al * hdr, idx * m, idx * mdst )
         }
 
     }
+    mdst[idst++] = m[iprv];
+    mdst[idst++] = m[iprv+1];
+    if(counter) {
+        mdst[idst++]=-counter-1;
+    }
     hdr->setFlagsOn(fAlignCompressed);
 
     return idst;
 }
 
-idx sBioseqAlignment::uncompressAlignment(Al * hdr, idx * m, idx * mdst, bool reverse )
+sVec<idx> uncompressAlignment_buffer;
+
+idx * sBioseqAlignment::uncompressAlignment(Al * hdr, idx * m, idx * mdst, bool reverse )
 {
-    idx i, idst;
+    if (unlikely(!hdr || !m)) {
+        return 0;
+    }
+
+    idx i;
     idx rs=reverse ? 1 : 0 ;
     idx rq=reverse ? 0 : 1 ;
 
+    if( !mdst ) {
+        uncompressAlignment_buffer.resize(2*hdr->lenAlign());
+        mdst = uncompressAlignment_buffer.ptr();
+    }
+
+    if( !hdr->dimAlign() ) {
+        for( i = 0 ; i < hdr->lenAlign() ; ++i ) {
+            mdst[2*i+rs] = i;
+            mdst[2*i+rq] = i;
+        }
+        return mdst;
+    }
+
+    idx idst;
     for( i=0,idst=0 ; i<hdr->dimAlign();) {
         if( m[i]<-1) {
             idx counter=-m[i]-1;
@@ -1527,7 +1847,7 @@ idx sBioseqAlignment::uncompressAlignment(Al * hdr, idx * m, idx * mdst, bool re
         idst+=2;
         i+=2;
     }
-    return idst;
+    return mdst;
 }
 
 idx sBioseqAlignment::reverseAlignment(Al * hdr, idx * m)
@@ -1536,9 +1856,6 @@ idx sBioseqAlignment::reverseAlignment(Al * hdr, idx * m)
 
     hdr->ids=sSwapHiLo(hdr->ids);
     hdr->starts=sSwapHiLo(hdr->starts);
-//          t=hdr->idQry;hdr->idQry=hdr->idSub;hdr->idSub=t;
-//          t=hdr->subStart;hdr->subStart=hdr->qryStart;hdr->qryStart=t;
-//          t=hdr->subEnd;hdr->subEnd=hdr->qryEnd;hdr->qryEnd=t;
 
     if(!m)return 0;
     for( i=0 ; i<hdr->dimAlign();) {
@@ -1557,7 +1874,7 @@ idx sBioseqAlignment::reverseAlignment(Al * hdr, idx * m)
 bool sBioseqAlignment::align2bioseqDefaultParameters (idx *flags)
 {
     idx seed = 11;
-    MatSW.addM(4*1024*1024);// reserve few megs at the beginning
+    MatSW.addM(4*1024*1024);
     MatBR.addM(4*1024*1024);
 
     costMatch=5;
@@ -1568,6 +1885,7 @@ bool sBioseqAlignment::align2bioseqDefaultParameters (idx *flags)
     computeDiagonalWidth=0;
     maxMissQueryPercent=15;
     minMatchLen=11;
+    isMinMatchPercentage = false;
 
     scoreFilter=0;
     allowShorterEnds=minMatchLen;
@@ -1578,18 +1896,17 @@ bool sBioseqAlignment::align2bioseqDefaultParameters (idx *flags)
     looseExtenderMinimumLengthPercent=66;
 
     maxHitsPerRead=20;
-    compactSWMatrix=1;
     maxSeedSearchQueryPos=512;
-    selfSubjectPosJumpInNonPerfectAlignment=0;
-    selfQueryPosJumpInNonPerfectAlignment=1;
+    ignoreOverlappingSeedsInSubjectPosInNonPerfectAlignment=0;
+    ignoreOverlappingSeedsInQueryPosInNonPerfectAlignment=1;
 
     bioHash.init(seed,4ll);
-    idx isBloom = (seed <= 16) ? sBioseqHash::eCompileBloom  : 0 ; // ( ((udx)1<<(2*seed))/8/1024/1024/1024 <= 2 )  ? sBioseqHash::eCompileBloom  : 0 ;// the size neede for bloom in GB
+    idx isBloom = (seed <= 16) ? sBioseqHash::eCompileBloom  : 0 ;
     if(!isBloom)bioHash.collisionReducer=4;
 
     {
         idx flagSet=sBioseqAlignment::fAlignForward;
-        flagSet|=sBioseqAlignment::fAlignGlobal;//else flagSet|=sBioseqAlignment::fAlignLocal;
+        flagSet|=sBioseqAlignment::fAlignGlobal;
         flagSet|=sBioseqAlignment::fAlignBackward|sBioseqAlignment::fAlignBackwardComplement;
         flagSet|=sBioseqAlignment::fAlignOptimizeDiagonal;
         flagSet|=sBioseqAlignment::fAlignIdentityOnly;
@@ -1598,3 +1915,5 @@ bool sBioseqAlignment::align2bioseqDefaultParameters (idx *flags)
     }
     return true;
 }
+
+

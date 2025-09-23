@@ -28,7 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-// This file needs to be #included before qlang-flex.hpp
 
 #pragma once
 #ifndef sLib_qlang_lexer_extras_h
@@ -36,7 +35,6 @@
 
 #include "qlang-bison.hpp"
 
-// Define YYSTYPE for the lexer
 typedef yy::sQLangBison::token token;
 typedef yy::sQLangBison::semantic_type YYSTYPE;
 

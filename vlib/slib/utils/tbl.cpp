@@ -44,8 +44,7 @@ using namespace slib;
 char * sTbl::parse(char * src, idx len, idx flags,  const char * separ, idx maxCount , idx rowStart, idx colStart, idx rowCnt, idx colCnt , const char * endl)
 {
     idx i;
-    /// UBUNTU idx replaced=0; // index for replacement string
-    idx newcell=1,howmany=0;  // is this is a new cell
+    idx newcell=1,howmany=0;
     char  inquote=0;
     idx curRow=0, curCol=0, maxCntCols=0;
 
@@ -60,7 +59,7 @@ char * sTbl::parse(char * src, idx len, idx flags,  const char * separ, idx maxC
         newCellPos++;
         if(flags&fPreserveQuotes){
             if(!inquote && (src[i]=='\"' || src[i]=='\'') ){
-                if(newCellPos==0) // if( pCurGeom->start==i)
+                if(newCellPos==0)
                     inquote=src[i];
             }
             else if(src[i]==inquote && (src[i-1])!='\\')inquote=0;
@@ -68,15 +67,12 @@ char * sTbl::parse(char * src, idx len, idx flags,  const char * separ, idx maxC
         idx symsepar=0;
         if(!inquote) {
                 idx sc;
-                // scan if the current position is a separator or endline
                 for(sc=0;src[i] && endl[sc] && src[i]!=endl[sc];sc++);
                 if(endl[sc]){
                     idx endlSize = 1;
                     if(i<len-1 && endl[sc]=='\r' && src[i+1]=='\n') endlSize++;
                     ++curRow;
                     curCol=0;
-                    //if( (flags&fGeometryOnly)==0 && curCol>=colStart && curCol<colStart+colCnt && curRow>=rowStart && curRow<rowStart+rowCnt)
-                    //    fil.add0(2);
                     if(pCurGeom){
                         if(flags&fDoZero) {
                             for (idx j=i; j<i+endlSize; j++)
@@ -104,7 +100,6 @@ char * sTbl::parse(char * src, idx len, idx flags,  const char * separ, idx maxC
                 lenMatch=sString::compareChoice( src+i, separ,0,0, 0, false);
                 if( lenMatch!=-1){
                     found=1;
-                    //i=i+sLen(separ)-1;
                 }else lenMatch=0;
             } else {
                 for(sc=0;src[i] && separ[sc] && src[i]!=separ[sc];sc++);
@@ -113,9 +108,6 @@ char * sTbl::parse(char * src, idx len, idx flags,  const char * separ, idx maxC
                     symsepar=1;
             }
             if(found){
-                    //if( replaced && isSkipMultiple )continue;
-                    //if( (flags&fGeometryOnly)==0 && curCol>=colStart && curCol<colStart+colCnt && curRow>=rowStart && curRow<rowStart+rowCnt)
-                    //    fil.add0(1);
                     if(flags&fDoZero)
                             src[i]=0;
                     if(pCurGeom){
@@ -130,7 +122,6 @@ char * sTbl::parse(char * src, idx len, idx flags,  const char * separ, idx maxC
                             }
                         }
                     }
-                /// UBUNTU replaced=1;
                 howmany++;
                 newcell=1;
                 newCellPos=-1;
@@ -146,12 +137,10 @@ char * sTbl::parse(char * src, idx len, idx flags,  const char * separ, idx maxC
         }
 
         if( curCol>=colStart && curCol<colStart+colCnt && curRow>=rowStart && curRow<rowStart+rowCnt) {
-            //    fil.add( &src[i],1 );
                 if(newcell){
-                    //idx hash=(curRow<<((idx)32))|curCol;
                     pCurGeom=geom.add();
 
-                    pCurGeom->start=i+symsepar;//fil.length();
+                    pCurGeom->start=i+symsepar;
                     pCurGeom->icol=curCol;
                     pCurGeom->irow=curRow;
                     pCurGeom->len=0;
@@ -164,7 +153,6 @@ char * sTbl::parse(char * src, idx len, idx flags,  const char * separ, idx maxC
                     }
                 }
         }
-        /// UBUNTU replaced=0;
 
     }
 
@@ -211,13 +199,11 @@ char * sTbl::parse(char * src, idx len, idx flags,  const char * separ, idx maxC
 
     data=src;
 
-    //if(!(flags&fGeometryOnly))
-        //    fil.add0(2);
 
     return sString::nonconst(src+i);
 }
 
-const char * sTabular::printCSV(sStr & out, idx irowStart/*=0*/, idx icolStart/*=0*/, idx numRows/*=sIdxMax*/, idx numCols/*=sIdxMax*/, bool withHeaders/*=true*/) const
+const char * sTabular::printCSV(sStr & out, idx irowStart, idx icolStart, idx numRows, idx numCols, bool withHeaders) const
 {
     idx startOut = out.length();
 
@@ -267,10 +253,8 @@ const char * sTabular::printCSV(sStr & out, idx irowStart/*=0*/, idx icolStart/*
 
 real sTabular::rdiff(idx irow1, idx icol1, idx irow2, idx icol2) const
 {
-    // special case: reinterpreted column
     idx abscol1 = icol1 + dimLeftHeader();
     if (icol1 == icol2 && abscol1 >= 0 && abscol1 < _colReinterp.dim() && _colReinterp[abscol1].dim()) {
-        // both values might be really numbers, not reinterpreted strings
         if (irow1 >= 0 && irow1 < _colReinterp[abscol1].dim() && irow2 >= 0 && irow2 < _colReinterp[abscol1].dim() && _colReinterp[abscol1][irow1].numeric && _colReinterp[abscol1][irow2].numeric) {
             real d = _colReinterp[abscol1][irow1].r - _colReinterp[abscol1][irow2].r;
             return isnan(d) ? 0 : d;
@@ -330,7 +314,6 @@ real reinterpretMatch(const char * s, idx len, sTabular::eReinterpretType type, 
         ret = strtod(s, &end);
         for (; *end && isspace(*end); end++);
         if (!*end) {
-            // the string is a number possibly terminated by whitespace
             *numeric = true;
             return ret;
         }
@@ -344,20 +327,18 @@ real reinterpretMatch(const char * s, idx len, sTabular::eReinterpretType type, 
         break;
     case sTabular::eBool:
         if (matches.dim()) {
-            // we are comparing to a reference, and we didn't match it
             ret = 1;
         } else {
             ret = sString::parseBool(s);
         }
         break;
     default:
-        // error
         ret = NAN;
     }
     return ret;
 }
 
-bool sTabular::reinterpretCol(idx icol, sTabular::eReinterpretType type, idx flags/*=0*/, const char * ref/*=0*/, idx reflen/*=0*/)
+bool sTabular::reinterpretCol(idx icol, sTabular::eReinterpretType type, idx flags, const char * ref, idx reflen)
 {
     if (unlikely(icol < -dimLeftHeader() || icol >= cols()))
         return false;
@@ -365,7 +346,6 @@ bool sTabular::reinterpretCol(idx icol, sTabular::eReinterpretType type, idx fla
     idx abscol = icol + dimLeftHeader();
 
     if (type == sTabular::eNone) {
-        // remove the reinterpret
         if (_colReinterp.dim() > abscol) {
             _colReinterp[abscol].cut(0);
         }
@@ -505,7 +485,6 @@ void sTblIndex::Header::init(idx total_cols, idx flags_, idx dimTopHeader, idx d
 
 idx sTblIndex::Header::read(sMex * mex, idx pos)
 {
-    // keep in sync with size()!
     if (unlikely(pos + size() > mex->pos()))
         return -1;
 
@@ -537,7 +516,6 @@ idx sTblIndex::Header::read(sMex * mex, idx pos)
 
 idx sTblIndex::Header::write(sMex * mex, idx pos, bool finished) const
 {
-    // keep in sync with size()!
     mex->resize(pos + size());
 
     if (finished) {
@@ -574,7 +552,6 @@ idx sTblIndex::Header::size() const
 
 idx sTblIndex::SegInfo::read(sMex * mex, idx pos)
 {
-    // keep in sync with size()!
     if (unlikely(pos + size() > mex->pos()))
         return -1;
 
@@ -661,7 +638,7 @@ idx sTblIndex::SegInfo::getSegMaxAbsCol(const sMex * mex, idx absrow) const
     return maxAbsCol;
 }
 
-idx sTblIndex::SegInfo::getSegIndex(const sMex * mex, idx absrow, idx abscol, idx * nextIndexInRow/*=0*/) const
+idx sTblIndex::SegInfo::getSegIndex(const sMex * mex, idx absrow, idx abscol, idx * nextIndexInRow) const
 {
     idx pos = segRowPos(absrow);
     idx rowindex = read_num_incr_pos<int32_t>(mex, &pos);
@@ -734,7 +711,7 @@ idx sTblIndex::SegInfo::setSegIndexRow(sMex * mex, idx absrow, const idx * indic
 
 void sTblIndex::SegInfo::segCompress(sMex * mex)
 {
-    bool compressed = true; // is this segment already compressed as far as possible?
+    bool compressed = true;
     int64_t newflags = flags & ~(int64_t)(fUInt8|fUInt16|fRowMaxAbsCol|fCompressRowMaxAbsCol);
 
     if (flags & fUInt8) {
@@ -968,7 +945,7 @@ idx sTblIndex::findSeg(idx absrow, idx abscol, idx iseg) const
     return iseg;
 }
 
-idx sTblIndex::index(idx absrow, idx abscol, idx * nextIndexInRow/*=0*/) const
+idx sTblIndex::index(idx absrow, idx abscol, idx * nextIndexInRow) const
 {
     if (unlikely(absrow >= totalRows() || absrow < 0 || abscol >= totalCols() || abscol < 0))
         return -1;
@@ -1020,7 +997,7 @@ bool sTblIndex::isStandardCSV() const
     return true;
 }
 
-void sTblIndex::initHeader(idx totalCols, idx flags/*=0*/, const char * colsep/*=","*/, const char * rowsep/*="\r\n"*/, const char * quotes_/*="\""*/, idx dimTopHeader/*=1*/, idx dimLeftHeader/*=0*/)
+void sTblIndex::initHeader(idx totalCols, idx flags, const char * colsep, const char * rowsep, const char * quotes_, idx dimTopHeader, idx dimLeftHeader)
 {
     assert (totalCols >= 0);
     if (!colsep) colsep = "";
@@ -1097,11 +1074,9 @@ void sTblIndex::addRow(const idx * indices, idx numIndices)
     idx abscol = 0;
     while (abscol < numIndices) {
         if (abscol == 0 && _hdr.totalRows == 0) {
-            // Efficiently use the int32_t space if this is the first line
             lastSeg().index = indices[abscol];
             _hdr.indexRangeStart = indices[0];
         } else if (indices[abscol] - lastSeg().index > _segMaxOffset) {
-            // Add a new segment if we no longer fit into an int32_t space
             compressLastSeg();
             int64_t newPos = lastSeg().segPos + lastSeg().segSize();
             _hdr.segments++;
@@ -1125,7 +1100,6 @@ void sTblIndex::addRow(const idx * indices, idx numIndices)
         }
 
         idx colsWritten = lastSeg().setSegIndexRow(&_mex, _hdr.totalRows, indices + abscol, abscol, numIndices - abscol - 1);
-        // removed by Vahan: DO NOT ADD WITHOUT CONSULTING assert (colsWritten > 0);
         abscol += colsWritten;
     }
 
@@ -1149,7 +1123,6 @@ void sTblIndex::finish()
     _hdr.segInfoPos = pos;
     for (idx i=0; i<_hdr.segments; i++) {
         size_written = _segs[i].write(&_mex, pos) - pos;
-        // removed by Vahan: DO NOT ADD WITHOUT CONSULTING assert (size_written > 0 && size_written <= _hdr.segSize);
         pos += _hdr.segSize;
     }
 
@@ -1158,7 +1131,7 @@ void sTblIndex::finish()
 
 const sTxtTbl::ParseOptions sTxtTbl::_default_parse_options;
 
-sTxtTbl::sTxtTbl(const char * indexPath/*=0*/, bool indexReadOnly/*=false*/) : _indexPath(sMex::fExactSize)
+sTxtTbl::sTxtTbl(const char * indexPath, bool indexReadOnly) : _indexPath(sMex::fExactSize)
 {
     _tableBuf = 0;
     _tableBufLen = 0;
@@ -1174,7 +1147,6 @@ sTxtTbl::sTxtTbl(const char * indexPath/*=0*/, bool indexReadOnly/*=false*/) : _
                 return;
 
             _index.mex()->destroy();
-            // sMex::init does "flags |= flg" instead of resetting flags!
             _index.mex()->flags = 0;
             if( !indexReadOnly ) {
                 sFile::remove(indexPath);
@@ -1230,7 +1202,7 @@ void sTxtTbl::updateColIds()
     }
 }
 
-void sTxtTbl::setFile(const char * path, idx mexflags/*=sMex::fReadonly*/)
+void sTxtTbl::setFile(const char * path, idx mexflags)
 {
     _tableFil.init(path, mexflags);
     setBufInternal(_tableFil.ptr(), _tableFil.length(), _tableFil.mtime());
@@ -1242,7 +1214,6 @@ bool sTxtTbl::isParsed() const
     return _tableBuf && _index.mex()->pos() && _index.sourceTime() == _tableBufTime && _index.sourceSize() == _tableBufLen;
 }
 
-// like sString::compareChoice, but for non-null-terminated buffers
 static const char * bufFind00(const char * buf, idx buflen, const char * needle00)
 {
     for (const char * needle = needle00; *needle; needle++) {
@@ -1262,7 +1233,6 @@ static const char * bufFind00(const char * buf, idx buflen, const char * needle0
     return 0;
 }
 
-// try to match needle to end of buf; return pointer to start of match, or 0 on failure
 static const char * revFind00(const char * buf, idx buflen, const char * needle00, const idx * pneedleLens)
 {
     if (unlikely(!needle00))
@@ -1301,18 +1271,14 @@ static const char * nextCell(const char * buf, idx buflen, idx flags, const char
     }
 
     while (VALID_BUF_PTR(c)) {
-        // inside a quoted string, do not check for separators
         if (quote) {
-            // treat "" as a regular character
             while (VALID_BUF_PTR(c+1) && c[0] == '"' && c[1] == '"')
                 c += 2;
 
-            // terminating in the middle of a quoted string is an error
             if (unlikely(!VALID_BUF_PTR(c)))
                 goto FAIL;
 
             if (*c == quote) {
-                // Terminal quote found. If buf ends after it, we succeeded.
                 c++;
                 if (!VALID_BUF_PTR(c))
                     break;
@@ -1323,7 +1289,6 @@ static const char * nextCell(const char * buf, idx buflen, idx flags, const char
             }
         }
 
-        // outside a quoted string, check for column separators...
         if (flags & sTblIndex::fColsep00) {
             idx curseplen = 0;
             do {
@@ -1335,7 +1300,6 @@ static const char * nextCell(const char * buf, idx buflen, idx flags, const char
                     break;
             } while (flags & sTblIndex::fColsepCanRepeat);
 
-            // succeed if separator found
             if (seplen > 0)
                 break;
 
@@ -1346,20 +1310,16 @@ static const char * nextCell(const char * buf, idx buflen, idx flags, const char
                     while(VALID_BUF_PTR(c + seplen) && strchr(colsep, c[seplen]))
                         seplen++;
                 }
-                // succeed if separator found
                 break;
             }
         }
 
-        // then look for row separators
         if (strchr(rowsep, *c)) {
             *pfoundRowsep = true;
             for (seplen=1; VALID_BUF_PTR(c + seplen) && strchr(rowsep, c[seplen]); seplen++);
-            // succeed if separator found
             break;
         }
 
-        // Terminal quote found, but not followed by end-of-buffer or a separator. This is an error
         if (unlikely(quote && VALID_BUF_PTR(c)))
             goto FAIL;
 
@@ -1381,24 +1341,32 @@ static sVariant::eType guessType(sVariant::eType curType, const char * val, idx 
         len -= 2;
     }
 
-    return sVariant::guessScalarType(val, len, curType);
+    sVariant::eType ret = sVariant::guessScalarType(val, len, curType);
+
+    if(ret == sVariant::value_HIVE_ID)
+        return sVariant::value_STRING;
+
+    return ret;
 }
 
-bool sTxtTbl::ensureIndexWritable()
+bool sTxtTbl::ensureIndexWritable(bool truncate_index)
 {
     if( _index.mex()->ok() && !(_index.mex()->flags & sMex::fReadonly) )
         return true;
 
     if (_indexPath) {
-        // Linux doesn't allow readonly filehandles to be reopened or mapped as readwrite
         if( _indexWritablePath ) {
-            // something had gone wrong: we have a writable index path, but the index is mapped read-only
             return false;
         } else {
             const char * index_filename = sFilePath::nextToSlash(_indexPath.ptr());
 
             sStr mktemp_dir;
-            mktemp_dir.addString(_indexPath.ptr(), index_filename - _indexPath.ptr());
+            if( index_filename > _indexPath.ptr() ) {
+                mktemp_dir.addString(_indexPath.ptr(), index_filename - _indexPath.ptr());
+            } else {
+                mktemp_dir.addString(".", 1);
+                mktemp_dir.addString(&sDir::sysSep, 1);
+            }
 
             sStr mktemp_pattern;
             mktemp_pattern.addString(index_filename);
@@ -1409,7 +1377,7 @@ bool sTxtTbl::ensureIndexWritable()
             }
             sFil new_mex(_indexWritablePath.ptr(), sMex::fBlockDoubling);
             if( likely(new_mex.ok()) ) {
-                if( _index.mex()->ok() ) {
+                if( _index.mex()->ok() && !truncate_index ) {
                     new_mex.add(static_cast<const char *>(_index.mex()->ptr(0)), _index.mex()->pos());
                 }
                 _index.mex()->destroy();
@@ -1423,15 +1391,16 @@ bool sTxtTbl::ensureIndexWritable()
         bool was_ok = _index.mex()->ok();
         bool remapped = _index.mex()->remap(0, sMex::fReadonly);
         if( unlikely(was_ok && !remapped) ) {
-            // TODO: replace with proper logging API
             fprintf(stderr, "%s:%u: ERROR: failed to remap table index memory allocation as read-write\n", __FILE__, __LINE__);
             return false;
+        }
+        if( truncate_index ) {
+            _index.mex()->cut(0);
         }
     }
     return true;
 }
 
-// static
 void sTxtTbl::resetParseOptions(ParseOptions & p)
 {
     static const char default_colsep[] = ",";
@@ -1486,7 +1455,7 @@ const char * sTxtTbl::parse()
     if (parseOptions().abscolCnt < sIdxMax)
         parseOptions().flags = parseOptions().flags | sTblIndex::fSaveRowEnds;
 
-    if (!ensureIndexWritable())
+    if (!ensureIndexWritable(true))
         return 0;
 
     const ParseOptions & p = parseOptions();
@@ -1494,7 +1463,6 @@ const char * sTxtTbl::parse()
         p.progressCallback(p.progressParam, 0, sNotIdx, _tableBufLen);
     }
 
-    // if we are indexing the entire table, the index buffer will be of a similar size
     if (p.abscolCnt > _tableBufLen || p.absrowCnt > _tableBufLen) {
         _index.mex()->resize(_tableBufLen);
     }
@@ -1521,6 +1489,7 @@ const char * sTxtTbl::parse()
     const char * ret = 0;
     bool initializedHeader = false;
     bool savedRowEnds = false;
+    idx headerRows = p.dimTopHeader;
 
     do {
         bool foundRowSep = false;
@@ -1554,8 +1523,7 @@ const char * sTxtTbl::parse()
                     }
                 }
 
-                // guess type only by looking at first 2000 rows
-                if (absrow - p.absrowStart < MAX_ROWS_GUESS_TYPE && (absrowOffset || !(p.flags & sTblIndex::fTopHeader)))
+                if (absrow - p.absrowStart < MAX_ROWS_GUESS_TYPE && headerRows == 0)
                     types[abscolOffset] = guessType(types[abscolOffset], cell, cellLen, quoted && !(p.flags & sTblIndex::fPuntQuotes));
             }
 
@@ -1589,6 +1557,7 @@ const char * sTxtTbl::parse()
                 if( skip_to_data > 0 ) {
                     skip_to_data--;
                 }
+                headerRows--;
             }
         }
 
@@ -1628,10 +1597,8 @@ const char * sTxtTbl::parse()
     return ret;
 }
 
-// look within a range of 512K for quotes
 #define QUOTE_SCAN_MAX (1<<19)
 
-// decrease row length to hit a row separator
 #define DECREASE_LEN_TO_ROWSEP_FROM(initial_len) \
 do { \
     for (len = (initial_len); len > 0 && !strchr(parseOptions->rowsep, buf[start + len - 1]); len--); \
@@ -1643,15 +1610,12 @@ do { \
 
 static bool matchCellSep(const char * buf, idx buflen, idx pos, const sTxtTbl::ParseOptions * parseOptions)
 {
-    // start/end of buffer
     if (pos == 0 || pos >= buflen)
         return true;
 
-    // row separator
     if (strchr(parseOptions->rowsep, buf[pos]))
         return true;
 
-    // column separator
     if (parseOptions->flags & sTblIndex::fColsep00) {
         if (bufFind00(buf, buflen, parseOptions->colsep)) {
             return true;
@@ -1665,15 +1629,12 @@ static bool matchCellSep(const char * buf, idx buflen, idx pos, const sTxtTbl::P
 
 static bool revMatchCellSep(const char * buf, idx buflen, idx pos, const sTxtTbl::ParseOptions * parseOptions)
 {
-    // start/end of buffer
     if (pos == 0 || pos >= buflen)
         return true;
 
-    // row separator
     if (strchr(parseOptions->rowsep, buf[pos]))
         return true;
 
-    // column separator
     if (parseOptions->flags & sTblIndex::fColsep00) {
         sVec<idx> colsepLens;
         for (const char * colsep = parseOptions->colsep; colsep && *colsep; colsep = sString::next00(colsep)) {
@@ -1689,8 +1650,7 @@ static bool revMatchCellSep(const char * buf, idx buflen, idx pos, const sTxtTbl
     return false;
 }
 
-//static
-bool sTxtTbl::segmentizeBuffer(sVec<sMex::Pos> & segments, const char * buf, idx buflen, const sTxtTbl::ParseOptions * parseOptions/*=0*/, idx maxSegSize/*=INT32_MAx*/)
+bool sTxtTbl::segmentizeBuffer(sVec<sMex::Pos> & segments, const char * buf, idx buflen, const sTxtTbl::ParseOptions * parseOptions, idx maxSegSize)
 {
     if (!buflen)
         buflen = sLen(buf);
@@ -1705,10 +1665,8 @@ bool sTxtTbl::segmentizeBuffer(sVec<sMex::Pos> & segments, const char * buf, idx
     idx len = maxSegSize;
 
     while (start + maxSegSize < buflen) {
-        // decrease segment length to hit a row separator
         DECREASE_LEN_TO_ROWSEP_FROM(maxSegSize);
 
-        // is this row separator inside a quoted string?
         idx quote_start = -1, quote_len = 0;
         for (idx qpos = start+len-1; qpos>start && qpos>(start+len-QUOTE_SCAN_MAX); qpos--) {
             if (strchr(parseOptions->quotes, buf[qpos])) {
@@ -1717,10 +1675,8 @@ bool sTxtTbl::segmentizeBuffer(sVec<sMex::Pos> & segments, const char * buf, idx
                 }
                 quote_len++;
             } else if (quote_len % 2) {
-                // odd number of quotes means boundary of a quoted string
                 break;
             } else {
-                // ignore even numbers of quotes - these may occur in the middle of a quoted string
                 quote_start = -1;
                 quote_len = 0;
             }
@@ -1730,14 +1686,10 @@ bool sTxtTbl::segmentizeBuffer(sVec<sMex::Pos> & segments, const char * buf, idx
             bool has_inner_sep = matchCellSep(buf, buflen, quote_start + quote_len, parseOptions);
             bool has_outer_sep = revMatchCellSep(buf, buflen, quote_start - 1, parseOptions);
             if (has_outer_sep && !has_inner_sep) {
-                // we were inside a quoted string. But good news,
-                // the quoted string ends at quote_start, so just rescan for rowsep!
                 DECREASE_LEN_TO_ROWSEP_FROM(quote_start - start);
             }
         }
 
-        // TODO: scan forwards for quoted string boundary? But in that case,
-        // how do we adjust len up/down?
 
         sMex::Pos * seg = segments.add(1);
         seg->pos = start;
@@ -1756,7 +1708,7 @@ bool sTxtTbl::segmentizeBuffer(sVec<sMex::Pos> & segments, const char * buf, idx
     return true;
 }
 
-const char * sTxtTbl::printCell(sStr & out, idx irow, idx icol, idx maxLen/*=0*/, const char * defValue/*=0*/, idx flags/*=0*/) const
+const char * sTxtTbl::printCell(sStr & out, idx irow, idx icol, idx maxLen, const char * defValue, idx flags) const
 {
     idx outStart = out.length();
     idx cellLen;
@@ -1774,24 +1726,22 @@ const char * sTxtTbl::printCell(sStr & out, idx irow, idx icol, idx maxLen/*=0*/
         }
         return 0;
     }
+    if (unlikely(!cellLen)) {
+        return out.add0cut();
+    }
 
     _conversion_buf.cut0cut();
 
     if (flags & fForCSV) {
-        // if the original table was not comma-separated, we need to ensure
-        // the cell is properly escaped for CSV
         if ( !_index.isStandardCSV() ) {
             return sString::escapeForCSV(out, s, sMin<idx>(cellLen, maxLen));
         }
 
-        // if we are cutting in the middle of a CSV-escaped cell, we need to unescape,
-        // then cut, and then re-escape
         if (unlikely(cellLen > maxLen && *s == '"')) {
             sString::unescapeFromCSV(_conversion_buf, s, cellLen);
             return sString::escapeForCSV(out, _conversion_buf.ptr(), sMin<idx>(_conversion_buf.length(), maxLen));
         }
     } else if (!(flags & fNoUnescape) && *s == '"') {
-        // unescape quoted text
         sString::unescapeFromCSV(_conversion_buf, s, cellLen);
         s = _conversion_buf.ptr();
         cellLen = _conversion_buf.length();
@@ -1809,7 +1759,6 @@ const char * sTxtTbl::getRowBuf(idx irow, idx * len_out) const
 {
     idx absrow = irow + dimTopHeader();
 
-    // Assume that in the data file, all cells in a row are stored contiguously
     idx first_cell_len = 0;
     const char * first_cell = cell(irow, -dimLeftHeader(), &first_cell_len);
     if( !first_cell ) {
@@ -1858,7 +1807,7 @@ const char * sTxtTbl::getRowsBuf(idx irow, idx nrows, idx * len_out, idx * first
     return first_row;
 }
 
-const char * sTxtTbl::printCSV(sStr & out, idx irowStart /*=0*/, idx icolStart /*=0*/, idx numRows /*=sIdxMax*/, idx numCols /*=sIdxMax*/, bool withHeaders /*=true*/) const
+const char * sTxtTbl::printCSV(sStr & out, idx irowStart, idx icolStart, idx numRows, idx numCols, bool withHeaders) const
 {
     if( !_index.isStandardCSV() || irowStart != 0 || icolStart != -dimLeftHeader() || numCols < cols() ) {
         return sTabular::printCSV(out, irowStart, icolStart, numRows, numCols, withHeaders);
@@ -1869,8 +1818,6 @@ const char * sTxtTbl::printCSV(sStr & out, idx irowStart /*=0*/, idx icolStart /
     numRows = sMin<idx>(numRows, rows() - irowStart);
     numCols = sMin<idx>(numCols, cols() - icolStart);
 
-    // We assume here that the parsed data file consists of at most 2 continuous segments:
-    // header cells and data cells (e.g. with no unindexed breaks between 2 data cells/rows)
     idx header_buf_len = 0, header_buf_first_row_len = 0, data_buf_len = 0, data_buf_first_row_len = 0;
     const char * header_buf = withHeaders ? getRowsBuf(-dimTopHeader(), dimTopHeader(), &header_buf_len, &header_buf_first_row_len) : 0;
     const char * data_buf = getRowsBuf(irowStart, numRows, &data_buf_len, &data_buf_first_row_len);
@@ -1962,7 +1909,6 @@ const char * sTxtTbl::cell(idx irow, idx icol, idx * cellLen) const
 
         do {
             if (unlikely(sep00)) {
-                // backwards search, so we can't use compareChoice
                 if (const char * sepStart = revFind00(ret, end - ret, sep, sep00len))
                     end = sepStart;
                 else
@@ -1983,7 +1929,7 @@ const char * sTxtTbl::cell(idx irow, idx icol, idx * cellLen) const
     return ret;
 }
 
-bool sTxtTbl::val(sVariant & out, idx irow, idx icol, bool noReinterpret/*=false*/, bool blankIsNull/*=false*/) const
+bool sTxtTbl::val(sVariant & out, idx irow, idx icol, bool noReinterpret, bool blankIsNull) const
 {
     idx abscol = icol + dimLeftHeader();
     if (!noReinterpret && abscol >= 0 && abscol < _colReinterp.dim() && _colReinterp[abscol].dim() && icol >= 0) {
@@ -2061,7 +2007,7 @@ void sTxtTbl::remapReadonly()
     }
 }
 
-bool sTxtTbl::initWritable(idx cols, idx flags, const char * colsep/*=","*/, const char * rowsep/*="\r\n"*/, const char * quotes/*="\""*/, idx dimTopHeader/*=1*/, idx dimLeftHeader/*=1*/)
+bool sTxtTbl::initWritable(idx cols, idx flags, const char * colsep, const char * rowsep, const char * quotes, idx dimTopHeader, idx dimLeftHeader)
 {
     if (_index.initialized())
         return false;
@@ -2077,7 +2023,6 @@ bool sTxtTbl::initWritable(idx cols, idx flags, const char * colsep/*=","*/, con
 }
 
 
-//static
 sVariant::eType sTabular::mergeTypes(sVariant::eType t1, sVariant::eType t2)
 {
     if (t1 == t2)
@@ -2196,7 +2141,7 @@ sVariant::eType sTabular::mergeTypes(sVariant::eType t1, sVariant::eType t2)
     }
 }
 
-bool sTxtTbl::addCell(const char * val/*=0*/, idx len/*=0*/, idx typeHint/*=-1*/)
+bool sTxtTbl::addCell(const char * val, idx len, idx typeHint)
 {
     if (unlikely(isReadonly()))
         return false;
@@ -2209,7 +2154,6 @@ bool sTxtTbl::addCell(const char * val/*=0*/, idx len/*=0*/, idx typeHint/*=-1*/
     if (!len && val)
         len = sLen(val);
 
-    // Do we need to add a newline?
     if (!_addedRows && !_addedCellsDim && _tableFil.length() && !strchr(_index.rowsep(), _tableFil[_tableFil.length() - 1]))
         _tableFil.addString(_index.rowsep());
 
@@ -2235,7 +2179,6 @@ bool sTxtTbl::addCell(const char * val/*=0*/, idx len/*=0*/, idx typeHint/*=-1*/
         }
     }
 
-    // for ragged edge or end row saving
     *_addedCellsIndices(_addedCellsDim + 1) = _tableFil.length();
     _addedCellsDim++;
     return true;
@@ -2326,7 +2269,6 @@ bool sTxtTbl::finish()
     return true;
 }
 
-// static
 void sVcfTbl::resetParseOptions(ParseOptions & p)
 {
     static const char default_colsep[] = "\t";
@@ -2337,10 +2279,8 @@ void sVcfTbl::resetParseOptions(ParseOptions & p)
 
 const char * sVcfTbl::parse()
 {
-    // skip initial '##' comments
     idx offset = skipInitialComments(_tableBuf, parseOptions().initialOffset, _tableBufLen, "##");
 
-    // skip initial '#' in top header line
     if (offset < _tableBufLen && _tableBuf[offset] == '#')
         offset++;
 
@@ -2349,7 +2289,7 @@ const char * sVcfTbl::parse()
     return sTxtTbl::parse();
 }
 
-sGtfTbl::sGtfTbl(const char * indexPath/*=0*/, bool indexReadOnly/*=false*/) : sTxtTbl(indexPath, indexReadOnly)
+sGtfTbl::sGtfTbl(const char * indexPath, bool indexReadOnly) : sTxtTbl(indexPath, indexReadOnly)
 {
     resetParseOptions(parseOptions());
     _colname_buf.add("seqname");
@@ -2360,17 +2300,16 @@ sGtfTbl::sGtfTbl(const char * indexPath/*=0*/, bool indexReadOnly/*=false*/) : s
     _colname_buf.add("score");
     _colname_buf.add("strand");
     _colname_buf.add("frame");
-    _colname_buf.add("attribute"); // FIXME FIXME TODO: change parser to parse this column into name-value pairs, with a separate column for each attribute ID
+    _colname_buf.add("attribute");
     _colname_buf.add0();
     for (const char * nm = _colname_buf.ptr(0); nm && *nm; nm = sString::next00(nm)) {
         *_colname_offsets.add() = nm - _colname_buf.ptr();
     }
-    _colname_buf.cut(_colname_buf.length() - 1); // remove last 0 of 00 from buffer
+    _colname_buf.cut(_colname_buf.length() - 1);
 }
 
 static const char gtf_colsep[] = "\t";
 
-// static
 void sGtfTbl::resetParseOptions(ParseOptions & p)
 {
     sTxtTbl::resetParseOptions(p);
@@ -2420,12 +2359,10 @@ const char * sVariantTbl::printCell(sStr & out, idx irow, idx icol, idx maxLen, 
     sVariant * v = _cells.ptr(cellsIndex(irow, icol));
 
     if (v->isNull()) {
-        // don't print missing data as 0
         return out.add0cut();
     }
 
     if (maxLen < sIdxMax && flags & fForCSV) {
-        // if cutting in the middle of a CSV-escaped cell, we need to unescape, then cut, then re-escape
         sStr escbuf, unescbuf;
         v->print(escbuf, sVariant::eCSV);
         sString::unescapeFromCSV(unescbuf, escbuf, escbuf.length());
@@ -2438,7 +2375,6 @@ const char * sVariantTbl::printCell(sStr & out, idx irow, idx icol, idx maxLen, 
 const char * stringifyForCell(sVariant * v)
 {
     if (v->isNull()) {
-        // don't print missing data as 0
         return sStr::zero;
     }
     return v->asString();
@@ -2502,7 +2438,6 @@ bool sVariantTbl::setVal(idx irow, idx icol, sVariant & val)
     }
 
     if (icol >= cols()) {
-        // need to re-geometrize the table
         idx old_total_cols = cols() + _dim_left_header;
         idx cur_total_cols = icol + 1 + _dim_left_header;
         idx total_rows = rows() + 1;
@@ -2522,7 +2457,6 @@ bool sVariantTbl::setVal(idx irow, idx icol, sVariant & val)
     }
 
     if (irow < 0) {
-        // updating column ID
         const char * old_name = stringifyForCell(_cells.ptr(cellsIndex(irow, icol)));
         const char * cur_name = stringifyForCell(&val);
 
@@ -2540,7 +2474,6 @@ bool sVariantTbl::setVal(idx irow, idx icol, sVariant & val)
             *cur_ids->insert(icur, 1) = icol;
         }
     } else {
-        // updating column type
         _coltypes[icol + _dim_left_header] = mergeTypes(_coltypes[icol + _dim_left_header], val.getType());
     }
 

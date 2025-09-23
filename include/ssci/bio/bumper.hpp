@@ -42,14 +42,12 @@ namespace slib {
                 referenceEnd = _referenceEnd ;
                 width = _width;
                 resolution = _resolution ;
-                if (resolution < 1) resolution = 1; // Force resolution to be 1 if returned as a negative or zero number
+                if (resolution < 1) resolution = 1;
                 annotationDensity = _annotationDensity ;
                 maxLayers = _maxLayers ;
 
                 nucleotideChunkSize = (referenceEnd - referenceStart) / resolution;
                 pixelPerChunk = width / resolution;
-                //sSet(&annotationToInsert);
-                // set up chunks
                 idx _start = _referenceStart;
                 idx _end = _referenceStart + (nucleotideChunkSize - 1);
                 for(idx i = 0; i < resolution; i++) {
@@ -61,17 +59,14 @@ namespace slib {
 
                 }
 
-                // Create the first chunk
                 annotations.add(resolution);
 
             } ;
             ~Bumper() {} ;
 
             idx add(idx _annotationStart, idx _annotationEnd, sStr & _source, sStr & _seqID, sStr & idTypeId);
-            idx print(sStr & output,bool printHeader=false); // Need to calculate the virtual start and ends and then return the table in string csv format
+            idx print(sStr & output,bool printHeader=false);
 
-            // basic annotation structure
-            // This can be made to accept any object?  Can accept any object that has start and end.
             struct annot
             {
                     sStr seqID;
@@ -83,7 +78,6 @@ namespace slib {
                     idx virtualEnd;
             };
 
-            //
             struct chunk
             {
                     idx chunkStart;
@@ -100,20 +94,20 @@ namespace slib {
 
         protected:
             annot annotationToInsert;
-            idx referenceStart;         //* The reference start position
-            idx referenceEnd;           //* The reference end position
-            idx width;                  //* The width of the SVG
-            idx resolution;             //* The number of 'chunks' desired
-            idx annotationDensity;      //* The number of annotations per chunk
-            idx nucleotideChunkSize;    //* The number of nucleotides per chunk
-            idx pixelPerChunk;          //* The number of pixels per chunk
-            idx maxLayers;              //* The maximum number of layers that are allowed to be drawn
+            idx referenceStart;
+            idx referenceEnd;
+            idx width;
+            idx resolution;
+            idx annotationDensity;
+            idx nucleotideChunkSize;
+            idx pixelPerChunk;
+            idx maxLayers;
 
-            sVec<chunk> annotationChunks;  //* The array of chunks used to split up annotations
-             sVec <sVec < annot> >  annotations;     //* The annotations that are included, by layer (vector of layers which is a vector applicable annots to that layer
+            sVec<chunk> annotationChunks;
+             sVec <sVec < annot> >  annotations;
 
-            idx loopAnnots(idx current_layer, idx thisChunk); // recursive function for examining the loops
+            idx loopAnnots(idx current_layer, idx thisChunk);
 
     };
-} // namespace
+}
 #endif

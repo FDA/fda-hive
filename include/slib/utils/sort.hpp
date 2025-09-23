@@ -43,6 +43,7 @@ namespace slib {
             typedef idx (* sCallbackSorterSimple)(void * param, void * arr, idx i1, idx i2 );
 
             typedef idx (* sCallbackSearch)(void * param, void * arr1, void * arr2);
+            typedef idx (* sCallbackSearchSimple)(void * param, void * cmp, void * arr1, idx i1);
 
 
             static idx sort_stringComparator(void * param, void * arr, idx i1, idx oper, idx i2 );
@@ -58,6 +59,8 @@ namespace slib {
                 sSort::sortCallback((sCallbackSorter) (sort_stringNaturalCaseComparator), 0, n, arr, ind);
             }
             static idx sort_idxDicComparator(void * param, void * arr, idx i1, idx oper, idx i2 );
+            static idx sort_idxDic(void * param, void * arr, idx i1, idx oper, idx i2 );
+
             static idx sort_stringsDicID(void * param, void * arr, idx i1, idx i2 );
 
             struct Lenstats
@@ -87,12 +90,10 @@ namespace slib {
             #define SWAPI(a,b) itemp=(a);(a)=(b);(b)=itemp;
             template <class Tobj> static void sort(idx n, Tobj * arr)
             {
-                //--arr;
                 idx i,ir=n-1,j,k,l=0;
                 idx jstack=0;
                 Tobj a,temp;
-                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0); //istack=lvector(1,NSTACK);
-                // istack=lvector(1,NSTACK);
+                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0);
                 for (;;) {
 
                     if (ir-l < M) {
@@ -136,7 +137,7 @@ namespace slib {
                         arr[j]=a;
                         jstack += 2;
                         if (jstack >= NSTACK)
-                            return; ///nrerror("NSTACK too small in sort.");
+                            return;
 
                         if (ir-i+1 >= j-l) {
                             istack[jstack]=ir;
@@ -149,7 +150,6 @@ namespace slib {
                         }
                     }
                 }
-            //      free_lvector(istack,1,NSTACK);
             }
 
 
@@ -157,15 +157,11 @@ namespace slib {
             {
                 idx i,ir=n-1,j,k,l=0;
                 idx jstack=0;
-                //Tobj temp;
                 idx inda,itemp;
 
-                //--ind;
-                //--arr;
                 for(i=0;i<n;++i) ind[i]=(Tind)i;
 
-                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0); //istack=lvector(1,NSTACK);
-                // istack=lvector(1,NSTACK);
+                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0);
                 for (;;) {
                     if (ir-l < M) {
                         for (j=l+1;j<=ir;j++) {
@@ -204,7 +200,7 @@ namespace slib {
                         ind[j]=(Tind)inda;
                         jstack += 2;
                         if (jstack >= NSTACK)
-                            return;//nrerror("NSTACK too small in sort.");
+                            return;
                         if (ir-i+1 >= j-l) {
                             istack[jstack]=ir;
                             istack[jstack-1]=i;
@@ -216,22 +212,17 @@ namespace slib {
                         }
                     }
                 }
-            //      free_lvector(istack,1,NSTACK);
             }
 
             template <class Tobj, class Tind > static void sortabs(idx n, Tobj * arr, Tind * ind)
             {
                 idx i,ir=n-1,j,k,l=0;
                 idx jstack=0;
-                //Tobj temp;
                 idx inda,itemp;
 
-                //--ind;
-                //--arr;
                 for(i=0;i<n;++i) ind[i]=(Tind)i;
 
-                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0); //istack=lvector(1,NSTACK);
-                // istack=lvector(1,NSTACK);
+                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0);
                 for (;;) {
                     if (ir-l < M) {
                         for (j=l+1;j<=ir;j++) {
@@ -270,7 +261,7 @@ namespace slib {
                         ind[j]=(Tind)inda;
                         jstack += 2;
                         if (jstack >= NSTACK)
-                            return;//nrerror("NSTACK too small in sort.");
+                            return;
                         if (ir-i+1 >= j-l) {
                             istack[jstack]=ir;
                             istack[jstack-1]=i;
@@ -282,7 +273,6 @@ namespace slib {
                         }
                     }
                 }
-            //      free_lvector(istack,1,NSTACK);
             }
 
 
@@ -291,15 +281,11 @@ namespace slib {
             {
                 idx i,ir=n-1,j,k,l=0;
                 idx jstack=0;
-                //Tobj temp;
                 idx inda,itemp;
 
-                //--ind;
-                //--arr;
                 for(i=0;i<n;++i) ind[i]=(Tind)i;
 
-                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0); //istack=lvector(1,NSTACK);
-                // istack=lvector(1,NSTACK);
+                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0);
                 for (;;) {
                     if (ir-l < M) {
                         for (j=l+1;j<=ir;j++) {
@@ -337,7 +323,7 @@ namespace slib {
                         ind[l+1]=ind[j];
                         ind[j]=(Tind)inda;
                         jstack += 2;
-                        if (jstack > NSTACK) return;//nrerror("NSTACK too small in sort.");
+                        if (jstack > NSTACK) return;
                         if (ir-i+1 >= j-l) {
                             istack[jstack]=ir;
                             istack[jstack-1]=i;
@@ -349,24 +335,19 @@ namespace slib {
                         }
                     }
                 }
-            //      free_lvector(istack,1,NSTACK);
             }
 
             template <class Tobj> static void sortSimpleCallback(sCallbackSorterSimple compare , void * param, idx n, Tobj * arr)
             {
-                //--arr;
-                idx i,ir=n-1,j,k,l=0;//,rs=0;
+                idx i,ir=n-1,j,k,l=0;
                 idx jstack=0;
                 Tobj a,temp;
-                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0);// 2*(n+1));istack.set(0); //istack=lvector(1,NSTACK);
-                // istack=lvector(1,NSTACK);
+                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0);
                 for (;;) {
 
                     if (ir-l < M) {
 
                         for (j=l+1;j<=ir;j++) {
-                            // Unwrap one level of insertion sort inner loop to ensure that
-                            // arr[j] is not overwritten while we are still comparing it to arr[i]
                             if (compare(param, arr, j-1, j) <= 0) continue;
                             a=arr[j-1];
                             for (i=j-2;i>=l;i--) {
@@ -408,7 +389,7 @@ namespace slib {
                         arr[j]=a;
                         jstack += 2;
                         if (jstack >= NSTACK)
-                            return; ///nrerror("NSTACK too small in sort.");
+                            return;
                         if (ir-i+1 >= j-l) {
                             istack[jstack]=ir;
                             istack[jstack-1]=i;
@@ -426,15 +407,11 @@ namespace slib {
             {
                 idx i,ir=n-1,j,k,l=0;
                 idx jstack=0;
-                //Tobj temp;
                 idx inda,itemp;
 
-                //--ind;
-                //--arr;
                 for(i=0;i<n;++i) ind[i]=i;
 
-                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0); //istack=lvector(1,NSTACK);
-                // istack=lvector(1,NSTACK);
+                sVec <idx > istack; istack.add(NSTACK+1);istack.set(0);
                 for (;;) {
                     if (ir-l < M) {
                         for (j=l+1;j<=ir;j++) {
@@ -472,7 +449,7 @@ namespace slib {
                         ind[l+1]=ind[j];
                         ind[j]=inda;
                         jstack += 2;
-                        if (jstack >= NSTACK) return;//nrerror("NSTACK too small in sort.");
+                        if (jstack >= NSTACK) return;
                         if (ir-i+1 >= j-l) {
                             istack[jstack]=ir;
                             istack[jstack-1]=i;
@@ -504,20 +481,20 @@ namespace slib {
             #undef SWAP
             #undef SWAPI
 
-            template<class Tobj > static idx binarySearch(sCallbackSearch compare, void * param, Tobj * cmp, idx n, Tobj * arr, idx * ind = 0, sSearchHitType hitType = eSearch_Any, bool approximate = false)
+            template<class Tobj > static idx binarySearch(sCallbackSearch compare, void * param, Tobj * cmp, idx n, Tobj * arr, idx * ind = 0, sSearchHitType hitType = eSearch_Any, bool approximate = false, idx start = 0)
             {
-                idx mid = 0, min = 0, max = n - 1, cmpcli = -1, cmpres = 0;
+                idx mid = 0, min = start, max = n - 1, cmpcli = -1, cmpres = 0;
                 bool isExactHit = false;
                 while( max >= min ) {
                     mid = min + ((max - min) / 2);
-                    cmpres = compare(param, cmp, &arr[ind ? ind[mid] : mid]); //do not change the order of comparison
+                    cmpres = compare(param, cmp, &arr[ind ? ind[mid] : mid]);
                     if( cmpres > 0 )
                         min = mid + 1;
                     else if( cmpres < 0 )
                         max = mid - 1;
                     else {
                         isExactHit = true;
-                        if( hitType == eSearch_Last && max != mid ) {
+                        if( hitType == eSearch_Last && min != mid ) {
                             min = mid;
                         } else if( hitType == eSearch_First && min != mid ) {
                             max = mid;
@@ -530,8 +507,8 @@ namespace slib {
                 if( !isExactHit && approximate && (min > max) ) {
                     if( max < 0) return 0;
                     if( min >= n ) return n-1;
-                    idx cmpmin = compare(param, cmp, &arr[ind ? ind[min] : min]), //do not change the order of comparison
-                        cmpmax = compare(param, cmp, &arr[ind ? ind[max] : max]); //do not change the order of comparison
+                    idx cmpmin = compare(param, cmp, &arr[ind ? ind[min] : min]),
+                        cmpmax = compare(param, cmp, &arr[ind ? ind[max] : max]);
                     if( cmpmin < 0 )
                         cmpmin = -cmpmin;
                     if( cmpmax < 0 )
@@ -543,7 +520,7 @@ namespace slib {
                         cmpres = cmpmax;
                     }
                     if( min ) {
-                        idx cmpmin1 = compare(param, cmp, &arr[ind ? ind[min - 1] : (min - 1)]); //do not change the order of comparison
+                        idx cmpmin1 = compare(param, cmp, &arr[ind ? ind[min - 1] : (min - 1)]);
                         if( cmpmin1 < 0 )
                             cmpmin1 = -cmpmin1;
                         if( cmpres > cmpmin1 ) {
@@ -552,7 +529,66 @@ namespace slib {
                         }
                     }
                     if( max + 1 < n ) {
-                        idx cmpmax1 = compare(param, cmp, &arr[ind ? ind[max + 1] : (max + 1)]); //do not change the order of comparison
+                        idx cmpmax1 = compare(param, cmp, &arr[ind ? ind[max + 1] : (max + 1)]);
+                        if( cmpmax1 < 0 )
+                            cmpmax1 = -cmpmax1;
+                        if( cmpres > cmpmax1 ) {
+                            cmpcli = max - +1;
+                        }
+                    }
+                }
+                return cmpcli;
+            }
+
+            template<class Kobj, class Tobj > static idx binarySearch(sCallbackSearchSimple compare, void * param, Kobj * cmp, idx n, Tobj * arr, idx * ind = 0, sSearchHitType hitType = eSearch_Any, bool approximate = false, idx start = 0)
+            {
+                idx mid = 0, min = start, max = n - 1, cmpcli = -1, cmpres = 0;
+                bool isExactHit = false;
+                while( max >= min ) {
+                    mid = min + ((max - min) / 2);
+                    cmpres = compare(param, cmp, arr, ind ? ind[mid] : mid);
+                    if( cmpres > 0 )
+                        min = mid + 1;
+                    else if( cmpres < 0 )
+                        max = mid - 1;
+                    else {
+                        isExactHit = true;
+                        if( hitType == eSearch_Last && min != mid ) {
+                            min = mid;
+                        } else if( hitType == eSearch_First && min != mid ) {
+                            max = mid;
+                        } else {
+                            cmpcli = mid;
+                            break;
+                        }
+                    }
+                }
+                if( !isExactHit && approximate && (min > max) ) {
+                    if( max < 0) return 0;
+                    if( min >= n ) return n-1;
+                    idx cmpmin = compare(param, cmp, arr, ind ? ind[min] : min),
+                        cmpmax = compare(param, cmp, arr, ind ? ind[max] : max);
+                    if( cmpmin < 0 )
+                        cmpmin = -cmpmin;
+                    if( cmpmax < 0 )
+                        cmpmax = -cmpmax;
+                    cmpres = cmpmin;
+                    cmpcli = min;
+                    if( cmpmax < cmpres ) {
+                        cmpcli = max;
+                        cmpres = cmpmax;
+                    }
+                    if( min ) {
+                        idx cmpmin1 = compare(param, cmp, arr, ind ? ind[min - 1] : (min - 1));
+                        if( cmpmin1 < 0 )
+                            cmpmin1 = -cmpmin1;
+                        if( cmpres > cmpmin1 ) {
+                            cmpres = cmpmin1;
+                            cmpcli = min - 1;
+                        }
+                    }
+                    if( max + 1 < n ) {
+                        idx cmpmax1 = compare(param, cmp, arr, ind ? ind[max + 1] : (max + 1));
                         if( cmpmax1 < 0 )
                             cmpmax1 = -cmpmax1;
                         if( cmpres > cmpmax1 ) {
@@ -563,6 +599,8 @@ namespace slib {
                 return cmpcli;
             }
     };
-} // namespace slib
+
+
+}
 
 #endif

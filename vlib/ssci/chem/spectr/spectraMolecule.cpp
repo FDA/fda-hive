@@ -48,7 +48,7 @@ bool sSpctrMolecule::inputMolecules(sStr & rst, sStr & inpMolList)
     return true;
 }
 
-const char * sSpctrMolecule::prepareMolList(sStr * mollist,const char * separ /* ="^" */)
+const char * sSpctrMolecule::prepareMolList(sStr * mollist,const char * separ)
 {
     for(idx imol = 0; imol < IsoD.isoDistr.dim(); ++imol) {
         if( imol ) {

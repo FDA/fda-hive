@@ -34,14 +34,14 @@
 #include <qpsvc/screening.hpp>
 #include <ssci/math/stat/stat.hpp>
 #include <slib/std/file.hpp>
-#include <dmlib/dmlib.hpp>
+#include <xlib/dmlib.hpp>
 
 
 class censuScopeProc: public sQPrideProc
 {
     public:
         censuScopeProc(const char * defline00, const char * srv)
-            : sQPrideProc(defline00, srv), samplesize(1000), useAlignments(false)
+            : sQPrideProc(defline00, srv), samplesize(1000), useAlignments(false), deepScanning(false)
         {
             sBioseq::initModule(sBioseq::eACGT);
         }
@@ -50,11 +50,9 @@ class censuScopeProc: public sQPrideProc
         }
         virtual idx OnExecute(idx);
 
-//        void launchHexagon(idx req, const char * qry, const char * sub);
         idx launchAlignment(idx isBlast, const char * hqrylist, const char * sublist, const char * alignSelector, idx Sample, idx priority = 0);
         idx CurateResult(sDic<idx> *taxCnt,sDic<idx> *accCnt, const char * sublist, idx isBlast, sHivealtax *idAlTax, const char * alignObjId);
         idx curateTextBasedFile (sDic<idx> *taxCnt,sDic<idx> *accCnt, sHivealtax *idAlTax, const char *objId);
-        idx filterByRank(sStr *dstTax, const char * srcTax, const char * requiredRank);
 
         bool moveAlignments(const char * sublist, const char * svcName);
 
@@ -82,6 +80,7 @@ class censuScopeProc: public sQPrideProc
     private:
         idx samplesize;
         bool useAlignments;
+        bool deepScanning;
 
         struct RanksAndWeights
         {
@@ -89,8 +88,6 @@ class censuScopeProc: public sQPrideProc
                 real weight;
                 idx totalPopulation;
         };
-        // i have to count the whole population of each node that we have in the tax tree
-        // TODO implement sliding dynamic weights
         RanksAndWeights rankList[NUM_RANKS];
 };
 
@@ -98,13 +95,9 @@ bool censuScopeProc::moveAlignments(const char * sublist, const char * svcName)
 {
     sStr pathAl;
     grpDataPaths(reqId, "req-alignment.hiveal", &pathAl, svcName, 0);
-    //grpDataPaths(reqId, "alignx-qry-", &pathAl, svcName, ";");
 
     idx chunk = 0;
-    //we have some files which is result from running blast against a random samples
-    //ok, we want to parse them and accumulate the result
-    //it seems that we want to have some statistical value so with this for loop we can
-    sStr dst, prefile, filesToZip;
+    sStr dst, prefile, lbuf;
     sFilePath nsrc, ndir, flnm;
     sStr extension ("-alignment.hiveal");
     sStr hivealPath;
@@ -113,9 +106,10 @@ bool censuScopeProc::moveAlignments(const char * sublist, const char * svcName)
     sFil hivealText (hivealPath);
     for(const char *src = pathAl.ptr(); src; src = sString::next00(src), ++chunk)
     {
-        // We access the file and get the container
         sFil filecontent (src, sFil::fReadonly);
-        hivealText.printf("%s", filecontent.ptr());
+        lbuf.printf(0, "%" DEC "-req-", chunk + 1);
+        sString::searchAndReplaceStrings(&hivealText, filecontent.ptr(), filecontent.length(), "req-", lbuf.ptr(0), 0, 0);
+        hivealText.shrink00();
         nsrc.cut(0);
         ndir.cut(0);
         prefile.cut(0);
@@ -127,17 +121,16 @@ bool censuScopeProc::moveAlignments(const char * sublist, const char * svcName)
         results.list(sFlag(sDir::bitFiles), ndir.ptr(), prefile.ptr(), 0, 0);
         for(const char * ptr = results; ptr && *ptr; ptr = sString::next00(ptr)) {
             flnm.cut(0);
-            flnm.makeName(ptr, "%%flnm");
+            flnm.makeName(ptr, "%" DEC "-%%flnm", chunk+1);
             dst.cut(0);
 
             reqAddFile(dst, flnm);
             sFile::rename(ptr, dst.ptr());
-//                    sFile::copy(ptr, dst.ptr());
             logOut(eQPLogType_Info, "moving %s to %s\n", ptr, dst.ptr());
         }
     }
 
-    if (true){  // we can put a flag to indicate if we want them zip or not
+    if (true){
         sStr tempDir;
         dst.cut(0);
         reqAddFile(dst, "unaligned.zip");
@@ -146,14 +139,12 @@ bool censuScopeProc::moveAlignments(const char * sublist, const char * svcName)
         sDir results;
         results.list(sFlag(sDir::bitFiles), ndir.ptr(), "*unaligned.fa", 0, 0);
 
-        // We move all the unaligned reads to a temporary directory
         tempDir.printf(0,"%stemp/", ndir.ptr());
         sDir::removeDir(tempDir.ptr(), true);
         if( !sDir::makeDir(tempDir.ptr()) ) {
             logOut(eQPLogType_Error, "Could not create temporary directory");
             return false;
         }
-        // Move the files into the directory
         for(const char *src = results.ptr(); src; src = sString::next00(src)){
             nsrc.cut(0);
             nsrc.makeName(src, "%%flnm");
@@ -161,11 +152,9 @@ bool censuScopeProc::moveAlignments(const char * sublist, const char * svcName)
             sFile::rename(src, prefile.ptr());
         }
 
-        // We pack the whole temporary directory
-        if( !dmLib::pack(tempDir, dst, dmLib::eZip)){//ndir, dst, dmLib::eZip, &log, &log, &zipFile) ) {
+        if( !dmLib::pack(tempDir, dst, dmLib::eZip)){
             logOut(eQPLogType_Info, "Compression of unaligned reads failed");
         }
-        // Remove the directory
         sDir::removeDir(tempDir, true);
     }
     return true;
@@ -174,27 +163,31 @@ bool censuScopeProc::moveAlignments(const char * sublist, const char * svcName)
 idx censuScopeProc::launchAlignment(idx isBlast, const char * hqrylist, const char * sublist, const char * alignSelector, idx Sample, idx priority)
 {
     idx filterNs = formIValue("filterNs", 1);
-    bool deepScanning = formBoolValue("deepScanning", 0);
-    idx wordSize = formIValue("blastWordSize", 28);
-    if (wordSize < 11){
-        wordSize = 11;
-    }
     idx reqsubmitAlgorithm = 0;
 
     sQPSvc * svc = 0;
     if( isBlast ) {
-        svc = new QPSvcDnaAlignx(*this);
-        svc->setVar("cmdLine", "-task megablast -num_threads 1 -best_hit_score_edge 0.1 -best_hit_overhang 0.1 -num_alignments 1 -num_descriptions 1 -outfmt 0");
-        svc->setVar("blastProgram", "blastn");
+        idx wordSize = formIValue("blastWordSize", 28);
+        if (wordSize < 11){
+            wordSize = 11;
+        }
+        bool blastMode = formBoolValue("blastMegablast", true);
+        const char *taskcmdLine = blastMode ? "megablast" : "blastn";
+        svc = new QPSvcDnaAlignxBlast(*this);
+        svc->setVar("blastn_task", taskcmdLine);
         svc->setVar("resultFileTemplate", "req-");
         svc->setVar("produceRandomReadsForNT", "1");
         svc->setVar("maxMissQueryPercent", "10");
-        svc->setVar("evalueFilter", "1e-6");
+        svc->setVar("evalueFilter", formValue("blastevalue", 0, "1e-6"));
         svc->setVar("seedSize", "%" DEC, wordSize);
         svc->setVar("filterNs", "%" DEC, filterNs);
-        svc->setVar("keepAllMatches","1");//i want to keep best first match
+        svc->setVar("keepAllMatches","1");
         svc->setVar("keepRefNs", "1");
         svc->setVar("qrybiomode", "1");
+        svc->setVar("num_alignments", "1");
+        svc->setVar("num_descriptions", "1");
+        svc->setVar("best_hit_score_edge", "0.1");
+        svc->setVar("best_hit_overhang", "0.1");
     } else {
         svc = new QPSvcDnaHexagon(*this);
         svc->setVar("resultFileTemplate", "req-");
@@ -204,8 +197,6 @@ idx censuScopeProc::launchAlignment(idx isBlast, const char * hqrylist, const ch
     }
 
     if( svc ) {
-        //will take whole file as one slice
-//        svc->setVar("slice", "%" UDEC, sIdxMax);
 
         idx slice = formIValue("chunk_size", 4000);
 
@@ -213,6 +204,10 @@ idx censuScopeProc::launchAlignment(idx isBlast, const char * hqrylist, const ch
         svc->setVar("query", "%s", hqrylist);
         svc->setVar("subject", "%s", sublist);
         svc->setVar("alignSelector", alignSelector);
+
+        real rand_seed = (real)rand()/RAND_MAX;
+        svc->setVar("rand_seed", "%" DEC, (idx)(rand_seed * 1000000));
+
 
         bool storeAlignments = formBoolValue("storeAlignments", 0);
         if (storeAlignments){
@@ -244,14 +239,13 @@ idx censuScopeProc::curateTextBasedFile (sDic<idx> *taxCnt,sDic<idx> *accCnt, sH
     const char * taxDepth = formValue("taxDepth",&t3_buf,"family");
     const char *separator = formIValue("textBasedFileSeparator") == 1 ? "\t" : "," ;
     idx columnNumber = formIValue ("textBasedColumn", 0) - 1;
-    // Extract taxonomy information based on the file
     sStr pathFile;
     obj.getFile(pathFile);
 
     sTxtTbl tbl;
     tbl.setFile(pathFile.ptr());
     tbl.parseOptions().colsep = separator;
-    tbl.parse(); //(flags, " ", "\r\n", "\"", 0, 0, sIdxMax, sIdxMax, 1, 1, offset);
+    tbl.parse();
     const char *unTax = "-1" __;
     idx *unCnt = taxCnt->set(unTax);
     *unCnt = 0;
@@ -274,12 +268,10 @@ idx censuScopeProc::curateTextBasedFile (sDic<idx> *taxCnt,sDic<idx> *accCnt, sH
 
     idx idlen;
     for(idx i = 0; i < taxCnt->dim(); ++i) {
-//            cnt = *taxCnt->ptr(i);
         const char * key = (const char *) (taxCnt->id(i, &idlen));
         idAlTax->addStats(0, key, idlen, 0);
     }
     for(idx i = 0; i < accCnt->dim(); ++i) {
-//            cnt = *accCnt->ptr(i);
         const char * key = (const char *) (accCnt->id(i, &idlen));
         idAlTax->addStats(1, key, idlen, 0);
     }
@@ -292,10 +284,10 @@ idx censuScopeProc::CurateResult(sDic<idx> *taxCnt,sDic<idx> *accCnt, const char
 {
     sStr t3_buf;
     const char * taxDepth = formValue("taxDepth",&t3_buf,"species");
-    const char * svcName = isBlast ? "dna-alignx" : "dna-hexagon";
+    const char * svcName = isBlast ? "dna-alignx-blast" : "dna-hexagon";
     sStr dstTax;
     sStr pathAl, primPathAl;
-    sStr subject;
+    sStr subject, query;
     bool unalignedReads = true;
 
     if (!useAlignments){
@@ -304,25 +296,22 @@ idx censuScopeProc::CurateResult(sDic<idx> *taxCnt,sDic<idx> *accCnt, const char
     else {
         sUsrFile aligner(alignObjId, user);
         aligner.getFilePathname00(primPathAl, "alignment.hiveal" _ "alignment.vioal" __);
-        aligner.propGet00("subject", &subject, ";");
+        QPSvcDnaHexagon::getQuery00(aligner, query, ";");
+        QPSvcDnaHexagon::getSubject00(aligner, subject, ";");
         sublist = subject.ptr(0);
         samplesize = -1;
     }
 
-    // Check if the files exist either in the reqData directory or our own objID directory
     fixDataPaths(&pathAl, primPathAl.ptr());
 
-    sHiveseq Sub(user, sublist);
 
     idx chunk = 0;
-    //we have some files which is result from running blast against a random samples
-    //ok, we want to parse them and accumulate the result
     const char *unTax = "-1" __;
 
-    idx *unCnt = taxCnt->set(unTax);
+    idx *unCnt = taxCnt->set(unTax, 2);
     *unCnt = 0;
     if (accCnt){
-        idx *gCnt = accCnt->set(unTax);
+        idx *gCnt = accCnt->set(unTax, 2);
         *gCnt = 0;
         sHivealtax::stats *st = idAlTax->setStats(1,unTax);
 
@@ -333,10 +322,17 @@ idx censuScopeProc::CurateResult(sDic<idx> *taxCnt,sDic<idx> *accCnt, const char
         reqProgress(chunk, 20 + chunk, 100);
         sHiveal hiveal(user);
         hiveal.parse(iter);
+        sHiveseq Sub(user, sublist, hiveal.getSubMode());
+        hiveal.Sub = &Sub;
+        hiveal.Qry = 0;
+        if (useAlignments){
+            sHiveseq * qryhiveseq = new sHiveseq(user, query.ptr(0), hiveal.getQryMode());
+            hiveal.Qry = qryhiveseq;
+        }
 
-        idx taxCount = idAlTax->CurateResult(taxCnt, &Sub, &hiveal, accCnt, taxDepth);
+        idx taxCount = idAlTax->CurateResult(taxCnt, &Sub, &hiveal, accCnt, taxDepth, 0, 0 , useAlignments);
         if (samplesize == -1){
-            samplesize = taxCount; // Or unaligned reads from hiveal
+            samplesize = taxCount;
             sBioal::Stat * stat = hiveal.getStat(-1, 0);
             if (stat){
                 samplesize += stat->foundRpt;
@@ -347,33 +343,29 @@ idx censuScopeProc::CurateResult(sDic<idx> *taxCnt,sDic<idx> *accCnt, const char
 
         }
         if (unalignedReads){
-            // Add the number of unaligned reads to TaxCnt
-            unCnt = taxCnt->get(unTax);
+            unCnt = taxCnt->get(unTax, 2);
             (*unCnt) = (*unCnt) + samplesize - taxCount;
-            // Add to the statistics
-            idAlTax->addStats(0,unTax, 0, samplesize - taxCount);
+            idAlTax->addStats(0,unTax, 2, samplesize - taxCount);
 
             if (accCnt){
-                idx *gCnt = accCnt->get(unTax);
+                idx *gCnt = accCnt->get(unTax, 2);
                 (*gCnt) = (*gCnt) + samplesize - taxCount;
-                // Add to the statistics
-                idAlTax->addStats(1,unTax, 0, samplesize - taxCount);
+                idAlTax->addStats(1,unTax, 2, samplesize - taxCount);
             }
         }
 
-        // Reset the statistics to get another chunk
-//        idx cnt;
 
         idx keylen;
         for(idx i = 0; i < taxCnt->dim(); ++i) {
-//            cnt = *taxCnt->ptr(i);
             const char * key = (const char *) (taxCnt->id(i, &keylen));
             idAlTax->addStats(0, key, keylen, 0);
         }
         for(idx i = 0; i < accCnt->dim(); ++i) {
-//            cnt = *accCnt->ptr(i);
             const char * key = (const char *) (accCnt->id(i, &keylen));
             idAlTax->addStats(1, key, keylen, 0);
+        }
+        if (hiveal.Qry){
+            delete hiveal.Qry;
         }
     }
     return taxCnt->dim();
@@ -398,15 +390,14 @@ idx censuScopeProc::OnExecute(idx req)
     t_buf.cut(0);
     reqProgress(0, 1, 100);
 
-    // the algorithm is there BLAST or HEXAGON
-    const char * alignSelector = formValue("alignSelector", &t_buf, "svc-align-blast"); // reading from mysql blast or hexagon
+    const char * alignSelector = formValue("alignSelector", &t_buf, "svc-align-blast");
     idx CensuslimitIterations = formIValue("CensuslimitIterations", 5);
 
     samplesize = formIValue("Sample", 1000);
     real cutOffvalue = formRValue("cutOffvalue", 0.05);
 
     idx CensusIteration = formIValue("CensusIterations", 1);
-    bool deepScanning = formBoolValue("deepScanning", 0) ? true : false;
+    deepScanning = formBoolValue("deepScanning", 0) ? true : false;
     if (CensusIteration <= 0 || deepScanning){
         CensusIteration = 1;
     }
@@ -419,11 +410,11 @@ idx censuScopeProc::OnExecute(idx req)
     const char * hqrylist=0;
     sVec<idx> reqList;
     reqList.cut(0);
-    const char * svcName = isBlast ? "dna-alignx" : "dna-hexagon";
+    const char * svcName = isBlast ? "dna-alignx-blast" : "dna-hexagon";
 
     const char * alignmentObjId = formValue("alignmentInput", 0);
     const char * otherObjId = formValue ("textBasedInput", 0);
-    useAlignments = false;  // Use alignment input instead of running dna-alignx
+    useAlignments = false;
     bool analyzeAlignments = false;
     bool useShannonEntropy = formBoolValue ("selfStopping", 0);
     bool useTextBasedFile = false;
@@ -442,18 +433,16 @@ idx censuScopeProc::OnExecute(idx req)
         formValue("subject",&sublist);
 
         if( autolauncher == 1 ) {
-            // dna-parser launched dna-screening and we need to use NT as subject
             hqrylist = formValue("query", &qrylist);
 
             sHiveId objId(hqrylist);
             if( objId ){
                 sStr lockBuf;
-                DnaScreening dnascreening(*this, objId);
+                DnaScreening dnascreening(*this, objId, DnaScreening::eBlastVsNT);
                 const char *lockStringkey = dnascreening.getLockString(lockBuf, objId);
                 idx reqLockedby;
                 reqLock(lockStringkey, &reqLockedby);
                 if (req != reqLockedby){
-                    // Report waiting for another request and exit as DONE
                     logOut(eQPLogType_Info, "Waiting for %s request: %" DEC " \n", dnascreening.getSvcName(), reqLockedby);
                     reqProgress(0, 100, 100);
                     reqSetStatus(req, eQPReqStatus_Done);
@@ -461,7 +450,6 @@ idx censuScopeProc::OnExecute(idx req)
                 }
             }
             else {
-                // error
                 reqSetInfo(req, eQPInfoLevel_Error, "Query not valid: %s", hqrylist);
                 reqSetStatus(req, eQPReqStatus_ProgError);
                 return 1;
@@ -475,7 +463,7 @@ idx censuScopeProc::OnExecute(idx req)
             }
             sublist.printf(0, "%s", ntID.print());
         } else {
-            hqrylist = formValues00("query", &qrylist, ";"); // is your query files
+            hqrylist = formValues00("query", &qrylist, ";");
         }
 
         sHiveseq qry(user, hqrylist, sBioseq::eBioModeLong);
@@ -488,27 +476,21 @@ idx censuScopeProc::OnExecute(idx req)
 
         sVec<idx> statList;
 
-        if (qry.dim() < samplesize){
-            CensusIteration = 1; // run only 1 aligner
-            CensuslimitIterations = 1;  // run only 1 iteration
+        if (qry.dim() <= 4000){
+            CensusIteration = 1;
+            CensuslimitIterations = 1;
             samplesize = qry.dim();
+
         }
 
-        //
-        // GET STATUSES OF RUNNING ALIGNERS
-        //
 
         grp2Req(reqId, &reqList, svcName);
         if( reqList.dim() == 1 && reqList[0] == reqId )
-            reqList.cut(0);    //! we erase the vector
-        // pop the first one from vector
-        //status of a request
+            reqList.cut(0);
         if( reqList.dim() ) {
-            //there are more than one request
             grpGetStatus(reqId, &statList, svcName);
         }
         currentIterationNumber = reqList.dim() / CensusIteration;
-        // if more than on query has been listed
         idx cntDone = 0, cntNotDone = 0, cntErr = 0;
         for(idx i = 0; i < statList.dim(); ++i) {
             if( statList[i] <= eQPReqStatus_Suspended )
@@ -519,15 +501,12 @@ idx censuScopeProc::OnExecute(idx req)
                 ++cntErr;
         }
         if( cntErr != 0 ) {
-            // stop progress, report errors , quick exit
             reqSetInfo(req, eQPInfoLevel_Error, "Alignment produced errors");
             reqSetStatus(&reqList, eQPReqStatus_ProgError);
             reqSetStatus(req, eQPReqStatus_ProgError);
             return 0;
         } else if( cntNotDone > 0 ) {
-            // WE ALREADY LAUNCH ALIGNMENT AND WE ARE WAITING FOR THE FINISH
             logOut(eQPLogType_Info, "Waiting for %s %" DEC " requests \n", svcName, cntNotDone);
-            //sleepSeconds(10);
             reqProgress(0, 10, 100);
             reqReSubmit(req, 60);
             return 0;
@@ -540,23 +519,18 @@ idx censuScopeProc::OnExecute(idx req)
     idx needMoreSubmissions = 0;
 
     if( analyzeAlignments) {
-        // ALIGNMENT IS OVER AND WE WANT TO PARSE THE RESULT INTO A FILE
         reqProgress(0, 20, 100);
-        //
-        // parse the alignment and produce tax dictionary
-        //
         sDic<idx> taxCnt;
         taxCnt.flagOn(sMex::fSetZero);
         sDic<idx> accCnt;
-        accCnt.flagOn(sMex::fSetZero);// how to zero a vector
+        accCnt.flagOn(sMex::fSetZero);
 
-        sHiveId objID;                // = 0;
+        sHiveId objID;
         if( autolauncher ) {
             objID.parse(hqrylist);
         } else if( objs.dim() ) {
             objID = objs[0].Id();
         }
-        //// REPLACING TAX WITH IONTAX
 
         sHiveId taxDatabaseID;
         if( !sviolin::SpecialObj::findTaxDb(taxDatabaseID, *user) ) {
@@ -578,20 +552,18 @@ idx censuScopeProc::OnExecute(idx req)
             CurateResult (&taxCnt, &accCnt, sublist, isBlast, idAlTax, alignmentObjId);
         }
 
-        // analyze the taxid lists and write to file ... meanwhile return how many new ones have been found
         reqProgress(0, 70, 100);
         real newSpeciesFound = 0;
-        if( taxCnt.dim() == 0 /* nothing detected*/ && !autolauncher/* it is not from parser*/ && reqList.dim() < CensuslimitIterations/* we can launch more*/ ) {
-            // WE DID NOT FIND ANY THING SO WE SET THE EMPTY FILE AND WE EXIT
+        if( taxCnt.dim() == 0&& !autolauncher&& reqList.dim() < CensuslimitIterations) {
             needMoreSubmissions = 1;
         } else {
             bool ok = false;
             sUsrFile sf(objID, user);
             if( sf.Id() ) {
                 sStr pathR, shannPathname, gipathR;
-                sf.makeFilePathname(pathR, "%s_screenResult.csv", svcName);
-                sf.makeFilePathname(shannPathname, "%s_screenShannon.csv", svcName);
-                sf.makeFilePathname(gipathR, "%s_acclist.csv", svcName);
+                sf.makeFilePathname(pathR, "dna-alignx_screenResult.csv");
+                sf.makeFilePathname(shannPathname, "dna-alignx_screenShannon.csv");
+                sf.makeFilePathname(gipathR, "dna-alignx_acclist.csv");
                 if( pathR && shannPathname && gipathR ) {
                     sFil fp(pathR), shaFile(shannPathname), fp_gi(gipathR);
                     if( fp.ok() && shaFile.ok() && fp_gi.ok() ) {
@@ -612,29 +584,24 @@ idx censuScopeProc::OnExecute(idx req)
             needMoreSubmissions = 0;
         }
         else if( (useShannonEntropy == false  && currentIterationNumber < CensuslimitIterations)|| newSpeciesFound > cutOffvalue ) {
-            // we will try again if result is not satisfying
             needMoreSubmissions = 1;
         }
         reqProgress(0, 90, 100);
     }
 
     if( reqList.dim() == 0 || needMoreSubmissions  ) {
-        // IF QUERY IS EMPTY AND OUR grpid IS THE NEXT ONE LUNCH
         idx reqsubmitAlgorithm = 0;
 
         if (useShannonEntropy == false){
             CensusIteration = CensuslimitIterations * CensusIteration;
         }
-        // Set the same priority as dna-screening
         Request r;
         requestGet(req, &r);
 
         for(idx iblast = 0; iblast < CensusIteration; ++iblast) {
             reqsubmitAlgorithm = launchAlignment(isBlast, hqrylist, sublist, alignSelector, samplesize, r.priority);
-            // LAUNCH ALIGNMENT
 
             if( !reqsubmitAlgorithm ) {
-                //IF WE WERE UNABLE TO LAUNCH ALIGNMENT
                 reqSetInfo(req, eQPInfoLevel_Error, "Cannot launch ALIGNING process");
                 reqSetStatus(req, eQPReqStatus_ProgError);
                 break;
@@ -646,7 +613,6 @@ idx censuScopeProc::OnExecute(idx req)
         }
 
     } else {
-        // We will store the alignments
         bool storeAlignments = formBoolValue("storeAlignments", 0);
         if (storeAlignments && !useTextBasedFile){
             moveAlignments(hqrylist, svcName);

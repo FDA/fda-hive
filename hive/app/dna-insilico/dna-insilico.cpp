@@ -57,6 +57,7 @@ class DnaInsilicoProc: public sQPrideProc
             qryFiles.cut(0);
             idAppend.cut(0);
             randseq.init();
+            useDefLineColumnAsPrefix = false;
         }
 
         sStr qryFiles, idAppend;
@@ -66,6 +67,7 @@ class DnaInsilicoProc: public sQPrideProc
         sHiveId qualityFileId;
         sHiveId annotFileId;
         sHiveId cnvFileId;
+        bool useDefLineColumnAsPrefix;
 
         virtual idx OnExecute(idx);
         bool loadGeneralAttributes(sStr *err);
@@ -77,22 +79,36 @@ class DnaInsilicoProc: public sQPrideProc
         idx parseRangeExtractionFile(sBioseq &sub, sStr &err);
         bool validateHiveID (sHiveId &hiveId, sStr *err, sStr *cont = 0, const char *key = 0);
         bool generateFastaFile(const char *newOutputfile, const char *outPath, idx option, sStr &err);
-        bool generateRecombination(sFil &out, sStr &err);
+        bool generateRecombination(sFil &out, sFil &outTable, sStr &err);
         bool generateCNV(sFil &out, sStr &err);
-//        static idx ionWanderCallback(sIon * ion, sIonWander *ts, sIonWander::StatementHeader * traverserStatement, sIon::RecordResult * curResults);
         static idx rangeComparator(DnaInsilicoProc * myThis, void * arr, udx i1, udx i2);
         bool printSequenceRanges (sFil &out, sBioseq *sub, idx irow, idx start = 0, idx end = 0, idx isrev = false, idx iscomp = false);
+
+        bool reqInitFile(sMex & fil, const char * name, const char *ext, sStr * path_buf = 0)
+        {
+            static sStr local_path_buf;
+            if( !path_buf ) {
+                path_buf = &local_path_buf;
+            }
+            const char * path = reqAddFile(*path_buf, "%s%s", name, ext);
+            if( path && fil.init(path) && fil.ok() ) {
+#ifdef _DEBUG
+                logOut(eQPLogType_Trace, "Created %s", path);
+#endif
+                return true;
+            } else {
+                logOut(eQPLogType_Error, "Failed to create %s%s", name, ext);
+                return false;
+            }
+        }
+
 };
 
-// Return:
-// -1, if i1 is better than i2
-// 1, if i2 is better than i1
 idx DnaInsilicoProc::rangeComparator(DnaInsilicoProc * myThis, void * arr, udx i1, udx i2)
 {
     sRandomSeq::RangeSeq * range1 = myThis->randseq.rangeContainer.ptr(i1);
     sRandomSeq::RangeSeq * range2 = myThis->randseq.rangeContainer.ptr(i2);
 
-    // 1. Sort by seqnum
     if (range1->destSeqnum < range2->destSeqnum){
         return -1;
     }
@@ -100,20 +116,12 @@ idx DnaInsilicoProc::rangeComparator(DnaInsilicoProc * myThis, void * arr, udx i
         return 1;
     }
 
-    // if not...
-    // 2. Sort by startRange
     if (range1->destPosition < range2->destPosition){
         return -1;
     }
     return 1;
 }
 
-//class koko {
-//        findTValue(){
-//        sApp::argv
-//        sApp:argc
-//        }
-//};
 bool DnaInsilicoProc::validateHiveID (sHiveId &hiveId, sStr *err, sStr *cont, const char *key)
 {
     if (hiveId.objId() == 0){
@@ -143,20 +151,12 @@ bool DnaInsilicoProc::validateHiveID (sHiveId &hiveId, sStr *err, sStr *cont, co
 
 bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
 {
-////#ifdef STANDALONE
-////    koko propsTree();
-////#else
     const sUsrObjPropsTree * tree = objs[0].propsTree();
     if (!tree){
         err->printf("Variable data (Props Tree) is not accessible");
         return false;
     }
-//    const sUsrObjPropsNode * vars_node_array = tree ? tree->find("parser_script_vars") : 0;
-//    tree = new sUsrObjPropsTree (*user, "svc-profiler-insilico");
-//    sUsrObjPropsTree propsTree(*user, "svc-dna-refClust");
-//    propsTree.useForm(*pForm);
 
-    //  Use a file to mimic distributions
     randseq.quaType = tree->findIValue("inSilicoQuaType");
     sStr flnmQuality;
     flnmQuality.cut(0);
@@ -170,28 +170,14 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
             err->printf("File to mimic qualities is not accessible or invalid");
             return false;
         }
-//        // Read the quality table from the file
-//        sUsrFile obj2(qualityFileId, user);
-//        if( !obj2.Id() ) {
-//            err->printf("No quality table for service ID %s; terminating\n", qualityFileId.print());
-//            return false;
-//        }
-//        obj2.getFilePathname(flnmQuality, );
-//        if( !sFile::exists(flnmQuality) ) {
-//            err->printf("No data file for quality ID %s; terminating\n", qualityFileId.print());
-//            return false;
-//        }
     }
 
-    // Read the preloaded genome
-//    tree->findHiveIdValue("inSilicoSourceObjId", qryFileId);
     const char *hiveseqstring = tree->findValue("inSilicoSourceObjId", 0);
     sHiveseq qryPreloadedGenome(user, hiveseqstring);
     if (qryPreloadedGenome.dim()){
         qryFiles.printf(0,"%s", hiveseqstring);
     }
 
-    // Read the mutation table
     tree->findHiveIdValue("inSilicoMutationTable", mutFileId);
     bool useMutFile = validateHiveID (mutFileId, err);
     if (useMutFile && !qryPreloadedGenome.dim()){
@@ -199,7 +185,6 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
         return false;
     }
 
-    // Read the range extraction file
     sFil tblFile(0);
     sStr flnmTargetSeq;
     flnmTargetSeq.cut(0);
@@ -217,11 +202,9 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
         }
     }
 
-    // Read the ionDB
     tree->findHiveIdValue("inSilicoAnnotObjID", annotFileId);
     sHiveIon hionAnnot(user, annotFileId.print(), 0, "ion");
 
-    // Read copy variant parameters
     tree->findHiveIdValue("inSilicoCNVObjID", cnvFileId);
     sHiveIon hivecnvionAnnot(user, cnvFileId.print(), 0, "ion");
     if( hivecnvionAnnot.ionCnt ) {
@@ -236,7 +219,6 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
 
     idx inSilicoFlags = 0;
     if( option == 0 ) {
-        // Generate Random Reads
         idx format = tree->findIValue("inSilicoFormat", 1);
         inSilicoFlags |= (format == 0) ? sRandomSeq::eSeqFastA : sRandomSeq::eSeqFastQ;
 
@@ -313,7 +295,6 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
         randseq.quaMinValue = tree->findIValue("inSilicoQuaMin", 25);
         randseq.quaMaxValue = tree->findIValue("inSilicoQuaMax", 40);
 
-        //  Use a file to mimic distributions
         if( randseq.quaType == 2 ) {
             randseq.qualityTable = 0;
             inSilicoFlags |= sRandomSeq::eSeqMimicQuality;
@@ -326,14 +307,12 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
         inSilicoFlags |= sRandomSeq::eSeqPrintRecombinantsOnly;
     }
 
-    // Complexity Entropy filter options
     randseq.complexityEntropy = tree->findRValue("inSilicoLCentropy", 0);
     randseq.complexityWindow = tree->findIValue("inSilicoLCwindow", 0);
     if( randseq.complexityWindow && randseq.complexityEntropy ) {
         inSilicoFlags |= sRandomSeq::eSeqComplexityFilter;
     }
 
-    // Filter N Percentage
     randseq.filterNperc = tree->findIValue("inSilicofilterNperc", -1);
     if( randseq.validate(randseq.filterNperc, 0, 100) ) {
         inSilicoFlags |= sRandomSeq::eSeqFilterNs;
@@ -355,10 +334,8 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
         inSilicoFlags |= sRandomSeq::eSeqParseTargetSeq;
     }
 
-    // Check if there is a range Extraction Inline field to append to the tblFile
     const char *rangeExtractionString = tree->findValue("inSilicoRangeExtractInline", 0);
     if (rangeExtractionString && qryPreGenomeDim){
-        // Add the rangeExtractionString to rangeExtraction table
         sTxtTbl *tbl = new sTxtTbl();
         tbl->setBuf(rangeExtractionString);
         idx flags = sTblIndex::fColsepCanRepeat | sTblIndex::fLeftHeader | sTblIndex::fTopHeader;
@@ -366,29 +343,22 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
         tbl->parseOptions().colsep = ",";
         tbl->parseOptions().comment = "#";
         tbl->parseOptions().initialOffset = 0;
-        tbl->parse(); //(flags, " ", "\r\n", "\"", 0, 0, sIdxMax, sIdxMax, 1, 1, offset);
+        tbl->parse();
         tbl->remapReadonly();
         if (randseq.rangeExtraction){
-            // Concatenate both tables
         }
         else {
-            // Just parse the single string into the table
             randseq.rangeExtraction = tbl;
         }
         inSilicoFlags |= sRandomSeq::eSeqParseTargetSeq;
     }
 
 
-    // Read the Annotation File
-    //propsTree.findHiveIdValue("inSilicoAnnotObjID", annotFileId);
-//    sHiveIon hionAnnot(user, annotFileId.print(), 0, "ion");
-//    sHiveIon hionAnnot(user, "3082273", 0, "ion");
 
-    if( hionAnnot.ionCnt ) { // how do I know if sHiveIon is valid ?
+    if( hionAnnot.ionCnt ) {
         randseq.useAllAnnotRanges = tree->findBoolValue("inSilicoAnnotAll", false);
 
         if  (!randseq.useAllAnnotRanges){
-            // Extract all the ranges
             for(const sUsrObjPropsNode * nodeAnnotSeqRow = tree->find("inSilicoAnnotExtraction"); nodeAnnotSeqRow; nodeAnnotSeqRow = nodeAnnotSeqRow->nextSibling("inSilicoAnnotExtraction")) {
                 sRandomSeq::AnnotQuery * annot = randseq.annotRanges.add(1);
                 const char *seqid = nodeAnnotSeqRow->findValue("inSilicoAnnotSeqID", 0);
@@ -402,7 +372,6 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
         }
     }
 
-//    if (useCNVIon){ // Read parameters related to copy number variant
         idx countRanges = randseq.cnvRanges.dim();
         for(const sUsrObjPropsNode * nodeAnnotSeqRow = tree->find("inSilicoCNVList"); nodeAnnotSeqRow; nodeAnnotSeqRow = nodeAnnotSeqRow->nextSibling("inSilicoCNVList")) {
             sRandomSeq::AnnotQuery * annot = randseq.cnvRanges.add(1);
@@ -426,18 +395,13 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
             }
 
         }
-//    }
 
-    // Read the random seed and use it to initialize randomness
-    //TODO: Luis I don't know what is the eSeqSetRandomSeed0 flag doind so I just changed the default value
-        //make sure you change the field to use the rand_seed member
     idx randseed = tree->findIValue("inSilicoRandSeed", rand_seed);
     if (!randseed){
         inSilicoFlags |= sRandomSeq::eSeqSetRandomSeed0;
     }
     randseq.setRandSeed(randseed);
 
-    // Read the noise Table and normalize it
     randseq.noiseOriginalTable[0][0] = tree->findRValue("inSilicoNoiseAA", 1);
     randseq.noiseOriginalTable[0][1] = tree->findRValue("inSilicoNoiseAC", 1);
     randseq.noiseOriginalTable[0][2] = tree->findRValue("inSilicoNoiseAG", 1);
@@ -474,12 +438,10 @@ bool DnaInsilicoProc::loadGeneralAttributes(sStr *err)
         return false;
     }
     randseq.noisePercentage = tree->findRValue("inSilicoNoiseType", 0);
-//    noisePercentage = 50;
     if( randseq.noisePercentage != 0 ) {
         inSilicoFlags |= sRandomSeq::eSeqNoise;
     }
 
-    // Generate Random Mutations
     randseq.randMutNumber = tree->findIValue("inSilicoPreMutNum", 0);
     if( randseq.validate(randseq.randMutNumber, 1, -1) ) {
         inSilicoFlags |= sRandomSeq::eSeqGenerateRandomMut;
@@ -508,7 +470,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
     sStr hiveseqList;
     sStr auxbuf;
     idx iref = 0;
-    idx refLengthMax = 0;  // It is used to generate random mutations
+    idx refLengthMax = 0;
 
     randseq.mutationStringContainer.cut(0);
 
@@ -516,8 +478,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
     for(const sUsrObjPropsNode * nodeEntry = propsTree.find("inSilicoEntry"); nodeEntry; nodeEntry = nodeEntry->nextSibling("inSilicoEntry"), numNodeEntries++) {
         randseq.refSeqs.resize(iref + 1);
 
-        // Read all the Reference Sequences
-        refLengthMax = 0;  // It is used to generate random mutations
+        refLengthMax = 0;
         idx refcount = 0;
         idx accumulateLength = 0;
         randseq.refSeqs[iref].rangeseqsOffset = randseq.rangeContainer.dim();
@@ -533,7 +494,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
 #if _DEBUG
             fprintf(stderr, "ref %" DEC ": add inSilicoObjID = %s\n", iref, hiveId.print());
 #endif
-            idx irow = nodeRefSeqRow->findIValue("inSilicoSeqID"); // Check if we need to substract 1 or not
+            idx irow = nodeRefSeqRow->findIValue("inSilicoSeqID");
             range->sourceStartRange = nodeRefSeqRow->findIValue("inSilicoStartRange")-1;
             range->sourceEndRange = nodeRefSeqRow->findIValue("inSilicoEndRange")-1;
             range->orientation = nodeRefSeqRow->findIValue("inSilicoOrientation");
@@ -571,7 +532,6 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
                 range->sourceEndRange = seqlen - 1;
             }
 
-//            subSeqs[iref].refseqs[refcount].hiveseqList.add(hiveseqList.ptr(), hiveseqList.length());
             accumulateLength += range->sourceEndRange - range->sourceStartRange;
             if( accumulateLength > refLengthMax ) {
                 refLengthMax = accumulateLength;
@@ -580,15 +540,6 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
             ++refcount;
         }
 
-        /*
-         sHiveId hiveEntireId;
-         nodeEntry->findHiveIdValue("inSilicoRefSeqComplete", hiveEntireId);
-         sHiveseq qry(user, hiveEntireId.print(),1);
-         for(idx kk=0; kk<qry.dim(); ++kk) {
-         refSeqs.resize(iref + 1);
-         refcount = 1;
-         refSeqs[iref].rangeseqsOffset = rangeContainer.dim();
-         }*/
 
         randseq.refSeqs[iref].rangecnt = refcount;
         if( !refcount ) {
@@ -599,12 +550,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
         if( randseq.refSeqs[iref].coverage <= 0 ) {
             randseq.refSeqs[iref].coverage = 0;
         }
-//        refSeqs[iref].hiveseqList.add (hiveseqList.ptr(1), hiveseqList.length()-1);
-        // Read Length
-//        refSeqs[iref].minLength = nodeEntry->findIValue("inSilicoMinLength");
-//        refSeqs[iref].maxLength = nodeEntry->findIValue("inSilicoMaxLength");
 
-        // Read all the Manual Mutation Information
         refcount = 0;
         randseq.refSeqs[iref].mutInfoOffset = randseq.mutContainer.dim();
         for(const sUsrObjPropsNode * nodeMutRow = nodeEntry->find("inSilicoMutation"); nodeMutRow; nodeMutRow = nodeMutRow->nextSibling("inSilicoMutation")) {
@@ -613,9 +559,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
             mutInfo->mutationOffset = randseq.mutationStringContainer.length();
             randseq.mutationStringContainer.addString(nodeMutRow->findValue("inSilicoMutString"));
             if( randseq.mutationStringContainer.length() == mutInfo->mutationOffset ) {
-                // There are no mutations, eliminate the last one
                 randseq.mutContainer.cut(randseq.mutContainer.dim() - 1);
-//                mutationStringContainer.cut(mutInfo->mutationOffset);
                 continue;
             }
             randseq.mutationStringContainer.add0();
@@ -634,9 +578,7 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
             ++refcount;
         }
 
-        // Read all the Automatic Mutation Information
         for(const sUsrObjPropsNode * nodeMutRandRow = nodeEntry->find("inSilicoRandomMutation"); nodeMutRandRow; nodeMutRandRow = nodeMutRandRow->nextSibling("inSilicoMutation")) {
-            // Read the information
             idx randNumber = nodeMutRandRow->findIValue("inSilicoRandMutNumber");
             idx randlength = nodeMutRandRow->findIValue("inSilicoRandMutStringLength");
             idx randfreq = nodeMutRandRow->findIValue("inSilicoRandMutFrequency");
@@ -662,8 +604,8 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
                 mutInfo->frequency = (randfreq == -1) ? (idx) randseq.randDist(0, 100) : randfreq;
                 mutInfo->quality = (randqua == -1) ? (idx) randseq.randDist(randseq.quaMinValue, randseq.quaMaxValue) : randqua;
                 mutInfo->allele = (randallele == -1) ? (idx) randseq.randDist(0, 1 + nodeEntry->findIValue("inSilicoDiploidicity")) : randallele;
-                mutInfo->mutBiasStart = 0; //nodeMutRow->findIValue("inSilicoMutBiasStart");
-                mutInfo->mutBiasEnd = 0; //nodeMutRow->findIValue("inSilicoMutBiasEnd");
+                mutInfo->mutBiasStart = 0;
+                mutInfo->mutBiasEnd = 0;
                 mutInfo->groupid = refcount;
                 mutInfo->count = 0;
                 mutInfo->miss = 0;
@@ -672,11 +614,9 @@ bool DnaInsilicoProc::loadRefsForm(sStr *err)
         }
         randseq.refSeqs[iref].mutcnt = refcount;
         if( refcount ) {
-            // There are mutations
             randseq.addFlags (sRandomSeq::eSeqMutations);
         }
 
-        // Read the rest of the parameters
         randseq.refSeqs[iref].diploidicity = nodeEntry->findIValue("inSilicoDiploidicity");
 
         iref++;
@@ -698,13 +638,11 @@ idx DnaInsilicoProc::parseAnnotation(sBioseq &sub, sStr &err)
 {
 
     idx cntRanges = randseq.rangeContainer.dim();
-    sHiveIon hionAnnot(user, annotFileId.print(), 0, "ion"); //annotFileId.print()
+    sHiveIon hionAnnot(user, annotFileId.print(), 0, "ion");
 
     sIonWander * wander = 0;
 
     if( randseq.useAllAnnotRanges ) {
-        // Important: sRandomSeq::ionWanderCallback assumes the result is going to be in
-        // the variable a=find.annot()
         wander = hionAnnot.addIonWander("getRange", "b=foreach.seqID(\"\");a=find.annot(seqID=b.1,type='strand');");
         if( !wander ) {
             err.printf("Error at extracting ranges from Annot File");
@@ -735,8 +673,6 @@ idx DnaInsilicoProc::parseAnnotation(sBioseq &sub, sStr &err)
             findAnnot.printf(");");
 
             wander = hionAnnot.addIonWander(name.ptr(0), "%s", findAnnot.ptr());
-            //        hionAnnot.wanderList["getRange"].traverse();
-            //        wander = hionAnnot.addIonWander("getRange", "a=find.annot(id=\"%s\",type=\"%s\");", annotId, annotType);
             if( !wander ) {
                 err.printf("Error at extracting ranges from Annot File");
                 return 0;
@@ -753,11 +689,10 @@ idx DnaInsilicoProc::parseRangeExtractionFile(sBioseq &sub, sStr &err)
 {
 
     sTxtTbl * table = randseq.getrangeTable();
-    idx cntRanges = 0;
+    idx cntRefs = 0;
     randseq.Sub = &sub;
+    idx failedToExtract = 0;
     if (table){
-        // Extract the ranges from the given file
-        // id, start range, end range, direction, append
         enum rangeExtractionTable
         {
             recombID = -1,
@@ -774,9 +709,15 @@ idx DnaInsilicoProc::parseRangeExtractionFile(sBioseq &sub, sStr &err)
         }
         sStr cbuf;
         idx irow, seqstart, seqend, seqdirection;
+        idx prevRecombID, currRecombID;
         idx seqlen;
+        if (table->colId("id", 2) == defLine){
+            useDefLineColumnAsPrefix = true;
+        }
+        prevRecombID = -1;
         for(idx j = 0; j < dimTable; ++j) {
             cbuf.cut(0);
+            currRecombID = table->ival(j, recombID);
             table->printCell(cbuf, j, seqID);
             irow = sFilterseq::getrownum(randseq.idlist, cbuf.ptr());
             if( irow >= 0 && irow < sub.dim() ) {
@@ -785,12 +726,15 @@ idx DnaInsilicoProc::parseRangeExtractionFile(sBioseq &sub, sStr &err)
                 seqdirection = table->ival(j, direction);
 
                 seqlen = sub.len(irow);
-                // Manipulate the ranges
                 if( (seqstart > 0) && (seqstart > seqend) ) {
-                    break;
+                    failedToExtract += 1;
+                    err.printf("please check start and end ranges in row number %" DEC, j+1);
+                    return 0;
                 }
                 if( seqstart > seqlen ) {
-                    break;
+                    failedToExtract += 1;
+                    err.printf("please check start and end ranges in row number %" DEC, j+1);
+                    return 0;
                 }
                 if( seqstart < 0 ) {
                     seqstart = 0;
@@ -798,22 +742,26 @@ idx DnaInsilicoProc::parseRangeExtractionFile(sBioseq &sub, sStr &err)
                 if( (seqend < 0) || (seqend >= seqlen) ) {
                     seqend = seqlen - 1;
                 }
-
-                randseq.refSeqs.resize(cntRanges + 1);
-                randseq.refSeqs[cntRanges].rangeseqsOffset = randseq.rangeContainer.dim();
-                randseq.refSeqs[cntRanges].rangecnt = 1;
-                randseq.refSeqs[cntRanges].coverage = 0;
-
+                if (currRecombID != prevRecombID){
+                    randseq.refSeqs.resize(cntRefs + 1);
+                    randseq.refSeqs[cntRefs].rangeseqsOffset = randseq.rangeContainer.dim();
+                    randseq.refSeqs[cntRefs].rangecnt = 1;
+                    randseq.refSeqs[cntRefs].coverage = 0;
+                    ++cntRefs;
+                    prevRecombID = currRecombID;
+                }
+                else {
+                    randseq.refSeqs[cntRefs-1].rangecnt += 1;
+                }
                 sRandomSeq::RangeSeq *range = randseq.rangeContainer.add();
                 range->sourceSeqnum = irow;
                 range->sourceStartRange = seqstart;
                 range->sourceEndRange = seqend;
                 range->destSeqnum = -1;
-                range->hiveseqListOffset = 0; //th->hiveseqListContainer.length();
-                range->orientation = seqdirection; // Forward
+                range->hiveseqListOffset = 0;
+                range->orientation = seqdirection;
                 range->coverage = 1;
 
-                // Look for append column and store it in idAppend
                 cbuf.cut(0);
                 table->printCell(cbuf, j, defLine);
                 if (cbuf.length()){
@@ -824,32 +772,40 @@ idx DnaInsilicoProc::parseRangeExtractionFile(sBioseq &sub, sStr &err)
                 else {
                     range->posidAppend = -1;
                 }
-                ++cntRanges;
+            }
+            else {
+                failedToExtract += 1;
             }
         }
     }
     else {
         err.printf("table to extract ranges is not accessible");
     }
-    if (!cntRanges){
+    if (!cntRefs){
         err.printf("table to extract ranges can't match id's with source File");
     }
-    return cntRanges;
+    return cntRefs;
 }
 
-bool DnaInsilicoProc::generateFastaFile(const char *newOutputfile, const char *outPath, idx option, sStr &err)
+bool DnaInsilicoProc::generateFastaFile(const char *newOutputfile, const char *outPathPrefix, idx option, sStr &err)
 {
-    sFil srcFile(outPath);
-
-    if( !srcFile.ok() ) {
+    sFil srcFile, tblFile;
+    sStr pathfilename;
+    if( !reqInitFile(srcFile, outPathPrefix, ".fasta", &pathfilename) ) {
         err.printf("failed to create destination recombination fasta file \n");
         return false;
     }
     srcFile.empty();
 
+
+
     bool success = false;
     if (option == 0){
-        success = generateRecombination(srcFile, err);
+        if( !reqInitFile(tblFile, outPathPrefix, ".csv") ) {
+            err.printf("failed to create destination recombination csv file \n");
+            return false;
+        }
+        success = generateRecombination(srcFile, tblFile, err);
     }
     else {
         success = generateCNV(srcFile, err);
@@ -858,21 +814,18 @@ bool DnaInsilicoProc::generateFastaFile(const char *newOutputfile, const char *o
     if( !success || srcFile.length() == 0 ) {
         return false;
     }
-// We must append a number to the name of the file and send it to parse
 
-// Launch dna-parser
 
     sFil vioseqFile(newOutputfile);
-
     if( !vioseqFile.ok() ) {
         err.printf("failed to create destination vioseq2 file \n");
         return false;
     }
     vioseqFile.empty();
     sVioseq2 v;
-    idx reqsubmitAlgorithm = randseq.launchParser(newOutputfile, outPath, v, err);    // LAUNCH PARSER
+    idx reqsubmitAlgorithm = randseq.launchParser(newOutputfile, pathfilename, v, err);
 
-    if( !reqsubmitAlgorithm ) {                //IF WE WERE UNABLE TO LAUNCH PARSER
+    if( !reqsubmitAlgorithm ) {
         err.printf("Cannot launch PARSER process");
         return false;
     }
@@ -881,7 +834,7 @@ bool DnaInsilicoProc::generateFastaFile(const char *newOutputfile, const char *o
 
 
 
-bool DnaInsilicoProc::generateRecombination(sFil &out, sStr &err)
+bool DnaInsilicoProc::generateRecombination(sFil &out, sFil &outTable, sStr &err)
 {
 
     idx sStart, seqLen;
@@ -890,8 +843,8 @@ bool DnaInsilicoProc::generateRecombination(sFil &out, sStr &err)
     sStr t;
     sStr id;
     sBioseq *sub;
+    outTable.addString("recombinantID,seqID,start,end,direction,label\n");
     for(idx iref = 0; iref < randseq.refSeqs.dim(); ++iref) {
-        // Print the id
         id.cut(0);
         idx irecomb = 0;
         idx irow = 0;
@@ -909,7 +862,11 @@ bool DnaInsilicoProc::generateRecombination(sFil &out, sStr &err)
                 sub = randseq.Sub;
                 irow = range->sourceSeqnum;
             }
-            id.printf(";%" DEC ".%s: RANGE (%" DEC ",%" DEC ")", irecomb + 1, sub->id(irow), range->sourceStartRange+1, range->sourceEndRange+1);
+            id.printf(";%" DEC ".",irecomb + 1);
+            if (useDefLineColumnAsPrefix){
+                id.printf("%s ", idAppend.ptr(range->posidAppend));
+            }
+            id.printf("%s: RANGE (%" DEC ",%" DEC ")", sub->id(irow), range->sourceStartRange+1, range->sourceEndRange+1);
             switch(range->orientation) {
                 case 1:
                     id.printf("REV");
@@ -921,14 +878,13 @@ bool DnaInsilicoProc::generateRecombination(sFil &out, sStr &err)
                     id.printf("REV COMP");
                     break;
             }
-            if (range->posidAppend != -1){
+            if ((range->posidAppend != -1) && (!useDefLineColumnAsPrefix) ){
                 id.printf(" %s", idAppend.ptr(range->posidAppend));
             }
         }
-        out.printf("> %s\n", id.ptr(irecomb == 1 ? 3 : 1));
+        out.printf(">%s\n", id.ptr(irecomb == 1 ? 3 : 1));
         t.cut(0);
         for(irecomb = 0; irecomb < randseq.refSeqs[iref].rangecnt; ++irecomb) {
-            // print the range in Out
             sRandomSeq::RangeSeq * range = randseq.rangeContainer.ptr(randseq.refSeqs[iref].rangeseqsOffset + irecomb);
             sHiveseq intSub;
             if (range->sourceSeqnum < 0){
@@ -942,7 +898,6 @@ bool DnaInsilicoProc::generateRecombination(sFil &out, sStr &err)
                 sub = randseq.Sub;
                 irow = range->sourceSeqnum;
             }
-//            sHiveseq sub(user, randseq.hiveseqListContainer.ptr(range->hiveseqListOffset), 1);
             idx seqlen = sub->len(irow);
             sStart = range->sourceStartRange;
             seqLen = range->sourceEndRange - range->sourceStartRange+1;
@@ -953,10 +908,10 @@ bool DnaInsilicoProc::generateRecombination(sFil &out, sStr &err)
             if( range->sourceEndRange < 0 ) {
                 seqLen = seqlen - sStart;
             }
+            outTable.printf("%" DEC ",%s,%" DEC ",%" DEC ",%" DEC ",%s\n", iref+1, sub->id(irow), sStart + 1, sStart + seqLen, range->orientation, idAppend.length() ? idAppend.ptr(range->posidAppend) : "");
             const char * seq = sub->seq(irow);
             idx startT = t.length();
             sBioseq::uncompressATGC(&t, seq, sStart, seqLen, true, 0, isrev, iscomp);
-            // restore N based on quality 0
             quaBit = sub->getQuaBit(irow);
             if( quaBit ) {
                 const char * seqqua = sub->qua(irow);
@@ -984,13 +939,11 @@ bool DnaInsilicoProc::generateRecombination(sFil &out, sStr &err)
 
 bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
 {
-//    idx cntExistingRanges = randseq.rangeContainer.dim();
-    sHiveIon hionAnnot(user, cnvFileId.print(), 0, "ion"); //annotFileId.print()
+    sHiveIon hionAnnot(user, cnvFileId.print(), 0, "ion");
     sStr findAnnot, name, t;
     sIonWander * wander = 0;
     sHiveseq sub(user, qryFiles, sBioseq::eBioModeLong);
     randseq.Sub = &sub;
-//    idx cntExistingRefSeqs = randseq.refSeqs.dim();
 
     randseq.refSeqs.cut(0);
     randseq.refSeqs.resize(sub.dim());
@@ -1005,7 +958,6 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
         bool extractRangeION = true;
         sRandomSeq::RangeSeq rangeInfo;
 
-        // validate the entry
         if (!node){
             continue;
         }
@@ -1016,7 +968,6 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
         idx isValid = true;
         switch (action) {
             case 0:
-                // Tandem repeat
                 rangeInfo.tandem = node->findIValue("inSilicoCNVTandem", 0);
                 if (rangeInfo.tandem <= 0){
                     isValid = false;
@@ -1024,17 +975,14 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
                 break;
 
             case 1:
-                rangeInfo.orientation = 3; // reverse complement
-                // Invert region
+                rangeInfo.orientation = 3;
                 break;
 
             case 2:
-                // Delete region
                 rangeInfo.deleteRange = true;
                 break;
 
             case 3:
-                // Move region
                 rangeInfo.destSeqnum = node->findIValue("inSilicoCNVTargetSeqID", -1);
                 rangeInfo.destPosition = node->findIValue("inSilicoCNVTargetPosition", -1);
                 if (rangeInfo.destSeqnum == -1 || rangeInfo.destPosition == -1){
@@ -1060,7 +1008,6 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
 
 
         if (extractRangeION){
-            // Extract the information from the ionWander
             if( rangeQuery->seqoffset != -1 ) {
                 findAnnot.printf("seqID=\"%s\",", randseq.annotStringBuf.ptr(rangeQuery->seqoffset));
             }
@@ -1068,21 +1015,17 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
                 findAnnot.printf("type=\"%s\",", randseq.annotStringBuf.ptr(rangeQuery->typeoffset));
             }
             if( rangeQuery->idoffset != -1 ) {
-    //            findAnnot.printf("id=\"%s\",", randseq.annotString.ptr(ionQuery->idoffset));
             }
             findAnnot.cut(-1);
             findAnnot.printf(");");
 
             wander = hionAnnot.addIonWander(name.ptr(0), "%s", findAnnot.ptr());
-            //        hionAnnot.wanderList["getRange"].traverse();
-            //        wander = hionAnnot.addIonWander("getRange", "a=find.annot(id=\"%s\",type=\"%s\");", annotId, annotType);
             if( !wander ) {
                 err.printf("Error at extracting ranges from Copy Number Variant File");
                 return 0;
             }
             idx rangeExistingStart = randseq.rangeContainer.dim();
 
-            // ionWanderCallback will put extracted information in rangeContainer
             wander->callbackFunc = sRandomSeq::ionWanderCallback;
             wander->callbackFuncParam = (void *) &randseq;
             wander->traverse();
@@ -1090,14 +1033,10 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
             sRandomSeq::RangeSeq *rCont = randseq.rangeContainer.ptr(rangeExistingStart);
             idx rLen = randseq.rangeContainer.dim() - rangeExistingStart;
 
-    // Results are in rangeContainer
-    // So we need to read them and create the copy number variant option
             if (rLen && 1){
-                // Create a new rangeSeq, reusing rCont[0]
                 idx rmin = sIdxMax;
                 idx rmax = 0;
                 idx irow = rCont[0].sourceSeqnum;
-                // Calculate the min and max range because we will use and concatenate the region
                 for (idx j = 0; j < rLen; ++j){
                     if (rCont[j].sourceSeqnum == irow){
                         if (rmin > rCont[j].sourceStartRange){
@@ -1118,7 +1057,6 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
                 rangeInfo.sourceSeqnum = irow;
                 rangeInfo.sourceStartRange = rmin;
                 rangeInfo.sourceEndRange = rmax;
-                // Increase the count to add a range into rangeContainer
             }
             randseq.rangeContainer.cut(rangeExistingStart);
         }
@@ -1128,17 +1066,14 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
             rangeInfo.sourceEndRange = node->findIValue("inSilicoCNVEndRange", 0);
 
         }
-        // Copy rangeInfo into rangeContainer
         sRandomSeq::RangeSeq *r0 = randseq.rangeContainer.add(1);
         r0->loadRange(rangeInfo);
     }
 
-    // Sort the rangeContainer
     sVec <idx> sortRangeContainer;
     sortRangeContainer.resize(randseq.rangeContainer.dim());
     sSort::sortSimpleCallback((sSort::sCallbackSorterSimple) rangeComparator, (void *) this, randseq.rangeContainer.dim(), randseq.rangeContainer.ptr(0), sortRangeContainer.ptr(0));
 
-    // Print them based on the sortList
     sRandomSeq::RangeSeq *range = randseq.rangeContainer.ptr(sortRangeContainer[0]);
     sRandomSeq::RangeSeq *lastRange = 0;
     idx iRange = 0;
@@ -1149,7 +1084,6 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
             sub.printFastXRow(&out, false, i, 0, 0, 0, true);
             continue;
         }
-        // Print the id
         idx auxRange = iRange;
         out.printf(">%s", sub.id(i));
         while ( auxRange < totRanges && range->destSeqnum == i){
@@ -1159,11 +1093,8 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
         out.printf("\n");
 
         range = randseq.rangeContainer.ptr(sortRangeContainer[iRange]);
-        // print the first range
         printSequenceRanges (out, &sub, range->sourceSeqnum, 0, range->sourceStartRange);
         while( iRange < totRanges && range->destSeqnum == i ) {
-//            sRandomSeq::AnnotQuery *ionQuery = randseq.cnvRanges.ptr(range->tandem);
-            // Print range into out buffer '' times
             for (idx n = 0; n <= range->tandem; ++n){
                 printSequenceRanges (out, &sub, range->sourceSeqnum, range->sourceStartRange, range->sourceEndRange);
             }
@@ -1171,7 +1102,6 @@ bool DnaInsilicoProc::generateCNV(sFil &out, sStr &err)
             range = randseq.rangeContainer.ptr(sortRangeContainer[++iRange]);
         }
 
-        // Print the last range
         printSequenceRanges (out, &sub, lastRange->sourceSeqnum, lastRange->sourceEndRange, -1);
 
         out.printf("\n");
@@ -1201,7 +1131,6 @@ bool DnaInsilicoProc::printSequenceRanges (sFil &out, sBioseq *sub, idx irow, id
     }
     sBioseq::uncompressATGC(&out, seq, start, seqLen, true, 0, isrev, iscomp);
     char *t = out.ptr(startOut);
-    // restore N based on quality 0
     bool quaBit = sub->getQuaBit(irow);
     if( quaBit ) {
         const char * seqqua = sub->qua(irow);
@@ -1229,8 +1158,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
     init();
     const sHiveId objID = objs[0].Id();
     bool createFastaFile = false;
-//    bool newObjAvailable = false;
-//    std::auto_ptr<sUsrObj> newobj;
 
     sUsrFile sf(objID, user);
     if( !sf.Id()) {
@@ -1264,9 +1191,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
     sStr hivesStr;
     idx randseqFlags = randseq.getFlags ();
 
-//    if (randseqFlags & sRandomSeq::eSeqSetRandomSeed0){
-//        sf.propSetI("inSilicoRandSeed",randseq.randseed0);
-//    }
     sHiveseq qry2;
 
     if (randseqFlags & sRandomSeq::eSeqPreloadedGenomeFile){
@@ -1295,15 +1219,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
         }
         randseq.emptyIdDictionary();
         createFastaFile = true;
-//        newobj.reset(new sUsrFile(user, "nuc-read"));
-//        reqSetInfo(req, eQPInfoLevel_Info, "created object %s", newobj->Id().print());
-//        reqSetData(req, "newObjId", newobj->Id().print());
-//
-//        if( !newobj.get() || !newobj->Id() ) {
-//            logOut(eQPLogType_Error, "Cannot find/create auxiliary object\n");
-//            return 1;
-//        }
-//        newObjAvailable = true;
     }
 
     if( ((randseqFlags & sRandomSeq::eSeqParseMutationFile) == 0) && ((randseqFlags & sRandomSeq::eSeqPreloadedGenomeFile) == 0) ) {
@@ -1316,25 +1231,10 @@ idx DnaInsilicoProc::OnExecute(idx req)
     }
 
     if( createFastaFile){
-        sStr outPath, newOutputfile;
-//        if (!newObjAvailable){
-            sf.addFilePathname(outPath, true, "genomeRecombination.fasta");
-            sf.addFilePathname(newOutputfile, true, "_.vioseq2");
-//        }
-//        else {
-//            sUsrFile* fobj = dynamic_cast<sUsrFile*>(newobj.get());
-//            if( !fobj ) {
-//                logOut(eQPLogType_Error, "Cannot cast object type\n");
-//                return 1;
-//            }
-//            fobj->addFilePathname(outPath, true, "genomeRecombination.fasta");
-//            fobj->addFilePathname(newOutputfile, true, "_.vioseq2");
-//        }
-
-        bool option = 0;
-        bool success = generateFastaFile (newOutputfile.ptr(), outPath.ptr(), option, err);
+        sStr newOutputfile;
+        sf.addFilePathname(newOutputfile, true, "_.vioseq2");
+        bool success = generateFastaFile (newOutputfile.ptr(), "genomeRecombination", 0, err);
         if( !success) {
-            // Delete the files and quit
             logOut(eQPLogType_Error, "%s\n", err.ptr());
             reqSetInfo(req, eQPInfoLevel_Error, "%s", err.ptr());
             return 1;
@@ -1342,10 +1242,7 @@ idx DnaInsilicoProc::OnExecute(idx req)
         hivesStr.printf(0, "%s", newOutputfile.ptr());
     } else {
         hivesStr.printf(0, "%s", qryFiles.ptr());
-        //sUsrObj uo(*user,qryFileId);
-        //uo.addFilePathname(lazyLenPath,false,"cumullen.bin");
     }
-//    Use the objID and randomize
     sHiveseq qry(user, hivesStr.ptr(0), sBioseq::eBioModeLong);
 
     if( !qry.dim() ) {
@@ -1354,10 +1251,8 @@ idx DnaInsilicoProc::OnExecute(idx req)
         return false;
     }
 
-    // Refresh the flags in case something has changed in the middle
     randseqFlags = randseq.getFlags ();
 
-    // Create a dictionary with id's of Sub
     bool parseDicValidation = sFilterseq::parseDicBioseq(randseq.idlist, qry, &err);
     if( !parseDicValidation ) {
         logOut(eQPLogType_Error, "%s\n", err.ptr());
@@ -1366,7 +1261,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
     }
 
     if( randseqFlags & sRandomSeq::eSeqParseCNVFile) {
-        // Create copy number variant fasta and substitute it for Qry
         sStr outPath, newOutputfile;
         sf.addFilePathname(outPath, true, "genome.fasta");
         sf.addFilePathname(newOutputfile, true, "genome.vioseq2");
@@ -1374,7 +1268,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
         bool option = 1;
         bool success = generateFastaFile (newOutputfile.ptr(), outPath.ptr(), option, err);
         if( !success) {
-            // Delete the files and quit
             logOut(eQPLogType_Error, "%s\n", err.ptr());
             reqSetInfo(req, eQPInfoLevel_Error, "%s", err.ptr());
             return 1;
@@ -1391,7 +1284,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
 
     }
 
-    // Stop after this point, if only recombinants are to be printed
     if( randseqFlags & sRandomSeq::eSeqPrintRecombinantsOnly ) {
         reqProgress(0, 100, 100);
         reqSetStatus(req, eQPReqStatus_Done);
@@ -1400,7 +1292,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
 
 
     if( randseqFlags & sRandomSeq::eSeqParseMutationFile ) {
-        // load the csv Table and put it in RefSeqs
         sUsrFile obj2(mutFileId, user);
         if( obj2.Id() ) {
             sStr flnm2;
@@ -1432,21 +1323,7 @@ idx DnaInsilicoProc::OnExecute(idx req)
             return 1;
         }
     }
-//    else {
-        // Create a refseq for each id of Sub
-//        rangeContainer.resize(qry.dim());
-//        for (idx ir = 0; ir < qry.dim(); ++ir){
-//            RangeSeq * ref = rangeContainer.ptr(ir);
-//            ref->seqnum = ir;
-//            ref->startRange = 0;
-//            ref->endRange = Sub->len(ir);
-//            ref->orientation = 0;
-//            ref->hiveseqListOffset = 0;
-//            ref->coverage = 1;
-//        }
-//    }
 
-// We need to fill in mutInfo.refBase, and fix mutations when possible
     randseq.mutationFillandFix(qry);
 
     if( (randseqFlags & sRandomSeq::eSeqParseMutationFile) && (randseqFlags & sRandomSeq::eSeqGenerateRandomMut) ) {
@@ -1459,7 +1336,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
     }
 
     if( (randseqFlags & sRandomSeq::eSeqPrintRandomReads) && (randseqFlags & sRandomSeq::eSeqPrintPairedEnd) ) {
-        // Generate two paired end reads
         sStr outReadsPath1;
         sf.addFilePathname(outReadsPath1, true, "shortReads_1.%s", (randseqFlags & sRandomSeq::eSeqFastA) ? "fasta" : "fastq");
         sFil readsFile1(outReadsPath1);
@@ -1489,7 +1365,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
             return 1;
         }
     } else {
-        // Generate only one read
         sStr outReadsPath;
         sf.addFilePathname(outReadsPath, true, "shortReads.%s", (randseqFlags & sRandomSeq::eSeqFastA) ? "fasta" : "fastq");
         sFil readsFile(outReadsPath);
@@ -1509,7 +1384,6 @@ idx DnaInsilicoProc::OnExecute(idx req)
 
     }
 
-// Create an output for the mutation parameters as a CSV file
     if( randseqFlags & sRandomSeq::eSeqMutations ) {
         sStr csvTableOutput;
         sf.addFilePathname(csvTableOutput, true, "mutationTable.csv");
@@ -1522,13 +1396,12 @@ idx DnaInsilicoProc::OnExecute(idx req)
         }
         csvFile.empty();
         bool success = randseq.mutationCSVoutput(&csvFile, qry, err);
-        if( !success ) {                //IF WE WERE UNABLE TO LAUNCH ALIGNMENT
+        if( !success ) {
             logOut(eQPLogType_Error, "%s\n", err.ptr());
             reqSetInfo(req, eQPInfoLevel_Error, "%s", err.ptr());
             return 1;
         }
 
-        // Create an output for the mutation parameters as a VCF file
         sStr vcfTableOutput;
         sf.addFilePathname(vcfTableOutput, true, "mutationTable.vcf");
         sFil vcfFile(vcfTableOutput);
@@ -1559,7 +1432,7 @@ int main(int argc, const char *argv[], const char *envp[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     DnaInsilicoProc backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-insilico", argv[0]));
     return (int) backend.run(argc, argv);

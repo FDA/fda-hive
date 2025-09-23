@@ -32,8 +32,8 @@
 #define sLib_xlib_h
 
 #include <xlib/zip.hpp>
+#include <xlib/tar.hpp>
 #include <xlib/md5.hpp>
 
-#endif // sLib_xlib_h
-
+#endif 
 

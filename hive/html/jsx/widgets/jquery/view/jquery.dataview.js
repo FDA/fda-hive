@@ -62,7 +62,15 @@ $(function () {
                     if (view.options.changeHeight || view.options.changeHeight == undefined)
                         view.options.height = oThis.element.height();
                     if(view.downloadLinkManage) {
-                        view.options.height -= 20; // should be enough usually to draw download link div; this.view.downloadLink doesn't exist yet 
+                        view.options.height -= 20;
+                    }
+                    
+                    if(view.options.isVisible == true){
+                        viewDiv.css("height", "100%");
+                    }
+                    else if(view.options.isVisible == false){
+                        viewDiv.css("visibility", "hidden");
+                        viewDiv.css("height", "0");
                     }
                 }
                 else if(view.hasOwnProperty('width')) {
@@ -71,7 +79,6 @@ $(function () {
                     if (view.changeHeight || view.changeHeight == undefined)
                         view.height = oThis.element.height();
                 }
-                //vjDV[divId] = allViews[i];
 
                 view.container = viewDiv.attr('id');
                 view.dataSourceEngine = vjDS;
@@ -86,22 +93,23 @@ $(function () {
 
                 vjDV[divId] = view;
                 oThis.dataViews.push(view);
-
+                
+                vjDV[divId].widgetCallbackRendered = oThis._onRenderedCallback;
+                view.maxAreaHeight = oThis.element.height();
+                view.dataWidget = oThis;
+                
                 if(oThis.element.is(':visible') || oThis.options.preload) {
                     oThis.element.data({ rendered: true});
-
+                    
                     if(vjDV[divId].load != null)
                         vjDV[divId].load();
                     if(vjDV[divId].render != null)
                         vjDV[divId].render();
                 }
                 else {
-                    //    mark DIV as not rendered yet... 
-                    //    it will be rendered as soon as becomes visible...
                     viewDiv.data({ rendered: false});
                 }
 
-                //    try to refresh widget if it becomes visible 
                 $('#' + divId + ':visible').livequery(function() {
                     oThis._refresh();
                 });
@@ -112,29 +120,25 @@ $(function () {
             });
 
             this.element.closest('.layout-area').on('area-resize', function (event, params) {
-                event.stopPropagation();
             });
 
             this.element.closest('.layout-area').on('area-resize-stop', function (event, params) {
                 oThis._refresh();
 
-                event.stopPropagation();
             });
+            this.totalViews = this.dataViews.length;            
         },
 
         _refresh: function() {
             var oThis = this;
 
-            //console.log('refresh');
 
             if(!this.element.is(':visible') && !this.options.preload)
                 return;
 
-            //    if dataView is not rendered yet we have to load and render it first
             if(!this.element.data('rendered')) {
                 this.element.data({ rendered: true});
 
-                //If the jquery style is used here, then there is no way to access the this(oThis), which is required for the extraction of width and height
                 for (var index = 0; index < this.dataViews.length; index++){
                     var view = this.dataViews[index];
                     
@@ -151,11 +155,13 @@ $(function () {
                         };
                     }
                     else if(view.constructor.name == 'vjSVGView') {
-                        //    if we work with SVG Viewer we should resize it everytime...
                         size = {
                             width:0,
                             height:0
                         };
+                        $.extend(view.geometry, {
+                            width: this.element.width()
+                        });
                     }
 
                     if (view.options)
@@ -177,7 +183,7 @@ $(function () {
                         }
                         else {
                             if (view.options)
-                                view.options.height -= 20; // should be enough usually to draw download link div
+                                view.options.height -= 20;
                             else
                                 view.height -= 20;
                         }
@@ -191,6 +197,7 @@ $(function () {
             }
             else {
                 var viewArr = verarr(this.view);
+                var totalHeight = this.element.height();
                 for (var kk = 0; kk < viewArr.length; kk++)
                 {
                     var vView = viewArr[kk];
@@ -211,7 +218,6 @@ $(function () {
                         };
                     }
                     else if(vView.constructor.name == 'vjSVGView') {
-                        //    if we work with SVG Viewer we should resize it everytime...
                         size = {
                             width:0,
                             height:0
@@ -219,9 +225,8 @@ $(function () {
                     }
 
                     if(size == null || !vView.div)
-                        continue;    //    we don't have anything to refresh...
+                        continue;
 
-                    //    refresh if element is visible and the size has changed
                     if(this.element.is(':visible') && (size.width != this.element.width() || size.height != this.element.height())) {
                         if (vView.options)
                             $.extend(vView.options, {
@@ -244,12 +249,11 @@ $(function () {
                                 vView.options.height -= vView.downloadLink.getBoundingClientRect().height + 3;
                                 vView.height -= vView.downloadLink.getBoundingClientRect().height + 3;
                             } else {
-                                vView.options.height -= 20; // should be enough usually to draw download link div
+                                vView.options.height -= 20;
                                 vView.height -= 20;
                             }
                         }
 
-                        //This is needed for graphs that should not take up the entire area. Ex: Heptagon results pages
                         if (vView.options && vView.options.changeWidth == false)
                             $.extend(vView.options, {
                                 width: size.width
@@ -258,9 +262,53 @@ $(function () {
                             $.extend(vView.options, {
                                 height: size.height
                             });
+                        if (vView.changeWidth == false)
+                            $.extend(vView, {
+                                width: size.width
+                            });
+                        if (vView.changeHeight == false)
+                            $.extend(vView, {
+                                height: size.height
+                            });
                     }                    
-
-                    vView.refresh();
+                    if (vView.nonSticky === false)
+                        vView.height = totalHeight;
+                    
+                    if (vView.refresh) vView.refresh();
+                    if (vView.nonSticky === undefined || vView.nonSticky)
+                        totalHeight -= $("#"+vView.container).height();
+                    oThis._onRenderedCallback(vView);
+                }
+            }
+        },
+        _onRenderedCallback: function (view){
+            var dv = view.dataWidget;
+            if (!dv) return;
+            dv.totalViews--;
+            
+            if (dv.totalViews <= 0){
+                var dataViews = dv.dataViews;
+                
+                var nonSticky = [];
+                var heightSticky = 0;
+                
+                for (var i = 0; i < dataViews.length; i++){
+                    if ((dataViews[i].options && dataViews[i].options.changeHeight == false) || 
+                            (dataViews[i].nonSticky || (dataViews[i].options && dataViews[i].options.nonSticky)))
+                        nonSticky.push(dataViews[i]);
+                    else
+                        heightSticky += $("#"+dataViews[i].container).height();
+                }
+                
+                var heightLeft = dv.element.height() - heightSticky;
+                var heightPerDV = Math.round(heightLeft/nonSticky.length)-2;
+                
+                for (var i = 0; i < nonSticky.length; i++){
+                    if(dataViews[i].options && dataViews[i].options.changeHeight == false)
+                        continue;
+                    $("#"+nonSticky[i].container + "_table_div").css("height", heightPerDV);
+                    if (nonSticky[i].stickyHeader) 
+                        nonSticky[i].stickyHeader();
                 }
             }
         }

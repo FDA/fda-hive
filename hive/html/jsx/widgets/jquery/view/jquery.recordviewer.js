@@ -32,7 +32,7 @@ $(function () {
         options: {
             propSpecUrl: null,
             collapsed: false,
-            style: 'inline'    //    form|inline
+            style: 'inline'
         },
         
         _create: function () {
@@ -78,7 +78,6 @@ $(function () {
 
             $('input.field, select.field, textarea.field')
                 .focus(function() {
-                    //    save initial value in case we will have to undo it...
                     if(!$(this).data('initial-value')) {
                         oThis.setInitialValue(this);
                     }
@@ -191,8 +190,6 @@ $(function () {
             else if(spec.type == 'array') {
                 field = this.arrayField(spec);
 
-                //if(this.options.collapsed)
-                //    field.hide();
             }
             else if(spec.type == 'integer') {
                 if(spec.constraint == 'choice') {
@@ -271,7 +268,6 @@ $(function () {
 
             if(spec._children) {
                 var headTr = $(document.createElement('tr')).appendTo(header);
-                //var bodyTr = $(document.createElement('tr')).appendTo(body);
 
                 $(Object.keys(spec._children)).each(function(index, name) {
                     var child = spec._children[name];
@@ -280,9 +276,6 @@ $(function () {
                         .text(child.title)
                         .appendTo(headTr);
 
-                    //$(document.createElement('td'))
-                    //    .append(oThis.generateField(child))
-                    //    .appendTo(bodyTr);
                 });
 
                 body.append( oThis._generateTableRow(spec._children) );
@@ -340,7 +333,7 @@ $(function () {
 
             if(spec.constraint_data) {
                 $(spec.constraint_data.split('|')).each(function(index, option) {
-                    var vals = option.split('///');
+                    var vals = option.split('
                     $(document.createElement('option'))
                         .attr({
                             value: vals[0]
@@ -393,7 +386,6 @@ $(function () {
             $(field).removeAttr('data-changed');
         },
 
-        //    create Undo buttons for the field and all parents lists or arrays...
         createUndoButtons: function(field) {
             var oThis = this;
 
@@ -431,29 +423,21 @@ $(function () {
             return $(document.createElement('span'))
                         .attr({
                             'aria-hidden': true,
-                            //'data-toggle': 'tooltip',
-                            //'data-placement': 'top',
-                            //title: 'Discard changes'
                         })
-                        //.tooltip()
                         .addClass('undo')
                         .click(function() {
                             if($(this).prev().is('input.field, select.field, textarea.field')) {
-                                //    one field undo...
                                 oThis.resetInitialValue($(this).prev());
 
                                 $(this).remove();
                             }
                             else if($(this).parent().is('label.title')) {
-                                //    group undo...
                                 var node = null;
                                 
                                 if($.contains(oThis.title.get(0), this)) {
-                                    //    top level undo...
                                     node = oThis.element;
                                 }
                                 else {
-                                    //    all others...
                                     node = $(this).closest('li');
                                 }
 
@@ -478,11 +462,7 @@ $(function () {
             return $(document.createElement('span'))
                         .attr({
                             'aria-hidden': true,
-                            //'data-toggle': 'tooltip',
-                            //'data-placement': 'top',
-                            //title: 'Save changes'
                         })
-                        //.tooltip()
                         .addClass('save')
                         .click(function() {
                             return false;

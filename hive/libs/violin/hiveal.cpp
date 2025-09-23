@@ -29,7 +29,8 @@
  */
 #include <ssci/bio.hpp>
 #include <ulib/ulib.hpp>
-#include <violin/violin.hpp>
+#include <violin/hiveal.hpp>
+
 #include "common.hpp"
 
 using namespace sviolin;
@@ -47,7 +48,6 @@ sHiveal * sHiveal::parse (const char * filename, sUsr * luser )
 
     sStr list,dst,d;
 
-    //sString::searchAndReplaceStrings(&dst,filename,0, sString_symbolsEndline, 0,0,false );
     sString::searchAndReplaceSymbols(&dst,filename,0,";" sString_symbolsEndline,0,0,true,true,false, false);
     for ( const char * ff=dst; ff ; ff=sString::next00(ff) ) {
         expandHiveal( &list, ff);
@@ -86,49 +86,6 @@ idx sHiveal::digestFile( const char * filename , idx alStart, idx alEnd,  bool s
 
     return 1;
 
-//    sStr flnm("%s",filename);
-//
-//    if( !getObjFilePathname00(user, flnm, flnm, typeList00) ) {
-//        return 0;
-//    }
-//    // first make sure this is not a gzip file name
-//    // if it is - strip the .gz suffix before looking for filename
-//    char * ext=strrchr(flnm,'.');
-//    if(ext && strncmp(ext,".gz",3)==0) *ext=0;
-//
-//    // now try to deduce the final sequence
-//    // file name from the given filename
-//    idx fileType=sNotIdx;
-//    if(ext)sString::compareChoice( ext, typeList00,&fileType,true, 0,true);
-//
-//
-//    sBioal * bioal=0;
-//
-//    // if not a recognized file format
-//    // try to find one in the same directory
-//    if( fileType==sNotIdx ){
-//        sFilePath path(flnm,"%%pathx.vioal");
-//        bioal=new sVioal(path, 0,0,sMex::fReadonly);
-//
-//        if(!bioal->dimAl()){
-//            delete bioal;
-//            bioal=0;
-//        }
-//
-//        else {
-//            registerBioal (bioal, filename,  alStart, alEnd,  true);
-//        }
-//        return 1;
-//    }
-//
-//    else if(fileType==eFileVioal){
-//        bioal=new sVioal(flnm, 0,0,sMex::fReadonly);
-//    }
-//
-//    registerBioal (bioal, filename, alStart, alEnd,  selfman);
-//
-//
-//    return 1;
 }
 
 sBioal *sHiveal::getBioal(const char * filename, bool &selfman)
@@ -138,13 +95,9 @@ sBioal *sHiveal::getBioal(const char * filename, bool &selfman)
     if( !getObjFilePathname00(user, flnm, flnm, typeList00) ) {
         return 0;
     }
-    // first make sure this is not a gzip file name
-    // if it is - strip the .gz suffix before looking for filename
     char * ext=strrchr(flnm,'.');
     if(ext && strncmp(ext,".gz",3)==0) *ext=0;
 
-    // now try to deduce the final sequence
-    // file name from the given filename
     idx fileType=sNotIdx;
     if(ext)sString::compareChoice( ext, typeList00,&fileType,true, 0,true);
 
@@ -152,8 +105,6 @@ sBioal *sHiveal::getBioal(const char * filename, bool &selfman)
 
     sBioal * bioal = 0;
 
-    // if not a recognized file format
-    // try to find one in the same directory
     if( fileType==sNotIdx ){
         sFilePath path(flnm,"%%pathx.vioal");
         bioal=new sVioal(path, 0,0,sMex::fReadonly);
@@ -231,19 +182,14 @@ idx sHiveal::expandHiveal( sStr * buf, const char * filename , idx alStart, idx 
         return 0;
     }
 
-    // Should remove prefix of file
     if(sourcePath  &&  strncmp(flnm,"file://",7)==0 ){
         sFilePath tmpfile(sourcePath, "%%dir/%s",flnm.ptr(7));
         flnm.printf(0,"%s",tmpfile.ptr());
     }
 
-    // first make sure this is not a gzip file name
-    // if it is - strip the .gz suffix before looking for filename
     char * ext=strrchr(flnm,'.');
     if(ext && strncmp(ext,".gz",3)==0) *ext=0;
     ext=strrchr(flnm,'.');
-    // if not a recognized file format
-    // try to find one in the same directory
     if(!ext || strcmp(ext,".hiveal")!=0 ) {
         sStr d;
         sString::searchAndReplaceSymbols(&d,filename,0,",",0,0,true,true,false, false);
@@ -285,7 +231,7 @@ idx sHiveal::expandHiveal( sStr * buf, const char * filename , idx alStart, idx 
 
         idx rStart=locStart+firstShift;
 
-        idx rEnd=alEnd ? rStart+(alEnd-alStart) : locEnd ;//: rStart+(locEnd-locStart); // -shift
+        idx rEnd=alEnd ? rStart+(alEnd-alStart) : locEnd ;
 
         bool isInRange= (rEnd<locStart || rStart>locEnd) ? false : true;
 
@@ -293,7 +239,6 @@ idx sHiveal::expandHiveal( sStr * buf, const char * filename , idx alStart, idx 
         if(rEnd>locEnd)rEnd=locEnd;
 
 
-        // check if this range overlaps with the required range
         if(isInRange)
             cntParsed+=expandHiveal( buf, locFilename , rStart, rEnd, separ, flnm);
 

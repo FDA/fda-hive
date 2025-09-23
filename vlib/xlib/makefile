@@ -31,26 +31,16 @@
 LIBRARIES += xlib
 
 image.cpp_CXXFLAGS=$(IMAGEMAGICK_CFLAGS)
+sha256.cpp_CXXFLAGS=$(OPENSSL_CFLAGS)
 
-xlib_SRCS = zip.cpp md5.cpp xls2csv/Xls.cpp \
+xlib_SRCS = zip.cpp s_curl.cpp gtest/gtest-all.cpp dmlib.cpp xls2csv/Xls.cpp \
     $(if $(HAS_IMAGEMAGICK),image.cpp) \
     $(if $(HAS_LIBXLS),xls2csv/Workbook.cpp xls2csv/Worksheet.cpp) \
-    $(if $(HAS_SQLITE3),sqlite.cpp)
+    $(if $(HAS_SQLITE3),sqlite.cpp) \
+	$(if $(HAS_OPENSSL),sha256.cpp) \
+	$(if $(HAS_OPENSSL),md5.cpp)
 
 ifeq ($(devdir),)
     devdir = $(abspath ../..)
 endif
 include $(devdir)/build/makefile.meta
-
-.PHONY: dist
-dist:: xlsx2csv/xlsx2csv.py
-	$(call dist-src,qm,xlsx2csv.py,xlsx2csv/xlsx2csv.py)
-
-xlsx2csv/xlsx2csv.py:
-	@if which git &> /dev/null; then \
-		git submodule update --init; \
-	else \
-		echo -e "\nPlease either install git and run 'git submodule update --init'"; \
-		echo -e "or manually download xlsx2csv.py into vlib/xlib/xlsx2csv directory.\n"; \
-	fi
-

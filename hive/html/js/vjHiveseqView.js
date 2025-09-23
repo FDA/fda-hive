@@ -56,19 +56,19 @@ function vjSequenceListViewer(viewer)
 
     var cntViewersIn = (vjDV[dvname].tabs && vjDV[dvname].tabs[tabname]) ? vjDV[dvname].tabs[tabname].viewers.length : 0;
 
-    var dsurl = "http://?cmd=objList&type=u-hiveseq%2B&mode=csv&info=1&actions=1&cnt=100&prop=id,name,rec-count,size,created,hierarchy,_type";
-    if (url!==undefined && url.indexOf("http://")!==null) dsurl = url;
+    var dsurl = "http:
+    if (url!==undefined && url.indexOf("http:
     if (!active) active = "tree";
     if (searchKey) dsurl += "&prop_val=" + searchKey;
-    var hideDBactions=[{name:'upload',hidden:true,prohibit_new:true},
-                       {name:'create',hidden:true,prohibit_new:true},
-                       {name:'convert',hidden:true,prohibit_new:true}];
+    var hideDBactions=[{name:'upload',hidden:true},
+                       {name:'create',hidden:true},
+                       {name:'convert',hidden:true}];
     if(hidebuttons)hideDBactions=hidebuttons.concat(hideDBactions);
     vjPAGE.initListAndTreeViewerTab(dsurl, dvname, tabname, tabico, recordviewer, formname, fullpanel, active, hideDBactions, selectCallback, bgClrMap,isdrag);
 
     var viewer = vjDV.locate(dvname + "." + tabname + "." + (cntViewersIn + 1));
     viewer.cols = ([
-           { name: new RegExp(/.*/), hidden: true }, // , url: (( typeof(recordviewer) == "function" ) ? recordviewer : vjHC.recordViewNode) },
+           { name: new RegExp(/.*/), hidden: true },
            {name: '^name', hidden: false, title: 'Name', wrap: false, order: 2 },
            { name: 'id', hidden: false, title: 'ID', order: 1 },
            { name: 'rec-count', hidden: false, title: "Records", align: "left", type: "largenumber", order: 3 },
@@ -83,9 +83,7 @@ function vjSequenceListViewer(viewer)
         viewer = vjDV.locate(dvname + "." + tabname + "." + (cntViewersIn + 2)); viewer.checkLeafCallback = checkcallback; viewer.checkBrunchCallback = checkcallback;
     }
 
-    //alert(jjj(vjDV.locate(dvname+"."+tabname+"."+cntViewersIn).rows));
 
-    //if(!fullpanel)return ;
 
     var viewerPanel = vjDV.locate(dvname + "." + tabname + "." + cntViewersIn);
     var objtype = (searchKey && searchKey.indexOf("genomic") == 0 ? "subject" : "query");
@@ -123,7 +121,6 @@ function vjHiveseqPanelView(viewer)
     else 
     {    
         viewer.rows=viewer.rows.concat([
-                //{name:'refresh', title: 'Refresh' , icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS['"+dsName+"'].reload(null,true);"},
                {name:'pager', align:'right', icon:'page' , title:'per page', description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']},
                {name:'search', align:'right', isSubmitable:true, type:' search', title:'Search', description: 'search sequences by ID', url:"?cmd=objFile&ids=$(ids)"}
                ]);
@@ -134,9 +131,9 @@ function vjHiveseqPanelView(viewer)
 function launchQC_Screen(viewer, node) {
     var dsname = "ds" + node.name; 
     if (!vjDS[dsname]) {
-        vjDS.add("Loading " + node.description, dsname, "static://")
+        vjDS.add("Loading " + node.description, dsname, "static:
     }
-    var url = "http://dna.cgi?cmd=" + node.dsCmdLink;
+    var url = "http:
     vjDS[dsname].launched = false;
     vjDS[dsname].checkRequest= false;
     vjDS[dsname].dependentData = viewer.dependentData;
@@ -167,24 +164,24 @@ function checkLauncher(ds, text){
     }
     else {
         if (launchQCds.checkRequest) {
-            var elapsedTime = (Date.now() - launchQCds.startTime)/1000; // convert to seconds
+            var elapsedTime = (Date.now() - launchQCds.startTime)/1000;
             var tbl = new vjTable(launchQCds.data,0,vjTable_propCSV);
             if (tbl.rows && tbl.rows.length &&tbl.rows[0].stat>=5) {
                 clearInterval(launchQCds.intervalID);
                 launchQCds.dependentData.ds.reload(launchQCds.dependentData.url + "&objs="+ launchQCds.objId,true);
             }
-            else if (elapsedTime > 90) { // 90 seconds
+            else if (elapsedTime > 90) {
                 clearInterval(launchQCds.intervalID);
             }
         }
         else {
-            var url = "http://?cmd=-qpRawCheck&raw=1&req=" + launchQCds.reqid;
+            var url = "http:
             launchQCds.reload(url,true);
             launchQCds.checkRequest = true;
             launchQCds.startTime = Date.now();
         }
         if (launchQCds.reqid) {
-            var url = "http://?cmd=-qpRawCheck&raw=1&req=" + launchQCds.reqid;
+            var url = "http:
             var progDs =launchQCds.progressView.ds; 
             progDs.reload(url,true);
             launchQCds.progressView.dv.hidden = false;
@@ -239,16 +236,14 @@ function vjHiveseqACGTCountView(viewer)
 {
     if(viewer.name === undefined)viewer.name="ACGT_counts";
     
-    if(viewer.options === undefined)viewer.options={ title:'ACGT base count', legend: 'none',is3D:true,pieSliceText: 'label', focusTarget:'category', width: viewer.width?viewer.width:600, height: viewer.height?viewer.height:300, colors:vjPAGE.colorsACGT,  vAxis: { title: 'Letter Count', minValue:0}  };
-    if(viewer.series === undefined)viewer.series=[ {label:true, name:'letter', title: 'Nucleotides'}, {name: 'count', title: 'Count at position on a sequence' } ];
+    if(viewer.options === undefined)viewer.options={ title:'ACGT base count', legend: 'none',is3D:true,pieSliceText: 'label', focusTarget:'category', width: viewer.width?viewer.width:600, height: viewer.height?viewer.height:300, colors:vjPAGE.colorsACGTN,  vAxis: { title: 'Letter Count', minValue:0}  };
+    if(viewer.series === undefined)viewer.series=[ {label:true, name:'letter', title: 'Nucleotides'}, {name: 'count', title: 'Count at position on a sequence',eval:"if (!this.showN){if(row['letter']=='N'){row['count']=0}else{row['count']=row['count'];}} else {row['count']=row['count'];}" } ];
     if(viewer.type === undefined)viewer.type='pie';
-    //viewer.minRowsToAvoidRendering=3;
-    //viewer.switchToColumnMode=32;
     viewer.cols=[{ name: 'letter', order:1, align:'center',title: 'Nucleobase', hidden: false }
                 ,{ name: 'count', order:2,  title: 'Count', hidden: false }
                 ,{ name: 'quality', hidden: true }];
-    //viewer.debug=1;
     vjGoogleGraphView.call(this, viewer);
+
 }
 
 function vjHiveseqACGTQualityView(viewer)
@@ -280,6 +275,23 @@ function vjHiveseqComplexityView(viewer)
     if(viewer.options === undefined)viewer.options={title:'Complexity Stats',is3D:true, width: viewer.width?viewer.width:600, height: viewer.height?viewer.height:300};
     if(viewer.series === undefined)viewer.series=[ {col:"0",label:true},{col:"1"}];
     if(viewer.type === undefined)viewer.type='pie';
+    vjGoogleGraphView.call(this, viewer);
+}
+
+function vjHiveseqNCountView(viewer)
+{
+    if(viewer.name === undefined)viewer.name="Ncount";
+    if(viewer.options === undefined)viewer.options={ title:'N Count', 
+            focusTarget:'category', 
+            width: viewer.width?viewer.width:600, 
+            height: viewer.height?viewer.height:300, 
+            colors:vjPAGE.colorsACGT, 
+            legend: 'none',
+            hAxis: {title:'density of Ns per read'},
+            vAxis: {title:'cumulative percentage of reads'}
+            };
+    if(viewer.series === undefined)viewer.series=[ {col:"0",label:true},{col:"1"}];
+    if(viewer.type === undefined)viewer.type='line';
     vjGoogleGraphView.call(this, viewer);
 }
 
@@ -335,7 +347,35 @@ function vjHiveseqLengthwiseQualityView(viewer)
     vjGoogleGraphView.call(this, viewer);
 }
 
+function vjHiveseqACGTCountViewControl(viewer) {
+    if(viewer.formObject===undefined)viewer.formObject= document.forms[viewer.formName];
 
+    this.ACGTCountViewer = new vjHiveseqACGTCountView(viewer);
+
+    this.panelV = new vjPanelView({
+           data:['dsVoid'],
+           iconSize:24,
+           showTitles:true,
+           formObject:document.forms[viewer.formName],
+           rows:[
+                 { name: 'show', icon: 'img/down.gif', title: 'Options', path:'/show', align:'left', description: "show flag" }
+                ,{ name: 'showN',title: 'Show % of N', path:'/show/showN', align:'left', description: 'show N',url:showHideN}
+                ,{ name: 'hideN',title: 'Hide % of N', path:'/show/hideN', align:'left', description: 'hide N',url:showHideN}
+           ]
+    });
+    this.panelV.dependantViewer=this.ACGTCountViewer;
+
+    function showHideN(panel,row,node) {
+        var name=node.name;
+        if (name.indexOf("hideN")!=-1){
+            panel.dependantViewer.showN = false;
+            panel.dependantViewer.title= 'ACGT base count'
+        }else {panel.dependantViewer.showN = true;panel.dependantViewer.title= 'ACGTN base count'}
+        panel.dependantViewer.render();
+
+    }
+    return [this.panelV,this.ACGTCountViewer];
+}
 
 
 function vjHiveseqControl(viewer)
@@ -355,155 +395,4 @@ function vjHiveseqControl(viewer)
 
 
 }
-/*
-function vjHiveseqTaxonomicControl(viewer)
-{
 
-     function matchResults(node) {
-         if (node === undefined)
-             node = this.tree.root;
-
-         if (node.matchResults !== undefined)
-             return node.matchResults;
-
-         if (node.leafnode || node.leaf) {
-             node.matchResults = parseInt(node.matchCnt);
-         } else {
-             if(node.matchCnt)
-                 node.matchResults = parseInt(node.matchCnt);
-             else node.matchResults = 0;
-             for (var i = 0; i < node.children.length; i++)
-                 node.matchResults += matchResults(node.children[i]);
-         }
-         return node.matchResults;
-     };
-
-        function registerNodeClickCallbacks(phylogram, node) {
-        //    phylogram.registerLeafCheckedCallback(node.name, function() {alert(node.allname);});
-        }
-        var phylogram;
-
-        function treeSeriesLoaded() {
-            matchResults(this.tree.root);
-            this.tree.enumerate(function(phylogram, node) {
-             if (node.doneInitialExpansion)
-                 return;
-             node.expanded = true;
-             node.doneInitialExpansion = true;
-            }, phylogram);
-            this.refreshWithoutRebuildingTree();
-            //this.tree.enumerate(registerNodeClickCallbacks, phylogram, 0, 0, this.tree.root);
-
-        }
-
-
-
-     var series = new vjTreeSeries({
-         name: viewer.data,
-         title: "Tree series",
-         showRoot:1,
-         url: "static://",
-         dataFormat: "csv", // or "newick"
-         type: "rectangular",
-         rectangularLabelInline: true,
-         precompute:"node.path=node.path",
-         cmdMoreNodes: "http://taxTree.cgi?whatToPrint=taxid|path|childrenCnt&taxid=$(taxid)&depth=1&cmd=ncbiTaxBrowseDown",
-         postcompute: "if(node.name){"+
-         "var spl=node.name.split(':');"+
-         "node.title=spl[0];"+
-         "node.taxid=spl[1];"+
-         "node.childrenCnt=parseInt(spl[2]);}"
-     });
-     series.register_callback({ obj: series, func: treeSeriesLoaded }, "series_loaded", "refreshed");
-
-     phylogram = new vjSVG_Phylogram({
-         nodeLabel: function (node, series) {
-           //  var tbl = series.tbl;
-             // hide labels of inner nodes in non-branching chains
-           //  if (node.expanded && !node.leafnode && node.children.length == 1)
-           //      return null;
-             if(node.matchResults)
-                 return node.title + "[" + node.matchResults+"]";
-             else return node.title;
-         },
-         nodeTooltip: function (node, series, isLabelText) {
-             if (isLabelText)
-                 return node.title;
-             return this.defaultNodeTooltip.apply(this, arguments);
-         },
-         nodeSymbolBrush: function (node, series1) {
-          if(node.matchCnt)    return {fill:"#33FF99", 'fill-opacity':1,opacity:1};
-          else if(node.matchResults)
-             return {fill:"#9999FF", 'fill-opacity':1,opacity:1};
-          else return {fill:"#CCCCCC", 'fill-opacity':1,opacity:1};
-
-         },
-         nodeSymbolSize: function (node, series) {
-             //                var size = series ? series.symbolSize : this.defaultSeriesSymbolSize();
-             //return size *= (3 - 2*Math.exp(-2*node.matchResults/series.tree.root.matchResults));
-             //var size = series ? series.symbolSize : this.defaultSeriesSymbolSize();
-             //return size;
-             return node.leafnode ? 5 : 6;
-         },
-         nodeLabelFont: function (node) {
-             var font = { "font-size": 10};
-
-             return font;
-         }
-     });
-     phylogram.add(series);
-     var newURL = "http://taxTree.cgi?whatToPrint=taxid|path|childrenCnt&cnt=150&cmd=ncbiTaxBrowseCurrent&screenId="+viewer.updateURL;
-    if(viewer.data=='blastNTset')
-            newURL += "&screenType=dna-alignx_screenResult.csv"
-     this.myRows = new Array();
-     this.myRows.push({ name: 'pager', icon: 'page', order:1,title: 'per page', description: 'page up/down or show selected number of objects in the control', type: 'pager', counters: [50,150,300,500,1000, 'all'] });
-     if(viewer.ifFromShortRead)
-         this.myRows.push({name:'screen', title: 'Screen' ,order:2,align:'left', icon:'tree' , description: 'screen the sequence again' ,  url: "?cmd=dna-screening&objIDs="+viewer.updateURL});
-     this.myPanel = new vjPanelView({
-         data: ["dsVoid",viewer.data],
-         iconSize: 24,
-         cmdUpdateURL:newURL ,
-         rows:this.myRows,
-         formObject: document.forms[viewer.formName],
-     });
-
-     this.myTaxTree = new vjSVGView({
-          icon:viewer.icon,
-          name: 'phylogram',
-          chartArea:{height:'95%'},
-          objectsDependOnMe: this.myPanel,
-          plots:[phylogram],
-          precompute:"this.tree.enumerate('node.expanded=true');",
-          formObject: document.forms[viewer.formName]
-      });
-
-     this.myTaxTreeText = new vjTreeView({
-           icon:viewer.icon,
-           data: viewer.data,
-           name: 'tree',
-           hidden:true,
-           chartArea:{height:'95%'},
-           objectsDependOnMe: this.myPanel,
-           //precompute:"this.tree.enumerate('node.expanded=true');",
-           formObject: document.forms[viewer.formName]
-       });
-
-     this.myTaxList = new vjTableView({
-           icon:viewer.icon,
-           data: viewer.data,
-           name: 'list',
-           hidden:true,
-           chartArea:{height:'95%'},
-           objectsDependOnMe: this.myPanel,
-           //precompute:"this.tree.enumerate('node.expanded=true');",
-           formObject: document.forms[viewer.formName]
-       });
-
-
-    return [this.myPanel,this.myTaxTree,this.myTaxTreeText,this.myTaxList];
-
-}
-
-*/
-
-//# sourceURL = getBaseUrl() + "/js/vjHiveseqView.js"

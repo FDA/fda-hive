@@ -29,9 +29,9 @@
  */
 #include <ssci/bio.hpp>
 #include <ulib/ulib.hpp>
-#include <violin/violin.hpp>
-
 #include <ssci/bio/sVioAnnot.hpp>
+#include <violin/hiveannot.hpp>
+
 
 using namespace sviolin;
 
@@ -39,7 +39,6 @@ void sHiveannot::InitAnnotList(sUsr * user, sVec<sVioAnnot> & annotList, sVec<sH
 {
     sVec<sHiveId> annotIDList;
 
-    //if( !annotIDListToUse || !annotIDListToUse->dim()) {
     if( getAll) {
         annotIDListToUse->empty();
         sUsrObjRes res;
@@ -83,11 +82,9 @@ void sHiveannot::getAnnotListFromIdAndIdType(sUsr * user, const char * idTypeToU
             indexRangePtr = a.getNumberOfRangesByIdTypeAndId(idTypeToUse,idToUse, cntRanges);
             if (cntRanges && indexRangePtr){
                 if (annotListOut){
-                    //sVioAnnot * toAdd = annotListOut->add();
-                    //toAdd = &a;
                 }
-                if (tableOut){ // objAnnot.Id().print(line);
-                    tableOut->printf("%s,%s,%" DEC "\n",obj.Id().print(), obj.propGet("name"), sFile::time(path)); // ,%s,%" DEC "\n", objAnnot.propGet("name"), sFile::time(anotPath));
+                if (tableOut){
+                    tableOut->printf("%s,%s,%" DEC "\n",obj.Id().print(), obj.propGet("name"), sFile::time(path));
                 }
             }
         }
@@ -96,60 +93,53 @@ void sHiveannot::getAnnotListFromIdAndIdType(sUsr * user, const char * idTypeToU
 
 idx sHiveannot::outInfo (sStr & output, const char * inputRangeTable, sVec< sVioAnnot > & anotList){
 
-    sFil crossRange(inputRangeTable,sMex::fReadonly); // OPEN THE FILE
+    sFil crossRange(inputRangeTable,sMex::fReadonly);
     const char * filebody = crossRange.ptr();
 
     output.printf("Reference,Overlap_start,Overlap_end,FileName,Range_start,Range_end,Annotation_type,Annotation_id\n");
 
-    sTxtTbl * tbl = new sTxtTbl(); // Using sTxtTbl to parse the csv table
+    sTxtTbl * tbl = new sTxtTbl();
     tbl->setBuf(filebody, crossRange.length(), 0);
     tbl->parseOptions().flags = sTblIndex::fSaveRowEnds|sTblIndex::fTopHeader|sTblIndex::fColsep00;
     tbl->parseOptions().colsep = "," __;
     tbl->parse();
-    tbl->parseOptions().colsep = 0; // clean up dangling pointers
+    tbl->parseOptions().colsep = 0;
 
     idx tblRowLen = tbl->rows();
-    for (idx irow = 0; irow < tblRowLen; irow++) { // START of loop over the rows of the crossing ranges file
+    for (idx irow = 0; irow < tblRowLen; irow++) {
         sStr reference, startAsString, endAsString;
         tbl->printCell(reference,irow,0);
         tbl->printCell(startAsString,irow,1);
         tbl->printCell(endAsString,irow,2);
 
         idx start=0, end=0;
-        sscanf(startAsString.ptr(),"%" DEC "",&start); // convert sStr to idx
+        sscanf(startAsString.ptr(),"%" DEC "",&start);
         sscanf(endAsString.ptr(),"%" DEC "",&end);
 
         for (idx iannot=0; iannot<anotList.dim(); ++iannot){
             sVioAnnot * ia = anotList.ptr(iannot);
 
-            idx idIndex = ia->getIdIndex(reference.ptr(),"seqID"); // get the index for the seqID
-            idx typeIdIdx = ia->getIdTypeIdx(); // get the type id index
-            idx rangeTypeIdx = ia->getRangeTypeIdx();
+            idx idIndex = ia->getIdIndex(reference.ptr(),"seqID");
+            idx typeIdIdx = ia->getIdTypeIdx();
+                ia->getRangeTypeIdx();
 
             idx relationCnt= 0, relationTypeIndex = 0;
-            idx * indexPtrRange= ia->DB.GetRelationPtr(typeIdIdx, idIndex, 1,&relationCnt,&relationTypeIndex); // get the pointer to the vector of list range index
+            idx * indexPtrRange= ia->DB.GetRelationPtr(typeIdIdx, idIndex, 1,&relationCnt,&relationTypeIndex);
 
             if (!relationCnt)
                 continue;
-            idx rCount;
-            bool atLeastFoundOne = false;
 
 
             idx resultSize=0;
             sVec <sVioAnnot::startEndNode> resStruct;
   PERF_START("Search Virtual Tree");
-            resultSize = ia->searchInVirtualTree(indexPtrRange,relationCnt,resStruct,start,end); // use virtualtree funtion to localize what range the start and end are, and return the number of ranges
+            resultSize = ia->searchInVirtualTree(indexPtrRange,relationCnt,resStruct,start,end);
   PERF_END();
-/*
-#ifdef _DEBUG
-                if (irow%10000 == 0){::printf(" row %" DEC " / %" DEC "\n ==> relationCnt = %" DEC "/%" DEC " ==> %" DEC "-%" DEC "", irow, tblRowLen,relationCnt,start,end);}
-#endif
-*/
              if (!resultSize) {
                 continue;
              }
              for (idx iRange=0; iRange <resStruct.dim(); ++iRange){
-                 idx cntIDsForRange=ia->getNberOfIdsByRangeIndex(resStruct[iRange].index); // get the number of IDs for the range
+                 idx cntIDsForRange=ia->getNberOfIdsByRangeIndex(resStruct[iRange].index);
 
                  for( idx i = 0; i < cntIDsForRange; ++i)  {
                      const char * idPtr,*idTypePtr;

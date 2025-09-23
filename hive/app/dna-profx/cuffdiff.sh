@@ -34,18 +34,30 @@ gtfFileList=$4
 bamFilesList=$5
 #additionalCommandLineParameters=$6
 
+
 if [ "$QPRIDE_BIN" = "" ]; then
     echo "QPRIDE_BIN is not set"
     QPRIDE_BIN='.'
 fi
 
+for tool in `echo -n 'samtools-0.1.18 tophat-2.0.6 cufflinks-2.0.2'`; do
+    PATH=$QPRIDE_BIN/$tool:$PATH
+done
+echo "PATH '$PATH'"
+echo "PYTHONPATH '$PYTHONPATH'"
+
 cd "$workDir" || exit 10;
 echo "cd $workDir"
 
+#cuffmerge -o <out prefix> -g <reference gtf file> -p 4 -s $<reference fasta file> <list of transcript.gtf files from cufflinks to be merged>
+#cuffmerge -p 8 -o cuffmerge -g $BIOTOOLS/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf -s $BIOTOOLS/Homo_sapiens/Ensembl/GRCh37/Sequence/WholeGenomeFasta/genome.fa gftFilesList.txt
 cmd="cuffmerge -p 4 -o cuffmerge -g $refGTF -s $refFasta $gtfFileList"
 echo $cmd
 cuffmerge -p 4 -o cuffmerge -g "$refGTF" -s "$refFasta" "$gtfFileList"
 
+
+#cuffdiff  -p 24 -v -o <output-directory --min-reps-for-js-test 2 --labels <labels for files> <path to merged.gtf file from cuffmerge> <bam files- replicates separated by a comma>
+#cuffdiff -p 8 -v -o cuffdiff --min-reps-for-js-test 2  cuffmerge/merged.gtf ./231_pcDNA1-tophat_out-new/accepted_hits.bam,./231-pcDNA2-tophat_out/231pcDNA2-accepted_hits.bam ./231-HER21-tophat_out/231HER21-accepted_hits.bam,./231-HER22-tophat_out/231HER22-accepted_hits.bam
 cmd="cuffdiff --quiet -p 4 -v -o cuffdiff --min-reps-for-js-test 2  cuffmerge/merged.gtf $bamFilesList"
 echo $cmd
 cuffdiff --quiet -p 4 -v -o cuffdiff cuffmerge/merged.gtf $bamFilesList

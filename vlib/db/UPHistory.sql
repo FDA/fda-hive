@@ -34,8 +34,9 @@ CREATE TABLE `UPHistory` (
   `historyID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `sid` varchar(32) NOT NULL,
   `userID` bigint(20) unsigned NOT NULL,
-  `createTm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `createTm` timestamp NOT NULL DEFAULT current_timestamp(),
   `operation` varchar(128) NOT NULL DEFAULT '',
-  `comment` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-  PRIMARY KEY (`historyID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `comment` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`historyID`),
+  KEY `idx_createtm` (`createTm`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

@@ -27,47 +27,29 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include <qlib/QPrideProc.hpp>
-#include <slib/utils.hpp>
-#include <slib/core.hpp>
-#include <violin/violin.hpp>
-#include <ssci/math/stat/stat.hpp>
-#include <qpsvc/archiver.hpp>
-#include <ssci/bio/vax-bio.hpp>
+#include <slib/std/app.hpp>
+#include <violin/hivegenericlauncher.hpp>
+#include <ssci/bio/bioseq.hpp>
 
-#include <dmlib/dmlib.hpp>
-class tblqryX4_virMut:public sQPrideGenericLauncher
+using namespace slib;
+
+class tblqryX4_virMut: public sHiveGenericLauncher
 {
     public:
-        tblqryX4_virMut(const char * defline00,const char * srv):sQPrideGenericLauncher(defline00,srv) {
-
+        tblqryX4_virMut(const char *defline00, const char *srv)
+            : sHiveGenericLauncher(defline00, srv)
+        {
         }
-        virtual idx OnExecute(idx);
 
 };
 
-
-idx tblqryX4_virMut::OnExecute(idx req)
-{
-    //requestStage.printf(0,"init");
-    sQPrideGenericLauncher::OnExecute(req);
-
-    //reqSetProgress(req,prgCount, 100);
-       //reqSetStatus(req, eQPReqStatus_Running);
-       //if(startProgPercent + lenProgPercent==100)
-    //reqSetStatus(req, eQPReqStatus_Done);
-
-    return 0;
-}
-
-int main(int argc, const char * argv[])
+int main(int argc, const char *argv[])
 {
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     tblqryX4_virMut backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "viral-mutation-comp", argv[0]));
     return (int) backend.run(argc, argv);
 }
-

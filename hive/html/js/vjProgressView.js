@@ -27,15 +27,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
-//var ggg=0;
 function vjProgressView ( viewer )
 {
-    vjTableView.call(this,viewer); // inherit default behaviors of the TreeView
+    vjTableView.call(this,viewer);
 
     this.checkBranches=false;
     this.checkLeaves=false;
@@ -51,7 +45,7 @@ function vjProgressView ( viewer )
     if(!this.refreshDelay)this.refreshDelay=10000;
     if(!this.maxRefeshCounter)this.maxRefeshCounter=10;
     if(!this.showTotalOnly)this.showTotalOnly=0;
-    if (this.isNrefreshOnLoad===undefined) this.isNrefreshOnLoad=true;          //Don't refresh panels
+    if (this.isNrefreshOnLoad===undefined) this.isNrefreshOnLoad=true;
     if(this.infoDetailsContainerSuffix===undefined)this.infoDetailsContainerSuffix="infoDetails";
     this.infoDetailsContainer_ID=new Object();
     this.info_grpID='grp';
@@ -61,14 +55,11 @@ function vjProgressView ( viewer )
     this.isNSortEnabled=true;
     this.width = viewer.width;
     this._svcs = new Object();
-    //this.callbackDone;
 
-    //this.prefixHTML="<span id=\""+this.objCls+"-progress-icon\"></span>";
     this.postcompute="node.title=node.name+(node.cnt>1 ? '<big>&nbsp;&times;</big>'+node.cnt : '' );" +
             "params.setReportIcon(node);if(node.reqID)params.updateSvcs(node);params.hideEmptyCols(node);" +
             "node.progress100 = node.progress100+'|'+node.stat;";
 
-    //this.appendCols=[{header:{name:"path",type:"treenode",order:1},cell:"eval:this.pretreatProgressItems(node);"}];
     this.appendCols=[{header:{name:"path",type:"treenode",order:1},cell:""}];
     this.treeColumn="path";
     this.debug=1;
@@ -82,12 +73,6 @@ function vjProgressView ( viewer )
             'Warning':{icon:'yellowInfo.png',bgcolor:pastelColor('#ECB613'),title:'Warning',iconSize:24},
             'Error':{icon:'error.gif',bgcolor:pastelColor('#ff3300'),title:'Error',iconSize:24}
     };
-    /*this.actions = {
-            "3":{id: 3, name:"stop",title: "stop the request",icon:{url:"img/reqAction-stop.gif",wd:24}}//, wd);
-            ,"4":{id: 4, name:"pause", title: "suspend the request", icon:{url:"img/reqAction-pause.gif",wd:24}}//, wd);
-            ,"5":{id: 5, name:"run", title: "resume the request",icon:{url:"img/reqAction-run.gif",wd:24}}
-            ,"-2":{id: -2, name:"resubmit", title:"resubmit the request", icon:{url:"img/reqAction-resubmit.gif",wd:24}}
-    };*/
 
     this.updateSvcs = function(node) {
         if (!node.svcID || !parseInt(node.svcID)) {
@@ -169,7 +154,6 @@ function vjProgressView ( viewer )
                 ,{ name: 'progress', order:3.1, align:'center',title: 'Items', hidden: true, autohide:true , type:'largenumber' , desciption: 'percent of the total progress' }
                 ,{ name: 'progress100', order:2, align:'center',title: 'Status', width:300, hidden: true, type:'qp_progress' }
                 ,{ name: 'stat', order:3, align:'left',title: 'Status', hidden: true, type:'reqstatus' }
-//                ,{ name: 'qp_progress100', order:3, align:'center',title: 'Status', width:200, hidden: false, type:'qp_progress' }
                 ,{ name: 'reportType', order:4, align:'left',title: 'Info', hidden: true, autohide:true }
                 ,{ name: 'execTime', order:5, align:'center', title: 'Elapsed', hidden: false, type:'timespan', tooltip:this.setElapsedTooltip }
                 ,{ name: 'actTime', order:6, title: 'Submitted', hidden: false, type:'datetime' }
@@ -191,18 +175,12 @@ function vjProgressView ( viewer )
     this.composerFunction=function( viewer , content )
     {
         this._svcs = new Object();
-        //this.debug = 1;
         if (content.indexOf("unknown") == 0) {
-            //alert(content)
             content = "name,parent,cnt,reqID,grpID,svcID,stat,progress,progress100,actTime,takenTime,doneTime,waitTime,execTime,reportType,orderExecute,runningBefore,act\n"
-                    ///+ "Process Finished,0,0,0,0,0,0,5,0,100,0,0,0,0,0,0";
                     +"Total Progress,0,0,0,0,0,5,0,100,0,0,0,0,0,0,0,0,0";
         }
         this.tblComposerFunction(viewer, content);
-//        var stat=5; // progress100=0,
         if (this.tree.root && this.tree.root.children && this.tree.root.children.length) {
-            //progress100=this.tree.root.children[0].progress100;
-//            stat=this.tree.root.children[0].stat;
             if (this.timeout)
                 clearTimeout(this.timeout);
             if (this.tree.root.children[0].stat < 5 && this.refreshDelay && this.refreshCount < this.maxRefeshCounter) {
@@ -226,7 +204,7 @@ function vjProgressView ( viewer )
         var o=gObject(this.objCls+"-progress-icon");
         if(o){
             if(this.refreshCount < this.maxRefeshCounter) {
-                o.innerHTML = "<img border=0 width=16 src='img/progress.gif' class='linker-icon'/>&nbsp;computing";//&nbsp;<small>"+(this.maxRefeshCounter-this.refreshCount);
+                o.innerHTML = "<img border=0 width=16 src='img/progress.gif' class='linker-icon'/>&nbsp;computing";
             } else {
                 o.innerHTML = "<img border=0 width=16 src='img/24/refresh-white-outline.png'/ class='linker-icon'>&nbsprefresh";
             }
@@ -242,7 +220,7 @@ function vjProgressView ( viewer )
         var o=gObject(this.objCls+"-progress-icon");
         if(o){
             if(this.refreshCount < this.maxRefeshCounter) {
-                o.innerHTML = "<img border=0 width=16 src='img/progress.gif' class='linker-icon'/>&nbsp;computing";//&nbsp;<small>"+(this.maxRefeshCounter-this.refreshCount);
+                o.innerHTML = "<img border=0 width=16 src='img/progress.gif' class='linker-icon'/>&nbsp;computing";
             } else {
                 o.innerHTML = "<img border=0 width=16 src='img/24/refresh-white-outline.png' class='linker-icon'/>&nbsp;refresh";
             }
@@ -284,7 +262,6 @@ function vjProgressView ( viewer )
             return;
         if (col.name != "stat" && col.name != 'progress100')
             return;
-//        var isGrp = (!parseInt(node.reqID) && parseInt(node.grpID));
         var t = "";
         t += "<table bgcolor=white border=0 ><tr>";
 
@@ -322,9 +299,8 @@ function vjProgressView ( viewer )
         if(!parseInt(node.reqID) && !parseInt(node.grpID))return ;
         if(col.name!="stat" && col.name!='progress100')return ;
 
-        if( node.treenode.depth < this.action_onDepth )return ; //only single requests can be handled.
+        if( node.treenode.depth < this.action_onDepth )return ;
 
-//        var isGrp=(!parseInt(node.reqID) && parseInt(node.grpID));
         var wd=24;
         var t="";
         t+="<table bgcolor=white border=0 ><tr>";
@@ -341,9 +317,6 @@ function vjProgressView ( viewer )
         gFloatShiftY=-wd/2;
 
         floatDivOpen("Actions",t, false);
-        //var o = gObject("dvFloatingViewer");
-        //o.innerHTML=t;
-        //dvFloatingDiv_show(gMoX,gMoY);
     };
 
     this.onRefreshProgress=function(cont,autocall)
@@ -359,9 +332,6 @@ function vjProgressView ( viewer )
 
     this.onReqSetStatus = function(cont, reqId, act)
     {
-        //if( confirm("Are you sure you want to terminate this process?") ) {
-        //    linkCmd("-qpKillReq&req=" + reqId+"&act="+act);
-        //}
         linkCmd("-qpReqSetAction&req=" + reqId+"&act="+act);
         floatDivClose();
         this.doneReported=0;
@@ -371,17 +341,17 @@ function vjProgressView ( viewer )
 
     this.attach=function( req, objID )
     {
-        var progress_url = "static://unknown";
-        var info_url = "static://";
+        var progress_url = "static:
+        var info_url = "static:
 
         if (isok(objID)) {
-            progress_url = "http://?cmd=-qpRawCheck&reqObjID=" + objID;
-            info_url = "http://?cmd=-qpReqInfo&reqObjID=" + objID;
+            progress_url = "http:
+            info_url = "http:
         } else if (!(parseInt(req) > 0)) {
             return;
         } else if (isok(req)) {
-            progress_url = "http://?cmd=-qpRawCheck&req=" + req;
-            info_url = "http://?cmd=-qpReqInfo&req=" + req;
+            progress_url = "http:
+            info_url = "http:
         }
         this.refreshCount=0;
         this.getData(0).reload(progress_url, true );
@@ -607,7 +577,6 @@ function vjProgressControl_ProgressDownload(viewer)
         url = "?"+url.split("?").splice(1).join("?");
 
         if( docLocValue("backend",0,url) ){
-            //TODO: add backend ajax here
         }
         else{
             document.location = url;
@@ -643,7 +612,7 @@ function vjProgressControl_InputsDataSource(sourcebase)
 
     this.makeURL = function (params, forceReload) {
         if (params.id) this.id = params.id;
-        var url = 'http://?cmd=objQry&qry=allusedby(' + this.id + ')' + vjProgressControl_makeQrySuffix(params);
+        var url = 'http:
         if (forceReload) this.reload(url, true);
         return url;
     };
@@ -657,7 +626,7 @@ function vjProgressControl_OutputsDataSource(sourcebase)
 
     this.makeURL = function (params, forceReload) {
         if (params.id) this.id = params.id;
-        var url = 'http://?cmd=objQry&qry=allthatuse(' + this.id + ').filter({._type!~/folder/})' + vjProgressControl_makeQrySuffix(params);
+        var url = 'http:
         if (forceReload) this.reload(url, true);
         return url;
     };
@@ -687,7 +656,7 @@ function vjProgressControl(viewer)
             ids = "&ids="+node.id;
         }
         if (!cmd) return;
-        linkURL("?cmd="+cmd+ids, "process"+node.id);
+        linkURL(makeCmdSafe(cmd)+ids, "process"+node.id);
     };
     if (this.selectObjectCallback == undefined)
         this.selectObjectCallback = this.defaultSelectObjectCallback;
@@ -739,11 +708,11 @@ function vjProgressControl(viewer)
         var c_tab = viewer.tab;
         var c_dv = c_tab.parent;
         c_dv.onClickViewToggle('info', c_tab.num , 3 );
-        ds.reload("http://?cmd=-qpReqInfo&req="+reqID+svcID,true);
+        ds.reload("http:
     };
     this.refreshOnService = function (viewer,node,ir,ic) {
 
-        if(node.reqID && parseInt(node.reqID))return; //no action when selecting request nodes
+        if(node.reqID && parseInt(node.reqID))return;
         var selected_svcs = new Array();
         for (var i in viewer._svcs){
             if(node.svcID == i){
@@ -768,7 +737,7 @@ function vjProgressControl(viewer)
             }
             else{
                 var new_url = urlExchangeParameter(ds.url, "svcID", "-");
-                new_url = urlExchangeParameter(new_url, "showreqs", 0);// By Vahan : the collapsed expansion doesn't work-  I need to seqq reqIDs
+                new_url = urlExchangeParameter(new_url, "showreqs", 0);
                 ds.reload(new_url,true);
             }
         }
@@ -784,7 +753,6 @@ function vjProgressControl(viewer)
     this.progressViewer.onInfoLevelSelectCallback = function(viewer,node,ir,ic){that.showLevelInfo(viewer,node,ir,ic);};
     this.progressViewer.onPathNameSelectCallback = function(viewer,node,ir,ic){that.refreshOnService(viewer,node,ir,ic);};
 
-    //refresh both progress and info if needed. Progress must always be reloaded in order to check status.
     this.progressViewer.onRefreshProgress=function(cont,autocall)
     {
         var viewer = this;
@@ -856,7 +824,6 @@ function vjProgressControl(viewer)
                 node._brief = "<strong>Either object " + node.id + " was deleted or you don't have permission to view it</strong>";
                 node.cols[2] = node._brief;
 
-                // Ensure the user can see that some input objects are missing
                 viewer.hidden = false;
                 var o = document.getElementById(viewer.container+"_cell");
                 if (o) o.className = "progressVisibility";
@@ -898,12 +865,9 @@ function vjProgressControl(viewer)
     });
 
     return [this.progressViewer,
-            //this.inputsViewer.panelViewer,
             this.inputsViewer,
-            //this.outputsViewer.panelViewer,
             this.outputsViewer,
             this.progressInfoViewer,
             this.downloadProgressViewer];
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjProgressView.js"

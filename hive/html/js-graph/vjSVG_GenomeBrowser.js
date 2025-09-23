@@ -28,68 +28,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-//        --------------------------------------------
-//        |        Graph                    |    Legend    |
-//        |    -------------------------    |    -----    |
-//        |    |                        |    |    |    |    |
-//        |    |    ----------------    |    |    |    |    |
-//        |    |    |                |    |    |    -----    |
-//        |    |    |    Box Graph    |    |    |            |
-//        |    |    |multiple-layers|    |    |            |
-//        |    |    |                |    |    |            |
-//        |    |    -----------------    |    |            |
-//        |    |    ----------------    |    |            |
-//        |    |    |reference-Graph|    |    |            |
-//        |    |    ----------------    |    |            |
-//        |    |    ------Axis------    |    |            |
-//        |    |    ------Title-----    |    |            |
-//        |    ------------------------    |            |
-//        --------------------------------------------
 
 
-/*    vjSVG_GenomeGrowser({
- *                         options: {
- *                             legend: {
- *                                     position: "top-right",
- *                                     percentSize: 0.2
- *                             },
- *                             graph:{
- *                                     reference: {
- *                                                 position: "bottom",
- *                                                 type    : "box",
- *                                                 color    : "black"
- *                                     }
- *                                     ,annotation: {
- *                                                color: colorArray
- *                                     }
- *                             } 
- * })
- * */
 
-/* chartArea => legendArea =>  
- *              => graphArea => graphSourceArea (left hand side)
- *                           => graphDrawingArea => annotationArea
- *                                               => referenceArea
- *                                               => axisArea
- *                                               => titleArea
- *  
- */
 
 
 function vjSVG_GenomeBrowser (source){
-    // coordinates are scaled from 0 to 1 
     
-    vjSVG_Plot.call(this, source); // inherit functions from vjSVG_Plot
+    vjSVG_Plot.call(this, source);
     
     if (!this.name) this.name = this.objID;
     
     var GB = this; 
     
-    //== create an array of random color. Used when no color is specified
     GB.colorArray = gClrTable;
     
     
-    // == Define prototype
     this.defaultCrd = function(){
         this.x =0; this.y=0; this.z=0;
     }
@@ -101,13 +55,12 @@ function vjSVG_GenomeBrowser (source){
         this.bottomRight = new GB.defaultCrd();
     }
     
-    //== Default Values
     if (!this.exonView) this.exonView = 4;
     
     ;
     
-    this.verticalSpace = 0.01; // space between box
-    this.horizontalSpace = 0.01; // space between row
+    this.verticalSpace = 0.01;
+    this.horizontalSpace = 0.01;
     if (this.title == undefined) this.title = "Here is the graph title";
     
     if (this.padding == undefined) this.padding = new Object();
@@ -116,16 +69,16 @@ function vjSVG_GenomeBrowser (source){
     if (this.padding["top"] == undefined) this.padding["top"] = 0.02;
     if (this.padding["bottom"] == undefined) this.padding["bottom"] = 0.02;
     
-    this.annotationPercent = 0.7; // percentage of annotation area compare to reference, axis, and title
+    this.annotationPercent = 0.7;
     
     this.defaultValue = new Object({
          "legend": {
-                      "position": "top-right" // // "top", "bottom", "left", "right"
+                      "position": "top-right"
                      ,"percent": 0.1    
         }
         ,"reference": {
-                     "position":"bottom" // "top", "bottom"
-                    ,"type":"chromosome" // "box","chromosome"    
+                     "position":"bottom"
+                    ,"type":"chromosome"
                     ,"percentHeight":0.1    
         } 
         ,"annotation":{
@@ -139,30 +92,25 @@ function vjSVG_GenomeBrowser (source){
     
  
     
-    //== Legend and Graph Section (reference, annotation)
     if (GB["options"] == undefined) GB.options = new Object();
     
     var GBOpt = GB.options;
     if (GB["options"]["legend"] === undefined) GB.options.legend = new Object();
     if (GB["options"]["graph"] === undefined) GB.options.graph = new Object();
     
-    //==== Legend: 
     if (GB["options"]["legend"]["position"] === undefined) GB.options.legend.position = this.defaultValue.legend.position; 
     if (GB["options"]["legend"]["percentSize"] === undefined) GB.options.legend.percentSize = this.defaultValue.legend.percent;
     if (GB["options"]["legend"]["hidden"] === undefined) GB.options.legend.hidden = true; 
     
-    //==== Graph: BoxGraph, ReferenceElement, Axis, Title
-    //====== reference
     if (GB["options"]["graph"]["reference"] === undefined) GB.options.graph.reference = new Object();
     var GBOptRef = GB.options.graph.reference;
     
     if (GB["options"]["graph"]["reference"]["position"] === undefined) GBOptRef.position = this.defaultValue.reference.position; 
-    if (GB["options"]["graph"]["reference"]["type"] === undefined) GBOptRef.type = this.defaultValue.reference.type; // "box", "chromosome"
+    if (GB["options"]["graph"]["reference"]["type"] === undefined) GBOptRef.type = this.defaultValue.reference.type;
     if (GB["options"]["graph"]["reference"]["color"] === undefined) GBOptRef.color = "black";
-    //====== annotation
     if (GB["options"]["graph"]["annotation"] == undefined) GB.options.graph.annotation = new Object();
     var GBOptAnot = GB.options.graph.annotation;
-    if (GB["options"]["graph"]["annotation"]["color"] === undefined) GBOptAnot.color =  GB.colorArray ;// array of predefined color
+    if (GB["options"]["graph"]["annotation"]["color"] === undefined) GBOptAnot.color =  GB.colorArray ;
     if (GB.options.graph.annotation.color.length) {
         GBOptAnot.color = verarr(GBOptAnot.color); 
         GBOptAnot.color = GBOptAnot.color.concat(GB.colorArray);    
@@ -172,11 +120,11 @@ function vjSVG_GenomeBrowser (source){
     if (GB["options"]["axis"]['hidden'] == undefined) GB.options.axis.hidden = false;
     
     if (GB["options"]["axis"]["maxValue"] == undefined) GB.options.axis.maxValue = new Object();
-    if (GB["options"]["axis"]["maxValue"]["offset"] == undefined) GB.options.axis.maxValue.offSet = 0.02; // offset when drawing
+    if (GB["options"]["axis"]["maxValue"]["offset"] == undefined) GB.options.axis.maxValue.offSet = 0.02;
     if (GB["options"]["axis"]["maxValue"]["value"] == undefined) GB.options.axis.maxValue.value = -1;
     
     if (GB["options"]["axis"]["minValue"] == undefined) GB.options.axis.minValue = new Object();
-    if (GB["options"]["axis"]["minValue"]["offset"] == undefined) GB.options.axis.minValue.offSet = 0.02; // offset when drawing
+    if (GB["options"]["axis"]["minValue"]["offset"] == undefined) GB.options.axis.minValue.offSet = 0.02;
     if (GB["options"]["axis"]["minValue"]["value"] == undefined) GB.options.axis.minValue.value = -1;
     
     
@@ -184,14 +132,10 @@ function vjSVG_GenomeBrowser (source){
     if (GB["options"]["source"] == undefined) GB.options.source = new Object();
     if (GB["options"]["source"]["hidden"] == undefined) GB.options.hidden = true;
     
-    //== Override "construct" function from SVG_Plot 
-    this.construct = function (axis,chartArea,scene){  // chartArea = {width: 500, height:350}
-        // at this point, we've received a collection of series which are tables
+    this.construct = function (axis,chartArea,scene){
         this.chartArea = chartArea;
         this.referenceExists = false;
-        // Calling member functions
         
-        // == Preparing Sections inside the chartArea
         this.overallMin = 1e+300;
         this.overallMax = -1e+300;
         
@@ -199,21 +143,16 @@ function vjSVG_GenomeBrowser (source){
         this.prepareLegendGraphSection();
         this.prepareInsideGraphSection();
         
-        // == Constructing elements in each section
         var referenceDone = false;
         var annotationDone = false;
-        // == ColorBackground
         this.colorBackground();
-        // ==== construct Reference
         if (this.reference_collection != null){
             referenceDone = this.constructReference();
         }
         else referenceDone=true;
-        // ==== construct annotation
         if (this.annotation_collection && this.annotation_collection.length){
             annotationDone = this.constructAnnotation();
         }
-        // ==== construct axis, title, legend box
         if (referenceDone && annotationDone){
             if (!this.options.axis.hidden)
                 this.constructAxis();
@@ -225,15 +164,12 @@ function vjSVG_GenomeBrowser (source){
         }
     }
     
-    //== Member functions
     
-    //==== Determine what kind of each provided data series
-    //==== in order to differentiate the reference and annotation data series
     this.colorBackground = function (){
         if (!this.backgroundColor){
-            this.backgroundColor = 'white'; // "#f2f2f2"
+            this.backgroundColor = 'white';
         }
-        if (this.dataObj !== undefined){ // used when get constructed from the gb control
+        if (this.dataObj !== undefined){
             var myObjCls = this.dataObj.gbViewerObjCls;
             var parentCls = vjObj[this.parentObjCls];
             var idx = parentCls.gbChildren.indexOf(myObjCls); 
@@ -262,7 +198,7 @@ function vjSVG_GenomeBrowser (source){
         
         for (var ic=0; ic<this.collection.length; ++ic){
             var serie = this.collection[ic];
-            if (serie.isReference!= undefined || serie.is_reference!= undefined){ // check if one of the serie is defined as Reference
+            if (serie.isReference!= undefined || serie.is_reference!= undefined){
                 this.referenceExists = true;
                 if (serie.isReference || serie.is_reference){
                     if (this.reference_collection) alert("there is only one reference allowed, please check your data series");
@@ -307,23 +243,18 @@ function vjSVG_GenomeBrowser (source){
         
     }
     
-    //==== Prepare the sections in the chart area: Graph and Legend
-    this.prepareLegendGraphSection = function (){ // scaled from 0 to 1
-        // this.chartArea = {width: 500, height:350}
-        //if (this.chartArea.width)
+    this.prepareLegendGraphSection = function (){
             
-        // Legend section: position, percentSize
         
         var legendPosition = GB.options.legend.position;
         if (legendPosition.split("-").length==1){
             legentPosition = this.defaultValue.legend.position;
         }
         
-        var leftOrRight = legendPosition.split("-")[1]; // example: top-right, bottom-left ....
+        var leftOrRight = legendPosition.split("-")[1];
         var verticalPosition = legendPosition.split("-")[0];
         this.legendArea = new GB.sectionSystem();
         this.graphArea = new GB.sectionSystem();
-        // By default: top-right
         if (!GB.options.legend.hidden){
             if (leftOrRight=="left"){ 
                 this.legendArea.topLeft.x = this.verticalSpace + this.padding.left;
@@ -341,7 +272,6 @@ function vjSVG_GenomeBrowser (source){
                 this.graphArea.bottomRight.y = this.graphArea.bottomLeft.y;
                 this.graphArea.side = "right";
             } else {
-                 // right
                 this.legendArea.topLeft.x = 1 - this.verticalSpace - GB.options.legend.percentSize ;
                 this.legendArea.topRight.x = 1 - this.verticalSpace - this.padding.right;
                 this.legendArea.bottomLeft.x = this.legendArea.topLeft.x;
@@ -357,7 +287,6 @@ function vjSVG_GenomeBrowser (source){
                 this.graphArea.bottomRight.y = this.graphArea.bottomLeft.y ;
                 this.graphArea.side = "left";
             }    
-            // By default: top
             switch (verticalPosition){
                 case "middle":
                     this.legendArea.topLeft.y =  0.6;
@@ -367,7 +296,7 @@ function vjSVG_GenomeBrowser (source){
                     this.legendArea.topLeft.y = 0.4;
                     this.legendArea.topRight.y =  this.legendArea.topLeft.y;
                     break;
-                default: // top
+                default:
                     this.legendArea.topLeft.y = 0.8;
                     this.legendArea.topRight.y =  this.legendArea.topLeft.y;
                     break;
@@ -384,29 +313,21 @@ function vjSVG_GenomeBrowser (source){
             this.graphArea.bottomRight.y = this.graphArea.bottomLeft.y ;
             this.graphArea.side = "none";
         }
-       // this.legendArea.bottomLeft.y = this.horizontalSpace;
-      //  this.legendArea.bottomRight.y = this.legendArea.bottomLeft.y;
         
-        // legend area width and height
         this.legendArea.width = (this.legendArea.topRight.x - this.legendArea.topLeft.x);
         this.legendArea.height = (this.legendArea.topLeft.y - this.legendArea.bottomLeft.y);
         
-        // graph area width and height
         this.graphArea.width = (this.graphArea.topRight.x - this.graphArea.topLeft.x);
         this.graphArea.height = (this.graphArea.topLeft.y - this.graphArea.bottomLeft.y);
-    } // END of prepareLegendGraphSection function
+    }
     
-    //==== Prepare sections inside graph area: source area, annotation area, reference area, axis area, title area
     this.prepareInsideGraphSection = function (){
-        // source Area: gtf, or dbsnp or other annotation sources                
-        // == Define sections inside Graph
         this.graphSourceArea = new GB.sectionSystem();
         this.graphDrawingArea = new GB.sectionSystem();
         this.annotationArea = new GB.sectionSystem();
         this.referenceArea = new GB.sectionSystem();
         this.axisArea = new GB.sectionSystem();
         this.titleArea =new GB.sectionSystem();
-        // ==
         if (!this.options.source.hidden){
             this.graphSourceArea.topLeft = this.graphArea.topLeft;
             this.graphSourceArea.topRight.x = this.graphSourceArea.topLeft.x + this.defaultValue.graphSourceArea.percentWidth * this.graphArea.width ;
@@ -429,10 +350,7 @@ function vjSVG_GenomeBrowser (source){
         this.graphDrawingArea.width = (this.graphDrawingArea.topRight.x - this.graphDrawingArea.topLeft.x);
         this.graphDrawingArea.height = (this.graphDrawingArea.topLeft.y - this.graphDrawingArea.bottomLeft.y);
         
-        // check the position of the reference: top or bottom
-        // then determine the position of the rest
         if (this.referenceExists && GBOptRef.position=="bottom"){
-            // reference at the bottom
             this.annotationArea.topLeft = this.graphDrawingArea.topLeft;
             this.annotationArea.topRight = this.graphDrawingArea.topRight;
             
@@ -452,7 +370,7 @@ function vjSVG_GenomeBrowser (source){
             this.axisArea.topRight = this.referenceArea.bottomRight;
             
             
-        } else if (this.referenceExists) { // reference at the top
+        } else if (this.referenceExists) {
             
             this.referenceArea.topLeft = this.graphDrawingArea.topLeft;
             this.referenceArea.topRight = this.graphDrawingArea.topRight;
@@ -496,7 +414,7 @@ function vjSVG_GenomeBrowser (source){
         this.titleArea.bottomRight.x = this.titleArea.topRight.x;
         this.titleArea.bottomRight.y = this.titleArea.bottomLeft.y;
         
-    } // END of prepareInsideGraphSection function
+    }
     
     this.constructReference = function (){
         var refGroup = new vjSVG_group();
@@ -524,8 +442,7 @@ function vjSVG_GenomeBrowser (source){
                ,title: "myTitle-title"
         });
         
-        var referenceData = this.reference_collection.tblArr.rows; // table data
-        // drawing reference
+        var referenceData = this.reference_collection.tblArr.rows;
         if (GBOptRef.type=="chromosome"){
             this.constructChromosome(); 
         }
@@ -539,24 +456,20 @@ function vjSVG_GenomeBrowser (source){
     }
     this.constructAnnotationBox = function (){
         
-        var width = (this.annotationArea.topRight.x - this.annotationArea.topLeft.x); //* this.chartArea.width;
+        var width = (this.annotationArea.topRight.x - this.annotationArea.topLeft.x);
 
-        var height = (this.annotationArea.topLeft.y - this.annotationArea.bottomLeft.y); //* this.chartArea.height;
+        var height = (this.annotationArea.topLeft.y - this.annotationArea.bottomLeft.y);
         height = (height / this.annotation_collection.length)  ;
         
         var sourceIDCounter = {};
         var colorCounter = 0;
         var idCounter = 0;
         
-        var exonList = {}; // Create an associative array
+        var exonList = {};
         
-        // Generate colors here - use random generator?
          var color = verarr(GBOptAnot.color);
         
-        // var color = ['red','blue','green','yellow','orange'];
-        // Create a new array for the plots information.
              
-        //  Determine the number of bases that are to be displayed in this frame
         if (this.options.axis.maxValue.value!=undefined && this.options.axis.maxValue.value.length && this.options.axis.maxValue.value != -1 ) {
             this.annotation_collection[0].max = this.options.axis.maxValue.value;
             this.overallMax = this.options.axis.maxValue.value;
@@ -565,11 +478,9 @@ function vjSVG_GenomeBrowser (source){
             this.annotation_collection[0].min = this.options.axis.minValue.value;
             this.overallMin = this.options.axis.minValue.value;
         }
-        //var numberOfBases = this.annotation_collection[0].max - this.annotation_collection[0].min;
         var numberOfBases = this.overallMax - this.overallMin;
         
         
-        // Loop through the length of the bumper.  Each loop corresponds to a new 'layer' on the visualization (a new 'row' of annotations)
         var step = height + this.horizontalSpace*2
         var startingPoint = new GB.defaultCrd();
         startingPoint.x = this.annotationArea.bottomLeft.x;
@@ -577,16 +488,10 @@ function vjSVG_GenomeBrowser (source){
         
    for (var ia=0; ia< this.annotation_collection.length; ++ia){
        startingPoint.y += step ;
-       /*var annotationGroup = new vjSVG_group();
-       annotationGroup.svgID = "annotationGroup_" + ia;
-       annotationGroup.objID = "annotationGroup_" + ia;*/
         for (var bumperNumber = 0; bumperNumber < this.annotation_collection[ia].bumper.length; bumperNumber++) {
             
-            // Loop through each individual annotation within a given layer
             for (var rangeNumber = 0; rangeNumber < this.annotation_collection[ia].bumper[bumperNumber].ranges.length; rangeNumber++) {
                 
-                // Grab the range for the particular element
-                //if (bumperNumber==0 && rangeNumber==0) continue;
                 if (this.annotation_collection[ia].style == 'axis'){
                     this.constructAxis(this.annotationArea);
                     continue;
@@ -597,13 +502,10 @@ function vjSVG_GenomeBrowser (source){
                 var idTypes = new Array();
                 
                 for (var i = 0; i < _idTypes_id.length; i++) {
-                    // Parse for idTypes.  Returns array of two, first has quotes around, second does not (??)
                     var checkMatch = _idTypes_id[i].match(/""([^"]+)""/);
                     var check;
                 }    
                 
-                // Returns the coordinants of visualization for this element.  Returned as an object, six points.  Typically formed into a box, but can
-                // do other shapes depending on the sourceID
                 
                 var _coordinantList = this.returnPoints(startingPoint, bumperNumber, rangeNumber, width, height, numberOfBases,myRange, myRange.info["idType-id"], exonList);
                 var coordinantList = _coordinantList.coordinantList;
@@ -611,25 +513,18 @@ function vjSVG_GenomeBrowser (source){
                 if (myRange.sourceID==undefined || !myRange.sourceID.length){
                     myRange.sourceID = myRange.id;
                 }
-                // Check to see if the sourceID has already been seen here before.
                  if (!(myRange.sourceID in sourceIDCounter)) {
-                     // Key doesn't exist (sourceID hasn't been seen yet)
-                     // Assign the next color to it and then move the color counter to the following color for the next layer
                      sourceIDCounter[myRange.sourceID] = color[colorCounter];
                      colorCounter++
                  }
                 
-                 // Register the object with HIVE
                  var objID="vjSVG_Gene"+Math.random();
                 vjObj.register(objID,this);
 
-                // Generate the new SVG object based on the vjSVG_trajectory object and assign properties including mouse-over information,
-                // coordinants, etc.
                 box = new vjSVG_trajectory(  {coordinates:coordinantList,closed:true ,lineCmd:"L", objID:objID}) ;
                 box.svgID = objID;
                 
                 box.attribute = {"name":myRange.id, "family": myRange.sourceID, "start": myRange.info.start, "end": myRange.info.end, "idType-id": myRange.info["idType-id"].replace(/\"/g,"")};
-                //box.brush={"fill": pastelColor(color[ia],0.4)};
                 box.brush={"fill": pastelColor(color[ia],0.3)};
                 box.pen={"stroke": pastelColor(color[ia],0.3)};
                 box.handler = {
@@ -637,33 +532,25 @@ function vjSVG_GenomeBrowser (source){
                        "onmouseout":"function:vjObjFunc('mouseOutShowId','" + box.objID + "')",
                        "onclick":"function:vjObjFunc('clickForCallingBack','" + box.objID + "')"
                    };
-                // "onmousemove":"function:vjObjFunc('mouseMove','" + box.objID + "')"
 
-                // Add the new shape to the plot that is being drawn.
                 this.children.push(box);
-                //annotationGroup.children.push(box);
                 idCounter++;
             }
             for (var key in exonList) {
                 
-                    var _exonPoints = exonList[key]; // Copy array for a specific gene ID into a tmp array to work with
-                    if (_exonPoints.length == 1) continue;  // Don't need to do anything if there is just one                
+                    var _exonPoints = exonList[key];
+                    if (_exonPoints.length == 1) continue;
                     
-                    // verify array exists
                     if (_exonPoints[0] === undefined) console.log("DEVELOPER WARNING: No Exon Array at this point.");
                     
-                   // Sort from lowest to highest by topleft value
                     _exonPoints.sort(function(firstElement,secondElement){ 
                            if (firstElement.topleft.x < secondElement.topleft.x) return -1;
                            else return 1;
                         });
                     
-                    // determine intron carrot points
                     for (var jj = 0; jj < _exonPoints.length - 1; jj++) {
-                        // Need to connect topright point of current one to topleft point of next one
-                        var point1 = _exonPoints[jj].topright; // start point
-                        var point3 = _exonPoints[jj+1].topleft; // final point
-                        // Compute middle x
+                        var point1 = _exonPoints[jj].topright;
+                        var point3 = _exonPoints[jj+1].topleft;
                         var midX = (_exonPoints[jj].topright.x + _exonPoints[jj+1].topleft.x)/2;
                         
                          var layerHeight = 0;
@@ -671,7 +558,6 @@ function vjSVG_GenomeBrowser (source){
                       if (!this.computeSizeOfBox) layerHeight = this.boxSize / (height * this.chartArea.height);
                       else layerHeight = (height * this.chartArea.height) / this.numberOfLayers;
     
-                      // This sets the margin for use between layers.
                       var margin = 0;
                       if (!this.layerMargin) margin = layerHeight;
                       else margin = this.layerMargin;
@@ -688,11 +574,10 @@ function vjSVG_GenomeBrowser (source){
                         var point2 = {x:midX,y:newY,z:0};
                         
                         var intron = new vjSVG_trajectory({coordinates:[point1,point2,point3],closed:false,lineCmd:'L',objID:"" });
-                        this.children.push(intron); // push to children list => be drawn latter
+                        this.children.push(intron);
                     }
             }
         }
-        //this.children.push(annotationGroup);
       }  
     }
     this.mouseOverShowId = function(ir,eventObjID,evt){
@@ -703,9 +588,7 @@ function vjSVG_GenomeBrowser (source){
         }
         var parentObj = gObject(eventObjID.parentNode.id);
         var cord = new Object();
-        //cord.x = eventObjID.getAttribute("x");
         cord.x = evt.offsetX;
-        //cord.y = eventObjID.getAttribute("y");
         cord.y = evt.offsetY;
         var text =  " ID    : " + eventObjID.getAttribute("name") + "\n" + "start : " + eventObjID.getAttribute("start") + "\n"  + "end    : " + eventObjID.getAttribute("end") + "\n";
         var idTypeId_txt = eventObjID.getAttribute("idType-id").replace(/; /g,' ');
@@ -739,7 +622,7 @@ function vjSVG_GenomeBrowser (source){
             return;
         }
         var parentID = eventObjID.parentNode.id;
-          if (document.getElementById("toolTipBox")!=null){ //id MUST BE unique in the DOM.
+          if (document.getElementById("toolTipBox")!=null){
               document.getElementById(parentID).removeChild(document.getElementById("toolTipBox"));
           }
     }
@@ -747,9 +630,7 @@ function vjSVG_GenomeBrowser (source){
     this.mouseMove = function(ir,eventObjID,evt){
         var parentObj = gObject(eventObjID.parentNode.id);
         var cord = new Object();
-        //cord.x = eventObjID.getAttribute("x");
         cord.x = evt.offsetX;
-        //cord.y = eventObjID.getAttribute("y");
         cord.y = evt.offsetY;
         if (eventObjID) {
             this.mouseOutShowId(ir,eventObjID,evt);
@@ -762,7 +643,6 @@ function vjSVG_GenomeBrowser (source){
                 break;
             }
             if (ii>0) idTypeId_legend += "\n";
-            //idTypeId_legend += idTypeId_txt.split(";")[ii].split(" ")[0].replace(/\"/g,"") + ": " + idTypeId_txt.split(";")[ii].split(" ")[1].replace(/\"/g,"");
             idTypeId_legend += idTypeId_txt.split(";")[ii].replace(/\"/g,"");
         }
         var text =  " ID    : " + eventObjID.getAttribute("name") + "\n" + "start : " + eventObjID.getAttribute("start") + "\n"  + "end    : " + eventObjID.getAttribute("end") + "\n" + idTypeId_legend ;
@@ -776,40 +656,29 @@ function vjSVG_GenomeBrowser (source){
         this.computeToolTip(cord,text,parentObj.id, params);
 
 
-        //this.mouseOutShowId(ir,eventObjID,evt);
     }
     this.returnPoints=function (startingPoint,bumperNumber, rangeNumber, SVGwidth, SVGheight, refBases, myRange,idType,exonList) {
-        //
-        // Include sourceID in order to check for biologically significant fields (we determine) so 
-        // they can be displayed non-generically.
-        //
         if (!this.boxSize) this.boxSize = 10;
         if(!this.numberOfLayers) this.numberOfLayers = this.annotation_collection[0].bumper.length;
         var coordinantList = new Array ();
         
-        // Determine how many bases each pixel is representing on the screen given use of 98% of the available real estate
         var basesPerPx = refBases / (SVGwidth);
 
-        //var layer = this.annotation_collection[0].bumper[bumperNumber];
         var polygon = myRange;
         var layerHeight = 0;
         
-        //if (!this.computeSizeOfBox) layerHeight = this.boxSize / (SVGheight * this.chartArea.height);
         var heightInPixel = this.graphArea.height * this.chartArea.height;
         if (this.computeSizeOfBox !=undefined && this.computeSizeOfBox) layerHeight = this.boxSize / (heightInPixel);
         else layerHeight = (SVGheight * 0.8) / this.numberOfLayers;
 
-        // This sets the margin for use between layers.
         var margin = 0;
         if (!this.layerMargin) margin = layerHeight * 0.2;
         else margin = this.layerMargin;
         
-        // Generate the six points for the object below if in the form of a box
         
         var L1 = (bumperNumber * layerHeight) + (bumperNumber * margin);
         var L2 = ((bumperNumber + 1) * layerHeight) + (bumperNumber * margin);
 
-        //var x1 = (SVGwidth * .01) + ((polygon.start - this.annotation_collection[0].min) / basesPerPx) + 1;
         if (polygon.start < this.overallMin) {
             polygon.start = this.overallMin;
         }
@@ -819,10 +688,6 @@ function vjSVG_GenomeBrowser (source){
         
         var x1 = startingPoint.x + (polygon.start - this.overallMin )/ basesPerPx;
         var x2 = startingPoint.x + (polygon.end - this.overallMin) / basesPerPx;
-       /* if (x1==x2) {
-            x2 = x2 + 0.009 * x2;
-        }*/
-        //var directionShift = x2*0.009;
         var directionShift = 0;
         
         var y1 = startingPoint.y + L2;
@@ -879,14 +744,6 @@ function vjSVG_GenomeBrowser (source){
             ,lineCmd:"L"
             ,objID: "lineAxis"
         });
-/*       line.rotation ={
-            crd:{
-                 x:  this.axisArea.bottomLeft.x
-                 ,y: this.axisArea.bottomLeft.y + (this.axisArea.topLeft.y - this.axisArea.bottomLeft.y) * 0.5},
-            vec:{x:0,y:0,z:-1},
-            angle:270
-        };
-*/      
         var arrowHead=new vjSVG_symbol({
             definition:"arrowhead",
             crd:line.crd2,
@@ -901,7 +758,6 @@ function vjSVG_GenomeBrowser (source){
         this.children.push(line);
         this.children.push(arrowHead);
         
-        //var minValue = this.annotation_collection[0].min;
         var minValue = this.overallMin;
         var minText = new vjSVG_text({
             crd: {
@@ -918,7 +774,6 @@ function vjSVG_GenomeBrowser (source){
         minText.svgID = "minText";
         this.children.push(minText);
         
-        //var maxValue = this.annotation_collection[0].max;
         var maxValue = this.overallMax;
         var offSetLeft = this.options.axis.maxValue.offset;
         if (parseInt(maxValue)>1e8) {
@@ -996,26 +851,21 @@ function vjSVG_GenomeBrowser (source){
                  ,y: this.graphSourceArea.bottomLeft.y + (this.graphArea.height) 
                  ,z:0
             }
-               //,font: {"font-size": 10, "font-weight": "bold"}
-               //,text: "X"
                ,title: "Close"
                ,url:'img/delete.gif'
-                ,width:   -(10/this.chartArea.width)// 0.1 * (this.annotationArea.bottomRight.y - this.annotationArea.topRight.y)
-                ,height: -(10/this.chartArea.height)//0.2 * (this.annotationArea.bottomRight.y - this.annotationArea.topRight.y)
+                ,width:   -(10/this.chartArea.width)
+                ,height: -(10/this.chartArea.height)
                ,objID:objID   
         });
-        //xText.brush = {fill:'red'};
         xText.handler = {
                 "onmouseover":"function:vjObjFunc('mouseOverClose','" + xText.objID + "')",
                 "onmouseout":"function:vjObjFunc('mouseOutClose','" + xText.objID + "')",
                 "onclick":"function:vjObjFunc('clickForClose','" + xText.objID + "')"
         };
         xText.attribute = {'cursor':'pointer'};
-        //this.children.push(xText);
         
         var source = new vjSVG_box({
                 crd:{
-                 //x: this.graphSourceArea.bottomLeft.x
                 x: this.graphSourceArea.bottomRight.x - (this.graphSourceArea.topRight.x - this.graphSourceArea.topLeft.x - this.verticalSpace) *0.2
                 ,y: this.graphSourceArea.bottomLeft.y
                 ,z: 0
@@ -1083,7 +933,7 @@ function vjSVG_GenomeBrowser (source){
                              coordinates: [leftCurveCrd.top,leftCurveCrd.middle,leftCurveCrd.bottom]
                             ,closed:0
                             ,lineCmd:"S"
-                        });//this.coordinates,this.closed,this.lineCmd,this.objID);
+                        });
         leftCurve.brush = {fill:chromosomeColor};
         leftCurve.pen = {stroke:chromosomeColor};
         this.children.push(leftCurve);
@@ -1142,7 +992,7 @@ function vjSVG_GenomeBrowser (source){
                      coordinates: middlePartArr
                     ,closed:1
                     ,lineCmd:"L"
-                });//this.coordinates,this.closed,this.lineCmd,this.objID);
+                });
         middlePartObj.brush = {fill:chromosomeColor};
         middlePartObj.pen = {stroke:chromosomeColor};
         this.children.push(middlePartObj);
@@ -1182,13 +1032,12 @@ function vjSVG_GenomeBrowser (source){
                 this.children.push(band1);
      
         }
-    } // END of contruct chromosome
+    }
     
-} // END of vjSVG_GenomeBrowser function
+}
 
 function vjSVG_reference(source){
-    vjSVG_Plot.call(this, source); // inherit functions from vjSVG_Plot
-    // padding: {left:0.01,bottom:0.05,right:0}
+    vjSVG_Plot.call(this, source);
     if (this.options == undefined) this.options = new Object();
     if (this.options.padding == undefined) this.options.padding = new Object();
     
@@ -1198,7 +1047,7 @@ function vjSVG_reference(source){
     if (this.options.padding.top == undefined) this.options.padding.top = 0.01;
     
     
-    this.construct = function (axis,chartArea,scene){  // chartArea = {width: 500, height:350}
+    this.construct = function (axis,chartArea,scene){
         this.chartArea = chartArea;
         
         var minMaxObj = extractMinMaxFromUrl(this.collection[0].url,"pos_start","pos_end");
@@ -1228,7 +1077,6 @@ function vjSVG_reference(source){
         refGroup.svgID = "referenceGroup";
         var source = new vjSVG_box({
             crd:{
-             //x: this.graphSourceArea.bottomLeft.x
                 x: 0.01
                 ,y: 0.01
                 ,z: 0
@@ -1268,8 +1116,6 @@ function vjSVG_reference(source){
        this.children.push(line);
        this.children.push(arrowHead);
        
-       //var minValue = this.collection[0].min;
-       //var minValue = this.overallMin;
        var minValue = this.minValue ? this.minValue : this.overallMin;
        var minText = new vjSVG_text({
            crd: {
@@ -1283,9 +1129,8 @@ function vjSVG_reference(source){
           ,dy: ".3em"
        });
        minText.svgID = "minText";
-       this.children.push(minText);  // temporary remove
+       this.children.push(minText);
        
-       //var maxValue = this.collection[0].max;
        var maxValue = this.maxValue ? this.maxValue : this.overallMax;
        var offSetLeft = 0.06;
        if (parseInt(maxValue)>1e8) {
@@ -1303,7 +1148,7 @@ function vjSVG_reference(source){
           ,dy: ".3em"   
        });
        maxText.svgID = "maxText";
-       this.children.push(maxText);  // temporary remove
+       this.children.push(maxText);
        
        var title = new vjSVG_text({
            crd: {
@@ -1327,23 +1172,6 @@ function vjSVG_reference(source){
 
 
 function vjSVG_GenomeBrowserControl (source){
-/*
-    sample_genomeBrowserControl={
-        data:  // data name    8
-        ,columnsToPick:{
-                    sourceID:  // column header for source (optional)
-                    rangeID:  // column header for range identifier
-                    start:  // column header for start position
-                    end:  //column header for end position
-                    toolTips: [] //column headers for tooltips (optional)
-        },
-        bumper: {
-                    numberOfLayers: // by default is 10 
-                    computeSizeOfBox: // pixel
-                    boxSize: // in pixel
-        }
-    }
-*/
     var main_objCls = "obj-GBrowser"+Math.random();
     vjObj.register(main_objCls,this);
     
@@ -1351,7 +1179,6 @@ function vjSVG_GenomeBrowserControl (source){
     {
         if(!viewbase)viewbase=this;
         var i=0;
-        // copy all the features from base objejct
         for ( i in viewbase ) {
             this[i] = viewbase[i];
         }
@@ -1360,7 +1187,6 @@ function vjSVG_GenomeBrowserControl (source){
     this.clone(source);
     
     
-     // ##########  Setting Up the default value ########
     if (this.formObject==undefined || !this.formObject) this.formObject = document.forms["formGeneric"];
     
     if (this.bumper== undefined || !this.bumper) this.bumper = new Object();
@@ -1379,10 +1205,7 @@ function vjSVG_GenomeBrowserControl (source){
     this.removedTrackCnt = 0;
     this.existingTrackCnt = 0;
     this.gbChildren=[];
-    // ############################
     
-    // Parse Function for datasource
-    // Constructing the type list table
     function constructTypeListTable(param,text){
         var tt="#,types\n";
         var split = text.split("\n");
@@ -1405,54 +1228,51 @@ function vjSVG_GenomeBrowserControl (source){
         return text;
     }
     
-    // init
     this.init = function(){
         this.dataBoxListDsname = this.data;
         this.dataBoxUrl = this.url;
-         // ?cmd=ionGenBankAnnotPosMap&cnt=-1&objs=3082092&mySubID=1&ionObjs=3080478&features=CDS&pos_start=500&pos_end=10000
         
         if (!this.dataBoxListDsname) this.dataBoxListDsname = "dsGB_boxList";
-        if (!this.dataBoxUrl)  this.dataBoxUrl = "static://";
+        if (!this.dataBoxUrl)  this.dataBoxUrl = "static:
         
         this.dataObjList = {
                 refGenomeList:{
                     dsname: "dsGB_refGenomeList",
-                    url: "http://?cmd=objList&type=^genome&mode=csv&cnt=20",
+                    url: "http:
                     title: "Loading reference genome list ..."
                 },
                 refSeqIDList:{
                     dsname: "dsGB_refSeqIDList",
-                    url: "static://", // http://?cmd=seqList&out=num|id|len&cnt=20&ids=
+                    url: "static:
                     title: "Loading sequence ID list ..."
                 },
                 annotList: {
                     dsname: "dsGB_annotList",
-                    url: "http://?cmd=objList&type=u-ionAnnot&mode=csv&cnt=20",
+                    url: "http:
                     title: "Loading annotation file list ..."
                 },
                 typeList : {
                     dsname: "dsGB_typeList",
-                    url:"static://", // http://?cmd=ionAnnotTypes&fromComputation=0&
+                    url:"static:
                     title: "Loading annotation type list ..."
                 },
                 seqList : {
                     dsname: "dsGB_seqList",
-                    url:"static://", // http://?cmd=ionAnnotTypes&fromComputation=0&
+                    url:"static:
                     title: "Loading annotation sequence list ..."
                 },
                 boxList : {
                     dsname: this.dataBoxListDsname,
-                    url: this.dataBoxUrl,  // "http://?cmd=anotBrowser&refSeqID="+ refSeqID +"&refObjID=" + refObjID +"&resolution=" + resolution + "&density=" + density + "&srch=";
+                    url: this.dataBoxUrl,
                     title: "Loading annotation box ..."
                 },
                 infoList:{
                     dsname: 'dsGB_infoList',
-                    url: 'static://',
+                    url: 'static:
                     title: "Loading annotation information ..."
                 }
         };
     
-        // ( title, name, url, refresh_callbacks,  header )
         vjDS.add(this.dataObjList["refGenomeList"].title, this.dataObjList["refGenomeList"].dsname, this.dataObjList["refGenomeList"].url);
         vjDS.add(this.dataObjList["refSeqIDList"].title, this.dataObjList["refSeqIDList"].dsname, this.dataObjList["refSeqIDList"].url);
         vjDS.add(this.dataObjList["annotList"].title, this.dataObjList["annotList"].dsname, this.dataObjList["annotList"].url);
@@ -1465,8 +1285,6 @@ function vjSVG_GenomeBrowserControl (source){
 
     this.init();
     
-    // ###############    
-    // Panel viewer for the reference genome list viewer 
     this.refGenomeList_panel = new vjBasicPanelView({
         data: ["dsVoid", this.dataObjList["refGenomeList"].dsname],
         formObject: this.formObject,
@@ -1480,7 +1298,6 @@ function vjSVG_GenomeBrowserControl (source){
         }
     });
 
-    // Reference Genome list viewer (list of reference genome files)
     this.refGenomeList_viewer = new vjConstructRefGenomeList_viewer({
         data: this.dataObjList["refGenomeList"].dsname,
         parentObjCls: main_objCls,
@@ -1490,8 +1307,6 @@ function vjSVG_GenomeBrowserControl (source){
     
     vjDS[this.dataObjList["refGenomeList"].dsname].myAssociatedViewers = [this.refGenomeList_panel,this.refGenomeList_viewer];
     
-    // ###############    
-    // Panel viewer for the Reference Sequence ID list viewer 
     this.refSeqIDList_panel = new vjBasicPanelView({
         data: ["dsVoid", this.dataObjList["refSeqIDList"].dsname],
         formObject: this.formObject,
@@ -1506,7 +1321,6 @@ function vjSVG_GenomeBrowserControl (source){
         }
     });
 
-    // Reference Sequence ID list viewer (list of reference genome files)
     this.refSeqIDList_viewer = new vjConstructRefSeqIDList_viewer({
         data: this.dataObjList["refSeqIDList"].dsname,
         parentObjCls: main_objCls,
@@ -1517,8 +1331,6 @@ function vjSVG_GenomeBrowserControl (source){
     
     vjDS[this.dataObjList["refSeqIDList"].dsname].myAssociatedViewers = [this.refSeqIDList_panel,this.refSeqIDList_viewer];
     
-    // ###############    
-    // Panel viewer for the annot list viewer 
     this.annotList_panel = new vjBasicPanelView({
         data: ["dsVoid", this.dataObjList["annotList"].dsname],
         formObject: this.formObject,
@@ -1533,7 +1345,6 @@ function vjSVG_GenomeBrowserControl (source){
         }
     });
 
-    // Annot list viewer (list of annotation files)
     this.annotList_viewer = new vjConstructAnnotList_viewer({
         data: this.dataObjList["annotList"].dsname,
         parentObjCls:main_objCls,
@@ -1544,8 +1355,6 @@ function vjSVG_GenomeBrowserControl (source){
     
     vjDS[this.dataObjList["annotList"].dsname].myAssociatedViewers = [this.annotList_panel,this.annotList_viewer];
 
-    // ###############
-    // Panel viewer for type list viewer 
     this.typeList_panel = new vjPanelView({
         data: ["dsVoid", this.dataObjList["typeList"].dsname],
         parentObjCls: main_objCls,
@@ -1554,8 +1363,6 @@ function vjSVG_GenomeBrowserControl (source){
         rows: [
                 {name:'refresh', title: 'Refresh' ,order:-1, icon:'refresh' , description: 'refresh the content of the control to retrieve up to date information' ,  url: "javascript:vjDS['$(dataname)'].reload(null,true);"},
                 {name:'pager', icon:'page', title:'per page',order:2, description: 'page up/down or show selected number of objects in the control' , type:'pager', counters: [10,20,50,100,1000,'all']}
-                /*{ name: 'showAnnotation',align: 'left', isSubmitable: true, showTitle: true, hidden: false, order: 1, title: 'add annotation', description: 'show annotation', icon: 'done.gif', url: addTrack},
-                { name: 'trackName', type:'text',align: 'left', showTitle: true, hidden: false, order: 1, title: 'track name', description: 'track name', path:'/showAnnotation/trackName'},*/
                ],
         relatedDataSource: {
             refGenomeList:{dsname: vjDS[this.dataObjList["refGenomeList"].dsname].name, url: vjDS[this.dataObjList["refGenomeList"].dsname].url},
@@ -1568,7 +1375,6 @@ function vjSVG_GenomeBrowserControl (source){
     });
     
     
-    // Type list viewer (list of types from selected annotation files)
     this.typeList_viewer = new vjConstructTypeList_viewer({
         data: this.dataObjList["typeList"].dsname,
         parentObjCls: main_objCls,
@@ -1586,7 +1392,6 @@ function vjSVG_GenomeBrowserControl (source){
         rows: [
                 { name: 'showAnnotation',align: 'right', type: 'button',isSubmitable: true, showTitle: true, hidden: false, order: 1, title: 'Add Single Track', description: 'show single annotation', url: addTrack},
                 { name: 'showAnnotationList',align: 'right', type: 'button',isSubmitable: true, showTitle: true, hidden: false,isMultipleTrack: true,order: 1, title: 'Add Multiple Tracks', description: 'show multiple annotation', url: addTrack}
-                /*{ name: 'trackName', type:'text',align: 'left',showTitle: true, hidden: false, order: 1, title: 'track name', description: 'track name', path:'/trackName'},*/
                ],
         relatedDataSource: {
             refGenomeList:{dsname: vjDS[this.dataObjList["refGenomeList"].dsname].name, url: vjDS[this.dataObjList["refGenomeList"].dsname].url},
@@ -1600,8 +1405,6 @@ function vjSVG_GenomeBrowserControl (source){
     
     vjDS[this.dataObjList["typeList"].dsname].myAssociatedViewers = [this.typeList_panel,this.typeList_viewer,this.addAnnot_panel];
     
-    // ###############
-    // Info list viewer (Information from selected annotation box)
     this.infoList_viewer = new vjConstructInfoList_viewer({
         data: this.dataObjList["infoList"].dsname,
         parentObjCls: main_objCls,
@@ -1610,14 +1413,12 @@ function vjSVG_GenomeBrowserControl (source){
         cols:[
               {name:"ID",wrap:true}
          ],
-        //callbackRendered: processOutputForTypeList,
         relatedDataSourceList: ["refGenomeList","refSeqIDList","annotList","seqList","typeList","boxList"],
         dataObjList: this.dataObjList
     });
     
     vjDS[this.dataObjList["infoList"].dsname].myAssociatedViewers = [this.infoList_viewer];
     
-    // RelatedViewer allow to easily communicate within viewers for this control
     
     this.annotList_viewer.relatedViewer = {typeList: this.typeList_viewer};
     this.annotList_panel.relatedViewer = {typeList: this.typeList_viewer, annotList: this.annotList_viewer,infoList: this.infoList_viewer};
@@ -1627,16 +1428,14 @@ function vjSVG_GenomeBrowserControl (source){
     this.infoList_viewer.relatedViewer = {annotList: this.annotList_viewer, typeList: this.typeList_viewer};
     
     
-    // ################ Contruct box Viewer
     
     var bp = new vjBumperLocator ({
         name: this.dataObjList["boxList"].dsname
         ,title: this.dataObjList["boxList"].title
-        ,url:  'static://seqID,start,end,idType-id\nreference,0,10000,blabla' //this.dataObjList["boxList"].url //   
-        ,columnsToPick: this.columnsToPick // default value
-        ,collapse: false // default value
-       // referenceName: "reference"
-   },1);  // Bumping base on the reference
+        ,url:  'static:
+        ,columnsToPick: this.columnsToPick
+        ,collapse: false
+   },1);
    
    var my_plot = new vjSVG_reference({
            options:{
@@ -1646,9 +1445,7 @@ function vjSVG_GenomeBrowserControl (source){
    });
    
    my_plot.add(bp);
-//   /my_plot.add(bp_1);
    
-   //my_plot.add(this.myReference);
    
    this.svgGeneViewer = new vjSVGView({
         plots: [my_plot],
@@ -1666,12 +1463,10 @@ function vjSVG_GenomeBrowserControl (source){
            formObject: this.formObject,
            iconSize: 20,
            rows:[
-               /*{ name: 'zoomin', prefix:"zoom in",align: 'left', isSubmitable: true,showTitle: false, hidden: false, order: 3, title: 'zoomin', description: 'Zoom In', icon: 'zoomin.png', url: zoomIn},*/
-               /*{ name: 'zoomout', align: 'left',isSubmitable: true ,showTitle: false, hidden: false, order: 4, title: 'zoomout', description: 'Zoom Out', icon: 'zoomout.png', url: zoomOut},*/
                { name: 'refSeqID', prefix:"Sequence: ", align: 'left',isSubmitable: false ,showTitle: true, hidden: true, order: 1, title: '', size:10, description: 'Sequence'},
                { name: 'pos_start',prefix:"start position", align: 'right',isSubmitable: true ,type:"text",showTitle: true, hidden: false, order: 1, title: 'start position',size:10, description: 'start position'},
                { name: 'pos_end',prefix:"end position", align: 'right',isSubmitable: true ,type:"text",showTitle: true, hidden: false, order: 2, title: 'end position', size:15,description: 'end position'},
-               { name: 'submit', align: 'right'/*,isSubmitter: true */,showTitle: false, hidden: false, order: 4,title: 'submit', icon:"search",description: 'submit', url: zoomFunc}
+               { name: 'submit', align: 'right',showTitle: false, hidden: false, order: 4,title: 'submit', icon:"search",description: 'submit', url: zoomFunc}
                  ],
            isok: true,
            relatedDataSource: {
@@ -1685,11 +1480,9 @@ function vjSVG_GenomeBrowserControl (source){
    });
    this.svgGene_panel.relatedViewer = {annotList: this.annotList_viewer, typeList: this.typeList_viewer, infoList: this.infoList_viewer,svgGeneViewer:this.svgGeneViewer};
    this.refSeqIDList_viewer.relatedViewer = {svg_panel: this.svgGene_panel, svgGeneViewer: this.svgGeneViewer};
-   //
 
    
    function zoomFunc (panel, ic, ir) {
-       //alert("Oops");
        var new_start = panel.tree.findByName("pos_start").value;
        var new_end = panel.tree.findByName("pos_end").value;
        for (var i=2; i< panel.data.length; ++i) {
@@ -1700,13 +1493,11 @@ function vjSVG_GenomeBrowserControl (source){
            vjDS[dsname].reload(url,true);
        }
        
-       //nel.relatedViewer.svgGeneViewer.plots[0].title = node.id;
        panel.relatedViewer.svgGeneViewer.plots[0].minValue = new_start;
        panel.relatedViewer.svgGeneViewer.plots[0].maxValue = new_end;
        panel.relatedViewer.svgGeneViewer.refresh();
    }
    this.typeList_panel.relatedViewer['svgGene_panel']=this.svgGene_panel;
-   // ###############
    
    this.addDataSource = function(dataNameByHive,url,dataUserNaming){
        var el = {hiveDsname: dataNameByHive, url: url, userDsname: dataUserNaming};
@@ -1715,7 +1506,6 @@ function vjSVG_GenomeBrowserControl (source){
    }
    
    this.removeDataSource = function(dataNameByHive){
-       // remove from datasourceListForBoxList
        var len = this.datasourceListForBoxList.length;
        for (var i=0; i< len; ++i){
            if (this.datasourceListForBoxList[i].hiveDsname == dataNameByHive) {
@@ -1723,7 +1513,6 @@ function vjSVG_GenomeBrowserControl (source){
                break;
            }
        }
-       // remove from svgGene_Panel datasource list
        len = this.svgGene_panel.data.length;
        for (var i=0; i< len; ++i){
            if (this.svgGene_panel.data[i] == dataNameByHive) {
@@ -1743,12 +1532,10 @@ function vjSVG_GenomeBrowserControl (source){
             name: dataNameByHive,
             title: title,
             url: url,
-            columnsToPick: this.columnsToPick, // default value
-            collapse: false // default value
-           // referenceName: "reference"
-       },1);  // Bumping base on the reference
+            columnsToPick: this.columnsToPick,
+            collapse: false
+       },1);
 
-        // this.options.source.visible
        var my_plot = new vjSVG_GenomeBrowser({
                options:{
                 graph:{
@@ -1768,7 +1555,7 @@ function vjSVG_GenomeBrowserControl (source){
                 ,source:{visible:true, title: graphTitle}
             }
             ,padding: {left:0.01,bottom:0.05,right:0}
-            ,title:  "" //graphTitle
+            ,title:  ""
             ,selectCallback: displayInformation
             ,mouseoverCallback: displayTooltip
             ,mouseoutCallback: undisplayTooltip
@@ -1778,7 +1565,6 @@ function vjSVG_GenomeBrowserControl (source){
             ,parentObjCls: main_objCls
             ,dataObj:{trackName: track_name,hiveDSname: dataNameByHive}
        });
-        // GB.options.graph.annotation.color
        my_plot.add(bp);
 
        
@@ -1788,7 +1574,6 @@ function vjSVG_GenomeBrowserControl (source){
             computeSizeOfBox: false,
             parentObjCls: main_objCls,
             noSize:true,
-            //downloadLink: false,
             defaultEmptyText :"Please select a type",
             track_name: track_name
        });
@@ -1800,35 +1585,25 @@ function vjSVG_GenomeBrowserControl (source){
    this.addGBrowserViewer = function(hiveDSname,trackName) {
        
        var url = vjDS[hiveDSname].url;
-       var gbv = this.constructGBrowserViewer(hiveDSname,url,'',trackName); // (dataNameByHive, url, title)
-       var a = this.svgGene_panel; // 
+       var gbv = this.constructGBrowserViewer(hiveDSname,url,'',trackName);
+       var a = this.svgGene_panel;
         a.tab.add(gbv);    
-        // rerender the whole tab 
         a.tab.parent.render();
         a.tab.parent.load();
-       // console.log(" "+  gbv.objCls);
         return gbv.objCls;
    }
    
    this.addTrack = function(trackName,url){
-       // md=ionGenBankAnnotPosMap&cnt=-1&objs=3098512&mySubID=1&ionObjs=3098036&features=CDS,mat_peptide,organism,locus_tag,protein_id
-     if (trackName == undefined || !trackName) trackName = 'track ' + (this.addedTrackCnt); // custom the track name if undefined
+     if (trackName == undefined || !trackName) trackName = 'track ' + (this.addedTrackCnt);
        var hiveDSname = this.dataBoxListDsname + "_" + trackName.replace(/\s/g,'_');
-        this.addDataSource(hiveDSname,url,trackName); // (dataNameByHive,url,dataUser
-        var gbv = this.constructGBrowserViewer(hiveDSname,url,'',trackName); // (dataNameByHive, url, title)
+        this.addDataSource(hiveDSname,url,trackName);
+        var gbv = this.constructGBrowserViewer(hiveDSname,url,'',trackName);
         
        var dataViews = $('#'+this.tabId).dataviews('instance');
            dataViews.add({instance:gbv, size: '150', allowClose: true});
         this.svgGene_panel.data.push(hiveDSname);
        this.addedTrackCnt +=1;
        this.existingTrackCnt +=1;
-       /*if (trackName == undefined || !trackName) trackName = 'track ' + (this.addedTrackCnt); // custom the track name if undefined
-        var hiveDSname = this.dataBoxListDsname + "_" + trackName.replace(/\s/g,'_');
-        this.addDataSource(hiveDSname,url,trackName); // (dataNameByHive,url,dataUserNaming)
-        //
-        var gbViewerObjCls = this.addGBrowserViewer(hiveDSname,trackName);
-        this.gbChildren.push(gbViewerObjCls);
-        this.svgGene_panel.data.push(hiveDSname);*/
    }
    
    this.removeTrack = function(trackName, hiveDSname, gbViewerObjCls){
@@ -1837,13 +1612,11 @@ function vjSVG_GenomeBrowserControl (source){
        this.removedTrackCnt +=1;
        this.existingTrackCnt-=1;
        if (vjDS[hiveDSname]!= undefined) delete vjDS[hiveDSname];
-       // rerender the whole tab where the gbviewers are held
        this.svgGene_panel.tab.parent.render();
        this.svgGene_panel.tab.parent.load();
    }
    
    this.removeGBrowserViewer = function(trackName,gbViewerObjCls){
-       // remove viewers from main tab
        for (var iv=0; iv < this.svgGene_panel.tab.viewers.length; ++iv){
            var vv = this.svgGene_panel.tab.viewers[iv];
            if (vv.objCls == gbViewerObjCls){
@@ -1851,12 +1624,10 @@ function vjSVG_GenomeBrowserControl (source){
                break;
            }
        }
-       // remove from gbChildren array
        var idx = this.gbChildren.indexOf(gbViewerObjCls);
        if (idx !=-1) this.gbChildren.splice(idx,1);
    }
    
-   // #################
    function displayInformation(viewer, htmlElement){
        var idType_id = htmlElement.getAttribute('idType-id').replace(/; /g,' ');
        idType_id = idType_id.split(';');
@@ -1864,7 +1635,7 @@ function vjSVG_GenomeBrowserControl (source){
        var infoDS = mainObj.infoList_viewer.data[0];
        var start = htmlElement.getAttribute('start');
        var end = htmlElement.getAttribute('end');
-       var url = 'static://TYPE,ID\n';
+       var url = 'static:
        url += 'Start,' + start + "\n" + 'End,' + end + "\n"; 
        
        for (var i=0; i<idType_id.length; ++i){
@@ -1874,17 +1645,13 @@ function vjSVG_GenomeBrowserControl (source){
        vjDS[infoDS].reload(url,true);
    }
    
-  // var tooltip = d3.select("body").append("div")
-     //.attr("class", "GBtooltip")
-     //.attr('style','position: absolute;text-align: left;width: 128px;height: 60px;background: lightyellow;color: black;border: 1px;opacity: 0;border-radius: 8px;font-size: 12px;padding: 10px;font-weight: 600;border-color: black;border-style: solid;'); // #333 #ddd
   
    function displayTooltip(viewer, htmlElement){
-       //alert('toolTips')
        var mainTabId = vjObj[viewer.parentObjCls].tabId;
        if (gObject("GBtooltip")==undefined) {
            var tooltip = d3.select("#"+mainTabId).append("div")
              .attr("id", "GBtooltip")
-             .attr('style','position: fixed;text-align: left;width: 128px;height: 60px;background: lightyellow;color: black;border: 1px;opacity: 0;border-radius: 8px;font-size: 12px;padding: 10px;font-weight: 600;border-color: black;border-style: solid;'); // #333 #ddd       
+             .attr('style','position: fixed;text-align: left;width: 128px;height: 60px;background: lightyellow;color: black;border: 1px;opacity: 0;border-radius: 8px;font-size: 12px;padding: 10px;font-weight: 600;border-color: black;border-style: solid;');
        }
        var tooltip = d3.select("#GBtooltip");
        tooltip.style("left", (event.clientX ) + "px")
@@ -1938,19 +1705,15 @@ function vjSVG_GenomeBrowserControl (source){
        
    }
    
-   // When an ion file is selected, we will ask for the list of type associated to that ion file 
    function annotListSelectCallback (viewer,node,ir,ic){
         var nodeIdSelected = [];
         for (var i=0; i<viewer.selectedNodes.length; ++i){
             nodeIdSelected.push(viewer.selectedNodes[i].id);
         }
         
-        // ionAnnotTypes is the cgi to ask for type of a specific ion objID
-        var url = "http://?cmd=ionAnnotTypes&fromComputation=0&ionObjs=" + nodeIdSelected.join(","); 
+        var url = "http:
         vjDS[viewer.relatedDataSource["typeList"].dsname].reload(url,true);
-        // asking the sequence id list
         url += "&recordTypes=seqID&cnt=-1";
-        //vjDS[viewer.relatedDataSource["seqList"].dsname].reload(url,true);
     }
    
     function trackListSelectCallback(viewer,node,ir,ic){
@@ -1961,35 +1724,23 @@ function vjSVG_GenomeBrowserControl (source){
     function processOutputForTypeList(viewer, node, ir, ic){
         
     }
-    // add track: 
-    // => get the list of ion files selected
-    // => get the list of types for those ion files
-    // => add another gb viewer to the tab where the svgGenePanel is held and the rest of gb viewers
     function addTrack (viewer, node,ir, ic){
-        //console.log("show annotation")
         var annotListVV = viewer.relatedViewer["annotList"];
         var idArr = []; 
         var trackTitle = "";
-        // get the number of selected files from file list viewer
         for (var i=0; i<annotListVV.selectedNodes.length; ++i){
             var id_ = annotListVV.selectedNodes[i].id;
             if (idArr.indexOf(id_)!=-1) continue;
             idArr.push(id_);
             trackTitle = annotListVV.selectedNodes[i].name;
         }
-        // get the list of types user checked 
         var typeArr = [];
         for (var j=0; j<viewer.relatedViewer["typeList"].selectedNodes.length; ++j){
             var checkedType = viewer.relatedViewer["typeList"].selectedNodes[j].types;
             if (typeArr.indexOf(checkedType)!=-1) continue;
             typeArr.push(checkedType);
         }
-        // exchange parameters like: list of ion objects, features (=> types needed to look up)
-        /*var url = urlExchangeParameter(viewer.relatedDataSource["boxList"].url, "ionObjs", idArr.join(","));
-        url = urlExchangeParameter(viewer.relatedDataSource["boxList"].url, "features", typeArr.join(","));*/
         
-        //url = "http://?cmd=ionGenBankAnnotPosMap&cnt=-1&ionObjs=3087192&features=CDS,product,protein_id&pos_start=500&pos_end=10000&objs=3082092&mySubID=1";
-        //url = "http://?cmd=ionGenBankAnnotPosMap&cnt=-1&objs=3098512&mySubID=1&ionObjs=3098036&features=CDS,mat_peptide,organism,locus_tag,protein_id,strand";
         var main = vjObj[viewer.parentObjCls];
         var new_start = -1;
         var new_end = -1;
@@ -2005,44 +1756,38 @@ function vjSVG_GenomeBrowserControl (source){
             } 
         }
         if (node.isMultipleTrack) {
-            //alert("Multiple Track")
             for (var it=0; it<typeArr.length; ++it) {
                 var cur_title = trackTitle;
                 var cur_type = typeArr[it];
-                var url = "http://?cmd=ionGenBankAnnotPosMap&cnt=-1&ionObjs="+ idArr[0]+"&features="+ encodeURI(cur_type)+"&seqID="+ encodeURI(main.refSeqIDList_viewer.selectedNodes[0].id);
+                var url = "http:
                 if (rangeToAdd!=undefined) {
                     url += rangeToAdd;
                 } 
                 cur_title += " [" + cur_type + "]";
                 main.addTrack(cur_title, url);
-                // clear out the type list elements
                 vjDS[viewer.data[1]].reload(null,true);
             }
         }
         else {
             
-            var url = "http://?cmd=ionGenBankAnnotPosMap&cnt=-1&ionObjs="+ idArr[0]+"&features="+ encodeURI(typeArr.join(","))+"&seqID="+ encodeURI(main.refSeqIDList_viewer.selectedNodes[0].id);
+            var url = "http:
             if (rangeToAdd!=undefined) {
                 url += rangeToAdd;
             }
             trackTitle+= " [" + typeArr.join("|") + "]";
             main.addTrack(trackTitle, url);
-            // clear out the type list elements
             vjDS[viewer.data[1]].reload(null,true);
         }
     }
 
-    //############
-    // returning list of viewers, developer can plug them anywhere, all controls and connections are established
-   return [this.refGenomeList_panel/*0*/,this.refGenomeList_viewer/*1*/,
-           this.refSeqIDList_panel/*2*/,this.refSeqIDList_viewer/*3*/, 
-           this.annotList_panel /*4*/, this.annotList_viewer/*5*/, 
-           this.typeList_panel/*6*/,this.typeList_viewer/*7*/, 
-           this.svgGene_panel/*8*/, this.svgGeneViewer/*9*/,
-           this.infoList_viewer/*10*/, this.addAnnot_panel/*11*/];
+   return [this.refGenomeList_panel,this.refGenomeList_viewer,
+           this.refSeqIDList_panel,this.refSeqIDList_viewer, 
+           this.annotList_panel, this.annotList_viewer, 
+           this.typeList_panel,this.typeList_viewer, 
+           this.svgGene_panel, this.svgGeneViewer,
+           this.infoList_viewer, this.addAnnot_panel];
 }
 
-// 
 function extractMinMaxFromUrl(url,keywordForMin,keywordForMax){
     var minWord = 'start';
     var maxWord = 'end';
@@ -2081,7 +1826,6 @@ function vjConstructAnnotList_viewer(viewer){
     ];
     
     this.defaultEmptyText = 'no information to show';
-    //prefixHTML:"<strong> Annotation File List</strong>",
     this.selectCallback= viewer.selectCallback;
     this.callbackRendered=     function (viewer,node,ir,ic){
         viewer.mimicClickCell(0,1);
@@ -2101,9 +1845,8 @@ function vjConstructRefGenomeList_viewer(viewer){
            {name:"created", hidden: false, order: 3, type:"datetime",align:"middle"}
     ];
     this.defaultEmptyText = 'no information to show';
-//    prefixHTML:"<strong> Reference Genome</strong>",
     this.selectCallback=function (viewer,node,ir,ic){
-           var url = "http://?cmd=seqList&out=num|id|len&cnt=20&ids=" + node.id;
+           var url = "http:
            vjDS[viewer.relatedDataSource["refSeqIDList"].dsname].reload(url,true);
     };
     this.callbackRendered= function (viewer,node,ir,ic){
@@ -2117,7 +1860,6 @@ function vjConstructTypeList_viewer(viewer){
     vjGBInitValue.call(this,viewer);
     
     this.formObject=viewer.formObject;
-    /*prefixHTML:"<strong> Annotation Type List</strong>",*/
     this.defaultEmptyText = 'no information to show';
     this.cols=[
           {name:"#",hidden:false,align:"middle"},
@@ -2126,7 +1868,6 @@ function vjConstructTypeList_viewer(viewer){
     this.geometry= {
         width:100
     };
-    //this.checkable=true;
     this.multiSelect = true;
     this.callbackRendered=viewer.callbackRendered,
     this.relatedDataSource = addRelatedDS(viewer.relatedDataSourceList, viewer.dataObjList);    
@@ -2146,10 +1887,8 @@ function vjConstructRefSeqIDList_viewer(viewer) {
           {name:"^len",order:3,title:"Length"}
     ];
     
-//    prefixHTML:"<strong> Reference Genome</strong>",
     this.selectCallback=viewer.selectCallback,
     this.callbackRendered=function (viewer,node,ir,ic){
-        //viewer.mimicClickCell(0,1);
     };
     this.relatedDataSource =addRelatedDS(viewer.relatedDataSourceList, viewer.dataObjList);    
     vjTableView.call(this,viewer);
@@ -2162,11 +1901,9 @@ function vjConstructInfoList_viewer(viewer) {
     
     this.defaultEmptyText='Please click on annotation box',
     this.formObject=viewer.formObject;
-    //prefixHTML:"<strong> Information </strong>",s
     this.geometry= {
         width:100
     },
-    //callbackRendered: processOutputForTypeList,
     this.relatedDataSource = addRelatedDS(viewer.relatedDataSourceList, viewer.dataObjList);    
     vjTableView.call(this,viewer);
 }

@@ -36,9 +36,45 @@ google.load("visualization", "1", {packages:["corechart"]});
     algoProcess.docLocsToBorrow=["aligners","seqClassify"];
     algoProcess.recViewerName = 'DV_Parameter_view';
 
+    vjDS.add("Loading annotation types ...","dsAnnotTypes","static://");
+    vjDS["dsAnnotTypes"].parser = function (ds,text) {
+        console.log(text);
+        var recordV = vjDV[algoProcess.recViewerName];
+        var collapseHitEl = recordV.getElement("collapseBy");//
+        var outputIdEl = recordV.getElement("collapseID");
+
+        if (text) {
+            var txtSplit = text.split("\n");
+            if (txtSplit.length) {
+                collapseHitEl.fld.constraint_data = txtSplit.join("|");
+                outputIdEl.fld.constraint_data = txtSplit.join("|");
+            } else { // when there is only one type
+                collapseHitEl.fld.constraint_data = text;
+                outputIdEl.fld.constraint_data = text;
+            }
+        }
+        recordV.redraw();
+        return text;
+    };
+
     // Set the function for whenever there is a change in the form 
     algoProcess.inputChanged = function(viewer,elem) {
         console.log("inputChanged");
+        var recordV = vjDV[algoProcess.recViewerName];
+        var annotToUse = recordV.getElement("annotationToUse");
+        var collapseHitEl = recordV.getElement("collapseBy");//
+        var outputIdEl = recordV.getElement("collapseID");
+
+        if (annotToUse.value != "") {
+            var val1 = viewer.getElementValue("annotationToUse","join");
+            if (val1){
+                vjDS["dsAnnotTypes"].reload("http://?cmd=ionAnnotTypes&fromComputation=0&cnt=-1&ionObjs=" + val1,true);
+            }
+        } else {
+            collapseHitEl.fld.constraint_data = "transcript_id|gene_id|seqID";// "Please select an annotation file"
+            outputIdEl.fld.constraint_data = "gene_name|transcript_name"; // "Please select an annotation file"
+        }
+        recordV.redraw();
     };
     
     algoProcess.callbackLoaded=function(viewer){
@@ -51,14 +87,14 @@ google.load("visualization", "1", {packages:["corechart"]});
          service:"svc-alignment-comparator"
     };
     
-    $(document).ready(function() 
-    {
+    gInitList += "alignCompInit();";
+    function alignCompInit () {
         globalAlgo = $('#mainAlgoArea').algoview({
             algoObj: algoProcess,
             svcType: "svc-alignment-comparator",
             algoTitle: "Alignment comparator"
         });
-     });
+     };
   
   
 </script>

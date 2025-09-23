@@ -69,7 +69,6 @@ namespace slib {
             void doDetectPeaks(idx param, idx interactWithInterface = true);
 
             real allStp, allMax;
-            /*idx allTopI[5];*/
 
             sVec <idx> allTopI;
 
@@ -105,7 +104,7 @@ namespace slib {
             struct Filter
             {
                     idx iCateg;
-                    real filterFrequency, filterIntensity, filterTProb;                //,filterSigma
+                    real filterFrequency, filterIntensity, filterTProb;
                     idx andor1, andor2;
             } filter;
             struct LDA
@@ -113,9 +112,9 @@ namespace slib {
                     idx iCateg;
                     idx ax1, ax2, ax3;
                     real regulAlpha;
-                    idx showMesh; // flags
+                    idx showMesh;
                     idx meshTransparency, symbolSize;
-                    idx meshSteps, meshColoration; //,meshSize;
+                    idx meshSteps, meshColoration;
                     real meshDiffusion;
                     idx maxIter, bootSpace;
             } lda;

@@ -35,30 +35,21 @@
 #include <slib/utils/heatmap.hpp>
 
 namespace slib {
-    //! Image file manipulation
     class sImage
     {
         public:
             sImage(const char* filename);
             ~sImage();
 
-            //! image was loaded successfully
             bool ok(void) const;
-            //! width in pixels
             udx width(void) const;
-            //! height in pixels
             udx height(void) const;
-            //! horizontal resolution in pixels per inch
             real xResolution(void) const;
-            //! vertical resolution in pixels per inch
             real yResolution(void) const;
-            //! image type (e.g. "PNG", "JPEG", "GIF")
             const char* type(void) const;
-            //! image filename
             const char* filename(void) const;
             time_t created(void) const;
             time_t modified(void) const;
-            //! time photo was taken, as recorded in EXIF metadata
             time_t taken(void) const;
 
             typedef enum
@@ -72,23 +63,8 @@ namespace slib {
 
             sImage * convert(const char* pic_dst, const char* new_type);
             sImage * resize(const char* pic_dst, udx width, udx height, EAspect keepAspect);
-            //! Crop an image to form a new image.
-            /*! The image to be cropped is the object. After cropping the image, a new image is formed and is stored in \a pic_dst.
-             * \param pic_dst path where to save the cropped image
-             * \param x left offset of cropped image
-             * \param y top offset of cropped image
-             * \param width width of cropped image
-             * \param height height of cropped image
-             * \returns new allocated cropped sImage object, or 0 on failure */
             sImage * crop(const char* pic_dst, udx x, udx y, udx width, udx height);
 
-            //! Generate a heatmap image
-            /*! \param filename where to write the heatmap image
-             *  \param values vector of vectors of heat values, from 0 to 1; -1 means missing data
-             *  \param cx width of each output cell in pixels
-             *  \param cy height of each output cell in pixels
-             *  \param limits min/max HSL parameters for the heatmap, for turning a 0-1 value into a color
-             *  \returns true on success */
             static bool generateHeatmap(const char * filename, const sVec < sVec< real > > * values, idx cx, idx cy, const sHeatmap::ColorLimits * limits);
 
 
@@ -106,4 +82,4 @@ namespace slib {
     };
 };
 
-#endif // xLib_image_hpp
+#endif

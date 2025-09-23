@@ -70,16 +70,16 @@ namespace Xls {
             const st_row::st_row_data &row = m_pWS->rows.row[i];
             const st_cell::st_cell_data &cell = row.cells.cell[j];
 
-            if ( cell.id == 0x201 ) // BLANK
+            if ( cell.id == 0x201 )
                 return "";
-            else if ( cell.id == 0xfd || cell.id == 0xbd || cell.id == 0x27e ) {   // LABELSST, MULRK, RK
+            else if ( cell.id == 0xfd || cell.id == 0xbd || cell.id == 0x27e ) {
                 return cell.str;
             }
-            else if ( cell.id == 0x203 ) {    // NUMBER
+            else if ( cell.id == 0x203 ) {
                 sprintf(buf, "%g", cell.d);
                 return buf;
             }
-            else if ( cell.str != NULL ) {   // The rest to save time should be interpreted as strings
+            else if ( cell.str != NULL ) {
                 return cell.str;
             }
         }

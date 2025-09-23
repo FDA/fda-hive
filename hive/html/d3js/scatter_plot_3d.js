@@ -28,7 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-// Create a 3d scatter plot within d3 selection parent.
 function scatterPlot3d( parent )
 {
   var x3d = parent  
@@ -54,7 +53,6 @@ function scatterPlot3d( parent )
   var time = 0;
   var axisKeys = ["x", "y", "z"]
 
-  // Helper functions for initializeAxis() and drawAxis()
   function axisName( name, axisIndex ) {
     return ['x','y','z'][axisIndex] + name;
   }
@@ -65,7 +63,6 @@ function scatterPlot3d( parent )
     return result;
   }
 
-  // Used to make 2d elements visible
   function makeSolid(selection, color) {
     selection.append("appearance")
       .append("material")
@@ -73,7 +70,6 @@ function scatterPlot3d( parent )
     return selection;
   }
 
-  // Initialize the axes lines and labels.
   function initializePlot() {
     initializeAxis(0);
     initializeAxis(1);
@@ -88,7 +84,6 @@ function scatterPlot3d( parent )
     var scaleMin = axisRange[0];
     var scaleMax = axisRange[1];
 
-    // the axis line
     var newAxisLine = scene.append("transform")
          .attr("class", axisName("Axis", axisIndex))
          .attr("rotation", ([[0,0,0,0],[0,0,1,Math.PI/2],[0,1,0,-Math.PI/2]][axisIndex]))
@@ -99,18 +94,15 @@ function scatterPlot3d( parent )
         .attr("emissiveColor", "lightgray")
     newAxisLine
       .append("polyline2d")
-         // Line drawn along y axis does not render in Firefox, so draw one
-         // along the x axis instead and rotate it (above).
         .attr("lineSegments", "0 0," + scaleMax + " 0")
 
-   // axis labels
    var newAxisLabel = scene.append("transform")
        .attr("class", axisName("AxisLabel", axisIndex))
        .attr("translation", constVecWithAxisValue( 0, scaleMin + 1.1 * (scaleMax-scaleMin), axisIndex ))
 
    var newAxisLabelShape = newAxisLabel
      .append("billboard")
-       .attr("axisOfRotation", "0 0 0") // face viewer
+       .attr("axisOfRotation", "0 0 0")
      .append("shape")
      .call(makeSolid)
 
@@ -127,11 +119,10 @@ function scatterPlot3d( parent )
        .attr("justify", "END MIDDLE" )
   }
 
-  // Assign key to axis, creating or updating its ticks, grid lines, and labels.
   function drawAxis( axisIndex, key, duration ) {
 
     var scale = d3.scale.linear()
-      .domain( [-5,5] ) // demo data range
+      .domain( [-5,5] )
       .range( axisRange )
     
     scales[axisIndex] = scale;
@@ -140,7 +131,6 @@ function scatterPlot3d( parent )
     var tickSize = 0.1;
     var tickFontSize = 0.5;
 
-    // ticks along each axis
     var ticks = scene.selectAll( "."+axisName("Tick", axisIndex) )
        .data( scale.ticks( numTicks ));
     var newTicks = ticks.enter()
@@ -149,13 +139,11 @@ function scatterPlot3d( parent )
     newTicks.append("shape").call(makeSolid)
       .append("box")
         .attr("size", tickSize + " " + tickSize + " " + tickSize);
-    // enter + update
     ticks.transition().duration(duration)
       .attr("translation", function(tick) { 
          return constVecWithAxisValue( 0, scale(tick), axisIndex ); })
     ticks.exit().remove();
 
-    // tick labels
     var tickLabels = ticks.selectAll("billboard shape text")
       .data(function(d) { return [d]; });
     var newTickLabels = tickLabels.enter()
@@ -170,11 +158,10 @@ function scatterPlot3d( parent )
         .attr("size", tickFontSize)
         .attr("family", "SANS")
         .attr("justify", "END MIDDLE" );
-    tickLabels // enter + update
+    tickLabels
       .attr("string", scale.tickFormat(10))
     tickLabels.exit().remove();
 
-    // base grid lines
     if (axisIndex==0 || axisIndex==2) {
 
       var gridLines = scene.selectAll( "."+axisName("GridLine", axisIndex))
@@ -203,7 +190,6 @@ function scatterPlot3d( parent )
     }  
   }
 
-  // Update the data points (spheres) and stems.
   function plotData( duration ) {
     
     if (!rows) {
@@ -214,7 +200,6 @@ function scatterPlot3d( parent )
     var x = scales[0], y = scales[1], z = scales[2];
     var sphereRadius = 0.2;
 
-    // Draw a sphere at each x,y,z coordinate.
     var datapoints = scene.selectAll(".datapoint").data( rows );
     datapoints.exit().remove()
 
@@ -228,8 +213,6 @@ function scatterPlot3d( parent )
       .append("material");
     newDatapoints
       .append("sphere")
-       // Does not work on Chrome; use transform instead
-       //.attr("radius", sphereRadius)
 
     datapoints.selectAll("shape appearance material")
         .attr("diffuseColor", 'steelblue' )
@@ -238,8 +221,6 @@ function scatterPlot3d( parent )
         .attr("translation", function(row) { 
           return x(row[axisKeys[0]]) + " " + y(row[axisKeys[1]]) + " " + z(row[axisKeys[2]])})
 
-    // Draw a stem from the x-z plane to each sphere at elevation y.
-    // This convention was chosen to be consistent with x3d primitive ElevationGrid. 
     var stems = scene.selectAll(".stem").data( rows );
     stems.exit().remove();
 
@@ -264,7 +245,6 @@ function scatterPlot3d( parent )
 
   function initializeDataGrid() {
     var rows = [];
-    // Follow the convention where y(x,z) is elevation.
     for (var x=-5; x<=5; x+=1) {
       for (var z=-5; z<=5; z+=1) {
         rows.push({x: x, y: 0, z: z});

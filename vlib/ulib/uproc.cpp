@@ -34,8 +34,7 @@
 
 using namespace slib;
 
-// order important as must follow prop enum in class declaration!!!
-const udx s_custom_prop = 3; // start of custom props in array
+const udx s_custom_prop = 3;
 const char* sUsrProc::sm_prop[] = {"not used", "reqID", "svc", "completed", "progress", "started", "status", "action", "progress100" };
 
 struct slib::sUsrProcReq {
@@ -50,7 +49,6 @@ struct slib::sUsrProcReq {
     }
 };
 
-// static
 udx sUsrProc::isQprideProp(const char* prop)
 {
     for(udx i = s_custom_prop; i < sDim(sm_prop); ++i) {
@@ -61,16 +59,10 @@ udx sUsrProc::isQprideProp(const char* prop)
     return 0;
 }
 
-udx sUsrProc::propSet(const char* prop, const char** groups, const char** values, udx cntValues, bool isAppend /* = false */, const udx * path_lens /* = 0 */, const udx * value_lens /* = 0 */)
+udx sUsrProc::propSet(const char* prop, const char** groups, const char** values, udx cntValues, bool isAppend, const udx * path_lens, const udx * value_lens)
 {
     if( m_usr.isAllowed(Id(), ePermCanWrite) ) {
         if( prop && strcasecmp(prop, "folder") == 0 ) {
-            /* The "folder" field in type "process" exists for UI to specify in which folder to create the
-               process object. (The default is inbox.) We do not want to preserve this field in the process
-               object in db to avoid pulling in the folder as a dependency in sharing etc., especially if the
-               original folder into which the process was created is later deleted. Instead, interpret this
-               field purely in the opposite direction - add a "child" field to the folder and point it at our
-               process object. */
             if( !isAppend || !sUsrFolder::attachedTo(0, m_usr, Id()) ) {
                 sUsrFolder * ufolder = 0;
                 if( cntValues && values[0] && values[0][0] && strcmp(values[0], "0") != 0 ) {
@@ -90,7 +82,7 @@ udx sUsrProc::propSet(const char* prop, const char** groups, const char** values
                 }
                 delete ufolder;
             }
-            return 1; // always success or you can't launch anything
+            return 1;
         } else if( !isQprideProp(prop) ) {
             return TParent::propSet(prop, groups, values, cntValues, isAppend, path_lens, value_lens);
         }
@@ -165,14 +157,13 @@ bool sUsrProc::propGet(udx propId, sUsrProcReq& ur, idx& res) const
             }
             break;
         default:
-            // fail if name is not recognize, normally this never happens
             return false;
     }
     return retval;
 }
 
 
-udx sUsrProc::propGet(const char* prop, sVarSet& res, bool sort/* = false */) const
+udx sUsrProc::propGet(const char* prop, sVarSet& res, bool sort, bool allowSysInternal) const
 {
     if( m_usr.isAllowed(Id(), ePermCanRead) ) {
         bool isRetrieved = false;
@@ -187,9 +178,6 @@ udx sUsrProc::propGet(const char* prop, sVarSet& res, bool sort/* = false */) co
                     idx val;
                     if( propGet(propId, ur, val) ) {
                         res.addRow().addCol(val).addCol((char*) 0);
-                        //if( propGet(ePropStatus, ur, val) && val == qp->eQPReqStatus_Done ) {
-                        //    const_cast<sUsrProc&>(*this).propSync(ur);
-                        //}
                     } else {
                         isRetrieved = false;
                     }
@@ -197,7 +185,7 @@ udx sUsrProc::propGet(const char* prop, sVarSet& res, bool sort/* = false */) co
             }
         }
         if( !isRetrieved ) {
-            return TParent::propGet(prop, res, sort);
+            return TParent::propGet(prop, res, sort, allowSysInternal);
         }
     }
     return res.rows;
@@ -233,6 +221,7 @@ bool sUsrProc::propSync(void)
     if( qp ) {
         idx req = reqID();
         if( req ) {
+            qp->saveProgress(req, *this);
             sUsrProcReq ur;
             if( qp->requestGet(req, &ur.R) ) {
                 return propSync(ur);
@@ -260,34 +249,21 @@ bool sUsrProc::propSync(sUsrProcReq& ur)
 }
 
 
-
-
-
-
 idx sUsrProc::createProcesForsubmission(sQPrideBase * qp , sVar * pForm , sUsr * user, sVec< sUsrProc > & procObjs, sQPride::Service * pSvc, sStr * strObjList, sStr * log)
 {
-    // check that inbox exists before trying to create any objects
-    std::auto_ptr<sUsrFolder> inbox(sSysFolder::Inbox(*user));
+    std::unique_ptr<sUsrFolder> inbox(sSysFolder::Inbox(*user));
     if( !inbox.get() ) {
         return  errHiveTools_NoInbox;
     }
 
-    //if(doCreateProcesses){
+    if(pForm){
         log->cut(0);
         if(!user->propSet(*pForm, *log, procObjs, strObjList)){
             return  errHiveTools_ProcessCreation;
         }
-    //}
+    }
 
-        /*
-    if( procObjs.dim() > 1 ) {
-        sUsrFolder * sub = inbox->createSubFolder("submission %" DEC, req);
-        if( sub ) {
-            inbox->reset(sub);
-        }
-    }*/
 
-    // if the process objects weren't attached to a specific folder, attach them to the inbox
     for(idx i = 0; i < procObjs.dim(); ++i) {
         if( procObjs[i].Id() && !sUsrFolder::attachedTo(0, *user, procObjs[i].Id()) ) {
             inbox->attach(procObjs[i]);
@@ -297,35 +273,54 @@ idx sUsrProc::createProcesForsubmission(sQPrideBase * qp , sVar * pForm , sUsr *
     return 0;
 }
 
-idx sUsrProc::standardizedSubmission(sQPrideBase * qp, sVar * pForm, sUsr * user, sVec<sUsrProc> & procObjs, idx cntParallel, idx * pReq, sQPride::Service * pSvc, idx previousGrpSubmitCounter, sStr * strObjList, sStr * log)
+bool sUsrProc::isBackEndsplit(const sUsrObj * sobjs, idx nobjs, const sVar * pForm)
+{
+    static const bool DEFAULT_SPLIT_ON_FRONT_END = true;
+    bool split_on_front_end = DEFAULT_SPLIT_ON_FRONT_END;
+    if( sobjs && nobjs ) {
+        for(idx i = 0; i < nobjs; i++) {
+            const char * prop_split_on_front_end = sobjs[i].propGet("splitOnFrontEnd");
+            if( prop_split_on_front_end && *prop_split_on_front_end ) {
+                split_on_front_end = sString::parseBool(prop_split_on_front_end);
+                break;
+            }
+        }
+    } else if( pForm ) {
+        split_on_front_end = pForm->boolvalue("splitOnFrontEnd", DEFAULT_SPLIT_ON_FRONT_END);
+    }
+    return !split_on_front_end;
+}
+
+idx sUsrProc::standardizedSubmission(sQPrideBase * qp, sVar * pForm, sUsr * user, sVec<sUsrProc> & procObjs, idx cntParallel, idx * pReq, sQPride::Service * pSvc, idx previousGrpSubmitCounter, sStr * strObjList, sStr * log, const sVec<sQPrideBase::PriorityCnt> * priority_cnts, bool requiresGroupSubmission)
 {
     idx reqPriority = 0;
     if( procObjs.dim() ) {
         reqPriority = ((sUsrObj *) &(procObjs[0]))->propGetI("reqPriority");
-        const char * svcFromProc = ((sUsrObj *) &(procObjs[0]))->propGet("svc");
-        if( svcFromProc ) {
-            qp->serviceGet(pSvc, svcFromProc, 0); // otherwise retrieve it from the reqID
-        } else {
-            const char * algoFromProc = ((sUsrObj *) &(procObjs[0]))->propGet("algo");
-            if( algoFromProc ) {
-                sUsrObj uo(*user, sHiveId(algoFromProc));
-                if( uo.Id() ) {
-                    const char * svcFromAlgo = uo.propGet("qpsvc");
-                    if( svcFromAlgo ) {
-                        qp->serviceGet(pSvc, svcFromAlgo, 0); // otherwise retrieve it from the reqID
+        const char * chsvc = pForm ? pForm->value("svc") : 0;
+        if(!chsvc) {
+            chsvc = ((sUsrObj *) &(procObjs[0]))->propGet("svc");
+            if( !chsvc ) {
+                 const char * chalgo = ((sUsrObj *) &(procObjs[0]))->propGet("algo");
+                if( chalgo ) {
+                    sUsrObj uo(*user, sHiveId(chalgo));
+                    if( uo.Id() ) {
+                        chsvc = uo.propGet("qpsvc");
                     }
                 }
             }
         }
+        if( chsvc ) {
+            qp->serviceGet(pSvc, chsvc, 0);
+        }
     }
-    const idx requiresGroupSubmission = false;
     bool postpone = pForm->boolvalue("isPostponed", false);
     if( procObjs.dim() ) {
         postpone = ((sUsrObj *) &(procObjs[0]))->propGetBool("isPostponed");
     }
-    // only actions seems to make sense upon submission
-    // ALWAYS HOLD TO MAKE SURE DB IS SETUP COMPLETELY FOR REQUEST(s) TO RUN
-    const idx req = qp->reqProcSubmit(cntParallel, pForm, pSvc->name, 0, sQPrideBase::eQPReqAction_Suspend, requiresGroupSubmission, reqPriority);
+    const idx req = priority_cnts ?
+        qp->reqProcSubmit2(cntParallel, pForm, pSvc->name, 0, sQPrideBase::eQPReqAction_Postpone, requiresGroupSubmission, priority_cnts) :
+        qp->reqProcSubmit(cntParallel, pForm, pSvc->name, 0, sQPrideBase::eQPReqAction_Postpone, requiresGroupSubmission, reqPriority);
+
     if( req ) {
         for(idx ip = 0; ip < procObjs.dim(); ++ip) {
             sUsrObj * so = (sUsrObj *) (&(procObjs[ip]));
@@ -341,20 +336,12 @@ idx sUsrProc::standardizedSubmission(sQPrideBase * qp, sVar * pForm, sUsr * user
         if( userKey ) {
             qp->reqSetUserKey(req, userKey);
         }
-        if( cntParallel > 1 ) {
-            sVec<idx> reqIds;
-            qp->grp2Req(req, &reqIds);
-            if( postpone ) {
-                qp->reqSetStatus(&reqIds, sQPrideBase::eQPReqStatus_Suspended);
-            } else {
-                qp->reqSetAction(&reqIds, sQPrideBase::eQPReqAction_Run);
-            }
+        sVec<idx> reqIds;
+        qp->grp2Req(req, &reqIds);
+        if( postpone ) {
+            qp->reqSetStatus(&reqIds, sQPrideBase::eQPReqStatus_Suspended);
         } else {
-            if( postpone ) {
-                qp->reqSetStatus(req, sQPrideBase::eQPReqStatus_Suspended);
-            } else {
-                qp->reqSetAction(req, sQPrideBase::eQPReqAction_Run);
-            }
+            qp->reqSetAction(&reqIds, isBackEndsplit(procObjs.ptr(), procObjs.dim(), pForm) ? sQPrideBase::eQPReqAction_Split : sQPrideBase::eQPReqAction_Run);
         }
     }
     if( !req ) {

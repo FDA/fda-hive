@@ -37,7 +37,6 @@
 using namespace slib;
 #include <memory>
 #include <ctype.h>
-#include <regex.h>
 #include <pthread.h>
 #include <time.h>
 #include <errno.h>
@@ -81,7 +80,7 @@ static udx diskFree(sRoots * r)
 #warning "IMPLEMENT THIS FOR MAC"
 #else
         clock_gettime(CLOCK_REALTIME, &abs_time);
-        abs_time.tv_sec += 1; // wait 1 sec
+        abs_time.tv_sec += 5;
         if( pthread_mutex_timedlock(&g_lock, &abs_time) == 0 ) {
             fsz = r->free;
         }
@@ -93,12 +92,15 @@ static udx diskFree(sRoots * r)
     return fsz;
 }
 
-//static
-char * sUsrObj::getPath(sStr & path, const sHiveId & id, bool create/* = false*/)
+char * sUsrObj::getPath(sStr & path, const sHiveId & id, bool create, sQPrideBase * qp_for_logging)
 {
     if( id && !path ) {
         sStr suffix;
-        // TODO: what about ion_id?
+        if( id.domainId() != 0 ) {
+            char buf[S_HIVE_ID_SHORT_BUFLEN];
+            sHiveId::decodeDomainId(buf, id.domainId());
+            suffix.printf("%s/", buf);
+        }
         udx levelId = id.objId();
         const udx maxLevels = 2, levelBase = 1000;
         for(udx ilevel = 0; ilevel < maxLevels; ++ilevel) {
@@ -106,15 +108,17 @@ char * sUsrObj::getPath(sStr & path, const sHiveId & id, bool create/* = false*/
             suffix.printf("%03" UDEC "/", curLevel);
             levelId /= levelBase;
         }
-        // TODO support domain!
         suffix.printf("%" UDEC, id.objId());
-        for(idx i = 0; i < s_roots.dim(); ++i) {
-            const char * realStoragePath = sString::next00(s_roots.ptr(i)->path, -1); // random
-            path.printf("%s%s/", realStoragePath, suffix.ptr());
-            if( sDir::exists(path) ) {
-                break;
+        for(idx i = 0; i < s_roots.dim() && !path; ++i) {
+            if( s_roots.ptr(i)->path ) {
+                for(const char * realStoragePath = s_roots.ptr(i)->path; realStoragePath && *realStoragePath; realStoragePath = sString::next00(realStoragePath)) {
+                    path.printf("%s%s/", realStoragePath, suffix.ptr());
+                    if( sDir::exists(path) ) {
+                        break;
+                    }
+                    path.cut0cut();
+                }
             }
-            path.cut(0);
         }
         if( !path && create && s_roots.dim() ) {
             udx total = 0;
@@ -135,25 +139,29 @@ char * sUsrObj::getPath(sStr & path, const sHiveId & id, bool create/* = false*/
                     break;
                 }
             }
-            const char * realStoragePath = sString::next00(s_roots.ptr(found)->path, -1); // random
-            path.printf("%s%s/", realStoragePath, suffix.ptr());
-            if( !sDir::makeDir(path) ) {
+            if( const char * realStoragePath = sString::next00(s_roots.ptr(found)->path, -1) ) {
+                path.printf("%s%s/", realStoragePath, suffix.ptr());
+                if( !sDir::makeDir(path) ) {
+                    if( qp_for_logging ) {
+                        qp_for_logging->logOut(sQPrideBase::eQPLogType_Error, "sUsrObj::%s() : mkdir '%s' failed : error %d - %s", __func__, path.ptr(), errno, strerror(errno));
+                    } else {
 #if _DEBUG
-                ::printf("mkdir failed: '%s' %d - %s\n", path.ptr(), errno, strerror(errno));
+                        ::fprintf(stderr, "sUsrObj::%s() : mkdir '%s' failed : error %d - %s\n", __func__, path.ptr(), errno, strerror(errno));
 #endif
-                path.cut(0);
+                    }
+                    path.cut0cut();
+                }
             }
         }
     }
     return path ? path.ptr() : 0;
 }
 
-// static
-void sUsrObj::initStorage(const char * pathList, const udx default_min_free_space_per_volume)
+sRC sUsrObj::initStorage(const char * pathList, const udx default_min_free_space_per_volume, sQPrideBase * qp_for_logging)
 {
     sStr path00, mpath;
     sString::searchAndReplaceSymbols(&path00, pathList, 0, ";,", 0, 0, true, true, false, true);
-    path00.add0();
+    path00.add0(3);
     s_roots.empty();
     for(char * p = path00.ptr(); p; p = sString::next00(p)) {
         sRoots * r = s_roots.add(1);
@@ -166,61 +174,69 @@ void sUsrObj::initStorage(const char * pathList, const udx default_min_free_spac
             char * x = sString::next00(mpath.ptr());
             if( x ) {
                 sscanf(x, "%lf", &r->weight);
-                *x = 0; // terminate path list
+                *x = 0;
                 x = sString::next00(x);
                 if( x ) {
                     sscanf(x, "%" UDEC, &r->min_free);
                 }
             }
             sString::searchAndReplaceSymbols(mpath.ptr(), 0, "|", 0, 0, true, false, false, false);
-            for(const char * mp = mpath; mp; mp = sString::next00(mp)) {
+            for(const char * mp = mpath; mp && *mp; mp = sString::next00(mp)) {
                 if( sDir::exists(mp) ) {
                     r->path.printf("%s", mp);
                     r->path.add0();
+                } else {
+                    if( qp_for_logging ) {
+                        qp_for_logging->logOut(sQPrideBase::eQPLogType_Error, "sUsrObj::%s() : failed to read storage path '%s'", __func__, mp);
+                    } else {
+#if _DEBUG
+                        ::fprintf(stderr, "sUsrObj::%s() : failed to read storage path '%s'\n", __func__, mp);
+#endif
+                    }
+                    s_roots.empty();
+                    return RC(sRC::eInitializing, sRC::eDiskSpace, sRC::eDirectory, sRC::eNotFound);
                 }
             }
-            r->path.add0(2);
+
+            if( r->path ) {
+                r->path.add0(2);
+            } else {
+                r = 0;
+                s_roots.cut(-1);
+            }
         }
     }
+    return sRC::zero;
 }
 
 sUsrObj::~sUsrObj()
 {
 }
 
-udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, udx cntValues, bool isAppend /* = false */, const udx * path_lens /* = 0 */, const udx * value_lens /* = 0 */)
+udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, const udx cntValues, bool isAppend, const udx * path_lens, const udx * value_lens)
 {
     udx qty = 0;
     const sUsrTypeField * tf = propGetTypeField(prop);
-    static bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
     bool err = !tf;
-    if( m_id.domainId() && !use_type_upobj ) {
-        fprintf(stderr, "Error: propSet() on objects with non-zero domain ID (obj = %s) works only in TYPE_UPOBJ mode\n", m_id.print());
-        err = true;
-    }
     if( m_usr.isAllowed(Id(), ePermCanWrite) && !err ) {
         if( sIsExactly(prop, "created") || sIsExactly(prop, "modified") ) {
-            // special fields which must only be set automatically by stored procedures on object creation or modification
             qty = 1;
         } else {
             const bool single = !tf->isMulti();
             err = sLen(prop) <= 0 || sLen(prop) >= 256;
-            const char * const s_multi_value_separator = "^=|=$";
-            // see sp_obj_prop_set stored procedure parameters for maximum length here
-            // its less than sp can accept to accommodate escaping
             const udx max_value_len = 23 * 1024 * 1024;
             udx skip_transaction = 0;
             for(udx i = 0; !err && i < cntValues; ++i ) {
                 udx path_len = path_lens ? path_lens[i] : (paths ? sLen(paths[i]) : 0);
                 udx value_len = value_lens ? value_lens[i] : (values ? sLen(values[i]) : 0);
-                skip_transaction += path_len + value_len + sizeof(s_multi_value_separator) + 5;
+                skip_transaction += path_len + value_len + 5;
                 if( skip_transaction > max_value_len ) {
                     skip_transaction = 0;
                     break;
                 }
             }
-            for(idx itry = 0; !err && itry < sSql::max_deadlock_retries; itry++) {
-                bool is_our_transaction = !skip_transaction && !m_usr.getUpdateLevel();
+            const bool is_our_transaction = !skip_transaction && !m_usr.getUpdateLevel();
+            for( idx itry = 0; !err && itry < sSql::max_deadlock_retries; itry++ ) {
                 if( !err && (skip_transaction || m_usr.updateStart()) ) {
                     sStr vsql, value_buf;
                     sMex blob_buf;
@@ -246,39 +262,26 @@ udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, 
                                     value_len = 0;
                                 }
                             }
-
-                            static const udx MAX_VALUE_LENGTH = 16 * 1024 *1024; // see UPObjField table: MEDIUMTEXT -> 2^24
-                            if( value_len >= MAX_VALUE_LENGTH ) {
+                            if( value_len >= max_value_len ) {
                                 err = true;
                                 break;
                             }
-                            if( blob_buf.pos() >= (idx)MAX_VALUE_LENGTH ) {
+                            if( blob_buf.pos() >= (idx)max_value_len ) {
                                 err = true;
                                 break;
                             }
-
                             if( i > chunk ) {
                                 vsql.addString(",");
                             }
-                            // (domainID, objID, name, group, value, encoding, blob_value)
                             vsql.addString("(");
-
-                            // domainID
                             if( m_id.domainId() ) {
                                 vsql.printf("%" UDEC ",", m_id.domainId());
                             } else {
-                                // UPObjField: NULL domainID means 0
                                 vsql.addString("NULL,");
                             }
-
-                            // objID
                             vsql.printf("%" UDEC ",", m_id.objId());
-
-                            // name
                             m_usr.db().protectValue(vsql, prop);
                             vsql.addString(",");
-
-                            // path
                             if( paths && paths[i] && (path_lens ? path_lens[i] : paths[i][0]) ) {
                                 udx path_len = path_lens ? path_lens[i] : sLen(paths[i]);
                                 if( path_len > 255 ) {
@@ -292,44 +295,36 @@ udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, 
                             } else {
                                 vsql.addString("NULL,");
                             }
-
-                            // value
                             if( value ) {
                                 m_usr.db().protectValue(vsql, value, value_len);
                                 vsql.addString(",");
                             } else {
-                                vsql.addString("'',"); // value column cannot be NULL
+                                vsql.addString("'',");
                             }
-
-                            // encoding
                             if( tf->defaultEncoding() ) {
                                 vsql.printf("%" DEC ",", tf->defaultEncoding());
                             } else {
                                 vsql.addString("NULL,");
                             }
 
-                            // blob
                             if( blob_buf.pos() ) {
                                 m_usr.db().protectBlob(vsql, blob_buf.ptr(), blob_buf.pos());
                             } else {
                                 vsql.addString("NULL");
                             }
-
                             vsql.addString(")");
                         } while( ++i < cntValues );
                         if( !err ) {
-                            // TODO remove temp hack for types
-                            std::auto_ptr<sSql::sqlProc> p(m_usr.getProc("sp_obj_prop_set_v3"));
-                            p->Add(m_id.domainId()).Add(m_id.objId()).Add((udx) ePermCanWrite).Add(vsql).Add(!isAppend && chunk == 0 ? prop : 0);
+                            std::unique_ptr<sSql::sqlProc> p(m_usr.getProc("sp_obj_prop_set_v3"));
+                            p->Add(m_id.domainId()).Add(m_id.objId()).Add((udx)ePermCanWrite).Add(vsql).Add(!isAppend && chunk == 0 ? prop : 0);
                             udx q = p->uvalue(0);
                             if( q == 0 ) {
                                 err = true;
                                 if( m_usr.db().HasFailed() && !(is_our_transaction && m_usr.hadDeadlocked()) ) {
-                                    // Serious DB failure that should not happen - need to log with details
-                                    // fprintf() needed because a DB connection failure or deadlock might cause QPride()->logOut() to fail too
                                     fprintf(stderr, "propSet() DB error %" UDEC " on objID = %s, prop = '%s' : %s\n", m_usr.db().Get_errno(), m_id.print(), prop, m_usr.db().Get_error().ptr());
                                     if( m_usr.QPride() ) {
-                                        m_usr.QPride()->logOut(sQPrideBase::eQPLogType_Error, "propSet() DB error %" UDEC " on objID = %s, prop = '%s' : %s", m_usr.db().Get_errno(), m_id.print(), prop, m_usr.db().Get_error().ptr());
+                                        m_usr.QPride()->logOut(m_usr.db().in_transaction() ? sQPrideBase::eQPLogType_Warning : sQPrideBase::eQPLogType_Error,
+                                            "propSet() DB error %" UDEC " on objID = %s, prop = '%s' : %s", m_usr.db().Get_errno(), m_id.print(), prop, m_usr.db().Get_error().ptr());
                                     }
                                 }
                             } else {
@@ -349,14 +344,9 @@ udx sUsrObj::propSet(const char* prop, const char** paths, const char** values, 
                     }
                     if( (err || !qty) && !skip_transaction ) {
                         if( m_usr.hadDeadlocked() && is_our_transaction ) {
-                            // DB deadlock detected, and our own m_usr.updateStart() call had
-                            // started the current DB transaction. Wait a bit and retry.
                             m_usr.updateAbandon();
                             err = false;
                             qty = 0;
-    #if 0
-                            fprintf(stderr, "%s:%u - restarting deadlocked transaction, attempt %" DEC "/%" DEC "\n", __FILE__, __LINE__, itry + 1, sSql::max_deadlock_retries);
-    #endif
                             sTime::randomSleep(sSql::max_deadlock_wait_usec);
                             continue;
                         } else {
@@ -379,12 +369,8 @@ udx sUsrObj::propDel(const char * prop, const char * group, const char * value)
     if( !prop || !prop[0] || !m_usr.isAllowed(Id(), ePermCanWrite) ) {
         return 0;
     }
-    static bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
-    std::auto_ptr<sSql::sqlProc> p(m_usr.getProc(use_type_upobj ? "sp_obj_prop_del_v2" : "sp_obj_prop_del"));
-    if( use_type_upobj ) {
-        p->Add(m_id.domainId());
-    }
-    p->Add(m_id.objId()).Add((udx)ePermCanWrite).Add(prop).Add(group).Add(value);
+    std::unique_ptr<sSql::sqlProc> p(m_usr.getProc("sp_obj_prop_del_v2"));
+    p->Add(m_id.domainId()).Add(m_id.objId()).Add((udx)ePermCanWrite).Add(prop).Add(group).Add(value);
     udx qty = p->uvalue(0);
     if( qty ) {
         m_usr.audit(sUsr::eUserAuditFull, __func__, "objID='%s'; prop='%s'; path='%s'; value='%s'; updated='%" UDEC "'", Id().print(), prop, group ? group : "", value ? value : "", qty);
@@ -392,7 +378,6 @@ udx sUsrObj::propDel(const char * prop, const char * group, const char * value)
     return qty;
 }
 
-//static
 bool sUsrObj::propInitInternal(const sUsr& usr, sUsrObj * uobj, const sHiveId & id, bool keep_autofill)
 {
     if( usr.isAllowed(id, ePermCanWrite) ) {
@@ -406,7 +391,6 @@ bool sUsrObj::propInitInternal(const sUsr& usr, sUsrObj * uobj, const sHiveId & 
             const sUsrType2 * utype = uobj ? uobj->getType() : 0;
             for(idx ifld = 0; utype && ifld < utype->dimFields(usr); ifld++) {
                 const sUsrTypeField * fld = utype->getField(usr, ifld);
-                // "created" and "modified" are handled specially by the stored procedure
                 if( fld->readonly() == sUsrTypeField::eReadOnlyAutofill && !sIsExactly(fld->name(), "created") && !sIsExactly(fld->name(), "modified") ) {
                     if( autofill_fld_csv.length() ) {
                         autofill_fld_csv.addString(",");
@@ -419,11 +403,10 @@ bool sUsrObj::propInitInternal(const sUsr& usr, sUsrObj * uobj, const sHiveId & 
                 uobj = 0;
             }
         }
-        std::auto_ptr<sSql::sqlProc> p(usr.getProc("sp_obj_prop_init_v2"));
+        std::unique_ptr<sSql::sqlProc> p(usr.getProc("sp_obj_prop_init_v2"));
         p->Add(id.domainId()).Add(id.objId()).Add((udx)ePermCanWrite).Add(autofill_fld_csv.ptr());
         sVarSet tbl;
         p->getTable(&tbl);
-        // result: ( # of objects, # of deleted/changed properties )
         if( tbl.rows && tbl.cols && tbl.ival(0, 0) > 0 ) {
             return true;
         }
@@ -431,18 +414,16 @@ bool sUsrObj::propInitInternal(const sUsr& usr, sUsrObj * uobj, const sHiveId & 
     return false;
 }
 
-bool sUsrObj::propInit(bool keep_autofill/* = false */)
+bool sUsrObj::propInit(bool keep_autofill)
 {
     return propInitInternal(m_usr, this, m_id, keep_autofill);
 }
 
-//static
-bool sUsrObj::propInit(const sUsr& usr, const sHiveId & id, bool keep_autofill/* = false */)
+bool sUsrObj::propInit(const sUsr& usr, const sHiveId & id, bool keep_autofill)
 {
     return propInitInternal(usr, 0, id, keep_autofill);
 }
 
-//static
 idx sUsrObj::readPathElt(const char * path, const char ** next)
 {
     if( !path ) {
@@ -452,14 +433,11 @@ idx sUsrObj::readPathElt(const char * path, const char ** next)
 
     idx elt = strtoidx(path, (char**)next, 10);
     if( **next == '.' ) {
-        // integer followed by expedcted path separator
         (*next)++;
     } else if( **next ) {
-        // unexpected path separator
         *next = 0;
         elt = -sIdxMax;
     } else if( path == *next ) {
-        // no path separator, this is the final path element
         *next = 0;
     }
     return elt;
@@ -470,7 +448,6 @@ static idx sortPropsCallback(void * param, void * arr_param, idx i1, idx i2)
     sVarSet * res = static_cast<sVarSet*>(param);
     idx * arr = static_cast<idx*>(arr_param);
 
-    // first compare by ID - if available (4-column format)
     if( res->cols == 4 ) {
         sHiveId id1(res->val(arr[i1], 0));
         sHiveId id2(res->val(arr[i2], 0));
@@ -481,7 +458,6 @@ static idx sortPropsCallback(void * param, void * arr_param, idx i1, idx i2)
 
     idx path_col = res->cols == 4 ? 2 : 1;
 
-    // then by path
     const char * path1 = res->val(arr[i1], path_col);
     const char * path2 = res->val(arr[i2], path_col);
     do {
@@ -492,7 +468,6 @@ static idx sortPropsCallback(void * param, void * arr_param, idx i1, idx i2)
         }
     } while( path1 && path2 );
 
-    // finally by name - if available (4-column format)
     if( res->cols == 4 ) {
         const char * name1 = res->val(arr[i1], 1);
         const char * name2 = res->val(arr[i2], 1);
@@ -501,8 +476,7 @@ static idx sortPropsCallback(void * param, void * arr_param, idx i1, idx i2)
     return 0;
 }
 
-//static
-idx sUsrObj::sortProps(sVarSet & res, idx start_row /* = 0 */, idx cnt /* = sIdxMax */)
+idx sUsrObj::sortProps(sVarSet & res, idx start_row, idx cnt)
 {
     if( start_row < 0 || start_row > res.rows ) {
         return 0;
@@ -528,16 +502,27 @@ idx sUsrObj::sortProps(sVarSet & res, idx start_row /* = 0 */, idx cnt /* = sIdx
     }
 }
 
-udx sUsrObj::propGet(const char* prop, sVarSet& res, bool sort) const
+udx sUsrObj::propGet(const char* prop, sVarSet& res, bool sort, bool allowSysInternal) const
 {
+    if( !allowSysInternal ) {
+        const sUsrType2 * utype = getType();
+        const sUsrTypeField * ufield = utype ? utype->getField(m_usr, prop) : 0;
+        if( ufield && ufield->isSysInternal() ) {
+            prop = 0;
+        }
+    }
     if( prop && prop[0] == '_' ) {
         if( strcasecmp(&prop[1], "type") == 0 ) {
-            // "_type" and "_id" are the only properties that can be read for write-only objects
             res.addRow().addCol(getTypeName()).addCol((const char*)0);
+        } else if( strcasecmp(&prop[1], "effperm") == 0 ) {
+            sStr tmp;
+            tmp.printf("%" UDEC ",,", m_usr.groupId());
+            permPrettyPrint(tmp, m_usr.objPermEffective(Id()), eFlagNone);
+            res.addRow().addCol(tmp.ptr()).addCol("1.1");
         } else if( m_usr.isAllowed(Id(), ePermCanRead) ) {
             if( strcasecmp(&prop[1], "parent") == 0 ) {
                 sUsrObjRes p;
-                m_usr.objs2("directory+", p, 0, "child", IdStr());
+                m_usr.objs2("^directory$+", p, 0, "child", IdStr());
                 idx cnt = 0;
                 for(sUsrObjRes::IdIter it = p.first(); p.has(it); p.next(it)) {
                     res.addRow().addCol(p.id(it)->print()).addCol(cnt++);
@@ -548,15 +533,10 @@ udx sUsrObj::propGet(const char* prop, sVarSet& res, bool sort) const
                 }
             }
         }
-    } else if( m_usr.isAllowed(Id(), ePermCanRead) ) {
-        static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
-        std::auto_ptr<sSql::sqlProc> p(m_usr.getProc(use_type_upobj ? "sp_obj_prop_get_v2_1" : "sp_obj_prop_get_v1_1"));
-        // TODO: support domain_id and ion_id
+    } else if( prop && m_usr.isAllowed(Id(), ePermCanRead) ) {
+        std::unique_ptr<sSql::sqlProc> p(m_usr.getProc("sp_obj_prop_get_v2_1"));
         idx start_row = res.rows;
-        if ( use_type_upobj ) {
-            p->Add(m_id.domainId());
-        }
-        p->Add(m_id.objId()).Add(prop).Add((udx)(ePermCanRead | ePermCanBrowse));
+        p->Add(m_id.domainId()).Add(m_id.objId()).Add(prop).Add((udx)(ePermCanRead | ePermCanBrowse));
 
         sSql & sql = m_usr.db();
         sStr decode_buf;
@@ -600,11 +580,10 @@ udx sUsrObj::propGet(const char* prop, sVarSet& res, bool sort) const
     return res.rows;
 }
 
-const char* sUsrObj::propGet(const char* prop, sStr* buffer) const
+const char* sUsrObj::propGet(const char* prop, sStr* buffer, bool allowSysInternal) const
 {
     sVarSet res;
-    propGet(prop, res);
-    // TODO validate to be single value, need to return error somehow!!!
+    propGet(prop, res, false, allowSysInternal);
     if( res.rows == 1 ) {
         if(!buffer) {
             buffer = &locBuf;
@@ -622,10 +601,10 @@ const char* sUsrObj::propGet(const char* prop, sStr* buffer) const
     return 0;
 }
 
-const char* sUsrObj::propGet00(const char* prop, sStr* buffer00, const char * altSeparator) const
+const char* sUsrObj::propGet00(const char* prop, sStr* buffer00, const char * altSeparator, bool allowSysInternal) const
 {
     sVarSet res;
-    propGet(prop, res, true);
+    propGet(prop, res, true, allowSysInternal);
     if( res.rows ) {
         if( !buffer00 ) {
             buffer00 = &locBuf;
@@ -695,7 +674,7 @@ sUsrObj* sUsrObj::cast(const char* type_name)
     const sUsrType2 * typTo = sUsrType2::ensure(m_usr, type_name);
     const sUsrType2 * typFrom = getType();
     if( m_usr.isAllowed(Id(), ePermCanWrite) && typTo && typFrom && strcasecmp(typFrom->name(), typTo->name()) != 0 ) {
-        std::auto_ptr<sSql::sqlProc> p(m_usr.getProc("sp_obj_cast"));
+        std::unique_ptr<sSql::sqlProc> p(m_usr.getProc("sp_obj_cast"));
         p->Add(m_id.domainId()).Add(m_id.objId()).Add(typFrom->id().domainId()).Add(typFrom->id().objId()).Add(typTo->id().domainId()).Add(typTo->id().objId());
         if( p->execute() ) {
             m_usr.cacheRemove(m_id);
@@ -707,18 +686,16 @@ sUsrObj* sUsrObj::cast(const char* type_name)
     return this;
 }
 
-bool sUsrObj::actDelete(void)
+bool sUsrObj::actDelete(const udx days)
 {
-    static bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
     if( m_usr.isAllowed(Id(), ePermCanDelete) && onDelete() ) {
-        std::auto_ptr<sSql::sqlProc> p(m_usr.getProc(use_type_upobj ? "sp_obj_erase_v2" : "sp_obj_erase"));
-        if( use_type_upobj ) {
-            p->Add(m_id.domainId());
-        }
-        p->Add(m_id.objId()).Add((udx) ePermCanDelete).Add((udx) (ePermCanBrowse | ePermCanRead)).Add((udx) eFlagRestrictive);
+        std::unique_ptr<sSql::sqlProc> p(m_usr.getProc("sp_obj_erase_v2"));
+        p->Add(m_id.domainId()).Add(m_id.objId()).Add((udx) ePermCanDelete).Add((udx) (ePermCanBrowse | ePermCanRead)).Add((udx) eFlagRestrictive).Add(days);
         if( p->execute() ) {
-            m_usr.audit(sUsr::eUserAuditActions, __func__, "objID='%s'", Id().print());
-            m_id.reset();
+            m_usr.audit(sUsr::eUserAuditActions, __func__, "objID='%s'; inDays='%" UDEC "'", Id().print(), days);
+            if( days <= 0 ) {
+                m_id.reset();
+            }
         }
     }
     return !m_id;
@@ -741,14 +718,10 @@ void sUsrObj::cleanup(void)
 
 bool sUsrObj::purge(void)
 {
-    static bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
     if( m_usr.isAllowed(Id(), ePermCanDelete) && onPurge() ) {
         if( m_usr.updateStart() ) {
-            std::auto_ptr<sSql::sqlProc> p(m_usr.db().Proc(use_type_upobj ?  "sp_obj_delete_v2" : "sp_obj_delete"));
-            if( use_type_upobj ) {
-                p->Add(m_id.domainId());
-            }
-            p->Add(m_id.objId());
+            std::unique_ptr<sSql::sqlProc> p(m_usr.db().Proc("sp_obj_delete_v2"));
+            p->Add(m_id.domainId()).Add(m_id.objId());
             if( p->execute() && m_usr.updateComplete() ) {
                 if( getPath(m_path, m_id) ) {
                     sDir::removeDir(m_path);
@@ -763,13 +736,12 @@ bool sUsrObj::purge(void)
     return !m_id;
 }
 
-udx sUsrObj::propBulk(sVarSet & list, const char* view_name, const char* filter00) const
+udx sUsrObj::propBulk(sVarSet & list, const char* view_name, const char* filter00, bool allowSysInternal) const
 {
     filter00 = (filter00 && sLen(filter00)) ? filter00 : 0;
     sVarSet props;
     if( m_usr.isAllowed(Id(), ePermCanRead) ) {
         if( const sUsrType2 * utype = getType() ) {
-            // t->props(m_usr, props, view_name, filter00);
             utype->props(m_usr, props, filter00);
         }
         if( props.rows > 0 ) {
@@ -786,13 +758,13 @@ udx sUsrObj::propBulk(sVarSet & list, const char* view_name, const char* filter0
             } else {
                 propBulk(0, tmp);
             }
-            propBulk(tmp, list, view_name, filter00);
+            propBulk(tmp, list, view_name, filter00, allowSysInternal);
         }
     }
     return list.rows;
 }
 
-void sUsrObj::propEval(sUsrObjRes & res, const char * filter00) const
+void sUsrObj::propEval(sUsrObjRes & res, const char * filter00, bool allowSysInternal) const
 {
     sUsrObjRes::TObjProp * self =  res.get(Id());
     if( self ) {
@@ -804,15 +776,13 @@ void sUsrObj::propEval(sUsrObjRes & res, const char * filter00) const
         if( props.rows > 0 ) {
             const idx cnm = props.colId("name");
             const idx cvrt = props.colId("is_virtual_fg");
-            const idx cmlt = props.colId("is_multi_fg");
-            // first inject all virtual properties
             sVarSet vtmp;
             for(idx r = 0; r < props.rows; ++r) {
                 const char * nm = props.val(r, cnm);
                 if( props.uval(r, cvrt) ) {
-                    if( props.uval(r, cmlt) || !res.get(*self, nm) ) {
+                    if( !res.get(*self, nm) ) {
                         vtmp.empty();
-                        propGet(nm, vtmp);
+                        propGet(nm, vtmp, false, allowSysInternal);
                         for(idx t = 0; t < vtmp.rows; ++t) {
                             idx pl, vl;
                             const char * p = vtmp.val(t, 1, &pl);
@@ -825,11 +795,11 @@ void sUsrObj::propEval(sUsrObjRes & res, const char * filter00) const
             if( filter00 && sString::compareChoice("_brief", filter00, 0, true, 0, true) != sNotIdx && !res.get(*self, "_brief")) {
                 sStr brief, tmp;
                 idx cbrf = props.colId("brief");
-                for(idx f = 0; f < props.rows; ++f) { // preserves order of fields in brief!
+                for(idx f = 0; f < props.rows; ++f) {
                     const char * b = props.val(f, cbrf);
                     if( b && b[0] ) {
                         const sUsrObjRes::TPropTbl * tbl = res.get(*self, props.val(f, cnm));
-                        if( tbl ) { // take only top,brief field should not be multi-value actually
+                        if( tbl ) {
                             brief.shrink00();
                             brief.printf(" ");
                             tmp.cut0cut(0);
@@ -845,7 +815,6 @@ void sUsrObj::propEval(sUsrObjRes & res, const char * filter00) const
             }
             sStr sumflt;
             if( filter00 && sString::compareChoice("_summary", filter00, 0, true, 0, true) != sNotIdx ) {
-                // re-expand _summary into filter00
                 sVarSet sump;
                 getType()->props(m_usr, sump, "_summary");
                 idx cnm = sump.colId("name");
@@ -859,7 +828,6 @@ void sUsrObj::propEval(sUsrObjRes & res, const char * filter00) const
                 }
                 filter00 = sumflt;
             }
-            // keep only prop in filter00
             for(idx p = 0; p < self->dim(); ++p) {
                 const char * pnm = (const char *) self->id(p);
                 if( filter00 && sString::compareChoice(pnm, filter00, 0, true, 0, true) == sNotIdx ) {
@@ -870,38 +838,32 @@ void sUsrObj::propEval(sUsrObjRes & res, const char * filter00) const
     }
 }
 
-void sUsrObj::propBulk(sVarSet & src, sVarSet & dst, const char* view_name, const char* filter00) const
+void sUsrObj::propBulk(sVarSet & src, sVarSet & dst, const char* view_name, const char* filter00, bool allowSysInternal) const
 {
     filter00 = (filter00 && sLen(filter00)) ? filter00 : 0;
     sVarSet props;
     if( m_usr.isAllowed(Id(), ePermCanRead) ) {
         if( const sUsrType2 * utype = getType() ) {
-            //utype->props(m_usr, props, view_name, filter00);
             utype->props(m_usr, props, filter00);
         }
         if( props.rows > 0 ) {
             idx cnm = props.colId("name");
             idx cvrt = props.colId("is_virtual_fg");
-            // first inject all virtual properties
             sVarSet vtmp;
             for(idx r = 0; r < props.rows; ++r) {
                 const char * nm = props.val(r, cnm);
                 if( props.uval(r, cvrt) ) {
                     vtmp.empty();
-                    propGet(nm, vtmp);
+                    propGet(nm, vtmp, false, allowSysInternal);
                     for(idx t = 0; t < vtmp.rows; ++t) {
                         dst.addRow().addCol(Id()).addCol(nm).addCol(vtmp.val(t, 1)).addCol(vtmp.val(t, 0));
                     }
                 }
             }
-            // copy all visible properties, skipping virtual and not from filter00
-            static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
-            const udx shift = use_type_upobj ? 1 : 0;
             for(idx r = 0; r < src.rows; ++r) {
-                // copy my properties only
-                sHiveId rid(use_type_upobj ? src.uval(r, 0): 0, use_type_upobj ? src.uval(r, 1) : src.uval(r, 0), 0);
+                sHiveId rid(src.uval(r, 0), src.uval(r, 1), 0);
                 if( rid == Id() ) {
-                    const char * pnm = src.val(r, 1 + shift);
+                    const char * pnm = src.val(r, 2);
                     if( pnm && pnm[0] ) {
                         bool doCopy = false;
                         for(idx p = 0; p < props.rows; ++p) {
@@ -912,7 +874,7 @@ void sUsrObj::propBulk(sVarSet & src, sVarSet & dst, const char* view_name, cons
                             }
                         }
                         if( doCopy ) {
-                            dst.addRow().addCol(Id()).addCol(pnm).addCol(src.val(r, 2 + shift)).addCol(src.val(r, 3 + shift));
+                            dst.addRow().addCol(Id()).addCol(pnm).addCol(src.val(r, 3)).addCol(src.val(r, 4));
                         }
                     }
                 }
@@ -920,18 +882,18 @@ void sUsrObj::propBulk(sVarSet & src, sVarSet & dst, const char* view_name, cons
             if( filter00 && sString::compareChoice("_brief", filter00, 0, true, 0, true) != sNotIdx ) {
                 sStr brief, tmp;
                 idx cbrf = props.colId("brief");
-                for(idx f = 0; f < props.rows; ++f) { // preserves order of fields in brief!
+                for(idx f = 0; f < props.rows; ++f) {
                     for(idx r = 0; r < src.rows; ++r) {
-                        sHiveId rid(use_type_upobj ? src.uval(r, 0): 0, use_type_upobj ? src.uval(r, 1) : src.uval(r, 0), 0);
+                        sHiveId rid(src.uval(r, 0), src.uval(r, 1), 0);
                         if( rid == Id() ) {
-                            const char * pnm = src.val(r, 1 + shift);
+                            const char * pnm = src.val(r, 2);
                             if( strcasecmp(pnm, props.val(f, cnm)) == 0 ) {
                                 const char * b = props.val(f, cbrf);
                                 if( b && b[0] ) {
                                     brief.shrink00();
                                     brief.printf(" ");
                                     tmp.cut0cut(0);
-                                    sString::searchAndReplaceStrings(&tmp, b, 0, "$_(v)" __, src.val(r, 3 + shift), 0, false);
+                                    sString::searchAndReplaceStrings(&tmp, b, 0, "$_(v)" __, src.val(r, 4), 0, false);
                                     sString::searchAndReplaceStrings(&brief, tmp, 0, "$_(t)" __, getType()->title(), 0, false);
                                 }
                             }
@@ -949,18 +911,13 @@ void sUsrObj::propBulk(sVarSet & src, sVarSet & dst, const char* view_name, cons
 
 void sUsrObj::propBulk(const char * filter00, sVarSet & list) const
 {
-    static const bool use_type_upobj = sString::parseBool(getenv("TYPE_UPOBJ"));
     sStr props;
     if( m_usr.isAllowed(Id(), ePermCanRead) ) {
         sString::glue00(&props, filter00, "%s", ",");
-        std::auto_ptr<sSql::sqlProc> p(m_usr.getProc(use_type_upobj ? "sp_obj_prop_list_v2_1" : "sp_obj_prop_list_v1_1"));
-        if( use_type_upobj ) {
-            sStr idstr;
-            sSql::exprInList(idstr, "domainID", "objID", &m_id, 1, false);
-            p->Add(idstr).Add(props);
-        } else {
-            p->Add(Id().objId()).Add(props).Add((udx) (ePermCanRead | ePermCanBrowse));
-        }
+        std::unique_ptr<sSql::sqlProc> p(m_usr.getProc("sp_obj_prop_list_v2_1"));
+        sStr idstr;
+        sSql::exprInList(idstr, "domainID", "objID", &m_id, 1, false);
+        p->Add(idstr).Add(props);
         p->getTable(&list);
     }
 }
@@ -971,7 +928,6 @@ udx sUsrObj::propBulk(sVar& form) const
     if( m_usr.isAllowed(Id(), ePermCanRead) ) {
         propBulk(0, list);
         for(idx r = 0; r < list.rows; ++r) {
-            // TODO multi-value support
             form.inp(list.val(r, 1), list.val(r, 3));
         }
     }
@@ -996,27 +952,32 @@ const sUsrObjPropsTree * sUsrObj::propsTree(const char* view_name, const char* f
     return &(m_propsTree->t);
 }
 
-idx sUsrObj::actions(sVec<sStr>& actions) const
+idx sUsrObj::actions(sVec<sStr>& actions, const bool use_ids) const
 {
-    // very quick fix
     if( const sUsrType2 * utype = getType() ) {
         idx nact = utype->dimActions(m_usr);
         for(idx i = 0; i < nact; i++) {
             const sUsrAction * act = utype->getAction(m_usr, i);
             if( act->isObjAction() && m_usr.isAllowed(Id(), act->requiredPermission()) ) {
-                actions.add(1)->printf("%s", act->name());
-                // TODO: use ids instead of names?
+                actions.add(1)->printf("%s", use_ids ? act->id().print() : act->name() );
             }
         }
     }
     return actions.dim();
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Files associated with object
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+idx sUsrObj::jscomponents(sVec<sStr>& components, const bool use_ids) const
+{
+    if( const sUsrType2 * utype = getType() ) {
+        idx q = utype->dimJSComponents(m_usr);
+        for(idx i = 0; i < q; i++) {
+            const sUsrJSComponent * c = utype->getJSComponent(m_usr, i);
+            components.add(1)->printf("%s", use_ids ? c->id().print() : c->name());
+        }
+    }
+    return components.dim();
+}
+
 
 void sUsrObj::makeFileName(sStr & buf, const sStr & key)
 {
@@ -1032,9 +993,15 @@ const char * sUsrObj::addFilePathname(sStr & buf, bool overwrite, const char* ke
         if( m_id && key ) {
             sStr ext;
             sCallVarg(ext.vprintf, key);
-            if( getPath(m_path, m_id, true) ) {
+            if( getPath(m_path, m_id, true, m_usr.QPride()) ) {
                 buf.printf("%s", m_path.ptr());
                 makeFileName(buf, ext);
+                if( sDir::exists(buf.ptr(pos)) ) {
+                    if( !overwrite || (overwrite && !sDir::removeDir(buf.ptr(pos), true)) ) {
+                        buf[pos + 1] = '\0';
+                        buf.cut(pos);
+                    }
+                }
                 if( sFile::exists(buf.ptr(pos)) ) {
                     if( !overwrite || (overwrite && !sFile::remove(buf.ptr(pos))) ) {
                         buf[pos + 1] = '\0';
@@ -1061,6 +1028,12 @@ char * sUsrObj::trashFilePathname(sStr & buf, bool overwrite, const char* key, .
             if( getPath(m_path, m_id, true) ) {
                 buf.printf("%s._trash.", m_path.ptr());
                 makeFileName(buf, ext);
+                if( sDir::exists(buf.ptr(pos)) ) {
+                    if( !overwrite || (overwrite && !sDir::removeDir(buf.ptr(pos), true)) ) {
+                        buf[pos + 1] = '\0';
+                        buf.cut(pos);
+                    }
+                }
                 if( sFile::exists(buf.ptr(pos)) ) {
                     if( !overwrite || (overwrite && !sFile::remove(buf.ptr(pos))) ) {
                         buf[pos + 1] = '\0';
@@ -1072,7 +1045,9 @@ char * sUsrObj::trashFilePathname(sStr & buf, bool overwrite, const char* key, .
                     buf.add0();
                     buf.printf("%s", m_path.ptr());
                     makeFileName(buf, ext);
-                    if( sFile::exists(buf.ptr(pos_end + 1)) && sFile::rename(buf.ptr(pos_end + 1), buf.ptr(pos)) ) {
+                    if( sDir::exists(buf.ptr(pos_end + 1)) && sFile::rename(buf.ptr(pos_end + 1), buf.ptr(pos)) ) {
+                        buf.cut0cut(pos_end);
+                    } else if( sFile::exists(buf.ptr(pos_end + 1)) && sFile::rename(buf.ptr(pos_end + 1), buf.ptr(pos)) ) {
                         buf.cut0cut(pos_end);
                     } else {
                         buf[pos + 1] = '\0';
@@ -1096,9 +1071,15 @@ char * sUsrObj::restoreFilePathname(sStr & buf, bool overwrite, const char* key,
         if( m_id && key ) {
             sStr ext;
             sCallVarg(ext.vprintf, key);
-            if( getPath(m_path, m_id, true) ) {
+            if( getPath(m_path, m_id, true, m_usr.QPride()) ) {
                 buf.printf("%s", m_path.ptr());
                 makeFileName(buf, ext);
+                if( sDir::exists(buf.ptr(pos)) ) {
+                    if( !overwrite || (overwrite && !sDir::removeDir(buf.ptr(pos), true)) ) {
+                        buf[pos + 1] = '\0';
+                        buf.cut(pos);
+                    }
+                }
                 if( sFile::exists(buf.ptr(pos)) ) {
                     if( !overwrite || (overwrite && !sFile::remove(buf.ptr(pos))) ) {
                         buf[pos + 1] = '\0';
@@ -1110,7 +1091,9 @@ char * sUsrObj::restoreFilePathname(sStr & buf, bool overwrite, const char* key,
                     buf.add0();
                     buf.printf("%s._trash.", m_path.ptr());
                     makeFileName(buf, ext);
-                    if( sFile::exists(buf.ptr(pos_end + 1)) && sFile::rename(buf.ptr(pos_end + 1), buf.ptr(pos)) ) {
+                    if( sDir::exists(buf.ptr(pos_end + 1)) && sDir::rename(buf.ptr(pos_end + 1), buf.ptr(pos)) ) {
+                        buf.cut0cut(pos_end);
+                    } else if( sFile::exists(buf.ptr(pos_end + 1)) && sFile::rename(buf.ptr(pos_end + 1), buf.ptr(pos)) ) {
                         buf.cut0cut(pos_end);
                     } else {
                         buf[pos + 1] = '\0';
@@ -1136,7 +1119,7 @@ bool sUsrObj::delFilePathname(const char* key, ...) const
             if( getPath(m_path, m_id) ) {
                 sStr buf("%s", m_path.ptr());
                 makeFileName(buf, ext);
-                if( sFile::remove(buf) ) {
+                if( (sFile::exists(buf) && sFile::remove(buf)) || (sDir::exists(buf) && sDir::removeDir(buf, true)) ) {
                     m_usr.audit(sUsr::eUserAuditFull, __func__, "objID='%s'; file='%s'", Id().print(), sFilePath::nextToSlash(buf.ptr()));
                     return true;
                 }
@@ -1179,7 +1162,8 @@ const char * sUsrObj::getFilePathnameX(sStr & buf, const sStr & key, bool check_
         if( m_id && getPath(m_path, m_id) ) {
             buf.printf("%s", m_path.ptr());
             makeFileName(buf, key);
-            if( check_existence && !sFile::exists(buf.ptr(pos)) ) {
+            if( check_existence && ((!strchr("\\/", *(buf.last()-1)) && !sFile::exists(buf.ptr(pos))) ||
+                                    ( strchr("\\/", *(buf.last()-1)) &&  !sDir::exists(buf.ptr(pos)))) ) {
                 buf[pos] = '\0';
                 buf.cut(pos);
             }
@@ -1188,44 +1172,53 @@ const char * sUsrObj::getFilePathnameX(sStr & buf, const sStr & key, bool check_
     return buf.pos() != pos ? buf.ptr(pos) : 0;
 }
 
-udx sUsrObj::files(sDir & fileList00, idx dirListFlags, const char * mask /*  = "*" */, const char * relPath /* = 0 */) const
+udx sUsrObj::files(sDir & fileList00, idx dirListFlags, const char * mask, const char * relPath) const
 {
-    if( m_usr.isAllowed(Id(), ePermCanRead | ePermCanRead ) ) {
+    if( m_usr.isAllowed(Id(), ePermCanRead | ePermCanDownload) ) {
         if( getPath(m_path, m_id) ) {
-            fileList00.list(dirListFlags, m_path, mask, 0, relPath ? relPath : m_path.ptr());
+            sStr canon;
+            sString::searchAndReplaceStrings(&canon, mask, 0, "../" __, "" __, sIdxMax, true);
+            fileList00.find(dirListFlags, m_path.ptr(), canon, 0, sIdxMax, relPath ? relPath : m_path.ptr());
         }
     }
     return m_path ? sString::cnt00(fileList00) : 0;
 }
 
-udx sUsrObj::fileProp(sStr& dst, bool as_csv, const char * wildcardList) const
+udx sUsrObj::fileProp(sStr & dst, const bool as_csv, const char * wildcard, const bool show_file_size) const
 {
     udx cntFiles = 0;
     if( m_usr.isAllowed(Id(), ePermCanRead | ePermCanDownload) ) {
         sStr tokenizedWildcardList;
-        sString::searchAndReplaceSymbols(&tokenizedWildcardList, wildcardList, 0, ";", 0, 0, true, true, false, true);
-        const idx flags = sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs) | sFlag(sDir::bitSubdirSlash);
+        sString::searchAndReplaceSymbols(&tokenizedWildcardList, wildcard, 0, ";", 0, 0, true, true, false, true);
+        const idx flags = sFlag(sDir::bitFiles) | sFlag(sDir::bitRecursive) | sFlag(sDir::bitEntryFlags);
         sDir fileList;
         for(const char * wildcard = tokenizedWildcardList.ptr(0); wildcard; wildcard = sString::next00(wildcard)) {
             cntFiles += files(fileList, flags, wildcard);
         }
         for(idx ie = 0; ie < fileList.dimEntries(); ie++) {
-            if( as_csv ) {
-                Id().print(dst);
-                dst.printf(",_file,%" DEC ",", ie);
-                sString::escapeForCSV(dst, fileList.getEntryPath(ie));
-                dst.addString("\n");
-            } else {
-                dst.addString("\nprop.");
-                Id().print(dst);
-                dst.printf("._file.%" DEC "=%s", ie, fileList.getEntryPath(ie));
+            const char * flnm = fileList.getEntryPath(ie);
+            if( flnm) {
+                if( as_csv ) {
+                    Id().print(dst);
+                    dst.printf(",_file,%" DEC ",", ie);
+                    sString::escapeForCSV(dst, flnm);
+                    if( show_file_size ) {
+                        const char * aflnm = fileList.getEntryAbsPath(ie);
+                        dst.printf(",%" DEC, sFile::size(aflnm));
+                    }
+                    dst.addString("\n");
+                } else {
+                    dst.addString("\nprop.");
+                    Id().print(dst);
+                    dst.printf("._file.%" DEC "=%s", ie, flnm);
+                }
             }
         }
     }
     return cntFiles;
 }
 
-udx sUsrObj::fileProp(sJSONPrinter& dst, const char * wildcardList, bool into_object) const
+udx sUsrObj::fileProp(sJSONPrinter & dst, const char * wildcard, const bool into_object, const bool show_file_size) const
 {
     udx cntFiles = 0;
     if( m_usr.isAllowed(Id(), ePermCanRead | ePermCanDownload) ) {
@@ -1233,8 +1226,8 @@ udx sUsrObj::fileProp(sJSONPrinter& dst, const char * wildcardList, bool into_ob
             dst.startObject();
         }
         sStr tokenizedWildcardList;
-        sString::searchAndReplaceSymbols(&tokenizedWildcardList, wildcardList, 0, ";", 0, 0, true, true, false, true);
-        const idx flags = sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs) | sFlag(sDir::bitSubdirSlash);
+        sString::searchAndReplaceSymbols(&tokenizedWildcardList, wildcard, 0, ";", 0, 0, true, true, false, true);
+        const idx flags = sFlag(sDir::bitFiles) | sFlag(sDir::bitRecursive) | sFlag(sDir::bitEntryFlags);
         sDir fileList;
         for(const char * wildcard = tokenizedWildcardList.ptr(0); wildcard; wildcard = sString::next00(wildcard)) {
             cntFiles += files(fileList, flags, wildcard);
@@ -1243,7 +1236,18 @@ udx sUsrObj::fileProp(sJSONPrinter& dst, const char * wildcardList, bool into_ob
             dst.addKey("_file");
             dst.startArray();
             for(idx ie = 0; ie < fileList.dimEntries(); ie++) {
-                dst.addValue(fileList.getEntryPath(ie));
+                const char * flnm = fileList.getEntryPath(ie);
+                if( flnm) {
+                    if( show_file_size ) {
+                        dst.startArray();
+                        dst.addValue(flnm);
+                        const char * aflnm = fileList.getEntryAbsPath(ie);
+                        dst.addValue(sFile::size(aflnm));
+                        dst.endArray();
+                    } else {
+                        dst.addValue(flnm);
+                    }
+                }
             }
             dst.endArray();
         }
@@ -1254,16 +1258,11 @@ udx sUsrObj::fileProp(sJSONPrinter& dst, const char * wildcardList, bool into_ob
     return cntFiles;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Object Info
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 const sUsrType2 * sUsrObj::getType(void) const
 {
     if( m_type_id ) {
-        return sUsrType2::ensure(m_usr, m_type_id);
+        return sUsrType2::ensure(m_usr, m_type_id, false, false, true);
     } else {
         return m_usr.objType(Id(), &m_type_id);
     }

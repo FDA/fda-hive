@@ -1,123 +1,62 @@
 {
-    "3107685": {
+    "207": {
         "_id": "$upsert()",
         "_type": "plugin_tblqry",
-        "created": "2016-05-03T14:19:50-04:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "variance",
-        "panelTitle": "J5 Statistics",
-        "panelDesc": "Allows to calculate the Variance between 2 sets of rows",
+        "panelName": "dataCalib",
+        "panelTitle": "Data Callibration",
+        "panelDesc": "This allows the user to calibrate the data they have. For example transpose the table, remove redundancy and normalize the data.",
         "panelIcon": "scatter",
-        "transformsOrNot": 1,
-        "toPrint": "Generated an output table with 2 extra columns that show variance between 2 groups",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "rowSet",
-                "argumentType": "color row",
-                "argumentValue": "#FFADDF",
-                "argumentButton": "Slect Rows"
-            },
-            "1.1": {
-                "argumentName": "colSetA",
-                "argumentType": "color col",
-                "argumentValue": "#E6ADFF",
-                "argumentButton": "Select Columns for Group A"
-            },
-            "1.2": {
-                "argumentName": "colSetB",
-                "argumentType": "color col",
-                "argumentValue": "#ADBFFF",
-                "argumentButton": "Select Columns for Group B"
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "exec": true,
-                    "share": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3103246": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2016-03-09T14:47:48-05:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "dictionaryTable",
-        "panelTitle": "Dictionarize Table",
-        "panelDesc": "Allows the user to get a table with narrowed down set",
-        "panelIcon": "scatter",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "rowSet",
-                "argumentType": "color col",
-                "argumentValue": "#C4FFF2",
-                "argumentButton": "Color Column for Rows"
-            },
-            "1.1": {
-                "argumentName": "colSet",
-                "argumentType": "color col",
-                "argumentValue": "#C4E7FF",
-                "argumentButton": "Color Column for Columns"
-            },
-            "1.2": {
-                "argumentName": "valSet",
-                "argumentType": "color col",
-                "argumentValue": "#F6BDFF",
-                "argumentButton": "Color Column for Values"
-            },
-            "1.3": {
-                "argumentName": "option",
-                "argumentType": "select",
-                "argumentValue": "0///Ignore 2nd|1///Override 2nd|2///Concatinate",
-                "argumentButton": "How to Treat Dumplicates"
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "exec": true,
-                    "share": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3099239": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2015-11-13T11:40:35-05:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "alignCompPlugin",
-        "panelTitle": "Alignment Comparator Filters",
-        "panelDesc": "Allows special filters for alignment comparator custom tblqry",
-        "panelIcon": "scatter",
-        "tqsToUseOnApply": "[\n{\"op\":\"appendcol\",\"arg\":{\"name\":\"appendedCol\",\"formula\":\"if($[colorCol]){return 1;}else{return 0;}\"}},\n{\"op\":\"filter\",\"arg\":{\"col\":{\"name\": \"appendedCol\"},\"method\":\"equals\",\"value\":1}},\n{\"op\":\"hidecol\",\"arg\":{\"col\":{\"name\":\"appendedCol\"}}}\n]",
+        "transformsOrNot": true,
+        "toPrint": "Performed operations to calibrate the original table",
         "keyWordArr": {
             "1.0": {
-                "keyWord": "alignCompPlugin"
+                "keyWord": "everything"
             }
         },
         "argumentObj": {
+            "1.0": {
+                "argumentName": "translate",
+                "argumentType": "checkbox",
+                "argumentValue": "0",
+                "argumentButton": "Transpose the Table"
+            },
             "1.1": {
-                "argumentName": "colorCol",
+                "argumentName": "redundencyWay",
+                "argumentType": "select",
+                "argumentValue": "0/// |1///Average|2///Median|",
+                "argumentButton": "Select way to Remove Redundancy",
+                "argumentPath": "/"
+            },
+            "1.2": {
+                "argumentName": "sigmaOutliers",
+                "argumentType": "checkbox",
+                "argumentValue": "0",
+                "argumentButton": "Use Sigma for Outliers"
+            },
+            "1.7": {
+                "argumentName": "calibrationCols",
                 "argumentType": "color col",
-                "argumentValue": "#C2FF77",
-                "argumentButton": "Select Columns to Use"
+                "argumentValue": "#7BF3C1",
+                "argumentButton": "Color Columns for Calibration"
+            },
+            "1.8": {
+                "argumentName": "normalize",
+                "argumentType": "select",
+                "argumentValue": "0/// |1///Normalization to Unity|2///Scale on 1 Sigma|3///Scale on 0-1|",
+                "argumentButton": "Select way to Normalize the Data",
+                "argumentPath": "/"
+            },
+            "1.9": {
+                "argumentName": "normalizeCols",
+                "argumentType": "color col",
+                "argumentValue": "#BB7BF3",
+                "argumentButton": "Color Columns to Normalize"
+            },
+            "1.10": {
+                "argumentName": "categoryCols",
+                "argumentType": "color col",
+                "argumentValue": "#E3E363",
+                "argumentButton": "Color Columns to Categorize"
             }
         },
         "_perm": [
@@ -126,9 +65,6 @@
                 "act": {
                     "browse": true,
                     "read": true,
-                    "write": true,
-                    "exec": true,
-                    "share": true,
                     "download": true
                 },
                 "_infect": {
@@ -137,72 +73,33 @@
             }
         ]
     },
-    "3090114": {
+    "206": {
         "_id": "$upsert()",
         "_type": "plugin_tblqry",
-        "created": "2015-08-11T11:21:32-04:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "fold_change",
-        "panelTitle": "Fold Change",
-        "panelDesc": "Compute the fold change (ratio) between two selected columns.",
+        "panelName": "kaplanmeier",
+        "panelTitle": "Kaplan Meier",
+        "panelDesc": "Computes the Kaplan Meier statistic for designated initial events, final events, and censoring events.",
         "panelIcon": "scatter",
-        "visualizationObj": {
-            "1.1": {
-                "visualizationType": "Fold Change Columns",
-                "visulizationFile": {
-                    "1.1.1.0": "fold_change.csv"
-                }
-            }
-        },
         "argumentObj": {
-            "1.4": {
-                "argumentName": "col_1",
+            "1.0": {
+                "argumentName": "initEvents",
                 "argumentType": "color col",
-                "argumentValue": "#F9D588",
-                "argumentButton": "Select First Column",
-                "argumentDesc": "Select First Column"
+                "argumentValue": "#aaaaaa",
+                "argumentButton": "Initial Event"
             },
-            "1.5": {
-                "argumentName": "col_2",
+            "1.1": {
+                "argumentName": "finEvents",
                 "argumentType": "color col",
-                "argumentValue": "#fa8072",
-                "argumentButton": "Select Second Column",
-                "argumentDesc": "Select Second Column"
+                "argumentValue": "#444444",
+                "argumentButton": "Final Event"
             },
-            "1.6": {
-                "argumentName": "threshold",
-                "argumentType": "string",
-                "argumentButton": "Threshold",
-                "argumentSize": 10,
-                "argumentDesc": "Threshold"
+            "1.2": {
+                "argumentName": "cenEvents",
+                "argumentType": "color col",
+                "argumentValue": "#777777",
+                "argumentButton": "Censor Event"
             }
         },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "exec": true,
-                    "share": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3088363": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "created": "2014-12-14T17:56:57-05:00",
-        "panelName": "simulation",
-        "panelTitle": "Simulate Data",
-        "panelDesc": "Dataset simulation. Currently only works for integer values.",
-        "panelIcon": "scatter",
-        "transformsOrNot": 1,
         "visualizationObj": {
             "1.0": {
                 "visualizationType": "Line Graph",
@@ -211,205 +108,6 @@
                 }
             }
         },
-        "argumentObj": {
-            "1.1": {
-                "argumentName": "numSamples",
-                "argumentType": "int",
-                "argumentButton": "Sample Size",
-                "argumentSize": 16
-            }
-        }
-    },
-    "3078478": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2015-04-08T13:05:09-04:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "fourier",
-        "panelTitle": "Fourier Transform",
-        "panelDesc": "By selecting a column and a set of rows, the user will be able to perform the Fourier transform on that column",
-        "panelIcon": "scatter",
-        "toPrint": "Performed Fast Fourier Transform",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "rowSet",
-                "argumentType": "color row",
-                "argumentValue": "#FB7FB3",
-                "argumentButton": "Select Row Set"
-            },
-            "1.1": {
-                "argumentName": "colSet",
-                "argumentType": "color col",
-                "argumentValue": "#CB7FFB",
-                "argumentButton": "Select Column Set"
-            },
-            "1.2": {
-                "argumentName": "categories",
-                "argumentType": "color col",
-                "argumentValue": "#7FDCFB",
-                "argumentButton": "Select 1 Category Column"
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "exec": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3077775": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2015-04-02T16:58:38-04:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "link_out",
-        "panelTitle": "extract gene",
-        "panelDesc": "extract and create a new gene list",
-        "panelIcon": "database",
-        "keyWordArr": {
-            "1.0": {
-                "keyWord": "link_out"
-            }
-        },
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "select_cells",
-                "argumentType": "color cell",
-                "argumentValue": "#4DB6AC",
-                "argumentButton": "Select Genes",
-                "argumentDesc": "Choose Gene Name"
-            },
-            "1.1": {
-                "argumentName": "file",
-                "argumentType": "file",
-                "argumentButton": "File",
-                "argumentDesc": "Choose File to add",
-                "argumentPath": "/"
-            }
-        }
-    },
-    "3077750": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2015-03-31T14:34:31-04:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "extract",
-        "panelTitle": "Extract Part of Table",
-        "panelDesc": "A portion of the table is extracted based on the rows and columns that the user has provided.",
-        "panelIcon": "scatter",
-        "transformsOrNot": 1,
-        "toPrint": "Extracted sub table",
-        "keyWordArr": {
-            "1.0": {
-                "keyWord": "extract"
-            }
-        },
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "rowSet",
-                "argumentType": "color row",
-                "argumentValue": "#FFBAD0",
-                "argumentButton": "Select Row Set"
-            },
-            "1.1": {
-                "argumentName": "colSet",
-                "argumentType": "color col",
-                "argumentValue": "#BAF9FF",
-                "argumentButton": "Select Col Set"
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "exec": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3059992": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2015-03-10T17:59:05-04:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "cleaner",
-        "panelTitle": "RLDA Cleaner",
-        "panelDesc": "Clean up table for RLDA",
-        "panelIcon": "scatter",
-        "transformsOrNot": 1,
-        "toPrint": "Cleaned Up table for RLDA",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "colSet",
-                "argumentType": "color col",
-                "argumentValue": "#E96666",
-                "argumentButton": "Select Column"
-            },
-            "1.1": {
-                "argumentName": "rowSet",
-                "argumentType": "color row",
-                "argumentValue": "#6FE966",
-                "argumentButton": "Select Rows"
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "exec": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3038190": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2015-02-13T16:33:59-05:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "pearsonCorr",
-        "panelTitle": "Pearson's product-moment coefficient",
-        "panelDesc": "Conducts Person's product-moment coefficient correlation. The result is a heatmap and a table with maximum values.",
-        "panelIcon": "scatter",
-        "toPrint": "Calculated Correlation",
-        "keyWordArr": {
-            "1.0": {
-                "keyWord": "pearsonCorr"
-            }
-        },
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "colSet1",
-                "argumentType": "color row",
-                "argumentValue": "#FF9962",
-                "argumentButton": "Expression Rows"
-            },
-            "1.1": {
-                "argumentName": "colSet2",
-                "argumentType": "color row",
-                "argumentValue": "#FB82C5",
-                "argumentButton": "Phenotype Rows"
-            }
-        },
         "_perm": [
             {
                 "party": "/everyone/users/",
@@ -424,48 +122,15 @@
             }
         ]
     },
-    "3037580": {
+    "205": {
         "_id": "$upsert()",
         "_type": "plugin_tblqry",
-        "created": "2015-02-09T12:54:18-05:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "bStat",
-        "panelTitle": "Bayesian Statistics",
-        "panelDesc": "According to the rows selected and the categories selected by the user, Bayesian statistics are calculated over the entire column set selected",
-        "panelIcon": "scatter",
-        "toPrint": "Performed Bayesian Statistics",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "rowSet",
-                "argumentType": "color row",
-                "argumentValue": "#F9CCCC",
-                "argumentButton": "Select Row Set"
-            },
-            "1.1": {
-                "argumentName": "categories",
-                "argumentType": "color col",
-                "argumentValue": "#CCF9DF",
-                "argumentButton": "Select Categories"
-            },
-            "1.2": {
-                "argumentName": "colSet",
-                "argumentType": "color col",
-                "argumentValue": "#A4E2FB",
-                "argumentButton": "Select Column Set"
-            },
-            "1.4": {
-                "argumentName": "controlRow",
-                "argumentType": "color row",
-                "argumentValue": "#EFFC97",
-                "argumentButton": "Select Control Row"
-            },
-            "1.5": {
-                "argumentName": "margin",
-                "argumentType": "select",
-                "argumentValue": "0.05///0.05|0.1///0.1|0.2///0.2|0.25///0.25|0.5///0.5|1///1",
-                "argumentButton": "Select the margin percentage"
-            }
-        },
+        "panelName": "recall-Event",
+        "panelTitle": "Recall Event",
+        "panelDesc": "this panel calls the recall event type from the database",
+        "panelIcon": "database.gif",
+        "panelPath": "/source/recall-Event",
+        "panelObjQry": "alloftype('Event_Recall').csv(['id','event_id','recalling_firm','recall_initiation_date','initiation_firm_notification','report_date','voluntary_mandated','City','State','Country','status','distribution_pattern'])",
         "_perm": [
             {
                 "party": "/everyone/users/",
@@ -480,41 +145,15 @@
             }
         ]
     },
-    "3036275": {
+    "204": {
         "_id": "$upsert()",
         "_type": "plugin_tblqry",
-        "created": "2015-01-29T12:12:07-05:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "statTest",
-        "panelTitle": "Student T-Test",
-        "panelDesc": "Using 2 column sets (that the user selects) and the rows sets, student t-test is performed",
-        "panelIcon": "scatter",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "rowSet",
-                "argumentType": "color row",
-                "argumentValue": "#F988CC",
-                "argumentButton": "Select Rows for Test"
-            },
-            "1.1": {
-                "argumentName": "colSet1",
-                "argumentType": "color col",
-                "argumentValue": "#F9D588",
-                "argumentButton": "Select First column set"
-            },
-            "1.2": {
-                "argumentName": "colSet2",
-                "argumentType": "color col",
-                "argumentValue": "#88F9EE",
-                "argumentButton": "Select Second column set"
-            },
-            "1.3": {
-                "argumentName": "uid",
-                "argumentType": "color col",
-                "argumentValue": "#ffffdf",
-                "argumentButton": "Select IDs"
-            }
-        },
+        "panelName": "product-Event",
+        "panelTitle": "Product Event ",
+        "panelDesc": "this panel calls the product event type from the database",
+        "panelIcon": "database.gif",
+        "panelPath": "/source/product-Event",
+        "panelObjQry": "alloftype('Product_Recall').csv(['id','recall_number','recall_initiation_date','product_type','product_description','product_quantity','inititation_firm_notification','classification','code_info','reason_for_recall'])",
         "_perm": [
             {
                 "party": "/everyone/users/",
@@ -529,261 +168,9 @@
             }
         ]
     },
-    "3036157": {
+    "203": {
         "_id": "$upsert()",
         "_type": "plugin_tblqry",
-        "created": "2014-11-12T11:53:50-05:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "heatmap",
-        "panelTitle": "Heatmap",
-        "panelDesc": "Generates a heatmap with 2 trees and the actual image in the middle",
-        "panelIcon": "graph",
-        "toPrint": "Built Heatmap",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "rowSet",
-                "argumentType": "color row",
-                "argumentValue": "#dfdfdf",
-                "argumentButton": "Selects Rows"
-            },
-            "1.1": {
-                "argumentName": "colSetImg",
-                "argumentType": "color col",
-                "argumentValue": "#caffac",
-                "argumentButton": "Select columns for Heatmap Image"
-            },
-            "1.2": {
-                "argumentName": "colSetTree",
-                "argumentType": "color col",
-                "argumentValue": "#ffb3b3",
-                "argumentButton": "Select columns for Heatmap Tree"
-            },
-            "1.3": {
-                "argumentName": "uid",
-                "argumentType": "color col",
-                "argumentValue": "#ffffdf",
-                "argumentButton": "Select IDs"
-            },
-            "1.4": {
-                "argumentName": "colorMethod",
-                "argumentType": "select",
-                "argumentValue": "0///Over Entire Selection|1///Over Each Row|2///Over Each Column",
-                "argumentButton": "Select how to compute color"
-            },
-            "1.5": {
-                "argumentName": "buildMethod",
-                "argumentType": "select",
-                "argumentValue": "0///Euclidean|1///Manhattan|2///Maximum|3///Cosine",
-                "argumentButton": "Select how to calculate distance"
-            }
-        },
-        "visualizationObj": {
-            "1.0": {
-                "visualizationType": "Heatmap",
-                "visulizationFile": {
-                    "1.0.1.0": "heatmap.csv",
-                    "1.0.1.1": "heatmap.png",
-                    "1.0.1.2": "horizontal.tre",
-                    "1.0.1.3": "vertical.tre"
-                }
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3036156": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2014-11-26T12:39:25-05:00",
-        "modified": "2016-08-19T16:07:46-04:00",
-        "panelName": "tree",
-        "panelTitle": "Clustering Tree",
-        "panelDesc": "This panel generates a clustering tree from the data provided to to using different user methods.",
-        "panelIcon": "tree",
-        "toPrint": "Built Clustering Tree",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "rowSet",
-                "argumentType": "color row",
-                "argumentValue": "#bfbfff",
-                "argumentButton": "Select Row"
-            },
-            "1.1": {
-                "argumentName": "colSet",
-                "argumentType": "color col",
-                "argumentValue": "#ffd8bc",
-                "argumentButton": "Select Columns for Tree"
-            },
-            "1.4": {
-                "argumentName": "uid",
-                "argumentType": "color col",
-                "argumentValue": "#ffffdf",
-                "argumentButton": "Select IDs"
-            },
-            "1.5": {
-                "argumentName": "buildMethod",
-                "argumentType": "select",
-                "argumentValue": "0///Over Entire Selection|1///Over Each Row|2///Over Each Column",
-                "argumentButton": "Select how to Calculate Distance"
-            }
-        },
-        "visualizationObj": {
-            "1.0": {
-                "visualizationType": "Tree",
-                "visulizationFile": {
-                    "1.0.1.0": "cluster.tre"
-                }
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3036153": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2014-11-26T14:06:48-05:00",
-        "modified": "2016-08-19T16:07:47-04:00",
-        "panelName": "som",
-        "panelTitle": "Self Organizing Maps",
-        "panelDesc": "This plugin generates a self organizing map depending on the inputs that the user provides",
-        "panelIcon": "scatter",
-        "toPrint": "Built Self Organizing Map",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "rowSet",
-                "argumentType": "color row",
-                "argumentValue": "#dbf1b4",
-                "argumentButton": "Select Rows"
-            },
-            "1.1": {
-                "argumentName": "colSet",
-                "argumentType": "color col",
-                "argumentValue": "#ffe2bf",
-                "argumentButton": "Selects columns for SOM"
-            },
-            "1.2": {
-                "argumentName": "mapSize",
-                "argumentType": "select",
-                "argumentValue": "0///50|1///100|2///500|3///1000",
-                "argumentButton": "Select size of SOM"
-            }
-        },
-        "visualizationObj": {
-            "1.0": {
-                "visualizationType": "Som",
-                "visulizationFile": {
-                    "1.0.1.0": "color.csv",
-                    "1.0.1.1": "geom.csv"
-                }
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3036152": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2014-11-26T14:19:25-05:00",
-        "modified": "2016-08-19T16:07:47-04:00",
-        "panelName": "collapsewithstat",
-        "panelTitle": "Collapse with Statistics",
-        "panelDesc": "Based on input columns, statistics on a table is calculated (median and standard deviation)",
-        "panelIcon": "scatter",
-        "transformsOrNot": 1,
-        "toPrint": "Collapsed with Statistics on the original table",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "colSet",
-                "argumentType": "color col",
-                "argumentValue": "#ffd8bc",
-                "argumentButton": "Select columns for collapse"
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3036151": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2014-11-26T14:21:29-05:00",
-        "modified": "2016-08-19T16:07:47-04:00",
-        "panelName": "compAnalysis",
-        "panelTitle": "Comparative Analysis",
-        "panelDesc": "Custom Eric's plugin",
-        "panelIcon": "scatter",
-        "transformsOrNot": 1,
-        "toPrint": "Ran custom Eric plugin",
-        "argumentObj": {
-            "1.0": {
-                "argumentName": "multipleMethods",
-                "argumentType": "checkbox",
-                "argumentValue": "0",
-                "argumentButton": "Validate for Multiple Methods of Detection"
-            }
-        },
-        "_perm": [
-            {
-                "party": "/everyone/users/",
-                "act": {
-                    "browse": true,
-                    "read": true,
-                    "download": true
-                },
-                "_infect": {
-                    "party": [ "member" ]
-                }
-            }
-        ]
-    },
-    "3036150": {
-        "_id": "$upsert()",
-        "_type": "plugin_tblqry",
-        "created": "2014-12-10T12:36:17-05:00",
-        "modified": "2016-08-19T16:07:47-04:00",
         "panelName": "data-trending",
         "panelTitle": "Study data trend",
         "panelDesc": "this plugin creates the different types of graph in order to show the trend of data over time.",
@@ -896,17 +283,23 @@
             }
         ]
     },
-    "3036149": {
+    "202": {
         "_id": "$upsert()",
         "_type": "plugin_tblqry",
-        "created": "2014-12-10T16:08:37-05:00",
-        "modified": "2016-08-19T16:07:47-04:00",
-        "panelName": "product-Event",
-        "panelTitle": "Product Event ",
-        "panelDesc": "this panel calls the product event type from the database",
-        "panelIcon": "database.gif",
-        "panelPath": "/source/product-Event",
-        "panelObjQry": "alloftype('Product_Recall').csv(['id','recall_number','recall_initiation_date','product_type','product_description','product_quantity','inititation_firm_notification','classification','code_info','reason_for_recall'])",
+        "panelName": "compAnalysis",
+        "panelTitle": "Comparative Analysis",
+        "panelDesc": "Custom Eric's plugin",
+        "panelIcon": "scatter",
+        "transformsOrNot": true,
+        "toPrint": "Ran custom Eric plugin",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "multipleMethods",
+                "argumentType": "checkbox",
+                "argumentValue": "0",
+                "argumentButton": "Validate for Multiple Methods of Detection"
+            }
+        },
         "_perm": [
             {
                 "party": "/everyone/users/",
@@ -921,17 +314,23 @@
             }
         ]
     },
-    "3036148": {
+    "201": {
         "_id": "$upsert()",
         "_type": "plugin_tblqry",
-        "created": "2014-12-12T17:02:51-05:00",
-        "modified": "2016-08-19T16:07:47-04:00",
-        "panelName": "recall-Event",
-        "panelTitle": "Recall Event",
-        "panelDesc": "this panel calls the recall event type from the database",
-        "panelIcon": "database.gif",
-        "panelPath": "/source/recall-Event",
-        "panelObjQry": "alloftype('Event_Recall').csv(['id','event_id','recalling_firm','recall_initiation_date','initiation_firm_notification','report_date','voluntary_mandated','City','State','Country','status','distribution_pattern'])",
+        "panelName": "collapsewithstat",
+        "panelTitle": "Collapse with Statistics",
+        "panelDesc": "Based on input columns, statistics on a table is calculated (median and standard deviation)",
+        "panelIcon": "scatter",
+        "transformsOrNot": true,
+        "toPrint": "Collapsed with Statistics on the original table",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#ffd8bc",
+                "argumentButton": "Select columns for collapse"
+            }
+        },
         "_perm": [
             {
                 "party": "/everyone/users/",
@@ -946,35 +345,593 @@
             }
         ]
     },
-    "3036147": {
+    "200": {
         "_id": "$upsert()",
         "_type": "plugin_tblqry",
-        "created": "2014-12-14T17:56:57-05:00",
-        "modified": "2016-08-19T16:07:47-04:00",
-        "panelName": "kaplanmeier",
-        "panelTitle": "Kaplan Meier",
-        "panelDesc": "Computes the Kaplan Meier statistic for designated initial events, final events, and censoring events.",
+        "panelName": "som",
+        "panelTitle": "Self Organizing Maps",
+        "panelDesc": "This plugin generates a self organizing map depending on the inputs that the user provides",
+        "panelIcon": "scatter",
+        "toPrint": "Built Self Organizing Map",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#dbf1b4",
+                "argumentButton": "Select Rows"
+            },
+            "1.1": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#ffe2bf",
+                "argumentButton": "Selects columns for SOM"
+            },
+            "1.2": {
+                "argumentName": "mapSize",
+                "argumentType": "select",
+                "argumentValue": "0///50|1///100|2///500|3///1000",
+                "argumentButton": "Select size of SOM"
+            }
+        },
+        "visualizationObj": {
+            "1.0": {
+                "visualizationType": "Som",
+                "visulizationFile": {
+                    "1.0.1.0": "color.csv",
+                    "1.0.1.1": "geom.csv"
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "199": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "rlda",
+        "panelTitle": "Linear Discriminant Analysis ",
+        "panelDesc": "This plugin allows the user to run classification methods on the data provided by the user",
+        "panelIcon": "scatter",
+        "toPrint": "Ran RLDA analysis",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#a2a2ff",
+                "argumentButton": "Classifier Rows"
+            },
+            "1.1": {
+                "argumentName": "categories",
+                "argumentType": "color col",
+                "argumentValue": "#eaeaea",
+                "argumentButton": "Category Columns"
+            },
+            "1.2": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#ffe8b0",
+                "argumentButton": "Measurment Columns"
+            },
+            "1.3": {
+                "argumentName": "uid",
+                "argumentType": "color col",
+                "argumentValue": "#ffffdf",
+                "argumentButton": "Select IDs"
+            },
+            "1.5": {
+                "argumentName": "iterMin",
+                "argumentType": "select",
+                "argumentValue": "1000///1000|3000///3000|5000///5000",
+                "argumentButton": "Minimal Iteration"
+            },
+            "1.6": {
+                "argumentName": "cntSample",
+                "argumentType": "select",
+                "argumentValue": "10///10|15///15|20///20",
+                "argumentButton": "Sample Count"
+            },
+            "1.7": {
+                "argumentName": "topChoiceForFinal",
+                "argumentType": "select",
+                "argumentValue": "300///300|400///400|200///200",
+                "argumentButton": "Top Choice For Final"
+            },
+            "1.8": {
+                "argumentName": "shannonThreshold",
+                "argumentType": "select",
+                "argumentValue": "0.01///0.01|0.05///0.05|0.1///0.1",
+                "argumentButton": "Shannon Threshold"
+            },
+            "1.9": {
+                "argumentName": "goodShannonMaxThreshold",
+                "argumentType": "select",
+                "argumentValue": "5///5|3///3|8///8",
+                "argumentButton": "Stable Entropy Criteria"
+            },
+            "1.10": {
+                "argumentName": "useEvalScaling",
+                "argumentType": "checkbox",
+                "argumentValue": "1",
+                "argumentButton": "Use Evaluation Scaling",
+                "argumentPath": "/advanced/useEvalScaling"
+            },
+            "1.11": {
+                "argumentName": "validateNormal",
+                "argumentType": "checkbox",
+                "argumentValue": "0",
+                "argumentButton": "Validate Normal Distribution on Columns"
+            }
+        },
+        "visualizationObj": {
+            "1.0": {
+                "visualizationType": "RLDA",
+                "visulizationFile": {
+                    "1.0.1.0": "rlda.csv"
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "198": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "tree",
+        "panelTitle": "Clustering Tree",
+        "panelDesc": "This panel generates a clustering tree from the data provided to to using different user methods.",
+        "panelIcon": "tree",
+        "toPrint": "Built Clustering Tree",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#bfbfff",
+                "argumentButton": "Select Row"
+            },
+            "1.1": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#ffd8bc",
+                "argumentButton": "Select Columns for Tree"
+            },
+            "1.4": {
+                "argumentName": "uid",
+                "argumentType": "color col",
+                "argumentValue": "#ffffdf",
+                "argumentButton": "Select IDs"
+            },
+            "1.5": {
+                "argumentName": "buildMethod",
+                "argumentType": "select",
+                "argumentValue": "0///Over Entire Selection|1///Over Each Row|2///Over Each Column",
+                "argumentButton": "Select how to Calculate Distance"
+            }
+        },
+        "visualizationObj": {
+            "1.0": {
+                "visualizationType": "Tree",
+                "visulizationFile": {
+                    "1.0.1.0": "cluster.tre"
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "197": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "heatmap",
+        "panelTitle": "Heatmap",
+        "panelDesc": "Generates a heatmap with 2 trees and the actual image in the middle",
+        "panelIcon": "graph",
+        "toPrint": "Built Heatmap",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#dfdfdf",
+                "argumentButton": "Selects Rows"
+            },
+            "1.1": {
+                "argumentName": "colSetImg",
+                "argumentType": "color col",
+                "argumentValue": "#caffac",
+                "argumentButton": "Select columns for Heatmap Image"
+            },
+            "1.2": {
+                "argumentName": "colSetTree",
+                "argumentType": "color col",
+                "argumentValue": "#ffb3b3",
+                "argumentButton": "Select columns for Heatmap Tree"
+            },
+            "1.3": {
+                "argumentName": "uid",
+                "argumentType": "color col",
+                "argumentValue": "#ffffdf",
+                "argumentButton": "Select IDs"
+            },
+            "1.4": {
+                "argumentName": "colorMethod",
+                "argumentType": "select",
+                "argumentValue": "0///Over Entire Selection|1///Over Each Row|2///Over Each Column",
+                "argumentButton": "Select how to compute color"
+            },
+            "1.5": {
+                "argumentName": "buildMethod",
+                "argumentType": "select",
+                "argumentValue": "0///Euclidean|1///Manhattan|2///Maximum|3///Cosine",
+                "argumentButton": "Select how to calculate distance"
+            }
+        },
+        "visualizationObj": {
+            "1.0": {
+                "visualizationType": "Heatmap",
+                "visulizationFile": {
+                    "1.0.1.0": "heatmap.csv",
+                    "1.0.1.1": "heatmap.png",
+                    "1.0.1.2": "horizontal.tre",
+                    "1.0.1.3": "vertical.tre"
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "196": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "statTest",
+        "panelTitle": "Student T-Test",
+        "panelDesc": "Using 2 column sets (that the user selects) and the rows sets, student t-test is performed",
         "panelIcon": "scatter",
         "argumentObj": {
             "1.0": {
-                "argumentName": "initEvents",
-                "argumentType": "color col",
-                "argumentValue": "#aaaaaa",
-                "argumentButton": "Initial Event"
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#F988CC",
+                "argumentButton": "Select Rows for Test"
             },
             "1.1": {
-                "argumentName": "finEvents",
+                "argumentName": "colSet1",
                 "argumentType": "color col",
-                "argumentValue": "#444444",
-                "argumentButton": "Final Event"
+                "argumentValue": "#F9D588",
+                "argumentButton": "Select First column set"
             },
             "1.2": {
-                "argumentName": "cenEvents",
+                "argumentName": "colSet2",
                 "argumentType": "color col",
-                "argumentValue": "#777777",
-                "argumentButton": "Censor Event"
+                "argumentValue": "#88F9EE",
+                "argumentButton": "Select Second column set"
+            },
+            "1.3": {
+                "argumentName": "uid",
+                "argumentType": "color col",
+                "argumentValue": "#ffffdf",
+                "argumentButton": "Select IDs"
+            },
+            "1.4": {
+                "argumentName": "foldChange",
+                "argumentType": "checkbox",
+                "argumentValue": "0",
+                "argumentButton": "Fold Change",
+                "argumentSize": 0
             }
         },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "195": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "bStat",
+        "panelTitle": "Bayesian Statistics",
+        "panelDesc": "According to the rows selected and the categories selected by the user, Bayesian statistics are calculated over the entire column set selected",
+        "panelIcon": "scatter",
+        "toPrint": "Performed Bayesian Statistics",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#F9CCCC",
+                "argumentButton": "Select Row Set"
+            },
+            "1.1": {
+                "argumentName": "categories",
+                "argumentType": "color col",
+                "argumentValue": "#CCF9DF",
+                "argumentButton": "Select Categories"
+            },
+            "1.2": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#A4E2FB",
+                "argumentButton": "Select Column Set"
+            },
+            "1.4": {
+                "argumentName": "controlRow",
+                "argumentType": "color row",
+                "argumentValue": "#EFFC97",
+                "argumentButton": "Select Control Row"
+            },
+            "1.5": {
+                "argumentName": "margin",
+                "argumentType": "select",
+                "argumentValue": "0.05///0.05|0.1///0.1|0.2///0.2|0.25///0.25|0.5///0.5|1///1",
+                "argumentButton": "Select the margin percentage"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "194": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "pearsonCorr",
+        "panelTitle": "Pearson's product-moment coefficient",
+        "panelDesc": "Conducts Person's product-moment coefficient correlation. The result is a heatmap and a table with maximum values.",
+        "panelIcon": "scatter",
+        "toPrint": "Calculated Correlation",
+        "keyWordArr": {
+            "1.0": {
+                "keyWord": "pearsonCorr"
+            }
+        },
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "colSet1",
+                "argumentType": "color row",
+                "argumentValue": "#FF9962",
+                "argumentButton": "Expression Rows"
+            },
+            "1.1": {
+                "argumentName": "colSet2",
+                "argumentType": "color row",
+                "argumentValue": "#FB82C5",
+                "argumentButton": "Phenotype Rows"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "193": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "cleaner",
+        "panelTitle": "RLDA Cleaner",
+        "panelDesc": "Clean up table for RLDA",
+        "panelIcon": "scatter",
+        "transformsOrNot": true,
+        "toPrint": "Cleaned Up table for RLDA",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#E96666",
+                "argumentButton": "Select Column"
+            },
+            "1.1": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#6FE966",
+                "argumentButton": "Select Rows"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "192": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "extract",
+        "panelTitle": "Extract Part of Table",
+        "panelDesc": "A portion of the table is extracted based on the rows and columns that the user has provided.",
+        "panelIcon": "scatter",
+        "transformsOrNot": true,
+        "toPrint": "Extracted sub table",
+        "keyWordArr": {
+            "1.0": {
+                "keyWord": "extract"
+            }
+        },
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#FFBAD0",
+                "argumentButton": "Select Row Set"
+            },
+            "1.1": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#BAF9FF",
+                "argumentButton": "Select Col Set"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "191": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "link_out",
+        "panelTitle": "extract gene",
+        "panelDesc": "extract and create a new gene list",
+        "panelIcon": "database",
+        "keyWordArr": {
+            "1.0": {
+                "keyWord": "link_out"
+            }
+        },
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "select_cells",
+                "argumentType": "color cell",
+                "argumentValue": "#4DB6AC",
+                "argumentButton": "Select Genes",
+                "argumentDesc": "Choose Gene Name"
+            },
+            "1.1": {
+                "argumentName": "file",
+                "argumentType": "file",
+                "argumentButton": "File",
+                "argumentDesc": "Choose File to add",
+                "argumentPath": "/"
+            }
+        }
+    },
+    "190": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "fourier",
+        "panelTitle": "Fourier Transform",
+        "panelDesc": "By selecting a column and a set of rows, the user will be able to perform the Fourier transform on that column",
+        "panelIcon": "scatter",
+        "toPrint": "Performed Fast Fourier Transform",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#FB7FB3",
+                "argumentButton": "Select Row Set"
+            },
+            "1.1": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#CB7FFB",
+                "argumentButton": "Select Column Set"
+            },
+            "1.2": {
+                "argumentName": "categories",
+                "argumentType": "color col",
+                "argumentValue": "#7FDCFB",
+                "argumentButton": "Select 1 Category Column"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "189": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "simulation",
+        "panelTitle": "Simulate Data",
+        "panelDesc": "Dataset simulation. Currently only works for integer values.",
+        "panelIcon": "scatter",
+        "transformsOrNot": true,
         "visualizationObj": {
             "1.0": {
                 "visualizationType": "Line Graph",
@@ -983,12 +940,61 @@
                 }
             }
         },
+        "argumentObj": {
+            "1.1": {
+                "argumentName": "numSamples",
+                "argumentType": "int",
+                "argumentButton": "Sample Size",
+                "argumentSize": 16
+            }
+        }
+    },
+    "188": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "fold_change",
+        "panelTitle": "Fold Change",
+        "panelDesc": "Compute the fold change (ratio) between two selected columns.",
+        "panelIcon": "scatter",
+        "visualizationObj": {
+            "1.1": {
+                "visualizationType": "Fold Change Columns",
+                "visulizationFile": {
+                    "1.1.1.0": "fold_change.csv"
+                }
+            }
+        },
+        "argumentObj": {
+            "1.4": {
+                "argumentName": "col_1",
+                "argumentType": "color col",
+                "argumentValue": "#F9D588",
+                "argumentButton": "Select First Column",
+                "argumentDesc": "Select First Column"
+            },
+            "1.5": {
+                "argumentName": "col_2",
+                "argumentType": "color col",
+                "argumentValue": "#fa8072",
+                "argumentButton": "Select Second Column",
+                "argumentDesc": "Select Second Column"
+            },
+            "1.6": {
+                "argumentName": "threshold",
+                "argumentType": "string",
+                "argumentButton": "Threshold",
+                "argumentSize": 10,
+                "argumentDesc": "Threshold"
+            }
+        },
         "_perm": [
             {
                 "party": "/everyone/users/",
                 "act": {
                     "browse": true,
                     "read": true,
+                    "exec": true,
+                    "share": true,
                     "download": true
                 },
                 "_infect": {
@@ -997,66 +1003,25 @@
             }
         ]
     },
-    "3036146": {
+    "187": {
         "_id": "$upsert()",
         "_type": "plugin_tblqry",
-        "created": "2014-12-30T10:43:53-05:00",
-        "modified": "2016-08-19T16:07:47-04:00",
-        "panelName": "dataCalib",
-        "panelTitle": "Data Callibration",
-        "panelDesc": "This allows the user to calibrate the data they have. For example transpose the table, remove redundancy and normalize the data.",
+        "panelName": "alignCompPlugin",
+        "panelTitle": "Alignment Comparator Filters",
+        "panelDesc": "Allows special filters for alignment comparator custom tblqry",
         "panelIcon": "scatter",
-        "transformsOrNot": 1,
-        "toPrint": "Performed operations to calibrate the original table",
+        "tqsToUseOnApply": "[\n{\"op\":\"appendcol\",\"arg\":{\"name\":\"appendedCol\",\"formula\":\"if($[colorCol]){return 1;}else{return 0;}\"}},\n{\"op\":\"filter\",\"arg\":{\"col\":{\"name\": \"appendedCol\"},\"method\":\"equals\",\"value\":1}},\n{\"op\":\"hidecol\",\"arg\":{\"col\":{\"name\":\"appendedCol\"}}}\n]",
         "keyWordArr": {
             "1.0": {
-                "keyWord": "everything"
+                "keyWord": "alignCompPlugin"
             }
         },
         "argumentObj": {
-            "1.0": {
-                "argumentName": "translate",
-                "argumentType": "checkbox",
-                "argumentValue": "0",
-                "argumentButton": "Transpose the Table"
-            },
             "1.1": {
-                "argumentName": "redundencyWay",
-                "argumentType": "select",
-                "argumentValue": "0/// |1///Average|2///Median|",
-                "argumentButton": "Select way to Remove Redundancy",
-                "argumentPath": "/"
-            },
-            "1.2": {
-                "argumentName": "sigmaOutliers",
-                "argumentType": "checkbox",
-                "argumentValue": "0",
-                "argumentButton": "Use Sigma for Outliers"
-            },
-            "1.7": {
-                "argumentName": "calibrationCols",
+                "argumentName": "colorCol",
                 "argumentType": "color col",
-                "argumentValue": "#7BF3C1",
-                "argumentButton": "Color Columns for Calibration"
-            },
-            "1.8": {
-                "argumentName": "normalize",
-                "argumentType": "select",
-                "argumentValue": "0/// |1///Normalization to Unity|2///Scale on 1 Sigma|3///Scale on 0-1|",
-                "argumentButton": "Select way to Normalize the Data",
-                "argumentPath": "/"
-            },
-            "1.9": {
-                "argumentName": "normalizeCols",
-                "argumentType": "color col",
-                "argumentValue": "#BB7BF3",
-                "argumentButton": "Color Columns to Normalize"
-            },
-            "1.10": {
-                "argumentName": "categoryCols",
-                "argumentType": "color col",
-                "argumentValue": "#E3E363",
-                "argumentButton": "Color Columns to Categorize"
+                "argumentValue": "#C2FF77",
+                "argumentButton": "Select Columns to Use"
             }
         },
         "_perm": [
@@ -1065,6 +1030,231 @@
                 "act": {
                     "browse": true,
                     "read": true,
+                    "write": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "186": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "dictionaryTable",
+        "panelTitle": "Dictionarize Table",
+        "panelDesc": "Allows the user to get a table with narrowed down set",
+        "panelIcon": "scatter",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color col",
+                "argumentValue": "#C4FFF2",
+                "argumentButton": "Color Column for Rows"
+            },
+            "1.1": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#C4E7FF",
+                "argumentButton": "Color Column for Columns"
+            },
+            "1.2": {
+                "argumentName": "valSet",
+                "argumentType": "color col",
+                "argumentValue": "#F6BDFF",
+                "argumentButton": "Color Column for Values"
+            },
+            "1.3": {
+                "argumentName": "option",
+                "argumentType": "select",
+                "argumentValue": "0///Ignore 2nd|1///Override 2nd|2///Concatinate",
+                "argumentButton": "How to Treat Dumplicates"
+            },
+            "1.4": {
+                "argumentName": "defaultMissing",
+                "argumentType": "string",
+                "argumentButton": "Default Missing Value"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "185": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "variance",
+        "panelTitle": "J5 Statistics",
+        "panelDesc": "Allows to calculate the Variance between 2 sets of rows",
+        "panelIcon": "scatter",
+        "transformsOrNot": true,
+        "toPrint": "Generated an output table with 2 extra columns that show variance between 2 groups",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#FFADDF",
+                "argumentButton": "Select Rows"
+            },
+            "1.1": {
+                "argumentName": "colSetA",
+                "argumentType": "color col",
+                "argumentValue": "#E6ADFF",
+                "argumentButton": "Select Columns for Group A"
+            },
+            "1.2": {
+                "argumentName": "colSetB",
+                "argumentType": "color col",
+                "argumentValue": "#ADBFFF",
+                "argumentButton": "Select Columns for Group B"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "184": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "pca",
+        "panelTitle": "PCA Remapping",
+        "panelDesc": "Performs the principal component analysis remapping",
+        "panelIcon": "scatter",
+        "transformsOrNot": true,
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "rowSet",
+                "argumentType": "color row",
+                "argumentValue": "#FB7FB3",
+                "argumentButton": "Select Row Set"
+            },
+            "1.1": {
+                "argumentName": "colSet",
+                "argumentType": "color col",
+                "argumentValue": "#CB7FFB",
+                "argumentButton": "Select Column Set"
+            },
+            "1.2": {
+                "argumentName": "categories",
+                "argumentType": "color col",
+                "argumentValue": "#7FDCFB",
+                "argumentButton": "Select 1 Category Column"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "183": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "geneOntology",
+        "panelTitle": "Gene Ontology",
+        "panelDesc": "Brian's desciption",
+        "panelIcon": "tree",
+        "transformsOrNot": true,
+        "toPrint": "Performed gene ontology analysis",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "selectColumn",
+                "argumentType": "color col",
+                "argumentButton": "Select Column"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "182": {
+        "_id": "$upsert()",
+        "_type": "plugin_tblqry",
+        "panelName": "rankCollapser",
+        "panelTitle": "Tax ID Rank Collapser",
+        "panelDesc": "This panel will collapse rows based on selected rank and sum up the specified counts",
+        "panelIcon": "none",
+        "toPrint": "Performed Tax ID Rank Collapse",
+        "argumentObj": {
+            "1.0": {
+                "argumentName": "collapseColumn",
+                "argumentType": "color col",
+                "argumentValue": "#9dc0f9",
+                "argumentButton": "Color Column to Collapse on"
+            },
+            "1.1": {
+                "argumentName": "countColumn",
+                "argumentType": "color col",
+                "argumentValue": "#e695f4",
+                "argumentButton": "Color Column to Sum up"
+            },
+            "1.2": {
+                "argumentName": "rank",
+                "argumentType": "select",
+                "argumentValue": "0///Species|1///Genus|2///Family|3///Order|4///Class|5///Phylum|6///Kingdom|7///Domain",
+                "argumentButton": "Select Rank to Collapse by"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
                     "download": true
                 },
                 "_infect": {

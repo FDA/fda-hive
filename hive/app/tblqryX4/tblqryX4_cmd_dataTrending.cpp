@@ -49,27 +49,27 @@ namespace slib {
         {
             private:
                 idx colLabel, colY, colPeriod;
-                idx colGroup;       // In case users want to group elements with another criteria
+                idx colGroup;
                 sVec <idx> colPeriodVec;
                 sVec <idx> colLabelVec;
                 sVec <idx> colYVec;
                 sVec <idx> colGroupVec;
                 bool isDate;
-                bool useKeywords;   // when users search for terms, flag for displaying just the keywords or the whole word
-                bool misMatch;      // flag for interpretation of mis match for search cases
-                bool count;      // flag for just count number of elements
-                bool misValue;      // flag for just count number of elements
-                sStr groupKeywords;     // keywords list in comma seperated format
+                bool useKeywords;
+                bool misMatch;
+                bool count;
+                bool misValue;
+                sStr groupKeywords;
                 sStr periodKeywords;
                 sStr periodFrom, periodTo;
                 sStr colPeriodHdr;
-                sStr graphType;     // line, pie or  column
-                RowSorter sorter;   // used for sorting date
+                sStr graphType;
+                RowSorter sorter;
 
             public:
                 DataTrendingCommand(ExecContext & ctx) : Command(ctx)
                 {
-                    colLabel = colY = colPeriod = colGroup = -2; // initialize at -2 because -1 is used for attribute column in TxtTbl class
+                    colLabel = colY = colPeriod = colGroup = -2;
                     isDate = useKeywords = misMatch = count = misValue =false;
                 }
 
@@ -95,7 +95,6 @@ struct elementInfo {
 
 static bool periodTextTreatment(sStr & dst, const char * src){
     sStr splitTerm;
-    // sString::searchAndReplaceSymbols(&splitTerm,src,0,"/" _ "-" __,0,0,true,false,false,true);
     sString::searchAndReplaceStrings(&splitTerm,src,0,"/" _ "-" __,0,0,0);
     if (sString::cnt00(splitTerm)==3){
         sStr cleanQuote;
@@ -122,7 +121,7 @@ static bool periodTextTreatment(sStr & dst, const char * src){
             else month.printf("%s",firstField);
             dst.printf("-%s",month.ptr(0));
         }
-        return 1; // "Month-Year"
+        return 1;
     }
 
     dst.printf("%s",src);
@@ -151,94 +150,35 @@ static bool labelTreatment(sStr & bufLabel,const char * bufLabelToClean, idx buf
 }
 
 
-static bool mapToKeywords(sDic <idx> * dict, const char * sentence,const char * keywordsList, idx valueY, bool useKeywords, bool misMatch, sStr & mapTerm){
 
-    sStr splitTerm;
-    sString::searchAndReplaceStrings(&splitTerm,keywordsList,0,",",0,0,0);
-
-    idx valY = 1;
-    if (valueY!=sIdxMax){
-        valY = valueY;
-    }
-    bool isNotFound = true;
-    for (const char * p=splitTerm.ptr(0); p ; p=sString::next00(p)){
-        regex_t re;
-        idx regerr = regcomp(&re, p, REG_EXTENDED|REG_ICASE) ; // set up key for regex
-
-        if (!regerr){
-            bool match = (regexec(&re,sentence, 0, NULL, 0)==0) ? true : false; // matching process
-            if (match){
-                idx  * value;
-                if (useKeywords)  {
-                    value= dict->set(p);
-                    mapTerm.printf(0,"%s",p);
-                }
-                else {
-                    value = dict->set(sentence);
-                    mapTerm.printf(0,"%s",sentence);
-                }
-                *value += valY;
-                isNotFound = false;
-                regfree(&re);
-                break; // once found, break out the loop through keywords list
-            }
-        }
-        regfree(&re);
-    }
-    if (isNotFound && misMatch){
-        idx  * value;
-        value= dict->set("Others");
-        *value += valY;
-        mapTerm.printf(0,"Others");
-        return 1;
-    }
-    else if (isNotFound && misMatch==false){
-        mapTerm.printf(0,"_Nothing");
-        return 0;
-    }
-    return 1;
-}
-
-//bool mapToKeywords(const char * sentence,const char * keywordsList, idx valueY, bool useKeywords, bool misMatch, sStr & mapTerm){
 static bool mapToKeywords(const char * sentence,const char * keywordsList, bool useKeywords, bool misMatch, sStr & mapTerm){
 
     sStr splitTerm;
     sString::searchAndReplaceStrings(&splitTerm,keywordsList,0,",",0,0,0);
 
-    /*idx valY = 1;
-    if (valueY!=sIdxMax){
-        valY = valueY;
-    }*/
     bool isNotFound = true;
     for (char * p=splitTerm.ptr(0); p ; p=sString::next00(p)){
         regex_t re;
-        idx regerr = regcomp(&re, p, REG_EXTENDED|REG_ICASE) ; // set up key for regex
+        idx regerr = regcomp(&re, p, REG_EXTENDED|REG_ICASE) ;
 
         if (!regerr){
-            bool match = (regexec(&re,sentence, 0, NULL, 0)==0) ? true : false; // matching process
+            bool match = (regexec(&re,sentence, 0, NULL, 0)==0) ? true : false;
             if (match){
-     //           idx  * value;
                 if (useKeywords)  {
-                   // value= dict->set(p);
                     *p = toupper(p[0]);
                     mapTerm.printf(0,"%s",p);
                 }
                 else {
-                    //value = dict->set(sentence);
                     mapTerm.printf(0,"%s",sentence);
                 }
-       //         *value += valY;
                 isNotFound = false;
                 regfree(&re);
-                break; // once found, break out the loop through keywords list
+                break;
             }
         }
         regfree(&re);
     }
     if (isNotFound && misMatch){
-        //idx  * value;
-       // value= dict->set("Others");
-       // *value += valY;
         mapTerm.printf(0,"Others");
         return 1;
     }
@@ -261,23 +201,19 @@ static idx convertToIdx (const char * src){
     }
     else dst.printf("%s",src);
 
-    sscanf(dst.ptr(),"%" DEC "", &a); // sscanf(c.ptr(0), "%" DEC "", &myRangeNum.start);
+    sscanf(dst.ptr(),"%" DEC "", &a);
     return a;
 }
 
 bool DataTrendingCommand::init(const char * op_name, sVariant * arg)
 {
-    // Getting Params from front-end
 
-   /* if (arg->getDicElt("xColumns") != 0) {// what if the first column was chosen ?
-        toAdd->colX = arg->getDicElt("xColumns")->asInt();
-    }*/
-    if ( arg->getDicElt("periodAsDate") !=0 ) // like x axis
+    if ( arg->getDicElt("periodAsDate") !=0 )
     {
         isDate = arg->getDicElt("periodAsDate")->asBool();
     }
 
-    if (sVariant * colSetImgVal = arg->getDicElt("period")) // like x axis
+    if (sVariant * colSetImgVal = arg->getDicElt("period"))
     {
         if (colSetImgVal->isList())
         {
@@ -290,7 +226,7 @@ bool DataTrendingCommand::init(const char * op_name, sVariant * arg)
         else
             return false;
     }
-    if (sVariant * colSetImgVal = arg->getDicElt("labelColumns")) // like group of x
+    if (sVariant * colSetImgVal = arg->getDicElt("labelColumns"))
     {
         if (colSetImgVal->isList())
         {
@@ -301,7 +237,7 @@ bool DataTrendingCommand::init(const char * op_name, sVariant * arg)
         else
             return false;
     }
-    if (sVariant * colSetImgVal = arg->getDicElt("yColumns")) // number of elements, like y axis
+    if (sVariant * colSetImgVal = arg->getDicElt("yColumns"))
        {
            if (colSetImgVal->isList())
            {
@@ -313,9 +249,6 @@ bool DataTrendingCommand::init(const char * op_name, sVariant * arg)
                return false;
        }
 
-  /*  if (arg->getDicElt("groupBy") != 0) {// In case when users want to group X elements by another criteria
-           toAdd->colGroup = arg->getDicElt("groupBy")->asInt();
-    }*/
 
     if (sVariant * colSetImgVal = arg->getDicElt("groupBy"))
           {
@@ -339,10 +272,8 @@ bool DataTrendingCommand::init(const char * op_name, sVariant * arg)
     }
 
     if (arg->getDicElt("periodFrom") != 0){
-         //toAdd->xKeywords.printf (0,"%s", arg->getDicElt("periodFrom")->asString());
      }
     if (arg->getDicElt("periodTo") != 0){
-        // toAdd->xKeywords.printf (0,"%s", arg->getDicElt("periodTo")->asString());
     }
 
     if (arg->getDicElt("mismatch") != 0){
@@ -362,7 +293,6 @@ bool DataTrendingCommand::init(const char * op_name, sVariant * arg)
         if (strcmp(graphType.ptr(),"pie")==0) misMatch = true;
     }
 
-   // toAdd->sorter.init(arg, qlang_parser, log, "data_trending", true);
 
     return true;
 }
@@ -370,7 +300,6 @@ bool DataTrendingCommand::init(const char * op_name, sVariant * arg)
 
 bool DataTrendingCommand::compute(sTabular * tbl)
 {
-    // use the last chosen column from the vector of column
     if (colPeriodVec.dim()){
         colPeriod = colPeriodVec[colPeriodVec.dim()-1];
         tbl->printCell(colPeriodHdr,-1,colPeriod,0);
@@ -385,35 +314,23 @@ bool DataTrendingCommand::compute(sTabular * tbl)
     if (colGroupVec.dim())
         colGroup = colGroupVec[colGroupVec.dim()-1];
 
-    // check if required to group X by another criteria
- //   sDic <sDic <idx> > subGroup;   // [x][group] = y
-//    sDic <sDic <idx> > dateOccurence; // [date][label] = y
 
- //   sDic <idx> xFreq;// dictionary of X by Date
 
     sDic < elementInfo > dicOfElements;
 
-    //---------------------------------
-    // Sorting the period column
-    //---------------------------------
     if (colPeriod !=-2){
         sReorderedTabular reordered (tbl, false);
         if (isDate){
             sorter.sort(&reordered);
         }
 
-        //--------------------------------
-        // Preparing output table
-        // Dictionarize the period column
 
-        // Group rows by Sorted Date
         sStr period, dst;
         for (idx irow=0; irow< tbl->rows(); irow++){
             period.cut(0); dst.cut(0);
-            //tbl->printCell(period,irow,colPeriod,0,""); // ToFix: empty cell case ??
             reordered.printCell(period,irow,colPeriod,0);
 
-            if (!period.length()){ // in case the cell has no value
+            if (!period.length()){
                 if (isDate && misValue){
                     period.printf(0,"0000-00-00");
                     periodTextTreatment(dst,period.ptr());
@@ -430,7 +347,6 @@ bool DataTrendingCommand::compute(sTabular * tbl)
             if (isDate==false &&periodKeywords.length() && strcmp(dst.ptr(),defaultMissingValue)!=0){
                 sStr periodResult; bool isMapped = false;
                 if (useKeywords) {
-                    //mapToKeywords(const char * sentence,const char * keywordsList, idx valueY, bool useKeywords, bool misMatch, sStr & mapTerm)
                     isMapped = mapToKeywords(dst.ptr(0),periodKeywords.ptr(), true, misMatch, periodResult);
                 }
                 else {
@@ -445,11 +361,10 @@ bool DataTrendingCommand::compute(sTabular * tbl)
             dicOfElements.set(dst.ptr())->rowIndex.vadd(1,irow);
         }
 
-        //  test with dictionary of elements
         sStr bufLabel, bufLabelToClean;
         sStr bufY;
         for (idx iE=0; iE < dicOfElements.dim(); ++iE){
-            const char * key = (const char *)dicOfElements.id(iE); // Date or key
+            const char * key = (const char *)dicOfElements.id(iE);
             elementInfo * rowElement = dicOfElements.get(key);
 
             for (idx ir=0; ir<rowElement->rowIndex.dim();++ir){
@@ -457,17 +372,16 @@ bool DataTrendingCommand::compute(sTabular * tbl)
                 idx valY=sIdxMax;
                 idx realRow = rowElement->rowIndex.ptr(ir)[0];
                 idx columnToRead = -2;
-                if (colGroup!=-2){ // if sub group column exist
+                if (colGroup!=-2){
                     columnToRead = colGroup;
                 }
                 else columnToRead = colPeriod;
                 reordered.printCell(bufLabelToClean,realRow,columnToRead,0);
-                if (!bufLabelToClean.length() && misValue){ // in case missing value
-                    //bufLabelToClean.printf(0,defaultMissingValue);
+                if (!bufLabelToClean.length() && misValue){
                     bufLabelToClean.cut(0);
                     bufLabelToClean.addString(defaultMissingValue,sLen(defaultMissingValue));
                 }
-                else if (!bufLabelToClean.length()) continue; // dont take the missing value
+                else if (!bufLabelToClean.length()) continue;
 
                 labelTreatment(bufLabel,bufLabelToClean.ptr(0), bufLabelToClean.length());
 
@@ -479,7 +393,6 @@ bool DataTrendingCommand::compute(sTabular * tbl)
                 if (colGroup!=-2 && groupKeywords.length() && strcmp(bufLabel.ptr(),defaultMissingValue)!=0){
                     sStr mapResult; bool isMapped = false;
                     if (useKeywords) {
-                        //mapToKeywords(const char * sentence,const char * keywordsList, idx valueY, bool useKeywords, bool misMatch, sStr & mapTerm)
                         isMapped = mapToKeywords(bufLabel.ptr(0),groupKeywords.ptr(), true, misMatch, mapResult);
                     }
                     else {
@@ -491,18 +404,17 @@ bool DataTrendingCommand::compute(sTabular * tbl)
                     else continue;
 
                 }
-                // at this point, we have bufX and valY
                 dicOfElements.ptr(iE)->numberOfOccurences +=1;
-                if (colGroup ==-2) { //i.e, no Group
+                if (colGroup ==-2) {
                     bufLabel.cut(0);
                     bufLabel.addString(colPeriodHdr.ptr(),colPeriodHdr.length());
                 }
                 if (dicOfElements.ptr(iE)->group.find(bufLabel.ptr(0),bufLabel.length())){
                     idx * value = dicOfElements.ptr(iE)->group.get(bufLabel.ptr(0),bufLabel.length());
                     if (valY == sIdxMax) {
-                        if (colGroup != -2){ // in case did not choose Count, increase the element
+                        if (colGroup != -2){
                             *value = *value +1;
-                        } else { // not choose group and count, take period occurrences
+                        } else {
                             *value = dicOfElements.ptr(iE)->numberOfOccurences;
                         }
                     }
@@ -526,17 +438,13 @@ bool DataTrendingCommand::compute(sTabular * tbl)
     }
 
 
-    // -------------------
-    //  Outputting
-    // -------------------
     sStr outPutPath;
-    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTFILE,0,0); // set the file name to the request
-    _ctx.qproc().reqDataPath(_ctx.outReqID(),OUTFILE,&outPutPath); // find the path of the file name
-    sFile::remove(outPutPath);                // in case the file already existed
+    _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTFILE,0,0);
+    _ctx.qproc().reqDataPath(_ctx.outReqID(),OUTFILE,&outPutPath);
+    sFile::remove(outPutPath);
 
     sFil dataTrendingCSV(outPutPath);
 
-    // preparingheader
 
     sDic < idx > headerDic;
     idx len = 0;
@@ -582,7 +490,6 @@ bool DataTrendingCommand::compute(sTabular * tbl)
 
     for (idx iElement=0; iElement < dicOfElements.dim(); ++iElement){
         const char * rowElement = (const char *)dicOfElements.id(iElement,&len);
-        //if (iElement) dataTrendingCSV.addString(",",1);
         dataTrendingCSV.addString(rowElement,len);
         dataTrendingCSV.addString(",",1);
         for (idx iHdr=0; iHdr < headerDic.dim(); ++iHdr){

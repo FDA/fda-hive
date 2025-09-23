@@ -29,23 +29,18 @@
  */
 
 #include <violin/svc-batcher.hpp>
-#include <violin/hivetools.hpp>
+#include <violin/hiveproc.hpp>
 #include <slib/utils/json/printer.hpp>
 
-/*! To keep memory usage with multiple batch parameters reasonably low, we use two main data structures:
- *  BatchingIterator which generates forms for submitting batch computations one-by-one, and a compact
- *  BatchingDescriptor structure for the read-only data that BatchingIterator requires while running.
- *  We do not want to keep all the forms in memory at once! */
 class BatchingDescriptor
 {
 private:
-    //! One value of one batch typefield
     struct BatchValue
     {
-        const sUsrObjPropsNode * value_node; //! node with this value in BatchingDescriptor::tree
-        const sUsrObjPropsNode * branch_node; //! most distant ancestor node of value_node whose only batched value descendent is value_node
-        idx singleton_split_offset; //! offset of the value if it's an element in a ';'-separated string
-        idx label_offset; //! offset in BatchingDescriptor::buf of a human-readable label for this value
+        const sUsrObjPropsNode * value_node;
+        const sUsrObjPropsNode * branch_node;
+        idx singleton_split_offset;
+        idx label_offset;
 
         BatchValue()
         {
@@ -54,14 +49,13 @@ private:
         }
     };
 
-    //! One batch typefield
     struct BatchField
     {
-        idx iname; //! index of name in BatchingDescriptor::name2field
-        idx batch_cnt; //! number of batches of values of this field (may be further clamped by the BatchList)
-        idx batch_size; //! max number of values in each batch
-        idx values_start; //! index of first value of this typefield in BatchingDescriptor::batch_values
-        idx values_cnt; //! total number of values of this typefield in BatchingDescriptor::batch_values
+        idx iname;
+        idx batch_cnt;
+        idx batch_size;
+        idx values_start;
+        idx values_cnt;
 
         BatchField()
         {
@@ -70,13 +64,12 @@ private:
         }
     };
 
-    //! A list of batch typefields whose values will be combined into batches sequentially (non-combinatorially)
     struct BatchList
     {
-        idx batch_cnt; //! number of batches for this list
-        idx fields_start; //! index of first typefield for this list in BatchingDescriptor::batch_fields
-        idx fields_cnt; //! total number of typefields in BatchingDescriptor::batch_fields
-        bool saturated; //! whether to force every batch for this list to contain at least one value from every field
+        idx batch_cnt;
+        idx fields_start;
+        idx fields_cnt;
+        bool saturated;
 
         BatchList()
         {
@@ -86,7 +79,6 @@ private:
         }
     };
 
-    //! type of param for BatchingDescriptor::addToFormWorker()
     struct AddToFormWorkerParam
     {
         const BatchingDescriptor * desc;
@@ -110,23 +102,20 @@ private:
     sQPrideProc * proc;
     sUsrObjPropsTree tree;
     sStr buf;
-    mutable sStr keybuf; //! scratch space for printFormKey()
-    sDic<BatchFieldIndex> name2field; //! map field name -> index of list and field in the list
-    sVec<BatchList> batch_lists; //! flat list of batch typefield lists
-    sVec<BatchField> batch_fields; //! flat list of all batch typefields
-    sVec<BatchValue> batch_values; //! flat list of batch field values for all batch fields
-    const sUsrObjPropsNode * name_node; //! "name" field node in tree
-    const sUsrObjPropsNode * reqPriority_node; //! "reqPriority" field node in tree
-    regex_t submitter_batch_re; //! regexp for detecting "-batch" suffix in "cmdMode" param in "submitter" field
-    sVar skel_form; //! form values which will be the same in all batch-created objects
+    mutable sStr keybuf;
+    sDic<BatchFieldIndex> name2field;
+    sVec<BatchList> batch_lists;
+    sVec<BatchField> batch_fields;
+    sVec<BatchValue> batch_values;
+    const sUsrObjPropsNode * name_node;
+    const sUsrObjPropsNode * reqPriority_node;
+    regex_t submitter_batch_re;
+    sVar skel_form;
 
-    //! for sorting batch values in the same order as their fields in batch_fields
     static idx cmpBatchValues(void * param, void * arr, idx i1, idx i2);
 
-    //! callback for BatchValue::branch_node->find()
     static sUsrObjPropsNode::FindStatus addToFormWorker(const sUsrObjPropsNode & node, void * param);
 
-    //! get index in batch_values of the value for a given field, given batch #, and value # in that batch
     idx getBatchValueIndex(idx ilist, idx ifld, idx ibatch, idx ivalue) const
     {
         const BatchList & lst = batch_lists[ilist];
@@ -134,7 +123,6 @@ private:
         return fld.values_start + ibatch * fld.batch_size + ivalue;
     }
 
-    //! check if ivalue is a valid value # for a given batch # for the given field
     bool validIndex(idx ilist, idx ifld, idx ibatch, idx ivalue) const
     {
         if( unlikely(ilist >= batch_lists.dim()) ) {
@@ -145,13 +133,12 @@ private:
             return false;
         }
         const BatchField & fld = batch_fields[lst.fields_start + ifld];
-        idx ibatch_irregular = sMin<idx>(fld.batch_cnt, lst.batch_cnt) - 1; // index of (possible) batch that doesn't contain exactly fld.batch_size values
+        idx ibatch_irregular = sMin<idx>(fld.batch_cnt, lst.batch_cnt) - 1;
         return ibatch < lst.batch_cnt &&
             (ivalue < fld.batch_size || ibatch == ibatch_irregular) &&
             ivalue + ibatch * fld.batch_size < fld.values_cnt;
     }
 
-    //! generate human-readable label for bv and store it in buf at offset bv->label_offset
     void makeBatchLabel(BatchValue * bv);
 
 public:
@@ -170,13 +157,10 @@ public:
 
     bool init(sVar * pForm, const char * svcToSubmit, const char * svcTitle, sStr * err);
 
-    //! number of lists of fields to batch over
     idx dimLists() const { return batch_lists.dim(); }
 
-    //! number of fields in a list
     idx dimFields(idx ilist) const { return ilist < batch_lists.dim() ? batch_lists[ilist].fields_cnt : 0; }
 
-    //! number of batches for the specified field list
     idx dimBatches(idx ilist) const
     {
         if( unlikely(ilist >= batch_lists.dim()) ) {
@@ -185,7 +169,6 @@ public:
         return batch_lists[ilist].batch_cnt;
     }
 
-    //! number of values for a specified field in the specified batch of a field list
     idx dimValues(idx ilist, idx ifld, idx ibatch) const
     {
         if( unlikely(ilist >= batch_lists.dim()) ) {
@@ -197,7 +180,7 @@ public:
         }
         const BatchField & fld = batch_fields[lst.fields_start + ifld];
 
-        idx ibatch_irregular = sMin<idx>(fld.batch_cnt, lst.batch_cnt) - 1; // index of (possible) batch that doesn't contain exactly fld.batch_size values
+        idx ibatch_irregular = sMin<idx>(fld.batch_cnt, lst.batch_cnt) - 1;
         if( ibatch < ibatch_irregular ) {
             return fld.batch_size;
         } else if( ibatch < lst.batch_cnt && ibatch == ibatch_irregular ) {
@@ -207,28 +190,19 @@ public:
         }
     }
 
-    //! human-readable label for the given value in given batch # for given field, or 0 on failure
     const char * getBatchLabel(idx ilist, idx ifld, idx ibatch, idx ivalue) const
     {
         return validIndex(ilist, ifld, ibatch, ivalue) ? buf.ptr(batch_values[getBatchValueIndex(ilist, ifld, ibatch, ivalue)].label_offset) : 0;
     }
 
-    //! request priority
     idx getReqPriority(idx cur_batch_step) const
     {
-        // absolute value so different sub-requests in one submission will have different priorities
         idx reqPriority = reqPriority_node ? sAbs(reqPriority_node->ivalue()) : 0;
-        // large offset to ensure batched requests are scheduled after normal requests
-        reqPriority += 1000;
-        // if the total batch count is large, spread submissions over a range of priorities to avoid thundering herd effect
-        // factor of 3 to help sub-requests from one submission complete before other submissions' sub-requests are scheduled
-        return reqPriority + floor(3 * log(1 + cur_batch_step));
+        return reqPriority;
     }
 
-    //! print a given value in given batch # for given field (and also other values in the same branch_node) into the form
     bool addToForm(sVar * pForm, idx ilist, idx ifld, idx ibatch, idx ivalue) const;
 
-    //! print prop-format sVar key for field value with given name and path into keybuf
     const char * printFormKey(const char * name, const char * path) const
     {
         keybuf.cut(0);
@@ -243,30 +217,25 @@ public:
         return keybuf.ptr();
     }
 
-    //! form values which will be the same in all batch-created objects
     const sVar * getSkeletonForm() const { return &skel_form; }
 
-    //! print prop-format sVar key for "name" field value into keybuf
     const char * printFormLabelKey() const
     {
         return printFormKey("name", name_node ? name_node->path() : 0);
     }
 
-    //! print prop-format sVar key for "reqPriority" field value into keybuf
     const char * printFormReqPriorityKey() const
     {
         return printFormKey("reqPriority", reqPriority_node ? reqPriority_node->path() : 0);
     }
 
-    //! for debugging
     const char * printDump(sStr * s=0) const;
 };
 
-//! Iterates over BatchingDescriptor without modifying it and generates forms for submission one by one
-class BatchingIterator
+class SvcBatcher::BatchingIterator
 {
 private:
-    sVec<idx> batches; //! map from field list # to value batch # for that list at the current iteration step
+    sVec<idx> batches;
     const BatchingDescriptor * desc;
     idx cur_it, max_it;
 
@@ -291,13 +260,10 @@ public:
         }
     }
 
-    //! did we finish iterating?
     operator bool() const { return cur_it < max_it; }
 
-    //! current iteration step
     idx getCurStep() const { return cur_it; }
 
-    //! move to next iteration step
     BatchingIterator & operator ++()
     {
         for (idx ilist=batches.dim() - 1; ilist>=0; ilist--) {
@@ -314,14 +280,11 @@ public:
         return *this;
     }
 
-    //! number of iteration steps
     idx maxIterations() const { return max_it; }
 
-    //! print submission form for current iteration step
     sVar * makeForm(sVar * pform, const char * svcToSubmit) const;
 };
 
-// Sort batch values in same order as batch field lists and their fields
 idx BatchingDescriptor::cmpBatchValues(void * param, void * arr, idx i1, idx i2)
 {
     BatchingDescriptor * desc = static_cast<BatchingDescriptor*>(param);
@@ -354,7 +317,6 @@ void BatchingDescriptor::makeBatchLabel(BatchValue * bv)
     buf.add0();
 }
 
-// Mark descendents of batch branch node as non-zero in batch_descendents, so we can separate out nodes that are not in any batch branch
 static sUsrObjPropsNode::FindStatus markDescendentsCb(const sUsrObjPropsNode & node, void * param)
 {
     sVec<idx> * batch_descendents = static_cast<sVec<idx>*>(param);
@@ -399,7 +361,6 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
         BatchList * lst = batch_lists.add(1);
         lst->saturated = batch_node->findBoolValue("batch_saturated");
 
-        // Find names of batch parameters
         idx irow = 0;
         for(const sUsrObjPropsNode * batch_row = batch_array_node->firstChild(); batch_row; batch_row = batch_row->nextSibling(), irow++) {
             const sUsrObjPropsNode * batch_name_node = batch_row->find("batch_param");
@@ -433,7 +394,6 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
             fld_index->ifld = ifld;
         }
 
-        // ignore "batch" nodes that didn't have any valid "batch_param" descendents
         if( lst->fields_cnt < 1 ) {
             proc->logOut(sQPrideBase::eQPLogType_Warning, "'batch' tree node with path %s: 'batch_list' had no valid rows, skipping", batch_node->path());
             batch_lists.cut(ilist);
@@ -460,17 +420,11 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
     }
     proc->logOut(sQPrideBase::eQPLogType_Info, "Batch field lists: %s", print_buf.ptr());
 
-    // Perform any tree modifications before creating batch_descendents to ensure node pointers and descendent counts are not invalidated
     if( !tree.find("reqPriority") ) {
-        // ensure we can get a proper path for reqPriority node
         tree.push("reqPriority", 0);
     }
 
-    // We want to find prop subtrees controlled by batched nodes: i.e. max subtrees
-    // that contain exactly 1 batched prop node.
-    // To do this, we count the number of descendent batch prop nodes of each node,
-    // and then find where the number of descendents changes from >1 to 1.
-    sVec<idx> batch_descendents(sMex::fSetZero); // if > 0, number of descendent batch nodes; if < 0, descendent of a node which has only one descendent batch node.
+    sVec<idx> batch_descendents(sMex::fSetZero);
     batch_descendents.resize(tree.dimTree());
     for(idx inod = 0; inod < tree.dimTree(); inod++) {
         const sUsrObjPropsNode * node = tree.getNodeByIndex(inod);
@@ -493,7 +447,6 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
         }
     }
 
-    // special case: singleton batch values get string-splitted for batching
     sStr splitbuf;
     for (idx abs_ifld=0; abs_ifld<batch_fields.dim(); abs_ifld++) {
         BatchField * bf = batch_fields.ptr(abs_ifld);
@@ -508,7 +461,6 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
                 while (subval && *subval) {
                     idx split_offset = buf.length();
 
-                    // batch_size > 1 means we concatenated batch_size many subvalues with ";"
                     for (idx iv=0; subval && *subval && iv < bf->batch_size; iv++, subval = sString::next00(subval)) {
                         if (iv) {
                             buf.addString(";");
@@ -526,15 +478,13 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
                         }
 
                         bv->singleton_split_offset = split_offset;
-                        makeBatchLabel(bv); // reset batch label even if it already existed, since we've changed the node's effective value
+                        makeBatchLabel(bv);
                     }
                 }
 
-                // groups of batch_size many subvalues have been concatenated together, so from this point batch_size is effectively 1
                 bf->batch_size = 1;
             }
         }
-        // reset values_start, it will become invalid after sorting of batch_values
         bf->values_start = -1;
     }
 
@@ -543,11 +493,9 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
         while (batch_values[iv].branch_node->parentNode() && batch_values[iv].branch_node->parentNode()->treeIndex() >= 0 && batch_descendents[batch_values[iv].branch_node->parentNode()->treeIndex()] == 1) {
             batch_values[iv].branch_node = batch_values[iv].branch_node->parentNode();
         }
-        // Mark descendents of branch_node as non-zero in batch_descendents, so we can separate out nodes that are not in any batch branch
         batch_values[iv].branch_node->find(0, markDescendentsCb, &batch_descendents);
     }
 
-    // Set up association from batch_fields to batch_values
     sSort::sortSimpleCallback(cmpBatchValues, this, batch_values.dim(), batch_values.ptr());
     for (idx iv=0; iv<batch_values.dim(); iv++) {
         BatchFieldIndex * fld_index = name2field.get(batch_values[iv].value_node->name());
@@ -562,9 +510,6 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
         }
     }
 
-    // Find batch_cnt for batch field lists
-    // in "saturated" case, each batch contains at least one value from every field - so the list's batch count is the minimum batch count of its fields
-    // in "unsaturated" case, each batch contains at most f.batch_size values from any field f - so the list's batch count is the max batch count of its fields
     for(idx ilst=0; ilst<batch_lists.dim(); ilst++) {
         BatchList & lst = batch_lists[ilst];
         lst.batch_cnt = 0;
@@ -582,49 +527,39 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
 
     proc->logOut(sQPrideBase::eQPLogType_Debug, "%s", printDump(0));
 
-    // Set up skeleton form
     for (idx ikey=0; ikey<pForm->dim(); ikey++) {
         const char * key = static_cast<const char*>(pForm->id(ikey));
-        // add all non-property form entries
         if (strncmp(key, "prop.", 5) != 0) {
             skel_form.inp(key, pForm->value(key));
         }
     }
     skel_form.inp("svc", svcToSubmit);
     for (idx inod=0; inod<batch_descendents.dim(); inod++) {
-        // skip batched value branches
         if (batch_descendents[inod] == 1 || batch_descendents[inod] < 0)
             continue;
         const sUsrObjPropsNode * node = tree.getNodeByIndex(inod);
-        // skip inner nodes and batching parameters
         if (!node->hasValue() || !node->namecmp("batch_param") || !node->namecmp("batch_value") || !node->namecmp("batch_saturated") || !node->namecmp("batch_children_proc_ids"))
             continue;
-        // force set batch_svc to "single"
         if( !node->namecmp("batch_svc") ) {
             skel_form.inp(printFormKey(node->name(), node->path()), "single");
             continue;
         }
-        // name node is handled later
         if (!node->namecmp("name")) {
             name_node = node;
             continue;
         }
-        // reqPriority is handled specially
         if( !node->namecmp("reqPriority") ) {
             reqPriority_node = node;
             continue;
         }
-        // submitter node is handled specially: remove terminal "batch" or "-batch" from "cmdMode" url parameter
         if (!node->namecmp("submitter")) {
-            regmatch_t match[4]; // "&cmdMode=foobar-batch", "&cmdMode=", "foobar", "-batch"
+            regmatch_t match[4];
             const char * submitter = node->value();
             if( submitter && regexec(&submitter_batch_re, submitter, 4, match, 0) == 0 ) {
                 sStr value_buf;
                 if( match[2].rm_so < 0 || match[2].rm_so == match[2].rm_eo ) {
-                    // we had "&cmdMode=batch" - so skip it entirely
                     value_buf.addString(submitter, match[0].rm_so);
                 } else {
-                    // we had "&cmdMode=foobar-batch" - want to turn it into "&cmdMode=foobar"
                     value_buf.addString(submitter, match[2].rm_eo);
                 }
                 value_buf.addString(submitter + match[0].rm_eo);
@@ -632,7 +567,6 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
                 continue;
             }
         }
-        // svc / svcTitle need to be set to the submitted service
         if( !node->namecmp("svc") ) {
             skel_form.inp(printFormKey(node->name(), node->path()), svcToSubmit);
             continue;
@@ -643,7 +577,6 @@ bool BatchingDescriptor::init(sVar * pForm, const char * svcToSubmit, const char
             }
             continue;
         }
-        // remaining leaf nodes go into skeleton form
         skel_form.inp(printFormKey(node->name(), node->path()), node->value());
     }
 
@@ -735,7 +668,6 @@ const char * BatchingDescriptor::printDump(sStr * s) const
     return s->ptr(start);
 }
 
-// static
 sUsrObjPropsNode::FindStatus BatchingDescriptor::addToFormWorker(const sUsrObjPropsNode & node, void * param)
 {
     AddToFormWorkerParam * p = static_cast<AddToFormWorkerParam*>(param);
@@ -765,7 +697,7 @@ bool BatchingDescriptor::addToForm(sVar * pForm, idx ilist, idx ifld, idx ibatch
     return true;
 }
 
-sVar * BatchingIterator::makeForm(sVar * pForm, const char * svcToSubmit) const
+sVar * SvcBatcher::BatchingIterator::makeForm(sVar * pForm, const char * svcToSubmit) const
 {
     const sVar * skel = desc->getSkeletonForm();
     pForm->empty();
@@ -828,21 +760,19 @@ idx SvcBatcher::OnExecute(idx req)
 
     BatchingDescriptor batch_desc(*user, this);
     BatchingIterator batch_iter;
+    sVec<sQPrideBase::PriorityCnt> priority_cnts;
 
     if(!reqGetData(req,"submittedGrpIDs",submittedGrpIDs.mex())){
         if( !doCreateProcesses )
             reqSetData(req,"resultFileTemplate","reqself-");
 
-        const char * svc=svcToSubmit ? svcToSubmit : pForm->value("svc",0); // otherwise , use the CGI's service itself
+        const char * svc=svcToSubmit ? svcToSubmit : pForm->value("svc",0);
         sQPride::Service Svc;
-        serviceGet( &Svc, svc, 0) ; // otherwise retrieve it from the reqID
+        serviceGet( &Svc, svc, 0) ;
 
         sStr errBuf;
 
         if (!batch_desc.init(pForm, svcToSubmit, Svc.title, &errBuf)) {
-            //
-            // If there was no batching Descriptors then set as an error
-            //
             reqSetInfo(req, eQPInfoLevel_Error, "Incorrect or missing batch parameters: %s", errBuf.ptr());
             reqSetStatus(req, eQPReqStatus_ProgError);
             return 0;
@@ -862,7 +792,6 @@ idx SvcBatcher::OnExecute(idx req)
 
         idx howManySubmitted=0;
         idx numProcesses=0;
-//        for ( idx iv=0; iv<valueSets.dim() ; ++iv) {
         for(; batch_iter; ++batch_iter) {
             sVec< sUsrProc > procObjs;
             idx reqSub;
@@ -871,6 +800,10 @@ idx SvcBatcher::OnExecute(idx req)
             strObjList.cut(0);
             logOut(eQPLogType_Trace, "Trying to make form for value set %" DEC, batch_iter.getCurStep());
             batch_iter.makeForm(&submissionForm, svcToSubmit);
+            if( !batchReqProgress(&batch_iter, eCreatedForm) ) {
+                logOut(eQPLogType_Trace, "Killed");
+                return 0;
+            }
 
 #ifdef _DEBUG
             log.printf(0, "Created form for value set %" DEC ":\n", batch_iter.getCurStep());
@@ -900,10 +833,14 @@ idx SvcBatcher::OnExecute(idx req)
                 }
                 submittedProcessIDs[numProcesses++] = procObjs[0].Id();
                 logOut(eQPLogType_Info, "Created process for value set %" DEC ": %s", batch_iter.getCurStep(), strObjList.ptr());
+                if( !batchReqProgress(&batch_iter, eCreatedProcess) )  {
+                    logOut(eQPLogType_Trace, "Killed");
+                    return 0;
+                }
             }
 
             logOut(eQPLogType_Trace, "Trying to customize submission for value set %" DEC, batch_iter.getCurStep());
-            idx cntParallel=sHiveTools::customizeSubmission(&submissionForm, user, procObjs.dim() ? procObjs.ptr(0) : 0, &Svc, &log);
+            idx cntParallel=sHiveProc::customizeSubmission(&submissionForm, user, procObjs.dim() ? procObjs.ptr(0) : 0, &Svc, &log);
             if( !cntParallel ) {
                 logOut(eQPLogType_Error, "Failed to customize submission for value set %" DEC ": %s", batch_iter.getCurStep(), log.ptr());
                 if( ignore_errors ) {
@@ -919,9 +856,25 @@ idx SvcBatcher::OnExecute(idx req)
                 }
             }
             logOut(eQPLogType_Info, "Customized submission for value set %" DEC ": parallel count == %" DEC, batch_iter.getCurStep(), cntParallel);
+            if( !batchReqProgress(&batch_iter, eCreatedSubmission) )  {
+                logOut(eQPLogType_Trace, "Killed");
+                return 0;
+            }
 
+            static const idx STARTING_PRIORITY = 1;
+            sQPrideBase::reqMakePriorityCnts(priority_cnts, cntParallel, STARTING_PRIORITY, howManySubmitted);
+#ifdef _DEBUG
+            fprintf(stderr, "Subrequest priority counts: ");
+            for(idx i = 0; i < priority_cnts.dim(); i++) {
+                if( i ) {
+                    fprintf(stderr, "; ");
+                }
+                fprintf(stderr, "%" DEC " subrequests with priority %" DEC, priority_cnts[i].cnt, priority_cnts[i].priority);
+            }
+            fprintf(stderr, "\n");
+#endif
             logOut(eQPLogType_Trace, "Trying standardized submission for value set %" DEC, batch_iter.getCurStep());
-            err=sUsrProc::standardizedSubmission(this, &submissionForm, user, procObjs, cntParallel, &reqSub, &Svc, 0, &strObjList, &log);
+            err=sUsrProc::standardizedSubmission(this, &submissionForm, user, procObjs, cntParallel, &reqSub, &Svc, 0, &strObjList, &log, &priority_cnts);
             if( err ) {
                 logOut(eQPLogType_Error, "Failed to submit process for value set %" DEC ": %s", batch_iter.getCurStep(), log.ptr());
                 if( ignore_errors ) {
@@ -954,29 +907,32 @@ idx SvcBatcher::OnExecute(idx req)
 
             submittedGrpIDs[batch_iter.getCurStep()]=reqSub;
             ++stillRunning;
+
+            if( !batchReqProgress(&batch_iter, eStartedRequest) )  {
+                logOut(eQPLogType_Trace, "Killed");
+                return 0;
+            }
         }
 
-        // remember the list of submitted Ids here
         recordSubmittedProcessIDs(numProcesses);
 
-        if( selfService && doCreateProcesses ){
-            // Sets svc-batcher process to finished no matter what
-            reqProgress(batch_iter.getCurStep(), 100, 100);
-            reqSetStatus(req, eQPReqStatus_Done);// change the status
+        if( !batchReqProgress(&batch_iter, eDoneBatching) )  {
+            logOut(eQPLogType_Trace, "Killed");
+            return 0;
         }
-        else
+
+        if( selfService && doCreateProcesses ){
+            reqSetStatus(req, eQPReqStatus_Done);
+        } else {
             reqSetData(req,"submittedGrpIDs",submittedGrpIDs.dim()*sizeof(idx),submittedGrpIDs.ptr());
+        }
 
     }
     else {
 
 
-        // if it has already been submitted
-        // now we analyze the status
         for ( idx ig=0; ig<submittedGrpIDs.dim() ; ++ig) {
             sVec < idx > stat;
-            //grpGetStatus( submittedGrpIDs[ig], &stat,svcToWaitFor);
-            //grp2Req(submittedGrpIDs[ig], &waitedReqs, svcToWaitFor);
             grp2Req(req, &waitedReqs, svcToWaitFor, 0);
             if(waitedReqs.dim())reqGetStatus(&waitedReqs,&stat);
 
@@ -993,27 +949,31 @@ idx SvcBatcher::OnExecute(idx req)
 
     }
 
-    if(!selfService) {
-        if(alreadyDone+stillRunning+killed) {
-            reqProgress(batch_iter.getCurStep(), alreadyDone, alreadyDone + stillRunning + killed);
+    if( !selfService ) {
+        if( !batchReqProgress(&batch_iter, eDoneBatching) )  {
+            logOut(eQPLogType_Trace, "Killed");
+            return 0;
         }
 
         if(killed) {
             reqProgress(batch_iter.getCurStep(), 0, 100);
-            reqSetStatus(req, eQPReqStatus_ProgError); // change the status
+            reqSetStatus(req, eQPReqStatus_ProgError);
             return 0;
         }
     }
-//    else if( stillRunning) {
-//        reqReSubmit(req,60);
-//        return 0;
-//    }
 
-//    if(selfService) {
-//        reqSetProgress(req,valueSets.dim(), 100);
-//        reqSetStatus(req, eQPReqStatus_Done);// change the status
-//    }
     return 0;
+}
+
+idx SvcBatcher::batchReqProgress(BatchingIterator * batch_iter, SvcBatcher::EProgressStage stage)
+{
+    if( selfService ) {
+        idx progress_max = batch_iter->maxIterations() * eDoneBatching + 1;
+        idx progress = stage == eDoneBatching ? progress_max : batch_iter->getCurStep() * eDoneBatching + stage;
+        return sQPrideProc::reqProgress(batch_iter->getCurStep(), progress, progress_max);
+    } else {
+        return sQPrideProc::reqProgress(batch_iter->getCurStep(), alreadyDone, alreadyDone + stillRunning + killed);
+    }
 }
 
 void SvcBatcher::recordSubmittedProcessIDs(idx num)
@@ -1045,7 +1005,7 @@ void SvcBatcher::recordSubmittedProcessIDs(idx num)
 const char * SvcBatcher::prop2readableLog(sStr & out_buf, const char * prop_fmt_log)
 {
     sVarSet tbl;
-    sStr tmp_log; // ignored - if parsing prop format fails, let's simply return the raw string
+    sStr tmp_log;
     if( user->propSet(prop_fmt_log, 0, tmp_log, tbl, true) && tbl.rows && tbl.cols == 4 ) {
         idx pos = out_buf.length();
         idx ids_used = 0;
@@ -1106,27 +1066,3 @@ const char * SvcBatcher::prop2readableLog(sStr & out_buf, const char * prop_fmt_
     return prop_fmt_log ? prop_fmt_log : sStr::zero;
 }
 
-//idx SvcBatcher::getService (sStr & _tmp2) {
-//    sStr _tmp;
-//    _tmp.printf("%s", formValue("REFERER"));
-//    //sStr _tmp2;
-//    bool doNotRecord = true;
-//
-//    // Split out calling service
-//    for (idx i = 0; i < _tmp.length();i++) {
-//        char _tmpChar[2];
-//        _tmpChar[0] = *(_tmp.ptr(i));
-//        _tmpChar[1] = '\0';
-//        if (strcmp(_tmpChar, "=") != 0 && doNotRecord) continue;
-//        else {
-//            if (doNotRecord){
-//                doNotRecord = false;
-//                continue;
-//            }
-//            // need to read until hit &
-//            if (strcmp(_tmpChar, "&") == 0) return 1;
-//            else _tmp2.printf("%s", _tmpChar);
-//        }
-//    }
-//    return 0;
-//}

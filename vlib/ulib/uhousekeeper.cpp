@@ -38,11 +38,10 @@ using namespace slib;
 sRC sUsrHousekeeper::findObjsForPurge(const sUsr & admin, sVec<PurgedObj> & objs, idx max_cnt, idx max_age_days)
 {
     if( !admin.Id() || !admin.isAdmin() ) {
-        return sRC(sRC::eFinding, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eFinding, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
     }
 
     sVarSet objs_tbl;
-    // FIXME : switch to hardExpiration
     admin.db().getTable(&objs_tbl, "SELECT domainID, objID, ionID, creatorID FROM UPObj WHERE softExpiration IS NOT NULL AND DATEDIFF(NOW(), softExpiration) >= %" UDEC " ORDER BY softExpiration LIMIT %" UDEC, max_age_days, max_cnt);
 
     const idx objs_initial_dim = objs.dim();
@@ -70,7 +69,7 @@ sRC sUsrHousekeeper::findObjsForPurge(const sUsr & admin, sVec<PurgedObj> & objs
 sRC sUsrHousekeeper::findReqsForPurge(const sUsr & admin, sVec<PurgedReq> & reqs, idx max_cnt)
 {
     if( !admin.Id() || !admin.isAdmin() ) {
-        return sRC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
     }
 
     sRC rc;
@@ -109,7 +108,6 @@ sRC sUsrHousekeeper::findReqsForPurge(const sUsr & admin, sVec<PurgedReq> & reqs
         sHiveId id((udx)0, reqs_tbl.uval(ir, 1), 0);
         if( !seen_uproc_id.get(&id, sizeof(sHiveId)) ) {
             seen_uproc_id.set(&id, sizeof(sHiveId));
-            // sync process objects before killing their request
             sUsrProc uproc(admin, id);
             if( uproc.Id() && (udx)uproc.reqID() == req ) {
                 if( uproc.propSync() ) {
@@ -122,7 +120,7 @@ sRC sUsrHousekeeper::findReqsForPurge(const sUsr & admin, sVec<PurgedReq> & reqs
                     if( qp ) {
                         qp->logOut(sQPrideBase::eQPLogType_Error, "sUsrHousekeeper::findReqsForPurge() failed to sync process object %s", id.print());
                     }
-                    rc.set(sRC::eUpdating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
+                    RCSET(rc, sRC::eUpdating, sRC::eProcess, sRC::eOperation, sRC::eFailed);
                 }
             }
         }
@@ -139,7 +137,7 @@ sRC sUsrHousekeeper::findReqsForPurge(const sUsr & admin, sVec<PurgedReq> & reqs
 sRC sUsrHousekeeper::purgeObjs(sUsr & admin, const sVec<PurgedObj> & objs)
 {
     if( !admin.Id() || !admin.isAdmin() ) {
-        return sRC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
     }
 
     sQPrideBase * qp = admin.QPride();
@@ -172,7 +170,7 @@ sRC sUsrHousekeeper::purgeObjs(sUsr & admin, const sVec<PurgedObj> & objs)
 sRC sUsrHousekeeper::purgeReqs(const sUsr & admin, const sVec<PurgedReq> & reqs)
 {
     if( !admin.Id() || !admin.isAdmin() ) {
-        return sRC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
     }
 
     sQPrideBase * qp = admin.QPride();
@@ -203,14 +201,14 @@ sRC sUsrHousekeeper::purgeReqs(const sUsr & admin, const sVec<PurgedReq> & reqs)
         if( qp ) {
             qp->logOut(sQPrideBase::eQPLogType_Error, "sUsrHousekeeper::purgeReqs() failed to delete %" DEC " request(s) : %s", reqs.dim(), reqs_buf.ptr());
         }
-        return sRC(sRC::eExecuting, sRC::eDatabase, sRC::eCommand, sRC::eFailed);
+        return RC(sRC::eExecuting, sRC::eDatabase, sRC::eCommand, sRC::eFailed);
     }
 }
 
 sRC sUsrHousekeeper::purgeMisc(const sUsr & admin, idx limit)
 {
     if( !admin.Id() || !admin.isAdmin() ) {
-        return sRC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
     }
 
     sQPrideBase * qp = admin.QPride();
@@ -250,7 +248,7 @@ sRC sUsrHousekeeper::purgeMisc(const sUsr & admin, idx limit)
         if( qp ) {
             qp->logOut(sQPrideBase::eQPLogType_Error, "sUsrHousekeeper::purgeMisc() : failed");
         }
-        return sRC(sRC::eExecuting, sRC::eDatabase, sRC::eCommand, sRC::eFailed);
+        return RC(sRC::eExecuting, sRC::eDatabase, sRC::eCommand, sRC::eFailed);
     }
 }
 
@@ -376,12 +374,12 @@ class NameMaskMatcher
 sRC sUsrHousekeeper::purgeTempFiles(const sUsr & admin, const sVec<PurgedObj> & objs, const sVec<PurgedReq> & reqs)
 {
     if( !admin.Id() || !admin.isAdmin() ) {
-        return sRC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eFinding, sRC::eRequest, sRC::eUser, sRC::eNotAuthorized);
     }
 
     sQPrideBase * qp = admin.QPride();
     if( !qp ) {
-        return sRC(sRC::eFinding, sRC::ePath, sRC::ePointer, sRC::eNull);
+        return RC(sRC::eFinding, sRC::ePath, sRC::ePointer, sRC::eNull);
     }
 
     sDic<char> objs_dic;
@@ -426,7 +424,7 @@ sRC sUsrHousekeeper::purgeTempFiles(const sUsr & admin, const sVec<PurgedObj> & 
                             qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::purgeTempFiles() : deleted '%s' matching purged %s", filepath,  mask_matchers[im].print(buf));
                         } else {
                             qp->logOut(sQPrideBase::eQPLogType_Error, "sUsrHousekeeper::purgeTempFiles() : failed to delete '%s'", filepath);
-                            rc = sRC(sRC::eRemoving, sRC::eFile, sRC::eOperation, sRC::eFailed);
+                            rc = RC(sRC::eRemoving, sRC::eFile, sRC::eOperation, sRC::eFailed);
                         }
                         need_check_atime = false;
                         break;
@@ -440,7 +438,7 @@ sRC sUsrHousekeeper::purgeTempFiles(const sUsr & admin, const sVec<PurgedObj> & 
                             qp->logOut(sQPrideBase::eQPLogType_Warning, "sUsrHousekeeper::purgeTempFiles() : deleted '%s' for age (atime %s < now - %" DEC " days)", filepath, sString::printDateTime(buf, atime), cleanup_days);
                         } else {
                             qp->logOut(sQPrideBase::eQPLogType_Error, "sUsrHousekeeper::purgeTempFiles() : failed to delete '%s'", filepath);
-                            rc = sRC(sRC::eRemoving, sRC::eFile, sRC::eOperation, sRC::eFailed);
+                            rc = RC(sRC::eRemoving, sRC::eFile, sRC::eOperation, sRC::eFailed);
                         }
                     }
                 }

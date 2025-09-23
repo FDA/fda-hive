@@ -34,7 +34,7 @@ if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
 function vjD3JS_ParallelCoord ( viewer )
 {
     loadCSS("d3js/css/parcoords_plot.css");
-    vjD3View.call(this,viewer); // inherit default behaviors of the DataViewer
+    vjD3View.call(this,viewer);
     
     this.data=viewer.data;
     viewer.marin ? this.margin = viewer.margin : this.margin = {top: 30, right: 30, bottom: 50, left: 30};
@@ -52,7 +52,7 @@ function vjD3JS_ParallelCoord ( viewer )
     viewer.idCol ? this.idCol = viewer.idCol : this.idCol = undefined;
     viewer.keyColorPhrase ? this.keyColorPhrase = viewer.keyColorPhrase : this.keyColorPhrase = "";
     
-    var that = this;
+    that = this;
     this.d3Compose=function(content)
     {
         var margin = this.margin,
@@ -66,7 +66,6 @@ function vjD3JS_ParallelCoord ( viewer )
         var line = d3.svg.line()
                     .interpolate("monotone"),
             axis = d3.svg.axis().orient("left"),
-            background,
             foreground;
         
 
@@ -93,7 +92,7 @@ function vjD3JS_ParallelCoord ( viewer )
         
         var weightColDictionary = {};
         
-        if (typeof this.weightCol.col == "number")//if a number was passed in
+        if (typeof this.weightCol.col == "number")
             this.weightCol.name = tblArr.hdr[this.weightCol.col].name;
         
         for (var i = 0; i < tblArr.rows.length; i++)
@@ -127,7 +126,7 @@ function vjD3JS_ParallelCoord ( viewer )
             if (this.weightCol instanceof Object)
             {
                 var cellValue = tblArr.rows[i][this.weightCol.name];
-                var value = parseFloat(cellValue.split(this.weightCol.splitBy)[this.weightCol.indexBy]);
+                var value = parseFloat(cellValue.split(this.weightCol.splitBy)[this.weightCol.indexBy ? this.weightCol.indexBy : 0]);
                 weightColDictionary[weightKey] += value;
             }
             else
@@ -186,8 +185,7 @@ function vjD3JS_ParallelCoord ( viewer )
             .range(this.colors)
             .interpolate(d3.interpolateLab);
         
-        
-        //here we need to get rid of all of the columns which will not be used to generate the data
+            that = this;
         for (var i = 0; i < dataSet.length; i++)
         {
             var curRow= dataSet[i];
@@ -196,15 +194,12 @@ function vjD3JS_ParallelCoord ( viewer )
             for (var key in curRow)
             {
                 k++;
-                //if (key == labelColName.name || key == this.weightCol) continue;
                 if (this.colSet == undefined || findInColSet (key, k))
                 {
                     var actualIndex = tblArrHdr.indexOf(key);
                     if (colDictionary[actualIndex].length > 0)
-                        curRow[key] = colDictionary[actualIndex].indexOf(curRow[key]);
+                        curRow[key] = colDictionary[actualIndex].length - colDictionary[actualIndex].indexOf(curRow[key]);
                 }
-                /*else
-                    curRow[key]="";*/
             }
         }
         
@@ -217,9 +212,8 @@ function vjD3JS_ParallelCoord ( viewer )
                 finalLabelArray.push(colDictionary[i][j]);
         }
     
-          // Extract the list of dimensions and create a scale for each.
         x.domain(dimensions = d3.keys(dataSet[this.labelCol]).filter(function(d,i) {
-            return /*(d != labelColName.name) && */(that.colSet == undefined || findInColSet (d,i)) && (y[d] = d3.scale.linear()
+            return(that.colSet == undefined || findInColSet (d,i)) && (y[d] = d3.scale.linear()
                 .domain(d3.extent(dataSet, function(p) { return +p[d]; }))
                 .range([height, 0]));
         }));
@@ -235,27 +229,18 @@ function vjD3JS_ParallelCoord ( viewer )
                 if (name == that.colSet[i].colName) return true;
             }
         }
-
-      // Add grey background lines for context.
-      background = svg.append("g")
-          .attr("class", "background")
-        .selectAll("path")
-              .data(dataSet)
-        .enter().append("path")
-            .attr('stroke-width', 0.8)
-              .attr('stroke', "#eaeaea")
-            .attr("d", path);
       
       var lineFunction = d3.svg.line()
          .interpolate("cardinal");
 
-      // Add blue foreground lines for focus.
+    
       foreground = svg.append("g")
           .attr("class", "foreground")
           .selectAll("path")
               .data(dataSet)
           .enter().append("path")
               .attr('stroke-width', function (d, i) {
+                var toReturn = -1; 
                   if (that.accumulateWeight)
                   {
                       var curD = dataSetNotConverted[i];
@@ -266,13 +251,30 @@ function vjD3JS_ParallelCoord ( viewer )
                         if (that.colSet[j].colName && tblArrIndexOf(tblArr, that.colSet[j].colName) >=0)
                             weightKey += curD[that.colSet[j].colName] + ":";
                     }
-                    
-                    return Math.log2( weightColDictionary[weightKey])==-Infinity ? 0.5 : 0.5+Math.log2( weightColDictionary[weightKey]);
+
+                    if(that.customizeLines && that.customizeLines.hide0 && weightColDictionary[weightKey] == 0){
+                        toReturn = 0;
+                    }
+                    else  toReturn = Math.log2( weightColDictionary[weightKey])==-Infinity ? 0.5 : 0.5+Math.log2( weightColDictionary[weightKey]);
                   }
+                  if (!that.accumulateWeight)
+                    toReturn = Math.log2(d[that.weightCol])==-Infinity ? 0.5 : 0.5+Math.log2(d[that.weightCol]);
+
+                if(that.exceptionalRows && that.customizeLines && that.customizeLines.bold){
+                    if(that.exceptionalRows[i]){
+                        return 4;
+                    }
+                    if(toReturn == 0) return 0;
+                    return 0.5;
+                }
                   
-                  return Math.log2(d[that.weightCol])==-Infinity ? 0.5 : 0.5+Math.log2(d[that.weightCol]); 
+                return toReturn;
               })
-              .attr('stroke', function(d) {
+              .attr('stroke', function(d, i) {
+                if(that.exceptionalRows && that.customizeLines && that.customizeLines.color && that.exceptionalRows[i]){
+                    if(that.customizeLines.colorValue) return that.customizeLines.colorValue;
+                    else return "#000";
+                }
                   if (typeof d[rangeColName.name] == "string")
                   {
                       var cellValue = d[rangeColName.name];
@@ -306,7 +308,6 @@ function vjD3JS_ParallelCoord ( viewer )
                   (d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
         .on("mouseout", function(){return tooltip.style("visibility", "hidden");});
 
-      // Add a group element for each dimension.
       var g = svg.selectAll(".dimension")
           .data(dimensions)
           .enter().append("g")
@@ -318,7 +319,6 @@ function vjD3JS_ParallelCoord ( viewer )
                     return {x: x(d)}; })
                 .on("dragstart", function(d) {
                   dragging[d] = x(d);
-                  background.attr("visibility", "hidden");
                 })
                 .on("drag", function(d) {
                   dragging[d] = Math.min(width, Math.max(0, d3.event.x));
@@ -331,44 +331,63 @@ function vjD3JS_ParallelCoord ( viewer )
                   delete dragging[d];
                   transition(d3.select(this)).attr("transform", "translate(" + x(d) + ")");
                   transition(foreground).attr("d", path);
-                  background
-                      .attr("d", path)
-                    .transition()
-                      .delay(500)
-                      .duration(0)
-                      .attr("visibility", null);
                 }));
+      
 
-      // Add an axis and title.
-      g.append("g")
-          .attr("class", "axis")
-          .each(function(d) { 
-              d3.select(this).call(axis.scale(y[d]).ticks(colDictionary[tblArrIndexOf(tblArr, d)].length)); })
-        .append("text")
-          .style("text-anchor", "middle")
-          .attr("y", -9)
-          .text(function(d) { 
-              return d; })
-          .on("click",function(d) {
-              that.keyColorColName = "";
-              that.rangeCol=tblArrIndexOf(tblArr, d);
-              that.refresh();}
-          );
-              //return d.substring (0, d.indexOf("-label")); }); //this just places the labels on the axis. This is not the tick values
+    let fontWeight = that.fontOptions && that.fontOptions.weight ? that.fontOptions.weight : 'normal';
+    let fontSize = that.fontOptions && that.fontOptions.size ? that.fontOptions.size : '12';
+    let tickLength = that.fontOptions && that.fontOptions.tickLength ? that.fontOptions.tickLength : 58;
+    g.append("g")
+        .attr("class", "y axis")
+        .attr("style", `font-family: sans-serif; font-weight: ${fontWeight}; font-size: ${fontSize}px`)
+        .each(function(d) { 
+            d3.select(this).call(axis.scale(y[d]).ticks(colDictionary[tblArrIndexOf(tblArr, d)].length)); })
+    .append("text")
+        .attr("style", `font-size: 14px`)
+        .style("", "end")
+        .attr("y", -9)
+        .text(function(d) { 
+            return d; })
+        .on("click",function(d) {
+            that.keyColorColName = "";
+            that.rangeCol=tblArrIndexOf(tblArr, d);
+            that.refresh();
+        }
+        );
 
       
-      d3.selectAll(".axis")
+    d3.selectAll(".axis")
           .each(function(curCol){
-              d3.select(this).selectAll(".tick").selectAll("text")
-              .text(function (d,i,j){
-                  var x;
-                  for (x=0; x < tblArr.hdr.length; x++)
-                      if (tblArr.hdr[x].name == curCol) break;
-                  return colDictionary[x][d];
+            let x;
+            for (x=0; x < tblArr.hdr.length; x++)
+                if (tblArr.hdr[x].name == curCol) break;
+            let ticklength = parseInt(tickLength);
+            d3.select(this).selectAll(".tick").selectAll("line")
+                .attr("x2" , function(d){
+                    let remainder = d % 2;
+                    if(remainder ==  0) return x == 0 ? -(ticklength+5) : x == 1 ? (ticklength+5) : 0;
+                    return x == 0 ? -6 : x == 1 ? 6 : 0;;
+                })
+                .attr('stroke' , "black" )
+                ;
+            
+            d3.select(this).selectAll(".tick").selectAll("text")
+              .text(function (d){
+                var toReturn = colDictionary[x][colDictionary[x].length - d];
+                if (that.trimTextCallback) toReturn = that.trimTextCallback(toReturn);
+
+                d3.select(this)
+                    .attr("x", `${ x == 0 ? '-9' : '9' }`)
+                    .attr("style", `text-anchor: ${ x == 0 ? 'end' : 'start' }`)
+                    .attr("transform" , function(){
+                        let remainder = d % 2;
+                        if(remainder ==  0) return `translate( ${  x == 0 ? -ticklength : ticklength }, 0 )`;
+                        return `translate( 0 , 0)`;
+                    });
+                  return toReturn;
               });
           })
       
-      // Add and store a brush for each axis.
       g.append("g")
           .attr("class", "brush")
           .each(function(d) {
@@ -387,9 +406,6 @@ function vjD3JS_ParallelCoord ( viewer )
           return g.transition().duration(500);
         }
     
-        // Returns the path for a given data point.
-        //gotta figure out how to make the line's interpolations = "basis"
-        //wasn't able to do it
         function path(d) {
           var l = line(dimensions.map(function(p) { return [position(p), y[p](d[p])]; }));
           return l;
@@ -399,7 +415,6 @@ function vjD3JS_ParallelCoord ( viewer )
           d3.event.sourceEvent.stopPropagation();
         }
     
-        // Handles a brush event, toggling the display of foreground lines.
         function brush() {
           var actives = dimensions.filter(function(p) { return !y[p].brush.empty(); }),
               extents = actives.map(function(p) { return y[p].brush.extent(); });
@@ -512,14 +527,12 @@ function vjD3JS_ParallelCoordAC_Control ( viewer )
         else{
             ttThis.graph.dataCol = 2;
             ttThis.graph.rangeCol = 2;
-            //ttThis.graph.labelCol = idCol;
             ttThis.graph.colSet = [{colIndex:0, strings:true},{colIndex:1, strings:true},{colIndex:2, strings:true}];
             ttThis.graph.weightCol = {col:0};
             ttThis.graph.keyColorColName = "count";
         }
         vjDS["dsGraphDS"].reload (vjDS[val].url, true);
         vjDS.dsGraphDS.register_callback (callRefresh);
-        //ttThis.graph.refresh(vjDS[val].data);
         
         function callRefresh(a,b,c,d){
             ttThis.graph.refresh();

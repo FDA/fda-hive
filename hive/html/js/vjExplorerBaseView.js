@@ -56,20 +56,18 @@ function vjExplorerBaseView(viewer)
 
     if(!this.idtype)
         this.idtype='id';
-        //Register the viewer
     if(!this.container)
         this.container="dvExplorer"+Math.random();
     this.objCls=this.container.replace(/\W/g, "_");
     vjObj.register(this.objCls,this);
-    //Generate DV names out to container or use the names provided
     if(!this.folderURL){
         if(this.qryLang){
-            this.folderURL =  "http://?cmd=objQry&qry=";
+            this.folderURL =  "http:
             var objQrytxt="alloftype('sysfolder|folder')";
             if(this.partialFolderLoading ){
                 objQrytxt="[alloftype('sysfolder'),(alloftype('sysfolder')";
                 if(this.visitedFolders && this.visitedFolders.length)
-                    objQrytxt+= ".append(["+this.visitedFolders.join(',')+"] as objlist) ";
+                    objQrytxt+= '.append(["' + this.visitedFolders.join('","') + '"] as objlist) ';
                 objQrytxt+=") .map({.child = (.child as objlist).filter({._type=='folder'})}).reduce(function(x,y){x.append(y)})]";
                 objQrytxt+=".reduce(function(x,y){x.append(y)})" ;
             }
@@ -77,7 +75,7 @@ function vjExplorerBaseView(viewer)
             this.folderURL += vjDS.escapeQueryLanguage(objQrytxt);
         }
         else
-            this.folderURL =  "http://?cmd=objList&type=sysfolder,folder&actions=1&cnt=1000000&prop=_type,name,child&mode=csv&showtrash=true";
+            this.folderURL =  "http:
     }
     if(!this.tablesUrlTmplt) {
         this.tablesUrlTmplt = undefined;
@@ -116,12 +114,10 @@ function vjExplorerBaseView(viewer)
             onlyPopup:true, role: 'output',  align: 'left'
     };
 
-    // Will return the vjTableView of the right section from the (tabI)th tab
 
     this.init=function ( )
     {
 
-        // if the DIVs are not defined ... generate them on the fly
         var cnt=0;
         var cont_Div = gObject(this.container);
         var cont_Folders_Div = gObject(this.container_Folders);
@@ -132,14 +128,8 @@ function vjExplorerBaseView(viewer)
             var html = "<table border='0' width='100%' class='HIVE_bar'>";
             html +="<tr>";
             if( !this.isNdisplay_Info ) {
-                var hrf="";//"javascript:var a=gObject('"+this.objCls+"Info');alerJ('aa',a);if(a)a.style.display='none';";
+                var hrf="";
                 html = "<table border='0' width='100%' class='HIVE_bar'>";
-                /*
-                html +="<tr id='"+this.objCls+"Info' class='Explorer_info' onclick='javascript:this.style.display=\"none\";'>";
-                html += "<td class='HIVE_sect1' width='1%' style='vertical-align: top;' colspan='2'>" +
-                                "<img src='img/delete.gif' height='10' border='0' style='float:left;cursor:pointer;'>" +
-                        "Press and hold Ctrl or Shift button to select multiple rows" +
-                                "</td></tr><tr>";*/
                 html+="<tr>";
             }
             html += "<td class='HIVE_sect1' style='vertical-align: top;' "+(this.isNdisplay_Previews?"":"rowspan='2'")+"'>";
@@ -227,7 +217,6 @@ function vjExplorerBaseView(viewer)
             }
         }
 
-        // init Data Sources
         this.init_DS();
 
         if(this.folders_DV)
@@ -242,15 +231,36 @@ function vjExplorerBaseView(viewer)
     this.init_DS=function()
     {
         this.dsFolders=this.vjDS.add("infrastructure: Folders", "ds"+this.container+"Folders", this.folderURL);
-        this.dsFoldersToolbar=this.vjDS.add("infrastructure: Folders Toolbar", "ds"+this.container+"FoldersToolbar","static:// ");
-        this.dsFoldersHelp=this.vjDS.add("infrastructure: Folders Help", "ds"+this.container+"FoldersHelp","http://help/hlp.page.newhome.html");
-        this.dsTablesHelp=this.vjDS.add("infrastructure: Files and sequences help documentation", "ds"+this.container+"TablesHelp","http://help/hlp.page.home.filesAndSequences.html");
-        this.dsPreviewsHelp=this.vjDS.add("infrastructure: Preview help documentation", "ds"+this.container+"PreviewsHelp","http://help/hlp.page.home.filesAndSequences.html");
-        this.dsPreviewsRecord=this.vjDS.add("infrastructure: Loading Objects Metadata Information", "ds"+this.container+"PreviewsRecord" , "static://preview:Select objects to see detail metadata" );
-        this.dsPreviewsJson=this.vjDS.add("infrastructure: Loading Objects Metadata Information (JSON)", "ds"+this.container+"PreviewsJson" , "static://preview:Select objects to see detail JSON metadata");
-        this.dsPreviewsSpec=this.vjDS.add("infrastructure: Obect Specifications","ds"+this.container+"PreviewsSpec" , "static:// " );
-        this.dsPreviewsUserTree = this.vjDS.add("infrastructure: Retrieving User/Group Hierarchy", "ds"+this.container+"UserTree", "http://?cmd=grpList&raw=1&usr=1&grp=1");
-        this.dsPreviewsUserList = this.vjDS.add("infrastructure: Retrieving User List", "ds"+this.container+"UserList", "http://?cmd=usrList&grp=0raw=1");
+        this.dsFoldersToolbar=this.vjDS.add("infrastructure: Folders Toolbar", "ds"+this.container+"FoldersToolbar","static:
+        this.dsFoldersHelp=this.vjDS.add("infrastructure: Folders Help", "ds"+this.container+"FoldersHelp","http:
+        this.dsTablesHelp=this.vjDS.add("infrastructure: Files and sequences help documentation", "ds"+this.container+"TablesHelp","http:
+        this.dsPreviewsHelp=this.vjDS.add("infrastructure: Preview help documentation", "ds"+this.container+"PreviewsHelp","http:
+        this.dsPreviewsRecord=this.vjDS.add("infrastructure: Loading Objects Metadata Information", "ds"+this.container+"PreviewsRecord" , "static:
+        this.dsPreviewsJson=this.vjDS.add("infrastructure: Loading Objects Metadata Information (JSON)", "ds"+this.container+"PreviewsJson" , "static:
+        this.dsPreviewsSpec=this.vjDS.add("infrastructure: Obect Specifications","ds"+this.container+"PreviewsSpec" , "static:
+        this.dsPreviewsUserTree = this.vjDS.add("infrastructure: Retrieving User/Group Hierarchy", "ds"+this.container+"UserTree", "http:
+        this.dsPreviewsUserList = this.vjDS.add("infrastructure: Retrieving User List", "ds"+this.container+"UserList", "http:
+        let this_container = this.container;
+        this.vjDS["ds"+this_container+"PreviewsJson"].register_callback(function(obj,data){
+            
+            function maskInfo (key, value) {
+                if (key == "external_password" || key == "password" || key == "pswd" || key == "passw" || key == "pass" || (typeof value=== 'string' && value.indexOf('password') > -1) ){  return '****' };
+                return value;
+            }
+            data = parseJSON(data);
+            
+            if (typeof data === 'object'){
+                let jsonViewer = new JSONViewer();
+                
+                data = JSON.stringify( data , maskInfo, ' ');
+                data = parseJSON(data);
+                
+                jsonViewer.showJSON(data, null, 1);
+                data = jsonViewer._dom_container;
+            }
+            
+            vjDS["ds"+this_container+"PreviewsJson"].data = data;
+        })
     };
 
     this.destroyDS=function()
@@ -344,13 +354,25 @@ function vjExplorerBaseView(viewer)
                 data: [ "dsVoid", this.dsPreviewsRecord.name ],
                 rows: [
                     { name : 'refresh', icon : 'img/48/refresh.png', title : 'Reload sharing permissions', url : "javascript:vjObjEvent(\"onRefreshSharing\",\"" + this.objCls + "\")"},
-                    { name : 'edit', icon : 'edit.png', title : 'Edit sharing permissions' }
+                    { name : 'edit', icon : 'edit.png', title : 'Edit sharing permissions', hidden : false }
                 ],
                 precompute: function(viewer, tbl, ir) {
                     var node = tbl.rows[ir];
                     if (node.name == "edit") {
                         var record_tbl = new vjTable(viewer.getData(1).data, 0, vjTable_propCSV);
-                        if (record_tbl.rows.length && record_tbl.rows[0]._action && record_tbl.rows[0]._action.match("share")) {
+                        
+                        let to_match;
+                        if(viewer.getData(1).dataurl.indexOf('actions=2')){
+                            let action_tbl = new vjTable(vjDS.dsActions.data, 0 , vjTable_propCSV);
+                            let share = action_tbl.rows.filter(function(action){ 
+                                            if(action.name === 'share') to_match = action.id;
+                                            return action.name === 'share'
+                                        })
+                        }else{
+                            to_match = "share"
+                        }
+                        
+                        if (record_tbl.rows.length && record_tbl.rows[0]._action && record_tbl.rows[0]._action.match(to_match)) {
                             node.hidden = node.treenode.hidden = false;
                             node.url = node.treenode.url = "javascript:vjObjEvent(\"onEditSharing\",\"" + this_.objCls + "\",\"" + sanitizeStringJS(record_tbl.rows[0].id) + "\")";
                         } else {
@@ -389,7 +411,7 @@ function vjExplorerBaseView(viewer)
 
         this.previews_DV.add("JSON", "rec", "tab",
             [
-                new vjTextView({
+                new vjHTMLView({
                     data: this.dsPreviewsJson.name,
                     isok: true
                 })
@@ -399,7 +421,7 @@ function vjExplorerBaseView(viewer)
     this.init_Submit_viewers=function()
     {
         var rows=[{ name : 'display', type : 'text', title : 'Select object(s) to add', value : 'Select object(s) to add', align:'right', readonly:true, size:80, prefix:'Selected object(s):  ', order : 1},
-                { name : 'submit', type : 'button', value:'Submit', align: 'right' , order : 2, url : "javascript:vjObjEvent(\"onSubmitObjs\",\"" + this.objCls + "\")"},
+                { name : 'submit', type : 'button', value:'Select', align: 'right' , order : 2, url : "javascript:vjObjEvent(\"onSubmitObjs\",\"" + this.objCls + "\")"},
                 { name : 'clear', type : 'button', value:'Clear', align: 'right' , order : 3, url : "javascript:vjObjEvent(\"onClearSubmitObjs\",\"" + this.objCls + "\")"}
                 ];
 
@@ -416,7 +438,6 @@ function vjExplorerBaseView(viewer)
 
     this.init_Tables_viewers=function()
     {
-
         for ( var iS = 0; iS < this.subTablesAttrs.length; ++iS)
         {
             var curAttrs = this.subTablesAttrs[iS];
@@ -457,22 +478,17 @@ function vjExplorerBaseView(viewer)
         }
         
         if( this.tables_DV.frame!='notab' ) {
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             if( !this.isNoUpload ) {
                 vjPAGE.initStandardDownloader(this.subTableDefault.dvname,this.objCls+"Downloader", this.subTableDefault.formname,"dmDownloader.cgi?cmd=-qpProcSubmit&svc=dmDownloader");
                 vjPAGE.uploaderSubmitCallback = function (from, tabWord, qty){
                     if (qty){
-                        //for now, not sure how to handle switching tabs just yet
-                        //that.selectDataLoading();
                     }
                 };
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
             var tabname = "help", tabico = "help";
             var dsname = 'ds-' + this.subTableDefault.dvname + '-' + tabname;
-            var dsurl = "http://help/hlp.page.home.cloudProcesses.html";
+            var dsurl = "http:
             if (this[dsname] !== undefined)
                 dsurl = this[dsname];
 
@@ -493,12 +509,10 @@ function vjExplorerBaseView(viewer)
         }, 500);
     };
     
-    //Initialize containers of viewers
     this.viewerFSTree=new Object();
     this.viewerFSTable=new Array();
     this.viewerFSPanel = new Array();
 
-    //Initialize default attributes of table viewers
     if(!this.subTableDefault)this.subTableDefault={
         dvname      : this.container_Tables,
         tabname     : "All",
@@ -512,9 +526,8 @@ function vjExplorerBaseView(viewer)
         addCmd      : this.addCmd,
         category    : null,
         objId        : 'parIds',
-        url_tmplt   : "http://?cmd=objList&mode=csv&actions=1&parIds=id&parP=child&prop=_type,_summary,created,category&info=1&cnt=50",
-        objQry_tmplt   : '($(explorer_folder) as objlist).filter({._type=="svc-align-multiple"}).csv(["_type","_brief","created"],{start:$(explorer_start),cnt:$(explorer_cnt),info:true})',
-        url         : "static://preview:Select a folder to see its content",
+        url_tmplt   : "http:
+        url         : "static:
         dbClickCallback     : "function:vjObjFunc('onDoubleClickFile','" + this.objCls + "')",
         selectCallback      : "function:vjObjFunc('onSelectFile','" + this.objCls + "')",
         CloneDragCallback   : "function:vjObjFunc('setCloneDrag','" + this.objCls + "')",
@@ -563,15 +576,6 @@ function vjExplorerBaseView(viewer)
         if(this.submit_DV){
             this.submit_DV.load(loadmode);
             this.viewerFSSubmit=this.vjDV.locate(this.container_Submit+".0.0");
-//            
-//            if( this.viewerFSSubmit && this.viewerFSSubmit.tree ) {
-//                var dispnode = this.viewerFSSubmit.tree.findByName('display');
-//                if(dispnode){
-//                    var tt = this.getSelectedObjsStats();
-//                    dispnode.value=tt;
-//                    this.viewerFSSubmit.refresh(dispnode);
-//                }
-//            }
         }
     };
     
@@ -588,7 +592,7 @@ function vjExplorerBaseView(viewer)
         delete this.id2iselectedObj;
         
         this.viewerFSActiveTable = this.getActiveViewer();
-        this.viewerFSActiveTable.enumerate("node.selected=0;");
+        this.viewerFSActiveTable.enumerate(function(params,tbl,ir){var node = tbl.rows[ir]; node.selected=0;});
         this.viewerFSActiveTable.refresh();
         var dispnode = this.viewerFSSubmit.tree.findByName('display');
         if(dispnode) {
@@ -598,9 +602,6 @@ function vjExplorerBaseView(viewer)
     };
 
     this.onSubmitObjs = function(view) {
-//        if( !this.selectedObjs ){
-//            return;
-//        }
         var func = this.onSubmitObjsCallback;
         if(func) {
             funcLink(func, view, this.selectedObjs);
@@ -609,8 +610,10 @@ function vjExplorerBaseView(viewer)
     
     this.onSelectFolder = function(view, node, content )
     {
-        if ( (!node.selected || this.currentFolder==this.viewerFSTree.currentFolder) && !this.viewerFSTree.selectedNodeContentChanged)
+        if ( (!node.selected || this.currentFolder==this.viewerFSTree.currentFolder) && !this.viewerFSTree.selectedNodeContentChanged){
             return false;
+        }
+
         user_setvar("curdir_open",node.id);
         if( this.useCookies ) {
             cookieSet('explorer_curdir_open', node.id, 1);
@@ -618,16 +621,12 @@ function vjExplorerBaseView(viewer)
 
         this.viewerFSTree.selectedNodeContentChanged=false;
 
-        if(view.currentFolder)
+        if(view.currentFolder){
             this.currentFolder = view.currentFolder;
+        }
         var added_prop=undefined;
-//        if(0)if(this.currentFolder==this.viewerFSTree.systemFolder.all.path || (this.viewerFSTree.systemFolder.Trash && this.currentFolder==this.viewerFSTree.systemFolder.Trash.path) )
-    //if(this.currentFolder==this.viewerFSTree.systemFolder.All.path || this.currentFolder==this.viewerFSTree.systemFolder.Trash.path)
-//            added_prop="_parent";
-        if(this.qryLang)
-            this.queryArrivedCallback_QryLang(node,content,added_prop);
-        else
-            this.queryArrivedCallback(node,content,added_prop);
+
+        this.queryArrivedCallback(node,content,added_prop, this.qryLang);
 
         var src_arr = this.currentFolder.split("/");
         var currentFolderID=src_arr.pop();
@@ -639,7 +638,7 @@ function vjExplorerBaseView(viewer)
             if(!this.viewerFSPanel[i].evalVariables) {
                 this.viewerFSPanel[i].evalVariables = new Object();
             }
-            this.viewerFSPanel[i].evalVariables.srcFolder = currentFolderID;// == this.viewerFSTree.systemFolder.all.id  ? this.viewerFSTree.systemFolder.all.id :currentFolderID;
+            this.viewerFSPanel[i].evalVariables.srcFolder = currentFolderID;
             this.viewerFSPanel[i].evalVariables.dcls = this.objCls;
         }
         if(!this.viewerFSTreePanel.evalVariables) {
@@ -651,9 +650,6 @@ function vjExplorerBaseView(viewer)
 
 
 
-    ///////////////////////////////////////////////////////////////////////////
-    //                          File viewers Dependencies                    //
-    ///////////////////////////////////////////////////////////////////////////
     this.precomputeTable = function(node,tbl)
     {
         var icon=vjHO.get(node._type,'icon',node.category);
@@ -708,18 +704,32 @@ function vjExplorerBaseView(viewer)
     };
 
     this.onSelectFile = function(viewer, node, ir, ic , column ) {
+            
+        if( ( node.submitter && column==-1 || (column && (column.name=="reqID" || column.name=="status")) ) && node) {
+            let actions = Array.isArray(node._action) ? node._action.join(',') : node._action ;
+            actions = typeof actions === 'string' ? actions.split(',') :  [];
 
-        if(node && node.submitter ){
-
-            if(column==-1 || (column && (column.name=="reqID" || column.name=="status")) ) {
-
-                linkURL("?cmd="+node.submitter+"&id="+node.id,"process"+node.id);
+            let tree_root_kids = viewer.objectsDependOnMe[0].tree.root.children;
+            
+            if(actions.length > 0){
+                let url ;
+                for( let i = 0 ;  i < tree_root_kids.length ; i ++ ){
+                    let kid = tree_root_kids[i];
+                    let kid_id = kid.id ? kid.id.toString() : null ;
+                    if(kid_id != null && actions.indexOf(kid_id) >= 0 && parseBool(kid.is_default)){
+                        node.ids = node.id;
+                        url = evalVars(kid.url,"$(",")", node);
+                        
+                        let target =  kid.target === 'new' ? '_blank' : kid.target;
+                        linkURL(makeCmdSafe(url),target)
+                        break;
+                    }
+                }
             }
         }
 
         if(this.previews_DV){
             if(!node || !node.selected)node=null;
-
             var comp={obj:this.previews_DV};
             var rmtabs=[];
             for(var it=0 ; it<this.previews_DV.tabs.length ; ++it){
@@ -746,15 +756,15 @@ function vjExplorerBaseView(viewer)
             this.selectedTabName = this.previews_DV.tabs[selectedTab]?this.previews_DV.tabs[selectedTab].name:undefined;
             
             if(node) {
-                this.dsPreviewsSpec.reload("http://?cmd=propspec&type="+node._type);
+                this.dsPreviewsSpec.reload("http:
 
                 if(this.appendUserPerspective){
-                    this.dsPreviewsRecord.reload("http://?cmd=propget&mode=csv&perm=1&actions=1&ids="+node.id+"&userPerspective="+viewer.userId);
-                    this.dsPreviewsJson.reload("http://?cmd=propget&mode=json&ids="+node.id+"&userPerspective="+viewer.userId);
+                    this.dsPreviewsRecord.reload("http:
+                    this.dsPreviewsJson.reload("http:
                     node.userId = viewer.userId;
                 } else {
-                    this.dsPreviewsRecord.reload("http://?cmd=propget&mode=csv&perm=1&actions=1&ids="+node.id);
-                    this.dsPreviewsJson.reload("http://?cmd=propget&mode=json&ids="+node.id);
+                    this.dsPreviewsRecord.reload("http:
+                    this.dsPreviewsJson.reload("http:
                 }
 
                 var rv=this.previews_DV.tabs[selectedTab].viewers[0];
@@ -785,7 +795,6 @@ function vjExplorerBaseView(viewer)
                 }
             }
 
-//            this.previews_DV.select(0);
 
         }
         if(this.isSubmitMode) {
@@ -799,8 +808,30 @@ function vjExplorerBaseView(viewer)
                 this.selectedObjs= [];
                 this.id2iselectedObj = {};
             }
-            this.viewerFSActiveTable.enumerate("if(params.id2iselectedObj[node.id] && !node.selected) { params.selectedObjs.splice(params.id2iselectedObj[node.id], 1); delete params.id2iselectedObj[node.id]; }" +
-                                                "else if( node.selected && params.id2iselectedObj[node.id] == undefined) { params.id2iselectedObj[node.id] = params.selectedObjs.length; params.selectedObjs.push(node); }", {selectedObjs: this.selectedObjs, id2iselectedObj: this.id2iselectedObj});
+            function a(paranms, node) {
+                if (params.id2iselectedObj[node.id] && !node.selected) {
+                    params.selectedObjs.splice(params.id2iselectedObj[node.id],
+                            1);
+                    delete params.id2iselectedObj[node.id];
+                } else if (node.selected
+                        && params.id2iselectedObj[node.id] == undefined) {
+                    params.id2iselectedObj[node.id] = params.selectedObjs.length;
+                    params.selectedObjs.push(node);
+                }
+            }
+            this.viewerFSActiveTable.enumerate( function(params, tbl, ir) {
+                var node = tbl.rows[ir];
+                if (params.id2iselectedObj[node.id] && !node.selected) {
+                    params.selectedObjs.splice(params.id2iselectedObj[node.id],
+                            1);
+                    delete params.id2iselectedObj[node.id];
+                } else if (node.selected
+                        && params.id2iselectedObj[node.id] == undefined) {
+                    params.id2iselectedObj[node.id] = params.selectedObjs.length;
+                    params.selectedObjs.push(node);
+                }
+            }, {selectedObjs: this.selectedObjs, id2iselectedObj: this.id2iselectedObj});
+
             
             var tt = this.getSelectedObjsStats();
             var dispnode = this.viewerFSSubmit.tree.findByName('display');
@@ -844,14 +875,6 @@ function vjExplorerBaseView(viewer)
                 this.onSelectFile(viewer, tnode, ir, ic , column );
             isDblSubmit = true;
         }
-//        
-//        if(node===undefined && !isDblSubmit){
-//            if(this.isSubmitMode && this.selectedObjs && this.selectedObjs.length){
-//                isDblSubmit = true;
-//            }
-//            else
-//                return ;
-//        }
         
         if( node && !isDblSubmit ){
             node.selected=1;
@@ -870,7 +893,6 @@ function vjExplorerBaseView(viewer)
         else if( this.isSubmitMode ){
             if(this.selectedObjs && !this.id2iselectedObj[tnode.id])
                 viewer.mimicClickCell.call(viewer,ir, ic);
-//            this.onSelectFile(viewer,node,ir,ic,column);
             this.onSubmitObjs();
         }
     };
@@ -897,14 +919,13 @@ function vjExplorerBaseView(viewer)
         if ( !folderArgs[tabName] )
             folderArgs[tabName] = new Object();
         var folderTabArgs = folderArgs[tabName];
-        
+
         for ( var ii in argsToRetain ) {
             var argValue = docLocValue(argsToRetain[ii],"",dsurl);
             if( folderTabArgs[argsToRetain[ii]] || argValue ) {
                 folderTabArgs[argsToRetain[ii]] = argValue;
             }
         }
-
     };
 
     this.tablesTabRendered = function( dv ) {
@@ -951,87 +972,16 @@ function vjExplorerBaseView(viewer)
             else if(view.selectedCnt>=1){
                 this.onSelectFile(viewer,view.selectedNodes[0]);
             }
-//        }
         if(this.onTablesTabSelectedCallback){
             funcLink(this.onTablesTabSelectedCallback, dv, dvname,itab, prv_itab);
         }
     };
 
-//    this.onDeleteObject=function(){
-//        if(!this.currentFolder.length)return ;
-//        if(this.currentFolder==this.viewerFSTree.systemFolder.Trash.path){
-//            var res=0;
-//            if(this.currentFolder==this.viewerFSTree.systemFolder.Trash.path){
-//                 res = confirm("Are you sure you want to permanently delete the selected objects");
-//            }
-//            else
-//                res = confirm("This will permanently delete the selected objects from all locations.\n Do you want to proceed?");
-//            if (!res|| !this.viewerFSActiveTable || !this.viewerFSActiveTable.selectedNodes || !this.viewerFSActiveTable.selectedNodes.length) return;
-//            var ids=[];
-//            for(var i=0 ; i < this.viewerFSActiveTable.selectedNodes.length ; ++i ){
-//                ids.push(this.viewerFSActiveTable.selectedNodes[i].id);
-//            }
-//            var url="?cmd=objDel&ids="+ids.join(",");
-//            var selNodes=this.viewerFSActiveTable.selectedNodes;
-//            var objs=[],srcs=[];
-//            for(var i = 0 ; i < selNodes.length ; ++i) {
-//                var node=selNodes[i];
-//                objIDs.push(node[this.idtype]);
-//                node._parentIDs=verarr(node._parentIDs);
-//                for(var i=0 ; i < node._parentIDs.length ; ++i) {
-//                    srcIDs=objIDs.concat(node.parentIDs[i].split(","));
-//                }
-//            }
-//            ajaxDynaRequestPage(url, {objCls: this.viewerFSTree.objCls, callback:'cleanChildLinks',params:{objIDs:objs,srcIDs:srcs}}, vjObjAjaxCallback);
-//            return ;
-//        }
-//        var src=this.viewerFSTree.tree.findByPath(this.currentFolder);
-//        var dst=this.viewerFSTree.systemFolder.Trash;
-//
-//        this.moveChildren(src, dst, this.viewerFSActiveTable.selectedNodes);
-//    };
-//    this.onDeleteFolder=function(vv){
-//        if(!this.currentFolder.length)return ;
-//        if(this.currentFolder==this.viewerFSTree.systemFolder.Trash.path
-//                || this.currentFolder==this.viewerFSTree.systemFolder.Inbox.path
-//                || this.currentFolder==this.viewerFSTree.systemFolder.Home.path) {
-//            alert("You cannot delete \""+this.currentFolder.substr(1)+"\" folder");
-//            return ;
-//        }
-//
-//        var src=this.viewerFSTree.tree.findByPath(this.currentFolder);
-//        var dst=this.viewerFSTree.systemFolder.Trash;
-//
-//        this.moveChildren(src.parent,dst,src);
-//    };
 
 
-    ///////////////////////////////////////////////////////////////////////////
-    //                          Manipulate folders                           //
-    ///////////////////////////////////////////////////////////////////////////
 
 
-//    this.moveChildren=function(src,dst,children,copy){
-//        var parent_folders= new Array();
-//        if(!this.viewerFSTree)return ;
-//        else{
-//            if(children._parentIDs){
-//                for(var i=0 ; i < children._parentIDs ; ++i){
-//                    var t_folder=this.viewerFSTree.tree.findById(children._parentIDs[i]);
-//                    if(t_folder)
-//                        parent_folders.push(t_folder);
-//                }
-//            }
-//            if(!parent_folders.length)
-//                this.viewerFSTree.moveChildren(src,dst,children,copy);
-//            else
-//                this.viewerFSTree.moveChildren(src,dst,children,copy,parent_folders);
-//        }
-//    };
 
-    ///////////////////////////////////////////////////////////////////////////
-    //                          DnD between viewers                          //
-    ///////////////////////////////////////////////////////////////////////////
 
     this.setCloneDrag = function(viewer, dragE) {
         var icon = "";
@@ -1142,8 +1092,7 @@ function vjExplorerBaseView(viewer)
         return true;
     };
 
-    this.onDragCancel = function(srcNodes) {// srcNode,nodeValue,
-                                                // nodeRow,nodeCol,d){
+    this.onDragCancel = function(srcNodes) {
         this.viewerFSActiveTable = this.viewerFSTable[this.vjDV[this.container_Tables].selected];
         if (!this.viewerFSActiveTable)
             return false;
@@ -1199,151 +1148,173 @@ function vjExplorerBaseView(viewer)
         this.viewerFSTree._delete(src,ids);
     };
 
-    ///////////////////////////////////////////////////////////////////////////
-    //                                  AUX                                  //
-    //        (Directory view return children IDs of selected folder.        //
-    //               Here we send new request for all these IDs)             //
-    ///////////////////////////////////////////////////////////////////////////
-
-    this.queryArrivedCallback=function(node,content,addProperties)
+    var emptyFolderMessage = "Selected folder has no objects relevant to this tab";
+    this.queryArrivedCallback=function(node,content,addProperties, isQry)
     {
         var ids="-";
-//        var params=ajaxParams.params;
         var url = undefined;
         var tbl=new vjTable(content,0,vjTable_propCSV|vjTable_inheritPathPropFormat);
         if( (content.length || this.isSingleTab) && this.currentFolder!="/all"){
-            ids =node[this.idtype];
+            ids = node[this.idtype];
         }
-        if(!content.length && this.currentFolder!="/all"){
-            if(!this.currentFolder || !this.currentFolder.length){
-                url  = "static://preview:Select a folder to see its content";
-            }
-//            else if(this.currentFolder.length){
-//                url  = "static://preview:Folder is empty";
-//            }
-
+        if(!content.length && this.currentFolder!="/all" && (!this.currentFolder || !this.currentFolder.length) ){
+            url  = "static:
         }
-
+        
         var urlArray = new Array();
-        for( var it=0 ; it < this.viewerFSTable.length ; ++it) {
+        for( let it=0 ; it < this.viewerFSTable.length ; ++it) {
             var vv=this.viewerFSTable[it];
+            if(this.appendUserIdToFSTable){ vv.userId = node.id; } 
 
-            if(this.appendUserIdToFSTable)    vv.userId = node.id;
             var ds=vv.getData(0);
-            if(url)
+            if(url){
                 ds.reload(url,true);
-            else if (this.tablesUrlTmplt) {
+            }else if (this.tablesUrlTmplt) {
                 urlArray.push( constructObjQryUrl(this.tablesUrlTmplt , {"folder":ids}));
-            }
-            else{
-                var dsurl=ds.url.indexOf("static://")==0?ds.url_tmplt: ds.url;
-                var m_index=0;
+            }else{
+                var dsurl = ds.url.indexOf("static:
                 var curAttrs=0;
-                for( ; m_index < this.subTablesAttrs.length ; ++m_index){
+                
+                for( var m_index=0; m_index < this.subTablesAttrs.length ; ++m_index){
                     curAttrs=this.subTablesAttrs[m_index];
-                    if(curAttrs.tabname==vv.tab.name)
+                    if(curAttrs.tabname==vv.tab.name){ 
                         break;
+                    }
                     curAttrs=0;
                 }
-                if(!curAttrs)return ;
 
-                var typeCount=undefined;
-                var displayedTypes= docLocValue("type","",dsurl);
-                if( !displayedTypes.length || curAttrs.types ) {
-                    if(curAttrs.types)
-                        displayedTypes = curAttrs.types;
-                    else if (curAttrs.url && curAttrs.url.type)
-                        displayedTypes = curAttrs.url.type;
-                }
-                //TODO Do not filter for counts in javascript. We should ask cgi for type_cnt of specific types instead.
-                if( this.isSingleTab ) {
-                    displayedTypes="";
-                }
+                if(!curAttrs){ return; }
 
-                typeCount=this.findTypeCount(displayedTypes,tbl);
-                if( !this.isSingleTab && ( (tbl && ( isok(displayedTypes) && curAttrs.url.type!='-') &&  !typeCount) || !tbl.rows.length) ){
-                    vv.tab.invisible=true;
-                    vv.tab.hidden=true;
-                    ds.reload("static://preview:Selected folder doesn't have any objects relevant for this tab", true);
-                    continue;
-                }
-                else{
-                    vv.tab.invisible=false;
-                    vv.tab.hidden=false;
-                    var extCnt=typeCount?"<sup>["+typeCount+"]</sup>":"";
-                    vv.tab.title=vv.tab.name+extCnt;
-                }
-
-                var t_ids=ids;
-                var t_prop="";
-                if(curAttrs.url && curAttrs.url.prop) {
-                    t_prop=curAttrs.url.prop;
-                }
-                else {
-                    t_prop=docLocValue("prop","",this.subTableDefault.url_tmplt);
-                }
-
-                if(addProperties){
-                    if(t_prop.length)
-                        t_prop+=",";
-                    t_prop += addProperties;
-                }
-
-                if(t_prop.indexOf(",_type") == -1)
-                    t_prop += ",_type";
-                
-                if( this.viewerFSTree.inTrash(this.currentFolder+"/") ) {
-                    dsurl=urlExchangeParameter(dsurl, "showTrashed","1");
-                }
-                else {
-                    dsurl=urlExchangeParameter(dsurl, "showTrashed","-");
-                }
-                
-                dsurl=urlExchangeParameter(dsurl, "prop",t_prop);
-                dsurl=urlExchangeParameter(dsurl, "start",0);
-                dsurl=urlExchangeParameter(dsurl, "search","-");
-                
-                var folderID = this.currentFolder.split("/").pop();
-                if( this.cachedViewerArgs &&  this.cachedViewerArgs[folderID] && this.cachedViewerArgs[folderID][vv.tab.name] ) {
-                    var cachedArgs = this.cachedViewerArgs[folderID][vv.tab.name];
-                    for ( var ia in cachedArgs) {
-                        dsurl=urlExchangeParameter(dsurl, ia,cachedArgs[ia]);
+                if(isQry){
+                    if(tbl && !tbl.rows.length){
+                        vv.tab.invisible=true;
+                        vv.tab.hidden=true;
+                        continue;
+                    }else{
+                        vv.tab.invisible=false;
+                        vv.tab.hidden=false;
                     }
+                    var urlPrefix=`http:
+
+                    dsurl=evalVars(dsurl,"$(",")", {explorer_folder: ids, explorer_start: 0, explorer_cnt: 1000});
+                    urlArray.push( urlPrefix + vjDS.escapeQueryLanguage(dsurl) );
+                } else if (curAttrs.qry_tmplt) { 
+
+                    dsurl = `${curAttrs.qry_tmplt}`;
+                    ds.qry_tmplt = `${curAttrs.qry_tmplt}`;
+
+                    let url_obj = Object.assign(curAttrs.urlValues ? curAttrs.urlValues : {},this.urlValues)
+                    url_obj = Object.assign(url_obj,{folder: ids})
+                    url_obj = Object.assign(url_obj,vv.urlValues)
+                    ds.urlParams = url_obj
+
+                    if(curAttrs.isHiddenCallback && curAttrs.isHiddenCallback(this.currentFolder)){ 
+                       vv.tab.hidden=true
+                       vv.tab.invisible=true;
+                    }else{
+                        if(typeof curAttrs.evalVarCallback === 'function'){
+                           dsurl=curAttrs.evalVarCallback(curAttrs,dsurl, url_obj, "$(",")")
+                        } else {
+                            dsurl=evalVars(dsurl,"$(",")", url_obj );
+                        }
+                        
+                        urlArray.push(`http:
+                        vv.tab.invisible=false;
+                        vv.tab.hidden=false;
+                   }
+                    
+                } else {
+                    var typeCount=undefined;
+                    var displayedTypes= docLocValue("type","",dsurl);
+                    if( !displayedTypes.length || curAttrs.types ) {
+                        if(curAttrs.types){
+                            displayedTypes = curAttrs.types;
+                        } else if (curAttrs.url && curAttrs.url.type){
+                            displayedTypes = curAttrs.url.type;
+                        }
+                    }
+                    
+                    if( this.isSingleTab ){  displayedTypes=""; }
+
+                    typeCount=this.findTypeCount(displayedTypes,tbl);
+                    if( !this.isSingleTab && ( (tbl && ( isok(displayedTypes) && curAttrs.url.type!='-') &&  !typeCount) || !tbl.rows.length) ){
+                        vv.tab.invisible=true;
+                        vv.tab.hidden=true;
+                        ds.reload("static:
+                        continue;
+                    }else{
+                        vv.tab.invisible=false;
+                        vv.tab.hidden=false;
+                        var extCnt=typeCount?"<sup>["+typeCount+"]</sup>":"";
+                        vv.tab.title=vv.tab.name+extCnt;
+                    }
+
+                    var t_ids=ids;
+                    var t_prop="";
+                    if(curAttrs.url && curAttrs.url.prop) {
+                        t_prop=curAttrs.url.prop;
+                    }else {
+                        t_prop=docLocValue("prop","",this.subTableDefault.url_tmplt);
+                    }
+
+                    if(addProperties){
+                        if(t_prop.length){ t_prop += ","; }
+                        t_prop += addProperties;
+                    }
+
+                    if(t_prop.indexOf(",_type") == -1){
+                        t_prop += ",_type";
+                    }
+                    
+                    if( this.viewerFSTree.inTrash(this.currentFolder+"/") ) {
+                        dsurl=urlExchangeParameter(dsurl, "showTrashed","1");
+                    }
+                    else {
+                        dsurl=urlExchangeParameter(dsurl, "showTrashed","-");
+                    }
+                    
+                    dsurl=urlExchangeParameter(dsurl, "prop",t_prop);
+                    dsurl=urlExchangeParameter(dsurl, "start",0);
+                    dsurl=urlExchangeParameter(dsurl, "search","-");
+                    
+                    var folderID = this.currentFolder.split("/").pop();
+                    if( this.cachedViewerArgs &&  this.cachedViewerArgs[folderID] && this.cachedViewerArgs[folderID][vv.tab.name] ) {
+                        var cachedArgs = this.cachedViewerArgs[folderID][vv.tab.name];
+                        for ( var ia in cachedArgs) {
+                            dsurl=urlExchangeParameter(dsurl, ia,cachedArgs[ia]);
+                        }
+                    }
+                    
+                    dsurl=urlExchangeParameter(dsurl, this.subTableDefault.objId,ids);
+                    if(this.isNShowactions){
+                        dsurl=urlExchangeParameter(dsurl, "actions","-");
+                    }
+                    urlArray.push(dsurl);
+                    ids=t_ids;
                 }
                 
-                dsurl=urlExchangeParameter(dsurl, this.subTableDefault.objId,ids);
-                if(this.isNShowactions){
-                    dsurl=urlExchangeParameter(dsurl, "actions","-");
-                }
-                urlArray.push(dsurl);
-                ids=t_ids;
             }
         }
         var tabNum = node.selectedTab;
-        if( tabNum===undefined ) {
+        if( tabNum === undefined ) {
             tabNum = this.currentTab;
         }
-        if( tabNum===undefined ) {
-            if( this.useCookies ) {
-                var tab_selected = cookieGet('explorer_curtab_open', 0);
-                if( tab_selected && cookieGet("explorer_curdir_open",undefined)) {
-                    tabNum = Int(tab_selected);
-                }
+        if( tabNum === undefined && this.useCookies ) {
+            var tab_selected = cookieGet('explorer_curtab_open', 0);
+            if( tab_selected && cookieGet("explorer_curdir_open",undefined)) {
+                tabNum = Int(tab_selected);
             }
         }
-        if( tabNum===undefined ) {
+        if( tabNum === undefined || this.tables_DV.tabs[tabNum].invisible) {
             tabNum = 0;
         }
-        if(this.tables_DV.tabs[tabNum].invisible)
-        {
-            tabNum = 0;
-        }
+        
         node.selectedTab = tabNum ;
         this.currentTab = tabNum ;
         this.tables_DV.select(tabNum);
         this.vjDV[this.container_Tables].render(true);
-        var ii = 0;
-        for( var it=0 ; it < this.viewerFSTable.length ; ++it) {
+        let ii = 0;
+        for( let it=0 ; it < this.viewerFSTable.length ; ++it) {
             var vv=this.viewerFSTable[it];
             if(vv.tab.invisible) {
                 continue;
@@ -1351,101 +1322,6 @@ function vjExplorerBaseView(viewer)
             var ds=vv.getData(0);
             ds.reload(urlArray[ii++],vv.tabvisible);
         }
-
-
-    };
-
-    this.queryArrivedCallback_QryLang=function(node,content,addProperties){
-        var ids="-";
-      var url = undefined;
-      var tbl=new vjTable(content,0,vjTable_propCSV|vjTable_inheritPathPropFormat);
-      if(content.length && this.currentFolder!="/all"){
-          ids =node[this.idtype];
-      }
-      if(!content.length && this.currentFolder!="/all"){
-          if(!this.currentFolder || !this.currentFolder.length){
-              url  = "static://preview:Select a folder to see its content";
-          }
-      }
-      
-      if(ids=="-"){
-          ids ="alloftype(\"*\")";
-      }
-      else {
-          ids ="((obj)"+ids+").child ";
-      }
-      var urlArray = new Array();
-      for( var it=0 ; it < this.viewerFSTable.length ; ++it) {
-          var vv=this.viewerFSTable[it];
-
-          if(this.appendUserIdToFSTable)    vv.userId = node.id;
-          var ds=vv.getData(0);
-          if(url)
-              ds.reload(url,true);
-          else if (this.tablesUrlTmplt) {
-              urlArray.push( constructObjQryUrl(this.tablesUrlTmplt , {"folder":ids}));
-          }
-          else{
-              var dsurl=ds.url_tmplt;
-              var m_index=0;
-              var curAttrs=0;
-              for( ; m_index < this.subTablesAttrs.length ; ++m_index){
-                  curAttrs=this.subTablesAttrs[m_index];
-                  if(curAttrs.tabname==vv.tab.name)
-                      break;
-                  curAttrs=0;
-              }
-              if(!curAttrs)return ;
-
-              if(tbl && !tbl.rows.length){
-                  vv.tab.invisible=true;
-                  vv.tab.hidden=true;
-
-                  continue;
-              }
-              else{
-                  vv.tab.invisible=false;
-                  vv.tab.hidden=false;
-              }
-
-              var urlPrefix="http://?cmd=objQry&qry=";
-              dsurl=evalVars(dsurl,"$(",")", {explorer_folder: ids, explorer_start: 0, explorer_cnt: 1000});
-
-              urlArray.push(urlPrefix+vjDS.escapeQueryLanguage(dsurl));
-          }
-      }
-      var tabNum = node.selectedTab;
-      if( tabNum===undefined ) {
-          tabNum = this.currentTab;
-      }
-      if( tabNum===undefined ) {
-          if( this.useCookies ) {
-              var tab_selected = cookieGet('explorer_curtab_open', 0);
-              if( tab_selected && cookieGet("explorer_curdir_open",undefined)) {
-                  tabNum = Int(tab_selected);
-              }
-          }
-      }
-      if( tabNum===undefined ) {
-          tabNum = 0;
-      }
-      if(this.tables_DV.tabs[tabNum].invisible)
-      {
-          tabNum = 0;
-      }
-      node.selectedTab = tabNum ;
-      this.currentTab = tabNum ;
-      this.tables_DV.select(tabNum);
-      this.vjDV[this.container_Tables].render(true);
-      var ii = 0;
-      for( var it=0 ; it < this.viewerFSTable.length ; ++it) {
-          var vv=this.viewerFSTable[it];
-          if(vv.tab.invisible) {
-              continue;
-          }
-          var ds=vv.getData(0);
-          ds.reload(urlArray[ii++],vv.tabvisible);
-      }
 
     };
 
@@ -1505,13 +1381,22 @@ function vjExplorerBaseView(viewer)
 
     this.getActiveViewer = function (tabI)
     {
-        // ensure selected tab is among this.viewerFSTable
         this.vjDV[this.container_Tables].updateTabVisibility(false, 0, this.viewerFSTable.length - 1);
 
         this.viewerFSActiveTable = this.viewerFSTable[this.vjDV[this.container_Tables].selected];
         return this.viewerFSActiveTable;
     };
 
+    var displaySignalError = function(id, data) {
+        if(!data || !data.error) {
+            console.log("missing data");
+            return;
+        }
+        $("<div title='Error'><p>Failed to complete action on object" + id + ": " + data.error + "</p></div>").dialog({
+            buttons: { "OK": function() { $(this).dialog("close"); } },
+            modal: true
+        });
+    }
 
     this.signalHandler = {
         "cast" : function( thisObj, id, data, params ) {
@@ -1521,7 +1406,6 @@ function vjExplorerBaseView(viewer)
                     buttons: { "OK": function() { $(this).dialog("close"); } },
                     modal: true,
                     close: function(event, ui) {
-                        // if the file is small, by the time the user clicks "OK", conversion might be done
                         thisObj.viewerFSTree.refreshOnArrive();
                     }
                 });
@@ -1530,25 +1414,45 @@ function vjExplorerBaseView(viewer)
             }
         },
         "copy" : function( thisObj, id, data, params ){
+            if(data && data.error)
+                displaySignalError(id,data);
             thisObj.viewerFSTree.refreshOnArrive();
         },
         "move" : function( thisObj, id, data, params ){
-            thisObj.viewerFSTree.selectedNodeContentChanged = true;
+            if(data && data.error)
+                displaySignalError(id,data);
+            else {
+                thisObj.viewerFSTree.selectedNodeContentChanged = true;
+            }
             thisObj.viewerFSTree.refreshOnArrive();
         },
         "trash" : function( thisObj, id, data, params ){
-            thisObj.viewerFSTree.selectedNodeContentChanged = true;
+            if(data && data.error)
+                displaySignalError(id,data);
+            else {
+                thisObj.viewerFSTree.selectedNodeContentChanged = true;
+            }
             thisObj.viewerFSTree.refreshOnArrive();
         },
         "delete" : function( thisObj, id, data, params ){
-            thisObj.viewerFSTree.selectedNodeContentChanged = true;
+            if(data && data.error)
+                displaySignalError(id,data);
+            else {
+                thisObj.viewerFSTree.selectedNodeContentChanged = true;
+            }
             thisObj.viewerFSTree.refreshOnArrive();
         },
         "default" : function( thisObj, id, data, params ){
-            thisObj.viewerFSTree.selectedNodeContentChanged = true;
+            if(data && data.error)
+                displaySignalError(id,data);
+            else {
+                thisObj.viewerFSTree.selectedNodeContentChanged = true;
+            }
             thisObj.viewerFSTree.refreshOnArrive();
         },
         "folder" : function(thisObj, id, data, params) {
+            if(data && data.error)
+                displaySignalError(id,data);
             thisObj.viewerFSTree.refreshOnArrive();
         },
         "clone" : function(thisObj, id, data, params) {
@@ -1567,6 +1471,25 @@ function vjExplorerBaseView(viewer)
                     modal: true
                 });
             }
+        },
+        "qpProcSubmit": function(thisObj,id,data,params) {
+            var parse_res = vjQP.parseQProcSubmitResponse(data,true);
+            var req_id = parse_res[0], obj_id = parse_res[1];
+            if(!parse_res) {
+                $("<div title='Error'><p>Failed to submit process</p></div>").dialog({
+                    buttons: { "OK": function() { $(this).dialog("close"); } },
+                    modal: true
+                });
+            } else {
+                $("<div title='Information'><p>Process was successfully submitted with ID " + obj_id + ". You can find and monitor the process under the \"data-loading\" tab</p></div>").dialog({
+                    buttons: { "OK": function() { $(this).dialog("close"); } },
+                    modal: true,
+                    close: function(event, ui) {
+                        thisObj.viewerFSTree.selectedNodeContentChanged = true;
+                        thisObj.viewerFSTree.refreshOnArrive();
+                    }
+                });
+            }
         }
     };
 
@@ -1580,8 +1503,6 @@ function vjExplorerBaseView(viewer)
         return ret;
     };
 
-    // turn an objList url into a query language expression
-    // not : search not supported for now
     this.objList2ObjQry = function(container, url, options)
     {
         function urlParamValue(param) {
@@ -1592,7 +1513,6 @@ function vjExplorerBaseView(viewer)
                 return ret;
             }
         }
-        // options: { "start": true, "cnt": true, "info": true } ; set to false to ignore start/cnt/info parameters
         var start = (!options || options.start) ? urlParamValue("start") : null;
         var cnt = (!options || options.cnt) ? urlParamValue("cnt") : null;
         var info = (!options || options.start) ? urlParamValue("info") : null;
@@ -1640,9 +1560,6 @@ function vjExplorerBaseView(viewer)
                                 onDragCancel,exclusionObjRegexArr, editCmd,precompute,hideListCols,lmultiSelect){
 
 
-        //--------------------------------------------------------------------------------------//
-        //-------------------------------------vjPANEL------------------------------------------//
-        //--------------------------------------------------------------------------------------//
         var dsname='ds-'+dvname+'-'+tabname;
         if(!this.dsTables) {
             this.dsTables = new Array();
@@ -1685,7 +1602,6 @@ function vjExplorerBaseView(viewer)
 
         if(!editCmd) {
             editCmd = [ {
-                //Not  yet implemented, so hidden=true
                     name : 'create',
                     hidden : true,
                     prohibit_new : true
@@ -1693,22 +1609,17 @@ function vjExplorerBaseView(viewer)
                 {
                     name : new RegExp(/convert.*/),
                     hidden : false,
-//                    refreshDelay : 1000,
-//                    refreshDelayCallback:"vjObjEvent('onRefreshDelayTables','"+this.objCls+"',$(id))",
                     prohibit_new : true
                 },
                 {
                     name : 'upload',
-                    hidden : this.isNoUpload?true:false,
+                    hidden : this.isNoUpload ? true : false,
                     url: "javascript:vjDV.select('" + dvname + ".add.0',true);",
-                    prohibit_new : true,
                     isok:true
                 },
                 {
                     name : 'delete',
                     hidden : false,
-//                    refreshDelay : 1000,
-//                    refreshDelayCallback:"vjObjEvent('onRefreshDelayTables','"+this.objCls+"',$(id))",
                     prohibit_new : true
                 },
                 {
@@ -1733,18 +1644,10 @@ function vjExplorerBaseView(viewer)
                 {
                     name : 'detail',
                     hidden : false,
-
+    
                     showTitle:true,
                     prohibit_new : true
                 },
-//                {
-//                    name : 'clipboard',
-//                    hidden : false,
-//                    inactive:"javascript:var params={'show':false};args[1].tree.enumerate('if(!node.hidden) params.show=true',params,null,null,thisObj);params.show?false:true",
-//                    nonAutoNode : false,
-//                    icon : 'img/clipboard.png',
-//                    prohibit_new : true
-//                },
                 {
                     name : 'copy',
                     hidden : false,
@@ -1776,7 +1679,9 @@ function vjExplorerBaseView(viewer)
                     name : 'share',
                     hidden : false,
                     prohibit_new : true
-                } ];
+                } 
+                
+            ];
         }
         var viewCmd = [
                 {
@@ -1787,10 +1692,8 @@ function vjExplorerBaseView(viewer)
                     align : 'left',
                     title : 'Refresh',
                     icon : 'img/48/refresh.png',
-                    //icon_srcset : [24, 48],
-                    description : 'refresh the content of the control to retrieve up to date information',
-                    url : "javascript:vjDS['" + dsname
-                            + "'].reload(null,true);"
+                    description : 'Refresh the content of the control to retrieve up to date information',
+                    url : "javascript:vjDS['" + dsname + "'].reload(null,true);"
                 },
                 {
                     name : 'pager',
@@ -1818,15 +1721,11 @@ function vjExplorerBaseView(viewer)
                     hidden : false,
                     icon : 'rec',
                     isSubmitable : false,
-                    // tblqry objQry is generated from dsnname url at time of click, with no "info", "start", or "cnt" params
                     url : "javascript:linkURL('?cmd=tblqry-new&objQry='+vjDS.escapeQueryLanguage(vjObjEvent('objList2ObjQry','" + this.objCls + "',vjDS['" + dsname + "'].url,{start:0,cnt:0,info:0})),\"tblQryObjs_" + dsname + "\")"
                 }];
-
-        var rowlist = (fullpanel ? hideCmd.concat(editCmd, viewCmd) : hideCmd.concat(viewCmd) );
-        if (addCmd)
-            rowlist = rowlist.concat(addCmd);
-
-        this.vjDS.add("infrastructure: Loading Actions", "dsActions" , "http://?cmd=objList&type=action&mode=csv" );
+        let rowlist = (fullpanel ? hideCmd.concat(editCmd, viewCmd) : hideCmd.concat(viewCmd) );
+        if (addCmd) rowlist = rowlist.concat(addCmd);
+        this.vjDS.add("infrastructure: Loading Actions", "dsActions" , "http:
         var viewerPanel = new vjPanelView({
             data : [ "dsActions", dsname ],
             formObject : document.forms[formname],
@@ -1843,9 +1742,6 @@ function vjExplorerBaseView(viewer)
         viewerPanel.addActionResponseCallback(this.actionsHandler, this);
 
 
-        //--------------------------------------------------------------------------------------//
-        //-------------------------------------vjTABLE------------------------------------------//
-        //--------------------------------------------------------------------------------------//
 
         var showListCols= [
          {
@@ -1924,14 +1820,6 @@ function vjExplorerBaseView(viewer)
             type : 'largenumber',
             order : 4
         },
-//        {
-//            name : 'rec-dim',
-//            hidden : false,
-//            title : "Unique Records",
-//            align : "right",
-//            type : 'largenumber',
-//            order : 4
-//        },
         {
             name : 'TITLE',
             hidden : false,
@@ -1977,7 +1865,6 @@ function vjExplorerBaseView(viewer)
 
         var viewerList = new vjTableView(
             {
-                //debug:1,
                 name : 'list',
                 icon : 'list',
                 data : dsname,
@@ -1997,7 +1884,7 @@ function vjExplorerBaseView(viewer)
                 notOpenUrl:this.notOpenUrlForTableView ? true:false,
                 maxTxtLen : this.maxTxtLen,
                 paste:this.paste,
-                defaultEmptyText : 'no accessible information to show',
+                defaultEmptyText : emptyFolderMessage,
                 geometry : {
                     width : '100%'
                 },
@@ -2034,4 +1921,3 @@ function vjExplorerBaseView(viewer)
 };
 
 
-//# sourceURL = getBaseUrl() + "/js/vjExplorerBaseView.js"

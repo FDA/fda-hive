@@ -32,12 +32,12 @@
 
 using namespace slib;
 
-// order important as must follow prop enum in class declaration!!!
-const char* sUsrEmail::sm_prop[] = {"from", "to", "cc", "bcc", "subject", "body", "sent", "sent_dtm", "try_count" };
+const char* sUsrEmail::sm_prop[] = {"from", "to", "cc", "bcc", "subject", "body", "sent", "sent_dtm", "try_count", "err_msg", "draft" };
 
 sUsrEmail::sUsrEmail(const sUsr& from, const sUsr& to, const char* subject, const char* body)
     : sUsrObj(from, "email")
 {
+    draft(true);
     addRecipient((enum ERecipientType) ePropFrom, from);
     addRecipient(eTo, to);
     if( subject ) {
@@ -51,6 +51,7 @@ sUsrEmail::sUsrEmail(const sUsr& from, const sUsr& to, const char* subject, cons
 sUsrEmail::sUsrEmail(sUsr& from, const char* to, const char* subject, const char* body)
     : sUsrObj(from, "email")
 {
+    draft(true);
     addRecipient((enum ERecipientType) ePropFrom, from);
     if( to ) {
         addRecipient(eTo, to);
@@ -75,15 +76,12 @@ sUsrEmail::sUsrEmail(sUsr& usr, const sHiveId & objId, const sHiveId * ptypeId, 
 
 sUsrEmail::~sUsrEmail()
 {
-
     if( m_recepients.rows ) {
         for(udx type = ePropFrom; type <= ePropBcc; ++type) {
             sVec<const char*> v;
             for(idx r = 0; r < m_recepients.rows; ++r) {
                 if( m_recepients.uval(r, 0) == type ) {
                     *(v.add(1)) = m_recepients.val(r, 1);
-                    // TODO remove when obj supports validation of prop values
-                    // for now limit From to only one, just in case :)
                     if( type == ePropFrom && v.dim() > 0 ) {
                         break;
                     }

@@ -72,7 +72,7 @@ static void QPSvc_dealloc(pyhive::QPSvc *self)
     delete self->qpysvc;
     Py_XDECREF(self->svc_obj);
     Py_XDECREF(self->req_ids);
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int QPSvc_init(pyhive::QPSvc *self, PyObject * args, PyObject * kwds);
@@ -80,8 +80,8 @@ static int QPSvc_init(pyhive::QPSvc *self, PyObject * args, PyObject * kwds);
 static PyObject * QPSvc_repr(pyhive::QPSvc * self)
 {
     const char * name = self->qpysvc ? self->qpysvc->getSvcName() : 0;
-    sStr buf("<%s %s at %p>", self->ob_type->tp_name, name ? name : "(null)", self);
-    return PyString_FromString(buf.ptr());
+    sStr buf("<%s %s at %p>", Py_TYPE(self)->tp_name, name ? name : "(null)", self);
+    return PyUnicode_FromString(buf.ptr());
 }
 
 static PyObject * QPSvc_get_svc(pyhive::QPSvc * self, void * closure)
@@ -122,7 +122,7 @@ static PyObject * QPSvc_set_form(pyhive::QPSvc * self, PyObject * args, PyObject
     if( !pyhive::py2form(form, form_arg) ) {
         return NULL;
     }
-    self->qpysvc->setForm(&form);
+    self->qpysvc->setForm(&form, true);
     Py_RETURN_TRUE;
 }
 
@@ -139,7 +139,7 @@ static PyObject * QPSvc_set_var(pyhive::QPSvc * self, PyObject * args, PyObject 
     if( value_len ) {
         value_buf.addString(value, value_len);
     }
-    value_buf.add0(2); // add0, not add0cut - see setVar and sVar::inp implementations; need terminal 00 to be added to form
+    value_buf.add0(2);
 
     self->qpysvc->setVar(name, value_buf);
     Py_RETURN_TRUE;
@@ -188,7 +188,7 @@ static PyObject * QPSvc_launch(pyhive::QPSvc * self, PyObject * args, PyObject *
 
         return pyhive::idx2py(reqID);
     } else {
-        PyErr_SetString(PyExc_SystemError, "failed to launch new request");
+        PyErr_SetString(pyhive::RuntimeError, "failed to launch new request");
         return NULL;
     }
 }
@@ -227,54 +227,53 @@ static PyMethodDef QPSvc_methods[] = {
         ":arg grp: ID of request group into which to insert the new request (pyhive.proc.grp_id by default)\n"\
         ":type grp: int\n"\
         ":returns: request ID which was launched\n"\
-        ":raises SystemError: if request failed to launch\n"
+        ":raises pyhive.RuntimeError: if request failed to launch\n"
     },
     { NULL }
 };
 
 PyTypeObject QPSvcType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.QPSvc",            // tp_name
-    sizeof(pyhive::QPSvc),     // tp_basicsize
-    0,                         // tp_itemsize
-    (destructor)QPSvc_dealloc, // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    (reprfunc)QPSvc_repr,      // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    0,                         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.QPSvc",
+    sizeof(pyhive::QPSvc),
+    0,
+    (destructor)QPSvc_dealloc,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)QPSvc_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     "Interface for launching new HIVE requests\n\n"\
     "Initialized from a service name:\n"\
     "   >>> demo = pyhive.QPSvc('pyhive_demo')\n"
-    "   <pyhive.QPSvc pyhive_demo at 0x7fa2be26a0f0>\n",   // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    QPSvc_methods,             // tp_methods
-    0,                         // tp_members
-    QPSvc_getsetters,          // tp_getset
-    0,                         // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    (initproc)QPSvc_init,      // tp_init
-    0,                         // tp_alloc
-    QPSvc_new,                 // tp_new
+    "   <pyhive.QPSvc pyhive_demo at 0x7fa2be26a0f0>\n",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    QPSvc_methods,
+    0,
+    QPSvc_getsetters,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (initproc)QPSvc_init,
+    0,
+    QPSvc_new,
 };
 
 static int QPSvc_init(pyhive::QPSvc *self, PyObject * args, PyObject * kwds)
@@ -308,7 +307,6 @@ static int QPSvc_init(pyhive::QPSvc *self, PyObject * args, PyObject * kwds)
     return 0;
 }
 
-//static
 bool pyhive::QPSvc::typeinit(PyObject * mod)
 {
     if( PyType_Ready(&QPSvcType) < 0 ) {
@@ -319,7 +317,6 @@ bool pyhive::QPSvc::typeinit(PyObject * mod)
     return true;
 }
 
-//static
 pyhive::QPSvc * pyhive::QPSvc::check(PyObject * o)
 {
     if( o && o->ob_type == &QPSvcType ) {

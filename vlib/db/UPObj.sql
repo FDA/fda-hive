@@ -36,16 +36,19 @@ CREATE TABLE `UPObj` (
   `ionID` bigint(20) unsigned DEFAULT NULL COMMENT 'TO BE DELETED DO NOT USE',
   `objTypeID` bigint(20) unsigned NOT NULL,
   `creatorID` bigint(20) unsigned NOT NULL,
-  `flags` int(11) NOT NULL DEFAULT '0',
+  `flags` int(11) NOT NULL DEFAULT 0,
   `xtraPass` varchar(256) DEFAULT NULL,
   `softExpiration` datetime DEFAULT NULL,
   `hardExpiration` datetime DEFAULT NULL,
-  `ref_count` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `ref_count` bigint(20) unsigned NOT NULL DEFAULT 0,
   `objTypeDomainID` bigint(20) unsigned NOT NULL,
   UNIQUE KEY `uniq_idx` (`domainID`,`objID`),
   KEY `softexp_idx` (`softExpiration`),
   KEY `creator_idx` (`creatorID`),
-  KEY `type_idx` (`objTypeDomainID`,`objTypeID`),
-  KEY `type_soft_idx` (`objTypeDomainID`,`objTypeID`,`softExpiration`),
-  KEY `objID_idx_for_purge` (`objID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  KEY `objID_idx_for_purge` (`objID`),
+  KEY `hardexp_idx` (`hardExpiration`),
+  KEY `type_idx` (`objTypeID`),
+  KEY `type_dom_idx` (`objTypeDomainID`,`objTypeID`),
+  KEY `type_expir_idx` (`objTypeID`,`softExpiration`,`hardExpiration`),
+  KEY `type_dom_expir_idx` (`objTypeDomainID`,`objTypeID`,`softExpiration`,`hardExpiration`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

@@ -30,18 +30,26 @@
 
 PROGRAMS += direct_virMut tblqryX4_virMut
 
-PROGRAMS_LIBS = -lviolib -lqpsvc -ldmlib $(VLIB_LIB)
+PROGRAMS_LIBS = -lviolib -lqpsvc $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
+
+OBJECT_TYPES = svc-viral-mutation-comp
 
 tblqryX4_virMut_SRCS = tblqryX4_virMut.cpp
 direct_virMut_SRCS = direct_virMut.cpp
+
+APPS = Viral-Mutation-Comparator:1
+
+MENUITEMS = \
+/Portal/Classifications/Viral_Mutation_Comparator
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-.PNOHY: dist
+.PHONY: dist
 dist::
 
 	$(call dist-service-register,viral-mutation-comp,Viral Mutation Comparator,/General/)

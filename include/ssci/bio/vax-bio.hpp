@@ -93,9 +93,9 @@ class sVaxAnnotGB : public sVaxAnnot
     int defaultLength;
 
     public:
-        idx recordNum; // record number incrementing based on relation number
+        idx recordNum;
         idx previousRecordNum;
-    protected:
+    public:
         struct startEnd {
                 idx start, end, group, max;
                 bool exactStart, exactEnd, oneBaseBetween, oneSiteBetween, forward;
@@ -104,8 +104,8 @@ class sVaxAnnotGB : public sVaxAnnot
                     start = end = group = max = 0;
                     buf.cut(0);
                     forward = exactStart= exactEnd = true;
-                    oneBaseBetween = false; // 102.110
-                    oneSiteBetween = false;  // 123^124
+                    oneBaseBetween = false;
+                    oneSiteBetween = false;
                 }
         };
     public:
@@ -117,7 +117,7 @@ class sVaxAnnotGB : public sVaxAnnot
     sVaxAnnotGB ( sIon * ion ) : sVaxAnnot ( ion )
     {
         fromFeature = fromHeader = false;
-        recordNum =0; // use as the ligne number
+        recordNum =0;
         previousRecordNum =0;
         needsCleanup=true;
         skipToNextLocus=false;
@@ -133,13 +133,13 @@ class sVaxAnnotGB : public sVaxAnnot
 
     idx ionProviderCallback(idx record, idx iRecord, idx fieldType, const char * fieldTypeName, const void ** recordBody, idx * recordSize);
 
-    private:
+    public:
         void scanUntilNextLine (sStr & dest, const char * body, idx * recordSize, const char * srcEnd);
-        idx strchrFreq (const char * input, const char * srch, idx & frq);
-        char * extractContent (const char * input, sStr & dst, const char * startMarkup, const char * endMarkup);
-        void extractLocation(const char * location, startEnd & locationExtracted, bool forward);
-        void parseJoinOrOrder(const char * textRaw, sVec < startEnd > & startEndOut, const char * toCompare="join("); // toCompare either: "join(" or "order("
-        void parseComplement(const char * textRaw, sVec < startEnd > & startEndOut);
+        static idx strchrFreq (const char * input, const char * srch, idx & frq);
+        static char * extractContent (const char * input, sStr & dst, const char * startMarkup, const char * endMarkup);
+        static void extractLocation(const char * location, startEnd & locationExtracted, bool forward);
+        static void parseJoinOrOrder(const char * textRaw, sVec < startEnd > & startEndOut, const char * toCompare="join(");
+        static void parseComplement(const char * textRaw, sVec < startEnd > & startEndOut);
 };
 
 #endif

@@ -54,11 +54,20 @@ BEGIN
             END IF;
         END WHILE;
     END IF;
+
+    -- find type type id
+    SELECT domainID, objID FROM UPObj WHERE objTypeDomainID = domainID AND objTypeID = objID
+    INTO @tdid, @toid;
+
+    -- find type named 'u-usage'
+    SELECT o.domainID, o.objID FROM UPObj o JOIN UPObjField f ON (f.domainID = o.domainID OR (f.domainID IS NULL AND o.domainID = 0)) AND o.objID = f.objID
+    WHERE o.objTypeDomainID = @tdid AND o.objTypeID = @toid AND f.name = 'name' AND f.value = 'u-usage'
+    INTO @tdid_uu, @toid_uu;
+
     SET @q = CONCAT('SELECT o.domainID, o.objID, NULL AS ionID, g.userID FROM ',
-                    ' (SELECT /* domainID, */ type_id FROM UPType WHERE `name` = \'u-usage\') t',
-                    ' JOIN UPObj o ON /* t.domainID = o.objTypeDomainID AND */ t.type_id = o.objTypeID',
-                    ' JOIN UPObjField f ON (f.domainID = o.domainID OR (f.domainaD IS NULL AND o.domainID = 0)) AND f.objID = o.objID AND f.`name` = \'user\'',
+                    ' UPObj o JOIN UPObjField f ON (f.domainID = o.domainID OR (f.domainaD IS NULL AND o.domainID = 0)) AND f.objID = o.objID AND f.`name` = \'user\'',
                     ' JOIN (SELECT DISTINCT userID FROM UPGroup', @path_cond, ') g ON f.value = g.userID',
+                    ' WHERE o.objTypeDomainID = ', @tdid_uu, ' AND o.objTypeID = ', @toid_uu,
                     ' ORDER BY g.userID');
     PREPARE x from @q;
     EXECUTE x;

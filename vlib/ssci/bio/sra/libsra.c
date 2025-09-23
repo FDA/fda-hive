@@ -58,7 +58,6 @@ enum TRunReaderColumnIds {
 
 static const TRunReaderColumn TColumns[] =
 {
-    /* order important, see code below! */
     {0, "NAME", {NULL}, 0, ercol_Skip | ercol_Optional, 0, 0},
     {0, "LABEL", {NULL}, 0, ercol_Skip | ercol_Optional, 0, 0},
     {0, "LABEL_START", {NULL}, 0, ercol_Skip | ercol_Optional, 0, 0},
@@ -67,7 +66,6 @@ static const TRunReaderColumn TColumns[] =
     {0, "(INSDC:coord:zero)READ_START", {NULL}, 0, 0, 0, 0},
     {0, "(INSDC:coord:len)READ_LEN", {NULL}, 0, 0, 0, 0},
     {0, "READ_TYPE", {NULL}, 0, 0, 0, 0},
-    /* only one of next 3 is used */
     {0, "(INSDC:dna:text)READ", {NULL}, 0, ercol_Skip, 0, 0},
     {0, "(INSDC:4na:bin)READ", {NULL}, 0, ercol_Skip, 0, 0},
     {0, "(INSDC:2na:bin)READ", {NULL}, 0, ercol_Skip, 0, 0},
@@ -96,7 +94,6 @@ static const SRAMgr* libSRA_GetSRAMgr(bool release)
     return mgr;
 }
 
-// exported interface
 
 LIBSRA_EXTERN uint64_t CC libSRA_Version(void)
 {
@@ -118,9 +115,6 @@ LIBSRA_EXTERN void CC libSRA_SetReadAs2na(void)
     read_col = eCol2na;
 }
 
-/**
- * return handle to opened SRA run object, NULL on error
- */
 LIBSRA_EXTERN const void* CC libSRA_SRAMgrOpenTableRead(const char* path, uint64_t cache_size)
 {
     Handle* h = NULL;
@@ -129,7 +123,6 @@ LIBSRA_EXTERN const void* CC libSRA_SRAMgrOpenTableRead(const char* path, uint64
         memcpy(h->cols, TColumns, sizeof(TColumns));
         if(h != NULL) {
             const SRATable* tbl = NULL;
-            /* this opens SEQUENCE table only within db */
             if(SRAMgrOpenTableRead(libSRA_GetSRAMgr(false), &tbl, "%s", path) != 0 || TRunReader_Make(&h->reader, tbl, h->cols, cache_size) != 0
                     || TRunReader_IdRange(h->reader, &h->row_min, (uint64_t*) &h->row_max) != 0) {
                 SRATableRelease(tbl);
@@ -164,9 +157,6 @@ LIBSRA_EXTERN uint64_t CC libSRA_SRATableRows(const void* handle)
     return h ? h->row_max - h->row_min : 0;
 }
 
-/**
- * read_types - bio = 0 | all = 1 | tech = 2
- */
 LIBSRA_EXTERN uint64_t CC libSRA_GetReadNumber(const void* handle, uint64_t row, uint64_t read_types)
 {
     Handle* h = (Handle*) handle;
@@ -181,7 +171,7 @@ LIBSRA_EXTERN uint64_t CC libSRA_GetReadNumber(const void* handle, uint64_t row,
                         num++;
                     }
                 }
-            } else { /* ALL types */
+            } else {
                 num = h->cols[eColType].len;
             }
         }
@@ -229,7 +219,7 @@ LIBSRA_EXTERN int64_t CC libSRA_GetSeqName(const void* handle, uint64_t row, int
                     --read_num;
                     lbl_len = h->cols[eColLabelLen].base.coord_len[read_num];
                     if( nm_len > 0 && lbl_len > 0 ) {
-                        bytes++; /* for '_' */
+                        bytes++;
                     }
                     bytes += lbl_len;
                 }
@@ -270,12 +260,12 @@ LIBSRA_EXTERN int64_t CC libSRA_GetSeq(const void* handle, uint64_t row, int64_t
                 read_num--;
                 if( (rc = TRunReader_ReadCell(h->reader, row, eColReadLen)) == 0 ) {
                     INSDC_coord_len len = h->cols[eColReadLen].base.coord_len[read_num];
-                    len *= h->cols[read_col].elem_bits; // in bits
+                    len *= h->cols[read_col].elem_bits;
                     bytes = (len - 1) / 8 + 1;
                     if( bytes <= buf_sz ) {
                         if( (rc = TRunReader_ReadCell(h->reader, row, eColReadStart)) == 0 ) {
                             INSDC_coord_zero start = h->cols[eColReadStart].base.coord0[read_num];
-                            start *= h->cols[read_col].elem_bits; // in bits
+                            start *= h->cols[read_col].elem_bits;
                             bitcpy(buf, 0, h->cols[read_col].base.var, h->cols[read_col].boff + start, len);
                         }
                     }

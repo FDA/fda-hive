@@ -28,6 +28,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include <violin/violin.hpp>
+#include <qlib/QPrideProc.hpp>
+#include <violin/alignparse.hpp>
+#include <errno.h>
 
 class DnaAlignParser: public sQPrideProc
 {
@@ -52,16 +55,53 @@ class DnaAlignParser: public sQPrideProc
             }
         }
 
+        bool checkSamUnaligned(sStr & inputSam, sStr & errmsg)
+        {
+            bool isSamUnaligned = true;
+
+            const idx UNALIGNED_SAM_FLAG = 0x04;
+
+            const char * cur = inputSam.ptr(0);
+            const char * end = inputSam.ptr(0) + inputSam.length();
+
+            while ( cur < end && cur != 0 ) {
+                if ( *cur != '@' ) {
+                    cur = sString::skipWords(cur, end - cur, 1, "\t");
+                    if ( cur != 0 ) {
+                        char * strtolEnd;
+                        errno = 0;
+                        idx flag = strtol(cur, &strtolEnd, 10);
+                        if ( errno == 0  && strtolEnd != cur ) {
+                            if ( !( flag & UNALIGNED_SAM_FLAG ) ) {
+                                isSamUnaligned = false;
+                                break;
+                            }
+                        } else {
+                            errmsg.printf("Unable to interpret SAM flag.");
+                            isSamUnaligned = false;
+                            break;
+                        }
+                    } else {
+                        errmsg.printf("SAM alignment row does not contain required number of tabs.");
+                        isSamUnaligned = false;
+                        break;
+                    }
+                }
+                cur = sString::skipWords(cur, end - cur, 1, "\n");
+            }
+
+            return isSamUnaligned;
+        }
+
         virtual idx OnExecute(idx req)
         {
             const sHiveId objID(formValue("obj"));
-            std::auto_ptr<sUsrObj> obj(user->objFactory(objID));
+            std::unique_ptr<sUsrObj> obj(user->objFactory(objID));
+
+            FileAlParser * parser = NULL;
 
             const idx reqtoWaitFor = formIValue("parser_reqid");
             if( reqtoWaitFor ) {
-                // GET STATUS OF A RUNNING PARSER
-                // there is more than one request possible if more than on reads
-                // has been listed or chunks of a single read
                 const idx statreqStatus = reqGetStatus(reqtoWaitFor);
                 if( statreqStatus == eQPReqStatus_Suspended ) {
                     reqSetStatus(req, statreqStatus);
@@ -119,112 +159,120 @@ class DnaAlignParser: public sQPrideProc
                 return 0;
             }
 
-            sVec<idx> alignmentMap;
-            //idx cntFound = parseAligner(sourceSequenceFilePath, Sub, Qry, &alignmentMap, errmsg);
             const sFilePath ext(sourceSequenceFilePath, "%%ext");
             idx cntFound = 0;
             sFil fl(sourceSequenceFilePath, sMex::fReadonly);
+            sourceSequenceFilePath.add0();
+            sDic<idx> subIds;
+            sDic<idx> * subIdsP = NULL;
             if( !fl.ok() ) {
                 errmsg.printf(0, "error reading source file");
                 cntFound = -5;
             } else if( strcmp(ext, "ma") == 0 ) {
-                cntFound = sBioseqAlignment::readMultipleAlignment(&alignmentMap, fl.ptr(), fl.length(), sBioseqAlignment::eAlRelativeToMultiple, 0, false);
+                parser = new MultipleAlParser(*this, Qry, Qry);
             } else {
                 const char * subform = formValue("sub", &localBuf);
                 sHiveId::parseRangeSet(sids, subform);
                 subform = sHiveId::printVec(localBuf, sids, ";", false);
                 Sub.parse(subform, sBioseq::eBioModeLong, false, user);
                 if( !sids.dim() || errmsg || !Sub.dim() ) {
-                    errmsg.printf(0, "missing or empty reference");
-                    cntFound = -6;
-                } else {
-                    sDic<idx> subIds;
-                    // > 1 million reference sequences, mmap to disk to avoid heap memory abuse
-                    if( Sub.dim() > 1000000 ) {
-                        sStr tempSubDir;
-                        cfgStr(&tempSubDir, 0, "qm.tempDirectory");
-                        tempSubDir.printf("%" DEC "-%s", reqId, "subids.dic");
-                        subIds.init(tempSubDir);
-                    }
-                    // Create dictionary for Sub Id's
-                    sFilterseq::parseDicBioseq(subIds, Sub, 0);
-                    const idx minMatchLength = 0, maxMissQueryPercent = 100, scoreFilter = 0;
-                    if( strcmp(ext, "sam") == 0 ) {
-                        cntFound = sVioseq2::convertSAMintoAlignmentMap(fl.ptr(), fl.length(), &alignmentMap, 0, minMatchLength, maxMissQueryPercent, &subIds, 0, true);
-                        if( cntFound < 0 ) {
-                            errmsg.printf(0, "One or more reference ids were not resolved using reference list provided");
-                        } else if( cntFound != Qry.dim() ) { // should they??
-                            errmsg.printf("Number of reads %" DEC " do not correlate with number of alignments %" DEC, Qry.dim(), cntFound);
-                            cntFound = -3;
+                    bool allUnaligned = checkSamUnaligned(fl, errmsg);
+                    if ( allUnaligned ) {
+                        errmsg.printf("it only contains unaligned sequences");
+                        cntFound = 0;
+                    } else {
+                        if ( errmsg.length() == 0 ) {
+                            errmsg.printf("missing or empty reference with aligned sequences");
+                        } else {
+                            errmsg.printf(" malformed SAM input");
                         }
-                    } else if( strcmp(ext, "blast_out") == 0 ) {
-                        // Untested code down here
-                        sIO log((idx) 0, (sIO::callbackFun) ::printf);
-                        cntFound = sBioAlBlast::SSSParseAlignment(&log, fl.ptr(), fl.length(), &alignmentMap, scoreFilter, minMatchLength, maxMissQueryPercent, &subIds);
+                        cntFound = -6;
+                    }
+                } else {
+                    if( strcmp(ext, "sam") == 0 ) {
+                        parser = new SAMParser(*this, Sub, Qry, true);
+                        sFilterseq::parseDicBioseq(subIds, Sub, 0);
+                        subIdsP = &subIds;
                     } else {
                         errmsg.printf("file format not recognized '.%s'", ext.ptr());
                         cntFound = -4;
                     }
                 }
             }
-            logOut(eQPLogType_Debug, "Parsed %" DEC " alignments", cntFound);
-            if( cntFound == -3 ) {
-                // No error, just report the message
+
+            if (parser != NULL) {
+                FileAlParser::WriteParams writeParams;
+                writeParams.minMatchLength = 0;
+                writeParams.maxMissQueryPercent = 100;
+                writeParams.isMinMatchLengthPercentage = 0;
+                writeParams.scoreFilter = 0;
+                writeParams.flagSet = sBioseqAlignment::fAlignForward;
+                if (sRC rc = parser->writeAls(sourceSequenceFilePath.ptr(), writeParams, cntFound, errmsg, 0, 0, subIdsP)) {
+                    reqSetInfo(req, eQPInfoLevel_Error, "Error encountered when writing vioals: %s", rc.print());
+                    reqSetStatus(req, eQPReqStatus_ProgError);
+                    delete parser;
+                    return 0;
+                }
+            }
+
+            logOut(eQPLogType_Debug, "Parsed %" DEC " alignments", cntFound < 0 ? 0 : cntFound);
+
+            if( cntFound == -3) {
                 reqSetInfo(req, eQPInfoLevel_Info, "%s%s", filename.ptr(), errmsg.ptr());
-            } else if( cntFound == 0 ) {
+            } else if( cntFound == 0) {
                 delObject(obj.get(), reqtoWaitFor);
-                reqSetInfo(req, eQPInfoLevel_Warning, "%s not alignments found", filename.ptr());
+                progress100Start = 0;
+                progress100End = 100;
+                reqProgress(0, 100, 100);
+                reqSetInfo(req, eQPInfoLevel_Warning, "%s not alignments found %s", filename.ptr(), errmsg.length() ? errmsg.ptr(): "");
                 reqSetStatus(req, eQPReqStatus_Done);
+                delete parser;
                 return 0;
             } else if( cntFound < 0 ) {
                 delObject(obj.get(), reqtoWaitFor);
                 reqSetInfo(req, eQPInfoLevel_Error, "%s %s", filename.ptr(), errmsg.ptr());
                 reqSetStatus(req, eQPReqStatus_ProgError);
+                delete parser;
                 return 0;
             }
 
-            idx flagSet = sBioseqAlignment::fAlignForward;
-            if( alignmentMap.dim() ) {
-                sStr pathT;
-                reqSetData(req, "file://alignment-slice.vioalt", 0, 0); // create and empty file for this request
-                reqDataPath(req, "alignment-slice.vioalt", &pathT);
-                sFile::remove(pathT);
-                sFil ff(pathT);
-                sBioseqAlignment::filterChosenAlignments(&alignmentMap, 0, flagSet, &ff);
-            }
             if( !reqProgress(cntFound, 100, 100) ) {
+                delete parser;
                 return 0;
             }
             progress100Start = 50;
             progress100End = 100;
 
-            sStr srcAlignmentsT, dstAlignmentsT;
-            if( !obj->addFilePathname(dstAlignmentsT, true, "alignment.hiveal") ) {
-                reqSetInfo(req, eQPLogType_Error, "failed to create destination");
-                return 0;
+            if (parser != NULL) {
+                sVioal::digestParams params;
+                params.flags = sBioseqAlignment::fAlignForward;
+                params.countHiveAlPieces = 1000000;
+                params.combineFiles = false;
+                params.minFragmentLength = formIValue("fragmentLengthMin", 0);
+                params.maxFragmentLength = formIValue("fragmentLengthMax", 0);
+
+                if (sRC rc = parser->joinAls(params, obj.get())) {
+                    reqSetInfo(req, eQPInfoLevel_Error, "Error encountered when joining vioals into hiveal: %s", rc.print());
+                    reqSetStatus(req, eQPReqStatus_ProgError);
+                    delete parser;
+                    return 0;
+                }
             }
 
-            sVioal vioAltAAA(0, Sub.dim() ? &Sub : &Qry, &Qry);
-            vioAltAAA.myCallbackFunction = sQPrideProc::reqProgressStatic;
-            vioAltAAA.myCallbackParam = this;
-            sVioal::digestParams params;
-            params.flags = flagSet;
-            params.countHiveAlPieces = 1000000;
-            params.combineFiles = false;
-            params.minFragmentLength = formIValue("fragmentLengthMin", 0);
-            params.maxFragmentLength = formIValue("fragmentLengthMax", 0);
-            grpDataPaths(req, "alignment-slice.vioalt", &srcAlignmentsT, vars.value("serviceName"));
-            vioAltAAA.DigestCombineAlignmentsRaw(dstAlignmentsT, srcAlignmentsT, params);
-
-            obj->propSetHiveIds("query", qids);
-            if( sids.dim() ) {
-                obj->propSetHiveIds("subject", sids);
+            if (strcmp(ext, "ma") == 0) {
+                obj->propSetHiveIds("subject", qids);
+            } else {
+                obj->propSetHiveIds("query", qids);
+                if( sids.dim() ) {
+                    obj->propSetHiveIds("subject", sids);
+                }
             }
             progress100Start = 0;
             progress100End = 100;
-            if( reqProgress(req, cntFound, 100) ) {
-                reqSetStatus(req, eQPReqStatus_Done); // change the status
+            if( reqProgress(cntFound, 100, 100) ) {
+                reqSetStatus(req, eQPReqStatus_Done);
             }
+            delete parser;
             return 0;
         }
 };
@@ -234,7 +282,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     DnaAlignParser backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-align-parser", argv[0]));
     return (int) backend.run(argc, argv);

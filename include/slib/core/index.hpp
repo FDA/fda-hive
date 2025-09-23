@@ -36,13 +36,8 @@
 
 namespace slib
 {
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ class sAlgoTpl
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     
-    struct sIndexStruc{idx defint;}; // minimalistic structure which must be part of Tobj
+    struct sIndexStruc{idx defint;};
     struct sIndexIndex{idx defint; idx dstIndex;};
     template <class Tobj> class sIndex: public sVec < Tobj > 
     {
@@ -54,21 +49,17 @@ namespace slib
 
 
         
-    public: // quick double 
+    public:
         sIndex (const char * flnm=0, idx openModeFlags=0) {
             init(flnm, openModeFlags);
         }
 
         sIndex * init( const char * flnm=0, idx openModeFlags=0 )
         {
-            valibit=-1;//1<<(sizeof(idx)*8-1);
+            valibit=-1;
             collided=0;
             collidedTotal=0;
-            //rehashcnt=0;
             bitness=1;
-            //sVec < Tobj >::setflag(sMex::fBlockDoubling);
-            //hashTbl.setflag(sMex::fBlockDoubling|sMex::fSetZero);
-            //hashTbl.setflag(sMex::fBlockNormal|sMex::fSetZero);
             if(flnm) {
                 sStr t;
                 hashTbl.init(flnm,openModeFlags|sMex::fBlockNormal|sMex::fSetZero);
@@ -81,14 +72,14 @@ namespace slib
             return this;
         }
         
-        void getValiBit() // used for serialization when bitness and valibit are maintained as last two integers
+        void getValiBit()
         {
             if(!hashTbl.dim())return;
             idx * p=hashTbl.ptr(hashTbl.dim()-2);
             valibit=p[0];
             bitness=p[1];
         }
-        void setValiBit() // used for serialization when bitness and valibit are maintained as last two integers
+        void setValiBit()
         {
             idx * p=hashTbl.ptr(hashTbl.dim()-2);
             p[0]=valibit;
@@ -99,9 +90,9 @@ namespace slib
         {
             ++valibit;
             idx oldbitness=bitness;
-            for( ; (idx) ((udx)1<<bitness) <= (((udx)1<<zestimate)+1)*collisionReducer ; ++bitness);
-            if(oldbitness<bitness){ // rehash
-                ++valibit; // now only those hashes whivh have this in highes bit are valid 
+            for( ; ((udx)1<<bitness) <= (((udx)1<<zestimate)+1)*collisionReducer ; ++bitness);
+            if(oldbitness<bitness){
+                ++valibit;
                 hashTbl.resizeM((((udx)1)<<bitness)+2);
             }
             
@@ -115,37 +106,22 @@ namespace slib
         {    
 
             if(!sVec<Tobj>::dim()) return 0;
-            //idx mask=(1<<bitness)-1;
-            //idx h=defint& (((udx)1<<bitness)-1) ;
-            //static const idx mask=0x00FF00FF00FF00FFll;
-            //defint=(defint&mask) | (sEndian(defint)&(mask>>8));
             idx h=defint&(((udx)1<<bitness)-1) ;
-            idx dh=7919; //1; a primernumber
-            //idx * ht=hashTbl.ptr();
-            //idx totcnt=sVec<Tobj>::dim();
+            idx dh=7919;
 
-            //// idx sAlgo::hax_hashfun(const void * mem, idx len, idx bits, idx iNum)
             for(;;) { 
                 idx ref=hashTbl[h];
                 idx val=(ref>>56)&0xFF;
                 if(val!=valibit)ref=0;
-                else ref&=0x00FFFFFFFFFFFFFFll; // turn off the validity bits to get the pure reference 
+                else ref&=0x00FFFFFFFFFFFFFFll;
                 
-                //if(ref!=0 && val!=valibit)
-                //    valibit=valibit;
 
-                if ( ref==0 ||  (udx)((*this)[ref-1].defint)==defint ){ // return if first occurence or found item 
+                if ( ref==0 ||  (udx)((*this)[ref-1].defint)==defint ){
                     if(pHash)*pHash=h;
                     return ref;
                 }
-                //*pHash = (*pHash + (defint%(hashTbl1.dim())|1) ) % (hashTbl.dim()); // double hashing resolution of collisions
                 collided++;collidedTotal++;
-                //idx prvdefint=(udx)((*this)[ref-1].defint);
-                //if(!dh)dh = sAlgo::hax_hashfun(&defint,sizeof(defint),bitness,1); // double hashing resolution of collisions
                 h += dh;
-                // h++; // linear collision resolution
-                //if(h >= hashTbl.dim() ) // over the limits ? rebound !
-                //    h -=hashTbl.dim() ;
                 h%=hashTbl.dim()-2;
             }
         }        
@@ -153,39 +129,31 @@ namespace slib
         idx add(udx defint, Tobj * myo, idx collisionReducer=4)
         {
 
-//PERF_START("SRCH 1");
             udx h=0;
             idx ref=find(defint,&h);
-            if(ref) return ref-1; // 1 based indexes are in the hash table 
+            if(ref) return ref-1;
             
             idx oldbitness=bitness;
-            //idx totcnt=sVec<Tobj>::dim();
             for( ; (idx) ((udx)1<<bitness) <= (sVec<Tobj>::dim()+1)*collisionReducer ; ++bitness);
-//PERF_NEXT("::REHASHH");
-            if(oldbitness<bitness){ // rehash
-                ++valibit; // now only those hashes whivh have this in highes bit are valid 
-                //++rehashcnt; 
+            if(oldbitness<bitness){
+                ++valibit;
                 collided=0; 
-                //idx szresize=(1<<bitness);
                 hashTbl.resizeM((((udx)1)<<bitness)+2);
-                //hashTbl.set(0);
                 for( idx i=0; i< sVec<Tobj>::dim() ; ++i ) {
                     find((udx)((*this)[i].defint), &h );
                     hashTbl[h]=(i+1)|(valibit<<56);
                 }
                 h=0;
             }
-//PERF_NEXT("::SRCH 2");
             ref=sVec<Tobj>::dim();
             sVec<Tobj>::resizeM(ref+1);
-            Tobj * po=sVec<Tobj>::ptr(ref);//(sVec<Tobj>::addM());
+            Tobj * po=sVec<Tobj>::ptr(ref);
             if(myo)*po=*myo;
             po->defint=defint;
             if(h==0)find(defint, &h );
             hashTbl[h]=(ref+1)|(valibit<<56);
             setValiBit();
 
-//PERF_END();
         return ref;
         }
 
@@ -205,8 +173,7 @@ namespace slib
 }
 
 
-#endif // sLib_core_vec_h
-
+#endif 
 
 
 

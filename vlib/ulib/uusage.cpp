@@ -27,30 +27,70 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+#include <assert.h>
+#include <stdarg.h>
+#include <stdlib.h>
+
 #include <slib/std/file.hpp>
 #include <slib/std/pipe2.hpp>
 #include <slib/utils/sort.hpp>
+#include <slib/utils/tbl.hpp>
 #include <ulib/uusage.hpp>
 #include <qlib/QPrideBase.hpp>
 #include <xlib/sqlite.hpp>
 
 #include "uperm.hpp"
 
-#include <assert.h>
-
 using namespace slib;
 
-#if _DEBUG_off
-#define HAVE_USAGEDBG 1
-#define USAGEDBG(fmt, ...) fprintf(stderr, fmt"\n", ##__VA_ARGS__)
-#define USAGEDBG_FUNC(fmt, ...) fprintf(stderr, "%s:%d : "fmt"\n", __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define USAGEDBG_TYPE(type, fmt, ...) fprintf(stderr, "%s : "fmt"\n", sUsrUsage2::getTypeName(type), ##__VA_ARGS__)
+static bool isUsageDbgWanted(bool trace)
+{
+    static enum {
+        eNo,
+        eDebug,
+        eTrace,
+        eUnknown = -1
+    } state = eUnknown;
+    if( state == eUnknown ) {
+        if( const char * uusage_debug_str = getenv("UUSAGE_DEBUG") ) {
+            if( sIsExactly(uusage_debug_str, "trace") ) {
+                state = eTrace;
+            } else if( sString::parseBool(uusage_debug_str) ) {
+                state = eDebug;
+            } else {
+#if _DEBUG
+                state = eDebug;
 #else
-#define HAVE_USAGEDBG 0
-#define USAGEDBG(...)
-#define USAGEDBG_FUNC(...)
-#define USAGEDBG_TYPE(...)
+                state = eNo;
 #endif
+            }
+        }
+    }
+    return trace ? state >= eTrace : state >= eDebug;
+}
+
+static void usageDbg(bool trace, const char * fmt, ...) __attribute__((format(printf, 2, 3)));
+static void usageDbg(bool trace, const char * fmt, ...)
+{
+    if( isUsageDbgWanted(trace) ) {
+        sStr buf;
+        va_list ap;
+        va_start(ap, fmt);
+        buf.vprintf(fmt, ap);
+        va_end(ap);
+
+        fprintf(stderr, "%s", buf.ptr());
+        if( buf.length() && buf[buf.length() - 1] != '\n' ) {
+            fprintf(stderr, "\n");
+        }
+    }
+}
+
+
+#define USAGEDBG(fmt, ...) usageDbg(false, fmt, ##__VA_ARGS__)
+#define USAGETRACE(fmt, ...) usageDbg(true, fmt, ##__VA_ARGS__)
+#define USAGETRACE_FUNC(fmt, ...) usageDbg(true, "%s:%d : " fmt, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define USAGETRACE_TYPE(type, fmt, ...) usageDbg(true, "%s : " fmt, sUsrUsage2::getTypeName(type), ##__VA_ARGS__)
 
 #define USAGEDBG_SQLITE do { if( _db.hasFailed() ) { fprintf(stderr, "%s:%d : SQLite error %" UDEC ": %s\n", __PRETTY_FUNCTION__, __LINE__, _db.getErrno(), _db.getError()); } } while( 0 )
 #define USAGEDBG_SQLITE_TRACE(fmt, ...) fprintf(stderr, "%s:%d : " fmt "\n", __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
@@ -67,10 +107,13 @@ static const struct {
     { "file-count", "file count change", "total file count" },
     { "run-time", "run time", "total run time" },
     { "wait-time", "wait time", "total wait time" },
-    { "completion-time", "process completion time", "total process completion time" }
+    { "completion-time", "process completion time", "total process completion time" },
+    { "computation-obj-count", "computation object count change", "total computation object count" },
+    { "data-loading-obj-count", "data-loading object count change", "total data-loading object count" },
+    { "file-obj-count", "file object count change", "total file object count" },
+    { "directory-obj-count", "directory object count change", "total directory object count" },
 };
 
-//static
 const char * sUsrUsage2::getTypeName(EUsageType t)
 {
     if( likely(t >= 0 && t <= eUsageTypeLast) ) {
@@ -79,7 +122,6 @@ const char * sUsrUsage2::getTypeName(EUsageType t)
     return 0;
 }
 
-//static
 sUsrUsage2::EUsageType sUsrUsage2::parseTypeName(const char * s)
 {
     if( !s ) {
@@ -93,80 +135,92 @@ sUsrUsage2::EUsageType sUsrUsage2::parseTypeName(const char * s)
     return eUsageTypeInvalid;
 }
 
-static void ionapp2csv(sTxtTbl & out_tbl, sIO & out_io, const char * ion_path, const char * relname)
-{
-    sPipe2 ionapp;
-    sIO ionapp_io;
-    ionapp.setExe("ionapp.os" SLIB_PLATFORM).addArg("-ionRead").addArg(ion_path).addArg("-ionExport").addArg(relname).setStdOut(&out_io);
-    ionapp.execute();
-
-    if( out_io.length() ) {
-        out_tbl.parseOptions().comment = "# ";
-        out_tbl.setBuf(out_io.ptr(), out_io.length());
-        out_tbl.parse();
-        USAGEDBG_SQLITE_TRACE("%" DEC " rows read from ionapp -ionRead %s -ionExport %s", out_tbl.rows(), ion_path, relname);
-    }
-}
-
-static unsigned char readHexDigit(char c)
-{
-    unsigned char ret = 0;
-    if( c >= '0' && c <= '9' ) {
-        ret += c - '0';
-    } else if( c >= 'a' && c <= 'f' ) {
-        ret += c - 'a' + 10;
-    } else if( c >= 'A' && c <= 'F' ) {
-        ret += c - 'A' + 10;
-    }
-    return ret;
-}
-
-// read two hex digits as a byte
-static unsigned char readHexByte(const char * txt)
-{
-    return (readHexDigit(txt[0]) << 4) + readHexDigit(txt[1]);
-}
-
-static bool noCSVErrorCells(sTxtTbl & tbl, idx irow, sStr & buf)
-{
-    for(idx ic = 0; ic < tbl.cols(); ic++) {
-        buf.cut0cut();
-        tbl.printCell(buf, irow, ic);
-        if( strcasestr(buf.ptr(), "err") ) {
-            return false;
-        }
-    }
-    return true;
-}
-
 class sUsrUsage2::UsageDb
 {
+    public:
+        enum ESchemaPrefix {
+            eMain,
+            eTemp
+        };
     private:
         sSqlite _db;
+        ESchemaPrefix _pfx;
+
+        static const char * schemaPrefix(ESchemaPrefix pfx)
+        {
+            if( pfx == eTemp ) {
+                return "temp";
+            } else {
+                return "main";
+            }
+        }
+
+        bool initSchemaV0(ESchemaPrefix pfx = eMain)
+        {
+            const char * schema_prefix = schemaPrefix(pfx);
+
+            bool success =
+                _db.execute("CREATE TABLE %s.user_usage (rowid INTEGER PRIMARY KEY AUTOINCREMENT, timestamp BIGINT NOT NULL, user_id BIGINT NOT NULL, usage_type INTEGER NOT NULL, value BIGINT NOT NULL, tag BIGINT);", schema_prefix) &&
+                _db.execute("CREATE INDEX %s.user_usage_idx_timestamp_asc ON user_usage (timestamp ASC);", schema_prefix) &&
+                _db.execute("CREATE INDEX %s.user_usage_idx_timestamp_desc ON user_usage (timestamp DESC);", schema_prefix) &&
+                _db.execute("CREATE INDEX %s.user_usage_idx_type_tag ON user_usage (usage_type, tag);", schema_prefix) &&
+                _db.execute("CREATE TABLE %s.req_usage (timestamp BIGINT NOT NULL, req_id BIGINT NOT NULL, usage_type INTEGER NOT NULL, value BIGINT NOT NULL);", schema_prefix) &&
+                _db.execute("CREATE UNIQUE INDEX %s.req_usage_idx ON req_usage (req_id, usage_type);", schema_prefix) &&
+                _db.execute("CREATE TABLE %s.obj_usage (timestamp BIGINT NOT NULL, domain_id BIGINT NOT NULL, obj_id BIGINT NOT NULL, usage_type INTEGER NOT NULL, value BIGINT NOT NULL);", schema_prefix) &&
+                _db.execute("CREATE UNIQUE INDEX %s.obj_usage_idx ON obj_usage (domain_id, obj_id, usage_type);", schema_prefix);
+            return success;
+        }
+
+        bool initSchemaV1(ESchemaPrefix pfx = eMain)
+        {
+            idx prev_version = schemaVersion(pfx);
+            const char * schema_prefix = schemaPrefix(pfx);
+
+            bool success =
+                _db.execute("CREATE TABLE %s.req_info (timestamp BIGINT NOT NULL, req_id BIGINT NOT NULL, user_id BIGINT NOT NULL, on_behalf_user_id BIGINT DEFAULT NULL);", schema_prefix) &&
+                _db.execute("CREATE UNIQUE INDEX %s.req_info_idx ON req_info (req_id);", schema_prefix) &&
+                _db.execute("CREATE TABLE %s.obj_info (timestamp BIGINT NOT NULL, domain_id BIGINT NOT NULL, obj_id BIGINT NOT NULL, type_domain_id BIGINT NOT NULL, type_obj_id BIGINT NOT NULL, user_id BIGINT NOT NULL, on_behalf_user_id BIGINT DEFAULT NULL);", schema_prefix) &&
+                _db.execute("CREATE UNIQUE INDEX %s.obj_info_idx ON obj_info (domain_id, obj_id);", schema_prefix) &&
+                _db.execute("CREATE TABLE %s.settings (timestamp BIGINT NOT NULL, name VARCHAR(255) NOT NULL, value TEXT);", schema_prefix) &&
+                _db.execute("CREATE UNIQUE INDEX %s.settings_idx ON settings (name);", schema_prefix) &&
+                _db.execute("INSERT INTO %s.settings (timestamp, name, value) VALUES (%" DEC ", 'schema_version', 1);", schema_prefix, (idx)time(0));
+
+            idx cnt_user_usage_rows = _db.getIValue(0, "SELECT COUNT(*) FROM %s.user_usage;", schema_prefix);
+            if( cnt_user_usage_rows ) {
+                _db.execute("INSERT OR IGNORE INTO %s.settings (timestmap, name, value) VALUES (%" DEC ", 'data_version', %" DEC ");", schema_prefix, (idx)time(0), prev_version);
+            }
+
+            return success;
+        }
 
         void initSchema()
         {
             if( _db.startTransaction() ) {
-                if( // user_usage table: historical log for each (user, type, tag) tuple, including historical data
-                    // rowid (explicit to use as foreign key) / timestamp / user_id / usage_type (EUsageType) / value / tag
-                    _db.executeExact("CREATE TABLE user_usage (rowid INTEGER PRIMARY KEY AUTOINCREMENT, timestamp BIGINT NOT NULL, user_id BIGINT NOT NULL, usage_type INTEGER NOT NULL, value BIGINT NOT NULL, tag BIGINT);") &&
-                    _db.executeExact("CREATE INDEX user_usage_idx_timestamp_asc ON user_usage (timestamp ASC);") &&
-                    _db.executeExact("CREATE INDEX user_usage_idx_timestamp_desc ON user_usage (timestamp DESC);") &&
-                    _db.executeExact("CREATE INDEX user_usage_idx_type_tag ON user_usage (usage_type, tag);") &&
-                    // req_usage table: current usage for each (req, type, tag) tuple, without historical data
-                    // timestamp / req_id / usage_type / value (+ sqlite's implicit rowid column)
-                    _db.executeExact("CREATE TABLE req_usage (timestamp BIGINT NOT NULL, req_id BIGINT NOT NULL, usage_type INTEGER NOT NULL, value BIGINT NOT NULL);") &&
-                    _db.executeExact("CREATE UNIQUE INDEX req_usage_idx ON req_usage (req_id, usage_type);") &&
-                    // obj_usage table: current usage for each (obj, type, tag) tuple, without historical data
-                    // timestamp / domain_id / obj_id / usage_type / value (+ sqlite's implicit rowid column)
-                    _db.executeExact("CREATE TABLE obj_usage (timestamp BIGINT NOT NULL, domain_id BIGINT NOT NULL, obj_id BIGINT NOT NULL, usage_type INTEGER NOT NULL, value BIGINT NOT NULL);") &&
-                    _db.executeExact("CREATE UNIQUE INDEX obj_usage_idx ON obj_usage (domain_id, obj_id, usage_type);") ) {
+                if( initSchemaV0() && initSchemaV1() ) {
                     _db.commit();
                 } else {
                     USAGEDBG_SQLITE;
                     _db.rollback();
                 }
             }
+        }
+
+        void dropTemp()
+        {
+            _db.executeExact("DROP TABLE IF EXISTS temp.req_info;");
+            _db.executeExact("DROP TABLE IF EXISTS temp.obj_info;");
+            _db.executeExact("DROP TABLE IF EXISTS temp.settings;");
+
+            _db.executeExact("DROP TABLE IF EXISTS temp.user_usage;");
+            _db.executeExact("DROP TABLE IF EXISTS temp.req_usage;");
+            _db.executeExact("DROP TABLE IF EXISTS temp.obj_usage;");
+        }
+
+        void initTemp()
+        {
+            dropTemp();
+            initSchemaV0(eTemp);
+            initSchemaV1(eTemp);
         }
 
         struct UInfo {
@@ -182,13 +236,24 @@ class sUsrUsage2::UsageDb
         };
 
     public:
-        UsageDb(const char * path, bool readonly = false) : _db(path, readonly)
+        UsageDb(const char * path, bool readonly = false) : _db(path, readonly), _pfx(eMain)
         {
-            if( _db.ok() && !readonly && !_db.executeExact("SELECT COUNT(*) FROM user_usage;") ) {
-                initSchema();
+            if( _db.ok() && !readonly ) {
+                idx nrecords = _db.getIValue(0, "SELECT COUNT(*) FROM user_usage;");
+                if( !nrecords ) {
+                    initSchema();
+                } else if( schemaVersion(eMain) < expectedVersion() ) {
+                    USAGEDBG("Usage db '%s' schema version %" DEC " is outdated", path, schemaVersion(eMain));
+                    initTemp();
+                }
             }
-            _db.executeExact("PRAGMA journal_mode = WAL;"); // nfs optimization
-            _db.executeExact("PRAGMA secure_delete = FALSE;"); // nfs optimization
+            if( schemaVersion() > expectedVersion() ) {
+                fprintf(stderr, "%s:%d : unsupported schema version %" DEC "\n",  __PRETTY_FUNCTION__, __LINE__, schemaVersion());
+                _db.reset(0, true);
+            } else {
+                _db.executeExact("PRAGMA journal_mode = WAL;");
+                _db.executeExact("PRAGMA secure_delete = FALSE;");
+            }
         }
 
         bool ok() const { return _db.ok(); }
@@ -196,25 +261,40 @@ class sUsrUsage2::UsageDb
         bool commit() { return _db.commit(); }
         bool rollback() { return _db.rollback(); }
 
-        idx dimHistoryRecords()
+        idx schemaVersion(ESchemaPrefix pfx = eMain) {
+            return _db.getIValue(0, "SELECT value FROM %s.settings WHERE name = 'schema_version';", schemaPrefix(pfx));
+        }
+
+        idx dataVersion(ESchemaPrefix pfx = eMain) {
+            return _db.getIValue(schemaVersion(), "SELECT value FROM %s.settings WHERE name = 'data_version';", schemaPrefix(pfx));
+        }
+
+        idx expectedVersion() {
+            return 1;
+        }
+
+        idx dimHistoryRecords(ESchemaPrefix pfx = eMain)
         {
             idx ret = 0;
-            if( _db.ok() && _db.resultOpenExact("SELECT COUNT(*) FROM user_usage;") ) {
-                _db.resultNextRow();
-                ret = _db.resultIValue(0, 0);
-                _db.resultClose();
-            } else {
-                USAGEDBG_SQLITE;
+            if( _db.ok() ) {
+                ret = _db.getIValue(0, "SELECT COUNT(*) FROM %s.user_usage;", schemaPrefix(pfx));
+                if( _db.hasFailed() ) {
+                    USAGEDBG_SQLITE;
+                }
             }
             return ret;
         }
 
-        //! this MUST be called in chronological order (earliest to latest) - it's assumed timestamps ascend with rowid!
+        void setSchemaPrefix(ESchemaPrefix pfx)
+        {
+            _pfx = pfx;
+        }
+
         void addRecord(udx user_id, sUsrUsage2::EUsageType type, idx tag, time_t timestamp, idx value)
         {
             udx timestamp_udx = timestamp;
             bool timestamp_is_last = true;
-            if( _db.resultOpen("SELECT rowid FROM user_usage WHERE user_id = %" UDEC " and usage_type = %d AND tag = %" DEC " and timestamp > %" UDEC " LIMIT 1;", user_id, type, tag, timestamp_udx) ) {
+            if( _db.resultOpen("SELECT rowid FROM %s.user_usage WHERE user_id = %" UDEC " and usage_type = %d AND tag = %" DEC " and timestamp > %" UDEC " LIMIT 1;", schemaPrefix(_pfx), user_id, type, tag, timestamp_udx) ) {
                 if( _db.resultNextRow() ) {
                     timestamp_is_last = false;
                 }
@@ -224,15 +304,13 @@ class sUsrUsage2::UsageDb
             }
 
             if( timestamp_is_last ) {
-                if( _db.resultOpen("SELECT rowid, value, timestamp FROM user_usage WHERE user_id = %" UDEC " and usage_type = %d AND TAG = %" DEC " and timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 2;", user_id, type, tag, timestamp_udx) ) {
+                if( _db.resultOpen("SELECT rowid, value, timestamp FROM %s.user_usage WHERE user_id = %" UDEC " and usage_type = %d AND TAG = %" DEC " and timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 2;", schemaPrefix(_pfx), user_id, type, tag, timestamp_udx) ) {
                     idx cnt_same_value = 0;
                     idx update_rowid = -sIdxMax;
                     if( _db.resultNextRow() ) {
                         update_rowid = _db.resultIValue(0);
                         if( _db.resultIValue(1) == value ) {
                             if( _db.resultUValue(2) == timestamp_udx ) {
-                                // no-op: the latest row in the database is *exactly equal* to what we are trying to write : same user, type, tag, timestamp, value
-                                // (this can legitimately happen only during migration from ion)
                                 _db.resultClose();
                                 return;
                             }
@@ -246,9 +324,7 @@ class sUsrUsage2::UsageDb
                     }
 
                     if( cnt_same_value == 2 ) {
-                        // optimization: the latest 2 entries for (user, type, tag) have the same value; we just
-                        // need to update the second one's timestamp
-                        if( !_db.execute("UPDATE user_usage SET timestamp = %" UDEC " WHERE rowid = %" DEC ";", timestamp_udx, update_rowid) ) {
+                        if( !_db.execute("UPDATE %s.user_usage SET timestamp = %" UDEC " WHERE rowid = %" DEC ";", schemaPrefix(_pfx), timestamp_udx, update_rowid) ) {
                             USAGEDBG_SQLITE;
                         }
                         return;
@@ -258,7 +334,7 @@ class sUsrUsage2::UsageDb
                 }
             }
 
-            if( !_db.execute("INSERT INTO user_usage (user_id, usage_type, tag, timestamp, value) VALUES(%" UDEC ", %d, %" DEC ", %" UDEC ", %" DEC ");", user_id, (int)type, tag, timestamp_udx, value) ) {
+            if( !_db.execute("INSERT INTO %s.user_usage (user_id, usage_type, tag, timestamp, value) VALUES(%" UDEC ", %d, %" DEC ", %" UDEC ", %" DEC ");", schemaPrefix(_pfx), user_id, (int)type, tag, timestamp_udx, value) ) {
                 USAGEDBG_SQLITE;
             }
         }
@@ -267,7 +343,20 @@ class sUsrUsage2::UsageDb
         {
             idx ret = sIdxMax;
             udx after_udx = after;
-            if( _db.resultOpen("SELECT timestamp FROM user_usage WHERE usage_type = %d AND tag = %" DEC " AND timestamp >= %" UDEC " ORDER BY timestamp ASC LIMIT 1;", type, tag, after_udx) ) {
+            if( _db.resultOpen("SELECT timestamp FROM %s.user_usage WHERE usage_type = %d AND tag = %" DEC " AND timestamp >= %" UDEC " ORDER BY timestamp ASC LIMIT 1;", schemaPrefix(_pfx), type, tag, after_udx) ) {
+                _db.resultNextRow();
+                ret = _db.resultIValue(0, sIdxMax);
+                _db.resultClose();
+            } else {
+                USAGEDBG_SQLITE;
+            }
+            return ret;
+        }
+
+        time_t getFirstTimestamp(ESchemaPrefix pfx)
+        {
+            idx ret = sIdxMax;
+            if( _db.resultOpen("SELECT timestamp FROM %s.user_usage ORDER BY timestamp ASC LIMIT 1;", schemaPrefix(pfx)) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, sIdxMax);
                 _db.resultClose();
@@ -281,7 +370,7 @@ class sUsrUsage2::UsageDb
         {
             idx ret = 0;
             udx before_udx = before;
-            if( _db.resultOpen("SELECT timestamp FROM user_usage WHERE user_id = %" UDEC " AND usage_type = %d AND tag = %" DEC " AND timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 1;", user_id, type, tag, before_udx) ) {
+            if( _db.resultOpen("SELECT timestamp FROM %s.user_usage WHERE user_id = %" UDEC " AND usage_type = %d AND tag = %" DEC " AND timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 1;", schemaPrefix(_pfx), user_id, type, tag, before_udx) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, 0);
                 _db.resultClose();
@@ -295,7 +384,7 @@ class sUsrUsage2::UsageDb
         {
             idx ret = 0;
             udx before_udx = before;
-            if( _db.resultOpen("SELECT timestamp FROM user_usage WHERE usage_type = %d AND tag = %" DEC " AND timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 1;", type, tag, before_udx) ) {
+            if( _db.resultOpen("SELECT timestamp FROM %s.user_usage WHERE usage_type = %d AND tag = %" DEC " AND timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 1;", schemaPrefix(_pfx), type, tag, before_udx) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, 0);
                 _db.resultClose();
@@ -305,7 +394,21 @@ class sUsrUsage2::UsageDb
             return ret;
         }
 
-        typedef bool (*readCallback)(sUsrUsage2::EUsageType type, idx list_index, idx tag, time_t timestamp, idx value, idx sum_adjust, void * param);
+        time_t getLastTimestampBefore(time_t before)
+        {
+            idx ret = 0;
+            udx before_udx = before;
+            if( _db.resultOpen("SELECT timestamp FROM %s.user_usage WHERE timestamp <= %" UDEC " ORDER BY timestamp DESC LIMIT 1;", schemaPrefix(_pfx), before_udx) ) {
+                _db.resultNextRow();
+                ret = _db.resultIValue(0, 0);
+                _db.resultClose();
+            } else {
+                USAGEDBG_SQLITE;
+            }
+            return ret;
+        }
+
+        typedef bool (*readCallback)(sUsrUsage2::EUsageType type, idx list_index, idx tag, time_t timestamp, idx value, sVec<idx> * psum_adjust, void * param);
 
         idx readRows(const sUsrUsage2::UserList * user_lists, idx num_user_lists, sUsrUsage2::EUsageType type, idx tag, time_t since, time_t to, readCallback cb, void * cb_param)
         {
@@ -317,7 +420,7 @@ class sUsrUsage2::UsageDb
             sMex user_id2info_mex;
             sDic<UInfo> user_id2info;
             for(idx i = 0; i < num_user_lists; i++) {
-                for(idx j = 0; j < user_lists[i].dim; j++) {
+                for(idx j = 0; j < user_lists[i].user_ids.dim(); j++) {
                     udx user_id = user_lists[i].user_ids[j];
                     *all_user_ids.add(1) = user_id;
                     UInfo * uinfo = user_id2info.set(&user_id, sizeof(user_id));
@@ -338,7 +441,7 @@ class sUsrUsage2::UsageDb
             sVec<idx> iuser_list2cnt_callbacks(sMex::fExactSize|sMex::fSetZero);
             iuser_list2start_value.resize(num_user_lists);
             iuser_list2cnt_callbacks.resize(num_user_lists);
-            sStr sql("SELECT timestamp, user_id, value FROM user_usage WHERE usage_type = %d AND tag = %" DEC " AND timestamp <= %" UDEC " AND ", type, tag, to_udx);
+            sStr sql("SELECT timestamp, user_id, value FROM %s.user_usage WHERE usage_type = %d AND tag = %" DEC " AND timestamp <= %" UDEC " AND ", schemaPrefix(_pfx), type, tag, to_udx);
             sSql::exprInList(sql, "user_id", all_user_ids);
             sql.addString(" ORDER BY timestamp ASC;");
 
@@ -351,7 +454,7 @@ class sUsrUsage2::UsageDb
                     UInfo * uinfo = user_id2info.get(&user_id, sizeof(user_id));
 
                     for(idx iil=0; uinfo && iil<uinfo->iuser_lists.dim(); iil++) {
-                        const idx il = uinfo->iuser_lists[iil]; // index into user_lists and iuser_list2start_value
+                        const idx il = uinfo->iuser_lists[iil];
                         if( timestamp < since ) {
                             iuser_list2start_value[il] += cur_value;
                             continue;
@@ -360,13 +463,11 @@ class sUsrUsage2::UsageDb
                         } else {
                             bool cb_result = false;
                             if( unlikely(timestamp == first_timestamp) ) {
-                                // treat first records in db as a historical baseline, not as a change relative to previous
                                 assert(iuser_list2start_value[il] == 0);
-                                cb_result = cb(type, il, tag, timestamp, 0, cur_value, cb_param);
-                            } else if( unlikely(!iuser_list2cnt_callbacks[il]) ) {
-                                cb_result = cb(type, il, tag, timestamp, cur_value, iuser_list2start_value[il], cb_param);
+                                iuser_list2start_value[il] = cur_value;
+                                cb_result = cb(type, il, tag, timestamp, 0, &iuser_list2start_value, cb_param);
                             } else {
-                                cb_result = cb(type, il, tag, timestamp, cur_value, 0, cb_param);
+                                cb_result = cb(type, il, tag, timestamp, cur_value, &iuser_list2start_value, cb_param);
                             }
 
                             iuser_list2cnt_callbacks[il]++;
@@ -389,7 +490,7 @@ class sUsrUsage2::UsageDb
         idx getObjUsage(const sHiveId & id, sUsrUsage2::EUsageType type)
         {
             idx ret = 0;
-            if( _db.resultOpen("SELECT value FROM obj_usage WHERE domain_id = %" UDEC " AND obj_id = %" UDEC " AND usage_type = %d;", id.domainId(), id.objId(), type) ) {
+            if( _db.resultOpen("SELECT value FROM %s.obj_usage WHERE domain_id = %" UDEC " AND obj_id = %" UDEC " AND usage_type = %d;", schemaPrefix(_pfx), id.domainId(), id.objId(), type) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, 0);
                 _db.resultClose();
@@ -402,7 +503,7 @@ class sUsrUsage2::UsageDb
         idx getReqUsage(const udx req, sUsrUsage2::EUsageType type)
         {
             idx ret = 0;
-            if( _db.resultOpen("SELECT value FROM req_usage WHERE req_id = %" UDEC " AND usage_type = %d;", req, type) ) {
+            if( _db.resultOpen("SELECT value FROM %s.req_usage WHERE req_id = %" UDEC " AND usage_type = %d;", schemaPrefix(_pfx), req, type) ) {
                 _db.resultNextRow();
                 ret = _db.resultIValue(0, 0);
                 _db.resultClose();
@@ -412,13 +513,160 @@ class sUsrUsage2::UsageDb
             return ret;
         }
 
+    private:
+        struct getUserUsageSumWorkerParam {
+            idx sum;
+            idx rows_collected;
+        };
+        static bool getUserUsageSumWorker(sUsrUsage2::EUsageType type, idx list_index, idx tag, time_t timestamp, idx value, sVec<idx> * psum_adjust, void * param_)
+        {
+            getUserUsageSumWorkerParam * param = static_cast<getUserUsageSumWorkerParam*>(param_);
+            param->sum += value;
+            if( psum_adjust && param->rows_collected == 0 ) {
+                param->sum += *psum_adjust->ptr(list_index);
+            }
+            param->rows_collected++;
+            return true;
+        }
+
+    public:
+        idx getUserUsageSum(udx user_id, sUsrUsage2::EUsageType type, idx tag, time_t since, time_t to)
+        {
+            UserList list;
+            list.user_ids.init(sMex::fExactSize);
+            *list.user_ids.add(1) = user_id;
+
+            getUserUsageSumWorkerParam param;
+            sSet(&param);
+            readRows(&list, 1, type, tag, since, to, getUserUsageSumWorker, &param);
+            return param.sum;
+        }
+
+        idx getUserReqs(sVec<udx> & out, udx user_id)
+        {
+            idx cnt = 0;
+            if( _db.resultOpen("SELECT DISTINCT req_id FROM %s.req_usage WHERE (user_id = %" UDEC " AND (on_behalf_user_id IS NULL OR on_behalf_user_id = 0)) OR (on_behalf_user_id IS NOT NULL AND on_behalf_user_id = %" UDEC ");", schemaPrefix(_pfx), user_id, user_id) ) {
+                while( _db.resultNextRow() ) {
+                    *out.add(1) = _db.resultUValue(0);
+                    cnt++;
+                }
+                _db.resultClose();
+            }
+            return cnt;
+        }
+
+        idx getUserObjs(sVec<sHiveId> & out, udx user_id)
+        {
+            idx cnt = 0;
+            if( _db.resultOpen("SELECT DISTINCT domain_id, obj_id FROM %s.obj_info WHERE (user_id = %" UDEC " AND (on_behalf_user_id IS NULL OR on_behalf_user_id = 0)) OR (on_behalf_user_id IS NOT NULL AND on_behalf_user_id = %" UDEC ");", schemaPrefix(_pfx), user_id, user_id) ) {
+                while( _db.resultNextRow() ) {
+                    udx domain_id = _db.resultUValue(0);
+                    idx obj_id = _db.resultUValue(1);
+                    out.add(1)->set(domain_id, obj_id, (udx)0);
+                    cnt++;
+                }
+                _db.resultClose();
+            }
+            return cnt;
+        }
+
+        udx getObjUser(const sHiveId & id)
+        {
+            udx ret = _db.getUValue(0, "SELECT user_id FROM %s.obj_info WHERE domain_id = %" UDEC " AND obj_id = %" UDEC ";", schemaPrefix(_pfx), id.domainId(), id.objId());
+            if( _db.hasFailed() ) {
+                USAGEDBG_SQLITE;
+            }
+            return ret;
+        }
+
+        udx getReqUser(udx req_id)
+        {
+            udx ret = _db.getUValue(0, "SELECT user_id FROM %s.req_info WHERE req_id = %" UDEC ";", schemaPrefix(_pfx), req_id);
+            if( _db.hasFailed() ) {
+                USAGEDBG_SQLITE;
+            }
+            return ret;
+        }
+
+        udx getObjOnBehalfUser(const sHiveId & id)
+        {
+            udx ret = _db.getUValue(0, "SELECT on_behalf_user_id FROM %s.obj_info WHERE domain_id = %" UDEC " AND obj_id = %" UDEC ";", schemaPrefix(_pfx), id.domainId(), id.objId());
+            if( _db.hasFailed() ) {
+                USAGEDBG_SQLITE;
+            }
+            return ret;
+        }
+
+        udx getReqOnBehalfUser(udx req_id)
+        {
+            udx ret = _db.getUValue(0, "SELECT on_behalf_user_id FROM %s.req_info WHERE req_id = %" UDEC ";", schemaPrefix(_pfx), req_id);
+            if( _db.hasFailed() ) {
+                USAGEDBG_SQLITE;
+            }
+            return ret;
+        }
+
+        bool hasObjInfo(const sHiveId & id)
+        {
+            idx ret = _db.getIValue(0, "SELECT COUNT(*) FROM %s.obj_info WHERE domain_id = %" UDEC " AND obj_id = %" UDEC ";", schemaPrefix(_pfx), id.domainId(), id.objId());
+            if( _db.hasFailed() ) {
+                USAGEDBG_SQLITE;
+            }
+            return ret;
+        }
+
+        bool hasReqInfo(udx req_id)
+        {
+            idx ret = _db.getIValue(0, "SELECT COUNT(*) FROM %s.req_info WHERE req_id = %" UDEC ";", schemaPrefix(_pfx), req_id);
+            if( _db.hasFailed() ) {
+                USAGEDBG_SQLITE;
+            }
+            return ret;
+        }
+
+        void setReqInfo(const udx req, time_t timestamp, udx user_id, udx on_behalf_user_id)
+        {
+            udx timestamp_udx = timestamp;
+            sStr on_behalf_user_id_str;
+            if( on_behalf_user_id ) {
+                on_behalf_user_id_str.addNum(on_behalf_user_id);
+            } else {
+                on_behalf_user_id_str.addString("NULL");
+            }
+            if( !_db.execute("INSERT OR REPLACE INTO %s.req_info (timestamp, req_id, user_id, on_behalf_user_id) VALUES(%" UDEC ", %" UDEC ", %" UDEC ", %s);", schemaPrefix(_pfx), timestamp_udx, req, user_id, on_behalf_user_id_str.ptr()) ) {
+                USAGEDBG_SQLITE;
+            }
+        }
+
+        void setObjInfo(const sHiveId & id, time_t timestamp, const sHiveId & type_id, udx user_id, udx on_behalf_user_id)
+        {
+            udx timestamp_udx = timestamp;
+            sStr on_behalf_user_id_str;
+            if( on_behalf_user_id ) {
+                on_behalf_user_id_str.addNum(on_behalf_user_id);
+            } else {
+                on_behalf_user_id_str.addString("NULL");
+            }
+            if( !_db.execute("INSERT OR REPLACE INTO %s.obj_info (timestamp, domain_id, obj_id, type_domain_id, type_obj_id, user_id, on_behalf_user_id) VALUES(%" UDEC ", %" UDEC ", %" UDEC ", %" UDEC ", %" UDEC ", %" UDEC ", %s);", schemaPrefix(_pfx), timestamp_udx, id.domainId(), id.objId(), type_id.domainId(), type_id.objId(), user_id, on_behalf_user_id_str.ptr()) ) {
+                USAGEDBG_SQLITE;
+            }
+        }
+
         void setObjUsage(const sHiveId & id, time_t timestamp, idx disk_usage, idx file_count)
         {
             udx timestamp_udx = timestamp;
-            if( !_db.execute("INSERT OR REPLACE INTO obj_usage (timestamp, domain_id, obj_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %" UDEC ", %d, %" DEC ");", timestamp_udx, id.domainId(), id.objId(), sUsrUsage2::eDiskUsage, disk_usage) ) {
+            if( !_db.execute("INSERT OR REPLACE INTO %s.obj_usage (timestamp, domain_id, obj_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %" UDEC ", %d, %" DEC ");", schemaPrefix(_pfx), timestamp_udx, id.domainId(), id.objId(), sUsrUsage2::eDiskUsage, disk_usage) ) {
                 USAGEDBG_SQLITE;
             }
-            if( !_db.execute("INSERT OR REPLACE INTO obj_usage (timestamp, domain_id, obj_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %" UDEC ", %d, %" DEC ");", timestamp_udx, id.domainId(), id.objId(), sUsrUsage2::eFileCount, file_count) ) {
+            if( !_db.execute("INSERT OR REPLACE INTO %s.obj_usage (timestamp, domain_id, obj_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %" UDEC ", %d, %" DEC ");", schemaPrefix(_pfx), timestamp_udx, id.domainId(), id.objId(), sUsrUsage2::eFileCount, file_count) ) {
+                USAGEDBG_SQLITE;
+            }
+        }
+
+        void setObjUsage2(const sHiveId & id, time_t timestamp, sUsrUsage2::EUsageType type, idx value)
+        {
+            udx timestamp_udx = timestamp;
+            if( !_db.execute("INSERT OR REPLACE INTO %s.obj_usage (timestamp, domain_id, obj_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %" UDEC ", %d, %" DEC ");", schemaPrefix(_pfx), timestamp_udx, id.domainId(), id.objId(), type, value) ) {
                 USAGEDBG_SQLITE;
             }
         }
@@ -426,130 +674,193 @@ class sUsrUsage2::UsageDb
         void setReqUsage(const udx req, time_t timestamp, idx temp_usage)
         {
             udx timestamp_udx = timestamp;
-            if( !_db.execute("INSERT OR REPLACE INTO req_usage (timestamp, req_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %d, %" DEC ");", timestamp_udx, req, sUsrUsage2::eTempUsage, temp_usage) ) {
+            if( !_db.execute("INSERT OR REPLACE INTO %s.req_usage (timestamp, req_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %d, %" DEC ");", schemaPrefix(_pfx), timestamp_udx, req, sUsrUsage2::eTempUsage, temp_usage) ) {
+                USAGEDBG_SQLITE;
+            }
+        }
+
+        void setReqUsage2(const udx req, time_t timestamp, sUsrUsage2::EUsageType type, idx value)
+        {
+            udx timestamp_udx = timestamp;
+            if( !_db.execute("INSERT OR REPLACE INTO %s.req_usage (timestamp, req_id, usage_type, value) VALUES(%" UDEC ", %" UDEC ", %d, %" DEC ");", schemaPrefix(_pfx), timestamp_udx, req, type, value) ) {
                 USAGEDBG_SQLITE;
             }
         }
 
         void delObjUsage(const sHiveId & id)
         {
-            if( !_db.execute("DELETE FROM obj_usage WHERE domain_id = %" UDEC " AND obj_id = %" UDEC ";", id.domainId(), id.objId()) ) {
+            if( !_db.execute("DELETE FROM %s.obj_usage WHERE domain_id = %" UDEC " AND obj_id = %" UDEC ";", schemaPrefix(_pfx), id.domainId(), id.objId()) ) {
+                USAGEDBG_SQLITE;
+            }
+            if( !_db.execute("DELETE FROM %s.obj_info WHERE domain_id = %" UDEC " AND obj_id = %" UDEC ";", schemaPrefix(_pfx), id.domainId(), id.objId()) ) {
                 USAGEDBG_SQLITE;
             }
         }
 
         void delReqUsage(const udx req)
         {
-            if( !_db.execute("DELETE FROM obj_usage WHERE req_id = %" UDEC ";", req) ) {
+            if( !_db.execute("DELETE FROM %s.obj_usage WHERE req_id = %" UDEC ";", schemaPrefix(_pfx), req) ) {
+                USAGEDBG_SQLITE;
+            }
+            if( !_db.execute("DELETE FROM %s.req_info WHERE req_id = %" UDEC ";", schemaPrefix(_pfx), req) ) {
                 USAGEDBG_SQLITE;
             }
         }
 
-        void migrateFromIon(const char * usage_db_path)
+    private:
+        struct UserTypeTag {
+            udx user_id;
+            EUsageType usage_type;
+            udx tag;
+
+            UserTypeTag() {
+                sSet(this);
+            }
+        };
+
+        struct UserUsageRecord {
+            UserTypeTag user_type_tag;
+            udx timestamp;
+            udx value;
+
+            UserUsageRecord() {
+                sSet(this);
+            }
+        };
+
+    public:
+        bool upgradeMainData()
         {
-            sFilePath usage_ion_path(usage_db_path, "%%dir/usage.ion");
-            sFilePath prev_vals_ion_path(usage_db_path, "%%dir/prev_vals.ion");
-            usage_ion_path.shrink00();
-            prev_vals_ion_path.shrink00();
-            if( !sFile::exists(usage_ion_path) || !sFile::exists(prev_vals_ion_path) ) {
-                return;
+            if( dataVersion() >= expectedVersion() ) {
+                return true;
             }
-            USAGEDBG_SQLITE_TRACE("Migrating from %s and %s to %s", usage_ion_path.ptr(), prev_vals_ion_path.ptr(), usage_db_path);
 
-            sTxtTbl normal_rows_tbl, end_rows_tbl, obj_usage_tbl, req_usage_tbl;
-            sIO normal_rows_io, end_rows_io, obj_usage_io, req_usage_io;
-            sStr print_buf;
-
-            // remove ".ion" extension for ionapp
-            usage_ion_path.cut0cut(usage_ion_path.length() - 4);
-            prev_vals_ion_path.cut0cut(prev_vals_ion_path.length() - 4);
-
-            ionapp2csv(normal_rows_tbl, normal_rows_io, usage_ion_path, "normal-row");
-            ionapp2csv(end_rows_tbl, end_rows_io, usage_ion_path, "end-row");
-            ionapp2csv(obj_usage_tbl, obj_usage_io, prev_vals_ion_path, "obj-usage");
-            ionapp2csv(req_usage_tbl, req_usage_io, prev_vals_ion_path, "req-usage");
-
+            sStr escape_buf;
             if( startTransaction() ) {
-                USAGEDBG_SQLITE_TRACE("Migrating %" DEC " user usage records ...", normal_rows_tbl.rows());
-                for(idx ir = 0; ir < normal_rows_tbl.rows(); ir++) {
-                    if( !noCSVErrorCells(normal_rows_tbl, ir, print_buf) ) {
-                        USAGEDBG_SQLITE_TRACE("Skipping row %" DEC " : %s", ir, normal_rows_tbl.printCSV(print_buf, ir, 0, 1));
-                        continue;
-                    }
-                    // time, value, user-id, usage-type, tag
-                    udx user_id = normal_rows_tbl.uval(ir, normal_rows_tbl.colId("user-id"));
-                    sUsrUsage2::EUsageType type = (sUsrUsage2::EUsageType)normal_rows_tbl.ival(ir, normal_rows_tbl.colId("usage-type"));
-                    idx tag = normal_rows_tbl.uval(ir, normal_rows_tbl.colId("tag"));
-                    time_t timestamp = (time_t)normal_rows_tbl.uval(ir, normal_rows_tbl.colId("time"));
-                    idx value = normal_rows_tbl.uval(ir, normal_rows_tbl.colId("value"));
-
-                    addRecord(user_id, type, tag, timestamp, value);
+                bool success = true;
+                if( schemaVersion() < 1 ) {
+                    success = success && initSchemaV1(eMain);
                 }
-                USAGEDBG_SQLITE_TRACE("Migrating %" DEC " user usage end records ...", end_rows_tbl.rows());
-                for(idx ir = 0; ir < end_rows_tbl.rows(); ir++) {
-                    if( !noCSVErrorCells(end_rows_tbl, ir, print_buf) ) {
-                        USAGEDBG_SQLITE_TRACE("Skipping row %" DEC " : %s", ir, end_rows_tbl.printCSV(print_buf, ir, 0, 1));
-                        continue;
-                    }
-                    // unhashed-time, unhashed-value, user-id, usage-type, tag
-                    udx user_id = end_rows_tbl.uval(ir, end_rows_tbl.colId("user-id"));
-                    sUsrUsage2::EUsageType type = (sUsrUsage2::EUsageType)end_rows_tbl.ival(ir, end_rows_tbl.colId("usage-type"));
-                    idx tag = end_rows_tbl.uval(ir, end_rows_tbl.colId("tag"));
-                    time_t timestamp = (time_t)end_rows_tbl.uval(ir, end_rows_tbl.colId("unhashed-time"));
-                    idx value = end_rows_tbl.uval(ir, end_rows_tbl.colId("unhashed-value"));
 
-                    addRecord(user_id, type, tag, timestamp, value);
-                }
-                USAGEDBG_SQLITE_TRACE("done.\nMigrating %" DEC " object usage records ...", obj_usage_tbl.rows());
-                sStr id_encoded;
-                for(idx ir = 0; ir < obj_usage_tbl.rows(); ir++) {
-                    if( !noCSVErrorCells(obj_usage_tbl, ir, print_buf) ) {
-                        USAGEDBG_SQLITE_TRACE("Skipping row %" DEC " : %s", ir, obj_usage_tbl.printCSV(print_buf, ir, 0, 1));
-                        continue;
+                if( dimHistoryRecords(eTemp) ) {
+                    success = success && _db.execute("DELETE FROM %s.req_info; INSERT INTO %s.req_info SELECT * FROM %s.req_info;", schemaPrefix(eMain), schemaPrefix(eMain), schemaPrefix(eTemp));
+                    if( !success ) {
+                        USAGEDBG_SQLITE;
                     }
-                    // obj, time, disk-usage, file-count
-                    id_encoded.cut0cut();
-                    obj_usage_tbl.printCell(id_encoded, ir, obj_usage_tbl.colId("obj"));
-                    // obj is hex-encoded binary dump of sHiveId structure :(
-                    sHiveId id;
-                    if( id_encoded.length() == sizeof(id) * 2 + 2 && id_encoded[0] == '0' && id_encoded[1] == 'x' ) {
-                        unsigned char id_decoded[sizeof(sHiveId)];
-                        memset(id_decoded, sizeof(sHiveId), 0);
-                        for(udx ic = 0; ic < sizeof(sHiveId); ic++) {
-                            id_decoded[ic] = readHexByte(id_encoded.ptr(2 + 2 * ic));
+
+                    success = success && _db.execute("DELETE FROM %s.obj_info; INSERT INTO %s.obj_info SELECT * FROM %s.obj_info;", schemaPrefix(eMain), schemaPrefix(eMain), schemaPrefix(eTemp));
+                    if( !success ) {
+                        USAGEDBG_SQLITE;
+                    }
+
+
+                    success = success && _db.execute("DELETE FROM %s.req_usage; INSERT INTO %s.req_usage SELECT * FROM %s.req_usage;", schemaPrefix(eMain), schemaPrefix(eMain), schemaPrefix(eTemp));
+                    if( !success ) {
+                        USAGEDBG_SQLITE;
+                    }
+
+                    success = success && _db.execute("DELETE FROM %s.obj_usage; INSERT INTO %s.obj_usage SELECT * FROM %s.obj_usage;", schemaPrefix(eMain), schemaPrefix(eMain), schemaPrefix(eTemp));
+                    if( !success ) {
+                        USAGEDBG_SQLITE;
+                    }
+
+
+                    sDic<idx> v0_sums;
+                    if( _db.resultOpen("SELECT user_id, usage_type, tag, value FROM %s.user_usage;", schemaPrefix(eMain)) ) {
+                        while( _db.resultNextRow() ) {
+                            UserTypeTag user_type_tag;
+                            user_type_tag.user_id = _db.resultUValue(0);
+                            user_type_tag.usage_type = (slib::sUsrUsage2::EUsageType)_db.resultIValue(1);
+                            user_type_tag.tag = _db.resultIValue(2);
+
+                            idx value = _db.resultIValue(3);
+
+                            if( idx * psum = v0_sums.get(&user_type_tag, sizeof(user_type_tag)) ) {
+                                *psum += value;
+                            } else {
+                                *v0_sums.set(&user_type_tag, sizeof(user_type_tag)) = value;
+                            }
                         }
-                        memcpy(&id, id_decoded, sizeof(sHiveId));
+                        _db.resultClose();
+                    } else {
+                        success = false;
+                        USAGEDBG_SQLITE;
                     }
-                    time_t timestamp = (time_t)obj_usage_tbl.uval(ir, obj_usage_tbl.colId("time"));
-                    idx disk_usage = obj_usage_tbl.ival(ir, obj_usage_tbl.colId("disk-usage"));
-                    idx file_count = obj_usage_tbl.ival(ir, obj_usage_tbl.colId("file-count"));
 
-                    if( id ) {
-                        setObjUsage(id, timestamp, disk_usage, file_count);
+                    udx first_v1_timestamp = (udx)getFirstTimestamp(eTemp);
+                    sDic<idx> v1_user_type_tags_cnt_migrated;
+                    sVec<UserUsageRecord> v1_records;
+                    if( _db.resultOpen("SELECT user_id, usage_type, tag, timestamp, value FROM %s.user_usage ORDER BY timestamp;", schemaPrefix(eTemp)) ) {
+                        while( _db.resultNextRow() ) {
+                            UserUsageRecord & user_usage_record = *v1_records.add(1);
+                            user_usage_record.user_type_tag.user_id = _db.resultUValue(0);
+                            user_usage_record.user_type_tag.usage_type = (slib::sUsrUsage2::EUsageType)_db.resultIValue(1);
+                            user_usage_record.user_type_tag.tag = _db.resultIValue(2);
+                            user_usage_record.timestamp = _db.resultUValue(3);
+                            user_usage_record.value = _db.resultIValue(4);
+
+                            *v1_user_type_tags_cnt_migrated.set(&user_usage_record.user_type_tag, sizeof(user_usage_record.user_type_tag)) = 0;
+                        }
+                        _db.resultClose();
+                    } else {
+                        success = false;
+                        USAGEDBG_SQLITE;
+                    }
+
+                    for(idx ir = 0; success && ir < v0_sums.dim(); ir++) {
+                        idx v0_sum = *v0_sums.ptr(ir);
+                        const UserTypeTag * puser_type_tag = static_cast<const UserTypeTag*>(v0_sums.id(ir));
+
+                        if( !v1_user_type_tags_cnt_migrated.get(puser_type_tag, sizeof(UserTypeTag)) ) {
+                            if( puser_type_tag->usage_type != eRunTime && puser_type_tag->usage_type != eWaitTime && v0_sum ) {
+                                USAGETRACE("Zeroing v0 value sum by adding value delta %" DEC " for user_id %" UDEC " type %s tag %" UDEC " timestamp %" UDEC " from user_usage;", -v0_sum, puser_type_tag->user_id, sUsrUsage2::getTypeName(puser_type_tag->usage_type), puser_type_tag->tag, first_v1_timestamp);
+                                if( !_db.execute("INSERT INTO %s.user_usage (user_id, usage_type, tag, timestamp, value) VALUES(%" UDEC ", %d, %" DEC ", %" UDEC ", %" DEC ");", schemaPrefix(eMain), puser_type_tag->user_id, (int)puser_type_tag->usage_type, puser_type_tag->tag, first_v1_timestamp, -v0_sum) ) {
+                                    success = false;
+                                    USAGEDBG_SQLITE;
+                                }
+                            }
+                        }
+                    }
+
+                    for(idx ir = 0; success && ir < v1_records.dim(); ir++) {
+                        UserUsageRecord & user_usage_record = v1_records[ir];
+                        idx * pcnt_migrated = v1_user_type_tags_cnt_migrated.get(&user_usage_record.user_type_tag, sizeof(user_usage_record.user_type_tag));
+                        idx value = user_usage_record.value;
+                        if( !*pcnt_migrated && user_usage_record.user_type_tag.usage_type != eRunTime && user_usage_record.user_type_tag.usage_type != eWaitTime ) {
+                            if( idx * pv0_sum = v0_sums.get(&user_usage_record.user_type_tag, sizeof(user_usage_record.user_type_tag)) ) {
+                                value -= *pv0_sum;
+                            }
+                        }
+                        ++*pcnt_migrated;
+                        USAGETRACE("Updating v0 value sum by adding value delta %" DEC " for user_id %" UDEC " type %s tag %" UDEC " timestamp %" UDEC " from user_usage;", value, user_usage_record.user_type_tag.user_id, sUsrUsage2::getTypeName(user_usage_record.user_type_tag.usage_type), user_usage_record.user_type_tag.tag, first_v1_timestamp);
+                        if( !_db.execute("INSERT INTO %s.user_usage (user_id, usage_type, tag, timestamp, value) VALUES (%" UDEC ", %d, %" DEC ", %" UDEC ", %" DEC ");", schemaPrefix(eMain), user_usage_record.user_type_tag.user_id, (int) user_usage_record.user_type_tag.usage_type,
+                            user_usage_record.user_type_tag.tag, user_usage_record.timestamp, value) ) {
+                            success = false;
+                            USAGEDBG_SQLITE;
+                        }
                     }
                 }
-                USAGEDBG_SQLITE_TRACE("done.\nMigrating %" DEC " request usage records ...", req_usage_tbl.rows());
-                for(idx ir = 0; ir < req_usage_tbl.rows(); ir++) {
-                    if( !noCSVErrorCells(req_usage_tbl, ir, print_buf) ) {
-                        USAGEDBG_SQLITE_TRACE("Skipping row %" DEC " : %s", ir, req_usage_tbl.printCSV(print_buf, ir, 0, 1));
-                        continue;
-                    }
-                    // req, time, temp-usage
-                    udx req = req_usage_tbl.uval(ir, req_usage_tbl.colId("req"));
-                    time_t timestamp = (time_t)req_usage_tbl.uval(ir, req_usage_tbl.colId("time"));
-                    idx temp_usage = req_usage_tbl.ival(ir, req_usage_tbl.colId("temp-usage"));
 
-                    if( req ) {
-                        setReqUsage(req, timestamp, temp_usage);
-                    }
+                success = success && _db.execute("INSERT OR REPLACE INTO %s.settings (timestamp, name, value) VALUES (%" DEC ", 'data_version', %" DEC ");", schemaPrefix(eMain), (idx)time(0), expectedVersion());
+                if( !success ) {
+                    USAGEDBG_SQLITE;
                 }
-                USAGEDBG_SQLITE_TRACE("%s", "done");
-                commit();
+
+                if( success ) {
+                    dropTemp();
+                    commit();
+                    return true;
+                } else {
+                    rollback();
+                }
+            } else {
+                USAGEDBG_SQLITE;
             }
+
+            return false;
         }
 };
 
-// Needed because objs2() only searches by meaning=x OR version=y
 static bool findUsrUsage2Id(sHiveId & result, const sUsr & user)
 {
     sUsrObjRes obj_res;
@@ -566,20 +877,19 @@ static bool findUsrUsage2Id(sHiveId & result, const sUsr & user)
     return false;
 }
 
-#define NEW_SUSR_USAGE(user, id, ret, prc) \
-    new sUsrUsage2(user, id); \
+#define NEW_SUSR_USAGE(user, id, admin, ret, prc) \
+    new sUsrUsage2(user, id, admin); \
     do { \
         if( !ret ) { \
-            prc->set(sRC::eAllocating, sRC::eMemory, sRC::eMemory, sRC::eExhausted); \
+            RCSETP(prc, sRC::eAllocating, sRC::eMemory, sRC::eMemory, sRC::eExhausted); \
         } else if( !ret->Id() ) { \
-            prc->set(sRC::eOpening, sRC::eObject, sRC::eOperation, sRC::eFailed); \
+            RCSETP(prc, sRC::eOpening, sRC::eObject, sRC::eOperation, sRC::eFailed); \
         } else { \
             *prc = sRC::zero; \
         } \
     } while( 0 )
 
-// static
-const sUsrUsage2 * sUsrUsage2::getObj(const sUsr & user, sRC * prc/* = 0*/)
+const sUsrUsage2 * sUsrUsage2::getObj(const sUsr & user, sRC * prc)
 {
     sRC temp_rc;
     if( !prc ) {
@@ -587,53 +897,52 @@ const sUsrUsage2 * sUsrUsage2::getObj(const sUsr & user, sRC * prc/* = 0*/)
     }
 
     if( !user.Id() || user.isGuest() ) {
-        prc->set(sRC::eFinding, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+        RCSETP(prc, sRC::eFinding, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
         return 0;
     }
 
     sHiveId id;
     if( !findUsrUsage2Id(id, user) ) {
-        prc->set(sRC::eFinding, sRC::eObject, sRC::eResult, sRC::eEmpty);
+        RCSETP(prc, sRC::eFinding, sRC::eObject, sRC::eResult, sRC::eEmpty);
         return 0;
     }
 
-    USAGEDBG("using existing object %s", id.print());
-    const sUsrUsage2 * ret = NEW_SUSR_USAGE(user, id, ret, prc);
+    USAGETRACE("using existing object %s", id.print());
+    const sUsrUsage2 * ret = NEW_SUSR_USAGE(user, id, 0, ret, prc);
 
     return ret;
 }
 
-// static
-sUsrUsage2 * sUsrUsage2::ensureObj(const sUsr & admin, sRC * prc/* = 0*/)
+sUsrUsage2 * sUsrUsage2::ensureObj(sUsr & admin, sRC * prc)
 {
     sRC temp_rc;
     if( !admin.isAdmin() ) {
-        prc->set(sRC::eFinding, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+        RCSETP(prc, sRC::eFinding, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
         return 0;
     }
 
     sHiveId id;
     if( findUsrUsage2Id(id, admin) ) {
-        USAGEDBG("using existing object %s", id.print());
-        sUsrUsage2 * ret = NEW_SUSR_USAGE(admin, id, ret, prc);
+        USAGETRACE("using existing object %s", id.print());
+        sUsrUsage2 * ret = NEW_SUSR_USAGE(admin, id, &admin, ret, prc);
         return ret;
     }
 
-    USAGEDBG("creating new usage object");
+    USAGETRACE("creating new usage object");
     admin.updateStart();
-    if( !admin.objCreate(id, "special") ) {
+    *prc = admin.objCreate(id, "special");
+    if( prc->isSet() ) {
         admin.updateAbandon();
-        prc->set(sRC::eCreating, sRC::eObject, sRC::eOperation, sRC::eFailed);
         return 0;
     }
 
     if( !admin.allow4admins(id) || !admin.allowRead4users(id) ) {
         admin.updateAbandon();
-        prc->set(sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
+        RCSETP(prc, sRC::eSetting, sRC::ePermission, sRC::eOperation, sRC::eFailed);
         return 0;
     }
 
-    sUsrUsage2 * ret = NEW_SUSR_USAGE(admin, id, ret, prc);
+    sUsrUsage2 * ret = NEW_SUSR_USAGE(admin, id, &admin, ret, prc);
     if( !ret || !ret->Id() ) {
         admin.updateAbandon();
         return ret;
@@ -641,23 +950,101 @@ sUsrUsage2 * sUsrUsage2::ensureObj(const sUsr & admin, sRC * prc/* = 0*/)
 
     if( !ret->propSet("meaning", "user_usage") || !ret->propSet("title", "User usage statistics") || !ret->propSet("version", "1") ) {
         admin.updateAbandon();
-        prc->set(sRC::eCreating, sRC::eProperty, sRC::eOperation, sRC::eFailed);
+        RCSETP(prc, sRC::eCreating, sRC::eProperty, sRC::eOperation, sRC::eFailed);
         delete ret;
         return 0;
     }
 
     admin.updateComplete();
-    USAGEDBG("created new usage object %s", ret->Id().print());
+    USAGETRACE("created new usage object %s", ret->Id().print());
     *prc = sRC::zero;
 
     return ret;
 }
 
+time_t sUsrUsage2::getFirstUpdateTime() const
+{
+    if( _usage_db ) {
+        return _usage_db->getFirstTimestamp(UsageDb::eMain);
+    }
+    return 0;
+}
+
+time_t sUsrUsage2::getLastUpdateTime() const
+{
+    if( _usage_db ) {
+        return _usage_db->getLastTimestampBefore(sIdxMax);
+    }
+    return 0;
+}
+
+class sUsrUsage2::IncrementalUpdates {
+    public:
+        struct Record {
+            udx user_id;
+            idx values[eUsageTypeLast + 1];
+            Record() {
+                sSet(this);
+            }
+        };
+
+    private:
+        sDic<idx> _row_map;
+        sVec<Record> _records;
+
+    public:
+        Record * ensureRecord(udx user_id)
+        {
+            Record * r = getRecord(user_id);
+            if( !r ) {
+                *_row_map.set(&user_id, sizeof(user_id)) = _records.dim();
+                r = _records.add(1);
+                r->user_id = user_id;
+            }
+            return r;
+        }
+
+        Record * getRecord(udx user_id)
+        {
+            idx * pir = _row_map.get(&user_id, sizeof(user_id));
+            return pir ? _records.ptr(*pir) : 0;
+        }
+
+        idx dim() const { return _records.dim(); }
+        Record * ptr(idx i) { return _records.ptr(i); }
+        const Record * ptr(idx i) const { return _records.ptr(i); }
+};
+
+
 #define PROGRESS_USER_ITEMS 100
 #define REPORT_PROGRESS \
 if( cb ) cb(cb_param, sMin<idx>(iuser * PROGRESS_USER_ITEMS + progress_items++, (iuser + 1) * PROGRESS_USER_ITEMS), sNotIdx, num_users * PROGRESS_USER_ITEMS)
 
-sRC sUsrUsage2::getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx primary_group_id, time_t since[eUsageTypeLast + 1], time_t to, progressCb cb, void * cb_param, idx iuser, idx num_users)
+static idx getTempUsage(udx req_id, sSql & db)
+{
+    sVarSet req_data_tbl;
+    sStr sql_buf("SELECT dataName, LENGTH(dataBlob), IF(SUBSTRING(dataBlob, 1, 9) = 'ZmlsZTovL', dataBlob, NULL) FROM QPData WHERE reqID = %" UDEC, req_id);
+    db.getTable(sql_buf, &req_data_tbl);
+    idx temp_usage = 0;
+    sStr data_path_buf;
+    for(idx idat=0; idat<req_data_tbl.rows; idat++) {
+        temp_usage += req_data_tbl.ival(idat, 1);
+        USAGETRACE_TYPE(sUsrUsage2::eTempUsage, "req %" UDEC " '%s' db has %" DEC, req_id, req_data_tbl.val(idat, 0), req_data_tbl.ival(idat, 1));
+        const char * data_path_encoded = req_data_tbl.val(idat, 2);
+        if( data_path_encoded && *data_path_encoded ) {
+            data_path_buf.cut0cut();
+            sString::decodeBase64(&data_path_buf, data_path_encoded, sLen(data_path_encoded));
+            if( data_path_buf.length() > 7 ) {
+                const char * data_path = data_path_buf.ptr(7);
+                temp_usage += sFile::size(data_path);
+                USAGETRACE_TYPE(sUsrUsage2::eTempUsage, "req %" UDEC " '%s' file has %" DEC, req_id, data_path, sFile::size(data_path));
+            }
+        }
+    }
+    return temp_usage;
+}
+
+sRC sUsrUsage2::getUsageChange(IncrementalUpdates * value_updates, udx user_id, udx primary_group_id, time_t since[eUsageTypeLast + 1], time_t to, progressCb cb, void * cb_param, idx iuser, idx num_users, bool find_deleted)
 {
 #if HAVE_USAGEDBG
     {
@@ -691,164 +1078,376 @@ sRC sUsrUsage2::getUsageChange(idx values[eUsageTypeLast + 1], udx user_id, udx 
         time_val.setDateTime(to);
         time_val.print(time_buf, sVariant::eUnquoted);
 
-        USAGEDBG_FUNC("user %" DEC ", group %" DEC " %s", user_id, primary_group_id, time_buf.ptr());
+        USAGETRACE_FUNC("user %" DEC ", group %" DEC " %s", user_id, primary_group_id, time_buf.ptr());
     }
 #endif
 
     idx progress_items = 0;
-    for(idx i=0; i <= eUsageTypeLast; i++) {
-        values[i] = 0;
-    }
 
-    // sanity check: disk usage and file count must be synchronized (on objs); wait time, run time, temp usage must be synchronized (on reqs)
     if( since[eDiskUsage] != since[eFileCount] || since[eTempUsage] != since[eWaitTime] || since[eTempUsage] != since[eRunTime] ) {
-        return sRC(sRC::eChecking, sRC::eParameter, sRC::eTimeStamp, sRC::eNotEqual);
+        return RC(sRC::eChecking, sRC::eParameter, sRC::eTimeStamp, sRC::eNotEqual);
     }
 
-    sSql::sqlProc sql_created_objs(m_usr.db(), "sp_obj_by_time");
-    values[eObjCount] = sql_created_objs.Add(user_id).Add(primary_group_id).Add((idx)(since[eObjCount])).Add((idx)to).Add("created").getTable(0);
-    USAGEDBG_TYPE(eObjCount, "%" DEC, values[eObjCount]);
+    sDic<bool> reqs_dic;
+    sVarSet reqs_tbl;
+    sSql::sqlProc sql_finished_reqs(m_usr.db(), "sp_req_by_time");
+    idx completed_reqs_cnt = sql_finished_reqs.Add(user_id).Add((idx)(since[eTempUsage])).Add((idx)to).Add("completed").getTable(&reqs_tbl);
+    USAGETRACE("User %" UDEC " completed requests : %" DEC, user_id, completed_reqs_cnt);
     REPORT_PROGRESS;
 
     sSql::sqlProc sql_created_reqs(m_usr.db(), "sp_req_by_time");
-    values[eReqCount] = sql_created_reqs.Add(user_id).Add((idx)(since[eReqCount])).Add((idx)to).Add("created").getTable(0);
-    USAGEDBG_TYPE(eReqCount, "%" DEC, values[eReqCount]);
+    idx created_reqs_cnt = sql_created_reqs.Add(user_id).Add((idx)(since[eReqCount])).Add((idx)to).Add("created").getTable(&reqs_tbl);
+    USAGETRACE("User %" UDEC " new created requests : %" DEC, user_id, created_reqs_cnt);
     REPORT_PROGRESS;
 
-    sVarSet modified_objs_tbl;
-    sSql::sqlProc sql_modified_objs(m_usr.db(), "sp_obj_by_time");
-    sql_modified_objs.Add(user_id).Add(primary_group_id).Add((idx)(since[eDiskUsage])).Add((idx)to).Add("modified").getTable(&modified_objs_tbl);
-    USAGEDBG("modifed objects : %" DEC,modified_objs_tbl.rows);
-    REPORT_PROGRESS;
-
-    sVarSet completed_objs_tbl;
+    sDic<bool> objs_dic;
+    sVarSet objs_tbl;
     sSql::sqlProc sql_completed_objs(m_usr.db(), "sp_obj_by_time");
-    sql_completed_objs.Add(user_id).Add(primary_group_id).Add((idx)(since[eCompletionTime])).Add((idx)to).Add("completed").getTable(&completed_objs_tbl);
-    USAGEDBG("completed objects : %" DEC, completed_objs_tbl.rows);
+    idx completed_objs_cnt = sql_completed_objs.Add(user_id).Add(primary_group_id).Add((idx)(since[eCompletionTime])).Add((idx)to).Add("completed").getTable(&objs_tbl);
+    USAGETRACE("User %" UDEC " completed objects : %" DEC, user_id, completed_objs_cnt);
+
+    sSql::sqlProc sql_modified_objs(m_usr.db(), "sp_obj_by_time");
+    idx modified_objs_cnt = sql_modified_objs.Add(user_id).Add(primary_group_id).Add((idx)(since[eDiskUsage])).Add((idx)to).Add("modified").getTable(&objs_tbl);
+    USAGETRACE("User %" UDEC " modifed objects : %" DEC, user_id, modified_objs_cnt);
+    REPORT_PROGRESS;
+
+    sSql::sqlProc sql_created_objs(m_usr.db(), "sp_obj_by_time");
+    idx created_objs_cnt = sql_created_objs.Add(user_id).Add(primary_group_id).Add((idx)(since[eObjCount])).Add((idx)to).Add("created").getTable(&objs_tbl);
+    USAGETRACE("User %" UDEC " new created objects : %" DEC, user_id, created_objs_cnt);
+    REPORT_PROGRESS;
 
     sStr path;
     sDir dir;
-    for(idx ir=0; ir<modified_objs_tbl.rows; ir++) {
-        sHiveId id(modified_objs_tbl.uval(ir, 0), modified_objs_tbl.uval(ir, 1), modified_objs_tbl.uval(ir, 2));
+
+    for(idx ir = 0; ir < objs_tbl.rows; ir++) {
+        sHiveId id(objs_tbl.uval(ir, 0), objs_tbl.uval(ir, 1), objs_tbl.uval(ir, 2));
         path.cut(0);
         dir.cut();
-        if( !sUsrObj::getPath(path, id) ) {
-            USAGEDBG("obj %s has empty storage path", id.print());
+
+        if( objs_dic.get(&id, sizeof(id)) ) {
             continue;
         }
 
-        idx disk_usage = 0, file_count = 0;
+        sUsrObj * uobj = _admin->objFactory(id);
+        sHiveId type_id = uobj ? uobj->getType()->id() : sHiveId::zero;
+        if( !type_id ) {
+            fprintf(stderr, "Object %s type ID could not be determined\n", id.print());
+        }
+        udx on_behalf_user_id = uobj ? uobj->propGetU("onUserBehalf") : 0;
+        if( on_behalf_user_id ) {
+            USAGETRACE("Object %s onUserBehalf %" UDEC, id.print(), on_behalf_user_id);
+        }
+        udx effective_user_id = on_behalf_user_id ? on_behalf_user_id : user_id;
 
-        dir.find(sFlag(sDir::bitFiles)|sFlag(sDir::bitSubdirs)|sFlag(sDir::bitRecursive), path);
-        USAGEDBG("obj %s has %" DEC " entries in storage path %s", id.print(), dir.dimEntries(), path.ptr());
-        for(idx ient=0; ient<dir.dimEntries(); ient++) {
+        udx prev_user_id = _usage_db->getObjUser(id);
+        udx prev_on_behalf_user_id = _usage_db->getObjOnBehalfUser(id);
+        udx prev_effective_user_id = prev_on_behalf_user_id ? prev_on_behalf_user_id : prev_user_id;
+
+        bool is_new_object = !_usage_db->hasObjInfo(id);
+
+        sUsrUsage2::IncrementalUpdates::Record * rec = value_updates->ensureRecord(effective_user_id);
+        sUsrUsage2::IncrementalUpdates::Record * prev_rec = prev_effective_user_id && prev_effective_user_id != effective_user_id ? value_updates->ensureRecord(prev_effective_user_id) : 0;
+
+        if( is_new_object || prev_user_id != user_id || prev_on_behalf_user_id != on_behalf_user_id ) {
+            _usage_db->setObjInfo(id, to, type_id, user_id, on_behalf_user_id);
+        }
+
+        if( is_new_object ) {
+            rec->values[eObjCount]++;
+
+            if( uobj && uobj->isTypeOf("^svc-computations-base$+") ) {
+                rec->values[eComputationObjCount]++;
+                _usage_db->setObjUsage2(id, to, eComputationObjCount, 1);
+            }
+            if( uobj && uobj->isTypeOf("^svc-data-loading-base$+") ) {
+                rec->values[eDataLoadingObjCount]++;
+                _usage_db->setObjUsage2(id, to, eDataLoadingObjCount, 1);
+            }
+            if( uobj && uobj->isTypeOf("^file$+") ) {
+                rec->values[eFileObjCount]++;
+                _usage_db->setObjUsage2(id, to, eFileObjCount, 1);
+            }
+            if( uobj && uobj->isTypeOf("^directory$+") ) {
+                rec->values[eDirectoryObjCount]++;
+                _usage_db->setObjUsage2(id, to, eDirectoryObjCount, 1);
+            }
+        } else if( prev_rec ) {
+            rec->values[eObjCount]++;
+            prev_rec->values[eObjCount]--;
+
+            static EUsageType types_to_update[] = { eComputationObjCount, eDataLoadingObjCount, eFileObjCount, eDirectoryObjCount };
+            for(idx it = 0; it < sDim(types_to_update); it++) {
+                if( idx v = _usage_db->getObjUsage(id, types_to_update[it]) ) {
+                    rec->values[types_to_update[it]] += v;
+                    prev_rec->values[types_to_update[it]] -= v;
+                }
+            }
+        }
+        REPORT_PROGRESS;
+
+        if( !sUsrObj::getPath(path, id) ) {
+            USAGETRACE("obj %s has empty storage path", id.print());
+        }
+
+        idx disk_usage = 0, file_count = 0;
+        idx prev_disk_usage = _usage_db->getObjUsage(id, eDiskUsage);
+        idx prev_file_count = _usage_db->getObjUsage(id, eFileCount);
+
+        dir.find(sFlag(sDir::bitFiles) | sFlag(sDir::bitSubdirs) | sFlag(sDir::bitRecursive), path);
+        USAGETRACE("obj %s has %" DEC " entries in storage path %s", id.print(), dir.dimEntries(), path.ptr());
+        for(idx ient = 0; ient < dir.dimEntries(); ient++) {
             disk_usage += sFile::size(dir.getEntryPath(ient));
             if( !(dir.getEntryFlags(ient) & sDir::fIsDir) ) {
                 file_count++;
             }
             REPORT_PROGRESS;
         }
+        USAGETRACE("obj %s has %" DEC " bytes in storage path %s", id.print(), disk_usage, path.ptr());
 
-        values[eDiskUsage] += disk_usage - _usage_db->getObjUsage(id, eDiskUsage);
-        values[eFileCount] += file_count - _usage_db->getObjUsage(id, eFileCount);
-        USAGEDBG_TYPE(eDiskUsage,"obj %s has %" DEC " bytes (was %" DEC " bytes)", id.print(), disk_usage, _usage_db->getObjUsage(id, eDiskUsage));
-        USAGEDBG_TYPE(eFileCount, "obj %s has %" DEC " (was %" DEC ")", id.print(), file_count, _usage_db->getObjUsage(id, eFileCount));
-        _usage_db->setObjUsage(id, to, disk_usage, file_count);
-    }
+        _usage_db->setObjUsage2(id, to, eDiskUsage, disk_usage);
+        _usage_db->setObjUsage2(id, to, eFileCount, file_count);
 
-    for(idx ir=0; ir<completed_objs_tbl.rows; ir++) {
-        sHiveId id(completed_objs_tbl.uval(ir, 0), completed_objs_tbl.uval(ir, 1), completed_objs_tbl.uval(ir, 2));
-        idx started_time = completed_objs_tbl.ival(ir, 3);
-        idx completed_time = completed_objs_tbl.ival(ir, 4);
-        if( completed_time >= started_time ) {
-            values[eCompletionTime] += completed_time - started_time;
-            USAGEDBG_TYPE(eCompletionTime, "obj %s has %" DEC " (started %" DEC ", completed %" DEC ")", id.print(), completed_time - started_time, started_time, completed_time);
-        } else {
-            USAGEDBG_TYPE(eCompletionTime, "obj %s has started %" DEC " > completed %" DEC " - not recording", id.print(), started_time, completed_time);
+        rec->values[eDiskUsage] += disk_usage - prev_disk_usage;
+        rec->values[eFileCount] += file_count - prev_file_count;
+        USAGETRACE_TYPE(eDiskUsage, "obj %s has change %" DEC " (from %" DEC ")", id.print(), disk_usage - prev_disk_usage, prev_disk_usage);
+        USAGETRACE_TYPE(eFileCount, "obj %s has change %" DEC " (from %" DEC ")", id.print(), file_count - prev_file_count, prev_file_count);
+        if( prev_rec ) {
+            rec->values[eDiskUsage] -= prev_disk_usage;
+            rec->values[eFileCount] -= prev_file_count;
         }
-    }
 
-    // completed requests which last did something during the specified time interval
-    sVarSet finished_reqs_tbl;
-    sSql::sqlProc sql_finished_reqs(m_usr.db(), "sp_req_by_time");
-    sql_finished_reqs.Add(user_id).Add((idx)(since[eTempUsage])).Add((idx)to).Add("completed").getTable(&finished_reqs_tbl);
-    USAGEDBG("finished requests : %" DEC, finished_reqs_tbl.rows);
-    REPORT_PROGRESS;
+        if( ir < completed_objs_cnt ) {
+            idx started_time = objs_tbl.ival(ir, 3);
+            idx completed_time = objs_tbl.ival(ir, 4);
 
-    sStr sql_buf;
-    for(idx ir=0; ir<finished_reqs_tbl.rows; ir++) {
-        udx req_id = finished_reqs_tbl.uval(ir, 0);
-        idx created_time = finished_reqs_tbl.ival(ir, 2);
-        idx taken_time = finished_reqs_tbl.ival(ir, 3);
-        idx alive_time = finished_reqs_tbl.ival(ir, 4);
-        idx done_time = finished_reqs_tbl.ival(ir, 5);
-        if( taken_time > created_time ) {
-            values[eWaitTime] += taken_time - created_time;
-            USAGEDBG_TYPE(eWaitTime, "req %" DEC " has %" DEC, req_id, taken_time - created_time);
-            idx end_time = sMax<idx>(alive_time, done_time);
-            if( end_time > taken_time ) {
-                values[eRunTime] += end_time - taken_time;
-                USAGEDBG_TYPE(eRunTime, "req %" DEC " has %" DEC, req_id, end_time - taken_time);
+            idx prev_completion_time = _usage_db->getObjUsage(id, eCompletionTime);
+            if( completed_time >= started_time ) {
+                USAGETRACE_TYPE(eCompletionTime, "obj %s has %" DEC " (started %" DEC ", completed %" DEC ")", id.print(), completed_time - started_time, started_time, completed_time);
+                rec->values[eCompletionTime] += completed_time - started_time - prev_completion_time;
+                if( prev_rec ) {
+                    prev_rec->values[eCompletionTime] -= prev_completion_time;
+                }
+            } else {
+                USAGETRACE_TYPE(eCompletionTime, "obj %s has started %" DEC " > completed %" DEC " - not recording", id.print(), started_time, completed_time);
             }
         }
-        sVarSet req_data_tbl;
-        sql_buf.printf(0, "SELECT dataName, LENGTH(dataBlob), IF(SUBSTRING(FROM_BASE64(SUBSTRING(dataBlob, 1, 12)), 1, 7) = 'file://', FROM_BASE64(dataBlob), NULL) FROM QPData WHERE reqID = %" UDEC, req_id);
-        m_usr.db().getTable(sql_buf, &req_data_tbl);
+
+        delete uobj;
+        *objs_dic.set(&id, sizeof(id)) = true;
         REPORT_PROGRESS;
-        idx temp_usage = 0;
-        for(idx idat=0; idat<req_data_tbl.rows; idat++) {
-            temp_usage += req_data_tbl.ival(idat, 1);
-            USAGEDBG_TYPE(eTempUsage, "req %" DEC " '%s' db has %" DEC, req_id, req_data_tbl.val(idat, 0), req_data_tbl.ival(idat, 1));
-            const char * data_path = req_data_tbl.val(idat, 2);
-            if( data_path && *data_path ) {
-                data_path += 7; // strlen("file://")
-                temp_usage += sFile::size(data_path);
-                USAGEDBG_TYPE(eTempUsage, "req %" DEC " '%s' file has %" DEC, req_id, data_path, sFile::size(data_path));
+    }
+
+    if( find_deleted ) {
+        _admin->allowExpiredObjects(true);
+        sVec<sHiveId> objs;
+        _usage_db->getUserObjs(objs, user_id);
+        for(idx i = 0; i < objs.dim(); i++) {
+            if( objs_dic.get(objs.ptr(i), sizeof(sHiveId)) ) {
+                continue;
+            }
+
+            if( sUsrObj * uobj = _admin->objFactory(objs[i]) ) {
+                delete uobj;
+            } else {
+                USAGETRACE("obj %s was deleted - adjusting usage records", objs[i].print());
+                udx prev_user_id = _usage_db->getObjUser(objs[i]);
+                udx prev_on_behalf_user_id = _usage_db->getObjOnBehalfUser(objs[i]);
+                udx prev_effective_user_id = prev_on_behalf_user_id ? prev_on_behalf_user_id : prev_user_id;
+                sUsrUsage2::IncrementalUpdates::Record * prev_rec = prev_effective_user_id ? value_updates->ensureRecord(prev_effective_user_id) : 0;
+
+                if( prev_rec ) {
+                    static EUsageType types_to_update[] = { eComputationObjCount, eDataLoadingObjCount, eFileObjCount, eDirectoryObjCount, eDiskUsage, eFileCount, eCompletionTime };
+                    for(idx it = 0; it < sDim(types_to_update); it++) {
+                        prev_rec->values[types_to_update[it]] -= _usage_db->getObjUsage(objs[i], types_to_update[it]);
+                    }
+                    prev_rec->values[eObjCount]--;
+                    _usage_db->delObjUsage(objs[i]);
+                }
             }
             REPORT_PROGRESS;
         }
-        values[eTempUsage] += temp_usage;
-        _usage_db->setReqUsage(req_id, to, temp_usage);
+        _admin->allowExpiredObjects(false);
     }
+
+    sStr sql_buf, req_par_obj_str;
+    sVec<sHiveId> req_par_obj_ids;
+    for(idx ir=0; ir<reqs_tbl.rows; ir++) {
+        udx req_id = reqs_tbl.uval(ir, 0);
+
+        if( reqs_dic.get(&req_id, sizeof(req_id)) ) {
+            continue;
+        }
+
+        req_par_obj_str.cut0cut();
+        req_par_obj_ids.cut(0);
+        idx grp_id = _admin->QPride()->req2Grp(req_id);
+        _admin->QPride()->requestGetPar(grp_id, sQPrideBase::eQPReqPar_Objects, &req_par_obj_str, false);
+        sHiveId::parseRangeSet(req_par_obj_ids, req_par_obj_str.ptr());
+
+        udx on_behalf_user_id = 0;
+        if( req_par_obj_ids.dim() ) {
+            sUsrObj * uobj = _admin->objFactory(req_par_obj_ids[0]);
+            on_behalf_user_id = uobj ? uobj->propGetU("onUserBehalf") : 0;
+            delete uobj;
+            if( on_behalf_user_id ) {
+                USAGETRACE("req %" UDEC " grp %" UDEC " obj %s has onUserBehalf %" UDEC, req_id, grp_id, req_par_obj_str.ptr(), on_behalf_user_id);
+            }
+        }
+        udx effective_user_id = on_behalf_user_id ? on_behalf_user_id : user_id;
+
+        REPORT_PROGRESS;
+
+        udx prev_user_id = _usage_db->getReqUser(req_id);
+        udx prev_on_behalf_user_id = _usage_db->getReqOnBehalfUser(req_id);
+        udx prev_effective_user_id = prev_on_behalf_user_id ? prev_on_behalf_user_id : prev_user_id;
+
+        bool is_new_req = !_usage_db->hasReqInfo(req_id);
+
+        sUsrUsage2::IncrementalUpdates::Record * rec = value_updates->ensureRecord(effective_user_id);
+        sUsrUsage2::IncrementalUpdates::Record * prev_rec = prev_effective_user_id && prev_effective_user_id != effective_user_id ? value_updates->ensureRecord(prev_effective_user_id) : 0;
+
+        if( is_new_req || prev_user_id != user_id || prev_on_behalf_user_id != on_behalf_user_id ) {
+            _usage_db->setReqInfo(req_id, to, user_id, on_behalf_user_id);
+        }
+
+        if( is_new_req ) {
+            rec->values[eReqCount]++;
+        } else if( prev_rec ) {
+            rec->values[eReqCount]++;
+            prev_rec->values[eReqCount]--;
+        }
+
+        if( ir < completed_reqs_cnt ) {
+            idx created_time = reqs_tbl.ival(ir, 2);
+            idx taken_time = reqs_tbl.ival(ir, 3);
+            idx alive_time = reqs_tbl.ival(ir, 4);
+            idx done_time = reqs_tbl.ival(ir, 5);
+
+            idx wait_time = 0;
+            idx run_time = 0;
+            idx prev_wait_time = _usage_db->getReqUsage(req_id, eWaitTime);
+            idx prev_run_time = _usage_db->getReqUsage(req_id, eRunTime);
+            idx prev_temp_usage = _usage_db->getReqUsage(req_id, eTempUsage);
+
+            if( taken_time > created_time ) {
+                wait_time = taken_time - created_time;
+                rec->values[eWaitTime] += wait_time;
+                USAGETRACE_TYPE(eWaitTime, "req %" DEC " has %" DEC, req_id, wait_time);
+                idx end_time = sMax<idx>(alive_time, done_time);
+                if( end_time > taken_time ) {
+                    run_time = end_time - taken_time;
+                    rec->values[eRunTime] += run_time;
+                    USAGETRACE_TYPE(eRunTime, "req %" DEC " has %" DEC, req_id, run_time);
+                }
+            }
+            _usage_db->setReqUsage2(req_id, to, eWaitTime, wait_time);
+            _usage_db->setReqUsage2(req_id, to, eRunTime, run_time);
+            if( prev_rec ) {
+                prev_rec->values[eWaitTime] -= prev_wait_time;
+                prev_rec->values[eRunTime] -= prev_run_time;
+            }
+
+            idx temp_usage = getTempUsage(req_id, m_usr.db());
+            REPORT_PROGRESS;
+            _usage_db->setReqUsage2(req_id, to, eTempUsage, temp_usage);
+            rec->values[eTempUsage] += temp_usage;
+            if( prev_rec ) {
+                prev_rec->values[eTempUsage] -= prev_temp_usage;
+            }
+        }
+
+
+        *reqs_dic.set(&req_id, sizeof(req_id)) = true;
+    }
+
+    if( find_deleted ) {
+        sVec<udx> req_ids;
+        _usage_db->getUserReqs(req_ids, user_id);
+        for(idx i = 0; i < req_ids.dim(); i++) {
+            if( reqs_dic.get(req_ids.ptr(i), sizeof(udx)) ) {
+                continue;
+            }
+
+            sQPrideBase::Request r;
+            sSet(&r);
+            if( _admin->QPride()->requestGet(req_ids[i], &r) ) {
+                continue;
+            } else {
+                USAGETRACE("req %" UDEC " was deleted - adjusting usage records", req_ids[i]);
+                udx prev_user_id = _usage_db->getReqUser(req_ids[i]);
+                udx prev_on_behalf_user_id = _usage_db->getReqOnBehalfUser(req_ids[i]);
+                udx prev_effective_user_id = prev_on_behalf_user_id ? prev_on_behalf_user_id : prev_user_id;
+                sUsrUsage2::IncrementalUpdates::Record * prev_rec = prev_effective_user_id ? value_updates->ensureRecord(prev_effective_user_id) : 0;
+
+                if( prev_rec ) {
+                    static EUsageType types_to_update[] = { eWaitTime, eRunTime, eTempUsage };
+                    for(idx it = 0; it < sDim(types_to_update); it++) {
+                        prev_rec->values[types_to_update[it]] -= _usage_db->getReqUsage(req_ids[i], types_to_update[it]);
+                    }
+                    prev_rec->values[eReqCount]--;
+                    _usage_db->delReqUsage(req_ids[i]);
+                }
+            }
+            REPORT_PROGRESS;
+        }
+        _admin->allowExpiredObjects(false);
+    }
+
     return sRC::zero;
 }
 
-sRC sUsrUsage2::updateIncremental(progressCb cb, void * cb_param, time_t at_time)
+sRC sUsrUsage2::updateIncremental(progressCb cb, void * cb_param, time_t at_time, bool find_deleted)
 {
     if( !m_usr.isAdmin() || !m_usr.isAllowed(m_id, ePermCanWrite|ePermCanAdmin) ) {
-        return sRC(sRC::eChecking, sRC::ePermission, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eChecking, sRC::ePermission, sRC::eUser, sRC::eNotAuthorized);
     }
 
     if( !_usage_db || !_usage_db->ok() ) {
-        return sRC(sRC::eChecking, sRC::eFile, sRC::ePointer, sRC::eNull);
+        return RC(sRC::eChecking, sRC::eFile, sRC::ePointer, sRC::eNull);
     }
 
-    idx values[eUsageTypeLast + 1];
+    bool need_upgrade = (_usage_db->dataVersion() < _usage_db->expectedVersion());
+    if( need_upgrade ) {
+        _usage_db->setSchemaPrefix(sUsrUsage2::UsageDb::eTemp);
+    }
+
+    IncrementalUpdates value_updates;
     time_t since[eUsageTypeLast + 1];
     sVarSet groups_tbl;
     if( !at_time ) {
         at_time = time(0);
     }
-    m_usr.db().getTable("SELECT DISTINCT userID, groupID FROM UPGroup WHERE flags = -1", &groups_tbl); // flags = -1 means primary group
+    m_usr.db().getTable("SELECT DISTINCT userID, groupID FROM UPGroup WHERE flags = -1", &groups_tbl);
     _usage_db->startTransaction();
-    for(idx ig=0; ig<groups_tbl.rows; ig++) {
+    for(idx ig = 0; ig < groups_tbl.rows; ig++) {
         udx user_id = groups_tbl.uval(ig, 0);
         udx primary_group_id = groups_tbl.uval(ig, 1);
-        for(idx i=0; i<=eUsageTypeLast; i++) {
-            since[i] = _usage_db->getLastTimestampBefore((time_t)sUdxMax, user_id, (EUsageType)i, 0);
+        for(idx i = 0; i <= eUsageTypeLast; i++) {
+            since[i] = _usage_db->getLastTimestampBefore((time_t) sUdxMax, user_id, (EUsageType) i, 0);
             if( since[i] >= at_time ) {
-                return sRC(sRC::eChecking, sRC::eParameter, sRC::eTimeStamp, sRC::eTooSmall);
+                return RC(sRC::eChecking, sRC::eParameter, sRC::eTimeStamp, sRC::eTooSmall);
             }
         }
-        if( sRC rc = getUsageChange(values, user_id, primary_group_id, since, at_time, cb, cb_param, ig, groups_tbl.rows) ) {
+        if( sRC rc = getUsageChange(&value_updates, user_id, primary_group_id, since, at_time, cb, cb_param, ig, groups_tbl.rows, find_deleted) ) {
             _usage_db->rollback();
             return rc;
         }
-        for(idx i=0; i<=eUsageTypeLast; i++) {
-            _usage_db->addRecord(user_id, (EUsageType)i, 0, at_time, values[i]);
+    }
+    for(idx ir = 0; ir < value_updates.dim(); ir++) {
+        udx user_id = value_updates.ptr(ir)->user_id;
+        for(idx i = 0; i <= eUsageTypeLast; i++) {
+            _usage_db->addRecord(user_id, (EUsageType) i, 0, at_time, value_updates.ptr(ir)->values[i]);
         }
     }
     _usage_db->commit();
+
+    if( need_upgrade ) {
+        if( !_usage_db->upgradeMainData() ) {
+            return RC(sRC::eUpdating, sRC::eDatabase, sRC::eOperation, sRC::eFailed);
+        }
+        _usage_db->setSchemaPrefix(sUsrUsage2::UsageDb::eMain);
+    }
+
     return sRC::zero;
 }
 
@@ -882,19 +1481,18 @@ static idx cmpPurgedReq(void * param, void * arr, idx i1, idx i2)
 sRC sUsrUsage2::updateDeleted(const sVec<sUsrHousekeeper::PurgedObj> & objs, const sVec<sUsrHousekeeper::PurgedReq> & reqs, progressCb cb, void * cb_param, time_t at_time)
 {
     if( !m_usr.isAdmin() || !m_usr.isAllowed(m_id, ePermCanWrite|ePermCanAdmin) ) {
-        return sRC(sRC::eChecking, sRC::ePermission, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eChecking, sRC::ePermission, sRC::eUser, sRC::eNotAuthorized);
     }
 
     if( !_usage_db || !_usage_db->ok() ) {
-        return sRC(sRC::eChecking, sRC::eFile, sRC::ePointer, sRC::eNull);
+        return RC(sRC::eChecking, sRC::eFile, sRC::ePointer, sRC::eNull);
     }
 
     sVarSet groups_tbl;
     if( !at_time ) {
         at_time = time(0);
     }
-    // FIXME : put primary group in PurgedObj
-    m_usr.db().getTable("SELECT DISTINCT userID, groupID FROM UPGroup WHERE flags = -1", &groups_tbl); // flags = -1 means primary group
+    m_usr.db().getTable("SELECT DISTINCT userID, groupID FROM UPGroup WHERE flags = -1", &groups_tbl);
     sDic<udx> creator2user;
     for(idx ig=0; ig<groups_tbl.rows; ig++) {
         udx user_id = groups_tbl.uval(ig, 0);
@@ -902,13 +1500,10 @@ sRC sUsrUsage2::updateDeleted(const sVec<sUsrHousekeeper::PurgedObj> & objs, con
         *creator2user.set(&primary_group_id, sizeof(udx)) = user_id;
     }
 
-    // need to sort objs and reqs by their user id
     sVec<idx> objs_order(sMex::fExactSize), reqs_order(sMex::fExactSize);
     objs_order.resize(objs.dim());
     reqs_order.resize(reqs.dim());
 
-    // const casts needed because sortSimpleCallback's comparator callback uses non-const ptr to array in its signature;
-    // safe since our cmpPurged* callbacks treat the array ptr as constant
     sSort::sortSimpleCallback(cmpPurgedObj, &creator2user, objs.dim(), const_cast<sUsrHousekeeper::PurgedObj*>(objs.ptr()), objs_order.ptr());
     sSort::sortSimpleCallback(cmpPurgedReq, 0, reqs.dim(), const_cast<sUsrHousekeeper::PurgedReq*>(reqs.ptr()), reqs_order.ptr());
 
@@ -922,7 +1517,6 @@ sRC sUsrUsage2::updateDeleted(const sVec<sUsrHousekeeper::PurgedObj> & objs, con
         while( user_id == user_from_req ) {
             values[eReqCount]--;
             values[eTempUsage] -= _usage_db->getReqUsage(reqs[ireq].req_id, eTempUsage);
-            _usage_db->setReqUsage(reqs[ireq].req_id, at_time, 0);
             _usage_db->delReqUsage(reqs[ireq].req_id);
             ireq++;
             user_from_req = ireq < reqs.dim() ? reqs[ireq].user_id : 0;
@@ -931,7 +1525,6 @@ sRC sUsrUsage2::updateDeleted(const sVec<sUsrHousekeeper::PurgedObj> & objs, con
             values[eObjCount]--;
             values[eDiskUsage] -= _usage_db->getObjUsage(objs[iobj].hive_id, eDiskUsage);
             values[eFileCount] -= _usage_db->getObjUsage(objs[iobj].hive_id, eFileCount);
-            _usage_db->setObjUsage(objs[iobj].hive_id, at_time, 0, 0);
             _usage_db->delObjUsage(objs[iobj].hive_id);
             iobj++;
             user_from_obj = iobj < objs.dim() ? purgedObj2User(creator2user, objs.ptr(), iobj) : 0;
@@ -947,10 +1540,295 @@ sRC sUsrUsage2::updateDeleted(const sVec<sUsrHousekeeper::PurgedObj> & objs, con
     return sRC::zero;
 }
 
+static void formatGroupPath(sStr & out, const char * group_path)
+{
+    idx len = sLen(group_path);
+    if( !len || group_path[len - 1] == '/' ) {
+        out.addString(group_path);
+    } else if( const char * slash = strrchr(group_path, '/') ) {
+        out.addString(slash + 1);
+    } else {
+        out.addString(group_path);
+    }
+}
+
+static void getUsersByGroupPath(sVec<sUsrUsage2::UserList> & user_lists, sDic<udx> & all_user_ids, const sDic<udx> & except_user_ids, sSql & db, const char * group_path, bool with_all_selected, bool expand_users)
+{
+    sStr sql, group_path_buf;
+    sVarSet user_tbl;
+
+    if( !group_path ) {
+        group_path = "";
+    }
+
+    idx ihead = user_lists.dim();
+    user_lists.add(1);
+    user_lists[ihead].label.init(sMex::fExactSize);
+    user_lists[ihead].user_ids.init(sMex::fExactSize);
+
+    sql.cutAddString(0, "SELECT DISTINCT g1.userID AS userID, g2.groupPath AS groupPath FROM UPGroup g1 LEFT JOIN UPGroup g2 USING (userID) WHERE g2.flags = -1");
+    if( strcmp(group_path, "*") == 0 ) {
+        user_lists[ihead].label.addString(group_path);
+    } else {
+        group_path_buf.cutAddString(0, group_path);
+        if( group_path_buf.length() && group_path_buf[group_path_buf.length() - 1] == '/' ) {
+            user_lists[ihead].label.addString(group_path);
+            group_path_buf.addString("%");
+            sql.addString(" AND g1.groupPath LIKE ");
+        } else {
+            if( const char * slash = strrchr(group_path, '/') ) {
+                user_lists[ihead].label.addString(slash + 1);
+            } else {
+                user_lists[ihead].label.addString(group_path);
+            }
+            sql.addString(" AND g1.groupPath = ");
+        }
+        db.protectValue(sql, group_path_buf);
+    }
+    if( except_user_ids.dim() ) {
+        sVec<udx> except_user_ids_lst(sMex::fExactSize);
+        except_user_ids_lst.resize(except_user_ids.dim());
+        for(idx i = 0; i < except_user_ids.dim(); i++) {
+            except_user_ids_lst[i] = *static_cast<const udx*>(except_user_ids.id(i));
+        }
+        sql.addString(" AND ");
+        db.exprInList(sql, "g1.userID", except_user_ids_lst, true);
+    }
+
+    user_tbl.empty();
+    db.getTable(sql, &user_tbl);
+    user_lists[ihead].user_ids.resize(user_tbl.rows);
+    for(idx ir = 0; ir < user_tbl.rows; ir++) {
+        udx user_id = user_tbl.uval(ir, 0);
+        user_lists[ihead].user_ids[ir] = user_id;
+        if( with_all_selected ) {
+            *all_user_ids.set(&user_id, sizeof(udx)) = user_id;
+        }
+        if( expand_users ) {
+            sUsrUsage2::UserList * expand = user_lists.add(1);
+            expand->label.init(sMex::fExactSize);
+            formatGroupPath(expand->label, user_tbl.val(ir, 1));
+            expand->user_ids.init(sMex::fExactSize);
+            *expand->user_ids.add(1) = user_id;
+        }
+    }
+}
+
+static void getUserByUserID(sVec<sUsrUsage2::UserList> & user_lists, sDic<udx> & all_user_ids, const sDic<udx> & except_user_ids, sSql & db, udx userID, bool with_all_selected)
+{
+    sStr sql;
+    sVarSet user_tbl;
+
+    idx ihead = user_lists.dim();
+    user_lists.add(1);
+    user_lists[ihead].label.printf("userID %" UDEC, userID);
+    user_lists[ihead].user_ids.init(sMex::fExactSize);
+
+    sql.printf(0, "SELECT userID, email FROM UPUser WHERE userID = %" UDEC, userID);
+    if( except_user_ids.dim() ) {
+        sVec<udx> except_user_ids_lst(sMex::fExactSize);
+        except_user_ids_lst.resize(except_user_ids.dim());
+        for(idx i = 0; i < except_user_ids.dim(); i++) {
+            except_user_ids_lst[i] = *static_cast<const udx*>(except_user_ids.id(i));
+        }
+        sql.addString(" AND ");
+        db.exprInList(sql, "userID", except_user_ids_lst, true);
+    }
+    user_tbl.empty();
+    db.getTable(sql, &user_tbl);
+    if( user_tbl.rows ) {
+        *user_lists[ihead].user_ids.add(1) = userID;
+        if( with_all_selected ) {
+            *all_user_ids.set(&userID, sizeof(userID)) = userID;
+        }
+    }
+}
+
+namespace {
+    struct getUserByBillableGroupParam {
+        sVec<udx> * user_ids;
+        sDic<udx> added_user_ids;
+        const sDic<udx> * except_user_ids;
+    };
+};
+
+static sUsrObjPropsNode::FindStatus getUserByBillableGroupPropTree_findCb(const sUsrObjPropsNode& node, void * param_)
+{
+    getUserByBillableGroupParam * param = static_cast<getUserByBillableGroupParam*>(param_);
+
+    sVariant var;
+    if( !node.value(var) ) {
+        return sUsrObjPropsNode::eFindError;
+    }
+
+    udx user_id = var.asUInt();
+
+    if( !param->except_user_ids || !param->except_user_ids->get(&user_id, sizeof(user_id)) ) {
+        if( !param->added_user_ids.get(&user_id, sizeof(user_id)) ) {
+            *(param->user_ids->add(1)) = user_id;
+            *param->added_user_ids.set(&user_id, sizeof(user_id)) = user_id;
+        }
+    }
+    return sUsrObjPropsNode::eFindContinue;
+}
+
+static void getUserByBillableGroupPropTree(sUsrUsage2::UserList & user_list, const sDic<udx> & except_user_ids, const sUsrObjPropsTree * tree)
+{
+    getUserByBillableGroupParam param;
+    param.user_ids = &user_list.user_ids;
+    param.except_user_ids = &except_user_ids;
+    idx cut_len = user_list.user_ids.dim();
+    if( !tree->find("user", getUserByBillableGroupPropTree_findCb, &param) ) {
+        user_list.user_ids.cut(cut_len);
+    }
+}
+
+static void getUserByBillableGroupObj(sVec<sUsrUsage2::UserList> & user_lists, sDic<udx> & all_user_ids, const sDic<udx> & except_user_ids, const sUsr & user, sSql & db, const sHiveId & billable_id, bool with_all_selected, bool expand_users)
+{
+    idx ihead = user_lists.dim();
+    user_lists.add(1);
+    user_lists[ihead].label.addString("billable_group_obj ");
+    billable_id.print(user_lists[ihead].label);
+
+    sUsrObj * billable_obj = user.objFactory(billable_id);
+    if( billable_obj && billable_obj->Id() ) {
+        if( const sUsrObjPropsTree * tree = billable_obj->propsTree() ) {
+            getUserByBillableGroupPropTree(user_lists[ihead], except_user_ids, tree);
+        }
+    }
+    delete billable_obj;
+    billable_obj = 0;
+
+    if( with_all_selected ) {
+        for(idx i = 0; i < user_lists[ihead].user_ids.dim(); i++) {
+            *all_user_ids.set(user_lists[ihead].user_ids.ptr(i), sizeof(udx)) = user_lists[ihead].user_ids[i];
+        }
+    }
+    if( expand_users ) {
+        for(idx i = 0; i < user_lists[ihead].user_ids.dim(); i++) {
+            getUserByUserID(user_lists, all_user_ids, except_user_ids, db, user_lists[ihead].user_ids[i], false);
+        }
+    }
+}
+
+static void getUserByBillableGroupName(sVec<sUsrUsage2::UserList> & user_lists, sDic<udx> & all_user_ids, const sDic<udx> & except_user_ids, const sUsr & user, sSql & db, const char * billable_name, bool with_all_selected, bool expand_users)
+{
+    if( !billable_name ) {
+        billable_name = "";
+    }
+
+    idx ihead = user_lists.dim();
+    user_lists.add(1);
+    user_lists[ihead].label.addString("billable_group_name ");
+    user_lists[ihead].label.addString(billable_name);
+
+    sUsrObjRes obj_res;
+    sHiveId billable_id;
+    user.objs2("HIVE_Development_Billable_Group", obj_res, 0, "name", billable_name, "name");
+    for(sUsrObjRes::IdIter it = obj_res.first(); obj_res.has(it); obj_res.next(it)) {
+        const char * name = obj_res.getValue(obj_res.get(*obj_res.get(it), "name"));
+        if( name && sIsExactly(name, billable_name) ) {
+            billable_id = *obj_res.id(it);
+            break;
+        }
+    }
+
+    sUsrObj * billable_obj = user.objFactory(billable_id);
+    if( billable_obj && billable_obj->Id() ) {
+        if( const sUsrObjPropsTree * tree = billable_obj->propsTree() ) {
+            getUserByBillableGroupPropTree(user_lists[ihead], except_user_ids, tree);
+        }
+    }
+    delete billable_obj;
+    billable_obj = 0;
+
+    if( with_all_selected ) {
+        for(idx i = 0; i < user_lists[ihead].user_ids.dim(); i++) {
+            *all_user_ids.set(user_lists[ihead].user_ids.ptr(i), sizeof(udx)) = user_lists[ihead].user_ids[i];
+        }
+    }
+    if( expand_users ) {
+        for(idx i = 0; i < user_lists[ihead].user_ids.dim(); i++) {
+            getUserByUserID(user_lists, all_user_ids, except_user_ids, db, user_lists[ihead].user_ids[i], false);
+        }
+    }
+}
+
+static void getUsersBySpecs(sVec<sUsrUsage2::UserList> & user_lists, sDic<udx> & all_user_ids, const sUsr & user, sSql & db, sUsrUsage2::GroupSpec * group_specs, idx num_group_specs, bool with_all_selected, bool expand_users)
+{
+    sHiveId billable_id;
+
+    for(idx ispec = 0; ispec < num_group_specs; ispec++) {
+        sUsrUsage2::GroupSpec & spec = group_specs[ispec];
+
+        sDic<udx> except_user_ids;
+        sStr except_label;
+
+        if( spec.except.dim() ) {
+            sVec<sUsrUsage2::UserList> dummy_except_user_lists;
+            getUsersBySpecs(dummy_except_user_lists, except_user_ids, user, db, spec.except.ptr(), spec.except.dim(), true, false);
+            if( dummy_except_user_lists.dim() ) {
+                if( except_label ) {
+                    except_label.addString(" ");
+                }
+                except_label.addString(dummy_except_user_lists[0].label.ptr());
+            }
+        }
+
+        idx ihead = user_lists.dim();
+
+        switch(spec.kind) {
+            case sUsrUsage2::GroupSpec::eGroupPath:
+                getUsersByGroupPath(user_lists, all_user_ids, except_user_ids, db, spec.value.asString(), with_all_selected, expand_users);
+                break;
+            case sUsrUsage2::GroupSpec::eUserID:
+                getUserByUserID(user_lists, all_user_ids, except_user_ids, db, spec.value.asUInt(), with_all_selected);
+                break;
+            case sUsrUsage2::GroupSpec::eBillableGroupObj:
+                spec.value.asHiveId(&billable_id);
+                getUserByBillableGroupObj(user_lists, all_user_ids, except_user_ids, user, db, billable_id, with_all_selected, expand_users);
+                break;
+            case sUsrUsage2::GroupSpec::eBillableGroupName:
+                getUserByBillableGroupName(user_lists, all_user_ids, except_user_ids, user, db, spec.value.asString(), with_all_selected, expand_users);
+                break;
+        }
+
+        if( ihead < user_lists.dim() && except_label.length() ) {
+            user_lists[ihead].label.addString(" except ");
+            user_lists[ihead].label.addString(except_label.ptr());
+        }
+    }
+}
+
+sRC sUsrUsage2::exportGroupsTable(sTxtTbl & out, EUsageType usage_type, time_t since, time_t to, sUsrUsage2::GroupSpec * group_specs, idx num_group_specs, bool with_all_selected, bool expand_users) const
+{
+    if( !m_usr.isAllowed(m_id, ePermCanRead) ) {
+        return RC(sRC::eAccessing, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+    }
+
+    sDic<udx> all_user_ids;
+    sVec<UserList> user_lists;
+
+    getUsersBySpecs(user_lists, all_user_ids, m_usr, m_usr.db(), group_specs, num_group_specs, with_all_selected, expand_users);
+
+    if( with_all_selected ) {
+        UserList * user_list = user_lists.add(1);
+        user_list->label.init(sMex::fExactSize);
+        user_list->label.addString("All selected users/groups");
+        user_list->user_ids.init(sMex::fExactSize);
+        user_list->user_ids.resize(all_user_ids.dim());
+        for(idx iu = 0; iu < all_user_ids.dim(); iu++) {
+            user_list->user_ids[iu] = *all_user_ids.ptr(iu);
+        }
+    }
+
+    return exportTable(out, usage_type, since, to, user_lists.ptr(), user_lists.dim());
+}
+
 sRC sUsrUsage2::exportGroupsTable(sTxtTbl & out, EUsageType usage_type, time_t since, time_t to, const char * group_paths00, bool with_all_selected) const
 {
     if( !m_usr.isAllowed(m_id, ePermCanRead) ) {
-        return sRC(sRC::eAccessing, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eAccessing, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
     }
 
     sStr sql, group_path_buf;
@@ -958,61 +1836,21 @@ sRC sUsrUsage2::exportGroupsTable(sTxtTbl & out, EUsageType usage_type, time_t s
     sDic<udx> all_user_ids;
     sVec<UserList> user_lists;
     sVarSet user_tbl;
+    sDic<udx> dummy_except_user_ids;
 
     for(const char * group_path = group_paths00; group_path && *group_path; group_path = sString::next00(group_path) ) {
-        UserList * user_list = user_lists.add(1);
-        sql.cutAddString(0, "SELECT DISTINCT userID FROM UPGroup");
-        if( strcmp(group_path, "*") == 0 ) {
-            user_list->label = group_path;
-        } else {
-            sql.addString(" WHERE ");
-            group_path_buf.cutAddString(0, group_path);
-            if( group_path_buf[group_path_buf.length() - 1] == '/' ) {
-                // match group prefix
-                user_list->label = group_path;
-                group_path_buf.addString("%");
-                sql.addString("groupPath LIKE ");
-            } else {
-                // exact group name
-                if( const char * slash = strrchr(group_path, '/') ) {
-                    user_list->label = slash + 1;
-                } else {
-                    user_list->label = group_path;
-                }
-                sql.addString("groupPath = ");
-            }
-            m_usr.db().protectValue(sql, group_path_buf);
-        }
-
-        user_tbl.empty();
-        m_usr.db().getTable(sql, &user_tbl);
-        idx prev_tot_dim = user_ids.dim();
-        user_list->user_ids = user_ids.add(user_tbl.rows);
-        user_list->dim = user_tbl.rows;
-        for(idx ir=0; ir<user_tbl.rows; ir++) {
-            udx user_id = user_tbl.uval(ir, 0);
-            user_ids[prev_tot_dim + ir] = user_id;
-            if( with_all_selected ) {
-                *all_user_ids.set(&user_id, sizeof(udx)) = user_id;
-            }
-        }
+        getUsersByGroupPath(user_lists, all_user_ids, dummy_except_user_ids, m_usr.db(), group_path, with_all_selected, false);
     }
 
     if( with_all_selected ) {
         UserList * user_list = user_lists.add(1);
-        user_list->label = "All selected users/groups";
-        user_list->dim = all_user_ids.dim();
-        idx prev_tot_dim = user_ids.dim();
-        user_list->user_ids = user_ids.add(user_list->dim);
-        for(idx iu=0; iu<user_list->dim; iu++) {
-            user_ids[prev_tot_dim + iu] = *all_user_ids.ptr(iu);
+        user_list->label.init(sMex::fExactSize);
+        user_list->label.addString("All selected users/groups");
+        user_list->user_ids.init(sMex::fExactSize);
+        user_list->user_ids.resize(all_user_ids.dim());
+        for(idx iu = 0; iu < all_user_ids.dim(); iu++) {
+            user_list->user_ids[iu] = *all_user_ids.ptr(iu);
         }
-    }
-
-    // fix up user_lists' user_ids pointers, which became invalidated as user_ids vector grew
-    for(idx il=0, prev_tot_dim=0; il<user_lists.dim(); il++) {
-        user_lists[il].user_ids = user_ids.ptr(prev_tot_dim);
-        prev_tot_dim += user_lists[il].dim;
     }
 
     return exportTable(out, usage_type, since, to, user_lists.ptr(), user_lists.dim());
@@ -1030,6 +1868,7 @@ struct ExportTableWorker
     time_t timestamp;
     sVec<idx> values;
     sVec<idx> sums;
+    sVec<idx> * psum_adjust;
 
     bool err;
 
@@ -1045,6 +1884,7 @@ struct ExportTableWorker
         have_cached = false;
         cnt_rows_printed = 0;
         timestamp = -sIdxMax;
+        psum_adjust = 0;
         err = false;
     }
 
@@ -1052,7 +1892,7 @@ struct ExportTableWorker
     {
         if( have_cached ) {
             buf.cut(0);
-            sString::printDateTime(buf, timestamp, sString::fISO8601); // strict ISO8601 mode for javascript
+            sString::printDateTime(buf, timestamp, sString::fISO8601);
             if( !out.addCell(buf.ptr(), buf.length(), sVariant::value_DATE_TIME) ) {
                 err = true;
             }
@@ -1060,9 +1900,14 @@ struct ExportTableWorker
                 if( !out.addICell(values[i]) ) {
                     err = true;
                 }
+
+                if( cnt_rows_printed == 0 && psum_adjust ) {
+                    sums[i] += *psum_adjust->ptr(i);
+                }
                 if( !out.addICell(sums[i]) ) {
                     err = true;
                 }
+
                 values[i] = 0;
             }
             if( !out.addEndRow() ) {
@@ -1077,7 +1922,6 @@ struct ExportTableWorker
     {
         flush();
         if( cnt_rows_printed && timestamp < to ) {
-            // preserve sums from the previous printed row, set values (delta change) to zero
             timestamp = to;
             for(idx i = 0; i < dim; i++) {
                 values[i] = 0;
@@ -1087,20 +1931,22 @@ struct ExportTableWorker
         }
     }
 
-    static bool callback(slib::sUsrUsage2::EUsageType type, idx list_index, idx tag, time_t timestamp, idx value, idx sum_adjust, void * param)
+    static bool callback(slib::sUsrUsage2::EUsageType type, idx list_index, idx tag, time_t timestamp, idx value, sVec<idx> * psum_adjust_, void * param)
     {
         ExportTableWorker * self = static_cast<ExportTableWorker*>(param);
 
-        // If we see a series of identical timestamps, sum them in cache before flushing to output table
+        if( psum_adjust_ ) {
+            self->psum_adjust = psum_adjust_;
+        }
         if( self->have_cached && timestamp == self->timestamp ) {
             self->values[list_index] += value;
-            self->sums[list_index] += value + sum_adjust;
+            self->sums[list_index] += value;
         } else {
             self->flush();
             self->have_cached = true;
             self->timestamp = timestamp;
             self->values[list_index] = value;
-            self->sums[list_index] += value + sum_adjust;
+            self->sums[list_index] += value;
         }
 
         return !self->err;
@@ -1110,23 +1956,30 @@ struct ExportTableWorker
 sRC sUsrUsage2::exportTable(sTxtTbl & out, EUsageType usage_type, time_t since, time_t to, const sUsrUsage2::UserList * user_lists, idx num_user_lists) const
 {
     if( !m_usr.isAllowed(m_id, ePermCanRead) ) {
-        return sRC(sRC::eAccessing, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
+        return RC(sRC::eAccessing, sRC::eObject, sRC::eUser, sRC::eNotAuthorized);
     }
 
-    if( !m_usr.isAdmin() ) {
-        // only admins can see other user's usage
-        for(idx il=0; il<num_user_lists; il++) {
-            if( user_lists[il].dim > 1 || (user_lists[il].dim == 1 && user_lists[il].user_ids[0] != m_usr.Id())) {
-                return sRC(sRC::eAccessing, sRC::eUser, sRC::eUser, sRC::eNotAuthorized);
+    enum {
+        eFalse,
+        eTrue,
+        eUnknown = -1
+    } can_see_others = eUnknown;
+
+    for(idx il=0; il<num_user_lists; il++) {
+        if( user_lists[il].user_ids.dim() > 1 || (user_lists[il].user_ids.dim() == 1 && user_lists[il].user_ids[0] != m_usr.Id())) {
+            if( can_see_others == eUnknown ) {
+                can_see_others = (m_usr.isAdmin() || m_usr.hasGroup("/Projects/Team/")) ? eTrue : eFalse;
+            }
+            if( can_see_others != eTrue ) {
+               return RC(sRC::eAccessing, sRC::eUser, sRC::eUser, sRC::eNotAuthorized);
             }
         }
     }
 
     if( !out.initWritable(1 + 2 * num_user_lists, 0) ) {
-        return sRC(sRC::eInitializing, sRC::eTable, sRC::eMode, sRC::eReadOnly);
+        return RC(sRC::eInitializing, sRC::eTable, sRC::eMode, sRC::eReadOnly);
     }
 
-    // first header line: user list labels
     out.addCell("");
     sStr quoted_buf;
     for(idx il=0; il<num_user_lists; il++) {
@@ -1137,7 +1990,6 @@ sRC sUsrUsage2::exportTable(sTxtTbl & out, EUsageType usage_type, time_t since, 
     }
     out.addEndRow();
 
-    // second header line: column contents
     idx ihdr = 0;
     out.addCell("timestamp");
     out.setColtype(ihdr++, sVariant::value_DATE_TIME);
@@ -1153,7 +2005,7 @@ sRC sUsrUsage2::exportTable(sTxtTbl & out, EUsageType usage_type, time_t since, 
     out.setDimTopHeader(2);
 
     if( !_usage_db || !_usage_db->ok() ) {
-        return sRC(sRC::eReading, sRC::eData, sRC::eFile, sRC::eNotFound);
+        return RC(sRC::eReading, sRC::eData, sRC::eFile, sRC::eNotFound);
     }
 
     ExportTableWorker worker(out, num_user_lists);
@@ -1163,41 +2015,40 @@ sRC sUsrUsage2::exportTable(sTxtTbl & out, EUsageType usage_type, time_t since, 
     }
 
     if( worker.err ) {
-        return sRC(sRC::eWriting, sRC::eTable, sRC::eOperation, sRC::eFailed);
+        return RC(sRC::eWriting, sRC::eTable, sRC::eOperation, sRC::eFailed);
     }
 
     return sRC::zero;
 }
 
-sUsrUsage2::sUsrUsage2(const sUsr& user, const sHiveId & objId) : sUsrObj(user, objId)
+sUsrUsage2::sUsrUsage2(const sUsr& user, const sHiveId & objId, sUsr * admin) : sUsrObj(user, objId)
 {
     sStr db_path;
     bool can_admin = m_usr.isAdmin() && m_usr.isAllowed(m_id, ePermCanWrite|ePermCanAdmin);
     bool can_read = m_usr.isAllowed(m_id, ePermCanRead);
     _usage_db = 0;
+    _admin = 0;
 
     if( can_admin ) {
         if( getFilePathname(db_path, "usage.sqlite") || addFilePathname(db_path, false, "usage.sqlite") ) {
-            USAGEDBG("Opening usage.sqlite for writing");
-            _usage_db = new UsageDb(db_path, false);
+            USAGETRACE("Opening usage.sqlite for writing");
+            _usage_db = new sUsrUsage2::UsageDb(db_path, false);
             if( _usage_db->ok() ) {
-                if( !_usage_db->dimHistoryRecords() ) {
-                    _usage_db->migrateFromIon(db_path.ptr());
-                }
+                _admin = admin;
             } else {
-                USAGEDBG("Failed to read usage.sqlite");
+                USAGETRACE("Failed to read usage.sqlite");
                 delete _usage_db;
                 _usage_db = 0;
             }
 
         } else {
-            USAGEDBG("Refusing to open usage.sqlite for writing");
+            USAGETRACE("Refusing to open usage.sqlite for writing");
         }
     } else if( can_read && getFilePathname(db_path, "usage.sqlite") ) {
-        USAGEDBG("Opening usage.sqlite for reading");
-        _usage_db = new UsageDb(db_path, true);
+        USAGETRACE("Opening usage.sqlite for reading");
+        _usage_db = new sUsrUsage2::UsageDb(db_path, true);
         if( !_usage_db->ok() ) {
-            USAGEDBG("Failed to read usage.sqlite");
+            USAGETRACE("Failed to read usage.sqlite");
             delete _usage_db;
             _usage_db = 0;
         }

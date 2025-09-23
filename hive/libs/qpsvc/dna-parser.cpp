@@ -30,8 +30,8 @@
 #include <qpsvc/dna-parser.hpp>
 #include <ssci/bio/vioseq2.hpp>
 
-DnaParser::DnaParser(sQPride& qp, const char * file, const sHiveId & objId, const char * dstTypeName, const bool isVioseqlist, const udx maxChunkSize, const char * dataType, const char * userFilename)
-    : TParent(qp), m_fileSize(0), m_maxChunkSize(maxChunkSize)
+DnaParser::DnaParser(sQPride& qp, const char * file, const sHiveId & objId, const char * dstTypeName, const bool isVioseqlist, const char * dataType, const char * userFilename)
+    : TParent(qp)
 {
     setFile("%s", file);
     setObjId(objId);
@@ -52,7 +52,6 @@ void DnaParser::setFile(const char * file, ...)
     sStr s;
     if( file && file[0] ) {
         sCallVarg(s.vprintf, file);
-        m_fileSize = sFile::size(s);
     }
     setVar("sourceSequenceFilePath", "%s", s.ptr());
 }
@@ -104,7 +103,6 @@ void DnaParser::setTreatAsTypeFile(const char * dataType)
         typeFile = sVioseq2::eTreatAsMA;
     } else {
         typeFile = 0;
-        //typeFile = sVioseq2::eTreatAsFastA;
     }
     setVar("parseAsType", "%" UDEC, typeFile);
 }
@@ -112,10 +110,4 @@ void DnaParser::setTreatAsTypeFile(const char * dataType)
 void DnaParser::setTypeName(const char * typeName)
 {
     setVar("dstType", "%s", typeName);
-}
-
-udx DnaParser::split() const
-{
-    udx n = sVioseq2::getPartCount(m_fileSize, m_maxChunkSize);
-    return n ? n : 1;
 }

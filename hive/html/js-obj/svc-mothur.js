@@ -44,7 +44,6 @@ vjHO.register('svc-mothur').Constructor=function ()
 
     this.resolution=200;
 
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.mode='fullview';
@@ -59,7 +58,6 @@ vjHO.register('svc-mothur').Constructor=function ()
 
     this.preview = function(node,dv)
     {
-//        this.parent.preview('svc',node,dv);
         this.parent.preview("svc", node, dv, "vjObj['"+this.objCls+"'].customizeSvcDownloads();");
         if(!node.status || parseInt(node.status)<5) return;
         this.mode='preview';
@@ -83,14 +81,13 @@ vjHO.register('svc-mothur').Constructor=function ()
     this.urlSet({
             'tasks' :{
                 title:"retrieving task history",
-                active_url:"http://?cmd=objFile&filename=task_array.csv",
+                active_url:"http:
                 objs:"ids"
             },
             'result-text' : {
                 title: "Retrieving text from file",
-                active_url: "static://",
+                active_url: "static:
                 objs:"ids"
-//                active_url: "http://?cmd=objFile&filename=file_o_3019493.summary&maxSize=2000&offset=5&raw=1"
             }
     });
 
@@ -129,7 +126,6 @@ vjHO.register('svc-mothur').Constructor=function ()
             return;
 
 
-        // fullview viewers
 
         this.addviewer ("result-text", new vjTextView({
             data : "result-text",
@@ -167,10 +163,6 @@ vjHO.register('svc-mothur').Constructor=function ()
 
 
         if(this.mode=='preview'){
-//            this.dvresults=this.current_dvORtab[0].name;
-            //this.dvresults.addTab(this.tabs.names[1], this.tabs.icons[1], [this.viewers["download"]]);
-            //this.dvresults.render();
-            //this.dvresults.load('rerender');
 
         }
         else {
@@ -190,7 +182,6 @@ vjHO.register('svc-mothur').Constructor=function ()
         var dataName = panel.data[0];
         var myUrl = panel.dataSourceEngine[dataName].dataurl;
         myUrl = myUrl.replace(/\&maxSize=2000/g,"");
-        //myUrl = urlExchangeParameter(myUrl, "maxSize", "-1");
         vjDS[dataName].reload(myUrl,true,"download");
     };
 
@@ -203,7 +194,7 @@ vjHO.register('svc-mothur').Constructor=function ()
             fileExtensions="{" ;
             irow = this.tasksTbl.rows[ir];
 
-            if (irow.Inputs == "" && irow.Outputs == "") continue; // prevent showing the tabs without any content
+            if (irow.Inputs == "" && irow.Outputs == "") continue;
             
             var array1=irow.Inputs.split("-");
             var array2=irow.Outputs.split("-");
@@ -216,13 +207,11 @@ vjHO.register('svc-mothur').Constructor=function ()
                 fileExtensions += "," + array2[ix];
             }
 
-            //txt+=irow.Inputs+","+irow.Outputs;
             fileExtensions += "}";
-            var cur_url = "http://?cmd=propget&mode=csv&prop=none&ids="+ thisProcessID + "&files=" + fileExtensions;
+            var cur_url = "http:
             ds_name = "id_"+this.loadedID+"_function_"+ir;
 
             vjDS.add(undefined,ds_name,cur_url,0,"ids,file,number,outputs\n");
-            //vjDS.add(undefined,ds_name,cur_url,0,"ids,file,number,outputs\n");
             var dd = vjDS[ds_name];
             dd.inputsList = array1;
             dd.outputsList = array2;
@@ -231,7 +220,7 @@ vjHO.register('svc-mothur').Constructor=function ()
                 var inputsArray = new Array();
                 var outputsArray = new Array();
                 for (var ir=0; ir < tbl.rows.length; ++ir){
-                    var ff = tbl.rows[ir].outputs; // 
+                    var ff = tbl.rows[ir].outputs;
                     for (var el =0; el < ds.inputsList.length; ++el){
                         if (ds.inputsList[el].indexOf(ff)!=-1){
                             inputsArray.push(ff);
@@ -260,7 +249,6 @@ vjHO.register('svc-mothur').Constructor=function ()
                         }
                     }
                 } else {
-                    //ds.data += ",ERROR\n";
                     for (var ii=0; ii < inputsArray.length; ++ii){
                         if (ii>0) ds.data += "\n";
                         if (inputsArray[ii] != undefined){
@@ -283,14 +271,14 @@ vjHO.register('svc-mothur').Constructor=function ()
                 });
             function popUpInputs (vv, table, irow, icol){
                 if (table["Inputs"]) {
-                    var url = "http://?cmd=objFile&ids="+ thisProcessID+"&filename="  +table["Inputs"].replace(/\s+/g, '')+"&maxSize=2000";
+                    var url = "http:
                     vjDS[vjDV["dvGenemarkResultsPopUpViewer"].tabs[0].viewers[0].data[0]].reload(url,true);
                     vjVIS.winop("vjVisual", "dvGenemarkResultsPopUp", "open", true);
                 }
             };
             function popUpOutputs (vv, table, irow, icol){
                 if (table["Outputs"] && table["Outputs"].indexOf("ERROR") == -1){
-                    var url = "http://?cmd=objFile&ids="+ thisProcessID+"&filename="  +table["Outputs"].replace(/\s+/g, '')+"&maxSize=2000";
+                    var url = "http:
                     vjDS[vjDV["dvGenemarkResultsPopUpViewer"].tabs[0].viewers[0].data[0]].reload(url,true);
                     vjVIS.winop("vjVisual", "dvGenemarkResultsPopUp", "open", true);
                 }

@@ -30,7 +30,7 @@
 
 var DefaultBrush = {
     "fill" : 'black',
-    "fill-rule" : 'nonzero',    //evenodd,nonzero
+    "fill-rule" : 'nonzero',
     "fill-opacity" : 0
 };
 

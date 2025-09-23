@@ -57,7 +57,6 @@ static idx cmpVersion(const char * v1, const char * v2)
     return cmpVersion(*end1 ? end1 + 1 : end1, *end2 ? end2 + 1 : end2);
 }
 
-//static
 bool sviolin::SpecialObj::find(sHiveId & result, const sUsr & user, const char * desired_meaning, const char * version_prefix)
 {
     sStr rebuf;
@@ -75,7 +74,6 @@ bool sviolin::SpecialObj::find(sHiveId & result, const sUsr & user, const char *
     rebuf.printf("^%s$,^", desired_meaning);
     for(idx i = 0; version_prefix[i]; i++) {
         if( version_prefix[i] == '.' ) {
-            // escape dots (special regexp meaning)
             rebuf.addString("\\");
         }
         rebuf.addString(version_prefix + i, 1);
@@ -83,7 +81,6 @@ bool sviolin::SpecialObj::find(sHiveId & result, const sUsr & user, const char *
     if( rebuf[rebuf.length() - 1] != '.' ) {
         rebuf.addString("(\\.|$)");
     }
-    // e.g. buf.ptr() is "^ncbiTaxonomy$,^3.2(\\.|$)" to search for version 3.2 or 3.2.x
 
     user.objs2("^special$", obj_res, 0, "meaning,version", rebuf.ptr(), "meaning,version");
     const char * max_version = 0;
@@ -106,8 +103,7 @@ bool sviolin::SpecialObj::find(sHiveId & result, const sUsr & user, const char *
     }
 }
 
-//static
-const char * sviolin::SpecialObj::findTaxDbIonPath(sStr & path, const sUsr & user, const char * version_prefix/* = 0*/, sHiveId * result_id/* = 0*/, sStr * log/* = 0 */)
+const char * sviolin::SpecialObj::findTaxDbIonPath(sStr & path, const sUsr & user, const char * version_prefix, sHiveId * result_id, sStr * log)
 {
     sHiveId tax_db_id;
     idx path_start = path.length();
@@ -117,7 +113,6 @@ const char * sviolin::SpecialObj::findTaxDbIonPath(sStr & path, const sUsr & use
         if( ufile.Id() == tax_db_id ) {
             if( ufile.getFilePathname(path, "ncbiTaxonomy.ion") ) {
                 found = true;
-                // remove .ion extension for use in sTaxIon
                 if( path.length() > 4 && !strcmp(path.ptr(path.length() - 4), ".ion") ) {
                     path.cut0cut(path.length() - 4);
                 }

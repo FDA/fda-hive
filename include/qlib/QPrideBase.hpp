@@ -34,6 +34,10 @@
 #include <slib/core/vec.hpp>
 #include <slib/core/tim.hpp>
 #include <slib/std/varset.hpp>
+#include <slib/utils/json/printer.hpp>
+#include <ulib/uobj.hpp>
+
+struct ProgressItem;
 
 namespace slib
 {
@@ -41,6 +45,7 @@ namespace slib
     class sQPrideConnection;
     class sUsr;
 
+    
     class sQPrideBase
     {
 
@@ -49,7 +54,7 @@ namespace slib
             sQPrideBase * init(sQPrideConnection * connection=0, const char * service="qm");
             virtual ~sQPrideBase();
         private :
-            sQPrideConnection * QPDB;// underlying low level dB pointer hidden from class users
+            sQPrideConnection * QPDB;
         public:
             idx svcID;
             sUsr * user;
@@ -122,6 +127,9 @@ namespace slib
             {
                 idx reqID;
                 idx svcID;
+                idx objID;
+                idx maxLogErrLevel;
+                idx chldCnt;
                 idx jobID;
                 idx userID;
                 idx subIp;
@@ -174,20 +182,52 @@ namespace slib
 
             class QPLogMessage {
                 public:
-                    QPLogMessage();
-                    ~QPLogMessage();
-                    void init(idx req, idx job, idx level, idx cdate, const char * txt);
-                    const char * message(void);
                     idx req;
                     idx job;
                     idx level;
-                    idx cdate;
+                    real cdate;
+                    sStr msg;
+
+                public:
+                    QPLogMessage();
+                    ~QPLogMessage() {msg.destroy();};
+                    void init(idx req, idx job, idx level, real cdate, const char * txt);
+                    void init(sVariant& in);
+                    const char * message(void);
+                    
+                    QPLogMessage& operator = (const QPLogMessage &in) {
+                        req = in.req;
+                        job = in.job;
+                        level = in.level;
+                        cdate = in.cdate;
+                        msg.printf(0, "%s", in.msg.ptr());
+                        return *this; 
+                    } 
+                    
+                    bool operator == (QPLogMessage& second) {
+                        const char* msg = message();
+                        const char* secondMsg = second.message(); 
+                        if( msg != NULL && secondMsg != NULL) 
+                        {
+                            if(req == second.req && job == second.job && level == second.level) {
+                                return !strcmp(msg, secondMsg);
+                            }
+                        }
+                        return false;
+                    }
+                    
+                    void print(sJSONPrinter& printer) 
+                    {
+                        printer.startObject();
+                        printer.addKey("jobID");   printer.addValue(job);
+                        printer.addKey("level");   printer.addValue( sQPrideBase::getLevelName(level) );
+                        printer.addKey("date");    printer.addValue(cdate, "%.6f");
+                        printer.addKey("msg");     printer.addValue(message());
+                        printer.endObject();
+                    }
                 private:
-                    idx txt_idx;
-                    const char * txt;
             };
 
-            // system logging
             enum eQPLogType
             {
                 eQPLogType_Min = 1,
@@ -199,7 +239,6 @@ namespace slib
                 eQPLogType_Fatal,
                 eQPLogType_Max = eQPLogType_Fatal
             };
-            // user visible logging
             enum eQPInfoLevel
             {
                 eQPInfoLevel_Min = 100,
@@ -211,37 +250,37 @@ namespace slib
                 eQPInfoLevel_Fatal = 600,
                 eQPInfoLevel_Max = eQPInfoLevel_Fatal,
             };
-            // works for both eQPLogType and eQPInfoLevel
             static const char * const getLevelName(idx level);
+            static idx getLevelCode(const char * level);
 
             enum eQPReqStatus
-            { // CURRENT STATUS FOR THE REQUEST
-              eQPReqStatus_Any=0,  // if got this return value, check message in log
-              eQPReqStatus_Waiting,    // waiting to be taken for processing
-              eQPReqStatus_Processing, // job was taken from req-queue but not yet running
-              eQPReqStatus_Running,    // job was submitted for running
-              eQPReqStatus_Suspended,  // job was suspended by user or by sysyem
-              eQPReqStatus_Done,       // job has finished
-              eQPReqStatus_Killed,     // job was killed upon user request
-              eQPReqStatus_ProgError,  // job executeable reported an error
-              eQPReqStatus_SysError,   // system error, infrastructure has had a problem
-              // update isStaleLock() in QPrideProc.cpp when adding new stopped/error states
+            {
+              eQPReqStatus_Any=0,
+              eQPReqStatus_Waiting,
+              eQPReqStatus_Processing,
+              eQPReqStatus_Running,
+              eQPReqStatus_Suspended,
+              eQPReqStatus_Done,
+              eQPReqStatus_Killed,
+              eQPReqStatus_ProgError,
+              eQPReqStatus_SysError,
               eQPReqStatus_Max
             };
-            enum eQPReqAction{ // CURRENT ACTION FOR THE REQUEST
+            enum eQPReqAction{
                 eQPReqAction_Any=0,
-                eQPReqAction_None,      // job on hold (not to execute) until flag changed
-                eQPReqAction_Run,       // job handler should execute this job
-                eQPReqAction_Kill,      // job handler should kill this job
-                eQPReqAction_Suspend,   // job handler should suspend this job
-                eQPReqAction_Resume,    // job handler should resume previously suspended job
+                eQPReqAction_None,
+                eQPReqAction_Run,
+                eQPReqAction_Kill,
+                eQPReqAction_Suspend,
+                eQPReqAction_Resume,
+                eQPReqAction_Split,
+                eQPReqAction_Postpone,
                 eQPReqAction_Max
             } ;
 
-            enum eQPReqPar{ // Types of User specified values for request
+            enum eQPReqPar{
                 eQPReqPar_None=0,
-                eQPReqPar_Objects,             // User name for this request
-                eQPReqPar_Name,              // User name for this request
+                eQPReqPar_Objects,
                 eQPReqPar_Max=1000
             } ;
 
@@ -272,13 +311,11 @@ namespace slib
 
 
 
-        public: // Logging, messaging, emailing
+        public:
 
-            // Diagnositcs message functionality
             void logOut(eQPLogType level, const char * formatDescription , ...) __attribute__((format(printf, 3, 4)));
             void vlogOut(eQPLogType level, const char * formatDescription, va_list ap);
 
-            //! if logging < 0 prints to stdout also abs(logging) determines min level of msg going to QPLog table
             idx setupLog(bool force = false, idx force_level = 0);
 
             idx messageSubmit(const char * server, idx svcId, bool isSingular, const char * fmt, ...) __attribute__((format(printf, 5, 6)));
@@ -287,7 +324,7 @@ namespace slib
             idx messageSubmitToDomain(const char * service,const char * fmt,...) __attribute__((format(printf, 3, 4)));
             idx messageWakePulljob(const char * service);
 
-        public: // Config
+        public:
             char * configGet(sStr * str , sVar * pForm, const char * par, const char * defval, const char * fmt, ... ) __attribute__((format(scanf, 6, 7)));
             char * configGetAll( sStr * vals00, const char * pars00);
             bool configSet(const char * par, const char * fmt, ... ) __attribute__((format(printf, 3, 4)));
@@ -311,7 +348,7 @@ namespace slib
             void makeVar00(void);
             char * replVar00(sStr * str, const char * src, idx len=0);
 
-        public: // Service
+        public:
             idx serviceID(const char * serviceName=0);
             idx serviceGet(Service * svc=0,const char * serviceName=0, idx svcId=0);
             idx serviceUp(const char * svc, idx mask);
@@ -324,16 +361,21 @@ namespace slib
             real getHostCapacity();
             idx workRegisterTime(const char * svc="", const char * params="", idx amount=0, idx time=0);
             idx workEstimateTime(const char * svc="", const char * params="", idx amount=0);
-        public: // Submission
+        public:
             idx reqSubmit(const char * serviceName=0, idx subip=0, idx priority=0, idx usrid=0);
             idx grpSubmit(const char * serviceName=0, idx subip=0, idx priority=0, idx numSubReqs=0, idx usrid=0, idx previousGrpSubmitCounter=0);
+            struct PriorityCnt {
+                idx priority;
+                idx cnt;
+            };
+            idx grpSubmit2(const char * serviceName=0, idx subip=0, const sQPrideBase::PriorityCnt * priority_cnts=0, idx num_priority_cnts=0, idx num_subreqs=0, idx user_id=0, idx prev_num_subreqs=0, idx grp_id=0);
             idx reqReSubmit(idx req, idx delaySeconds = 0);
             idx grpReSubmit(idx grp, const char * serviceName, idx delaySeconds = 0, idx excludeReq = 0);
             idx reqCache( const char * serviceName= "qmcache");
 
             idx reqGrab(const char * service, idx job, idx inBundle=0,idx status=eQPReqStatus_Waiting, idx action=eQPReqAction_Run);
 
-        public: // Data handling
+        public:
             bool reqAuthorized(idx req);
             bool reqAuthorized(const Request & R);
             void reqCleanTbl(idx req, const char * dataname);
@@ -342,11 +384,16 @@ namespace slib
             bool reqSetData(idx req, const char * dataName, idx datasize, const void * data);
             bool reqSetData(idx req, const char * dataName, const char * fmt, ... ) __attribute__((format(printf, 4, 5)));
             bool reqSetData(idx req, const char * blobName, const sMex * mex);
-            //! If dataName was stored as a file which is too small, move it to DB
             bool reqRepackData(idx req, const char * dataName);
 
+            const char * constructReqFilePath(sStr & res, idx req, const char * dataName = 0, bool create = true);
+            const char * getReqFilePath(sStr & res, idx req, const char * dataName = 0) { return constructReqFilePath(res, req, dataName, false); };
+
+            const char* getWorkDir() { sStr path; return getWorkDir(path); }
+            const char* getWorkDir(sStr& path);
+
             char * reqGetData(idx req, const char * dataName, sMex * data, bool emptyold=false, idx * timestamp=0);
-            char * reqUseData(idx req, const char * dataName, sMex * data, idx openmode=sMex::fReadonly); // map the existing data
+            char * reqUseData(idx req, const char * dataName, sMex * data, idx openmode=sMex::fReadonly);
             char * reqDataPath(idx req, const char * dataName, sStr * path);
             idx reqDataTimestamp(idx req, const char * dataName);
             char * grpDataPaths(idx grp, const char * dataName, sStr * path, const char * svc=0, const char * separator=" ");
@@ -376,23 +423,24 @@ namespace slib
 
             bool reqSetData(idx req, const char * blobName, sVar * pForm){sStr txt;pForm->serialOut(&txt);return reqSetData(req,blobName,txt.mex());}
             sVar * reqGetData(idx req, const char * dataName, sVar * pForm) {sStr txt;reqGetData(req, dataName, txt.mex());pForm->serialIn(txt.ptr(), txt.length());return pForm;}
+            virtual const char* formValue(const char * prop, sStr * buf = 0, const char * defaultValue = 0, idx iObj = 0)
+            {
+                return 0;
+            }
 
 
-
-        public: // Progress and Status
+        public:
 
             idx requestGet(idx req, Request * r) ;
             idx requestGetForGrp(idx grp, sVec< sQPrideBase::Request > * r, const char * serviceName = 0);
-            char * requestGetPar(idx req, idx type, sStr * val) ;
+            idx requestGetForGrp2(idx grp, sVec< sQPrideBase::Request > * r, const char * serviceName = 0);
+            char * requestGetPar(idx req, idx type, sStr * val, const bool req_only);
 
-            //!
-             /* get request infos for the whole group with severity level >= level
-             *
-             *  \return number of messages add dto log
-             */
             idx reqGetInfo(idx req, idx level, sVec<QPLogMessage> & log);
             idx grpGetInfo(idx grp, idx level, sVec<QPLogMessage> & log);
+            idx grpGetInfo2(idx grp, idx level, sVec<QPLogMessage> & log);
             idx getLog(idx req, bool isGrp, idx job, idx level, sVec<QPLogMessage> & log);
+            idx getLog2(idx req, idx level, sVec<QPLogMessage> & log);
             bool vreqSetInfo(idx req, idx level, const char * formatDescription, va_list ap);
             bool reqSetInfo(idx req, idx level, const char * fmt, ...) __attribute__((format(printf, 4, 5)));
 
@@ -409,9 +457,7 @@ namespace slib
             idx reqGetAction(idx req);
 
             idx reqGetUser(idx req);
-            /*idx reqSetObject(idx req, idx status);
-            idx reqGetObject(idx req);
-            */
+            idx reqSetUser(idx req, idx val);
             idx reqSetStatus(idx req, idx status);
             idx reqSetStatus(sVec <idx> * reqs, idx status);
             idx reqGetStatus(idx req);
@@ -422,82 +468,45 @@ namespace slib
             idx reqGetUserKey(idx key);
             idx getReqByUserKey(idx userKey, const char * serviceName=0);
 
-            //! Attempt to register a lock on key for the given request
-            /*! \param req request ID if positive, or other private-use handle if negative, or this->reqId if zero
-             *  \param key name of entity to lock, typically a filesystem path
-             *  \param[out] req_locked_by request currently holding the lock
-             *  \param max_lifetime max duration of lock in seconds; 48 hours by default; negative or zero values
-             *                      are invalid, and might be reset to some arbitrary positive duration.
-             *  \param force always overwrite existing lock (even if belonging to another living request)
-             *  \returns true if lock was taken */
             bool reqLock(idx req, const char * key, idx * req_locked_by=0, idx max_lifetime=48*60*60, bool force=false);
             bool reqLock(const char * key, idx * req_locked_by=0, idx max_lifetime=48*60*60)
             {
                 return reqLock(reqId, key, req_locked_by, max_lifetime, false);
             }
-            //! Attempt to remove lock on key for the given request
-            /*! \param req request ID if positive, or other private-use handle if negative, or this->reqId if zero
-             *  \param key name of entity to unlock, typically a filesystem path
-             *  \param force always remove existing lock (even if belonging to another living request)
-             *  \returns true if lock was removed */
             bool reqUnlock(idx req, const char * key, bool force=false);
             bool reqUnlock(const char * key)
             {
                 return reqUnlock(reqId, key, false);
             }
 
-            //! Find request (if any) currently holding the specified lock
-            /*! \param key name of entity to lock, typically a filesystem path
-                \returns request ID currently holding the lock, or 0 if none */
             idx reqCheckLock(const char * key);
 
             void killReq(idx req);
             void killGrp(idx req);
             void purgeReq(idx req);
 
-            // Progress reporting functions
-            idx progress100Start; //!< 0 by default; reqProgress() scales progress percentage to be in  progress100Start..progress100End range
-            idx progress100End; //!< 100 by default; reqProgress() scales progress percentage to be in  progress100Start..progress100End range
+            idx progress100Start;
+            idx progress100End;
 
-            //! Report a request as alive and update its progress level
-            /*!
-                \param req request ID
-                \param minReportFrequency the db will be updated only if more than this number of seconds passed since the last reqProgress() call
-                \param items number of "items" (bytes, rows, records, ...) processed, or -1 to ignore; values less than -1 means ignore minReportFrequency and force record abs(items) in db
-                \param progress current raw progress level; sNotIdx means \a items parameter will be used as raw progress level
-                \param progressMax maximum raw progress level; negative value means progress level will not be updated in db
-                \returns 1 normally, or 0 if the request needs to be stopped
-                \note
-                The raw progress level is not directly recorded in db.
-                \note
-                The value of \a items is recorded in the 'progress' column in db.
-                \note
-                The progress percentage (0-100) is recorded in the 'progress100' column in db; it is calculated as
-                progress100Start + (progress / progressMax) * (progress100End - progress100Start)
-            */
             idx reqProgress(idx req, idx minReportFrequency, idx items, idx progress, idx progressMax);
-            //! static version of sQPrideBase::reqProgress
-            /*! \param param sQPrideBase pointer on which to call reqProgress(), or 0 for no-op */
             static idx reqProgressStatic(void * param, idx req, idx minReportFrequency, idx items, idx progress, idx progressMax);
 
-            //! Old fashioned direct update, careful it will reset BOTH counters, unless progress is < 0 or progress100 is < 0 or > 100
-            /*
-                Provide negative value for the other counter if you want to change only one of them
-             */
             idx reqSetProgress(idx req, idx progress, idx progress100);
             idx grpGetProgress(idx grp, idx * progress, idx * progress100);
         protected:
-            //! could be reset to 0 to allow drop in percentage reported
             idx progress100Last;
             idx progress2Percent(idx items, idx progress, idx progressMax)
             {
-                if( progress == sNotIdx ) {
-                    progress = items;
+                if( progressMax > 0 ) {
+                    if( progress == sNotIdx ) {
+                        progress = items <= progressMax ? items : progressMax;
+                    }
+                    return progress100Start + progress * ((real)(progress100End - progress100Start) / progressMax);
                 }
-                return progressMax > 0 ? progress100Start + progress * ((real)(progress100End - progress100Start) / progressMax) : -1;
+                return 0;
             }
 
-        public: // Grouping
+        public:
             idx grpAssignReqID(idx req, idx grp, idx jobIDSerial=0) ;
             idx req2Grp(idx req, sVec<idx> * grpIds=0, bool isMaster=false);
             idx req2GrpSerial(idx req, idx grp, idx * pcnt=0, idx svc=sNotIdx);
@@ -505,13 +514,7 @@ namespace slib
 
 
 
-        public: // jobs
-            //! Register job and/or request as alive in the database in a rate-limited way
-            /*! \param req if non-0, request id whose alive time needs to be updated (assuming isReadonly is false and notMoreFrequentlySec had passed)
-             *  \param job if non-0, job id whose alive time needs to be updated (assuming isReadonly is false and notMoreFrequentlySec had passed)
-             *  \param notMoreFrequentlySec minimum time interval in seconds for database updates
-             *  \param isReadonly if true, don't update the database or modify sQPrideBase's timers
-             *  \returns true if >= notMoreFrequentlySec had passed since previous database update */
+        public:
             bool jobRegisterAlive(idx job, idx req, idx notMoreFrequentlySec, bool isReadonly=false);
             idx jobSetStatus(idx job, idx jobstat);
             idx jobSetStatus(sVec < idx > *  jobs, idx jobstat);
@@ -519,15 +522,14 @@ namespace slib
             idx jobRegister(const char * serviceName, const char * hostName, idx pid, idx inParallel);
             idx jobSetMem(idx job, idx curMemSize, idx maxMemSize);
             idx jobGetAction(idx jobId);
-            // interconnect job with request
             idx jobSetReq(idx job, idx req);
 
-        public: // db
+        public:
             idx dbHasLiveConnection(void);
             void dbDisconnect(void);
             idx dbReconnect(void);
 
-        public: // overloadables
+        public:
             virtual bool OnLogOut(idx , const char * message);
             virtual bool OnInit(void)
                 {
@@ -538,7 +540,7 @@ namespace slib
             public:
                 static char * QPrideSrvName(sStr * buf, const char * srvbase, const char * progname);
 
-        public: // for parralellization
+        public:
             idx iJobArrStart, iJobArrEnd;
             idx threadID,threadsWorking,threadsCnt;
             idx parGetThreadID(void){return threadID++;}
@@ -570,14 +572,14 @@ namespace slib
             idx parReportingThread(void);
 
 
-        public: // resource comands
+        public:
             char * resourceGet(const char * service, const char * resName,    sMex * data, idx * timestamp);
             bool resourceSet(const char * service, const char * resName, idx ressize , const void * data);
             idx resourceGetAll(const char * service, sStr * infos00, sVec < sStr > * dataVec,   sVec < idx > * tmStmps  );
             bool resourceDel(const char * service, const char * resName = 0);
             idx resourceSync(const char * resourceRoot, const char * service, const char * platformSpec = 0);
 
-        public: // system operations
+        public:
             idx sysPeekReqOrder(idx req, const char * srv=0, idx * pRunning=0 );
 
             idx sysPeekOnHost(sVec < Service > * srvlist,  const char * hostname=0 );
@@ -590,13 +592,23 @@ namespace slib
             bool hostNameMatch (const char * rp, const char * hostName, idx * pmaxjob=0);
             bool hostNameListMatch (const char * rp, const char * hostName, idx * pmaxjob=0, idx * pwhich=0);
 
-        public: //
-            idx reqProcSubmit(idx cntParallel,sVar * pForm, const char * svc , idx grp, idx autoAction = sQPrideBase::eQPReqAction_Run, bool requiresGroupSubmission = false, idx priority=0, idx previousGrpSubmitCounter=0); //=eQPReqAction_None
-            idx reqProgressReport(sStr * group, sStr * list, idx grp, idx start, idx cnt, idx minLevelInfo = eQPInfoLevel_Min, const char * svcName = 0, sDic<idx> * svcName00 = 0);
+        public:
+            idx reqProcSubmit(idx cntParallel,sVar * pForm, const char * svc , idx grp, idx autoAction = sQPrideBase::eQPReqAction_Run, bool requiresGroupSubmission = false, idx priority=0, idx previousGrpSubmitCounter=0);
+            static sVec<sQPrideBase::PriorityCnt> * reqMakePriorityCnts(sVec<sQPrideBase::PriorityCnt> & priority_cnts, idx cntParallel, idx start_priority = 0, idx prevTotalCntParallel = 0);
+            idx reqProcSubmit2(idx cntParallel,sVar * pForm, const char * svc , idx grp, idx autoAction = sQPrideBase::eQPReqAction_Run, bool requiresGroupSubmission = false, const sVec<sQPrideBase::PriorityCnt> * priorities=0, idx previousGrpSubmitCounter=0);
+            idx reqProgressReport (sStr * group, sStr * list, idx grp, idx start, idx cnt, idx minLevelInfo = eQPInfoLevel_Min, const char * svcName = 0, sDic<idx> * svcName00 = 0);
+            idx reqProgressReport2(sStr * group, sStr * list, idx grp, idx start, idx cnt, idx minLevelInfo = eQPInfoLevel_Min, const char * svcName = 0, sDic<idx> * svcName00 = 0);
+            idx reqProgressReport2(sJSONPrinter& printer, idx grp, bool showReqs, idx showMsg, sUsrObj* obj);
+            idx reqProgressReportReqOnly(sJSONPrinter& printer, idx grp, idx showMsg, idx start, idx cnt, idx status, sUsrObj* obj);
+            void saveProgress(idx grp, sUsrObj& obj);
+        
+        protected:
+            void getAllReqInfoOldStyle(sDic<ProgressItem>& prgList, sVec<Request>& rList, idx minLevelInfo);
+            void getAllReqInfo(sDic<ProgressItem>& prgList, sVec<Request>& rList, idx minLevelInfo);
+            void fillGroupAndList(sStr * group, sStr * list, idx start, idx cnt, sDic<idx> * svcIDs, sDic<ProgressItem>& prgList); 
     };
 }
 
-#endif // _QPrideBase_qLib_hpp
-
+#endif 
 
 

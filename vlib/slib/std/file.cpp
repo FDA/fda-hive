@@ -39,30 +39,33 @@
 
 using namespace slib;
 
+const char* remove_trailing_slash(sStr & buf, const char * flnm)
+{
+    idx len = sLen(flnm);
+    if( len > 0 && flnm[len - 1] == '/' ) {
+        for(; len && flnm[len - 1] == '/'; len--) {
+        }
+        buf.add(flnm, len);
+        buf.add0();
+        flnm = buf.ptr();
+    }
+    return flnm;
+}
+
 static int local_lstat(const char * flnm, struct stat * fst)
 {
 #ifdef WIN32
     TODO implement
 #else
-    sStr buf;
-    idx len = sLen(flnm);
-    if( !fst || !len ) {
+    if( !fst || !flnm ) {
         return -1;
     }
-    // lstat interprets symlinked dir with "/" at end as the link's target
-    // and we always use paths with '/' at the end, so we need to remove it
-    if( flnm[len - 1] == '/' ) {
-        for(; len && flnm[len - 1] == '/'; len--)
-        {}
-        buf.add(flnm, len);
-        buf.add0();
-        flnm = buf.ptr();
-    }
+    sStr buf;
+    flnm = remove_trailing_slash(buf, flnm);
     return lstat(flnm, fst);
 #endif
 }
 
-// static
 void sFile::chmod(const char * file, idx mod)
 {
 #ifndef SLIB_WIN
@@ -73,28 +76,25 @@ void sFile::chmod(const char * file, idx mod)
     ::chmod(file, (int) mod);
 }
 
-// static
 bool sFile::symlink(const char *pathname, const char *slink)
 {
-    if( ::symlink(pathname, slink) == 0 )
-        return true;
-
-    // if this link already exists, we already succeeded
-    if( errno == EEXIST ) {
-        char buf[PATH_MAX + 1];
-        idx len = readlink(slink, buf, PATH_MAX);
-        if( len < 0 )
-            return false;
-
-        buf[len] = 0;
-        if( strncmp(pathname, buf, len) == 0 )
-            return true;
+    if( ::symlink(pathname, slink) != 0 ) {
+        if( errno == EEXIST ) {
+            char buf[PATH_MAX + 1];
+            const idx len = readlink(slink, buf, PATH_MAX);
+            if( len > 0 ) {
+                buf[len] = 0;
+                if( strcmp(pathname, buf) == 0 ) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
-    return false;
+    return true;
 }
 
-// static
-bool sFile::exists(const char * file, bool follow_link /* = true */)
+bool sFile::exists(const char * file, bool follow_link)
 {
     struct stat buf;
     int r;
@@ -111,7 +111,6 @@ bool sFile::exists(const char * file, bool follow_link /* = true */)
 #endif
 }
 
-// static
 bool sFile::isSymLink(const char * flnm)
 {
 #ifdef WIN32
@@ -125,8 +124,7 @@ bool sFile::isSymLink(const char * flnm)
 #endif
 }
 
-// static
-bool sFile::sameInode(const char * file1, const char * file2, bool follow_link /* = true */)
+bool sFile::sameInode(const char * file1, const char * file2, bool follow_link)
 {
     struct stat st1, st2;
     sSet(&st1);
@@ -134,7 +132,6 @@ bool sFile::sameInode(const char * file1, const char * file2, bool follow_link /
 
     if( follow_link ) {
         sStr buf;
-        // we use followSymLink instead of stat to check for equal dangling links
         followSymLink(file1, buf, &st1);
         followSymLink(file2, buf, &st2);
     } else {
@@ -157,14 +154,13 @@ static void resolveLinkTarget(sStr & path, const char * target, bool preferRelat
     if( preferRelative || target[0] == '/' ) {
         path.cut(0);
     } else {
-        // If target is relative, append it to path's directory component
         if( const char * endDirComponent = strrchr(path.ptr(), '/') ) {
             path.cut(endDirComponent + 1 - path.ptr());
         } else {
             path.cut(0);
         }
     }
-    path.printf(target);
+    path.printf("%s", target);
 }
 
 const char * sFile::LinkFollower::follow(const char * file)
@@ -182,7 +178,6 @@ const char * sFile::LinkFollower::follow(const char * file)
     sSet<struct stat>(_st);
 
     if( lstat(_path.ptr(), &st) != 0 ) {
-        // path is a dangling symlink
         return _path.ptr();
     }
 
@@ -203,7 +198,6 @@ const char * sFile::LinkFollower::follow(const char * file)
 
         buf[readSize] = 0;
 
-        // If current target is absolute, remember to return an absolute path, even if on later loop iterations target will be relative
         if( wantRelative && buf[0] == '/' )
             wantRelative = false;
 
@@ -211,7 +205,6 @@ const char * sFile::LinkFollower::follow(const char * file)
         resolveLinkTarget(abspath, buf, false);
 
         if( lstat(abspath.ptr(), &st) != 0 ) {
-            // path is a dangling symlink
             return _path.ptr();
         }
 
@@ -240,37 +233,35 @@ public:
     sFileBasicFollower(sStr & path, struct stat * st, idx maxLevels): LinkFollower(path, st), _maxLevels(maxLevels) {}
 };
 
-// static
-const char * sFile::followSymLink(const char * file, sStr & outPath, struct stat * outSt /* = 0 */, idx maxLevels /* = sIdxMax */)
+const char * sFile::followSymLink(const char * file, sStr & outPath, struct stat * outSt, idx maxLevels)
 {
     struct stat tmp;
     sFileBasicFollower follower(outPath, outSt ? outSt : &tmp, maxLevels);
     return follower.follow(file);
 }
 
-// static
 bool sFile::remove(const char * file)
 {
+    sStr buf;
+    file = remove_trailing_slash(buf, file);
     return ::remove(file) == 0;
 }
 
-// static
-bool sFile::copy(const char * filesrc, const char * filedst, bool doAppend /* = false */, bool follow_link /* = true */)
+bool sFile::copy(const char * filesrc, const char * filedst, bool doAppend, bool follow_link, copyCallback func, void * callbackParam)
 {
-    if( sameInode(filesrc, filedst, follow_link) )
+    if( sameInode(filesrc, filedst, follow_link) ) {
         return false;
-
+    }
     struct stat st;
-
     if( !follow_link && isSymLink(filesrc) ) {
         sStr buf;
         const char * target = followSymLink(filesrc, buf, &st, 1);
-        if( !target )
+        if( !target ) {
             return false;
-
-        if( sFile::exists(filedst, false) && !sFile::remove(filedst) )
+        }
+        if( sFile::exists(filedst, false) && !sFile::remove(filedst) ) {
             return false;
-
+        }
         return sFile::symlink(target, filedst);
     }
 
@@ -279,19 +270,28 @@ bool sFile::copy(const char * filesrc, const char * filedst, bool doAppend /* = 
     if( fin >= 0 ) {
         idx fout = open(filedst, O_WRONLY | O_CREAT | (doAppend ? O_APPEND : 0), S_IREAD | S_IWRITE);
         if( fout >= 0 ) {
-            static const idx size = 4 * 1024 * 1024;
-            char buf[size];
+            static sMex buf;
+            if( buf.total() == 0 ) {
+                buf.resize(16 * 1024 * 1024);
+            }
+            const idx size = buf.total();
             idx len = 0;
             errno = 0;
-            while( (len = read(fin, buf, size)) != 0 && errno == 0 ) {
+            while( (len = read(fin, buf.ptr(), size)) != 0 && errno == 0 ) {
                 idx written = 0;
+                if( func ) {
+                    const idx myerrno = errno;
+                    if( !func(callbackParam, (char*)buf.ptr(), len) ) {
+                        return false;
+                    }
+                    errno = myerrno;
+                }
                 while( len - written > 0 && errno == 0 ) {
-                    written += write(fout, buf + written, len - written);
+                    written += write(fout, buf.ptr(written), len - written);
                 }
             }
             ok = errno == 0;
             if( fstat(fin, &st) == 0 ) {
-                // ignore failures in chown, chmod etc. since some destination filesystems may not allow them
                 sFile::fsetAttributes(fout, &st);
             } else {
                 ok = false;
@@ -303,12 +303,11 @@ bool sFile::copy(const char * filesrc, const char * filedst, bool doAppend /* = 
     return ok;
 }
 
-// static
-bool sFile::rename(const char * filesrc, const char * filedst)
+bool sFile::rename(const char * filesrc, const char * filedst, copyCallback func, void * callbackParam)
 {
-    idx rs = ::rename(filesrc, filedst);
+    idx rs = func ? 123 : ::rename(filesrc, filedst);
     if( rs != 0 ) {
-        if( copy(filesrc, filedst, false, false) ) {
+        if( copy(filesrc, filedst, false, false, func, callbackParam) ) {
             remove(filesrc);
             return true;
         }
@@ -317,24 +316,21 @@ bool sFile::rename(const char * filesrc, const char * filedst)
     return true;
 }
 
-// static
-idx sFile::time(const char * flnm, bool follow_link /* = true */)
+idx sFile::time(const char * flnm, bool follow_link)
 {
     struct stat fst;
     sSet(&fst, 0);
     return (follow_link ? stat(flnm, &fst) : local_lstat(flnm, &fst)) == -1 ? sIdxMax : (idx) fst.st_mtime;
 }
 
-// static
-idx sFile::atime(const char * flnm, bool follow_link /* = true */)
+idx sFile::atime(const char * flnm, bool follow_link)
 {
     struct stat fst;
     sSet(&fst, 0);
     return (follow_link ? stat(flnm, &fst) : local_lstat(flnm, &fst)) == -1 ? sIdxMax : (idx) fst.st_atime;
 }
 
-// static
-bool sFile::touch(const char * file, idx acc_and_mod_time /* = 0 */)
+bool sFile::touch(const char * file, idx acc_and_mod_time)
 {
     struct utimbuf t;
     if( file ) {
@@ -344,7 +340,6 @@ bool sFile::touch(const char * file, idx acc_and_mod_time /* = 0 */)
     return file ? utime(file, &t) == 0 : false;
 }
 
-// static
 bool sFile::setAttributes(const char * file, const struct stat * st)
 {
     bool ret = true;
@@ -382,7 +377,6 @@ bool sFile::setAttributes(const char * file, const struct stat * st)
     return ret;
 }
 
-// static
 bool sFile::fsetAttributes(int fd, const struct stat * st)
 {
     bool ret = true;
@@ -420,8 +414,7 @@ bool sFile::fsetAttributes(int fd, const struct stat * st)
     return ret;
 }
 
-// static
-idx sFile::size(const char * flnm, bool follow_link /* = true */)
+idx sFile::size(const char * flnm, bool follow_link)
 {
     struct stat fst;
     int r;
@@ -453,8 +446,7 @@ static bool defaultTempPathTester(const char * path)
     return true;
 }
 
-// static
-const char * sFile::mktemp(sStr & outPath, const char * dir, const char * extension/*=0*/, const char * pattern/*=0*/, tempPathTester tester/*=0*/)
+const char * sFile::mktemp(sStr & outPath, const char * dir, const char * extension, const char * pattern, tempPathTester tester)
 {
     if( !pattern )
         pattern = DEFAULT_MKTEMP_PATTERN;

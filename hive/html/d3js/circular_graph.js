@@ -28,39 +28,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*
- var circular = new vjD3JS_circularGraph({
-      data: ["dsTest","dsTest1","dsTest2"],
-      line_set: [
-             {"dsTest": {x:"column_name", y: "column_name", hidden: false, labels:["column name","column name"]}},
-             {"dsTest1": {x:"column_name", y: "column_name", hidden: false, labels:["column name","column name"]}}
-      ],
-      //column_set: [  // optinal
-      ],
-      csvTbl:false,
-    //colors:["blue","green"]      
-      graphOptions: {
-          x: {title: "column header"},
-          y: {title: "column header"}
-        //zoomStatic: true / false  
-       // title: " graph title"
-          //showGrid: true
-      }
-     // ,height:450
-     // ,width: 800
-  });
-
-*/
 
 
 function vjD3JS_circularGraph ( viewer )
 {
-    //loadCSS("d3js/css/zoomable_lineGraph.css");
-    vjD3CategoryView.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjD3CategoryView.call(this,viewer);
     var divElement;
     var that = this;
     
-    //this.margin={top: 40, right: 10, bottom: 20, left: 10};
     if (this.margin == undefined || !this.margin) {this.margin = 100;}
     if (this.showTicks == undefined) {this.showTicks=0;}
     if (this.showLabels == undefined) {this.showLabels=0;}
@@ -98,7 +73,6 @@ function vjD3JS_circularGraph ( viewer )
         }
         
 
-    // graphOptions
         if (!this.graphOptions || this.graphOptions == undefined) this.graphOptions = {};
         if (!this.graphOptions.x || this.graphOptions.x == undefined) this.graphOptions.x = {};
         if (!this.graphOptions.x.title || this.graphOptions.x.title == undefined) this.graphOptions.x.title = "";
@@ -110,7 +84,6 @@ function vjD3JS_circularGraph ( viewer )
         
         if (this.graphOptions.zoomStatic == undefined) this.graphOptions.zoomStatic= true;
         
-    // Default
         var default_options = {
                 color: "steelblue"
                 ,vAxis: {
@@ -142,7 +115,6 @@ function vjD3JS_circularGraph ( viewer )
             return {xMin: xMin,xMax: xMax,yMin:yMin,yMax: yMax};
         }
 
-    // 
         blabla=0;
         var bandPos = [-1, -1];
         var pos;
@@ -162,14 +134,13 @@ function vjD3JS_circularGraph ( viewer )
         
         this.data = verarr(this.data);
         
-        var nbOfSections = this.data.length +1; // we need the center to be drawn 
+        var nbOfSections = this.data.length +1;
         
         var originx = width/2;
         var originy = height/2;
         var pi = Math.PI;
         var DRratio = pi/180;
 
-        // Each section have the same 
         var baseRadius = Math.min(width,height)/2 - Math.max((margin.top+margin.bottom),(margin.right+margin.left));
         baseRadius = baseRadius/(nbOfSections);
         baseRadius = 0.9 *baseRadius;
@@ -182,9 +153,7 @@ function vjD3JS_circularGraph ( viewer )
                      .range([innerRadius, outterRadius])
                      .domain([minMax.yMin, minMax.yMax]);
             
-            // define function to draw line
             var line = d3.svg.line()
-              //.interpolate("basis")
               .x(function(d) {
                 return originx + ( d.radius* Math.cos(d.angle));
               })
@@ -208,13 +177,10 @@ function vjD3JS_circularGraph ( viewer )
             blabla +=1;
             var pointList = [];
             for (var i=0; i<data.length;++i) {
-                // get the angle
                 var cur_val = radPerUnit * data[i][x_col];
                 var radius = y(data[i][y_col]);
                 pointList.push({angle:cur_val,radius:radius})
                 lineGroup.append("circle")
-                        //.attr("cx", originx + (innerRadius * Math.cos(cur_val)))
-                        //.attr("y1", originy + (baseRadius * Math.sin(cur_val)))
                         .attr("cx", originx + ( radius* Math.cos(cur_val)))
                         .attr("cy", originy + (radius * Math.sin(cur_val)))
                         .attr("r",1)
@@ -230,7 +196,6 @@ function vjD3JS_circularGraph ( viewer )
         
         var _drawColumnChart = function(canvas,data,x_col,y_col,innerRadius,outterRadius,minMax,options) {
 
-                // calculate the angle
                 data.options = options;
                 var pie = d3.layout.pie()
                     .sort(null)
@@ -241,15 +206,13 @@ function vjD3JS_circularGraph ( viewer )
                 var y = d3.scale.linear()
                     .range([innerRadius, outterRadius])
                      .domain([0, minMax.yMax]);
-                   // .domain([minMax.yMin, minMax.yMax]);
                 
                 var arc = d3.svg.arc()
                     .outerRadius(function(d){
                         return y(d.data[y_col]);
-                    }) // radius - 10
+                    })
                     .innerRadius(function(d){
                         return y(d.data[y_col] - d.data[y_col] *0.3);
-                        //return innerRadius; // radius - 70
                     })
                 
                 var arcGroup = canvas.append("g")
@@ -290,7 +253,7 @@ function vjD3JS_circularGraph ( viewer )
                 var innerRadius = baseRadius * (serie_idx+1);
                 var outterRadius = innerRadius + baseRadius;
                     
-                if (!serie_idx) { // center circle
+                if (!serie_idx) {
                     canvas.append("circle")
                         .attr("cx", originx)
                         .attr("cy", originy)
@@ -317,20 +280,11 @@ function vjD3JS_circularGraph ( viewer )
                 }
             
         }
-    // ==============================
-    // append the svg area
-    // ==============================
         svg.attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom);
         
         var gg = svg.append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-        // Preparing data for graph
-        // data:["dsResult_2","dsResult_1"]
-        // series:[
-        //            {dsname:'dsResult_1',x:'mass',y:'intensity',type:'line',options:{color:'red'}},
-        //            {dsname:'dsResult_2',x:'start',y:'end',type:'box',options:{color:'green',bump:false}},
-        //         ]
 
         for (var is=0; is < this.series.length; ++is) {
             _parseOptions(this.series[is]);

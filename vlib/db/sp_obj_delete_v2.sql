@@ -38,6 +38,7 @@ BEGIN
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
     SET p_obj_domainID = IFNULL(p_obj_domainID, 0);
     DELETE FROM UPPerm WHERE domainID = p_obj_domainID AND objID = p_obj_id;
     SELECT ROW_COUNT() INTO @q1;

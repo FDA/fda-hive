@@ -37,10 +37,10 @@ function vjExplorerAdminView(viewer)
     this.init_DS=function()
     {
         this.dsFolders=vjDS.add("infrastructure: Folders", "ds"+this.container+"Folders", this.folderURL,null,"id,path,name,email\n");
-        this.dsFoldersToolbar=vjDS.add("infrastructure: Folders Toolbar", "ds"+this.container+"FoldersToolbar","static:// ");
-        this.dsPreviewsRecord=vjDS.add("infrastructure: Loading Objects Metadata Information", "ds"+this.container+"PreviewsRecord" , "static://preview:Select objects to see detail metadata" );
-        this.dsPreviewsSpec=vjDS.add("infrastructure: Obect Specifications","ds"+this.container+"PreviewsSpec" , "static:// " );
-        this.dsFoldersHelp=vjDS.add("infrastructure: Folders Help", "ds"+this.container+"FoldersHelp","http://help/hlp.page.admin.html");
+        this.dsFoldersToolbar=vjDS.add("infrastructure: Folders Toolbar", "ds"+this.container+"FoldersToolbar","static:
+        this.dsPreviewsRecord=vjDS.add("infrastructure: Loading Objects Metadata Information", "ds"+this.container+"PreviewsRecord" , "static:
+        this.dsPreviewsSpec=vjDS.add("infrastructure: Obect Specifications","ds"+this.container+"PreviewsSpec" , "static:
+        this.dsFoldersHelp=vjDS.add("infrastructure: Folders Help", "ds"+this.container+"FoldersHelp","http:
     };
     this.addCmd =     [{
         name : 'Create11',
@@ -54,7 +54,6 @@ function vjExplorerAdminView(viewer)
     {
         name : 'upload',
         hidden : true,
-       // url: "javascript:vjDV.select('" + dvname + ".add.0',true);",
         prohibit_new : true,
         isok:false
     },
@@ -66,14 +65,12 @@ function vjExplorerAdminView(viewer)
     },
     {
         name : 'edit',
-       // url : "function:vjObjFunc('onAction','" + this.objCls + "')",
         hidden : false,
         icon:'eye',
         prohibit_new : true
     },
     {
         name : 'detail',
-      //  url : "function:vjObjFunc('onAction','" + this.objCls + "')",
         hidden : false,
         icon:'rec',
         prohibit_new : true
@@ -124,14 +121,9 @@ function vjExplorerAdminView(viewer)
             addCmd      : this.addCmd,
             category    : null,
             objId        : 'userPerspective',
-            url_tmplt   : "http://?cmd=objList&mode=csv&info=1&actions=1&parIds=id&prop=id,_summary,created,category&cnt=20",
-            url         : "static://preview:Select a folder to see its content",
+            url_tmplt   : "http:
+            url         : "static:
             selectCallback      : "function:vjObjFunc('onSelectFile','" + this.objCls + "')",
-         //   CloneDragCallback   : "function:vjObjFunc('setCloneDrag','" + this.objCls + "')",
-        //    DropHandler         : "function:vjObjFunc('DropHandler','" + this.objCls + "')",
-        //    DragStartCallback   : "function:vjObjFunc('onDragStart','" + this.objCls + "')",
-        //    DragStopCallback   : "function:vjObjFunc('onDragStop','" + this.objCls + "')",
-        //    DragCancelCallback  : "function:vjObjFunc('onDragCancel','" + this.objCls + "')",
             callbackRendered    : "function:vjObjFunc('onRenderTableViewer','" + this.objCls + "')",
             precompute:"node=funcLink(\"function:vjObjFunc('precomputeTable','"+this.objCls+"')\",node,this);",
             isok:true
@@ -203,10 +195,8 @@ function vjExplorerAdminView(viewer)
     this.appendUserPerspective = true;
 
 
-    //Initialize default attributes of table viewers
 
     this.onAction=function(viewer,node){
-        //alert(node.name)
         if(node.name=='Create11'){
 
                 if(viewer.tab.name!='All'){
@@ -226,10 +216,7 @@ function vjExplorerAdminView(viewer)
         }else if(node.name=='edit11' || node.name=='detail11'){
                 var url = "?cmd=record&ids=$(ids)&types=$(types)" ;
                 if(node.name=='detail11')
-//                        url+="&readonly=1";
-                //if(this.currentUserId && this.currentUserId!='all') url +="&userId="+this.currentUserId;
                 viewer.onClickMenuNode(viewer.container,node.path);
-                //window.open(url);
         }
 
     };
@@ -306,14 +293,7 @@ function vjExplorerAdminView(viewer)
                            }];
     this.onSelectFolder = function(view, node, content )
     {
-    //        alert('this.currentFolder='+this.currentFolder+"=="+view.currentFolder);
 
-   /*     for(var ci=0;ci<node.children.length;ci++){
-            alert(ci);
-            this.onSelectFolder(view,node.children[ci],content);
-        }
-
-    */
         this.currentUserId = node.id;
         if(this.onSelectFileCallback){
             funcLink(this.onSelectFileCallback, viewer, null);
@@ -354,4 +334,3 @@ function vjExplorerAdminView(viewer)
 };
 
 
-//# sourceURL = getBaseUrl() + "/js/vjExplorerAdminView.js"

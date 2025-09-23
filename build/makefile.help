@@ -52,14 +52,29 @@ help_2:
 	@ \
 	echo -e "\033[0m"; \
 	echo -e " Build targets:"; \
-	echo -e "    make [all] - default target, build current and recursive"; \
+	echo -e "    make [all] - default target, builds current and recursive"; \
 	echo -e "    make clean - all results"; \
 	echo -e "    make purge - delete object files"; \
 	echo -e "    make reset - reset build and OUT to default"; \
 	echo -e "    make reset-local - drop makefile.local"; \
-	echo -e "    make dist - install software only (\033[1;31mdo not update database, development use!\033[0m)"; \
-	echo -e "    make sync - update project files from database (\033[1;31mgrab data to svn, development use!\033[0m)"; \
-	echo -e "    make install - install software and data TO the database"; \
+	echo -e "    make dist - install software only (recursive \033[1;31mdo not update database, DEVelopment use ONLY!\033[0m)"; \
+	echo -e "    make sync - update project files from database (recursive \033[1;31mgrab data FROM database into code tree, DEVelopment use ONLY!\033[0m)"; \
+    echo -e "    Update objects of specific type \033[1;31mFROM\033[0m the database to JSON files (recursive):"; \
+	echo -e "        make types"; \
+    echo -e "        make menuitems"; \
+    echo -e "        make actions"; \
+    echo -e "        make apps"; \
+	echo -e ""; \
+	echo -e "    make install SITE=[comb.fda|.fda] - install everything \033[1;31mTO\033[0m the database"; \
+	echo -e "        SITE variable in makefile can be domain: comb.fda or .fda, \033[1;31m!\033[0m.fda means \033[1;31mnot\033[0m to install to .fda sites"; \
+	echo -e "    Install objects of specific type \033[1;31mTO\033[0m the database from JSON files (recursive):"; \
+    echo -e "        make types_install SITE="; \
+    echo -e "        make menuitems_install SITE="; \
+    echo -e "        make actions_install SITE="; \
+	echo -e ""; \
+	echo -e "    make site_list - lists all unique SITES values from makefiles"; \
+	echo -e "    make package [VER=nnn] - prepare a distribution package for any SITE [as version nnn]"; \
+	echo -e "    make doc - build API documentation"; \
 	echo -e ""; \
 	echo -e "    make help - this help page"; \
 	echo -e ""; \

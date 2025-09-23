@@ -51,9 +51,6 @@ namespace Xls {
         unsigned int CountRows() const;
         unsigned int CountColumns() const;
 
-        /**
-         * Returns a pointer to an internal static buffer - the value must be saved as could be destroyed by the next call
-         */
         const char * CellValue(unsigned int i, unsigned int j) const;
 
         bool ExportCsv(const char *file) const;

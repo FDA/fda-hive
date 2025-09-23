@@ -6,15 +6,30 @@ gInitList+="main_init();";
 
    
     function main_init()
-    {
-               
+    {     
         main_initToolbar();
-        main_addSection("about","100%","img/hive_logo.gif");
-        main_addSection("familiarize","100%","img/graph2.gif");
-        main_addSection("systemrequirements",500,"img/admin.gif");
-    }
-    
         
+        //main_addSection("welcome","1000","img/hive-hexagon.gif");
+           //main_addSection("whatcanyoudo",500,"img/hive-hexagon.gif");
+        //main_addSection("meetings",500,"img/processSvc.gif");
+        //main_addSection("news2",500,"img/page.gif");
+        main_addSection("about","100%","img/hive_logo.gif");
+        main_addSection("systemrequirements",500,"img/admin.gif");
+        main_addSection("changelog",500,"img/admin.gif");
+        //main_addSection("publications",500,"img/list.gif");
+        //main_addSection("people",500,"img/hive_logo.gif");
+        //main_addSection("blueHIVE","100%","img/admin.gif");
+    }
+
+    function toggleNoteBox (event) {
+            event.target.classList.toggle("active");
+            var content = event.target.nextElementSibling;
+            if ($(content).css('max-height') && $(content).css('max-height') !== '0px'){
+                $(content).css('max-height' , '0px');
+            } else {
+                $(content).css('max-height', "100%");
+            } 
+    };  
 </script>
    
    <form name='form-toolbarmain'><span id="dvToolbarmain"></span></form>
@@ -28,28 +43,6 @@ gInitList+="main_init();";
             <td width='15%' ></td>
         </tr>
     </table>
-    
-    <a name="familiarize"></a>
-    <table width='100%' >
-        <tr>
-            <td width='15%' ></td>
-            <td >
-                <span id="familiarize-tab"></span>
-            </td>
-            <td width='15%' ></td>
-        </tr>
-    </table>
-   
-    <a name="training"></a>
-    <table width='100%' >
-        <tr>
-            <td width='15%' ></td>
-            <td >
-                <span id="training-tab"></span>
-            </td>
-            <td width='15%' ></td>
-        </tr>
-    </table>
   
     <a name="systemrequirements"></a>
     <table width='100%' >
@@ -57,6 +50,16 @@ gInitList+="main_init();";
             <td width='15%' ></td>
             <td >
                 <span id="systemrequirements-tab"></span>
+            </td>
+            <td width='15%' ></td>
+        </tr>
+    </table>
+    <a name="changelog"></a>
+    <table width='100%' >
+        <tr>
+            <td width='15%' ></td>
+            <td >
+                <span id="changelog-tab"></span>
             </td>
             <td width='15%' ></td>
         </tr>

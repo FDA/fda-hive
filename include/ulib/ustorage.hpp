@@ -40,18 +40,16 @@ namespace slib {
             static void initManager(sQPrideBase * qpb);
             static const sUsrStorage * manager() { return _s_manager; }
 
-            // keep in sync with scheme_names in ustorage.cpp
             enum EScheme {
-                eObjData, //! permanent object file - stored in globally-accessible location for as long as the owner object exists
-                eReqData, //! large request data (small request data is stored in db) - stored in globally-accessible location for as long as owner request exists
-                eCached, //! cached result - stored in globally-accessible location for some amount of time
-                eLocalTmp //! machine-local temporary file - stored on a local disk for fast i/o, not accessible from other machines
+                eObjData,
+                eReqData,
+                eCached,
+                eLocalTmp
             };
 
             static const char * getSchemeString(EScheme scheme);
             static const char * getSchemeString(const char * scheme_or_uri);
             static bool validScheme(const char * scheme_or_uri) { return getSchemeString(scheme_or_uri); }
-            //! returns scheme code of valid user-storage URI or scheme name; return value for unknown or invalid scheme is undefined
             static EScheme getScheme(const char * scheme_or_uri);
 
             static const char * vmakeURI(sStr & out_uri, EScheme scheme, const sHiveId & id, const char * name_fmt, va_list ap);
@@ -100,7 +98,6 @@ namespace slib {
             idx list(ListResult & out, const char * uri_glob_fmt, ...) const;
             idx list(ListResult & out, EScheme scheme, const sHiveId * ids, idx num_ids, const char * name_glob) const;
 
-            // low-level API
             const char * vdiskPath(sStr & out, const char * uri_fmt, va_list ap, bool no_generate_new = false, bool make_dirs = false) const;
             const char * diskPath(sStr & out, const char * uri_fmt, ...) const;
             const char * diskPath(sStr & out, EScheme scheme, const sHiveId & id, const char * name, bool no_generate_new = false, bool make_dirs = false, const char * uri = 0) const;

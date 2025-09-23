@@ -33,28 +33,17 @@ function vjIFrameView ( viewer )
     if(!this.delayTimeout)this.delayTimeout=500;
     if(!this.attempts)this.attempt=10;
 
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ IFrame viewer constructors
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.composerFunction=function( viewer , content)
     {
-        //if(this.composedAlready)return;
 
-//        var dv=this.tab.parent;
         this.frmnm=this.container+"-iframe";
-        //"+content+"
-        //var t="<iframe name='"+this.frmnm+"' height='"+dv.height+"' width='"+dv.width+"' marginheight='0' marginwidth='0' padding=0px  frameborder='0' scrolling='no' src='"+content+"' ></iframe>";
-        var t=content;//+"<br/><iframe name='"+this.frmnm+"'marginheight='0' marginwidth='0' padding=0px  frameborder='0' scrolling='no' src='tmpl/iframeViewer.html' ></iframe>";
+        var t=content;
         this.div.innerHTML=t;
-        //this.composedAlready=true;
 
-        //setTimeout("vjObjEvent('delayedCompose', '"+this.container+"');",this.delayTimeout);
 
     };
 
@@ -70,14 +59,11 @@ function vjIFrameView ( viewer )
         }
         if(!layer)return;
 
-        //height='"+dv.height+"' width='"+dv.width+"'
         layer.style.width=parseInt(this.tab.parent.width*90/100);
         layer.style.height=parseInt(this.tab.parent.height*90/100);
-        //alerJ("o",layer.style);
 
         if(this.submitCallback || this.submitAutohide)
             setTimeout("vjObjEvent('delayedSubmitResponse', '"+this.objCls+"');",this.delayTimeout);
-        //layer.innerHTML=this.getData(0).data;
     };
 
     this.delayedSubmitResponse=function()
@@ -88,7 +74,6 @@ function vjIFrameView ( viewer )
             return ;
         }
 
-       // alert(this.submitAutohide);
 
         if(this.submitCallback)
             funcLink(this.submitCallback);
@@ -98,4 +83,3 @@ function vjIFrameView ( viewer )
 
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjIFrameView.js"

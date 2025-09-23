@@ -27,51 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
-    http://www.iconfinder.com/search/2/?q=iconset%3Aie_bright
-    node :
-    {
-        name: root,
-        children: [] // array of children 
-            
-        // optional inputs
-        childrenCnt: 1 , // declared number of children 
-        distance: 1.23, declared distance to parent
-        size: 2.3 ,  // size of the node 
 
-        // input and state 
-        expanded: true, // the expansion status of the node 
-
-        // state 
-        depth: 4, // computed depth of the node 
-        parent: object, //  parent Node 
-        highlight: 'blue', // the highlight color of the element
-
-    }
-    expansion: 1, // the variable showing the expansion incrment 
-    hideEmpty:false, // show hide  empty nodes
-    showLeaf:false, //  show hide leaf nodes
-    scaleDist:20, // the scale for distances
-    showRoot:true, // show/hide root node 
-    autoexpand:1, // the number of levels to automatically expand
-    tblclass: '', // the class for the style of the whole tree
-    icons{ empty:, plus:, minus:, leaf}, // icons 
-    selectedNode: /path,  // the path of the selection item
-    showChildrenCount: true, // show/hide the count of children 
-    selectionObject:'' ,  // the name of the DOM object where the selection is copied
-    selectionColor : 'blue', // the color for selection elements 
-    highlightColor : 'blue', // the color for highlights
-    linkLeafCallback: 'javascript:function(viewer,node,nodepath) or http://', // link callbacks for leafs
-    linkBrancCallback: 'javascript: or http://', // link callbacks for branches
-    excludeList: '/system/', // the list of elements to hide 
-            
-*/
-
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ constructors
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 vDV.generateTreeView=function( viewer , content ) 
 {
@@ -127,7 +83,7 @@ vDV.parsePathTreeView=function( viewer, content , rootNode, autoexpand)
         for ( var pos=path.indexOf("/",1); pos!=-1; ) {
             var thisNode=path.substring(prvpos,pos);
 
-            var ifnd=0;for( ifnd=0; ifnd<curT.children.length && curT.children[ifnd].name!=thisNode; ++ifnd ) ; // find this node
+            var ifnd=0;for( ifnd=0; ifnd<curT.children.length && curT.children[ifnd].name!=thisNode; ++ifnd ) ;
 
             parNode=curT;
             var newobj=curT.children[ifnd];
@@ -163,11 +119,6 @@ vDV.parsePathTreeView=function( viewer, content , rootNode, autoexpand)
     return rootNode;
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ tree manipulations
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 vDV.findPathTreeViewFind=function( rootNode, path ) 
 {
@@ -177,14 +128,13 @@ vDV.findPathTreeViewFind=function( rootNode, path )
     for ( var pos=path.indexOf("/",1); pos!=-1; ) {
         var thisNode=path.substring(prvpos,pos);
 
-        var ifnd=0;for( ifnd=0; ifnd<curT.children.length && curT.children[ifnd].name!=thisNode; ++ifnd ) ; // find this node
+        var ifnd=0;for( ifnd=0; ifnd<curT.children.length && curT.children[ifnd].name!=thisNode; ++ifnd ) ;
         
         if(ifnd==curT.children.length)
             return ;
         
         parNode=curT;
         curT=curT.children[ifnd];
-//        curT.depth=parNode.depth+1;
 
         prvpos=pos+1;
         
@@ -198,7 +148,6 @@ vDV.findPathTreeViewFind=function( rootNode, path )
 
 vDV.findNodeTreeView=function( node , nodename ) 
 {
-    //if( node.name==nodename) return node; 
 
     for( var i=0 ;i<node.children.length; ++i) {
         if(node.children[i].name==nodename) return node.children[i];
@@ -219,17 +168,12 @@ vDV.expantNodeTreeView=function( thisNode , state, withParents)
         if(state==-1)thisNode.expanded=-thisNode.expanded;
         else if(state>=0)thisNode.expanded=state;
     }
-    return thisNode; // returns the root
+    return thisNode;
 }
 
-/*vDV.rootNodeTreeView=function( thisNode ) 
-{
-    return vDV.expantNodeTreeView( thisNode , -2, false) ;
-}
-*/
 
 
-vDV.enumerateNodesTreeView=function( viewer , node, operation, ischecked, leaforbranch ) // leaforbranch==0 : all , =1 leafs , ==2 branches 
+vDV.enumerateNodesTreeView=function( viewer , node, operation, ischecked, leaforbranch )
 {
     var cntCh=node.children.length;
     if(node.childrenCnt>0)cntCh=node.childrenCnt;
@@ -240,17 +184,12 @@ vDV.enumerateNodesTreeView=function( viewer , node, operation, ischecked, leafor
         else eval(operation);
     }
     
-    if( node.children.length ){ // && node.expanded 
+    if( node.children.length ){
         for( var i=0 ;i<node.children.length; ++i) {
            vDV.enumerateNodesTreeView ( viewer , node.children[i], operation, ischecked, leaforbranch ) ;
         }
     }
 }
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ event handlers
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 vDV.onClickExpandTreeView=function(state, event, container, nodepath )
 {
@@ -313,11 +252,6 @@ vDV.onCheckNodeTreeView=function(event, container, nodepath )
     gObject(container).innerHTML=vDV.outputNodeTreeView(viewer,viewer.tree);
 }
 
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ generators
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 vDV.outputNodeTreeView=function( viewer , node ) 
 {
@@ -341,7 +275,6 @@ vDV.outputNodeTreeView=function( viewer , node )
                 if(cntCh>=1){
                     t+="<a href='javascript:vDV.onClickExpandTreeView("+ (node.expanded>=viewer.expansion ? 0 : viewer.expansion )+",event,\""+viewer.container+"\", \""+node.path+"\")'>";
                     t+="<img border=0 width=24 height=24 src='"+( node.expanded>=viewer.expansion ? viewer.icons.minus : viewer.icons.plus)+"' />";
-                    //t+=node.expanded>=viewer.expansion ? "-" : "+";
                     t+="</a>";
                 }
                 else t+="<img border=0 width=24 height=24 src='"+viewer.icons.empty+"' />";
@@ -353,7 +286,6 @@ vDV.outputNodeTreeView=function( viewer , node )
                 t+="<a href='javascript:vDV.onClickNodeTreeView(event,\""+viewer.container+"\", \""+node.path+"\")'>";
             if( (viewer.checkBranches && !node.leaf) || (viewer.checkLeafs && node.leaf) )  {
                 var checkstate=node.checked ? "checked='checked'" : "" ;
-                //if(node.checked==-1) checkstate+=" interminate=true " ;
                 t+="<input type=checkbox "+checkstate +" id='"+viewer.container+"_check_"+node.path+"' onclick='vDV.onCheckNodeTreeView(event,\""+viewer.container+"\", \""+node.path+"\")' />&nbsp;";
             }
 
@@ -388,11 +320,6 @@ vDV.outputNodeTreeView=function( viewer , node )
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Registration
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/
 
 vDV.registerViewer( "treeview", vDV.generateTreeView) ;
 

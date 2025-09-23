@@ -33,55 +33,45 @@
 
 using namespace slib;
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ String search functions
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
-// compares if the curent src string is equal to one of strings in double-zero string <choice00>
-// returns -1 if not found, or the length of found string otherwise
-// puts numfnd to the ordinal of found string if not zero
 
 idx sString::compareChoice( const char *  src, const char * choice00,idx * numfnd,bool isCaseInSensitive, idx startNum, bool exactMatch, idx lenSrc)
 {
     idx sc,i,cnt;
 
     if(!lenSrc)lenSrc=sLen(src);
-    if(!choice00[0]){if(numfnd)*numfnd=startNum;return 0;} // empty list
+    if(!choice00[0]){if(numfnd)*numfnd=startNum;return 0;}
 
-    for(cnt=0,sc=0;choice00[sc];cnt++) { // check if current string is equal to one of column separators in the separator stringList
+    for(cnt=0,sc=0;choice00[sc];cnt++) {
 
         if(!isCaseInSensitive){
-            for(i=0;choice00[sc] && i<lenSrc && src[i]==choice00[sc] ;i++,sc++) // compare while equal
+            for(i=0;choice00[sc] && i<lenSrc && src[i]==choice00[sc] ;i++,sc++)
                 ;
         }
         else
-            for(i=0;choice00[sc] && i<lenSrc && toupper((idx)src[i])==toupper((idx)choice00[sc]);i++,sc++) // compare while equal case insensitive
+            for(i=0;choice00[sc] && i<lenSrc && toupper((idx)src[i])==toupper((idx)choice00[sc]);i++,sc++)
                 ;
 
-      if(!choice00[sc] && (exactMatch==false || !src[i]) ){// correposndence
-          if(numfnd)*numfnd=cnt+startNum; // return the ordinal  of the found string
+      if(!choice00[sc] && (exactMatch==false || !src[i]) ){
+          if(numfnd)*numfnd=cnt+startNum;
           return i;
       }
-      while(choice00[sc])sc++; // check next string in stringlist for correspondence
+      while(choice00[sc])sc++;
       sc++;
     }
     return (idx)(-1);
 }
 
-//  compares up to n characters from two strings str1,str2 until a symbol from the symblist string
-//    is reached.    Returns  zero if not equal otherwise returns the length of equal part
 idx sString::compareNUntil( const char * str1, const char * str2, size_t n, const char * symblist,bool isCaseInSensitive)
 {
     idx  i=0,j;
 
-    for(j=0; (udx)j<n && (*str1) && (*str2); j++){ // until the end of the strings
+    for(j=0; (udx)j<n && (*str1) && (*str2); j++){
 
         if(symblist){
-            for(i=0;symblist[i];i++){if(symblist[i]==(*str2))break;} // look for symbol until the end of the symbol list
-            if(symblist[i])break; // if found
+            for(i=0;symblist[i];i++){if(symblist[i]==(*str2))break;}
+            if(symblist[i])break;
         }
 
         if(!isCaseInSensitive && ((*str1)-(*str2)))break;
@@ -96,14 +86,7 @@ idx sString::compareNUntil( const char * str1, const char * str2, size_t n, cons
 
 
 
-//  looks for n-th occurence of one of given "find" 00 stringlist before stopFind00 is reached
-//  src -source string
-//  find - start of the tag to look for (is a list ending with two zero symbols )
-//  stopFind - end of the tag to look for (is a list ending with two zero symbols )
-//              if stopFind=="" search will be performed until the end of the string
-//  occurence  - wich occurence to pick up
-//  returns the found position or zero if not found
-char * sString::searchSubstring( const char * src, idx lenSrc, const char * find00,idx occurence, const char * stopFind00,bool isCaseInSensitive) // ,idx lenSrc
+char * sString::searchSubstring( const char * src, idx lenSrc, const char * find00,idx occurence, const char * stopFind00,bool isCaseInSensitive)
 {
     idx i,iFound=sNotIdx,ifnd=0,pos;
     if(!src || !find00)return 0;
@@ -111,19 +94,16 @@ char * sString::searchSubstring( const char * src, idx lenSrc, const char * find
 
 
 
-    // find the string find if that is before the string endTag
-    for(i=0;i<lenSrc && src[i];i++){ // for(i=0;src[i] && i<srcLen;i++){
+    for(i=0;i<lenSrc && src[i];i++){
 
-        //* scan if the current position corresponds to the find
-        pos=compareChoice(src+i,find00,0,isCaseInSensitive,0);
-        if(pos!=sNotIdx){ // found find let's see if that is the occurence we need
+        pos=compareChoice(src+i,find00,0,isCaseInSensitive,0,false,lenSrc-i);
+        if(pos!=sNotIdx){
             if(ifnd+1==occurence || occurence==sNotIdx)iFound=i;
             else ifnd++;
             if(occurence!=sNotIdx && iFound!=sNotIdx)break;
         }
 
-        // scan if the current position corresponds to the endTag
-        if(stopFind00 && stopFind00[0] && compareChoice(src+i,stopFind00,0,isCaseInSensitive,0)!=sNotIdx)
+        if(stopFind00 && stopFind00[0] && compareChoice(src+i,stopFind00,0,isCaseInSensitive,0,false,lenSrc-i)!=sNotIdx)
             break;
     }
     if(iFound==sNotIdx)return 0;
@@ -132,23 +112,6 @@ char * sString::searchSubstring( const char * src, idx lenSrc, const char * find
 
 
 
-//  performs structured search
-//    char * stringStructuredSearch(char * src,       source
-//        char * begin,                               the stringlist for structure beginning tags
-//        char * end,                                 the stringlist for structure endinning tags
-//        idx * pst                                   points to the beginning of the found block
-//        idx * pfn                                   points to the end of the found block
-//        returns the beginning of the found block
-//        example:
-//        {
-//            begin
-//                start
-//                      what I am looking for
-//                finish
-//            end
-//        }
-//        stringStructuredSearch (src,"{\0begin\0start\0\0","}\0end\0finish\0\0",&st,&fn);
-//
 
 char * sString::searchStruc( const char * src, idx len, const char * begin00, const char * end00,idx * pst,idx * pfn)
 {
@@ -196,22 +159,16 @@ char * sString::searchBlock( const char * src, idx len, const char * begin00, co
     return nonconst(ed);
 }
 
-//  skips several words
-//    char * stringSkipWords(char * src,       source
-//        idx num                             how many words to skip
-//        char * separators ,                 separators between words
-//        returns the position of the found word
-//
 char * sString::skipWords( const char * src, idx slen, idx num,const char * separators)
 {
     idx i;
     const char * end=slen ? src+slen : 0 ;
 
     if(!separators)separators=(sString_symbolsBlank);
-    while(*src && strchr(separators,*src))src++; // pass spaces
+    while(*src && strchr(separators,*src))src++;
     for(i=0;(end==0 || src<end ) && *src && i<num;i++){
-        while((end==0 || src<end ) && *src && !strchr(separators,*src))src++; // pass 1st non spaces
-        while((end==0 || src<end ) && *src && strchr(separators,*src))src++; // pass spaces
+        while((end==0 || src<end ) && *src && !strchr(separators,*src))src++;
+        while((end==0 || src<end ) && *src && strchr(separators,*src))src++;
     }
     if( (end!=0 && src>=end )) return 0;
     if(!(*src))return 0;
@@ -221,11 +178,6 @@ char * sString::skipWords( const char * src, idx slen, idx num,const char * sepa
 
 
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ String content editing functions
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 #define isIN  ((void *)dst==(void *)src)
 #define isNT  ((void *)dst!=(void *)src)
@@ -246,47 +198,35 @@ idx sString::changeCase(sStr * dst, const char * src,idx len, eCase CaseType)
         else ch=src[i];
 
         SYM(i,&ch);
-        // dst->add(&ch,1);
     }
 
     ZER(i);
-    // dst->add(__,2);
     return i;
 }
 
 
 
-//  copies two strings str1,str2 until a symbol from the symblist string
-//    is reached.
-//    Returns the length of the copied buffer
 idx sString::copyUntil(sStr * dst, const char * src, idx len,const char * symblist)
 {
     idx i,j;
 
     if(!len)len=sIdxMax;
 
-    for(j=0;j<len && src[j];j++){ // untill the end of the strings
+    for(j=0;j<len && src[j];j++){
 
         if(symblist){
-            for(i=0;symblist[i];i++){if(symblist[i]==(src[j]))break;} // look for symbol until the end of the symbol list
-            if(symblist[i])break; // if found
+            for(i=0;symblist[i];i++){if(symblist[i]==(src[j]))break;}
+            if(symblist[i])break;
         }
         SYM(j,&src[j]);
-        //dst->add(&src[j],1);
     }
 
-    // dst->add(__,2);
     ZER(j);
 
     return j;
 }
 
 
-//  returns string from array of strings separated by some markup
-//    char * stringGetValueFromArray(char * src,      source
-//        char * dst,                                 destination
-//        idx nextStp,                                how many separators to pass
-//        char * nextSepar)                             separator stringlist
 
 char * sString::extractSubstring(sStr * dst,const char * src,idx len, idx nextStp,const char * nextSepar00, bool isCaseInSensitive,bool isPreserveQuotes)
 {
@@ -305,30 +245,20 @@ char * sString::extractSubstring(sStr * dst,const char * src,idx len, idx nextSt
         if(!inquote)pos=compareChoice(src+i,nextSepar00,0,isCaseInSensitive,0);
         else pos=sNotIdx;
 
-        if(pos!=sNotIdx){i+=pos-1;iNxt++;continue;}  // if current string is in the list
-        // if we have finally reached what we needed
+        if(pos!=sNotIdx){i+=pos-1;iNxt++;continue;}
         if(iNxt==nextStp){SYM(k,&src[i]); ++k; }
-        //if(iNxt==nextStp){dst->add(&src[i],1);}
         if(iNxt>nextStp)break;
     }
 
 
     ZER(k);
-    //dst->add(__,2);
 
     return nonconst(src+i);
 }
 
 
-//  cleans start and end of string from the symbols of given set
-//  char * stringCleanEnds(char * src,            source  string
-//                char * dst,                     destination where to copy
-//                char * find,                    look for these symbols
-//                idx isMatch)                    1 if match is requred 0 otherwise
-//    returns the length of resulting string
 idx sString::cleanEnds(sStr * dst, const char * src, idx len, const char * find, bool isMatch, idx maxNum)
 {
-    // i= current symbol to read from src, k at destination
     if( !src ) {
         return 0;
     }
@@ -340,7 +270,6 @@ idx sString::cleanEnds(sStr * dst, const char * src, idx len, const char * find,
 
     idx i, k, sc;
     for(i = 0; src[i] && i<maxNum; i++) {
-        // scan if the current position is in find string
         for(sc = 0; src[i] && find[sc] && src[i] != find[sc]; sc++){}
         if( (find[sc] && !isMatch) || (!find[sc] && isMatch) ) {
             break;
@@ -369,26 +298,17 @@ idx sString::cleanEnds(sStr * dst, const char * src, idx len, const char * find,
 
 
 
-//  cleans markup in the text
-//    src -source string
-//    dst -destination string (can be the same as source)
-//    startTag - start of the tag to look for (is a list ending with two zero symbols )
-//    endTag - end of the tag to look for (is a list ending with two zero symbols )
-//    replacement - whatever is found between tags will be replaced by this
-//    maxTags - maximum number of tag pairs to process
-//    inside - = 1 if tags internal content is necessary to leave untouched 0 otherwise
-//    returns the last treated position to continue from
 char * sString::cleanMarkup(sStr * dst, const char * src,idx len, const char * startTag00, const char * endTag00,const char * replacement00,idx maxTags,bool inside, bool isPreserveQuotes,bool isCaseInSensitive)
 {
-    idx i,k,pos;        // i= current symbol to read from src, k at destination
-    idx notreplaced=0;  // index for replacement string
-    bool inMark=false;   // =1 inside of the markup tags; otherwise 0
-    idx iEnd=sNotIdx,iStart=sNotIdx;      // where to change the mode
+    idx i,k,pos;
+    idx notreplaced=0;
+    bool inMark=false;
+    idx iEnd=sNotIdx,iStart=sNotIdx;
     idx howmany=0,isin=0;
     char  inquote=0;
 
-    if(!maxTags)maxTags=sIdxMax; // default maxtags
-    if(!len)len=sIdxMax;
+    if(!maxTags)maxTags=sIdxMax;
+    if(!len)len=sLen(src);
 
     for(i=0,k=0; i<len && src[i] && howmany<maxTags;i++){
         if(isPreserveQuotes){
@@ -396,31 +316,22 @@ char * sString::cleanMarkup(sStr * dst, const char * src,idx len, const char * s
             else if(src[i]==inquote)inquote=0;
         }
 
-        //if(inquote)
-            //continue;
 
-        // check if the current position corresponds to the startTag list
         if(!inquote) {
-            pos=compareChoice(src+i,startTag00,0,isCaseInSensitive,0);
-            if(pos!=sNotIdx && (!isin)){iStart=i;if(inside)iStart+=pos-1;if(iStart<0)iStart=0;}  // if inside is asked through away the markup tag recognizers
+            pos=compareChoice(src+i,startTag00,0,isCaseInSensitive,0,false,len-i);
+            if(pos!=sNotIdx && (!isin)){iStart=i;if(inside)iStart+=pos-1;if(iStart<0)iStart=0;}
 
-            // check if the current position corresponds to the endTag
             if(pos==sNotIdx){
-                pos= compareChoice(src+i,endTag00,0,isCaseInSensitive,0);
-                if(pos!=sNotIdx&& (isin) ){iEnd=i;isin=0;if(!inside)iEnd+=pos-1;} // if inside is asked through away the markup tag recognizers
+                pos= compareChoice(src+i,endTag00,0,isCaseInSensitive,0,false,len-i);
+                if(pos!=sNotIdx&& (isin) ){iEnd=i;isin=0;if(!inside)iEnd+=pos-1;}
             }
         }
 
-        // determine if current position is inside of the Markup tag or outside
         if(i==iStart){inMark=true;isin=1;notreplaced=0;if(startTag00[0])continue;}
         if(i==iEnd){inMark=false;notreplaced=0;howmany++;continue;}
 
-        // copy inside of markup if inside is asked or copy outside of markup if non-inside
-        //if(inside==inMark){dst->add(&src[i],1);}
         if(inside==inMark){SYM(k,&src[i]);++k;}
-        else if(!notreplaced){notreplaced=1;// copy the replacement to the found position
-            //if(!replacement00){dst->add(_,1);}
-            // else dst->add(replacement00,0);
+        else if(!notreplaced){notreplaced=1;
             if(!replacement00){SYM(k,_);++k;}
             else {
                 if(isIN){ for(idx ir=0;replacement00[ir];ir++){DST[k]=replacement00[ir];k++;} }
@@ -430,7 +341,6 @@ char * sString::cleanMarkup(sStr * dst, const char * src,idx len, const char * s
 
     }
     ZER(k);
-    //dst->add(__,2);
 
 
     return nonconst(src+i);
@@ -440,34 +350,24 @@ char * sString::cleanMarkup(sStr * dst, const char * src,idx len, const char * s
 
 
 
-//  find strings from given stringlist and replaces them
-//    char * stringFindReplaceStrings(char * src,     source
-//            char * dst,                             destination where to copy matches
-//            char * find00,                          on of the strings in this stringlist will be found
-//            char * replacement00,                   found will be replaced by corresponding number string from this string
-//            idx maxTags,                            how many times perform the search&replace
-//    returns the last treated position to continue from
 char * sString::searchAndReplaceStrings(sStr * dst, const char * src,idx len, const char * find00, const char * replacement00,idx maxTags,bool isCaseInSensitive)
 {
-    idx i,k;        // i= current symbol to read from src, k at destination
+    idx i,k;
     idx howmany=0,fnum;
-    idx pos; // index for replacement string
+    idx pos;
     const char * rpl;
 
     if(!src || !src[0])return nonconst(src);
-    if(!maxTags)maxTags=sIdxMax; // default maxtags
+    if(!maxTags)maxTags=sIdxMax;
     if(!len)len=sIdxMax;
 
     for(i=0,k=0;i<len && src[i] ;i++){
 
-        // scan if the current position corresponds to the startTag
         if( howmany<maxTags &&  (pos=compareChoice(src+i,find00,&fnum,isCaseInSensitive,0,0, len - i))!=sNotIdx){
-            //if(!replacement00){dst->add(_,1);}
             if( !replacement00 ) {
                 SYM(k, _);
                 ++k;
             } else if( *replacement00 != 0 ) {
-                // find the replacer string fnum and replace
                 rpl = sString::next00(replacement00, fnum);
                 if( !rpl )
                     rpl = replacement00;
@@ -484,44 +384,78 @@ char * sString::searchAndReplaceStrings(sStr * dst, const char * src,idx len, co
             i += pos - 1;
         }else {
             SYM(k,&src[i]);++k;
-            //dst->add(&src[i],1);
         }
 
     }
     ZER(k);
 
     ++k;ZER(k);
-    //dst->add(__,2);
 
     return nonconst(src+i);
 }
 
+char * sString::searchAndReplaceStringsPaired(sStr * dst, const char * src,idx len, const char * find00, const char * replacement00,idx maxTags,bool isCaseInSensitive, bool replacementPair)
+{
+    idx i,k;
+    idx howmany=0,fnum;
+    idx pos;
+    const char * rpl;
 
-//    find symbol from given symbol set and replaces them
-//    char * stringFindReplaceSymbols(char * src,     source
-//            char * dst,                             destination where to copy matches
-//            char * find,                            symbols to find
-//            char * replacement,                     symbols will be replaced by this string
-//            idx maxTags,                            how many times perform the search&replace
-//            idx isMatch,                            1 if match is required 0 otherweise
-//            idx isSkipMultiple,                     1 skip multiple repetitions 0 otherwise
-//            idx isPreserveQuotes)                   1 preserve the characters in quotes otherwise treat all
-//    returns the last treated position to continue from
+    if(!src || !src[0])return nonconst(src);
+    if(!maxTags)maxTags=sIdxMax;
+    if(!len)len=sIdxMax;
+
+    for(i=0,k=0;i<len && src[i] ;i++){
+
+        if( howmany<maxTags &&  (pos=compareChoice(src+i,find00,&fnum,isCaseInSensitive,0,0, len - i))!=sNotIdx){
+            if( !replacement00 ) {
+                SYM(k, _);
+                ++k;
+            } else if( *replacement00 != 0 ) {
+                rpl = sString::next00(replacement00, fnum);
+
+                if( rpl || !replacementPair){
+                    if (!rpl) {
+                        rpl = replacement00;
+                    }
+                    if( isIN ) {
+                        for(idx ir = 0; rpl[ir]; ir++) {
+                            DST[k] = rpl[ir];
+                            k++;
+                        }
+                    } else {
+                        dst->add(rpl, sLen(rpl));
+                    }
+                }
+            }
+            ++howmany;
+            i += pos - 1;
+        }else {
+            SYM(k,&src[i]);++k;
+        }
+
+    }
+    ZER(k);
+
+    ++k;ZER(k);
+
+    return nonconst(src+i);
+}
+
 char * sString::searchAndReplaceSymbols(sStr * dst , const char * src,idx len, const char * find, const char * replacement,idx maxTags,bool isMatch,bool isSkipMultiple,bool isPreserveQuotes, bool cleanTerminals, idx protectablequotes)
 {
-    idx i,k;        // i= current symbol to read from src, k at destination
-    idx sc;         // index for searching markUp tags
-    idx replaced=0; // index for replacement string
+    idx i,k;
+    idx sc;
+    idx replaced=0;
     idx howmany=0;
     idx somecopied=0;
-    idx ir; // index for replacement string
+    idx ir;
     char  inquote=0;
 
     if(!src || !src[0])return nonconst(src);
-    if(!maxTags)maxTags=sIdxMax; // default maxtags
+    if(!maxTags)maxTags=sIdxMax;
     if(!len)len=sIdxMax;
 
-//    for(i=0,k=0;i<len && src[i] ;i++){
     for(i=0,k=0;i<len && src[i] && howmany<maxTags;i++){
 
         if(isPreserveQuotes){
@@ -534,11 +468,9 @@ char * sString::searchAndReplaceSymbols(sStr * dst , const char * src,idx len, c
             }
         }
 
-        // scan if the current position is in find string
         if(!inquote) {
             for(sc=0;src[i] && find[sc] && src[i]!=find[sc];sc++);
             if((find[sc] && isMatch) || (!find[sc] && !isMatch)){if( (replaced && isSkipMultiple) || (cleanTerminals && somecopied==0) )continue;
-                //if(!replacement){dst->add(_,1);}
                 if(!replacement){SYM(k,_);++k;}
                 else {
                     for(ir=0;replacement[ir];ir++) {
@@ -550,12 +482,10 @@ char * sString::searchAndReplaceSymbols(sStr * dst , const char * src,idx len, c
                 continue;
             }
         }
-        // dst->add(&src[i],1);
         SYM( k, &src[i]); ++k;
         replaced=0;
         ++somecopied;
     }
-    //dst->add(__,2);
     ZER(k);
 
     if(!isIN){++k;ZER(k);}
@@ -576,8 +506,7 @@ char *sString::searchandInvertStrings(sStr *dst, const char * src, idx len, cons
         if(src[i]==find[0]){
             for(j=0;src[i+j] && find[j] && src[i+j]==find[j];j++);
             if (j==lenfind){
-                // We found it
-                if ((len - lenfind) > i){// is it at the end of the string ??
+                if ((len - lenfind) > i){
                     if (endRange - (i+lenfind) > 0){
                         dst->add(&src[i+lenfind], endRange-(i+lenfind));
                         dst->add(replace, lenreplace);
@@ -632,7 +561,7 @@ static bool parseOctChar(char * dst, const char * src)
 idx sString::replaceEscapeSequences(sStr * dst, const char * src, idx len)
 {
     if( !len ) len = sLen(src);
-    idx i, j; // i counts src, j counts dst
+    idx i, j;
 
     for( i=0, j=0; i<len && src[i]; i++, j++ ) {
         if( src[i] == '\\' && i+1<len && src[i+1] ) {
@@ -706,44 +635,54 @@ idx sString::replaceEscapeSequences(sStr * dst, const char * src, idx len)
     return j;
 }
 
-const char * sString::escapeForCSV(sStr & dst, const char * src, idx len/*=0*/)
+const char * sString::escapeForCSV(sStr & dst, const char * src, idx len)
 {
-    if (!len)
+    if( !len )
         len = sLen(src);
 
     idx dstStart = dst.length();
 
-    // Do not use strcspn because src might not be 0-terminated
     bool needEscape = false;
-    for (idx i=0; i<len; i++) {
+    idx nquotes = 0;
+    for(idx i = 0; i < len; i++) {
         char c = src[i];
-        if (!c) {
+        if( !c ) {
             len = i;
             break;
         }
 
-        if (c == ',' || c == '\r' || c == '\n' || c == '"') {
+        if( c == '"' ) {
+            nquotes++;
+            needEscape = true;
+        } else if( c == ',' || c == '\r' || c == '\n' ) {
             needEscape = true;
             break;
         }
     }
 
-    if (!len) {
+    if( !len ) {
         dst.add0cut();
-    } else if (needEscape) {
+    } else if( needEscape ) {
+        dst.resize(dst.length() + len + 3 + nquotes);
+        dst.cut(dstStart);
         dst.add("\"", 1);
-        sString::searchAndReplaceStrings(&dst, src, len, "\"" __, "\"\"" __, 0, true);
-        dst.shrink00();
-        dst.add("\"", 1);
-        dst.add0cut();
+        for(const char * quote = (const char *) memchr(src, '"', len); len && quote; len -= quote + 1 - src, src = quote + 1, quote = (const char *) memchr(src, '"', len)) {
+            if( quote > src ) {
+                dst.add(src, quote - src);
+            }
+            dst.add("\"\"", 2);
+        }
+        if( len ) {
+            dst.add(src, len);
+        }
+        dst.addString("\"", 1);
     } else {
-        dst.add(src, len);
-        dst.add0cut();
+        dst.addString(src, len);
     }
     return dst.ptr(dstStart);
 }
 
-const char * sString::unescapeFromCSV(sStr & dst, const char * src, idx len/*=0*/)
+const char * sString::unescapeFromCSV(sStr & dst, const char * src, idx len)
 {
     if (!len)
         len = sLen(src);
@@ -762,7 +701,7 @@ const char * sString::unescapeFromCSV(sStr & dst, const char * src, idx len/*=0*
     return dst.ptr(dstStart);
 }
 
-const char * sString::escapeForShell(sStr & dst, const char * src, idx len/*=0*/)
+const char * sString::escapeForShell(sStr & dst, const char * src, idx len)
 {
     if (!src)
         src = "";
@@ -776,7 +715,6 @@ const char * sString::escapeForShell(sStr & dst, const char * src, idx len/*=0*/
     for (idx i=0; i<len; i++) {
         char c = src[i];
         if (!c) {
-            // null characters never allowed in shell
             len = i;
             break;
         }
@@ -793,7 +731,6 @@ const char * sString::escapeForShell(sStr & dst, const char * src, idx len/*=0*/
     } else if( needEscape ) {
         bool inside_quote = false;
         for (idx i=0; i<len; i++) {
-            // Replace single quotes with ' then \' then '
             idx j=0;
             while (i+j < len && src[i+j] != '\'')
                 j++;
@@ -827,7 +764,7 @@ const char * sString::escapeForShell(sStr & dst, const char * src, idx len/*=0*/
     return dst.ptr(dstStart);
 }
 
-const char * sString::escapeForC(sStr & dst, const char * src, idx len/*=0*/)
+const char * sString::escapeForC(sStr & dst, const char * src, idx len)
 {
     if (!src)
         src = "";
@@ -887,7 +824,7 @@ const char * sString::escapeForC(sStr & dst, const char * src, idx len/*=0*/)
     return dst.ptr(dstStart);
 }
 
-const char * sString::escapeForJSON(sStr & dst, const char * src, idx len/*=0*/)
+const char * sString::escapeForJSON(sStr & dst, const char * src, idx len)
 {
     if (!src)
         src = "";
@@ -980,12 +917,11 @@ const char *  sString::unescapeFromJSON(sStr & dst, const char * src, idx len)
     if( !len ) {
         len = sLen(src);
     }
-    idx i, j; // i counts src, j counts dst
+    idx i, j;
 
     idx dstStart = dst.length();
 
     if( len && src[0] == '"' ) {
-        // remove quotes
         src++;
         len -= 2;
     }
@@ -1042,3 +978,131 @@ const char *  sString::unescapeFromJSON(sStr & dst, const char * src, idx len)
 
     return dst.ptr(dstStart);
 }
+
+#define ST_START     1
+#define ST_COLLECT   2
+#define ST_TAILSPACE 3
+#define ST_END_QUOTE 4
+
+const char * sString::sepParseStr(const char *src, const char *srcend, char *buf, idx bn, unsigned char *row[], idx rn, idx sep, idx flags, idx *colnum, sStr *err)
+{
+    idx trim, quotes, ch, state, r, j, t, inquotes;
+
+    trim = 0;
+    quotes = flags;
+    state = ST_START;
+    inquotes = 0;
+    ch = r = j = t = 0;
+
+    while ( src<srcend && *src && *src != '\r' && *src != '\n'){
+        ch = *src;
+
+        ++src;
+        switch(state) {
+            case ST_START:
+                if( ch != '\n' && ch != sep && isspace(ch) ) {
+                    if( !trim ) {
+                        buf[j++] = ch;
+                        bn--;
+                        t = j;
+                    }
+                    break;
+                } else if( quotes && ch == '"' ) {
+                    j = t = 0;
+                    state = ST_COLLECT;
+                    inquotes = 1;
+                    break;
+                }
+                state = ST_COLLECT;
+            case ST_COLLECT:
+                if( inquotes ) {
+                    if( ch == '"' ) {
+                        state = ST_END_QUOTE;
+                        break;
+                    }
+                } else if( ch == sep || ch == '\n' ) {
+                    row[r++] = (unsigned char *) buf;
+                    rn--;
+                    if( ch == '\n' && t && buf[t - 1] == '\r' ) {
+                        t--;
+                        bn++;
+                    }
+                    buf[t] = '\0';
+                    bn--;
+                    buf += t + 1;
+                    j = t = 0;
+                    state = ST_START;
+                    inquotes = 0;
+                    if( ch == '\n' ) {
+                        rn = 0;
+                    }
+                    break;
+                } else if( quotes && ch == '"' ) {
+                    return 0;
+                }
+                buf[j++] = ch;
+                bn--;
+                if( !trim || isspace(ch) == 0 ) {
+                    t = j;
+                }
+                break;
+            case ST_TAILSPACE:
+            case ST_END_QUOTE:
+                if( ch == sep || ch == '\n' ) {
+                    row[r++] = (unsigned char *) buf;
+                    rn--;
+                    buf[j] = '\0';
+                    bn--;
+                    buf += j + 1;
+                    j = t = 0;
+                    state = ST_START;
+                    inquotes = 0;
+                    if( ch == '\n' ) {
+                        rn = 0;
+                    }
+                    break;
+                } else if( quotes && ch == '"' && state != ST_TAILSPACE ) {
+                    buf[j++] = '"';
+                    bn--;
+                    t = j;
+                    state = ST_COLLECT;
+                    break;
+                } else if( isspace(ch) ) {
+                    state = ST_TAILSPACE;
+                    break;
+                }
+                if (err){
+                    err->printf("bad end quote in element %" DEC, (r + 1));
+                }
+                return 0;
+        }
+    }
+    if( ch == -1 ) {
+        return 0;
+    }
+    if( bn == 0 ) {
+        if (err){
+            err->printf("not enough space in buffer to store data");
+        }
+        return 0;
+    }
+    if( rn ) {
+        if( inquotes && state != ST_END_QUOTE ) {
+            if (err){
+                err->printf("bad end quote in element");
+            }
+            return 0;
+        }
+        row[r] = (unsigned char *) buf;
+        buf[t] = '\0';
+    }
+
+    if (colnum){
+        *colnum = r+1;
+    }
+    while( (*src == '\r' || *src == '\n') && src < srcend ){
+        ++src;
+    }
+    return src;
+}
+

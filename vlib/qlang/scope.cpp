@@ -90,7 +90,6 @@ CallableWrapper* CallableWrapper::clone()
 void CallableWrapper::empty()
 {
     if (Scope* scope_bck = _scope) {
-        // avoid possible destruction loops
         _scope = NULL;
         scope_bck->unregisterCallable(this);
         scope_bck->decrementRefCount();
@@ -324,7 +323,6 @@ static bool markScopes(sVariant *v)
     return false;
 }
 
-// Mark the current scope, its ancestors, and whatever is reachable from named closures
 void Scope::mark()
 {
     if (_state & scope_MARKED)
@@ -338,7 +336,6 @@ void Scope::mark()
         _parent->mark();
 }
 
-// remove nodes which are not marked.
 idx Scope::sweepRecurse()
 {
     if (!(_state & scope_MARKED)) {

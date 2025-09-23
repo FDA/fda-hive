@@ -44,9 +44,8 @@ javaScriptEngine.include("d3js/annotation_box.js");
 vjHO.register('svc-algo-annotMapper').Constructor=function ()
 {
 
-    if(this.objCls)return;         //stupid chrome loads from both cached file and the one coming from server.
+    if(this.objCls)return;
 
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.isIon = node.isIon;
@@ -91,29 +90,28 @@ vjHO.register('svc-algo-annotMapper').Constructor=function ()
  
     this.urlSet ={
             'crossmap': {
-                active_url:"qpbg_tblqryx4://crossingRanges.csv//cnt=100",
+                active_url:"qpbg_tblqryx4:
                 title: "Retrieving cross-ranges",
             },
             'annotations' : {
                 loadInactive:true,
                 isSeries:true,
-                active_url:"http://?cmd=anotDumper&annot_format="+this.defaultFormat,
+                active_url:"http:
                 title: "Retrieving annotations"
             },
             'annot-files' : {
-                //active_url:"http://?cmd=anotFiles",
-                active_url:'http://?cmd=objList&type=u-ionAnnot&mode=csv&prop=name,size,created&start=0&cnt=10',
+                active_url:'http:
                 title: "Finding relevant annotation files"
             },
             'annot_stat':{
-                inactive_url:"static://",
-                active_url:"http://?cmd=anotMapperResults&procID="+docLocValue("id")+"&anotFiles=&isIon=1&showStat=1&typeToShow=&cnt=1000&start=0",
+                inactive_url:"static:
+                active_url:"http:
                 loadInactive:true,
                 title: "Retrieving Statistics",
             },
             'help' : {
-                active_url:"http://help/hlp.view.results.alignment.html",
-                inactive_url:"http://help/hlp.view.results.alignment.html",
+                active_url:"http:
+                inactive_url:"http:
                 title: "infrastructure: building help page"
             }
 
@@ -191,9 +189,8 @@ vjHO.register('svc-algo-annotMapper').Constructor=function ()
 
         }
         else{
-            vjDS.add("loading ... ","dsAnnotFiles","http://?cmd=anotFiles");
-            // vjDS["dsAnnotFiles"].reload("http://?cmd=anotFiles",true);
-            vjDS["dsAnnotFiles"].reload("http://?cmd=objList&type=u-annot,u-ionAnnot&mode=csv&prop=name,size,created&start=0&cnt=10",true);  // 'http://?cmd=objList&type=u-ionAnnot&mode=csv&prop=name,size,created&start=0&cnt=10'
+            vjDS.add("loading ... ","dsAnnotFiles","http:
+            vjDS["dsAnnotFiles"].reload("http:
             
             this.formName=[''];
 
@@ -229,7 +226,6 @@ vjHO.register('svc-algo-annotMapper').Constructor=function ()
             if (this.isIon) {
                 this.addviewer('hits_panel_graph,hits_graph,hits_graph_table', new vjAnnotationHitsGraphControl({
                     data: "annot_stat",
-                    //width:'80%',
                     height:240,
                     formName:this.formName,
                     preload_input:preload_input,
@@ -263,7 +259,7 @@ vjHO.register('svc-algo-annotMapper').Constructor=function ()
             if (!ionObjs)
                 return ;
             var rangeToAdd = "&pos_start=" + node.start + "&pos_end=" + node.end;
-            var url = "http://?cmd=ionGenBankAnnotPosMap&cnt=-1&fromComputation=0&ionObjs="+ ionObjs + "&seqID="+ seqID + rangeToAdd;
+            var url = "http:
             this.getDS("annotations").reload(url,true);
             this.getDS("annotations").parser = function (ds, text) {
                 var tt= new vjTable(text, 0, vjTable_propCSV);

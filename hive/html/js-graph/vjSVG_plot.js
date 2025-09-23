@@ -62,13 +62,11 @@ function vjSVG_Plot(source)
             if( this.collection[ic].max && this.max.y < this.collection[ic].max.y )
                 this.max.y = this.collection[ic].max.y;
         }
-        //alerJ("max Constrcut minmax ", this.max)
     };
     
     this.getPlotScale = function() {
         return { x:parseFloat(1./(this.max.x-this.min.x)), y:parseFloat(1./(this.max.y-this.min.y)), z:parseFloat(1./(this.max.z-this.min.z)) };
     };
-    //alert(this.selectCallback)
     this.construct=function(axis,chartarea,scene)
     {
 
@@ -93,7 +91,7 @@ function vjSVG_Plot(source)
                 var serie = this.collection[ic];
                 this.constructLegend(serie);
             }
-            scene.scaleMatrix({x:0.8,y:1,z:1});//TODO: set by an input instead of hardcoded 0.9;
+            scene.scaleMatrix({x:0.8,y:1,z:1});
         }
         
         if (axis) {
@@ -110,7 +108,6 @@ function vjSVG_Plot(source)
 
         for( var ic=0; ic<this.collection.length; ++ic ){
 
-            //Axis go first to stay in the background
             var serie = this.collection[ic];
             if (beforeAxis[serie.type])
                 continue;
@@ -143,8 +140,6 @@ function vjSVG_Plot(source)
 
     this.constructorFunction['anotBox']=function(serie)
     {
-        //var color = ["red","yellow","blue","green","cyan"];
-        //alert("plot" + this.max.y)
         var familyName = "anotBox_" + Math.random();
         serie['coordinates'] = serie.tblArr.rows;
 
@@ -159,7 +154,6 @@ function vjSVG_Plot(source)
         for( var ip=0; ip<serie.coordinates.length; ++ip)
         {
             var row=serie.coordinates[ip];
-            //if (serie.forceScaleY) row.y = 0.25;
             var node = new Object();
             if (!node.z) row.z=0;
             node.start = row[serie.columnDefinition.start];
@@ -176,14 +170,12 @@ function vjSVG_Plot(source)
                     showText = showText + serie.labels[ll] + ": " + row[serie.labels[ll]] + "\n";
                 }
             }
-            //alert(this.scaleCrd.x)
                 crdNodeStart = { x: (node.start-this.min.x)*this.scaleCrd.x,
                                    y:  row.step* row.y *this.scaleCrd.y,
                                  z: (node.z-this.min.z) *this.scaleCrd.z
                                 };
-                var width = (node.end - node.start)*this.scaleCrd.x; //alert("box width " + width)
+                var width = (node.end - node.start)*this.scaleCrd.x;
                 box = new vjSVG_box(  {crd:crdNodeStart, width:width, height:row.height}) ;
-               // alert(box)
                 box.brush={"fill":serie.color};
                 box.pen={ "stroke-width" : 0.6};
                 box.svgID = showText;
@@ -234,13 +226,11 @@ function vjSVG_Plot(source)
         if(!serie.coordinates){
             serie.coordinates=serie.tblArr.rows;
             for (var iii=0;iii<serie.coordinates.length;iii++){
-                //alerJ("serie",serie.coordinates[iii]);
                 serie.coordinates[iii].x=parseFloat(serie.coordinates[iii].x-this.min.x)*this.scaleCrd.x;
                 serie.coordinates[iii].y=parseFloat(serie.coordinates[iii].y-this.min.y)*this.scaleCrd.y;
                 if (!serie.coordinates[iii].z) serie.coordinates[iii].z=0;
                 serie.coordinates[iii].z=parseFloat(serie.coordinates[iii].z=this.min.z)*this.scaleCrd.z;
                 var lineP = new vjSVG_line({crd1:{x:serie.coordinates[iii].x,y:serie.coordinates[iii].y-0.05,z:0},crd2:{x:serie.coordinates[iii].x,y:serie.coordinates[iii].y+0.05,z:0},lineCmd:"L"});
-                //lineP.svgID = serie.name;
                 lineP.pen = {"stroke-width":1.5,"stroke-opacity":0,"stroke":serie.color};
                 lineP.cols="";
                 var attrObj = new Object();
@@ -254,13 +244,10 @@ function vjSVG_Plot(source)
                 lineP.handler = {
                         "onmouseover": "function:vjObjFunc('mouseOverLine','" + this.objID + "')",
                         "onmouseout": "function:vjObjFunc('mouseOutLine','" + this.objID + "')"
-                        //"onclick": "function:vjObjFunc('clickForCallingBack','" + this.objID + "')"
                 };
                 attrObj["family"]=""+serie.name;
                 lineP.attribute = attrObj;
-                //lineP.brush = {"fill":"blue","fill-opacity":0};
                 myGrp.children.push(lineP);
-                //this.children.push(lineP);
             }
         }
 
@@ -277,10 +264,9 @@ function vjSVG_Plot(source)
             myTraj.svgID=myTraj.objID;
             myTraj.parent=parent;
             myTraj.pen={"stroke":parent.brush.fill, "stroke-width" : 2, "stroke-opacity" : 0};
-            myTraj.brush={"fill":parent.brush.fill, "fill-opacity" : 0};//, "stroke-opacity" : 0};
+            myTraj.brush={"fill":parent.brush.fill, "fill-opacity" : 0};
             myTraj.handler = {
-                    'onmouseover' : "function:vjObjFunc('testCallback','" + this.objID + "')"//,//'vjObjEvent(\"testCallback\", \"'+ this.objCls + '\");' //,'onmouseout' : 'testCallbackoFF(this)'
-    //                'onmouseout': 'testCallbackoFF,'+this.objCls+''
+                    'onmouseover' : "function:vjObjFunc('testCallback','" + this.objID + "')"
             };
             for(var ii in parent.handler){
                 var isThere=false;
@@ -293,19 +279,15 @@ function vjSVG_Plot(source)
             parent.children.push( myTraj );
         }
         else {
-            //myTraj.brush={"fill-opacity":0};
             myGrp.children.push(myTraj);
-            //this.children.push(myTraj);
             this.children.push(myGrp);
         }
     };
 
     this.constructorFunction['column']=function(serie)
     {
-        //return ;
         if (serie.hidden && serie.hidden===true)
             return;
-        //var familyName = "column_" + Math.random();
         if (!serie.byX) serie.byX =false;
         if (!serie.makeGroup) serie.makeGroup = false;
         var myGrp = "";
@@ -314,7 +296,6 @@ function vjSVG_Plot(source)
             myGrp.svgID = serie.name ;
         }
         serie.columnDefinition = verarr(serie.columnDefinition);
-        //alerJ ("column ",  serie.columnDefinition[0])
         var numberOfSerie = serie.columnDefinition.length;
         var numberOfElements = serie.tblArr.rows.length;
         var lengthOfOneUnit = numberOfElements ? 1/numberOfElements : 1;
@@ -336,42 +317,16 @@ function vjSVG_Plot(source)
         for (var i=0; i<color.length; i++) {
             strokeColor.push(darkenColor(color[i]));
         }
-        //if (serie.valueMax){
-        //    if (serie.valueMax.x) {
-        //        if (numberOfElements<this.max.x/100){
-                    //lengthOfOneUnit = 1/(this.max.x-this.min.x);
-                    //lengthOfOneUnit = (Math.round(this.max.x/this.max.x)/this.max.x);
-                    //lengthOfOneSubUnit = Math.round(lengthOfOneUnit/numberOfSerie)/lengthOfOneUnit;
-        //        }
-        //    }
-        //}
         var elementToPush = new Array();
         for( var ip=0;ip<serie.tblArr.rows.length; ++ip)
         {
             var element=serie.tblArr.rows[ip];
-            //alerJ("elemeent",serie.tblArr.hdr[0]);
             if (!element.z) element.z=0;
 
-            //var lengthOfOneSubUnit = (Math.round(lengthOfOneUnit/numberOfElements)/100);
 
-            //var lengthOfOneSubSubUnit = Math.round(10/numberOfSerie)*lengthOfOneSubUnit;
-            //alert("Sub " + lengthOfOneSubUnit + " One " + lengthOfOneUnit + "subsub  " + lengthOfOneSubSubUnit)
             var startPoint = (ip+0.15)*lengthOfOneUnit;
-            //var startPre = 0;
-            //alert("start Poi " + startPoint )
             for (var iSerie=0; iSerie<numberOfSerie; iSerie++){
-                //alert("ele " + element[serie.columnDefinition[iSerie].y])
-                //var startPoint = (element[serie.columnDefinition[iSerie].x]+0.15)*lengthOfOneUnit;
-                //if (serie.valueMax){
-                //    if (serie.valueMax.x) {
-                //        if (numberOfElements<this.max.x/100){
-                //            startPoint = (element[serie.columnDefinition[iSerie].x]*this.scaleCrd.x);
-                //        }
-                //    }
-                //}
-                //if (!serie.valueMax){
                 if (serie.byX == true) startPoint = ((element[serie.columnDefinition[iSerie].x]-this.min.x)*this.scaleCrd.x);
-                //alert("Unit " + lengthOfOneUnit + " subUni " + lengthOfOneSubUnit + " StartPoint " + startPoint)
 
                 var point1 = {x:startPoint+(iSerie*lengthOfOneSubUnit)+(0.2*lengthOfOneSubUnit),y:0,z:0};
                 var point2 = {x:startPoint+(iSerie*lengthOfOneSubUnit)+(0.2*lengthOfOneSubUnit),y:element[serie.columnDefinition[iSerie].y]*this.scaleCrd.y,z:0};
@@ -381,7 +336,7 @@ function vjSVG_Plot(source)
                 var crdList = new Array();
                 crdList.push(point1,point2,point3,point4);
 
-                var myColumn = new vjSVG_trajectory({coordinates:crdList,closed:1,lineCmd:"L"});//this.coordinates,this.closed,this.lineCmd,this.objID);
+                var myColumn = new vjSVG_trajectory({coordinates:crdList,closed:1,lineCmd:"L"});
 
                 myColumn.brush={'fill':color[iSerie], 'stroke':strokeColor[iSerie], 'stroke-opacity': stroke ? 1 : 0};
                 if (!element[serie.columnDefinition[iSerie].label]) element[serie.columnDefinition[iSerie].label] = "ID";
@@ -410,14 +365,12 @@ function vjSVG_Plot(source)
                 }
                 myColumn["min"] = this.min.x;
                 myColumn["max"] = this.max.x;
-                //alerJ("", serie.tblArr.hdr[0])
                 myColumn.handler = {
                         'onmouseover' : "function:vjObjFunc('mouseOverShowId','" + this.objID + "')",
                         'onmouseout': "function:vjObjFunc('mouseOutShowId','" + this.objID + "')",
                         "onclick":"function:vjObjFunc('clickForCallingBack','" + this.objID + "')"
                 };
 
-                 //this.children.push(myColumn);
 
                 elementToPush.push(myColumn);
                  if (serie.addText!==undefined){
@@ -545,8 +498,6 @@ function vjSVG_Plot(source)
     this.mouseOverShowId = function(ir,eventObjID,evt){
         var parentObj = eventObjID.parentNode.id;
 
-        //alert("parent Ofj " +  parentObj.split(" ")[0])
-        //alert("Over "+  eventObjID.nameOfElement)
         this.saveBrush(eventObjID);
         eventObjID.style["stroke-width"]=2.5;
         eventObjID.style["stroke-opacity"]=1;
@@ -554,12 +505,9 @@ function vjSVG_Plot(source)
         var nameValue = eventObjID.getAttributeNode("name").nodeValue;
         var listBrothers = document.getElementsByName(nameValue);
         for (var ii=0;ii<listBrothers.length;ii++){
-            //alerJ(" ii " + ii + "length " + listBrothers.length,listBrothers[ii])
 
             var parentId = listBrothers[ii].parentNode.id;
-            //if (parent != parentObj){
             if (parentId !=parentObj && parentId.split(" ")[0] === parentObj.split(" ")[0]){
-                //alert("parent " + parentId+ " parentObj " + parentObj )
                 this.saveBrush(listBrothers[ii]);
                 listBrothers[ii].style["stroke-width"]=2.5;
                 listBrothers[ii].style["stroke-linejoin"]="round";
@@ -569,13 +517,12 @@ function vjSVG_Plot(source)
                     var toolTipY = parseFloat(listBrothers[ii].getAttribute("d").split(" ")[2].split(",")[1]);
                     var text = listBrothers[ii].getAttribute("subId");
                     var coordinates = {x:toolTipX,y:toolTipY};
-                    this.computeToolTip(coordinates,text,parentId); // Add ToolTip
+                    this.computeToolTip(coordinates,text,parentId);
                 }
             }
         }
 
     };
-    // ToolTip function
     this.computeToolTip=function(coordinates,text,parentId,params,handlers){
         if(!isok(params))params=0;
         var backgroundColor="lightyellow";
@@ -615,14 +562,12 @@ function vjSVG_Plot(source)
             if(headertext)boxHeight+=16;
             coordinates.x = parseFloat(coordinates.x);
             coordinates.y = parseFloat(coordinates.y);
-            var svgChd = document.createElementNS("http://www.w3.org/2000/svg","g"); // create SVG Element
+            var svgChd = document.createElementNS("http:
             svgChd.setAttribute("id", "toolTipBox");
             svgChd.setAttribute("x", 0);
             svgChd.setAttribute("y",0);
-            // svgChd.setAttribute("width",boxWidth+6);
-            // svgChd.setAttribute("height",boxHeight+6);
             var toolTipBox = document.createElementNS(
-                    "http://www.w3.org/2000/svg", "rect");
+                    "http:
             toolTipBox.setAttribute("x", coordinates.x);
             toolTipBox.setAttribute("y", coordinates.y - boxHeight);
             toolTipBox.setAttribute("width", boxWidth + 6);
@@ -639,12 +584,12 @@ function vjSVG_Plot(source)
                     toolTipBox.addEventListener(ii,handlers[ii]);
                 }
             }
-            svgChd.appendChild(toolTipBox); // add the box to the SVG Element
+            svgChd.appendChild(toolTipBox);
             var startY = coordinates.y + 12 - boxHeight;
             var startX = coordinates.x + 20 + (isok(params.colors) ? 2 : 0);
             if (headertext) {
                 var headerTip = document.createElementNS(
-                        "http://www.w3.org/2000/svg", "text");
+                        "http:
                 headerTip.setAttribute("x", coordinates.x + 2);
                 headerTip.setAttribute("y", startY);
                 headerTip.textContent = headertext;
@@ -662,22 +607,21 @@ function vjSVG_Plot(source)
             for ( var l = 0; l < text.length; l++) {
 
                 var textTips = document.createElementNS(
-                        "http://www.w3.org/2000/svg", "text");
+                        "http:
                 textTips.setAttribute("x", startX);
                 textTips.setAttribute("y", startY);
-                // textTips.setAttribute("font-family","Courier");
                 textTips.style["font-size"]= fontsize;
                 textTips.style["font-weight"]=fontweight;
                 textTips.style["fill-opacity"]=0.8;
                 var realText = text[l];
-                if (ellipsizeWidth && realText.length > ellipsizeWidth) { //  && realText.indexOf(">") == -1 && realText.indexOf("<") == -1
+                if (ellipsizeWidth && realText.length > ellipsizeWidth) {
                     var lastIndexToKeep = ("...") ? realText.lastIndexOf("...") : realText.length;
                     if(lastIndexToKeep==-1)lastIndexToKeep=realText.length;
                     realText=realText.substr(0,lastIndexToKeep);
                     if( realText.length > ellipsizeWidth+3 ) {
                         realText = realText.substr( 0, ellipsizeWidth/2) + "..." + realText.substr(realText.length-ellipsizeWidth/2);
                     }
-                    var auto_title = document.createElementNS("http://www.w3.org/2000/svg","title");
+                    var auto_title = document.createElementNS("http:
                     auto_title.textContent = text[l];
                     textTips.appendChild(auto_title);
                 }
@@ -687,7 +631,7 @@ function vjSVG_Plot(source)
 
                 if (isok(params.colors)) {
                     var lineTipColor = document.createElementNS(
-                            "http://www.w3.org/2000/svg", "rect");
+                            "http:
                     lineTipColor.setAttribute("x", startX - 20);
                     lineTipColor.setAttribute("y", startY - 10);
                     lineTipColor.setAttribute("width", 10);
@@ -712,11 +656,8 @@ function vjSVG_Plot(source)
             if (maxTextPixels > maxPixels)
                 maxPixels = maxTextPixels;
 
-            //svgChd.setAttribute("width", maxPixels);
             svgChd.childNodes[0].setAttribute("width", maxPixels);
             var curX = parseInt(svgChd.childNodes[0].getAttribute("x"));
-            // var
-            // maxHeight=+parseInt(svgChd.childNodes[0].getAttribute("height"));
             var translY = 0, translX = 0;
             if (parseInt(svgChd.childNodes[0].getAttribute("y")) < 0)
                 translY = parseInt(svgChd.childNodes[0].getAttribute("height"));
@@ -736,49 +677,33 @@ function vjSVG_Plot(source)
 
 
     this.mouseOutShowId=function(ir,eventObjID,evt){
-        //alert("mouseOut");
         this.restoreBrush(eventObjID);
         var nameValue = eventObjID.getAttributeNode("name").nodeValue;
         var listBrothers = document.getElementsByName(nameValue);
-        //document.removeChild(document.getElementById("toolTipBox"));
         for (var ii=0;ii<listBrothers.length;ii++){
-            //alerJ(" ii " + ii + "length " + listBrothers.length,listBrothers[ii])
             this.restoreBrush(listBrothers[ii]);
             var parent = listBrothers[ii].parentNode.id;
-            //alerJ("" +     parent + "mouse out ", document.getElementById(parent).childNodes)
             if (document.getElementById(parent).getElementById("toolTipBox")!=null)
-                //alerJ("",document.getElementById("toolTipBox"))
                 document.getElementById(parent).removeChild(document.getElementById("toolTipBox"));
         }
     };
 
 
     this.clickForCallingBack=function(ir,eventObjID,evt){
-        //alert("I am calling you")
-        //alerJ("fdfd",eventObjID)
         var func = this.selectCallback;
         var obj=vjObj[eventObjID.attributes.objID.value];
         if (!obj.children.length) funcLink(func,obj,evt);
         else {
             for(var i=0 ; i<obj.children.length;++i){
-                //alerJ("obj child ", obj.children[i])
-                //alerJ(" svgObj ", svgObj)
                 var ObjC=obj.children[i];
-                //alerJ("OBJC " + ObjC.objID)
-                //alert("svgObjC " + ObjC.objID + " eventObjID " +  eventObjID.attributes.objID.value)
                 if (i==20) break;
                 if (ObjC.objID == eventObjID.attributes.objID.value){
                     funcLink(func,ObjC,evt);
-                    //break;
                 }
             }
         }
     };
     this.mouseOverLine = function(ir,eventObjID,evt){
-        //alerJ("here",eventObjID);
-        //for (var ii=0;ii<eventObjID.attributes.length;ii++){
-            //alert(eventObjID.attributes[ii].name +": "+ eventObjID.getAttribute(eventObjID.attributes[ii].name));
-        //}
         var crdToolTips = new Object();
         if (eventObjID.getAttribute("x") && eventObjID.getAttribute("y")){
             crdToolTips.x = eventObjID.getAttribute("x")+ 20;
@@ -791,8 +716,8 @@ function vjSVG_Plot(source)
             }
             var parentId = eventObjID.parentNode.id;
             var parentObj = gObject(parentId);
-            this.computeToolTip(crdToolTips,text,parentId); // Add ToolTip
-            var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            this.computeToolTip(crdToolTips,text,parentId);
+            var circle = document.createElementNS("http:
             circle.setAttributeNS(null,"cx",parseFloat(eventObjID.getAttribute("x")));
             circle.setAttributeNS(null,"cy",parseFloat(eventObjID.getAttribute("y"))-10);
             circle.setAttributeNS(null,"r",4.5);
@@ -810,7 +735,6 @@ function vjSVG_Plot(source)
         var arrObjToBeRemoved = new Array();
         for (var ii=0;ii<parentObj.childElementCount;ii++){
             if (parentObj.childNodes[ii].id.indexOf("toolTipBox")!==-1) {
-                //parentObj.removeChild(parentObj.childNodes[ii]);
                 arrObjToBeRemoved.push(parentObj.childNodes[ii]);
             }
         }
@@ -821,8 +745,6 @@ function vjSVG_Plot(source)
 
     };
 
-    // return preferred { x, y, z } scale
-    // Default implementation agrees with the proposal
     this.preferredScale = function(proposed) {
         return { x:proposed.x, y:proposed.y, z:proposed.z };
     };
@@ -832,7 +754,6 @@ function vjSVG_Plot(source)
         this.render = function(svg) {
             var g = svg.group(this.objID + "_chart_group");
             var old_svg_grpobj = svg.curGroupNode;
-            //g.svgID = svg.svg.id;
             g.id = svg.svg.id + "_Chart_group";
             svg.curGroupNode = g;
             this.primitiveRender(svg);

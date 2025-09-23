@@ -47,7 +47,6 @@ function bumper(nodeArr,params){
     }
     if(params!==undefined){
         if(params.rule!==undefined)rule=params.rule;
-//        if(params.baseline!==undefined)baseline=params.baseline;
         if(params.weight!==undefined)weight=params.weight;
     }
     
@@ -55,7 +54,7 @@ function bumper(nodeArr,params){
     var placedArr=new Array();
 
     for(var i=0;i<nodeArr.length;++i){
-        var node=nodeArr[i],places=new Array();node.place=0;//places.push(0);
+        var node=nodeArr[i],places=new Array();node.place=0;
         placedArr.sort(function(a, b) {
             return ((a.place!==undefined  ? a.place : Number.MAX_VALUE) - (b.place!==undefined ? b.place : Number.MAX_VALUE));
         });
@@ -63,7 +62,6 @@ function bumper(nodeArr,params){
 
         for(var j=0;j<placedArr.length;++j){
             var examN=placedArr[j];
-//            t_cl->start <= clSum->start)? ((clSum->start <= t_cl->end)?1:0) : ((t_cl->start <= clSum->end)?1:0)
             if( doOverlap(node,examN) )
                 places.push(j);
         }
@@ -99,7 +97,6 @@ function bumper(nodeArr,params){
             else
                 eval(params.operation);
         }
-//        node.place-=baseline;
         nodeArr[i]=node;
         placedArr.push(node);
     }
@@ -113,7 +110,7 @@ function bumper(nodeArr,params){
 };
 
 
-function vjSVG_GIhandler(funcname, svgObj, evt,TsvgID) {// , objCls,irow) {
+function vjSVG_GIhandler(funcname, svgObj, evt,TsvgID) {
     if(TsvgID!==undefined){
         if(TsvgID==svgObj.id)return 0;
     }
@@ -130,7 +127,6 @@ function vjSVG_GIhandler(funcname, svgObj, evt,TsvgID) {// , objCls,irow) {
             [ svgScreenCTM.b, svgScreenCTM.d, svgScreenCTM.f, 0 ],
             [ 0, 0, 1, 0 ], [ 0, 0, 0, 1 ] ];
     var InvCTM=matrixMultiplicationToVector(matrixInverse(screenMatrix),{x:evt.offsetX,y:evt.offsetY,z:0});
-//    var InvCTM=svgObj.currentInvertedMatrix;
     var curCord=matrixMultiplicationToVector(svgObj.currentInvertedMatrix,InvCTM);
     evt.nX=curCord.x instanceof Array ?curCord.x[0]:curCord.x;
     evt.nY=curCord.x instanceof Array ?curCord.y[0]:curCord.y;

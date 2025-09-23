@@ -34,8 +34,6 @@ if (!javaScriptEngine)
 vjHO.register('svc-align-tblastx').Constructor = function() {
 
     if (this.objCls)
-        return; // stupid chrome loads from both cached file and the one coming
-                // from server.
-    // Inherit from blastx object since everything is identical
+        return;
     var _that=this.inheritType('svc-align-blastx');
 };

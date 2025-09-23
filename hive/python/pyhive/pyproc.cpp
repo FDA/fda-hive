@@ -30,10 +30,9 @@
 
 #include "pyhive.hpp"
 
-#include <structmember.h> // for PyMemberDef
+#include <structmember.h>
 
 using namespace slib;
-//// global pyhive:: things ////
 
 #ifdef SLIB64
 #define PY_DEC "lld"
@@ -41,10 +40,12 @@ using namespace slib;
 #define PY_DEC DEC
 #endif
 
+PyObject * pyhive::RuntimeError = PyExc_EnvironmentError;
+
 PyObject * pyhive::udx2py(udx u)
 {
     if( u <= LONG_MAX ) {
-        return PyInt_FromSize_t(u);
+        return PyLong_FromSize_t(u);
     } else {
         return PyLong_FromUnsignedLongLong(u);
     }
@@ -53,7 +54,7 @@ PyObject * pyhive::udx2py(udx u)
 PyObject * pyhive::idx2py(idx i)
 {
     if( i >= LONG_MIN && i <= LONG_MAX ) {
-        return PyInt_FromLong((long)i);
+        return PyLong_FromLong((long)i);
     } else {
         return PyLong_FromLongLong(i);
     }
@@ -78,7 +79,7 @@ bool pyhive::py2form(sVar & form_out, PyObject * pydict)
             return false;
         }
         if( value_len == sLen(value) ) {
-            form_out.inp(key, value); // required to add the 00 terminator correctly for string values!
+            form_out.inp(key, value);
         } else {
             form_out.inp(key, value, value_len);
         }
@@ -91,13 +92,11 @@ bool pyhive::py2form(sVar & form_out, PyObject * pydict)
 
 static PyObject * pyhive_request_killed = 0;
 
-//// pyhive::sQPyProc ////
 
 pyhive::sQPyProc * pyhive::sQPyProc::_singleton = 0;
 
 idx pyhive::sQPyProc::OnGrab(idx forceReq)
 {
-    // dump all cached data from python object
     Py_XDECREF(_pyproc->cached_form);
     Py_XDECREF(_pyproc->cached_form_proxy);
     Py_XDECREF(_pyproc->cached_svc);
@@ -107,6 +106,60 @@ idx pyhive::sQPyProc::OnGrab(idx forceReq)
     _pyproc->cached_obj = 0;
 
     return Tparent::OnGrab(forceReq);
+}
+
+sRC pyhive::sQPyProc::OnSplit(idx req, idx &cnt)
+{
+    PyObject * on_split = 0;
+    if( _run_mod && PyModule_Check(_run_mod) && PyObject_HasAttrString(_run_mod, "on_split") ) {
+        on_split = PyObject_GetAttrString(_run_mod, "on_split");
+        if( !on_split || !PyCallable_Check(on_split) ) {
+            logOut(eQPLogType_Error, "'on_split' in module '%s' is defined but not callable", getModName());
+            reqSetStatus(req, eQPReqStatus_ProgError);
+            Py_XDECREF(on_split);
+            return RC(sRC::eSplitting, sRC::eRequest, sRC::eFunction, sRC::eInvalid);
+        }
+    }
+
+    if( !on_split ) {
+        return Tparent::OnSplit(req, cnt);
+    }
+
+    PyObject * args = Py_BuildValue("(L)", req);
+    PyObject * result = PyObject_Call(on_split, args, 0);
+    Py_XDECREF(args);
+
+    if( result == NULL ) {
+        PyObject *etype = 0, *evalue = 0, *etb = 0;
+        PyErr_Fetch(&etype, &evalue, &etb);
+        if( etype == pyhive_request_killed ) {
+            logOut(eQPLogType_Info, "Caught pyhive.RequestKilledError exception; killing request");
+            reqSetStatus(req, eQPReqStatus_Killed);
+            Py_XDECREF(on_split);
+            return RC(sRC::eSplitting, sRC::eRequest, sRC::eOperation, sRC::eKilled);
+        } else {
+            PyErr_Restore(etype, evalue, etb);
+            logPythonTraceback();
+            reqSetStatus(req, eQPReqStatus_ProgError);
+            Py_XDECREF(on_split);
+            return RC(sRC::eSplitting, sRC::eRequest, sRC::eOperation, sRC::eFailed);
+        }
+    }
+
+    cnt = PyLong_AsLong(result);
+    if( cnt < 1 ) {
+        if( PyErr_Occurred() ) {
+            logPythonTraceback();
+        }
+        reqSetStatus(req, eQPReqStatus_ProgError);
+        Py_XDECREF(result);
+        Py_XDECREF(on_split);
+        return RC(sRC::eSplitting, sRC::eRequest, sRC::eCount, sRC::eInvalid);
+    }
+
+    Py_XDECREF(result);
+    Py_XDECREF(on_split);
+    return sRC::zero;
 }
 
 idx pyhive::sQPyProc::OnExecute(idx req)
@@ -119,13 +172,15 @@ idx pyhive::sQPyProc::OnExecute(idx req)
 
     PyObject * on_execute = PyObject_GetAttrString(_run_mod, "on_execute");
     if( !on_execute ) {
-        PyErr_SetString(PyExc_IndexError, "'on_execute' not found in module");
+        logOut(eQPLogType_Error, "'on_execute' not found in module '%s'", getModName());
+        logPythonTraceback();
         reqSetStatus(req, eQPReqStatus_ProgError);
         return 0;
     }
     if( !PyCallable_Check(on_execute) ) {
-        PyErr_SetString(PyExc_TypeError, "'on_execute' is not callable");
+        logOut(eQPLogType_Error, "'on_execute' in module '%s' is not callable", getModName());
         reqSetStatus(req, eQPReqStatus_ProgError);
+        Py_XDECREF(on_execute);
         return 0;
     }
 
@@ -144,11 +199,26 @@ idx pyhive::sQPyProc::OnExecute(idx req)
             logPythonTraceback();
             reqSetStatus(req, eQPReqStatus_ProgError);
         }
+        Py_XDECREF(on_execute);
         return 0;
     }
     Py_XDECREF(result);
     Py_XDECREF(on_execute);
     return 0;
+}
+
+void pyhive::sQPyProc::setRunMod(PyObject * run_mod)
+{
+    _run_mod = run_mod;
+    _run_mod_name.cut0cut();
+    if( run_mod && PyObject_HasAttrString(run_mod, "__name__") ) {
+        if( PyObject * name = PyObject_GetAttrString(run_mod, "__name__") ) {
+            _run_mod_name.addString(PyUnicode_AsUTF8AndSize(name, NULL));
+            Py_XDECREF(name);
+        } else {
+            PyErr_Clear();
+        }
+    }
 }
 
 void pyhive::sQPyProc::logPythonTraceback()
@@ -161,8 +231,6 @@ void pyhive::sQPyProc::logPythonTraceback()
 
     pyhive::Mex * buf = pyhive::Mex::create();
 
-    // import traceback
-    // traceback.print_exception(etype, evalue, etb, file=buf)
     PyObject * traceback_mod = PyImport_ImportModule("traceback");
     PyObject * print_exception = traceback_mod ? PyObject_GetAttrString(traceback_mod, "print_exception") : 0;
     PyObject * args = Py_BuildValue("(OOO)", etype, evalue, etb);
@@ -181,7 +249,6 @@ void pyhive::sQPyProc::logPythonTraceback()
 }
 
 
-//// SvcType ////
 
 static pyhive::SvcObj * Svc_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
@@ -202,13 +269,13 @@ static void Svc_dealloc(pyhive::SvcObj *self)
     Py_XDECREF(self->hosts);
     Py_XDECREF(self->emails);
     Py_XDECREF(self->categories);
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject* Svc_repr(pyhive::SvcObj * self)
 {
-    sStr buf("<%s %" DEC " %s at %p>", self->ob_type->tp_name, self->svc.svcID, self->svc.name, self);
-    return PyString_FromString(buf.ptr());
+    sStr buf("<%s %" DEC " %s at %p>", Py_TYPE(self)->tp_name, self->svc.svcID, self->svc.name, self);
+    return PyUnicode_FromString(buf.ptr());
 }
 
 #define SVC_OFFSETOF(member) (offsetof(pyhive::SvcObj, svc) + offsetof(sQPrideBase::Service, member))
@@ -236,7 +303,6 @@ static PyMemberDef Svc_members[] = {
     { (char*)"maxmem_soft", T_LONGLONG, SVC_OFFSETOF(maxmemSoft), READONLY, (char*)"soft memory limit" },
     { (char*)"maxmem_hard", T_LONGLONG, SVC_OFFSETOF(maxmemHard), READONLY, (char*)"hard memory limit" },
     { (char*)"capacity", T_DOUBLE, SVC_OFFSETOF(capacity), READONLY, (char*)"capacity" },
-    /* Note that name, title etc. are actual buffers in self->svc, not char pointers - we can't access them via PyMemberDef with T_STRING, need a getter callback */
     { NULL }
 };
 
@@ -263,7 +329,7 @@ static PyObject * Svc_get_cdate(pyhive::SvcObj * self, void * closure)
     static PyObject * Svc_get_ ## pyname (pyhive::SvcObj * self, void * closure) \
     { \
         if( !self->pyname ) { \
-            self->pyname = PyString_FromString(self->svc.cppname); \
+            self->pyname = PyUnicode_FromString(self->svc.cppname); \
         } \
         Py_XINCREF(self->pyname); \
         return self->pyname; \
@@ -289,48 +355,46 @@ static PyGetSetDef Svc_getsetters[] = {
 };
 
 static PyTypeObject SvcType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.Svc",              // tp_name
-    sizeof(pyhive::SvcObj),    // tp_basicsize
-    0,                         // tp_itemsize
-    (destructor)Svc_dealloc,   // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    (reprfunc)Svc_repr,        // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    0,                         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
-    "HIVE service",            // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    0,                         // tp_methods
-    Svc_members,               // tp_members
-    Svc_getsetters,            // tp_getset
-    0,                         // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    0,                         // tp_init
-    0,                         // tp_alloc
-    (newfunc)Svc_new,          // tp_new
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.Svc",
+    sizeof(pyhive::SvcObj),
+    0,
+    (destructor)Svc_dealloc,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)Svc_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
+    "HIVE service",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Svc_members,
+    Svc_getsetters,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (newfunc)Svc_new,
 };
 
-//static
 pyhive::SvcObj * pyhive::SvcObj::check(PyObject * o)
 {
     if( o && o->ob_type == &SvcType ) {
@@ -340,7 +404,6 @@ pyhive::SvcObj * pyhive::SvcObj::check(PyObject * o)
     }
 }
 
-//static
 pyhive::SvcObj * pyhive::SvcObj::create()
 {
     pyhive::SvcObj * self = (pyhive::SvcObj*)Svc_new(&SvcType, 0, 0);
@@ -348,7 +411,6 @@ pyhive::SvcObj * pyhive::SvcObj::create()
     return self;
 }
 
-//// AlreadyLockedError ////
 
 static PyObject* AlreadyLockedError_str(PyObject * self)
 {
@@ -360,49 +422,47 @@ static PyObject* AlreadyLockedError_str(PyObject * self)
 }
 
 static PyTypeObject AlreadyLockedError = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.AlreadyLockedError", // tp_name
-    sizeof(AlreadyLockedError),// tp_basicsize
-    0,                         // tp_itemsize
-    0,                         // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    0,                         // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    AlreadyLockedError_str,    // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.AlreadyLockedError",
+    sizeof(AlreadyLockedError),
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    AlreadyLockedError_str,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     "Special exception indicating that another request is already holding the lock\n\n"\
-    "The request ID holding the lock is stored in `args[1]` of the exception object", // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    0,                         // tp_methods
-    0,                         // tp_members
-    0,                         // tp_getset
-    (PyTypeObject*)PyExc_Exception, // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    0,                         // tp_init
-    0,                         // tp_alloc
-    0,                         // tp_new
+    "The request ID holding the lock is stored in `args[1]` of the exception object",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (PyTypeObject*)PyExc_Exception,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
-//// pyhive::Proc and pyhive::ProcType ////
 
 static PyObject * Proc_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
@@ -425,7 +485,7 @@ static void Proc_dealloc(pyhive::Proc *self)
     Py_XDECREF(self->cached_svc);
     delete self->proc;
     self->proc = 0;
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int Proc_init(pyhive::Proc *self, PyObject * args, PyObject * kwds)
@@ -446,7 +506,6 @@ static int Proc_init(pyhive::Proc *self, PyObject * args, PyObject * kwds)
 
     self->proc = new pyhive::sQPyProc(self, "config=qapp.cfg" __, srv);
     pyhive::sQPyProc::setSingleton(self->proc);
-
     return 0;
 }
 
@@ -476,10 +535,11 @@ static PyObject * Proc_run(pyhive::Proc * self, PyObject * args, PyObject * kwds
         return 0;
     }
 
-    // create argv vector for proc->run
     int argc = 1 + PySequence_Length(argv);
     sStr argv00;
-    if( const char * filename = PyModule_GetFilename(run_mod) ) {
+    PyObject * filenamePyObj = PyModule_GetFilenameObject(run_mod);
+    if( filenamePyObj ) {
+        const char * filename = PyUnicode_AsUTF8(filenamePyObj);
         argv00.addString(filename);
         argv00.add0();
     } else {
@@ -489,7 +549,7 @@ static PyObject * Proc_run(pyhive::Proc * self, PyObject * args, PyObject * kwds
     }
     for(idx i=0; i<argc-1; i++) {
         if( PyObject * arg = PySequence_GetItem(argv, i) ) {
-            if( const char * s = PyString_AsString(arg) ) {
+            if( const char * s = PyUnicode_AsUTF8AndSize(arg, NULL) ) {
                 argv00.add(s);
             } else {
                 PyErr_SetString(PyExc_ValueError, "argv must be a sequence of strings");
@@ -531,7 +591,7 @@ static PyObject * Proc_config_get(pyhive::Proc * self, PyObject * args, PyObject
 
     sStr buf;
     if( self->proc->configGet(&buf, 0, name, 0, 0) ) {
-        return PyString_FromString(buf.ptr());
+        return PyUnicode_FromString(buf.ptr());
     } else {
         PyErr_SetString(PyExc_KeyError, "invalid config par");
         return NULL;
@@ -554,7 +614,7 @@ static PyObject * Proc_config_get_all(pyhive::Proc * self, PyObject * args, PyOb
     for(const char * s = buf.ptr(); s; ) {
         const char * value = s;
         const char * key = sString::next00(s);
-        PyDict_SetItemString(ret_dict, key, PyString_FromString(value));
+        PyDict_SetItemString(ret_dict, key, PyUnicode_FromString(value));
         s = sString::next00(key);
     }
     return ret_dict;
@@ -600,10 +660,10 @@ static PyObject * Proc_req_get_status(pyhive::Proc * self, PyObject * args, PyOb
     }
     idx status = self->proc->reqGetStatus(reqID);
     if( status == 0 ) {
-        PyErr_SetString(PyExc_ValueError, "failed to get status for given request ID");
-    return 0;
+        PyErr_SetString(pyhive::RuntimeError, "failed to get status for given request ID");
+        return 0;
     } else if( status <= 0 || status >= sQPrideBase::eQPReqStatus_Max ) {
-        PyErr_SetString(PyExc_SystemError, "system returned invalid status value");
+        PyErr_SetString(pyhive::RuntimeError, "system returned invalid status value");
         return 0;
     }
     return pyhive::idx2py(status);
@@ -622,6 +682,42 @@ static PyObject * Proc_req_set_status(pyhive::Proc * self, PyObject * args, PyOb
         return 0;
     }
     idx ret = self->proc->reqSetStatus(self->proc->reqId, status);
+    return pyhive::idx2py(ret);
+}
+
+static PyObject * Proc_req_get_action(pyhive::Proc * self, PyObject * args, PyObject * kwds)
+{
+    ASSERT_SELF_PROC(NULL);
+    idx reqID = self->proc->reqId;
+    static const char * kwlist[] = { "req", NULL };
+    if( !PyArg_ParseTupleAndKeywords(args, kwds, "|L", (char**)kwlist, &reqID) ) {
+        return 0;
+    }
+    idx action = self->proc->reqGetAction(reqID);
+    if( action == 0 ) {
+        PyErr_SetString(pyhive::RuntimeError, "failed to get action code for given request ID");
+        return 0;
+    } else if( action <= 0 || action >= sQPrideBase::eQPReqAction_Max ) {
+        PyErr_SetString(pyhive::RuntimeError, "system returned invalid action value");
+        return 0;
+    }
+    return pyhive::idx2py(action);
+}
+
+static PyObject * Proc_req_set_action(pyhive::Proc * self, PyObject * args, PyObject * kwds)
+{
+    ASSERT_SELF_PROC(NULL);
+    int action;
+    idx reqID = self->proc->reqId;
+    static const char * kwlist[] = { "action", "req", NULL };
+    if( !PyArg_ParseTupleAndKeywords(args, kwds, "i|L", (char**)kwlist, &action, &reqID) ) {
+        return 0;
+    }
+    if( action <= 0 || action >= sQPrideBase::eQPReqAction_Max ) {
+        PyErr_SetString(PyExc_ValueError, "action must be one of pyhive.req_action constants");
+        return 0;
+    }
+    idx ret = self->proc->reqSetAction(self->proc->reqId, action);
     return pyhive::idx2py(ret);
 }
 
@@ -746,9 +842,9 @@ static PyObject * Proc_add_file_path(pyhive::Proc * self, PyObject * args, PyObj
 
     sStr buf;
     if( const char * path = self->proc->reqAddFile(buf, "%s", name) ) {
-        return PyString_FromString(path);
+        return PyUnicode_FromString(path);
     } else {
-        PyErr_SetString(PyExc_SystemError, "Failed to add file to HIVE object, request, or group");
+        PyErr_SetString(pyhive::RuntimeError, "Failed to add file to HIVE object, request, or group");
         return NULL;
     }
 }
@@ -764,9 +860,9 @@ static PyObject * Proc_get_file_path(pyhive::Proc * self, PyObject * args, PyObj
 
     sStr buf;
     if( const char * path = self->proc->reqGetFile(buf, "%s", name) ) {
-        return PyString_FromString(path);
+        return PyUnicode_FromString(path);
     } else {
-        PyErr_SetString(PyExc_SystemError, "Failed to retrieve file from HIVE object, request, or group");
+        PyErr_SetString(pyhive::RuntimeError, "Failed to retrieve file from HIVE object, request, or group");
         return NULL;
     }
 }
@@ -786,7 +882,7 @@ static PyObject * Proc_req_data_names(pyhive::Proc * self, PyObject * args, PyOb
     const char * dname = dnames00.ptr();
     for (idx i = 0; i < ndata; i++) {
         if( dname && *dname ) {
-            PyObject * s = PyString_FromString(dname);
+            PyObject * s = PyUnicode_FromString(dname);
             PyList_SET_ITEM(out, i, s);
             dname = sString::next00(dname);
         } else {
@@ -818,7 +914,7 @@ static PyObject * Proc_req_get_data(pyhive::Proc * self, PyObject * args, PyObje
         out->str.borrow(&mex);
         return (PyObject*)out;
     } else {
-        PyErr_SetString(PyExc_SystemError, "Failed to retrieve data blob from HIVE request");
+        PyErr_SetString(pyhive::RuntimeError, "Failed to retrieve data blob from HIVE request");
         return NULL;
     }
 }
@@ -841,7 +937,7 @@ static PyObject * Proc_req_set_data(pyhive::Proc * self, PyObject * args, PyObje
     if( self->proc->reqSetData(reqID, name, data_len, data) ) {
         Py_RETURN_TRUE;
     } else {
-        PyErr_SetString(PyExc_SystemError, "Failed to set data blob for HIVE request");
+        PyErr_SetString(pyhive::RuntimeError, "Failed to set data blob for HIVE request");
         return NULL;
     }
 }
@@ -858,10 +954,10 @@ static PyObject * Proc_req_get_data_path(pyhive::Proc * self, PyObject * args, P
 
     sStr path_buf;
     if( self->proc->reqDataPath(reqID, name, &path_buf) ) {
-        PyObject * s = PyString_FromString(path_buf.ptr());
+        PyObject * s = PyUnicode_FromString(path_buf.ptr());
         return s;
     } else {
-        PyErr_SetString(PyExc_SystemError, "Failed to retrieve storage path for data blob for HIVE request");
+        PyErr_SetString(pyhive::RuntimeError, "Failed to retrieve storage path for data blob for HIVE request");
         return NULL;
     }
 }
@@ -882,7 +978,7 @@ static PyObject * Proc_req_lock(pyhive::Proc * self, PyObject * args, PyObject *
     if( self->proc->reqLock(reqID, key, &reqLockedBy, max_lifetime, force) ) {
         Py_RETURN_TRUE;
     } else {
-        PyObject * eargs = Py_BuildValue("(NN)", PyString_FromFormat("Already locked by request %" PY_DEC, reqLockedBy), pyhive::idx2py(reqLockedBy));
+        PyObject * eargs = Py_BuildValue("(NN)", PyUnicode_FromFormat("Already locked by request %" PY_DEC, reqLockedBy), pyhive::idx2py(reqLockedBy));
         PyErr_SetObject((PyObject*)&AlreadyLockedError, eargs);
         Py_XDECREF(eargs);
         return 0;
@@ -962,7 +1058,7 @@ static PyMethodDef Proc_methods[] = {
       ":arg req: request ID (`pyhive.proc.req_id` by default)\n"\
       ":returns: *status* (one of `pyhive.req_status` constants)\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
-      ":raises ValueError: if parameters are out of range\n"
+      ":raises pyhive.RuntimeError: if status code could not be retrieved, e.g. because *req* is invalid\n"
     },
     { "req_set_status", (PyCFunction)Proc_req_set_status, METH_VARARGS | METH_KEYWORDS,
       "req_set_status(status)\n\nSet status code for current request\n\n"\
@@ -987,6 +1083,21 @@ static PyMethodDef Proc_methods[] = {
       ":type req: int\n"\
       ":returns: request ID back\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"
+    },
+    { "req_get_action", (PyCFunction)Proc_req_get_action, METH_VARARGS | METH_KEYWORDS,
+      "req_get_action(req = pyhive.proc.req_id)\n\nGet job handler action code for specified request\n\n"\
+      ":arg req: request ID (`pyhive.proc.req_id` by default)\n"\
+      ":returns: *action* (one of `pyhive.req_action` constants)\n"\
+      ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
+      ":raises pyhive.RuntimeError: if action code could not be retrieved, e.g. because *req* is invalid\n"
+    },
+    { "req_set_action", (PyCFunction)Proc_req_set_action, METH_VARARGS | METH_KEYWORDS,
+      "req_set_action(action, req = pyhive.proc.req_id)\n\nSet job handler action code for specified request\n\n"\
+      ":arg action: one of `pyhive.req_action` constants\n"\
+      ":arg req: request ID (`pyhive.proc.req_id` by default)\n"\
+      ":returns: *action* back\n"\
+      ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
+      ":raises ValueError: if parameters are out of range\n"
     },
     { "log", (PyCFunction)Proc_log, METH_VARARGS | METH_KEYWORDS,
       "log(log_type, message)\n\nAdd a logging message for developers and system administrators\n\n"\
@@ -1028,7 +1139,7 @@ static PyMethodDef Proc_methods[] = {
       ":arg name: file name\n:type name: str\n\n"\
       ":returns: path to file\n:rtype: str\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
-      ":raises SystemError: if the file could not be added"
+      ":raises pyhive.RuntimeError: if the file could not be added"
     },
     { "get_file_path", (PyCFunction)Proc_get_file_path, METH_VARARGS | METH_KEYWORDS,
       "get_file_path(name)\nRetrieve a path for an existing file in current HIVE object or HIVE request or group\n\n"\
@@ -1043,7 +1154,7 @@ static PyMethodDef Proc_methods[] = {
       ":arg name: file name\n:type name: str\n\n"\
       ":returns: path to file\n:rtype: str\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
-      ":raises SystemError: if the file could not be retrieved"
+      ":raises pyhive.RuntimeError: if the file could not be retrieved"
     },
     { "req_data_names", (PyCFunction)Proc_req_data_names, METH_VARARGS | METH_KEYWORDS,
       "req_data_names(req = pyhive.proc.req_id)\nList data names for specified request\n\n"\
@@ -1058,7 +1169,7 @@ static PyMethodDef Proc_methods[] = {
       ":returns: data blob\n"\
       ":rtype: `pyhive.Mex`\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
-      ":raises SystemError: if the named data blob could not be retrieved"
+      ":raises pyhive.RuntimeError: if the named data blob could not be retrieved"
     },
     { "req_get_data_path", (PyCFunction)Proc_req_get_data_path, METH_VARARGS | METH_KEYWORDS,
       "req_get_data_path(name, req = pyhive.proc.req_id)\nRetrieve disk storage path for named data blob for specified request\n\n"\
@@ -1067,16 +1178,16 @@ static PyMethodDef Proc_methods[] = {
       ":returns: disk path\n"\
       ":rtype: `str`\n"\
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
-      ":raises SystemError: if the named data blob could not be retrieved"
+      ":raises pyhive.RuntimeError: if the named data blob could not be retrieved"
     },
     { "req_set_data", (PyCFunction)Proc_req_set_data, METH_VARARGS | METH_KEYWORDS,
       "req_set_data(name, data = '', req = pyhive.proc.req_id)\nSave named data blob for specified request\n\n"\
       ":arg name: data blob name\n:type name: str\n"\
-      ":arg data: blob contents\n:type data: str or buffer or `pyhive.Mex`\n"\
+      ":arg data: blob contents\n:type data: `str` or buffer or `pyhive.Mex`\n"\
       ":arg req: request ID\n:type req: int\n"\
       ":returns: `True`\n"
       ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"\
-      ":raises SystemError: if the named data blob could not be saved"
+      ":raises pyhive.RuntimeError: if the named data blob could not be saved"
     },
     { "req_lock", (PyCFunction)Proc_req_lock, METH_VARARGS | METH_KEYWORDS,
       "req_lock(key, req = pyhive.proc.req_id, max_lifetime = 48*60*60, force = False)\n"\
@@ -1116,7 +1227,7 @@ static PyObject * Proc_get_form(pyhive::Proc * self, void * closure)
         for (idx i=0; i<self->proc->pForm->dim(); i++) {
             const char * key = static_cast<const char*>(self->proc->pForm->id(i));
             const char * value = self->proc->pForm->value(key);
-            PyDict_SetItemString(self->cached_form, key, PyString_FromString(value));
+            PyDict_SetItemString(self->cached_form, key, PyUnicode_FromString(value));
         }
         self->cached_form_proxy = PyDictProxy_New(self->cached_form);
     }
@@ -1203,45 +1314,44 @@ static PyGetSetDef Proc_getsetters[] = {
 };
 
 static PyTypeObject ProcType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.Proc",             // tp_name
-    sizeof(pyhive::Proc),      // tp_basicsize
-    0,                         // tp_itemsize
-    (destructor)Proc_dealloc,  // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    0,                         // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    0,                         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
-    "HIVE process\n\nClass with a unique singleton instance -- `pyhive.proc`", // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    Proc_methods,              // tp_methods
-    0,                         // tp_members
-    Proc_getsetters,           // tp_getset
-    0,                         // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    (initproc)Proc_init,       // tp_init
-    0,                         // tp_alloc
-    Proc_new,                  // tp_new
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.Proc",
+    sizeof(pyhive::Proc),
+    0,
+    (destructor)Proc_dealloc,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
+    "HIVE process\n\nClass with a unique singleton instance -- `pyhive.proc`",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Proc_methods,
+    0,
+    Proc_getsetters,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (initproc)Proc_init,
+    0,
+    Proc_new,
 };
 
 static PyMethodDef pyhive_methods[] = {
@@ -1272,9 +1382,20 @@ pyhive::Proc * pyhive::Proc::singleton()
 }
 
 PyMODINIT_FUNC
-initpyhive(void)
+PyInit_pyhive(void)
 {
-    pyhive_mod = Py_InitModule3("pyhive", pyhive_methods, "HIVE Python interface");
+    static struct PyModuleDef pyhive_mod_def = {
+        PyModuleDef_HEAD_INIT,
+        "pyhive",
+        "HIVE Python interface",
+        -1,
+        pyhive_methods,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+    };
+    pyhive_mod = PyModule_Create(&pyhive_mod_def);
 
     if( !pyhive::Mex::typeinit(pyhive_mod) ||
         !pyhive::Id::typeinit(pyhive_mod) ||
@@ -1287,17 +1408,22 @@ initpyhive(void)
         !pyhive::IonWander::typeinit(pyhive_mod) ||
         !pyhive::TaxIon::typeinit(pyhive_mod) )
     {
-        return;
+        return NULL;
     }
 
     if( PyType_Ready(&ProcType) < 0 ) {
-        return;
+        return NULL;
     }
+
+    pyhive::RuntimeError = PyErr_NewExceptionWithDoc((char*)"pyhive.RuntimeError", (char*)"Exception raised in HIVE runtime libraries", PyExc_EnvironmentError, NULL);
+    Py_INCREF(pyhive::RuntimeError);
+    PyModule_AddObject(pyhive_mod, "RuntimeError", pyhive::RuntimeError);
+
     Py_INCREF(&ProcType);
     PyModule_AddObject(pyhive_mod, "Proc", (PyObject*)&ProcType);
 
     if( PyType_Ready(&SvcType) < 0 ) {
-        return;
+        return NULL;
     }
     Py_INCREF(&SvcType);
     PyModule_AddObject(pyhive_mod, "Svc", (PyObject*)&SvcType);
@@ -1307,22 +1433,32 @@ initpyhive(void)
     PyModule_AddObject(pyhive_mod, "RequestKilledError", pyhive_request_killed);
 
     if( PyType_Ready(&AlreadyLockedError) < 0 ) {
-        return;
+        return NULL;
     }
     Py_INCREF(&AlreadyLockedError);
     PyModule_AddObject(pyhive_mod, "AlreadyLockedError", (PyObject*)&AlreadyLockedError);
 
-    static PyObject * req_status_mod = Py_InitModule3("pyhive.req_status", NULL, "Request statuses\n\n"\
-        ".. py:data:: ANY\n\n    Unknown status\n\n"\
-        ".. py:data:: WAITING\n\n    Waiting to be grabbed\n\n"\
-        ".. py:data:: PROCESSING\n\n    Grabbed, but computation not yet started\n\n"\
-        ".. py:data:: RUNNING\n\n    Computation is running\n\n"\
-        ".. py:data:: SUSPENDED\n\n    Suspended by user\n\n"\
-        ".. py:data:: DONE\n\n    Computation finished\n\n"\
-        ".. py:data:: KILLED\n\n    Killed by user\n\n"\
-        ".. py:data:: PROG_ERROR\n\n    Computation stopped due to error\n\n"\
-        ".. py:data:: SYS_ERROR\n\n    Computation stopped due to low-level system error\n\n"\
-    );
+    static struct PyModuleDef req_status_mod_def = {
+        PyModuleDef_HEAD_INIT,
+        "pyhive.req_status",
+        "Request statuses\n\n"\
+                ".. py:data:: ANY\n\n    Unknown status\n\n"\
+                ".. py:data:: WAITING\n\n    Waiting to be grabbed\n\n"\
+                ".. py:data:: PROCESSING\n\n    Grabbed, but computation not yet started\n\n"\
+                ".. py:data:: RUNNING\n\n    Computation is running\n\n"\
+                ".. py:data:: SUSPENDED\n\n    Suspended by user\n\n"\
+                ".. py:data:: DONE\n\n    Computation finished\n\n"\
+                ".. py:data:: KILLED\n\n    Killed by user\n\n"\
+                ".. py:data:: PROG_ERROR\n\n    Computation stopped due to error\n\n"\
+                ".. py:data:: SYS_ERROR\n\n    Computation stopped due to low-level system error\n\n",
+        -1,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+    };
+    static PyObject * req_status_mod = PyModule_Create(&req_status_mod_def);
     Py_INCREF(req_status_mod);
     PyModule_AddObject(pyhive_mod, "req_status", req_status_mod);
 
@@ -1336,16 +1472,61 @@ initpyhive(void)
     PyModule_AddIntConstant(req_status_mod, "PROG_ERROR", sQPrideBase::eQPReqStatus_ProgError);
     PyModule_AddIntConstant(req_status_mod, "SYS_ERROR", sQPrideBase::eQPReqStatus_SysError);
 
-    static PyObject * log_type_mod = Py_InitModule3("pyhive.log_type", 0, "Request logging types\n\n"\
-        ".. py:data:: MIN\n\n    Minimum ( = `pyhive.log_type.TRACE`)\n\n"\
-        ".. py:data:: TRACE\n\n    Trace\n\n"\
-        ".. py:data:: DEBUG\n\n    Debug\n\n"\
-        ".. py:data:: INFO\n\n    Info\n\n"\
-        ".. py:data:: WARNING\n\n    Warning\n\n"\
-        ".. py:data:: ERROR\n\n    Error\n\n"\
-        ".. py:data:: FATAL\n\n    Fatal\n\n"\
-        ".. py:data:: MAX\n\n    Maximum ( = `pyhive.log_type.FATAL`)\n\n"
-    );
+    static struct PyModuleDef req_action_mod_def = {
+         PyModuleDef_HEAD_INIT,
+         "pyhive.req_action",
+         "Request job handler actions\n\n"\
+                 ".. py:data:: ANY\n\n    Unknown action\n\n"\
+                 ".. py:data:: NONE\n\n    On hold (will not be executed by job handler) until action is changed\n\n"\
+                 ".. py:data:: RUN\n\n    Job handler should execute this job\n\n"\
+                 ".. py:data:: KILL\n\n    Job handler should kill this job\n\n"\
+                 ".. py:data:: SUSPEND\n\n    Job handler should suspend this job\n\n"\
+                 ".. py:data:: RESUME\n\n    Job handler should resume the previously suspended job\n\n"\
+                 ".. py:data:: SPLIT\n\n    Job handler should split this job\n\n"\
+                 ".. py:data:: POSTPONE\n\n    Job handler should wait for the user to run the job\n\n",
+         -1,
+         NULL,
+         NULL,
+         NULL,
+         NULL,
+         NULL,
+     };
+    static PyObject * req_action_mod = PyModule_Create(&req_action_mod_def);
+
+    Py_INCREF(req_action_mod);
+    PyModule_AddObject(pyhive_mod, "req_action", req_action_mod);
+
+    PyModule_AddIntConstant(req_action_mod, "ANY", sQPrideBase::eQPReqAction_Any);
+    PyModule_AddIntConstant(req_action_mod, "NONE", sQPrideBase::eQPReqAction_None);
+    PyModule_AddIntConstant(req_action_mod, "RUN", sQPrideBase::eQPReqAction_Run);
+    PyModule_AddIntConstant(req_action_mod, "KILL", sQPrideBase::eQPReqAction_Kill);
+    PyModule_AddIntConstant(req_action_mod, "SUSPEND", sQPrideBase::eQPReqAction_Suspend);
+    PyModule_AddIntConstant(req_action_mod, "RESUME", sQPrideBase::eQPReqAction_Resume);
+    PyModule_AddIntConstant(req_action_mod, "SPLIT", sQPrideBase::eQPReqAction_Split);
+    PyModule_AddIntConstant(req_action_mod, "POSTPONE", sQPrideBase::eQPReqAction_Postpone);
+
+
+    static struct PyModuleDef log_type_mod_def = {
+        PyModuleDef_HEAD_INIT,
+        "pyhive.log_type",
+        "Request logging types\n\n"\
+                ".. py:data:: MIN\n\n    Minimum ( = `pyhive.log_type.TRACE`)\n\n"\
+                ".. py:data:: TRACE\n\n    Trace\n\n"\
+                ".. py:data:: DEBUG\n\n    Debug\n\n"\
+                ".. py:data:: INFO\n\n    Info\n\n"\
+                ".. py:data:: WARNING\n\n    Warning\n\n"\
+                ".. py:data:: ERROR\n\n    Error\n\n"\
+                ".. py:data:: FATAL\n\n    Fatal\n\n"\
+                ".. py:data:: MAX\n\n    Maximum ( = `pyhive.log_type.FATAL`)\n\n",
+        -1,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+    };
+    static PyObject * log_type_mod = PyModule_Create(&log_type_mod_def);
+
     Py_INCREF(log_type_mod);
     PyModule_AddObject(pyhive_mod, "log_type", log_type_mod);
 
@@ -1357,4 +1538,6 @@ initpyhive(void)
     PyModule_AddIntConstant(log_type_mod, "ERROR", sQPrideBase::eQPLogType_Error);
     PyModule_AddIntConstant(log_type_mod, "FATAL", sQPrideBase::eQPLogType_Fatal);
     PyModule_AddIntConstant(log_type_mod, "MAX", sQPrideBase::eQPLogType_Max);
+
+    return pyhive_mod;
 }

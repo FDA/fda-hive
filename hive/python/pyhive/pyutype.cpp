@@ -38,13 +38,11 @@ namespace {
             sDic<pyhive::Type*> _dic;
 
         public:
-            // retrieve (allocate if needed) pyhive::Type which is visible to given user with given id or name
             pyhive::Type * ensure(const sUsr & user, const sHiveId * id, const char * name = 0);
             ~TypeDic();
     } type_dic;
 }
 
-// relies on type_dic for allocation (if any)
 static PyObject * Type_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     pyhive::Proc * pyhive_proc = pyhive::Proc::singleton();
@@ -73,19 +71,22 @@ static PyObject * Type_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if( id ) {
         self = type_dic.ensure(*pyhive_proc->proc->user, &id->hive_id, 0);
         if( !self ) {
-            PyErr_SetString(PyExc_SystemError, "Failed to find HIVE type with this ID");
+            PyErr_SetString(pyhive::RuntimeError, "Failed to find HIVE type with this ID");
             return NULL;
         }
-    } else if( PyString_Check(arg) ) {
-        self = type_dic.ensure(*pyhive_proc->proc->user, 0, PyString_AsString(arg));
+    } else if( PyUnicode_Check(arg) ) {
+        self = type_dic.ensure(*pyhive_proc->proc->user, 0, PyUnicode_AsUTF8AndSize(arg, NULL));
         if( !self ) {
-            PyErr_SetString(PyExc_SystemError, "Failed to find HIVE type with this name");
+            PyErr_SetString(pyhive::RuntimeError, "Failed to find HIVE type with this name");
             return NULL;
         }
     }
 
     Py_XDECREF(id);
     Py_XINCREF(self);
+    if( self ) {
+        PyErr_Clear();
+    }
 
     return (PyObject*)self;
 }
@@ -95,8 +96,102 @@ static PyObject* Type_repr(pyhive::Type * self)
     sStr buf("<pyhive.Type ");
     self->utype->id().print(buf);
     buf.printf(" %s at %p>", self->utype->name(), self);
-    return PyString_FromString(buf.ptr());
+    return PyUnicode_FromString(buf.ptr());
 }
+
+static PyObject * Type_name_match(pyhive::Type * self, PyObject * args, PyObject * kwds)
+{
+    const char * query = 0;
+    static const char * kwlist[] = { "query", NULL };
+    if( !PyArg_ParseTupleAndKeywords(args, kwds, "s", (char**)kwlist, &query) ) {
+        return NULL;
+    }
+
+    if( self->utype->nameMatch(query) ) {
+        Py_RETURN_TRUE;
+    }
+    Py_RETURN_FALSE;
+}
+
+static PyObject * Type_is_descendent_of(pyhive::Type * self, PyObject * args, PyObject * kwds)
+{
+    PyObject * rhs = 0;
+    static const char * kwlist[] = { "rhs", NULL };
+    if( !PyArg_ParseTupleAndKeywords(args, kwds, "O", (char**)kwlist, &rhs) ) {
+        return NULL;
+    }
+
+    pyhive::Type * rhs_type = pyhive::Type::check(rhs);
+    if( !rhs_type ) {
+        PyErr_SetString(PyExc_TypeError, "pyhive.Type argument expected");
+        return NULL;
+    }
+
+    if( self->utype->isDescendentOf(rhs_type->utype) ) {
+        Py_RETURN_TRUE;
+    }
+    Py_RETURN_FALSE;
+}
+
+static PyObject * Type_find(PyObject * cls, PyObject * args, PyObject * kwds)
+{
+    pyhive::Proc * pyhive_proc = pyhive::Proc::singleton();
+    if( !pyhive_proc ) {
+        PyErr_SetString(PyExc_AssertionError, "pyhive.proc has not been initialized");
+        return NULL;
+    }
+
+    const char * query = 0;
+    static const char * kwlist[] = { "query", NULL };
+    if( !PyArg_ParseTupleAndKeywords(args, kwds, "s", (char**)kwlist, &query) ) {
+        return NULL;
+    }
+
+    if( !query ) {
+        query = "";
+    }
+
+    sVec<const sUsrType2 *> utypes;
+    sUsrType2::find(*pyhive_proc->proc->user, &utypes, query);
+
+    PyObject * lst = PyList_New(utypes.dim());
+    for(idx i = 0; i < utypes.dim(); i++) {
+        if( pyhive::Type * utype_obj = pyhive::Type::ensure(utypes[i]->id()) ) {
+            PyList_SET_ITEM(lst, i, (PyObject*)utype_obj);
+        } else {
+            Py_DECREF(lst);
+            return 0;
+        }
+    }
+
+    return lst;
+}
+
+static PyMethodDef Type_methods[] = {
+    { "name_match", (PyCFunction)Type_name_match, METH_VARARGS | METH_KEYWORDS,
+      "name_match(query)\nCheck if type's name matches a query string\n\n"\
+      ":arg query: comma-separated list of regexps, each optionally prefixed with `'!'` to negate, or suffixed with `'+'` to check ancestors\n"
+      ":type query: str\n"\
+      ":returns: `True` or `False`\n"\
+      ":raises TypeError: if parameters are of the wrong type\n"
+    },
+    { "is_descendent_of", (PyCFunction)Type_is_descendent_of, METH_VARARGS | METH_KEYWORDS,
+      "is_descendent_of(rhs)\nCheck if type is a descendent of another one\n\n"\
+      ":arg rhs: type object\n"
+      ":type rhs: `pyhive.Type`\n"\
+      ":returns: `True` or `False`\n"\
+      ":raises TypeError: if parameters are of the wrong type\n"
+    },
+    { "find", (PyCFunction)Type_find, METH_CLASS | METH_VARARGS | METH_KEYWORDS,
+      "find(query)\nList of types whose names match the query\n\n"\
+      ":arg query: comma-separated list of regexps, each optionally prefixed with `'!'` to negate, or suffixed with `'+'` to retrieve all children of match; "\
+      "`''` is equivalent to `'^base_user_type$+'`\n"\
+      ":type query: str\n"\
+      ":returns: list of `pyhive.Type` objects\n"\
+      ":raises TypeError: if `pyhive.proc` is not initialized or parameters are of the wrong type\n"
+    },
+    { NULL }
+};
 
 static PyObject * Type_get_id(pyhive::Type * self, void * closure)
 {
@@ -107,19 +202,69 @@ static PyObject * Type_get_id(pyhive::Type * self, void * closure)
 
 static PyObject * Type_get_name(pyhive::Type * self, void * closure)
 {
-    return PyString_FromString(self->utype->name());
+    return PyUnicode_FromString(self->utype->name());
 }
 
 static PyObject * Type_get_title(pyhive::Type * self, void * closure)
 {
     const char * s = self->utype->title();
-    return PyString_FromString(s ? s : "");
+    return PyUnicode_FromString(s ? s : "");
 }
 
 static PyObject * Type_get_description(pyhive::Type * self, void * closure)
 {
     const char * s = self->utype->description();
-    return PyString_FromString(s ? s : "");
+    return PyUnicode_FromString(s ? s : "");
+}
+
+static PyObject * Type_get_parents(pyhive::Type * self, void * closure)
+{
+    if( !self->cached_parents ) {
+        idx nparents = self->utype->dimParents();
+        self->cached_parents = PyList_New(nparents);
+        for(idx i = 0; i < nparents; i++) {
+            PyList_SET_ITEM(self->cached_parents, i, (PyObject*)pyhive::Type::ensure(self->utype->getParent(i)->id()));
+        }
+    }
+    Py_INCREF(self->cached_parents);
+    return self->cached_parents;
+}
+
+static PyObject * Type_get_children(pyhive::Type * self, void * closure)
+{
+    if( !self->cached_parents ) {
+        idx nchildren = self->utype->dimChildren();
+        self->cached_children = PyList_New(nchildren);
+        for(idx i = 0; i < nchildren; i++) {
+            PyList_SET_ITEM(self->cached_children, i, (PyObject*)pyhive::Type::ensure(self->utype->getChild(i)->id()));
+        }
+    }
+    Py_INCREF(self->cached_children);
+    return self->cached_children;
+}
+
+static PyObject * Type_is_virtual(pyhive::Type * self, void * closure)
+{
+    if( self->utype->isVirtual() ) {
+        Py_RETURN_TRUE;
+    }
+    Py_RETURN_FALSE;
+}
+
+static PyObject * Type_is_user(pyhive::Type * self, void * closure)
+{
+    if( self->utype->isUser() ) {
+        Py_RETURN_TRUE;
+    }
+    Py_RETURN_FALSE;
+}
+
+static PyObject * Type_is_system(pyhive::Type * self, void * closure)
+{
+    if( self->utype->isSystem() ) {
+        Py_RETURN_TRUE;
+    }
+    Py_RETURN_FALSE;
 }
 
 static PyObject * Type_get_field_names(pyhive::Type * self, void * closure)
@@ -127,10 +272,10 @@ static PyObject * Type_get_field_names(pyhive::Type * self, void * closure)
     if( !self->cached_field_names ) {
         pyhive::Proc * pyhive_proc = pyhive::Proc::singleton();
         idx nfields = self->utype->dimFields(*pyhive_proc->proc->user);
-        self->cached_field_names = PyTuple_New(nfields);
+        self->cached_field_names = PyList_New(nfields);
         for(idx i = 0; i < nfields; i++) {
             const char * s = self->utype->getField(*pyhive_proc->proc->user, i)->name();
-            PyTuple_SET_ITEM(self->cached_field_names, i, PyString_FromString(s ? s : ""));
+            PyList_SET_ITEM(self->cached_field_names, i, PyUnicode_FromString(s ? s : ""));
         }
     }
     Py_INCREF(self->cached_field_names);
@@ -139,35 +284,39 @@ static PyObject * Type_get_field_names(pyhive::Type * self, void * closure)
 
 static PyGetSetDef Type_getsetters[] = {
     { (char*)"id", (getter)Type_get_id, NULL, (char*)"Type's HIVE ID (`pyhive.Id`)", NULL },
-    { (char*)"name", (getter)Type_get_name, NULL, (char*)"Type's name (str)", NULL },
-    { (char*)"title", (getter)Type_get_title, NULL, (char*)"Type's title (str)", NULL },
-    { (char*)"description", (getter)Type_get_description, NULL, (char*)"Type's description (str)", NULL },
+    { (char*)"name", (getter)Type_get_name, NULL, (char*)"Type's name (`str`)", NULL },
+    { (char*)"title", (getter)Type_get_title, NULL, (char*)"Type's title (`str`)", NULL },
+    { (char*)"description", (getter)Type_get_description, NULL, (char*)"Type's description (`str`)", NULL },
+    { (char*)"parents", (getter)Type_get_parents, NULL, (char*)"Type's parents (list of `pyhive.Type` objects)", NULL },
+    { (char*)"children", (getter)Type_get_children, NULL, (char*)"Type's children (list of `pyhive.Type` objects)", NULL },
+    { (char*)"is_virtual", (getter)Type_is_virtual, NULL, (char*)"Is the type virtual? (`bool`)", NULL },
+    { (char*)"is_user", (getter)Type_is_user, NULL, (char*)"Is the type a descendent of base user type? (`bool`)", NULL },
+    { (char*)"is_system", (getter)Type_is_system, NULL, (char*)"Is the type a descendent of base system type? (`bool`)", NULL },
     { (char*)"field_names", (getter)Type_get_field_names, NULL, (char*)"List of field names (list of strings)", NULL },
     { NULL }
 };
 
 PyTypeObject TypeType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         // ob_size
-    "pyhive.Type",             // tp_name
-    sizeof(pyhive::Type),      // tp_basicsize
-    0,                         // tp_itemsize
-    0,                         // tp_dealloc
-    0,                         // tp_print
-    0,                         // tp_getattr
-    0,                         // tp_setattr
-    0,                         // tp_compare
-    (reprfunc)Type_repr,       // tp_repr
-    0,                         // tp_as_number
-    0,                         // tp_as_sequence
-    0,                         // tp_as_mapping
-    0,                         // tp_hash
-    0,                         // tp_call
-    0,                         // tp_str
-    0,                         // tp_getattro
-    0,                         // tp_setattro
-    0,                         // tp_as_buffer
-    Py_TPFLAGS_DEFAULT,        // tp_flags
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "pyhive.Type",
+    sizeof(pyhive::Type),
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    (reprfunc)Type_repr,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Py_TPFLAGS_DEFAULT,
     "HIVE object type\n\n"\
     "Initialized from the type name or type's HIVE ID (either as string or `pyhive.Id` object):\n"\
     "    >>> pyhive.Type('u-file')\n"\
@@ -179,24 +328,24 @@ PyTypeObject TypeType = {
     "    >>> pyhive.Type('type.9999')\n"\
     "    Traceback (most recent call last):\n"\
     "      File \"<stdin>\", line 1, in <module>\n"\
-    "    SystemError: Failed to find HIVE type with this ID", // tp_doc
-    0,                         // tp_traverse
-    0,                         // tp_clear
-    0,                         // tp_richcompare
-    0,                         // tp_weaklistoffset
-    0,                         // tp_iter
-    0,                         // tp_iternext
-    0,                         // tp_methods
-    0,                         // tp_members
-    Type_getsetters,           // tp_getset
-    0,                         // tp_base
-    0,                         // tp_dict
-    0,                         // tp_descr_get
-    0,                         // tp_descr_set
-    0,                         // tp_dictoffset
-    0,                         // tp_init
-    0,                         // tp_alloc
-    Type_new,                  // tp_new
+    "    pyhive.RuntimeError: Failed to find HIVE type with this ID",
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Type_methods,
+    0,
+    Type_getsetters,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    Type_new,
 };
 
 pyhive::Type * TypeDic::ensure(const sUsr & user, const sHiveId * id, const char * name)
@@ -215,6 +364,8 @@ pyhive::Type * TypeDic::ensure(const sUsr & user, const sHiveId * id, const char
         *pt = (pyhive::Type*)PyType_GenericAlloc(&TypeType, 0);
         (*pt)->utype = utype;
         (*pt)->cached_field_names = 0;
+        (*pt)->cached_parents = 0;
+        (*pt)->cached_children = 0;
     }
     return *pt;
 }
@@ -224,11 +375,12 @@ TypeDic::~TypeDic()
     for(idx i=0; i<_dic.dim(); i++) {
         pyhive::Type * t = *_dic.ptr(i);
         Py_XDECREF(t->cached_field_names);
+        Py_XDECREF(t->cached_parents);
+        Py_XDECREF(t->cached_children);
         Py_XDECREF(t);
     }
 }
 
-//static
 bool pyhive::Type::typeinit(PyObject * mod)
 {
     if( PyType_Ready(&TypeType) < 0 ) {
@@ -239,7 +391,6 @@ bool pyhive::Type::typeinit(PyObject * mod)
     return true;
 }
 
-//static
 pyhive::Type * pyhive::Type::check(PyObject * o)
 {
     if( o && o->ob_type == &TypeType ) {
@@ -249,8 +400,7 @@ pyhive::Type * pyhive::Type::check(PyObject * o)
     }
 }
 
-//static
-pyhive::Type * pyhive::Type::find(const sHiveId & id)
+pyhive::Type * pyhive::Type::ensure(const sHiveId & id)
 {
     pyhive::Proc * pyhive_proc = pyhive::Proc::singleton();
     if( !pyhive_proc || !pyhive_proc->proc || !pyhive_proc->proc->user ) {
@@ -267,4 +417,3 @@ pyhive::Type * pyhive::Type::find(const sHiveId & id)
     Py_INCREF(self);
     return self;
 }
-

@@ -27,19 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*
- * Toastr
- * Copyright 2012-2015
- * Authors: John Papa, Hans Fjällemark, and Tim Ferrell.
- * All Rights Reserved.
- * Use, reproduction, distribution, and modification of this code is subject to the terms and
- * conditions of the MIT license, available at http://www.opensource.org/licenses/mit-license.php
- *
- * ARIA Support: Greta Krafsig
- *
- * Project: https://github.com/CodeSeven/toastr
- */
-/* global define */
 ; (function (define) {
     define(['jquery'], function ($) {
         return (function () {
@@ -70,7 +57,6 @@
 
             return toastr;
 
-            ////////////////
 
             function error(message, title, optionsOverride) {
                 return notify({
@@ -148,7 +134,6 @@
                 }
             }
 
-            // internal functions
 
             function clearContainer (options) {
                 var toastsToClear = $container.children();
@@ -188,9 +173,9 @@
                     containerId: 'toast-container',
                     debug: false,
 
-                    showMethod: 'fadeIn', //fadeIn, slideDown, and show are built into jQuery
+                    showMethod: 'fadeIn',
                     showDuration: 300,
-                    showEasing: 'swing', //swing and linear are built into jQuery
+                    showEasing: 'swing',
                     onShown: undefined,
                     hideMethod: 'fadeOut',
                     hideDuration: 1000,
@@ -206,7 +191,7 @@
                     },
                     iconClass: 'toast-info',
                     positionClass: 'toast-top-right',
-                    timeOut: 5000, // Set timeOut and extendedTimeOut to 0 to make it sticky
+                    timeOut: 5000,
                     titleClass: 'toast-title',
                     messageClass: 'toast-message',
                     target: 'body',
@@ -436,7 +421,7 @@
         })();
     });
 }(typeof define === 'function' && define.amd ? define : function (deps, factory) {
-    if (typeof module !== 'undefined' && module.exports) { //Node
+    if (typeof module !== 'undefined' && module.exports) {
         module.exports = factory(require('jquery'));
     } else {
         window['toastr'] = factory(window['jQuery']);

@@ -40,7 +40,7 @@ class DnaParser: public sQPSvc
 
     public:
 
-        DnaParser(sQPride& qp, const char * file, const sHiveId & objId, const char * dstTypeName, const bool isVioseqlist = false, const udx maxChunkSize = ((udx) 8) * 1024 * 1024 * 1024, const char * dataType = 0, const char * userFilename = 0);
+        DnaParser(sQPride& qp, const char * file, const sHiveId & objId, const char * dstTypeName, const bool isVioseqlist = false, const char * dataType = 0, const char * userFilename = 0);
         virtual ~DnaParser();
 
         virtual const char* getSvcName() const
@@ -49,24 +49,13 @@ class DnaParser: public sQPSvc
         }
 
         void setFile(const char * file, ...) __attribute__((format(printf, 2, 3)));
-        /**
-         * To be used for reporting error for the user
-         */
         void setUserFilename(const char * file, ...) __attribute__((format(printf, 2, 3)));
         void setObjId(const sHiveId & objId);
-        void setMerge(bool isMerged); // chunks merged into one
-        void setSingleFile(bool isSingle); // produce single file
+        void setMerge(bool isMerged);
+        void setSingleFile(bool isSingle);
         void setVioseqlist(bool isHiveseq);
         void setTreatAsTypeFile(const char *dataType);
         void setTypeName(const char * typeName);
-
-        virtual udx split() const;
-
-    protected:
-
-        idx m_fileSize;
-        udx m_maxChunkSize;
-
 };
 
-#endif // DnaParser_hpp
+#endif 

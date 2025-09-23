@@ -104,7 +104,6 @@ void sAESCBC::processBlocks(void * out, const void * in, idx nblocks)
         (unsigned char *)out);
 }
 
-//static
 idx sBlockCrypto::encrypt(sMex * out, sBlockCrypto::ECryptoFormat out_mode, const void * in_plaintext, idx in_len, const void * key, idx key_len)
 {
     if( !key_len ) {
@@ -130,18 +129,15 @@ idx sBlockCrypto::encrypt(sMex * out, sBlockCrypto::ECryptoFormat out_mode, cons
         sAESCBC aes_cbc;
         aes_cbc.initCtx(key_hash.getRawHash(), sAES::eAES256, true);
 
-        // generate and write a random IV (must not be reused; must be saved for decryption; does not need to be secret)
         aes_cbc.generateIV();
         memcpy(out_ptr, aes_cbc.getIV(), sAES::block_size);
         out_ptr += sAES::block_size;
 
-        // encrypt the whole blocks of ciphertext
         aes_cbc.processBlocks(out_ptr, in_plaintext, nwhole_blocks);
         out_ptr += nwhole_blocks * sAES::block_size;
 
-        // create and encrypt the padding block - PKCS#7 algorithm
         unsigned char padding_block[sAES::block_size];
-        int filler = sAES::block_size - in_len % sAES::block_size; // filler equals number of bytes of padding at the end of padding_block; always > 0
+        int filler = sAES::block_size - in_len % sAES::block_size;
         memset(padding_block, filler, sAES::block_size);
         if( in_len % sAES::block_size ) {
             memcpy(padding_block, (const unsigned char *)in_plaintext + nwhole_blocks * sAES::block_size, in_len % sAES::block_size);
@@ -149,7 +145,6 @@ idx sBlockCrypto::encrypt(sMex * out, sBlockCrypto::ECryptoFormat out_mode, cons
         aes_cbc.processBlocks(out_ptr, padding_block, 1);
         out_ptr += sAES::block_size;
 
-        // MAC : generated (effectively) from unhashed key + IV + ciphertext blocks
         mac.update(out->ptr(pos), sAES::block_size * (nwhole_blocks + 2));
         mac.finish();
         memcpy(out_ptr, mac.getRawDigest(), mac.getRawDigestSize());
@@ -159,7 +154,6 @@ idx sBlockCrypto::encrypt(sMex * out, sBlockCrypto::ECryptoFormat out_mode, cons
     }
 }
 
-//static
 idx sBlockCrypto::decrypt(sMex * out, sBlockCrypto::ECryptoFormat out_mode, const void * in_ciphertext, idx in_len, const void * key, idx key_len)
 {
     if( !key_len ) {
@@ -177,13 +171,10 @@ idx sBlockCrypto::decrypt(sMex * out, sBlockCrypto::ECryptoFormat out_mode, cons
         sSHA256 key_hash(key, key_len);
         sHMAC<sSHA256> mac(key, key_len);
 
-        // The input is expected to contain an IV block, 0 or more whole ciphertext blocks, a final ciphertext block
-        // corresponding to padding, and a MAC. If the input is too short, it cannot possibly be valid
         if( in_len < 2 * sAES::block_size + mac.getRawDigestSize() || (in_len - mac.getRawDigestSize()) % sAES::block_size ) {
             return -sIdxMax;
         }
 
-        // Verify that the MAC (generated from unhashed key + IV + ciphertext blocks) matches
         const unsigned char * in_mac = (const unsigned char *)in_ciphertext + in_len - mac.getRawDigestSize();
         mac.update(in_ciphertext, in_len - mac.getRawDigestSize());
         mac.finish();
@@ -199,16 +190,13 @@ idx sBlockCrypto::decrypt(sMex * out, sBlockCrypto::ECryptoFormat out_mode, cons
         sAESCBC aes_cbc;
         aes_cbc.initCtx(key_hash.getRawHash(), sAES::eAES256, false);
 
-        // read the IV
         aes_cbc.setIV(in_ciphertext);
 
-        // decrypt the whole blocks of plaintext
         aes_cbc.processBlocks(out_ptr, (const unsigned char *)in_ciphertext + sAES::block_size, nwhole_blocks);
 
-        // decrypt and read the padding block - PKCS#7 algorithm
         unsigned char padding_block[sAES::block_size];
         aes_cbc.processBlocks(padding_block, (const unsigned char *)in_ciphertext + (nwhole_blocks + 1 ) * sAES::block_size, 1);
-        int filler = padding_block[sAES::block_size - 1]; // filler equals number of bytes of padding at the end of padding_block; always > 0
+        int filler = padding_block[sAES::block_size - 1];
         if( filler < sAES::block_size ) {
             out->add(padding_block, sAES::block_size - filler);
             out_ptr = (unsigned char *)out->ptr();

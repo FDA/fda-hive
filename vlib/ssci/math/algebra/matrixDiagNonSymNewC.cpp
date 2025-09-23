@@ -46,47 +46,18 @@ typedef real REAL;
 
 
 
-//http://jean-pierre.moreau.pagesperso-orange.fr/cplus.html
-// http://jean-pierre.moreau.pagesperso-orange.fr/Cplus/feigen_cpp.txt
 
 
 
-idx comdiv              /* Complex division ..........................*/
+idx comdiv
            (
-            REAL   ar,            /* Real part of numerator ..........*/
-            REAL   ai,            /* Imaginary part of numerator .....*/
-            REAL   br,            /* Real part of denominator ........*/
-            REAL   bi,            /* Imaginary part of denominator ...*/
-            REAL * cr,            /* Real part of quotient ...........*/
-            REAL * ci             /* Imaginary part of quotient ......*/
+            REAL   ar,
+            REAL   ai,
+            REAL   br,
+            REAL   bi,
+            REAL * cr,
+            REAL * ci
            )
-/*====================================================================*
- *                                                                    *
- *  Complex division  c = a / b                                       *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      ar,ai    REAL   ar, ai;                                       *
- *               Real, imaginary parts of numerator                   *
- *      br,bi    REAL   br, bi;                                       *
- *               Real, imaginary parts of denominator                 *
- *                                                                    *
- *   Output parameters:                                               *
- *   ==================                                               *
- *      cr,ci    REAL   *cr, *ci;                                     *
- *               Real , imaginary parts of the quotient               *
- *                                                                    *
- *   Return value :                                                   *
- *   =============                                                    *
- *      = 0      ok                                                   *
- *      = 1      division by 0                                        *
- *                                                                    *
- *   Macro used :     ABS                                             *
- *   ============                                                     *
- *                                                                    *
- *====================================================================*/
 {
   REAL tmp;
 
@@ -111,37 +82,18 @@ idx comdiv              /* Complex division ..........................*/
 }
 
 
-REAL comabs             /* Complex absolute value ....................*/
+REAL comabs
               (
-               REAL  ar,          /* Real part .......................*/
-               REAL  ai           /* Imaginary part ..................*/
+               REAL  ar,
+               REAL  ai
               )
-/*====================================================================*
- *                                                                    *
- *  Complex absolute value of   a                                     *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      ar,ai    REAL   ar, ai;                                       *
- *               Real, imaginary parts of  a                          *
- *                                                                    *
- *   Return value :                                                   *
- *   =============                                                    *
- *      Absolute value of a                                           *
- *                                                                    *
- *   Macros used :    SQRT, ABS, SWAP                                 *
- *   =============                                                    *
- *                                                                    *
- *====================================================================*/
 {
   if (ar == ZERO && ai == ZERO) return (ZERO);
 
   ar = ABS (ar);
   ai = ABS (ai);
 
-  if (ai > ar)                                  /* Switch  ai and ar */
+  if (ai > ar)
     SWAP (REAL, ai, ar)
 
   return ((ai == ZERO) ? (ar) : (ar * SQRT (ONE + ai / ar * ai / ar)));
@@ -155,77 +107,22 @@ REAL comabs             /* Complex absolute value ....................*/
 #define vmat(_v_i,_v_j) vmat_[(_v_i)*n+(_v_j)]
 
 
-/* ----------------------- MODULE feigen.cpp ------------------------ *
- * Reference: "Numerical Algorithms with C By G. Engeln-Mueller and   *
- *             F. Uhlig, Springer-Verlag, 1996" [BIBLI 11].           *
- * ------------------------------------------------------------------ */
-//#include <basis.h>
-//#include <vmblock.h>
 
 
-#define MAXIT 50                      /*  Maximal number of           */
-                                      /*  iterations per eigenvalue   */
-
-/*--------------------------------------------------------------------*
- * Auxiliary functions for  eigen                                     *
- *--------------------------------------------------------------------*/
+#define MAXIT 50
 
 
-static idx balance       /* balance a matrix .........................*/
-                   (idx       n,      /* size of matrix ..............*/
-                    //REAL *    mat[],  /* matrix ......................*/
-                    REAL *    mat_,  /* matrix ......................*/
-                    REAL      scal[], /* Scaling data ................*/
-                    idx *     low,    /* first relevant row index ....*/
-                    idx *     high,    /* last relevant row index ....*/
-                    idx       basis   /* base of computer numbers ....*/
+
+static idx balance
+                   (idx       n,
+                    REAL *    mat_,
+                    REAL      scal[],
+                    idx *     low,
+                    idx *     high,
+                    idx       basis
                    )
-/*====================================================================*
- *                                                                    *
- *  balance balances the matrix mat so that the rows with zero entries*
- *  off the diagonal are isolated and the remaining columns and rows  *
- *  are resized to have one norm close to 1.                          *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      n        idx n;  ( n > 0 )                                    *
- *               Dimension of mat                                     *
- *      mat      REAL   *mat[n];                                      *
- *               n x n input matrix                                   *
- *      basis    idx basis;                                           *
- *               Base of number representaion in the given computer   *
- *               (see BASIS)                                          *
- *                                                                    *
- *   Output parameters:                                               *
- *   ==================                                               *
- *      mat      REAL   *mat[n];                                      *
- *               scaled matrix                                        *
- *      low      idx *low;                                            *
- *      high     idx *high;                                           *
- *               the rows 0 to low-1 and those from high to n-1       *
- *               contain isolated eigenvalues (only nonzero entry on  *
- *               the diagonal)                                        *
- *      scal     REAL   scal[];                                       *
- *               the vector scal contains the isolated eigenvalues in *
- *               the positions 0 to low-1 and high to n-1, its other  *
- *               components contain the scaling factors for           *
- *               transforming mat.                                    *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Macros:     SWAP, ABS                                            *
- *   =======                                                          *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Constants used:     TRUE, FALSE                                  *
- *   ==============                                                   *
- *                                                                    *
- *====================================================================*/
 {
-  register idx i, j;
+  idx i, j;
   idx      iter, k, m;
   REAL     b2, r, c, f, g, s;
 
@@ -252,8 +149,8 @@ static idx balance       /* balance a matrix .........................*/
         k--;
         iter = TRUE;
       }
-    }   /* end of j */
-  }   /* end of do  */
+    }
+  }
   while (iter);
 
   do
@@ -274,8 +171,8 @@ static idx balance       /* balance a matrix .........................*/
         m++;
         iter = TRUE;
       }
-    }   /* end of j */
-  }   /* end of do  */
+    }
+  }
   while (iter);
 
   *low = m;
@@ -326,42 +223,15 @@ static idx balance       /* balance a matrix .........................*/
 }
 
 
-static idx balback       /* reverse balancing ........................*/
-                   (idx     n,        /* Dimension of matrix .........*/
-                    idx     low,      /* first nonzero row ...........*/
-                    idx     high,     /* last nonzero row ............*/
-                    REAL    scal[],   /* Scaling data ................*/
-                    // REAL *  eivec[]   /* Eigenvectors ................*/
-                    REAL *  eivec_   /* Eigenvectors ................*/
+static idx balback
+                   (idx     n,
+                    idx     low,
+                    idx     high,
+                    REAL    scal[],
+                    REAL *  eivec_
                    )
-/*====================================================================*
- *                                                                    *
- *  balback reverses the balancing of balance for the eigenvactors.   *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      n        idx n;  ( n > 0 )                                    *
- *               Dimension of mat                                     *
- *      low      idx low;                                             *
- *      high     idx high;   see balance                              *
- *      eivec    REAL   *eivec[n];                                    *
- *               Matrix of eigenvectors, as computed in  qr2          *
- *      scal     REAL   scal[];                                       *
- *               Scaling data from  balance                           *
- *                                                                    *
- *   Output parameter:                                                *
- *   ================                                                 *
- *      eivec    REAL   *eivec[n];                                    *
- *               Non-normalized eigenvectors of the original matrix   *
- *                                                                    *
- *   Macros :    SWAP()                                               *
- *   ========                                                         *
- *                                                                    *
- *====================================================================*/
 {
-  register idx i, j, k;
+  idx i, j, k;
   REAL s;
 
   for (i = low; i <= high; i++)
@@ -388,45 +258,15 @@ static idx balback       /* reverse balancing ........................*/
 
 
 
-static idx elmhes       /* reduce matrix to upper Hessenberg form ....*/
-                  (idx       n,       /* Dimension of matrix .........*/
-                   idx       low,     /* first nonzero row ...........*/
-                   idx       high,    /* last nonzero row ............*/
-                   //REAL *    mat[],   /* input/output matrix .........*/
-                   REAL *    mat_,   /* input/output matrix .........*/
-                   idx       perm[]   /* Permutation vector ..........*/
+static idx elmhes
+                  (idx       n,
+                   idx       low,
+                   idx       high,
+                   REAL *    mat_,
+                   idx       perm[]
                   )
-/*====================================================================*
- *                                                                    *
- *  elmhes transforms the matrix mat to upper Hessenberg form.        *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      n        idx n;  ( n > 0 )                                    *
- *               Dimension of mat                                     *
- *      low      idx low;                                             *
- *      high     idx high; see  balance                               *
- *      mat      REAL   *mat[n];                                      *
- *               n x n matrix                                         *
- *                                                                    *
- *   Output parameter:                                                *
- *   =================                                                *
- *      mat      REAL   *mat[n];                                      *
- *               upper Hessenberg matrix; additional information on   *
- *               the transformation is stored in the lower triangle   *
- *      perm     idx perm[];                                          *
- *               Permutation vector for elmtrans                      *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Macros:   SWAP, ABS                                              *
- *   =======                                                          *
- *                                                                    *
- *====================================================================*/
 {
-  register idx i, j, m;
+  idx i, j, m;
   REAL   x, y;
 
   for (m = low + 1; m < high; m++)
@@ -458,49 +298,24 @@ static idx elmhes       /* reduce matrix to upper Hessenberg form ....*/
           for (j = m; j < n; j++) mat(i,j) -= y * mat(m,j);
           for (j = 0; j <= high; j++) mat(j,m) += y * mat(j,i);
         }
-      } /* end i */
+      }
     }
-  } /* end m */
+  }
 
   return (0);
 }
 
 
-static idx elmtrans       /* copy to Hessenberg form .................*/
-                    (idx     n,       /* Dimension of matrix .........*/
-                     idx     low,     /* first nonzero row ...........*/
-                     idx     high,    /* last nonzero row ............*/
-                     //REAL *  mat[],   /* input matrix ................*/
-                     REAL *  mat_,   /* input matrix ................*/
-                     idx     perm[],  /* row permutations ............*/
-                     //REAL *  h[]      /* Hessenberg matrix ...........*/
-                     REAL *  hmat_      /* Hessenberg matrix ...........*/
+static idx elmtrans
+                    (idx     n,
+                     idx     low,
+                     idx     high,
+                     REAL *  mat_,
+                     idx     perm[],
+                     REAL *  hmat_
                     )
-/*====================================================================*
- *                                                                    *
- *  elmtrans copies the Hessenberg matrix stored in mat to h.         *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      n        idx n;  ( n > 0 )                                    *
- *               Dimension of  mat and eivec                          *
- *      low      idx low;                                             *
- *      high     idx high; see  balance                               *
- *      mat      REAL   *mat[n];                                      *
- *               n x n input matrix                                   *
- *      perm     idx *perm;                                           *
- *               Permutation data from  elmhes                        *
- *                                                                    *
- *   Output parameter:                                                *
- *   ================                                                 *
- *      h        REAL   *h[n];                                        *
- *               Hessenberg matrix                                    *
- *                                                                    *
- *====================================================================*/
 {
-  register idx k, i, j;
+  idx k, i, j;
 
   for (i = 0; i < n; i++)
   {
@@ -527,63 +342,23 @@ static idx elmtrans       /* copy to Hessenberg form .................*/
 }
 
 
-/* ------------------------------------------------------------------ */
 
-static idx orthes     /* reduce orthogonally to upper Hessenberg form */
+static idx orthes
                  (
-                  idx  n,                  /* Dimension of matrix     */
-                  idx  low,                /* [low,low]..[high,high]: */
-                  idx  high,               /* submatrix to be reduced */
-                  //REAL *mat[],             /* input/output matrix     */
-                  REAL *mat_,             /* input/output matrix     */
-                  REAL d[]                 /* reduction information   */
-                 )                         /* error code              */
+                  idx  n,
+                  idx  low,
+                  idx  high,
+                  REAL *mat_,
+                  REAL d[]
+                 )
 
-/***********************************************************************
-* This function reduces matrix mat to upper Hessenberg form by         *
-* Householder transformations. All details of the transformations are  *
-* stored in the remaining triangle of the Hessenberg matrix and in     *
-* vector d.                                                            *
-*                                                                      *
-* Input parameters:                                                    *
-* =================                                                    *
-* n        dimension of mat                                            *
-* low  \   rows 0 to low-1 and high+1 to n-1 contain isolated          *
-* high  >  eigenvalues, i. e. eigenvalues corresponding to             *
-*      /   eigenvectors that are multiples of unit vectors             *
-* mat      [0..n-1,0..n-1] matrix to be reduced                        *
-*                                                                      *
-* Output parameters:                                                   *
-* ==================                                                   *
-* mat      the desired Hessenberg matrix together with the first part  *
-*          of the reduction information below the subdiagonal          *
-* d        [0..n-1] vector with the remaining reduction information    *
-*                                                                      *
-* Return value:                                                        *
-* =============                                                        *
-* Error code. This can only be the value 0 here.                       *
-*                                                                      *
-* global names used:                                                   *
-* ==================                                                   *
-* REAL, MACH_EPS, ZERO, SQRT                                           *
-*                                                                      *
-* -------------------------------------------------------------------- *
-* Literature: Numerical Mathematics 12 (1968), pages 359 and 360       *
-***********************************************************************/
 
 {
-  idx  i, j, m;    /* loop variables                                  */
-  REAL s,          /* Euclidian norm sigma of the subdiagonal column  */
-                   /* vector v of mat, that shall be reflected into a */
-                   /* multiple of the unit vector e1 = (1,0,...,0)    */
-                   /* (v = (v1,..,v(high-m+1))                        */
-       x = ZERO,   /* first element of v in the beginning, then       */
-                   /* summation variable in the actual Householder    */
-                   /* transformation                                  */
-       y,          /* sigma^2 in the beginning, then ||u||^2, with    */
-                   /* u := v +- sigma * e1                            */
-       eps;        /* tolerance for checking if the transformation is */
-                   /* valid                                           */
+  idx  i, j, m;
+  REAL s,
+       x = ZERO,
+       y,
+       eps;
 
   eps = (REAL)128.0 * MACH_EPS;
 
@@ -601,16 +376,16 @@ static idx orthes     /* reduce orthogonally to upper Hessenberg form */
       y    -= x * s;
       d[m] =  x - s;
 
-      for (j = m; j < n; j++)               /* multiply mat from the  */
-      {                                     /* left by  (E-(u*uT)/y)  */
+      for (j = m; j < n; j++)
+      {
         for (x = ZERO, i = high; i >= m; i--)
           x += d[i] * mat(i,j);
         for (x /= y, i = m; i <= high; i++)
           mat(i,j) -= x * d[i];
       }
 
-      for (i = 0; i <= high; i++)           /* multiply mat from the  */
-      {                                     /* right by  (E-(u*uT)/y) */
+      for (i = 0; i <= high; i++)
+      {
         for (x = ZERO, j = high; j >= m; j--)
           x += d[j] * mat(i,j);
         for (x /= y, j = m; j <= high; j++)
@@ -623,79 +398,38 @@ static idx orthes     /* reduce orthogonally to upper Hessenberg form */
 
   return 0;
 
-}    /* --------------------------- orthes -------------------------- */
+}
 
 
-/* ------------------------------------------------------------------ */
 
-static idx orttrans       /* compute orthogonal transformation matrix */
+static idx orttrans
                    (
-                    idx  n,      /* Dimension of matrix               */
-                    idx  low,    /* [low,low]..[high,high]: submatrix */
-                    idx  high,   /* affected by the reduction         */
-                    //REAL *mat[], /* Hessenberg matrix, reduction inf. */
-                    REAL *mat_, /* Hessenberg matrix, reduction inf. */
-                    REAL d[],    /* remaining reduction information   */
-                    //REAL *v[]    /* transformation matrix             */
-                    REAL *vmat_    /* transformation matrix             */
-                   )             /* error code                        */
+                    idx  n,
+                    idx  low,
+                    idx  high,
+                    REAL *mat_,
+                    REAL d[],
+                    REAL *vmat_
+                   )
 
-/***********************************************************************
-* compute the matrix v of accumulated transformations from the         *
-* information left by the Householder reduction of matrix mat to upper *
-* Hessenberg form below the Hessenberg matrix in mat and in the        *
-* vector d. The contents of the latter are destroyed.                  *
-*                                                                      *
-* Input parameters:                                                    *
-* =================                                                    *
-* n        dimension of mat                                            *
-* low  \   rows 0 to low-1 and high+1 to n-1 contain isolated          *
-* high  >  eigenvalues, i. e. eigenvalues corresponding to             *
-*      /   eigenvectors that are multiples of unit vectors             *
-* mat      [0..n-1,0..n-1] matrix produced by `orthes' giving the      *
-*          upper Hessenberg matrix and part of the information on the  *
-*          orthogonal reduction                                        *
-* d        [0..n-1] vector with the remaining information on the       *
-*          orthogonal reduction to upper Hessenberg form               *
-*                                                                      *
-* Output parameters:                                                   *
-* ==================                                                   *
-* d        input vector destroyed by this function                     *
-* v        [0..n-1,0..n-1] matrix defining the similarity reduction    *
-*          to upper Hessenberg form                                    *
-*                                                                      *
-* Return value:                                                        *
-* =============                                                        *
-* Error code. This can only be the value 0 here.                       *
-*                                                                      *
-* global names used:                                                   *
-* =================                                                    *
-* REAL, ZERO, ONE                                                      *
-*                                                                      *
-* -------------------------------------------------------------------- *
-* Literature: Numerical Mathematics 16 (1970), page 191                *
-***********************************************************************/
 
 {
-  idx  i, j, m;                        /* loop variables              */
-  REAL x,                              /* summation variable in the   */
-                                       /* Householder transformation  */
-       y;                              /* sigma  respectively         */
-                                       /* sigma * (v1 +- sigma)       */
+  idx  i, j, m;
+  REAL x,
+       y;
 
-  for (i = 0; i < n; i++)              /* form the unit matrix in v   */
+  for (i = 0; i < n; i++)
   {
     for (j = 0; j < n; j++)
       vmat(i,j) = ZERO;
     vmat(i,i) = ONE;
   }
 
-  for (m = high - 1; m > low; m--)     /* apply the transformations   */
-  {                                    /* that reduced mat to upper   */
-    y = mat(m,m - 1);                 /* Hessenberg form also to the */
-                                       /* unit matrix in v. This      */
-    if (y != ZERO)                     /* produces the desired        */
-    {                                  /* transformation matrix in v. */
+  for (m = high - 1; m > low; m--)
+  {
+    y = mat(m,m - 1);
+    if (y != ZERO)
+    {
       y *= d[m];
       for (i = m + 1; i <= high; i++)
         d[i] = mat(i,m - 1);
@@ -711,79 +445,32 @@ static idx orttrans       /* compute orthogonal transformation matrix */
 
   return 0;
 
-}    /* -------------------------- orttrans ------------------------- */
+}
 
 
-static idx hqrvec       /* compute eigenvectors ......................*/
-                  (idx     n,           /* Dimension of matrix .......*/
-                   idx     low,         /* first nonzero row .........*/
-                   idx     high,        /* last nonzero row ..........*/
-                   //REAL *  h[],         /* upper Hessenberg matrix ...*/
-                   REAL *  hmat_,         /* upper Hessenberg matrix ...*/
-                   REAL    wr[],        /* Real parts of evalues .....*/
-                   REAL    wi[],        /* Imaginary parts of evalues */
-                   //REAL *  eivec[]      /* Eigenvectors ..............*/
-                   REAL *  eivec_      /* Eigenvectors ..............*/
+static idx hqrvec
+                  (idx     n,
+                   idx     low,
+                   idx     high,
+                   REAL *  hmat_,
+                   REAL    wr[],
+                   REAL    wi[],
+                   REAL *  eivec_
                   )
-/*====================================================================*
- *                                                                    *
- *  hqrvec computes the eigenvectors for the eigenvalues found in hqr2*
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      n        idx n;  ( n > 0 )                                    *
- *               Dimension of  mat and eivec, number of eigenvalues.  *
- *      low      idx low;                                             *
- *      high     idx high; see  balance                               *
- *      h        REAL   *h[n];                                        *
- *               upper Hessenberg matrix                              *
- *      wr       REAL   wr[n];                                        *
- *               Real parts of the n eigenvalues.                     *
- *      wi       REAL   wi[n];                                        *
- *               Imaginary parts of the n eigenvalues.                *
- *                                                                    *
- *   Output parameter:                                                *
- *   ================                                                 *
- *      eivec    REAL   *eivec[n];                                    *
- *               Matrix, whose columns are the eigenvectors           *
- *                                                                    *
- *   Return value :                                                   *
- *   =============                                                    *
- *      =  0     all ok                                               *
- *      =  1     h is the zero matrix.                                *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   function in use  :                                               *
- *   ==================                                               *
- *                                                                    *
- *      idx   comdiv(): complex division                              *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Constants used  :    MACH_EPS                                    *
- *   =================                                                *
- *                                                                    *
- *   Macros :   SQR, ABS                                              *
- *   ========                                                         *
- *                                                                    *
- *====================================================================*/
 {
   idx   i, j, k;
   idx   l, m, en, na;
   REAL  p, q, r = ZERO, s = ZERO, t, w, x, y, z = ZERO,
         ra, sa, vr, vi, norm;
 
-  for (norm = ZERO, i = 0; i < n; i++)        /* find norm of h       */
+  for (norm = ZERO, i = 0; i < n; i++)
   {
     for (j = i; j < n; j++) norm += ABS(hmat(i,j));
   }
 
-  if (norm == ZERO) return (1);               /* zero matrix          */
+  if (norm == ZERO) return (1);
 
-  for (en = n - 1; en >= 0; en--)             /* transform back       */
+  for (en = n - 1; en >= 0; en--)
   {
     p = wr[en];
     q = wi[en];
@@ -808,10 +495,7 @@ static idx hqrvec       /* compute eigenvectors ......................*/
           if (wi[i] == ZERO)
             hmat(i,en) = -r / ((w != ZERO) ? (w) : (MACH_EPS * norm));
           else
-          {  /* Solve the linear system:            */
-             /* | w   x |  | h[i][en]   |   | -r |  */
-             /* |       |  |            | = |    |  */
-             /* | y   z |  | h[i+1][en] |   | -s |  */
+          {
 
              x = hmat(i,i+1);
              y = hmat(i+1,i);
@@ -820,9 +504,9 @@ static idx hqrvec       /* compute eigenvectors ......................*/
              hmat(i+1,en) = ( (ABS(x) > ABS(z) ) ?
                                 (-r -w * t) / x : (-s -y * t) / z);
           }
-        }  /* wi[i] >= 0  */
-      }  /*  end i     */
-    }  /* end q = 0  */
+        }
+      }
+    }
 
     else if (q < ZERO)
     {
@@ -862,10 +546,6 @@ static idx hqrvec       /* compute eigenvectors ......................*/
           else
           {
 
-         /* solve complex linear system:                              */
-         /* | w+i*q     x | | h[i][na] + i*h[i][en]  |   | -ra+i*sa | */
-         /* |             | |                        | = |          | */
-         /* |   y    z+i*q| | h[i+1][na]+i*h[i+1][en]|   | -r+i*s   | */
 
             x = hmat(i,i+1);
             y = hmat(i+1,i);
@@ -886,14 +566,14 @@ static idx hqrvec       /* compute eigenvectors ......................*/
               comdiv (-r - y * hmat(i,na), -s - y * hmat(i,en), z, q,
                                               &hmat(i+1,na), &hmat(i+1,en));
 
-          }   /* end wi[i] > 0  */
-        }   /* end wi[i] >= 0  */
-      }   /* end i            */
-    }    /*  if q < 0        */
-  }    /* end  en           */
+          }
+        }
+      }
+    }
+  }
 
-  for (i = 0; i < n; i++)         /* Eigenvectors for the evalues for */
-    if (i < low || i > high)      /* rows < low  and rows  > high     */
+  for (i = 0; i < n; i++)
+    if (i < low || i > high)
       for (k = i + 1; k < n; k++) eivec(i,k) = hmat(i,k);
 
   for (j = n - 1; j >= low; j--)
@@ -924,92 +604,23 @@ static idx hqrvec       /* compute eigenvectors ......................*/
         }
       }
 
-  }  /*  end j  */
+  }
 
   return (0);
 }
 
 
-static idx hqr2         /* compute eigenvalues .......................*/
-                (idx     vec,         /* switch for computing evectors*/
-                 idx     n,           /* Dimension of matrix .........*/
-                 idx     low,         /* first nonzero row ...........*/
-                 idx     high,        /* last nonzero row ............*/
-                 //REAL *  h[],         /* Hessenberg matrix ...........*/
-                 REAL *  hmat_,         /* Hessenberg matrix ...........*/
-                 REAL    wr[],        /* Real parts of eigenvalues ...*/
-                 REAL    wi[],        /* Imaginary parts of evalues ..*/
-                 //REAL *  eivec[],     /* Matrix of eigenvectors ......*/
-                 REAL *  eivec_,     /* Matrix of eigenvectors ......*/
-                 idx     cnt[]        /* Iteration counter ...........*/
+static idx hqr2
+                (idx     vec,
+                 idx     n,
+                 idx     low,
+                 idx     high,
+                 REAL *  hmat_,
+                 REAL    wr[],
+                 REAL    wi[],
+                 REAL *  eivec_,
+                 idx     cnt[]
                 )
-/*====================================================================*
- *                                                                    *
- *  hqr2 computes the eigenvalues and (if vec != 0) the eigenvectors  *
- *  of an  n * n upper Hessenberg matrix.                             *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Control parameter:                                               *
- *   ==================                                               *
- *      vec      idx vec;                                             *
- *       = 0     compute eigenvalues only                             *
- *       = 1     compute all eigenvalues and eigenvectors             *
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      n        idx n;  ( n > 0 )                                    *
- *               Dimension of  mat and eivec,                         *
- *               length of the real parts vector  wr and of the       *
- *               imaginary parts vector  wi of the eigenvalues.       *
- *      low      idx low;                                             *
- *      high     idx high; see  balance                               *
- *      h        REAL   *h[n];                                        *
- *               upper  Hessenberg matrix                             *
- *                                                                    *
- *   Output parameters:                                               *
- *   ==================                                               *
- *      eivec    REAL   *eivec[n];     ( bei vec = 1 )                *
- *               Matrix, which for vec = 1 contains the eigenvectors  *
- *               as follows  :                                        *
- *               For real eigebvalues the corresponding column        *
- *               contains the corresponding eigenvactor, while for    *
- *               complex eigenvalues the corresponding column contains*
- *               the real part of the eigenvactor with its imaginary  *
- *               part is stored in the subsequent column of eivec.    *
- *               The eigenvactor for the complex conjugate eigenvactor*
- *               is given by the complex conjugate eigenvactor.       *
- *      wr       REAL   wr[n];                                        *
- *               Real part of the n eigenvalues.                      *
- *      wi       REAL   wi[n];                                        *
- *               Imaginary parts of the eigenvalues                   *
- *      cnt      idx cnt[n];                                          *
- *               vector of iterations used for each eigenvalue.       *
- *               For a complex conjugate eigenvalue pair the second   *
- *               entry is negative.                                   *
- *                                                                    *
- *   Return value :                                                   *
- *   =============                                                    *
- *      =   0    all ok                                               *
- *      = 4xx    Iteration maximum exceeded when computing evalue xx  *
- *      =  99    zero  matrix                                         *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   functions in use  :                                              *
- *   ===================                                              *
- *                                                                    *
- *      idx hqrvec(): reverse transform for eigenvectors              *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Constants used  :   MACH_EPS, MAXIT                              *
- *   =================                                                *
- *                                                                    *
- *   Macros  :   SWAP, ABS, SQRT                                      *
- *   =========                                                        *
- *                                                                    *
- *====================================================================*/
 {
   idx  i, j;
   idx  na, en, iter, k, l, m;
@@ -1033,12 +644,12 @@ static idx hqr2         /* compute eigenvalues .......................*/
 
     for ( ; ; )
     {
-      for (l = en; l > low; l--)             /* search for small      */
-        if ( ABS(hmat(l,l-1)) <=               /* subdiagonal element   */
+      for (l = en; l > low; l--)
+        if ( ABS(hmat(l,l-1)) <=
               MACH_EPS * (ABS(hmat(l-1,l-1)) + ABS(hmat(l,l))) )  break;
 
       x = hmat(en,en);
-      if (l == en)                            /* found one evalue     */
+      if (l == en)
       {
         wr[en] = hmat(en,en) = x + t;
         wi[en] = ZERO;
@@ -1050,7 +661,7 @@ static idx hqr2         /* compute eigenvalues .......................*/
       y = hmat(na,na);
       w = hmat(en,na) * hmat(na,en);
 
-      if (l == na)                            /* found two evalues    */
+      if (l == na)
       {
         p = (y - x) * 0.5;
         q = p * p + w;
@@ -1060,7 +671,7 @@ static idx hqr2         /* compute eigenvalues .......................*/
         cnt[en] = -iter;
         cnt[na] = iter;
         if (q >= ZERO)
-        {                                     /* real eigenvalues     */
+        {
           z = (p < ZERO) ? (p - z) : (p + z);
           wr[na] = x + z;
           wr[en] = s = x - w / z;
@@ -1092,10 +703,10 @@ static idx hqr2         /* compute eigenvalues .......................*/
               eivec(i,na) = q * z + p * eivec(i,en);
               eivec(i,en) = q * eivec(i,en) - p * z;
             }
-          }  /* end if (vec) */
-        }  /* end if (q >= ZERO) */
-        else                                  /* pair of complex      */
-        {                                     /* conjugate evalues    */
+          }
+        }
+        else
+        {
           wr[na] = wr[en] = x + p;
           wi[na] =   z;
           wi[en] = - z;
@@ -1103,12 +714,12 @@ static idx hqr2         /* compute eigenvalues .......................*/
 
         en -= 2;
         break;
-      }  /* end if (l == na) */
+      }
 
       if (iter >= MAXIT)
       {
         cnt[en] = MAXIT + 1;
-        return (en);                         /* MAXIT Iterations     */
+        return (en);
       }
 
       if ( (iter != 0) && (iter % 10 == 0) )
@@ -1146,13 +757,13 @@ static idx hqr2         /* compute eigenvalues .......................*/
 
       for (k = m; k <= na; k++)
       {
-        if (k != m)             /* double  QR step, for rows l to en  */
-        {                       /* and columns m to en                */
+        if (k != m)
+        {
           p = hmat(k,k-1);
           q = hmat(k+1,k-1);
           r = (k != na) ? hmat(k+2,k-1) : ZERO;
           x = ABS (p) + ABS (q) + ABS (r);
-          if (x == ZERO) continue;                  /*  next k        */
+          if (x == ZERO) continue;
           p /= x;
           q /= x;
           r /= x;
@@ -1170,7 +781,7 @@ static idx hqr2         /* compute eigenvalues .......................*/
         q /= p;
         r /= p;
 
-        for (j = k; j < n; j++)               /* modify rows          */
+        for (j = k; j < n; j++)
         {
           p = hmat(k,j) + q * hmat(k+1,j);
           if (k != na)
@@ -1183,7 +794,7 @@ static idx hqr2         /* compute eigenvalues .......................*/
         }
 
         j = (k + 3 < en) ? (k + 3) : en;
-        for (i = 0; i <= j; i++)              /* modify columns       */
+        for (i = 0; i <= j; i++)
         {
           p = x * hmat(i,k) + y * hmat(i,k+1);
           if (k != na)
@@ -1195,7 +806,7 @@ static idx hqr2         /* compute eigenvalues .......................*/
           hmat(i,k)   -= p;
         }
 
-        if (vec)      /* if eigenvectors are needed ..................*/
+        if (vec)
         {
           for (i = low; i <= high; i++)
           {
@@ -1209,61 +820,23 @@ static idx hqr2         /* compute eigenvalues .......................*/
             eivec(i,k)   -= p;
           }
         }
-      }    /* end k          */
+      }
 
-    }    /* end for ( ; ;) */
+    }
 
-  }    /* while (en >= low)                      All evalues found    */
+  }
 
-  if (vec)                                /* transform evectors back  */
+  if (vec)
     if (hqrvec (n, low, high, hmat_, wr, wi, eivec_)) return (99);
   return (0);
 }
 
 
-static idx norm_1       /* normalize eigenvectors to have one norm 1 .*/
-                  (idx     n,       /* Dimension of matrix ...........*/
-                   //REAL *  v[],     /* Matrix with eigenvektors ......*/
-                   REAL *  vmat_,     /* Matrix with eigenvektors ......*/
-                   REAL    wi[]     /* Imaginary parts of evalues ....*/
+static idx norm_1
+                  (idx     n,
+                   REAL *  vmat_,
+                   REAL    wi[]
                   )
-/*====================================================================*
- *                                                                    *
- *  norm_1 normalizes the one norm of the column vectors in v.        *
- *  (special attention to complex vectors in v  is given)             *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      n        idx n; ( n > 0 )                                     *
- *               Dimension of matrix v                                *
- *      v        REAL   *v[];                                         *
- *               Matrix of eigenvectors                               *
- *      wi       REAL   wi[];                                         *
- *               Imaginary parts of the eigenvalues                   *
- *                                                                    *
- *   Output parameter:                                                *
- *   ================                                                 *
- *      v        REAL   *v[];                                         *
- *               Matrix with normalized eigenvectors                  *
- *                                                                    *
- *   Return value :                                                   *
- *   =============                                                    *
- *      = 0      all ok                                               *
- *      = 1      n < 1                                                *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   functions used  :                                                *
- *   =================                                                *
- *      REAL   comabs():  complex absolute value                      *
- *      idx    comdiv():  complex division                            *
- *                                                                    *
- *   Macros :   ABS                                                   *
- *   ========                                                         *
- *                                                                    *
- *====================================================================*/
 {
   idx  i, j;
   REAL maxi, tr, ti;
@@ -1299,145 +872,37 @@ static idx norm_1       /* normalize eigenvectors to have one norm 1 .*/
         for (i = 0; i < n; i++)
           comdiv (vmat(i,j), vmat(i,j+1), tr, ti, &vmat(i,j), &vmat(i,j+1));
 
-      j++;                                          /* raise j by two */
+      j++;
     }
   }
   return (0);
 }
 
 
-idx sAlgebra::matrix::eigen               /* Compute all evalues/evectors of a matrix ..*/
+idx sAlgebra::matrix::eigen
           (
-           idx     vec,           /* switch for computing evectors ...*/
-           idx     ortho,         /* orthogonal Hessenberg reduction? */
-           idx     ev_norm,       /* normalize Eigenvectors? .........*/
-           idx     n,             /* size of matrix ..................*/
-           //REAL ** mat,           /* input matrix ....................*/
-           REAL * mat_,           /* input matrix ....................*/
-           //REAL ** eivec,         /* Eigenvectors ....................*/
-           REAL * eivec_,         /* Eigenvectors ....................*/
-           REAL  * valre,         /* real parts of eigenvalues .......*/
-           REAL  * valim,         /* imaginary parts of eigenvalues ..*/
-           idx   * cnt            /* Iteration counter ...............*/
+           idx     vec,
+           idx     ortho,
+           idx     ev_norm,
+           idx     n,
+           REAL * mat_,
+           REAL * eivec_,
+           REAL  * valre,
+           REAL  * valim,
+           idx   * cnt
           )
-/*====================================================================*
- *                                                                    *
- *  The function  eigen  determines all eigenvalues and (if desired)  *
- *  all eigenvectors of a real square  n * n  matrix via the QR method*
- *  in the version of  Martin, Parlett, Peters, Reinsch and Wilkinson.*
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Literature:                                                      *
- *   ===========                                                      *
- *      1) Peters, Wilkinson: Eigenvectors of real and complex        *
- *         matrices by LR and QR triangularisations,                  *
- *         Num. Math. 16, p.184-204, (1970); [PETE70]; contribution   *
- *         II/15, p. 372 - 395 in [WILK71].                           *
- *      2) Martin, Wilkinson: Similarity reductions of a general      *
- *         matrix to Hessenberg form, Num. Math. 12, p. 349-368,(1968)*
- *         [MART 68]; contribution II,13, p. 339 - 358 in [WILK71].   *
- *      3) Parlett, Reinsch: Balancing a matrix for calculations of   *
- *         eigenvalues and eigenvectors, Num. Math. 13, p. 293-304,   *
- *         (1969); [PARL69]; contribution II/11, p.315 - 326 in       *
- *         [WILK71].                                                  *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Control parameters:                                              *
- *   ===================                                              *
- *      vec      idx vec;                                             *
- *               call for eigen :                                     *
- *       = 0     compute eigenvalues only                             *
- *       = 1     compute all eigenvalues and eigenvectors             *
- *      ortho    flag that shows if transformation of mat to          *
- *               Hessenberg form shall be done orthogonally by        *
- *               `orthes' (flag set) or elementarily by `elmhes'      *
- *               (flag cleared). The Householder matrices used in     *
- *               orthogonal transformation have the advantage of      *
- *               preserving the symmetry of input matrices.           *
- *      ev_norm  flag that shows if Eigenvectors shall be             *
- *               normalized (flag set) or not (flag cleared)          *
- *                                                                    *
- *   Input parameters:                                                *
- *   ================                                                 *
- *      n        idx n;  ( n > 0 )                                    *
- *               size of matrix, number of eigenvalues                *
- *      mat      REAL   *mat[n];                                      *
- *               matrix                                               *
- *                                                                    *
- *   Output parameters:                                               *
- *   ==================                                               *
- *      eivec    REAL   *eivec[n];     ( bei vec = 1 )                *
- *               matrix, if  vec = 1  this holds the eigenvectors     *
- *               thus :                                               *
- *               If the jth eigenvalue of the matrix is real then the *
- *               jth column is the corresponding real eigenvector;    *
- *               if the jth eigenvalue is complex then the jth column *
- *               of eivec contains the real part of the eigenvector   *
- *               while its imaginary part is in column j+1.           *
- *               (the j+1st eigenvector is the complex conjugate      *
- *               vector.)                                             *
- *      valre    REAL   valre[n];                                     *
- *               Real parts of the eigenvalues.                       *
- *      valim    REAL   valim[n];                                     *
- *               Imaginary parts of the eigenvalues                   *
- *      cnt      idx cnt[n];                                          *
- *               vector containing the number of iterations for each  *
- *               eigenvalue. (for a complex conjugate pair the second *
- *               entry is negative.)                                  *
- *                                                                    *
- *   Return value :                                                   *
- *   =============                                                    *
- *      =   0    all ok                                               *
- *      =   1    n < 1 or other invalid input parameter               *
- *      =   2    insufficient memory                                  *
- *      = 10x    error x from balance()                               *
- *      = 20x    error x from elmh()                                  *
- *      = 30x    error x from elmtrans()   (for vec = 1 only)         *
- *      = 4xx    error xx from hqr2()                                 *
- *      = 50x    error x from balback()    (for vec = 1 only)         *
- *      = 60x    error x from norm_1()     (for vec = 1 only)         *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Functions in use   :                                             *
- *   ===================                                              *
- *                                                                    *
- *   static idx balance (): Balancing of an  n x n  matrix            *
- *   static idx elmh ():    Transformation to upper Hessenberg form   *
- *   static idx elmtrans(): intialize eigenvectors                    *
- *   static idx hqr2 ():    compute eigenvalues/eigenvectors          *
- *   static idx balback (): Reverse balancing to obtain eigenvectors  *
- *   static idx norm_1 ():  Normalize eigenvectors                    *
- *                                                                    *
- *   void *vmalloc():       allocate vector or matrix                 *
- *   void vmfree():         free list of vectors and matrices         *
- *                                                                    *
- *====================================================================*
- *                                                                    *
- *   Constants used   :     NULL, BASIS                               *
- *   ===================                                              *
- *                                                                    *
- *====================================================================*/
 {
   idx i;
   idx      low, high, rc;
-  //REAL     *scale, *d = NULL;
   sVec < REAL > scale, d ;
-  //void     *vmblock;
 
-  if (n < 1) return (1);                       /*  n >= 1 ............*/
+  if (n < 1) return (1);
 
-  //if (valre == NULL || valim == NULL || mat == NULL || cnt == NULL)
-  //  return (1);
 
-  //for (i = 0; i < n; i++)
-  //  if (mat[i] == NULL) return (1);
 
   for (i = 0; i < n; i++) cnt[i] = 0;
 
-  if (n == 1)                                  /*  n = 1 .............*/
+  if (n == 1)
   {
     eivec(0,0) = ONE;
     valre[0]    = mat(0,0);
@@ -1445,51 +910,31 @@ idx sAlgebra::matrix::eigen               /* Compute all evalues/evectors of a m
     return (0);
   }
 
-  //if (vec)
-  //  {
-  //  if (eivec == NULL) return (1);
-  //  for (i = 0; i < n; i++)
-  //    if (eivec[i] == NULL) return (1);
-  //}
 
-  //vmblock = vminit();
-  //scale = (REAL *)vmalloc(vmblock, VEKTOR, n, 0);
   scale.resize(n);
-  //if (! vmcomplete(vmblock))                 /* memory error         */
-  //  return 2;
 
-  if (vec && ortho)                          /* with Eigenvectors     */
-  {                                          /* and orthogonal        */
-                                             /* Hessenberg reduction? */
-    //d = (REAL *)vmalloc(vmblock, VEKTOR, n, 0);
+  if (vec && ortho)
+  {
     d.resize(n);
-    //if (! vmcomplete(vmblock))
-    //{
-    //  vmfree(vmblock);
-    //  return 1;
-    //}
   }
 
-                                            /* balance mat for nearly */
-  rc = balance (n, mat_, scale,              /* equal row and column   */
-                  &low, &high, BASIS);      /* one norms              */
+  rc = balance (n, mat_, scale,
+                  &low, &high, BASIS);
   if (rc)
   {
-    //vmfree(vmblock);
     return (100 + rc);
   }
 
   if (ortho)
     rc = orthes(n, low, high, mat_, d);
   else
-    rc = elmhes (n, low, high, mat_, cnt);   /*  reduce mat to upper   */
-  if (rc)                                   /*  Hessenberg form       */
+    rc = elmhes (n, low, high, mat_, cnt);
+  if (rc)
   {
-    //vmfree(vmblock);
     return (200 + rc);
   }
 
-  if (vec)                                  /*  initialize eivec      */
+  if (vec)
   {
     if (ortho)
       rc = orttrans(n, low, high, mat_, d, eivec_);
@@ -1497,41 +942,35 @@ idx sAlgebra::matrix::eigen               /* Compute all evalues/evectors of a m
       rc = elmtrans (n, low, high, mat_, cnt, eivec_);
     if (rc)
     {
-      //vmfree(vmblock);
       return (300 + rc);
     }
   }
 
-  rc = hqr2 (vec, n, low, high, mat_,        /*  execute Francis QR    */
-             valre, valim, eivec_, cnt);     /*  algorithm to obtain   */
-  if (rc)                                   /*  eigenvalues           */
+  rc = hqr2 (vec, n, low, high, mat_,
+             valre, valim, eivec_, cnt);
+  if (rc)
   {
-    //vmfree(vmblock);
     return (400 + rc);
   }
 
   if (vec)
   {
-    rc = balback (n, low, high,             /*  reverse balancing if  */
-                      scale, eivec_);        /*  eigenvaectors are to  */
-    if (rc)                                 /*  be determined         */
+    rc = balback (n, low, high,
+                      scale, eivec_);
+    if (rc)
     {
-      //vmfree(vmblock);
       return (500 + rc);
     }
     if (ev_norm)
-      rc = norm_1 (n, eivec_, valim);        /* normalize eigenvectors */
+      rc = norm_1 (n, eivec_, valim);
     if (rc)
     {
-      //vmfree(vmblock);
       return (600 + rc);
     }
   }
 
-  //vmfree(vmblock);                          /* free buffers           */
 
 
   return (0);
 }
 
-/* ------------------------ END feigen.cpp -------------------------- */

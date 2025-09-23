@@ -30,17 +30,27 @@
 
 PROGRAMS += dna-screening
 
-PROGRAMS_LIBS = -ldmlib -lqpsvc -lviolib $(VLIB_LIB)
-PROGRAMS_XLIBS = $(MYSQL_LIB) $(LIBZIP_LIB)
+PROGRAMS_LIBS = -lqpsvc -lviolib $(VLIB_LIB)
+PROGRAMS_XLIBS = $(MYSQL_LIB)
+
+OBJECT_TYPES = svc-censuScope svc-dna-screening
+
+ACTIONS = censuscope_nuc_read
 
 dna-screening_SRCS = dna-screening.cpp
+
+APPS = Censuscope:1
+
+MENUITEMS = \
+/Portal/Sequence_Alignment_on_Genome/Metagenomic-seq/Censuscope
+
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-screening,CensuScope,/Sequencing/)
 	$(call dist-app,dna-screening,dna-screening)

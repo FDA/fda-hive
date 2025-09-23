@@ -27,11 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-// _/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Global Viewer locator
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/
 
 function vjObjGlobalMapper()
 {
@@ -83,9 +78,7 @@ function vjObjDetailedEvent(event,eventValidationObj,funcname,container){
 
 function vjObjEvent(funcname, container)
 {
-  //window.status = 'f:'+funcname +"->" + container;
   var obj=vjObj[container];
-  //alert(funcname + " - " + container + "---"+obj);
   if(!obj)return;
 
   var arglist = new Array();
@@ -101,8 +94,6 @@ function vjObjEvent(funcname, container)
   
   if(res) {
       stopEventPropagation();
-      //if(event.stopPropagation){event.stopPropagation();}
-      //event.cancelBubble=true;
   }
   return res;
 }
@@ -119,7 +110,7 @@ function vjObjFunc( funcname, thisscontainer )
     return {obj:object, func: (!object)  ? vjObjFuncDummy : object[funcname] };
 }
 
-function vjObjAjaxCallback(params, body)
+function vjObjAjaxCallback(params, body, page_request)
 {
 
   var obj=vjObj[params.objCls];
@@ -127,9 +118,9 @@ function vjObjAjaxCallback(params, body)
 
   var res=0;
   if(obj[params.callback])
-    res=obj[params.callback].apply(obj, new Array (params, body ) );
+    res=obj[params.callback].apply(obj, new Array (params, body, page_request) );
   else
-    res=eval(params.callback).apply(obj, new Array (params, body ) );
+    res=eval(params.callback).apply(obj, new Array (params, body, page_request) );
   return res;
 }
 
@@ -148,4 +139,3 @@ function vjObjEventGlobalFuncBody( funcname, thisscontainer , timeout )
     return t;
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjObj.js"

@@ -31,7 +31,7 @@
 
 void sBasicCollapse::collapse(sTabular * tbl,  sVec <idx > colsToUse, sVariantTbl * outTbl)
 {
-    sVec <idx> colsActual; //the are the columns on which the statistics will be accumulated
+    sVec <idx> colsActual;
 
     for (idx i = 0; i < tbl->cols(); i++)
     {
@@ -54,11 +54,11 @@ void sBasicCollapse::collapse(sTabular * tbl,  sVec <idx > colsToUse, sVariantTb
     }
 
     idx colStep = colsToUse.dim();
-    idx colPos = 0; //current position in the column vector
-    idx col = colsToUse[0]; //the actual column from the column vector
+    idx colPos = 0;
+    idx col = colsToUse[0];
 
-    idx rowInTbl = 1; //the current row in the tab;e
-    idx startRow = 0; //the starting row in the table (this will be used for calculating the number of elements for the statistics)
+    idx rowInTbl = 1;
+    idx startRow = 0;
 
     sVec <idx> endingRow;
     sVec <idx> startingRow;
@@ -69,15 +69,14 @@ void sBasicCollapse::collapse(sTabular * tbl,  sVec <idx > colsToUse, sVariantTb
     while (colPos < colsToUse.dim() && endingRow[endingRow.dim()-1] < tbl->rows())
     {
         sVariant curElement;
-        tbl->val(curElement, startRow, col, true); //current element (this will change with every new element discovered in the collapsing rows
+        tbl->val(curElement, startRow, col, true);
         startingRow[colPos] = startRow;
 
-        sVec<real> median; //all of the median value according to the values in the curElement
-        sVec<real> sumOfSquares; //will be used for the standard deviation
+        sVec<real> median;
+        sVec<real> sumOfSquares;
         median.add(colsActual.dim());
         sumOfSquares.add(colsActual.dim());
 
-        //initializing all of the values in the vectors for proper calculations
         for (idx i = 0; i < colsActual.dim(); i++)
         {
             sVariant cur;
@@ -137,7 +136,6 @@ void sBasicCollapse::collapse(sTabular * tbl,  sVec <idx > colsToUse, sVariantTb
                 sStr toPut;
                 real curMedian = median[k]/(rowInTbl-startRow);
                 real std = sqrt(sumOfSquares[k]/(rowInTbl-startRow) - curMedian*curMedian);
-                // \302\261 is octal code for UTF8 encoding of plus/minus
                 toPut.printf("%g\302\261%g", curMedian, std);
                 outTbl->setVal(i, colStep + k*colStep + colPos, toPut.ptr());
             }

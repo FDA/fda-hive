@@ -139,7 +139,7 @@ void sAlgebra::matrix::shiftRows(real * src, idx rows, idx cols, const real * sh
     idx ic,ir;
     for(ir=0; ir<rows; ++ir){
         for( ic=0;ic<cols; ++ic) {
-            val(ir,ic)-=shift[ic]*scale; // shift the data in current column
+            val(ir,ic)-=shift[ic]*scale;
         }
     }
 }

@@ -42,12 +42,29 @@ class DnaParserProc: public sQPrideProc
         {
         }
         virtual idx OnExecute(idx);
+        virtual sRC OnSplit(idx req, idx &cnt);
 };
+
+sRC DnaParserProc::OnSplit(idx req, idx &cnt)
+{
+    sStr sourceSequenceFilePath;
+    formValue("sourceSequenceFilePath", &sourceSequenceFilePath, 0);
+    if( !sourceSequenceFilePath ) {
+        logOut(eQPLogType_Error, "Invalid source sequence file path for req %" DEC,req);
+        reqSetInfo(req, eQPInfoLevel_Error, "Invalid source sequence file path");
+        reqSetStatus(req, eQPReqStatus_ProgError);
+        return RC(sRC::eSplitting,sRC::eRequest,sRC::eBlob, sRC::eUndefined);
+    }
+    const idx fsize = sFile::size(sourceSequenceFilePath);
+    cnt = sVioseq2::getPartCount(fsize, ((udx) 2) * 1024 * 1024 * 1024);
+    return sRC::zero;
+}
 
 idx DnaParserProc::OnExecute(idx req)
 {
     sStr errmsg;
     bool reporterrorasWarning = false;
+
 #define RELFIXTBL "vioseq-relationFixtable.bin"
 #define COUNTLONG "vioseq-longcount"
 
@@ -71,7 +88,8 @@ idx DnaParserProc::OnExecute(idx req)
         }
         idx fsize = sFile::size(sourceSequenceFilePath);
         if( !fsize ) {
-            errmsg.printf("Source sequence filesize is empty in %" DEC " request", req);
+            errmsg.printf("Sequence file is empty, skipped");
+            reporterrorasWarning = true;
             break;
         }
 
@@ -95,14 +113,13 @@ idx DnaParserProc::OnExecute(idx req)
             v.m_callback = reqProgressStatic;
             v.m_callbackParam = this;
 
-            // We must append a number to the name of the file and send it to parse
             sStr newfile;
             if( !obj.addFilePathname(newfile, true, "~tmp.%" DEC ".vioseq2", reqSliceId) ) {
                 errmsg.printf("failed to create destination");
                 break;
             }
             sStr partfile;
-            reqSetData(req, "file://" RELFIXTBL, 0, 0); // create and empty file for this request
+            reqSetData(req, "file://" RELFIXTBL, 0, 0);
             if( !reqDataPath(req, RELFIXTBL, &partfile) ) {
                 errmsg.printf("Can't write the " RELFIXTBL);
                 break;
@@ -121,7 +138,6 @@ idx DnaParserProc::OnExecute(idx req)
                 logOut(eQPLogType_Info, "sFile::size(\"%s\") is %" DEC "\n", sourceSequenceFilePath.ptr(), fsize);
 
                 idx ires = v.parseSequenceFile(newfile, sourceSequenceFilePath, flags, 0, 0, 0, v.getPrefixLength(reqSliceCnt), reqSliceId, &partitionList);
-//                isMultipleAlignment = alignReferenceIncluded || (v.getFlags() & sVioseq2::eTreatAsMA);
                 if( ires < 0 ) {
                     for (idx j=0; v.listErrors[0].errN != 0;++j){
                         if (v.listErrors[j].errN == ires ){
@@ -147,7 +163,6 @@ idx DnaParserProc::OnExecute(idx req)
                     *(pfx.ptr(prefixLen - i - 1)) = sBioseq::mapRevATGC[base % 4];
                     base /= 4;
                 }
-                // switch to short for report
                 v.setmode(sBioseq::eBioModeShort);
 #if _DEBUG
                 reqSetInfo(req, eQPInfoLevel_Info, "parsed '%s' part %" DEC " prefix '%s' sequence count short: %" DEC " long: %" DEC "\n", sourceSequenceFilePath.ptr(), reqSliceId, pfx.ptr(), v.dim(), ires);
@@ -156,7 +171,7 @@ idx DnaParserProc::OnExecute(idx req)
 #endif
             }}
         }
-        if (errmsg){
+        if( errmsg ) {
             break;
         }
         const char * mysvcName = vars.value("serviceName");
@@ -174,20 +189,16 @@ idx DnaParserProc::OnExecute(idx req)
             }
             do {
                 if( isHiveseq ) {
-                    // Do not parse the file, because it is a hiveseq file
-                    // We need to wait for dmCompressor to copy the file into destination
                     obj.getFile(outfile);
                     if( !sFile::exists(outfile.ptr()) ) {
                         reqReSubmit(req, 60);
                         reqProgress(-1, 80, 100);
                         return 0;
                     }
-                    // Test the file in next {} block
                     break;
                 }
                 sVec<idx> reqList;
                 grp2Req(masterId, &reqList, mysvcName);
-                // check if all parts are done w/o error
                 sVec<sVec<sVioseq2::Infopart> > partList;
                 partList.resize(reqSliceCnt);
                 sVec<idx> countRes;
@@ -195,7 +206,6 @@ idx DnaParserProc::OnExecute(idx req)
 
                 shortres = 0;
                 sStr partFiles00;
-                // Generate the list of files to concatenate or to create the vioseqlist
                 for(idx i = 0; i < reqSliceCnt; ++i) {
                     sStr newtempfile;
                     if( !obj.getFilePathname(newtempfile, "~tmp.%" DEC ".vioseq2", i) ) {
@@ -205,21 +215,18 @@ idx DnaParserProc::OnExecute(idx req)
                     sStr partfile;
                     reqDataPath(reqList[i], RELFIXTBL, &partfile);
                     if( !partfile) {
-    //                    errmsg.printf("There is no relation FixTable for req: %" DEC, reqList[i]);
                         countRes[i] = 0;
                         continue;
                     }
                     sStr l;
                     reqGetData(reqList[i], COUNTLONG, &l);
                     if( !l) {
-    //                    errmsg.printf("There is no relation FixTable for req: %" DEC, reqList[i]);
                         continue;
                     }
                     idx lres=0;
                     sscanf(l,"%" DEC,&lres);
                     sVioseq2 bioseq(newtempfile);
                     if( !bioseq.dim() ) {
-    //                    errmsg.printf("Error reading vioseq file: %s", newtempfile.ptr());
                         countRes[i] = 0;
                         continue;
                     }
@@ -227,11 +234,6 @@ idx DnaParserProc::OnExecute(idx req)
                     countRes[i] = bioseq.dim();
                     shortres += countRes[i];
                     longres += lres;
-                    /*partList[i].init( partfile.ptr(), sMex::fReadonly);
-                    if( !partList[i].ok()) {
-                        errmsg.printf("Sequence ID line mapping failed %" DEC, i);
-                        break;
-                    }*/
                     if( reqSliceCnt > 1 && !sFile::size(partfile)) {
                         errmsg.printf("Sequence ID line mapping failed %" DEC, i);
                         break;
@@ -252,25 +254,21 @@ idx DnaParserProc::OnExecute(idx req)
                     break;
                 }
 
-                //  Fix the Relations of the first file
                 sStr firstfile;
                 if( !obj.getFilePathname(firstfile, "~tmp.0.vioseq2") ) {
                     errmsg.printf("Failed to access sequence chunk file 0");
                     break;
                 }
 
-                if( reqSliceCnt > 1 ) {  // If there is only 1 slice, there is no need to fix relationships
-                    // I must fix AddRelation for the first vioseq2
+                if( reqSliceCnt > 1 ) {
                     sVioDB dbi(firstfile, 0, 0, 0);
-                    idx rc = sVioseq2::fixAddRelation(&dbi, 0/*&partList*/, countRes,partFiles00.ptr(), reqProgressStatic, this);
+                    idx rc = sVioseq2::fixAddRelation(&dbi, 0, countRes,partFiles00.ptr(), reqProgressStatic, this);
                     if( rc != 0 ) {
                         errmsg.printf("failed to fix relation %" DEC, rc);
                         break;
                     }
-//                    longres = dbi.GetRecordCnt(sVioseq2::eRecID_TYPE);    // Get the count of long mode sequences to return
                 }
 
-                // Create a list with the files
                 sStr filenames;
                 for(idx i = 0; i < reqSliceCnt; i++) {
                     sStr oldfile, newfile;
@@ -283,10 +281,10 @@ idx DnaParserProc::OnExecute(idx req)
                         errmsg.printf("failed to add chunk file %" DEC " (1)", i);
                         break;
                     }
-                    if( !isMerged ) {  // Append file:// to the names
+                    if( !isMerged ) {
                         sFilePath tmpfile(newfile, "%%flnm");
                         filenames.printf("file://%s,0,%" DEC "\n", tmpfile.ptr(0), countRes[i]);
-                    } else {  // Separate only by ','
+                    } else {
                         if( i != 0 ) {
                             filenames.printf(",");
                         }
@@ -299,7 +297,6 @@ idx DnaParserProc::OnExecute(idx req)
                     break;
                 }
                 if( !isMerged ) {
-                    //  Put the files in the vioseqlist
                     sFil fp(outfile);
                     fp.cut(0);
                     if( fp.ok() ) {
@@ -308,7 +305,6 @@ idx DnaParserProc::OnExecute(idx req)
                         errmsg.printf("Can't open/write in vioseqlist final destination");
                         break;
                     }
-                    // Rename all the files
                     for(idx i = 0; i < reqSliceCnt; i++) {
                         if ( (countRes[i] == 0) && (i != 0) ){continue;}
                         sStr oldfile, newfile;
@@ -324,7 +320,6 @@ idx DnaParserProc::OnExecute(idx req)
                         dbren.renameAllFiles(newfile);
                     }
                 } else {
-                    // Do not create a vioseqlist, but a single file instead
                     sVioDB db;
                     db.concatFiles(outfile, filenames, "vioseq2", isSingle, true);
                 }
@@ -332,7 +327,6 @@ idx DnaParserProc::OnExecute(idx req)
             } while (false);
 
             if(!errmsg ) {
-                // cast object
                 sUsrObj* hobj = obj.cast(dstType);
                 if( !hobj ) {
                     errmsg.printf("Cannot cast to '%s'", dstType.ptr());
@@ -348,7 +342,6 @@ idx DnaParserProc::OnExecute(idx req)
                 reqProgress(-1, 97, 100);
                 hobj->propSetI("rec-dim", shortres);
                 hobj->propSetI("rec-count", longres);
-//                hobj->propSetI("rec-count", hs.longcount());
 
                 if( hobj != &obj ) {
                     delete hobj;
@@ -356,17 +349,14 @@ idx DnaParserProc::OnExecute(idx req)
                 hobj = 0;
                 if( hs.dim() ) {
                     if (dmArchiver::getQCFlag(*this) != 0){
-                        // Will launch dna-qc
                         DnaQC dnaqc(*this, objID);
                         idx reqsubmitedQC = dnaqc.launch(*user, grpId);
                         logOut(eQPLogType_Info, "Submitted %s request %" DEC "\n", dnaqc.getSvcName(), reqsubmitedQC);
                     }
                     if (dmArchiver::getScreenFlag(*this) != 0){
-                        // Will launch dna-screening for hexagon and blast
-                        // Uncomment these 3 lines to launch dna-screening:
                         DnaScreening dnascreen(*this, objID, DnaScreening::eBlastVsNT);
                         idx priority = 1000;
-                        idx reqsubmitScreen = dnascreen.launch(*user, grpId, 0, priority); // grpID=0 not to attach to the main group - otherwise its too long and makes it seem slower to parse
+                        idx reqsubmitScreen = dnascreen.launch(*user, grpId, 0, priority);
                         logOut(eQPLogType_Info, "Submitted %s request %" DEC "\n", dnascreen.getSvcName(), reqsubmitScreen);
                     }
                 } else {
@@ -376,32 +366,27 @@ idx DnaParserProc::OnExecute(idx req)
             }
 
             if( errmsg ) {
-                // Clean Files: Vioseq files and blob only
                 sVec<idx> reqList;
                 grp2Req(masterId, &reqList, mysvcName);
                 for(idx i = 0; i < reqSliceCnt; i++) {
                     reqProgress(-1, 99, 100);
-                    // Delete vioseq2 files
                     sStr newfile;
                     if( !obj.getFilePathname(newfile, ".%" DEC ".vioseq2", i) ) {
                         continue;
                     }
                     sVioDB dbren(newfile);
                     dbren.deleteAllJobs();
-                    // Delete reqDataPath
                     sStr partfile;
                     reqDataPath(reqList[i], RELFIXTBL, &partfile);
                     sFile::remove(partfile);
                 }
             }
 #ifndef _DEBUG
-            // Delete fixRelation files after parser has completed last step, in release build only
             if (!errmsg){
                 sVec<idx> reqList;
                 grp2Req(masterId, &reqList, mysvcName);
                 sStr partfile;
                 for(idx i = 0; i < reqSliceCnt; i++) {
-                    // Delete reqDataPath
                     partfile.cut(0);
                     reqDataPath(reqList[i], RELFIXTBL, &partfile);
                     sFile::remove(partfile);
@@ -412,7 +397,7 @@ idx DnaParserProc::OnExecute(idx req)
     } while( false );
 
     if( !errmsg ) {
-        if ( reqProgress(-1, 100, 100) ) { //Do not change status if request was stopped.
+        if ( reqProgress(-1, 100, 100) ) {
             reqSetProgress(req, -1, 100);
             reqSetStatus(req, eQPReqStatus_Done);
         }
@@ -427,7 +412,6 @@ idx DnaParserProc::OnExecute(idx req)
             reqSetInfo(req, outInfolevel, "%s", errmsg.ptr());
         }
         if (reporterrorasWarning){
-            // Cast object to u-file and report Status as DONE
             const sHiveId objID(formValue("obj"));
             sUsrFile obj(objID, user);
             sUsrObj* hobj = obj.cast("u-file");
@@ -451,7 +435,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc,argv); // remember arguments in global for future
+    sApp::args(argc,argv);
 
     DnaParserProc backend("config=qapp.cfg" __,sQPrideProc::QPrideSrvName(&tmp,"dna-parser",argv[0]));
     return (int)backend.run(argc,argv);

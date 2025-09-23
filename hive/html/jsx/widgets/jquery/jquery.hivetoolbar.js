@@ -30,7 +30,7 @@
 $(function () {
     $.widget("hive.hivetoolbar", {
         options: {
-            minimizeDelay: 3000    //    ms
+            minimizeDelay: 3000
         },
 
         _create: function () {
@@ -39,7 +39,6 @@ $(function () {
             var status = $.sessionStorage.get('header-status');
 
             if(status == null) {
-                //    status is unknown... so, default behaviour is to initiate minimization process 
                 var timer = setTimeout(oThis._minimize, oThis.options.minimizeDelay);
                 $(document).on('mousemove', function(e) {
                     clearInterval(timer);
@@ -51,7 +50,7 @@ $(function () {
             }
             else if(status == 'minimized') {
                 $('#header').addClass('minimized');
-                $('div.content').css({ top: '45px' });
+                $('div.content').css({ top: '40px' });
             }
 
             $('div.bottom', this.element).append(
@@ -77,7 +76,7 @@ $(function () {
         _minimize: function() {
             $('#header').addClass('minimized', 400);
 
-            $("div.content").animate({ top: '45px' }, { done: function() { $(window).trigger('resize'); } });
+            $("div.content").animate({ top: '40px' }, { done: function() { $(window).trigger('resize'); } });
 
                   $(document).unbind('mousemove');
                

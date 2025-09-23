@@ -28,7 +28,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-function vjSVG_Axis(source) // frequencies,labels, length
+function vjSVG_Axis(source)
 {
     vjSVG_primitive.call(this,source);
 
@@ -53,7 +53,6 @@ function vjSVG_Axis(source) // frequencies,labels, length
 
     var extend={min:this.min,max:this.max,step:0};
 
-    //------------------------------Arrow
     if(this.showArrow){
         var arrow=new vjSVG_Arrow();
         this.children.push(arrow);
@@ -76,7 +75,6 @@ function vjSVG_Axis(source) // frequencies,labels, length
         }
     }
 
-    //------------------------------Major Ticks
     var majorTicks=new vjSVG_MajorTicks({
         origin:{x:0,y:0,z:0},
         numOfTicks:this.numOfTicks,
@@ -87,7 +85,6 @@ function vjSVG_Axis(source) // frequencies,labels, length
         });
     this.children.push(majorTicks);
 
-    //------------------------------Major Grid
     if(this.showGrid){
         if(this.offsetGrid===undefined && this.offsetTicks!==undefined)this.offsetGrid=this.offsetTicks;
         var majorGrid=new vjSVG_MajorGrid({
@@ -100,7 +97,6 @@ function vjSVG_Axis(source) // frequencies,labels, length
         this.children.push(majorGrid);
     }
 
-    //------------------------------Title
     if (!this.titleCrd) this.titleCrd={x:0.5,y:this.gapTickLabel+this.gapLabelTitle+this.labelSize};
     if (!this.title) this.title="Axis";
     var angleText=0;
@@ -134,7 +130,6 @@ function vjSVG_Ticks(source)
 
 
 function vjSVG_MajorTicks(source){
-    //Frequencies, labels
     vjSVG_primitive.call(this,source);
 
     if (!this.numOfTicks) this.numOfTicks=10;
@@ -146,7 +141,6 @@ function vjSVG_MajorTicks(source){
             labels.push(parseFloat(i.toPrecision(12)));
         this.labels=labels;
     }
-    //I need to fix this
     var stepCord=1/(this.extend.max/this.extend.step);
     for (var s=0;s<labels.length;s++){
         var crd={x:this.origin.x+this.offset,y:this.origin.y,z:this.origin.z};
@@ -199,30 +193,26 @@ function compute_titleGap(obj,gapTitle){
 }
 
 
-function vjSVG_tick_scale_Linear(extend,numT){        //min of a range,max of a range, number of Tick
-    //var extent = d3_scaleExtent(domain),
+function vjSVG_tick_scale_Linear(extend,numT){
     var span = extend.max - extend.min,
     step = Math.pow(10, Math.floor(Math.log(span / numT) / Math.LN10)),
     err = numT / span * step;
-    // Filter ticks to get closer to the desired count.
     if (err <= .15) step *= 10;
     else if (err <= .35) step *= 5;
     else if (err <= .75) step *= 2;
-    // Round start and stop values to step interval.
     extend.min = Math.ceil(extend.min / step) * step;
-    extend.max = (Math.floor(extend.max / step)+0.5)*step; // inclusive
+    extend.max = (Math.floor(extend.max / step)+0.5)*step;
     extend.step = step;
     return extend;
 }
 
-function vjSVG_Cartesian2D (source) // frequencies, labels, title for axis
+function vjSVG_Cartesian2D (source)
 {
     vjSVG_primitive.call(this,source);
 
 
     if(!this.axisX)  this.axisX=new vjSVG_Axis ();
     this.axisX.clockWise=1;
-//    this.axisX.gapLabelTitle=-0.02;this.axisX.gapTickLabel=-0.02;this.axisX.gapLabelSize=true;    //directionallity of title and tick labels
     if(!this.axisY){
         this.axisY=new vjSVG_Axis ({
             rotation:{
@@ -234,7 +224,6 @@ function vjSVG_Cartesian2D (source) // frequencies, labels, title for axis
     }
     if (!this.axisY.rotation) this.axisY.rotation={crd:{x:0,y:0,z:0},vec:{x:0,y:0,z:1},angle:90};
     this.axisY.clockWise=-1;
-//    this.axisY.scale({x:1,y:-1,z:1});
     var axisX=new vjSVG_Axis (this.axisX);
     var axisY=new vjSVG_Axis(this.axisY);
     axisY.scale={x:1,y:-1,z:1};

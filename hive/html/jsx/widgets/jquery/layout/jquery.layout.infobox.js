@@ -66,7 +66,8 @@ $(function () {
 
             this.area = this.element.area('instance');
 
-            this.manager = this.element.parent().layoutmanager('instance');
+            this.manager = this.element.closest('.layout-manager').layoutmanager('instance');
+            this.gridWid = this.element.closest(".layout-area.grid-stack-area").gridstackArea("instance");
 
             this.adjustHeight();
 
@@ -142,7 +143,6 @@ $(function () {
                         return $(elem).is('.layout-infobox .nav-tabs > li.ui-draggable');
                     },
                     over: function (event, ui) {
-                        //    if we try to move tab from the infobox where it belongs to, we don't have to show north and center drop areas...
                           var yourself = $.contains(oThis.element.get(0), ui.draggable.get(0));
                         oThis._showSplitAreas(yourself);
                     },
@@ -158,8 +158,6 @@ $(function () {
         _initSplitAreas: function () {
             var oThis = this;
 
-            //    check that infobox is not inside another infobox... 
-            //    for now we support split mode only for first level infoboxes
             if(this.element.closest('.layout-infobox').length > 0)
                 return;
 
@@ -241,7 +239,6 @@ $(function () {
         },
 
         _loadOptions: function () {
-            //  load options from HTML data attributes...
             if ($(this.infobox).is('[data-allow-maximize]'))
                 this.options.allowMaximize = $(this.infobox).data('allow-maximize');
             if ($(this.infobox).is('[data-allow-close]'))
@@ -260,6 +257,8 @@ $(function () {
             var oThis = this;
 
             this.element.click(function() {
+                if (navigator.appName == "Netscape" || naviagor.appName == "Microsoft Internet Explorer")
+                    return;
                 oThis.element.focus();
             });
 
@@ -277,24 +276,22 @@ $(function () {
             var oThis = this;
 
             this.toolbar = $(document.createElement('div'))
-                                .addClass('infobox-toolbar');
-
+                                .addClass('infobox-toolbar');    
             if (this.options.allowMaximize) {
                 this.maxMinButton = $(document.createElement('button'))
                     .attr({
                         type: 'button',
                         title: 'Maximize'
                     })
-                    .addClass('btn btn-default btn-xs')
                     .append(
-                        $(document.createElement('span'))
-                            .addClass('glyphicon glyphicon-resize-full')
+                        $(document.createElement('i'))
+                    .addClass('rv-maxi icomoon-liga')
                     )
                     .click(function (event) {
-                        if ($('span', this).is('.glyphicon-resize-full')) {
+                    if ($('i', this).is('.rv-maxi')) {
                             oThis.maximize();
                         }
-                        else if ($('span', this).is('.glyphicon-resize-small')) {
+                        else if ($('i', this).is('.rv-mini')) {
                             oThis.minimize();
                         }
 
@@ -303,17 +300,17 @@ $(function () {
 
                 this.toolbar.append(this.maxMinButton);
             }
-
+ 
             if (this.options.allowClose) {
                 this.closeButton = $(document.createElement('button'))
                     .attr({
                         type: 'button',
                         title: 'Close'
                     })
-                    .addClass('btn btn-default btn-xs')
+                    .addClass('btn')
                     .append(
-                        $(document.createElement('span'))
-                            .addClass('glyphicon glyphicon-remove-circle')
+                        $(document.createElement('i'))
+                            .addClass('icon-close icomoon-liga')
                     )
                     .click(function (event) {
                         oThis.close();
@@ -322,17 +319,17 @@ $(function () {
 
                 this.toolbar.append(this.closeButton);
             }
-
+            
             if (this.options.allowHide) {
                 this.hideButton = $(document.createElement('button'))
                     .attr({
                         type: 'button',
                         title: 'Hide'
                     })
-                    .addClass('btn btn-default btn-xs')
+                    .addClass('btn')
                     .append(
-                        $(document.createElement('span'))
-                            .addClass('glyphicon glyphicon-remove-circle')
+                        $(document.createElement('i'))
+                            .addClass('icon-close icomoon-liga')
                     )
                     .click(function (event) {
                         oThis.hide();
@@ -348,8 +345,6 @@ $(function () {
                 this.toolbar.appendTo(this.infobox);
         },
 
-        // events bound via _bind are removed automatically
-        // revert other modifications here
         _destroy: function () {
             this.element.empty();
         },
@@ -388,7 +383,6 @@ $(function () {
         },
 
         adjustHeight: function () {
-            //    set absolute height...
             this.infobox.height(this.area.height() - 2 * (this.margin + this.border));
             this.infobox.width(this.area.width() - 2 * (this.margin + this.border));
         },
@@ -403,7 +397,8 @@ $(function () {
         
         maximize: function () {
             this.maxMinButton.attr({title: 'Minimize'});
-            $('span', this.maxMinButton).removeClass('glyphicon-resize-full').addClass('glyphicon-resize-small');
+
+            $('i', this.maxMinButton).removeClass('rv-maxi').addClass('rv-mini');
 
             this.sendEvent('maximize');
             
@@ -412,12 +407,13 @@ $(function () {
             this.element.area('sendEvent', 'area-resize')
                         .area('sendEvent', 'area-resize-stop');
             
-            this.area.setFocus();
+            this.options.curFocus = this.area.setFocus(true);
         },
+
 
         minimize: function () {
             this.maxMinButton.attr({title: 'Maximize'});
-            $('span', this.maxMinButton).removeClass('glyphicon-resize-small').addClass('glyphicon-resize-full');
+            $('i', this.maxMinButton).removeClass('rv-mini').addClass('rv-maxi');
 
             this.sendEvent('minimize');
             
@@ -426,14 +422,28 @@ $(function () {
             this.element.area('sendEvent', 'area-resize')
                         .area('sendEvent', 'area-resize-stop');
 
+            
             this.area.setFocus();
         },
 
         close: function() {
+            if (this.gridWid){
+                var retVal = this.gridWid.closeFromInfo(this.infobox);
+                
+                if(retVal == true) return;
+                else this.manager.remove(this.infobox.data('id'));
+            }
             this.manager.remove(this.infobox.data('id'));
         },
 
         hide: function() {
+            if (this.gridWid){
+                var retVal = this.gridWid.hideFromInfo(this.infobox);
+                
+                if(retVal == true) return;
+                else this.manager.hide(this.infobox.data('id'));
+            }
+            
             this.manager.hide(this.infobox.data('id'));
         },
         
@@ -474,7 +484,6 @@ $(function () {
                         jQueryWidgetOptions = $(panel).data('jquery-widget-options');
                     }
 
-                    //try {
                         $(panel)[jQueryWidget](jQueryWidgetOptions);
 
                         var widget = $(panel)[jQueryWidget]('instance');
@@ -485,11 +494,6 @@ $(function () {
                                 widget.setSize($(panel).parent().width(), $(panel).parent().height());
                             });
                         }
-                    /*}
-                    catch(e) {
-                        console.log('ERROR: cannot initiate widget: ' + jQueryWidget + '. Message: ' + e.message);
-                        console.log(jQueryWidgetOptions);
-                    }*/
                 }
 
                 $(panel).removeAttr('data-need-init-widget');

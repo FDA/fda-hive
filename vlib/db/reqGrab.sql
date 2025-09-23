@@ -51,7 +51,7 @@ BEGIN
     SET l_grabRand = FLOOR(1 + RAND() * 4000000000);
 
     IF linParallel = 0 THEN
-        SELECT min(priority) FROM QPReq WHERE svcID = l_id AND stat = lstat AND act = lact AND scheduleGrab < NOW()
+        SELECT IFNULL(min(priority), 0) FROM QPReq WHERE svcID = l_id AND stat = lstat AND act = lact AND scheduleGrab < NOW()
         INTO l_minpriority;
 
         UPDATE QPReq SET grabRand = l_grabRand, jobId = ljob, stat = 2, takenCnt = takenCnt + 1, takenTm = NOW(), aliveTm = NOW()
@@ -61,10 +61,8 @@ BEGIN
             WHERE svcID = l_id AND stat = lstat AND act = lact AND scheduleGrab < NOW() AND inParallel = linParallel LIMIT 1;
     END IF;
 
-    SELECT reqID FROM QPReq
-        WHERE grabRand = l_grabRand AND svcID = l_id AND act = lact AND stat = 2
+    SELECT reqID FROM QPReq WHERE grabRand = l_grabRand AND svcID = l_id AND act = lact AND stat = 2
     INTO l_reqID;
-
     IF l_reqID > 0 THEN
         UPDATE QPJob SET aliveTm = NOW(), reqID = l_reqID, cntGrabbed = cntGrabbed + 1 WHERE jobID = ljob;
     ELSE

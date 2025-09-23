@@ -41,7 +41,7 @@ javaScriptEngine.include("js-graph/vjSVG_General.js");
 
 
 vjHO.register('svc-clust2').Constructor = function() {
-    if (this.objCls) return;      //stupid chrome loads from both cached file and the one coming from server.
+    if (this.objCls) return;
 
     if (!this.defaultDownloadWildcard)
         this.defaultDownloadWildcard = "*.{csv,fa,tre}";
@@ -69,10 +69,10 @@ vjHO.register('svc-clust2').Constructor = function() {
     this_ = this;
    
     this.fullview = function(node, dv) {
-        vjDS.add("Retrieving list of compared profiler computations", "profiles",  'http://?cmd=objQry&qry=(("'+node.id+'"%20as%20obj).profileID%20as%20objlist).csv(["name","created"])');
-        vjDS.add("Retrieving reference genome", "references", "static://");
-        vjDS.add("Retrieving list of examined references", "ref_examined", "http://?cmd=objFile&filename=examined-references.txt&ids="+node.id);
-        vjDS.add("", "options", "static://" + ["<table>",
+        vjDS.add("Retrieving list of compared profiler computations", "profiles",  'http:
+        vjDS.add("Retrieving reference genome", "references", "static:
+        vjDS.add("Retrieving list of examined references", "ref_examined", "http:
+        vjDS.add("", "options", "static:
                 "<tr>",
                     "<td>Phylogram shape:</td>",
                     "<td>",
@@ -104,7 +104,7 @@ vjHO.register('svc-clust2').Constructor = function() {
                     "</td>",
                 "</tr>",
             "</table>"].join(""));
-        vjDS.add("", "clustHelp", "http://help/hlp.view.results.dna-clust.html");
+        vjDS.add("", "clustHelp", "http:
         
         this.create(node.id);
     };
@@ -118,7 +118,7 @@ vjHO.register('svc-clust2').Constructor = function() {
         this.phylogram = new vjSVG_Phylogram({
             nodeLabel: this.makePhylogramNodeLabel(),
             nodeTooltip: function(node) {
-                var tip = this.defaultNodeTooltip.apply(this, arguments); // this, not this_!
+                var tip = this.defaultNodeTooltip.apply(this, arguments);
                 if (node.leafnode && this.svc_clust_info[node.name]) {
                     tip = tip ? tip+"\n" : "";
                     tip += "ID: " + node.name + "\n" + this.svc_clust_info[node.name].name + "\n" + formaDatetime(this.svc_clust_info[node.name].created);
@@ -131,9 +131,9 @@ vjHO.register('svc-clust2').Constructor = function() {
             svc_clust_info: {}
         });
         this.treeSeries = new vjTreeSeries({
-            name: "tree", // name must match urlSet element
+            name: "tree",
             title: "hierarchical clustering tree",
-            url: "static://",
+            url: "static:
             dataFormat: "newick",
             type: "rectangular"
         }, false);
@@ -145,8 +145,7 @@ vjHO.register('svc-clust2').Constructor = function() {
             options: {},
             plots: [this.phylogram]
         });
-        //have to make the DS after the tree series gets created (new convoluted way to build series)
-        vjDS.add("Retriving clustering hierarchy", "tree",  "http://?cmd=objFile&filename=result.tre&ids=" + id);
+        vjDS.add("Retriving clustering hierarchy", "tree",  "http:
         this.treeSeries.register_callback({
             obj: this,
             func: function(param, content, page_request) {
@@ -168,7 +167,7 @@ vjHO.register('svc-clust2').Constructor = function() {
         vjDS["tree"].register_callback(function(viewer, content){
             var tr = new vjTree();
             var newickTr = tr.parseNewick (content);
-            this_.maxViewersSNP = this_.treeSize(newickTr, 0); //this will make sure we don't construct uneeded google graphs 
+            this_.maxViewersSNP = this_.treeSize(newickTr, 0);
             this_.constructNeededSNP();
         });        
         
@@ -246,7 +245,6 @@ vjHO.register('svc-clust2').Constructor = function() {
               autoOpen: "computed"
         }];
         
-        //fix these options
         treeOptions.callbackRendered = function(view, data) {
             gObject("dvClustPhylogramOptionsShape").onchange = function() {
                 this_.treeSeries.type = this.value;
@@ -287,21 +285,19 @@ vjHO.register('svc-clust2').Constructor = function() {
                 
                 this.references[id].examined = content.replace(/[\r\n]+/, "");
                 this.references[id].selected = this.references[id].examined.split(/[,;]/)[0];
-                var url = "http://?cmd=seqList&long=0&ids="+this.references[id].genome+"&rows="+this.references[id].examined;
+                var url = "http:
                 vjDS["references"].reload (url, true);
             }
         });
         vjDS["ref_examined"].load();
 
        
-        //add help view to the right hand side
         var filesStr = "{";
         for (var key in this.downloadViewerDescriptions){
             filesStr += key + ",";
         }
         filesStr = filesStr.substr(0, filesStr.length-1)+"}";
-        //overriding the downloadables
-        vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files="+filesStr+"&mode=csv&prop=none&ids="+algoProcessID, 0, "id,name,path,value");
+        vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http:
         
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
     };
@@ -384,10 +380,6 @@ vjHO.register('svc-clust2').Constructor = function() {
         
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
         
-/*        for (var i = 0; i < this.maxViewersSNP; i++){
-            $("#" + this.snpFreqGraphs[i].container).addClass("hidden");
-            $("#" + this.coverageGraphs[i].container).addClass("hidden");
-        }*/
     };
     
     this.treeSize = function (root, curSize){
@@ -418,7 +410,7 @@ vjHO.register('svc-clust2').Constructor = function() {
     this.makePhylogramNodeLabel = function(format) {
         var hiddenProfilesLabel = this.hiddenProfilesLabel;
         return function(node) {
-            var lab = this.defaultNodeLabel.apply(this, arguments); // this, not this_!
+            var lab = this.defaultNodeLabel.apply(this, arguments);
             if (node.leafnode && this.svc_clust_info[node.name]) {
                 if (format === "ID") {
                     return node.name;
@@ -446,7 +438,6 @@ vjHO.register('svc-clust2').Constructor = function() {
 
     this.mimicLeafChecked = function(nodeId, checked, source, param)
     {
-        // avoid infinite recursion
         if (this.inMimicLeafChecked)
             return;
 
@@ -460,7 +451,6 @@ vjHO.register('svc-clust2').Constructor = function() {
 
         this.renderSNP();
 
-        // To refresh the background color in the profiles table
         this.rebgcolorViewerProfilesRow(ir, nodeId, checked);
         this_.profilesView.refresh();
 
@@ -505,7 +495,7 @@ vjHO.register('svc-clust2').Constructor = function() {
                 }
             }
         ];
-        var url = "qpbg_tblqryx4://::://tqs=" + vjDS.escapeQueryLanguage(JSON.stringify(tqs)) + "&minmaxMainCol=1&resolution=200";
+        var url = "qpbg_tblqryx4:
         return vjDS.add(title, dsname, url);
     };
 
@@ -521,15 +511,11 @@ vjHO.register('svc-clust2').Constructor = function() {
             var coverageViewer = this.coverageGraphs[i].instance; 
             
             if (!profiles[i]){
-/*                $("#"+snpViewer.container).addClass("hidden");
-                $("#"+coverageViewer.container).addClass("hidden");*/
                 continue;
             }
             
             var profileID = profiles[i];
             
-/*            $("#"+snpViewer.container).removeClass("hidden");
-            $("#"+coverageViewer.container).removeClass("hidden");*/
             if (i < profiles.length) {
                 var color = this.phylogram.nodeCheckedColor(this.phylogram.nodeFindByName(profileID));
                 snpViewer.hidden = false;
@@ -542,29 +528,20 @@ vjHO.register('svc-clust2').Constructor = function() {
                 coverageViewer.series[2].title = "Count reverse for profiling result "+profileID+" at ref #"+reference;
 
                 if (i+1 == profiles.length || i+1 == this.maxViewersSNP) {
-                    // show legend
                     snpViewer.options.legend.position = "bottom";
                     snpViewer.options.hAxis = {textPosition: "out"};
-                    //snpViewer.options.height = 200;
-                    //snpViewer.options.chartArea.height = "80%";
 
                     coverageViewer.options.legend.position = "bottom";
                     coverageViewer.options.hAxis = {textPosition: "out"};
-                    //coverageViewer.options.height = 150;
-                    //coverageViewer.options.chartArea.height = "80%";
                 } else {
                     snpViewer.options.legend.position = "bottom";
                     snpViewer.options.hAxis = {textPosition: "none"};
-                    //snpViewer.options.height = 170; // chartArea.height + 5 px padding for top and bottom
-                    //snpViewer.options.chartArea.height = 160; // original height * original chartArea.height
 
                     coverageViewer.options.legend.position = "bottom";
                     coverageViewer.options.hAxis = {textPosition: "none"};
-                    //coverageViewer.options.height = 130; // chartArea.height + 5 px padding for top and bottom
-                    //coverageViewer.options.chartArea.height = 120; // original height * original chartArea.height
                 }
 
-                snpViewer.unregister_callback(); // before modifying snpViewer.data
+                snpViewer.unregister_callback();
                 coverageViewer.unregister_callback();
                 var source = this.ensureSNPSource(profileID, reference);
                 snpViewer.data = [source.name];
@@ -572,10 +549,7 @@ vjHO.register('svc-clust2').Constructor = function() {
                 coverageViewer.data = [source.name];
                 coverageViewer.register_callback();
                 source.load();
-            } /*else {
-                snpViewer.hidden = true;
             }
-            snpViewer.render();*/
         }
     };
 

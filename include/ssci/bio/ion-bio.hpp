@@ -46,8 +46,7 @@ class sIonAnnot : public sIon
         enum eRecordTypes{ eSeqID=0, ePos,eType,eID,eRecord,eMax };
         void constructSchema(void){
              const char * controlFile=
-                    "record,seqID,string,string\n"
-                    "record,pos,irange,idx\n"
+                    "record,seqID,string,string\n"                    "record,pos,irange,idx\n"
                     "record,type,string,string\n"
                     "record,id,string,string\n"
                     "record,record,idx,idx\n"
@@ -98,25 +97,7 @@ class sIonExpression: public sIon
         idx checkFileType();
         idx parseInVitro(const char * experiment);
         idx parseOmics(const char * experiment);
-        /*
-        idx addRecord(idx iType, idx size ,  const void * body) {
-            return ( indexArr[iType]=sIon::addRecord(iType,size,body) ) ;
 
-        }
-        idx addRelation(idx iType=0)
-        {
-            return sIon::addRelationVarg(iType,indexArr,0);
-        }
-        */
-
-        /*
-
-        union sIonPos {
-            struct {int end,start;} s32;
-            idx s64;
-        };
-
-        */
 };
 
 

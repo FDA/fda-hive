@@ -38,8 +38,17 @@ BEGIN
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-    IF LENGTH(lpar) <= 256 AND LENGTH(lvar) <= 4096 THEN
-        IF (SELECT par FROM QPCfg WHERE par = lpar) IS NOT NULL THEN
+    IF LENGTH(lpar) < 1 OR LENGTH(lpar) > 256 THEN
+        SET @mt = CONCAT('QPCfg.par length not in [1, 256]: ', LENGTH(lpar), ' "', lpar, '"');
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @mt;
+    ELSEIF LENGTH(lval) > 4096 THEN
+        SET @mt = CONCAT('QPCfg.par "', lpar, '" val too long (>4096)', LENGTH(lval));
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @mt;
+    ELSEIF LENGTH(lval) = 0 THEN
+        DELETE FROM QPCfg WHERE par = lpar;
+    ELSE
+        SELECT COUNT(par) FROM QPCfg WHERE par = lpar INTO @qty;
+        IF @qty != 0 THEN
             UPDATE QPCfg SET val = lval, `date` = CURRENT_TIMESTAMP WHERE par = lpar;
         ELSE
             INSERT QPCfg(par, val) VALUES (lpar, lval);

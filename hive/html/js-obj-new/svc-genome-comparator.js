@@ -38,8 +38,8 @@ vjHO.register('svc-genome-comparator').Constructor=function ()
         type:"column",
         oneColorPerCateg: true,
         sortLables: true,
-        //totalTextLength: 16,
-        pairs: {array: [["ref1","range1"], ["ref2","range2"]] /*, eval: ["dt.ref1.split(' ')[0] + ':' + dt.range1.split(' ')[0]", "dt.ref2.split(' ')[0] + ':' + dt.range2.split(' ')[0]"]  */},
+        staticColor: true,
+        pairs: {array: [["ref1","range1"], ["ref2","range2"]]},
         wrapLength:32,
         onClickCallback: diagramCallback,
         pairValue : ["similarity"]                     
@@ -59,12 +59,11 @@ vjHO.register('svc-genome-comparator').Constructor=function ()
         series:[]
     });
     
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         var id = docLocValue("id");
-        vjDS.add("", "dsSimilar", "qpbg_tblqryx4://similar.csv//spcTypeObj=tblqryx2&cnt=100&raw=1&cols=0-200&objs="+id);
-        vjDS.add("", "dsMatrix", "static://");
+        vjDS.add("", "dsSimilar", "qpbg_tblqryx4:
+        vjDS.add("", "dsMatrix", "static:
         vjDS.dsSimilar.register_callback(similarCallback);
                 
         var filesStructureToAdd = [{
@@ -109,7 +108,6 @@ vjHO.register('svc-genome-comparator').Constructor=function ()
         {
             var pos1 = parseInt(parsed[i].range1);
             var pos2 = parseInt(parsed[i].range2);
-            //var similar = parseInt(parsed[i].similarity);
             var label1 = parsed[i].ref1;
             var label2 = parsed[i].ref2;
             if (pos1 == NaN || pos2 == NaN) continue;
@@ -133,7 +131,7 @@ vjHO.register('svc-genome-comparator').Constructor=function ()
             mummerGraph.options.colors.push("red");
         }
         
-        vjDS.dsMatrix.reload("static://"+stringToPut, true);
+        vjDS.dsMatrix.reload("static:
     }
     
     function tableCallback (viewer, node, ir, ic)

@@ -27,12 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//external functions
-    //function QPride_refreshRequest()
-        ///function QPride_check(container, txt) 
-    //function QPride_trackDataBlobs(dsections, szlimit)
-    //function QPride_backgroundExecution(cmd, progressbar, callback)
-    //function QPride_downloadBlob(blbname,filename, container, callback )
 
 var req;
     
@@ -41,7 +35,6 @@ var req;
     var QPride_hideFormatList = ",.tbl,-out.csv,...";
     var QPride_trackDataList=",errors,console,form,$summary.txt,...";
     
-//    var QPride_delayFirstCheck=10;
     var QPride_delayCheck=3000;
     var QPride_delayCheckBG=1000;
     var QPride_Finished=false;
@@ -62,16 +55,10 @@ var req;
     
     var QPride_dataActionFunctions=new Array();
     QPride_dataActionFunctions.push( {name:".csv", func :"QPride_showTable", icon: "Show Table"} );
-    //QPride_dataActionFunctions.push( {name:".csv", func :"QPride_showGraphFunc", icon: "Graph"} );
     QPride_dataActionFunctions.push( {name:".mat", func :"QPride_showTable", icon: "eye"} );
       
         
         
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Reuest Status Management
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     function QPride_refreshRequest()
     {
         linkCmd("-qpCheck&raw=1&req="+req+"&svc="+docLocValue("svc"),0,QPride_check);
@@ -79,7 +66,6 @@ var req;
     function QPride_check(container, txt) 
     {
         var ar=txt.split(",");
-//        var svcTitle=ar[0];
         var reqName=ar[1];
         req=parseInt(ar[2]);
         var stat=parseInt(ar[3]);
@@ -88,9 +74,8 @@ var req;
         var progress100=parseInt(ar[6]);
         var grpCnt=parseInt(ar[7]);
         
-        QPride_showReqStatus(reqName, req,stat,time,progress, progress100, grpCnt);// show the progress
+        QPride_showReqStatus(reqName, req,stat,time,progress, progress100, grpCnt);
         
-        //alert(QPride_windowTitle);
         var title="";if(req)title+=req+": ";
         title+=QPride_windowTitle;
         setLocationTitle(title);
@@ -118,13 +103,9 @@ var req;
     } 
 
        
-    //
-    // this function retrieves information on the status of requests
-    //
     function QPride_showReqStatus(QPride_reqName, QPride_reqID, QPride_stat, QPride_timespan, QPride_progress, QPride_progress100 )
     {
             
-//        var o;
         v=gObject("QP_reqName");if(v)v.innerHTML=QPride_reqName;
         v=gObject("QP_reqID");if(v)v.innerHTML=QPride_reqID;
         if(document.forms["QP_htmlform"] && document.forms["QP_htmlform"].elements["req"])document.forms["QP_htmlform"].elements["req"].value=QPride_reqID;
@@ -137,7 +118,7 @@ var req;
             {ts+=(100+parseInt(tt/(3600))+"").substring(1)+":"; tt=parseInt(tt%(3600));}
             {ts+=(100+parseInt(tt/(60))+"").substring(1)+":"; tt=parseInt(tt%(60)).toFixed(2);}
             {ts+=(100+parseInt(tt)+"").substring(1)+"";}
-            v.innerHTML=ts;//QPride_timespan+" secs";
+            v.innerHTML=ts;
         }
         v=gObject("QP_stat");if(v){
             var tt="";
@@ -147,7 +128,6 @@ var req;
             v.innerHTML=tt;
         }
         v=gObject("QP_progress");if(v) {
-            //var psh = cookieSet('progVis');
             var t="";
             t+=QPride_formProgress( 100, "", QPride_progress , QPride_progress100, 0, QPride_stat);
             v.innerHTML=t;
@@ -173,16 +153,11 @@ var req;
         
     }
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Request Submission on Background
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
          
      
     var QPride_gProgSectContent=new Array();
     var QPride_gProgParams=new Array();
-    function QPride_backgroundCheckRequest(sparams, txt) // we use container here as a function name  
+    function QPride_backgroundCheckRequest(sparams, txt)
     {
         
         var params=JSON.parse(sparams);
@@ -198,37 +173,25 @@ var req;
         
         if(!txt || txt.length==0){callback(0,0); return ;}
         
-        //if(!txt || txt.length==0){eval(callback+"(0,0)"); return ;} /// LLLASSSS
         
 
-        //var ar=txt.split(",");
-        //var svcTitle=ar[0];
-        //var reqName=ar[1];
-        //rrreq=parseInt(ar[2]);
-        //var stat=parseInt(ar[3]);
-        //var time=parseInt(ar[4]);
-        //var progress=parseInt(ar[5]);
-        //var progress100=parseInt(ar[6]);
         RQ.stat=parseInt(RQ.stat);
         
         var po=params.progressbar ? gObject(params.progressbar) : null;
         
         if(po && params.progressbar && params.progressbar.length!=0)po.innerHTML=QPride_formProgress( 100, "", RQ.progress ,RQ.progress100 , RQ.reqID ,RQ.stat);
         if(RQ.stat>=5){
-            //alert("stringify = "+ JSON.stringify(params));
             var dataReq=RQ.reqID ;
             if(params.dataReq)dataReq=params.dataReq;
 
-            if(po && params.progressbar && params.progressbar.length!=0)po.innerHTML=QPride_gProgSectContent[params.progressbar]; // restore the contentr
+            if(po && params.progressbar && params.progressbar.length!=0)po.innerHTML=QPride_gProgSectContent[params.progressbar];
             
             if(!params.namefetch || params.namefetch.length==0 ) 
                 callback(dataReq,RQ.stat, params.xtraparams);
-                // eval(callback+"("+dataReq+","+stat+", "+params.xtraparams+")"); /// LLAASSTT
             else {
                 
                 if(callback=="download")QPride_downloadBlob(params.namefetch+"&req="+dataReq);
                 else linkCmd("-qpData&raw=1&default=error:%20"+dataReq+"%20"+params.namefetch+"%20not%20found&req="+dataReq+"&dname="+params.namefetch,params.xtraparams,callback);
-                //else linkCmd("-qpData&raw=1&default=error:%20"+dataReq+"%20"+params.namefetch+"%20not%20found&req="+dataReq+"&dname="+params.namefetch,params.xtraparams,eval(callback));
             }
         }
         else if(QPride_delayCheckBG) {
@@ -240,36 +203,25 @@ var req;
     {    
         var params = { 'progressbar': progressbar, 'callback': callback, 'namefetch' : namefetch , 'xtraparams' : xtraparams , 'dataReq':  dataReq};
         var po=gObject(progressbar);
-        if(po && progressbar && progressbar.length!=0)QPride_gProgSectContent[progressbar]=po.innerHTML; // remember the old content of the section
+        if(po && progressbar && progressbar.length!=0)QPride_gProgSectContent[progressbar]=po.innerHTML;
         
         linkCmd(cmd+"&raw=1",JSON.stringify(params),QPride_backgroundCheckRequest);
-        //linkCmd(cmd+"&raw=1",params,QPride_backgroundCheckRequest);
     }
 
             
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Data management
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     function QPride_formDataNamesTable(dd, showengin)
     {
-        //var dd=availdata.split(/[\s,]+/);
         var tshow="",thide="";
         
         for ( var i=0 ; i< dd.length; ++i){ if(dd[i].length<2)break;
             
-        // determine the file extension
             var extpos=dd[i].lastIndexOf(".");
             var ext = (extpos!=-1) ? dd[i].substring(extpos) : "";
             
-            // see if this is a known or to-be-hidden format
             if(QPride_hideFormatList.indexOf(","+ext+",")!=-1)continue;
             
-            // make table rows 
             var tt="<tr><td style='padding:5px;' width='55%'>"+dd[i]+"</td>";
-            // this is always downloadable
             tt+="<td style='padding:5px;' width='15%'><a href='javascript:QPride_downloadBlob(\"$"+dd[i]+"\")' >Download</a></td>";
             for( var ifun=0; ifun<QPride_dataActionFunctions.length; ++ifun) {
                 var act=QPride_dataActionFunctions[ifun];
@@ -278,7 +230,7 @@ var req;
             }
             tt+="</tr>";
             
-            if(QPride_knownFormatList.indexOf(","+ext+",")!=-1)tshow+=tt; // this is a known format
+            if(QPride_knownFormatList.indexOf(","+ext+",")!=-1)tshow+=tt;
             else thide+=tt;
                     
         }
@@ -319,7 +271,6 @@ var req;
         linkCmd("-qpDataNames&raw=1&req="+(lreq ? lreq : req),container,QPride_downloadedDataNamesFunc);
     }
     
-    // shows all predefined data blobs in HTML
     function QPride_trackDataBlobs(dsections, szlimit)
     {
         if(!dsections)dsections=QPride_trackDataList;
@@ -335,7 +286,6 @@ var req;
         }
     }
     
-    // shows the content of the form
     function QPride_downloadedFormContent(container, txt)
     {
         QPride_lastForm=txt;
@@ -359,13 +309,11 @@ var req;
             
             t+="<tr><td width='20%' class='"+QPride_variableClass+"'>"+par+"</td><td width=10>=</td>";
             t+="<td class='"+QPride_valueClass+"'  >";
-            //t+="<input type=text size=80 readonly=true value='";
             for ( var ic=1; ic<cls.length; ++ic) { 
                 if(ifnd>=0 && QPride_formVisibleVariables[ifnd].length>2  )
                     t+=QPride_formVisibleVariables[ifnd][2][parseInt(cls[1])];
                 else t+=cls[1];
             }
-            //t+="' />";
             t+="</td></tr>";
         }
         t+="</table>";
@@ -376,7 +324,6 @@ var req;
         }
     }
 
-    // shows the content inside of the similarly named span
     function QPride_downloadedDataSection(container, txt)
     {
         var t="";
@@ -396,10 +343,8 @@ var req;
     function QPride_downloadBlob(blbname,filename, container, callback )
     {
         var url=0;
-        //alert(" blbname " + blbname + " filename " + filename);
         if(filename){
             url = "-qpFile&raw=1&file=" + filename;
-            //alert("trying to download this after qapp ziping " + url);
         }
         else if(blbname) { 
             var isgrp=0;
@@ -409,7 +354,7 @@ var req;
             if(isgrp)url+="&grp=1";
         }
         
-        if(!container){ // direct link download
+        if(!container){
             linkSelf(url);
             return ;
         }
@@ -417,11 +362,6 @@ var req;
     
 
     
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Request and Job Info Management
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     function QPride_downloadedRequestInfo(container, txt)
     {
         var o=gObject(container); if(!o)return;
@@ -430,7 +370,7 @@ var req;
         var ar=txt.split("\n");
         var t="<table width='100%'>";
         for ( var ir=0; ir<ar.length; ++ir ){
-            var cls=ar[ir].split("//");if(cls.length<2)continue;
+            var cls=ar[ir].split("
             
             t+="<tr>";
             t+="<td width='10%'><pre>"+cls[0]+"</pre></td>";
@@ -451,11 +391,6 @@ var req;
         linkCmd("-qpReqInfo&req="+req,container,QPride_downloadedRequestInfo);    
     }
     
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Final Request Submission on Background
-        // _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     
     function QPride_showTable(dname)
     {
@@ -465,11 +400,6 @@ var req;
     }
         
 
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Request management
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 function QPride_reqaction(isgrp, reqid,act)
 {
@@ -487,11 +417,6 @@ function QPride_formValue(varnm, qpform)
     return retv.substring(0,epos);
 }
         
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-// _/
-// _/ Service management
-// _/
-// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
         
         var QPride_svcList;

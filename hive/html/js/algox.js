@@ -1,4 +1,3 @@
-
 /*
  *  ::718604!
  * 
@@ -29,14 +28,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+
 function valgoCore(cls, loadedID,  formname, dvname)
 {
     this.vjDS=vjDS;
     this.vjDV=vjDV;
     this.vjVIS=vjVIS;
 
-    this.modeActive=true; // passive mode values cannot be modified: we are just reviewing older computation
-    //if(parseInt(loadedID)<0){this.modeActive=false;loadedID=Math.abs(parseInt(loadedID));}
+    this.modeActive=true;
     if(loadedID.length && loadedID[0]!='-')this.modeActive=false;
     if(loadedID.length && loadedID[0]=='-')loadedID=loadedID.substring(1);
     this.loadedID=loadedID;
@@ -47,21 +46,19 @@ function valgoCore(cls, loadedID,  formname, dvname)
 
 
     this.objCls="algo-"+cls+"-"+Math.random();
-    vjObj.register(this.objCls,this); // needed to find this object in events by object container
+    vjObj.register(this.objCls,this);
 
 
     this.selfUpdate=0;
 
     this.graphResolution = 200;
     this.graphResolutionZoom = 200;
-    if(document.all) { // stupid IE Cannot show more than some little number of HTML5 s
+    if(document.all) {
         this.graphResolution/=2;
         this.graphResolutionZoom/=2;
     }
 }
 
-// Note: dvname needs to equal progressTag in the corresponding valgoProcess() instance;
-// by default, that is "Progress".
 function valgoProgress(loadedID,  formname, tagname)
 {
     valgoCore.call(this,"progress", loadedID,  formname, "dv"+tagname);
@@ -71,11 +68,11 @@ function valgoProgress(loadedID,  formname, tagname)
 
     this.generate=function()
     {
-        this.vjDS.add("infrastructure: Summarizing Cloud Progress",this.dsname,"static:// ");
-        this.vjDS.add("infrastructure: Summarizing Cloud Progress",this.dsname+"_download","static:// ");
-        this.vjDS.add("infrastructure: Summarizing Cloud Report",this.dsname+"_info","static:// ");
-        new vjProgressControl_InputsDataSource({name: this.dsname+"_inputs", url: "static://", title: "infrastructure: Summarizing Input Processes"}).registerDS();
-        new vjProgressControl_OutputsDataSource({name: this.dsname+"_outputs", url: "static://", title: "infrastructure: Summarizing Output Processes"}).registerDS();
+        this.vjDS.add("infrastructure: Summarizing Cloud Progress",this.dsname,"static:
+        this.vjDS.add("infrastructure: Summarizing Cloud Progress",this.dsname+"_download","static:
+        this.vjDS.add("infrastructure: Summarizing Cloud Report",this.dsname+"_info","static:
+        new vjProgressControl_InputsDataSource({name: this.dsname+"_inputs", url: "static:
+        new vjProgressControl_OutputsDataSource({name: this.dsname+"_outputs", url: "static:
         this.vjDV.add(this.dvname+"Viewer","100%","300").frame='notab';
         var tab = vjDV[this.dvname+"Viewer"].add("progress", "process", "tab", new vjProgressControl({
             data : {
@@ -107,21 +104,16 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
         else ver=vl.substring(ps1+7,ps2);
     }
 
-    this.svcProcType=svcProcType;// "svc-proc"; // upProc type
-    //this.qpSvc="dna-hexagon"; // QP service to submit to
+    this.svcProcType=svcProcType;
     this.width=1000;
     this.height=400;
     this.RVtag="RV";
     this.qpSvc=qpSvc+ver;
-    //this.loadedID = loadedID;
 
     this.submitButon=submitButton;
-    //if(submitAllButton)this.submitAllButton=submitAllButton;
     this.progressTag="Progress";
     this.childrenProcessesDV=null;
 
-    //this.prg="Progress";
-    //this.callbackDoneComputing=null;
     this.callbackLoaded=null;
     this.callbackSubmited=null;
     this.initialPresets=null;
@@ -130,13 +122,12 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
     {
         this.vjDV.add(this.dvname+"Viewer",this.width,this.height).forceLoadAll=true;
 
-        this.vjDS.add("Retrieving Computational Parameters and Results", "ds"+this.dvname+"-vals" ,"static://" );
-        this.vjDS.add("infrastructure: Algorithmic parameters specifications", "ds" + this.dvname + "-spec", "static://");
-        //this.vjDS.add("Loading...", "ds"+this.dvname+"-files" , "static://" );
+        this.vjDS.add("Retrieving Computational Parameters and Results", "ds"+this.dvname+"-vals" ,"static:
+        this.vjDS.add("infrastructure: Algorithmic parameters specifications", "ds" + this.dvname + "-spec", "static:
 
         var batchFldPreset = {
             batch_svc: {
-                constraint:'choice+', constraint_data:'single///Single Computation Mode|'+this.qpSvc+'///Batch Mode'},
+                constraint:'choice+', constraint_data:'single
             batch_param: {
                 is_optional_fg: isBatch() ? 0 : 1
             },
@@ -162,13 +153,9 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
                     showReadonlyInNonReadonlyMode:this.showReadonlyInNonReadonlyMode,
                     cloneMode:isResubmit(),
                     constructionPropagateDown:10,
-                    //setDoneCallback:submittedCallback,
                     autoexpand:0,
                     showRoot:false,
-                    //hideControls:true,
                     autoDescription:0,
-                    //oneTitleForMultiValueArray :true,
-                    //showRoot: true,
                     autoStatus:3,
                     autoDescription:0,
                     fldPresets: this.fldPresets ? cpyObj(batchFldPreset,this.fldPresets) : batchFldPreset,
@@ -182,18 +169,17 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
         for( var ir=0; ir< sysRVtags.length; ++ir) {
             t+="<span id='RV-"+sysRVtags[ir]+"'></span>";
         }
-        this.vjDS.add("infrastructure: RVs","dsRVTags","static://"+t);
+        this.vjDS.add("infrastructure: RVs","dsRVTags","static:
         t = "";
 
         var batchRVtags=["batch", "batch_ignore_errors"];
         if (isResultsMode()) {
-            // force record viewer to show batch_children_proc_ids only in read-only results mode
             batchRVtags.push("batch_children_proc_ids");
         }
         for( var ir=0; ir< batchRVtags.length; ++ir) {
             t+="<span id='RV-"+batchRVtags[ir]+"'></span>";
         }
-        this.vjDS.add("infrastructure: RVs","dsBatchTags","static://"+t); 
+        this.vjDS.add("infrastructure: RVs","dsBatchTags","static:
 
         this.sysviewer=new vjHTMLView({prohibitReRender:true, data:"dsRVTags"});
         this.batchviewer=new vjHTMLView({prohibitReRender:true, data:"dsBatchTags"});
@@ -213,7 +199,7 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
             }
         }
 
-        var hlpArr=[{description:"infrastructure: Algorithmic parameters help documentation", dsName:"dsHelp"+this.dvname, name:"help",url:"static://" }];
+        var hlpArr=[{description:"infrastructure: Algorithmic parameters help documentation", dsName:"dsHelp"+this.dvname, name:"help",url:"static:
         if(isok(this.subject_help))
             hlpArr=hlpArr.concat(verarr(this.subject_help));
 
@@ -253,20 +239,15 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
 
         }
         
-        // Checks for batchability and toggles between batch and single
-        //this.makeBatchableButton(loadedID); 
            
 
         if(this.submitButon) {
             this.makeSubmitButton( this.submitButon );
         }
-        //if(this.submitAllButton)
-            //this.makeSubmitAllButton( this.submitAllButton.title, this.submitAllButton.inputdvname);
 
 
         if(this.toolBar) {
-            //this.vjDS.add("infrastructure: Constructing Toolbar", "ds"+this.toolBar, "innerHTML://ds"+this.toolBar+"WaitingDV" );
-            this.vjDS.add("infrastructure: Constructing Toolbar", "ds"+this.toolBar, "static://"+valgoToolbarWaitingList );
+            this.vjDS.add("infrastructure: Constructing Toolbar", "ds"+this.toolBar, "static:
             
             this.vjDV.add("dv"+this.toolBar,"100%","100%").frame="none";
             this.vjDV["dv"+this.toolBar].add( "toolbar", "", "menu",new vjPanelView({data:"ds"+this.toolBar,formObject:document.forms[this.formName],iconSize:48,showTitles:true}));
@@ -282,20 +263,13 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
         if(svcProcType)
             this.svcProcType=svcProcType;
 
-        //if(isBatch()) { 
-        //    this.qpSvc='svc-batcher';
-        //} else 
         if(qpSvc) {
             this.qpSvc=qpSvc;
         }
-            //alert(qpSvc);
-        //return ;
-        //alert("http://help/hlp."+this.svcProcType+".html");
-        this.vjDS["dsHelp"+this.dvname].reload("http://help/hlp."+this.svcProcType+".html");
-        //alert("http://help/hlp."+this.svcProcType+".html");
+        this.vjDS["dsHelp"+this.dvname].reload("http:
 
-        this.vjDS["ds"+this.dvname+"-spec"].reload("http://?cmd=propspec&type="+this.svcProcType ,false);
-        this.vjDS["ds"+this.dvname+"-vals"].reload(this.loadedID ? "http://?cmd=propget&mode=csv&ids="+this.loadedID+"&files=*" : "static:// ", false);
+        this.vjDS["ds"+this.dvname+"-spec"].reload("http:
+        this.vjDS["ds"+this.dvname+"-vals"].reload(this.loadedID ? "http:
 
         var serviceToLaunch = this.qpSvc;
         if(isBatch() && !isResultsMode()) {
@@ -303,7 +277,6 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
         }
         this.viewer.cmdPropSet="?cmd=-qpProcSubmit&svc="+serviceToLaunch;
         this.viewer.hiveId=this.modeActive ? this.svcProcType : this.loadedID ;
-//        this.viewer.objType=this.loadedID ? this.loadedID  : this.svcProcType ;
         this.viewer.objType=this.svcProcType  ;
         this.viewer.load();
 
@@ -336,7 +309,6 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
     
     this.isValidateBatchParemeters = function() {
         return true;
-        //TODO validate using a cgi request so folders and other oddities ares properly resolved.
         var batchfld = this.viewer.fldTree.findByName("batch");
         var batchNodes = this.viewer.nodeTree.findByAttribute("fld",batchfld,null,true);
         var maxChunks = [];
@@ -359,8 +331,6 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
                 var nodeB = this.viewer.nodeTree.findByAttribute("fld",fldB,null,true);
                 var batch_cnt = (Int((nodeB.length-1)/batch_val)+1);
                 if(nodeB.length < batch_val) {
-//                    alert("Not enough "+ batch_fldName+" provided");
-//                    return 0;
                 }
                 if(maxChunks[i] < 0 )
                     maxChunks[i] = batch_cnt;
@@ -391,20 +361,15 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
             this.viewer.saveValues(null, "auto", "function:vjObjFunc('onRedirectProcSubmitted','"+this.objCls+"')");
     };
     
-    // Generates the button in HTML and places it on the page for application
-    // submissions
     this.makeSubmitButton=function( btnname )
     {
-        // Get the DIV for the Submit Button in order to manually generate the button
         var _submitButtonDIV=gObject( this.dvname+"Submitter");
         if( !_submitButtonDIV ) {
             return;
         }
         
-        // Create the button via HTML with appropriate properties
         _submitButtonDIV.innerHTML="<input id='"+this.dvname+"SubmitterInput' type=button onClick='this.disabled=\"disabled\";vjObjEvent(\"onSubmitRequest\",\""+this.objCls+"\")' name='BUTTON-"+this.dvname+"_submitter' size=20 value='"+sanitizeElementAttr(btnname)+"' />";
         
-        // If the mode is inactive, disable the button so it cannot be clicked again
         if ( !this.modeActive ) {
             var _submitButtonElement = gObject( this.dvname+"SubmitterInput");
             _submitButtonElement.disabled = true;
@@ -434,14 +399,14 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
     {
         if(vjDS[dsprogress]){
             var req=this.getValue( "reqID" );
-            var progress_url = "static://unknown";
-            var info_url = "static://";
+            var progress_url = "static:
+            var info_url = "static:
             if (isok(this.loadedID)) {
-                progress_url = "http://?cmd=-qpRawCheck&showreqs=0&reqObjID=" + this.loadedID;
-                info_url = "http://?cmd=-qpReqInfo&reqObjID=" + this.loadedID;
+                progress_url = "http:
+                info_url = "http:
             } else if (isok(req)) {
-                progress_url = "http://?cmd=-qpRawCheck&showreqs=0&req=" + req;
-                info_url = "http://?cmd=-qpReqInfo&req=" + req;
+                progress_url = "http:
+                info_url = "http:
             }
             vjDS[dsprogress].reload(progress_url, true );
 
@@ -459,7 +424,7 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
                 if (this.loadedID.length && !this.modeActive)
                     dsInputs.makeURL({id:this.loadedID, count:20}, true);
                 else
-                    dsInputs.reload("static://", true);
+                    dsInputs.reload("static:
             }
 
             var dsOutputs = vjDS[dsprogress+"_outputs"];
@@ -467,7 +432,7 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
                 if (this.loadedID.length && !this.modeActive)
                     dsOutputs.makeURL({id:this.loadedID, count:20}, true);
                 else
-                    dsOutputs.reload("static://", true);
+                    dsOutputs.reload("static:
             }
         }
     };
@@ -479,11 +444,10 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
         }
 
         var nodearr=viewer.fldTree.accumulate("node.is_batch_fg","node");
-        //var nodearr=[];
         var constraint_text="";
         for (var iin=0;iin<nodearr.length;++iin){
             if(iin>0)constraint_text+="|";
-            constraint_text+=nodearr[iin].name+"///"+nodearr[iin].title;
+            constraint_text+=nodearr[iin].name+"
         }
         var el=viewer.getElement("batch_param");
         if(el){
@@ -492,12 +456,9 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
             viewer.redraw();
         }
 
-        //if(this.modeActive && !isok(this.getValue("name")))
-        //    this.setValue("name", (new Date()).toDateString());
         if(this.vjDS["ds"+this.progressTag])
             this.attachProgress("ds"+this.progressTag);
 
-        //alert ( docLocValue("cmd") ) ;
         var cmd=docLocValue("cmd");
         var cmdMode=docLocValue("cmdMode");
         if(isok(cmdMode))cmd+="&cmdMode="+cmdMode;
@@ -512,19 +473,9 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
 
     this.onRedirectProcSubmitted=function (param, text )
     {
-
-        var reqID=0, objID=0;
-        var nums=isok(text) ? text.split(",") : new Array();
-        if(nums.length>=2) {
-               reqID=parseInt(nums[0]);
-               objID=parseInt(nums[1]);
-        }
-        if(!reqID || !objID) {
-            alert("Error: could not submit the computation request!\n"+text);
-            var a = gObject( this.dvname+"SubmitterInput");
-            if( a) { a.disabled = false; }
-            return ;
-        }
+        var parse_res = vjQP.parseQProcSubmitResponse(text,true);
+        if(!parse_res)return ;
+        var reqID=parse_res[0], objID=parse_res[1];
         this.loadedID=objID;
 
         if(this.callbackSubmited) {
@@ -539,8 +490,7 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
         if (docLocValue("cmdMode")) {
             urlArguments += "&cmdMode="+docLocValue("cmdMode");
         }
-        //document.location="?cmd="+docLocValue("cmd")+"&id="+this.loadedID+"&cmdMode="+docLocValue("cmdMode");
-        document.location="?cmd="+docLocValue("cmd")+"&id="+this.loadedID + urlArguments;
+        document.location=makeCmdSafe(docLocValue("cmd"))+"&id="+this.loadedID + urlArguments;
     };
 
 
@@ -559,15 +509,12 @@ function valgoProcess(loadedID,  formname, dvname, qpSvc, svcProcType, submitBut
     this.readFromDocLoc=function(namearr)
     {
         for( var i=0; i<namearr.length ; ++ i) {
-            //var par=algoProcess.getValue(namearr[i],"join");//.split(",");//.split(";").join(","); => prevent from setting the value in the URL
-            //if( !par) {
                 par = docLocValue(namearr[i]);
                 if( isok(par) ) {
                     var o=new Object();
                     o[namearr[i]]=par.split(",");
                     this.setValueList(o);
                 }
-            //}
         }
     };
     
@@ -606,11 +553,9 @@ function valgoProcess_init(algoDiv)
                 brief: typeof valgoProcess_brief!="undefined"?valgoProcess_brief:undefined,
                 popupCloser: true,
                 briefSpanTag: "RV-",
-                //afterBriefHTML: "<span id='RV-batch_svc'></span>",
             isok:true});
     vjVIS.generate(visualArray);
 
-    /////////////////// process // progress ////////////////////
     algoProcess = new valgoProcess(valgoProcess_ID, valgoProcess_formName,dvName, valgoProcess_qpsvc,valgoProcess_svc, "    "+valgoProcess_submitButtonName+"    ");
     if(valgoProcess_inputLoaded)algoProcess.callbackLoaded = valgoProcess_inputLoaded;
     algoProcess.callbackChanged = valgoProcess_inputCommandModeChanged;
@@ -626,7 +571,6 @@ function valgoProcess_init(algoDiv)
     if(isBatch() && !isResultsMode()) { 
         algoProcess.recordViewer.getValidateSeparatorCb = function(fld_name) {
             if(fld_name && verarr(algoProcess.recordViewer.getElementValue("batch_param", "array")).indexOf(fld_name) >= 0) {
-                // batchable fields are (sometimes) allowed to be ';'-separated lists
                 return ';';
             } else {
                 return null;
@@ -730,7 +674,7 @@ function valgoProcess_computingFinished(viewer, reqid, stat)
     }
     
     if (stat >= 5) {
-        vjDS["ds"+algoProcess.toolBar].reload("static://"+valgoToolbarWaitingList+valgoToolbarDoneList, true);
+        vjDS["ds"+algoProcess.toolBar].reload("static:
     }
     
 }
@@ -752,13 +696,12 @@ function valgoProcess_inputCommandModeChanged(viewer, elem) {
 
                 var _service = v.substring(10);
                 var poss = v.indexOf(look);
-                //if (poss != 10)
                 if (_service != look)
                     continue;
                 var pose = v.substr(poss).indexOf("-");
                 if (pose == -1)
                     pose = v.length;
-                newsvc = v.substring(poss, pose);// v.substring(0,poss)+v.substr(pose);
+                newsvc = v.substring(poss, pose);
                 break;
             }
             var removeBatch = false;
@@ -783,8 +726,6 @@ function valgoProcess_inputCommandModeChanged(viewer, elem) {
                         continue;
                     }
                     var poss = v.indexOf(svcs[is]);
-                    //if (poss == -1)
-                    //    continue;
                     var pose = poss + svcs[is].length;
                     newsvc = v.substring(0, poss) + newsvc + v.substr(pose);
                     break;
@@ -793,15 +734,10 @@ function valgoProcess_inputCommandModeChanged(viewer, elem) {
             if (addBatch) {
                 newsvc = urlExchangeParameter("" + document.location, "batchMode", "true");
             } else if (removeBatch) {
-                // Clear out batch mode but leave cmdMode unharmed
                 newsvc = urlExchangeParameter("" + document.location, "batchMode", "");
                 newsvc = newsvc.replace("&batchMode=", "");
             } else {
-                // No batch mode involved (neither batch as a svc or flagged as single via removeBatch flag)
                 newsvc = urlExchangeParameter("" + document.location, "cmdMode", newsvc);
-                //if ( docLocValue(cmdMode) ) {
-                //    newsvc = newsvc.replace("&cmdMode=", "");
-                //}
             }
                     
             document.location = newsvc;
@@ -814,7 +750,7 @@ function valgoProcess_inputCommandModeChanged(viewer, elem) {
 
 function isResubmit()
 {
-    if ( valgoProcess_ID && (valgoProcess_ID[0] == "-" || valgoProcess_ID < 0) ) {//either string as number we detect minus
+    if ( valgoProcess_ID && (valgoProcess_ID[0] == "-" || valgoProcess_ID < 0) ) {
         return true;
     }
     return false;
@@ -841,7 +777,6 @@ function isBatch()
         batchmode=false;
     }
     return ( batchmode && !isResultsMode() );
-    //return ( isMode('batch') && !isResultsMode());
 }
 
 function isResultsMode()
@@ -850,9 +785,9 @@ function isResultsMode()
 }
 
 
-var valgoProcess_inputChanged; // function valgoProcess_inputChanged(viewer,elem)
-var valgoProcess_inputLoaded; //function valgoProcess_inputLoaded(viewer)
-var valgoProcess_doneComputing; //function valgoProcess_doneComputing(viewer, reqid, stat)
+var valgoProcess_inputChanged;
+var valgoProcess_inputLoaded;
+var valgoProcess_doneComputing;
 var valgoProcess_ID = docLocValue("id");if (!valgoProcess_ID) valgoProcess_ID = 0;
 var valgoProcess_formName = "form-process";
 var valgoProcess_parameterTitle="Advanced Parameters";
@@ -875,17 +810,16 @@ if( !isResultsMode() ) {
     valgoProcess_DefaultVisibleParamenter.push( "batch_svc" );
     if( isBatch() ) {
         valgoProcess_DefaultVisibleParamenter.push( "batch" );
+        valgoProcess_DefaultVisibleParamenter.push("batch_ignore_errors");
     }
 }
 
 var algoProcess, algoProgress;
-// gInitList += "valgoProcess_init();"
 
 var valgoToolbarWaitingList="type,align,order,name,title,icon,path,url,description\n"+
         "html,right,0,next,<b>while you are waiting: &rarr;</b>,,/next,,Choose what would you like to do next\n"+  
         ",right,1,files,Modify and Resubmit,img/recRevert.gif,/resubmit,"+urlExchangeParameter(document.location,"id","-"+valgoProcess_ID)+",Modify parameters and resubmit this computation using the same template\n"+
         "";
         
-var valgoToolbarDoneList="";// valgoToolbarWaitingList; 
+var valgoToolbarDoneList="";
 
-//# sourceURL = getBaseUrl() + "/js/algox.js"

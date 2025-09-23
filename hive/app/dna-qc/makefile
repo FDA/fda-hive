@@ -40,7 +40,7 @@ ifeq ($(devdir),)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-qc,Next-Gen Sequence Quality Controls,/Sequencing/)
 	$(call dist-app,dna-qc,dna-qc)

@@ -29,25 +29,13 @@
  */
 
 
-/*
-      var at = new vjAnnotListTableControl({
-         formObject: document.forms["demo-form"],
-          annotObjList:["3099581","3099578"], // optional
-          callbackSubmit: testSubmit,  // optional
-          submitButton: {name:"koko", hidden:true}, // optional
-          annotationButton:{name:"aaaa", hidden: true}  // optionals
-     });
- 
- */
 
 
 function vjAnnotListTableControl(viewer){
-    //
     this.clone=function (viewbase)
     {
         if(!viewbase)viewbase=this;
         var i=0;
-        // copy all the features from base objejct
         for ( i in viewbase ) {
             this[i] = viewbase[i];
         }
@@ -58,18 +46,14 @@ function vjAnnotListTableControl(viewer){
     var main_objCls = "obj-AnnotListTableControl"+Math.random();
     vjObj.register(main_objCls,this);
     
-    // Default Parameters
-    this.defaultAnnotUrl = "http://?cmd=ionAnnotTypes&fromComputation=0&recordTypes=relation";  // &ionObjs
+    this.defaultAnnotUrl = "http:
     this.viewersArr =[];
     this.objAdded ={};
     this.rowsCnt = 0;
     
-    // 
     this.maxTxtLen= this.maxTxtLen ? this.maxTxtLen : 25;
     this.bgColors= this.bgColors ? this.bgColors : [ '#f2f2f2', '#ffffff' ];
     this.defaultEmptyText = this.defaultEmptyText ? this.defaultEmptyText : 'no information to show';
-    //this.selectCallback= this.selectCallback ? this.selectCallback : 0;
-    //this.callbackRendered= this.callbackRendered ? this.callbackRendered : 0;
     this.callbackSubmit= this.callbackSubmit ? this.callbackSubmit : 0;
     
     if (!this.vjDS) this.vjDS = vjDS;
@@ -77,7 +61,6 @@ function vjAnnotListTableControl(viewer){
     if (!this.formObject) this.formObject = document.forms[this.formName];
     if (!this.className) this.className = "ANNOTLISTCONTROL_table";
     
-    // BUTTON VISIBILITY
     if (!this.submitButton) this.submitButton = {}; 
     if (!this.submitButton['name']) this.submitButton.name= "Submit";
     if (!this.submitButton['hidden']) this.submitButton.hidden= false;
@@ -93,12 +76,10 @@ function vjAnnotListTableControl(viewer){
     if (!this.annotObjList) this.annotObjList = [];
      
     var dsname = "dsAnnotList_table";
-    //this.annotTypeDS = this.vjDS.add("infrastructure: Folders Help", dsname, this.defaultAnnotUrl,0,"seqID,start,end,type,id\n");   
-    this.annotTypeDS = this.vjDS.add("Loading annotation ", dsname, "static://",0,"seqID,start,end,type,id\n");
-    this.checkTypeDS = this.vjDS.add("Loading results", dsname+"-checked", "static://");
+    this.annotTypeDS = this.vjDS.add("Loading annotation ", dsname, "static:
+    this.checkTypeDS = this.vjDS.add("Loading results", dsname+"-checked", "static:
     
     
-    // function
     var _mainControl_ = this;
     
     function checkDirection (dicPath, curPath) {
@@ -139,8 +120,8 @@ function vjAnnotListTableControl(viewer){
         if ( range != "not_valid")
         {
             if (!checked && objAdded[seqID]) 
-            { // remove
-                if (objAdded[seqID][range]) { // exist => remove from the array
+            {
+                if (objAdded[seqID][range]) {
                     delete objAdded[seqID][range];
                     _mainControl_.rowsCnt-=1;
                 }
@@ -150,7 +131,6 @@ function vjAnnotListTableControl(viewer){
                 if (!objAdded[seqID]) {
                     objAdded[seqID] ={}; 
                 }
-                // not exit =>push to the dict
                 objAdded[seqID][range]= {"defLine":type + ":" + id, "strand": strand};
                 _mainControl_.rowsCnt+=1;
             }
@@ -162,7 +142,7 @@ function vjAnnotListTableControl(viewer){
          }
         if (viewer.myName && viewer.myName=="manualPanel") 
         {    
-            var url = "static://" + _mainControl_.constructPreviewTableUrl(_mainControl_.objAdded);
+            var url = "static:
             _mainControl_.checkTypeDS.reload(url,true);
         }
     }
@@ -173,7 +153,6 @@ function vjAnnotListTableControl(viewer){
             funcLink(_mainControl_.callbackSubmit, _mainControl_, objNode);
         }
         
-        // Reset the preview button and the datasource
         _mainControl_.anotTable.checkedCnt=0; _mainControl_.anotTable.checkedNodes=[];
         _mainControl_.anotTable.hidden = false;
         _mainControl_.annotTypeDS.reload(0,true);
@@ -188,7 +167,6 @@ function vjAnnotListTableControl(viewer){
         submitPanel.tree.findByName("removeSelected").hidden = true;
         submitPanel.refresh();
         
-        // clear every thing after submit
         onClearAll(submitPanel);
         
         _mainControl_.retValue0 = _mainControl_.retValue;
@@ -200,12 +178,10 @@ function vjAnnotListTableControl(viewer){
         _mainControl_.rowsCnt =0;
         _mainControl_.objAdded ={};
         
-        // clear panel
         var infoNode = _mainControl_.anotSubmitPanel.tree.findByName("info");
         infoNode.value = 'Select range(s) to add';
         _mainControl_.anotSubmitPanel.refresh();
-        // clear check rows
-        _mainControl_.checkTypeDS.reload("static://",true);
+        _mainControl_.checkTypeDS.reload("static:
         
         var checkedNodes = _mainControl_.anotTable.checkedNodes;
         for (var i=0; i<checkedNodes.length; ++i) {
@@ -218,25 +194,22 @@ function vjAnnotListTableControl(viewer){
         }
     }
         
-     _mainControl_.constructPreviewTableUrl = function (obj, isOutput) { // obj = {seqID: {start1-end1: type1-id1, start2-end2: type2-id2}}
+     _mainControl_.constructPreviewTableUrl = function (obj, isOutput) {
         var t = "seqID,ranges\n"; var len = t.length;
         if (isOutput){
-            t ="index,seqID,start,end,direction,defLine\n"; len=t.length;  // 0: forward, 1: reverse, 2: complement, 3:reverse complement
+            t ="index,seqID,start,end,direction,defLine\n"; len=t.length;
         }
         var objKeyArr = Object.keys(obj);
         var iCnt=0;
-        for (var i=0; i< objKeyArr.length; ++i) { // looping through seqID 
+        for (var i=0; i< objKeyArr.length; ++i) {
             var curObj = obj[objKeyArr[i]];
             for (var range in curObj) {
                 if (isOutput) {
-                    if (curObj[range]["strand"]>0) { // strand = "+"
+                    if (curObj[range]["strand"]>0) {
                         t += "" + iCnt + "," + objKeyArr[i] + "," + range.split("-")[0] + "," + range.split("-")[1] + "," + ( 0 ) + "," + curObj[range]["defLine"] +"\n"; ++iCnt;
-                        /*t += "" + iCnt + "," + objKeyArr[i] + "," + range.split("-")[0] + "," + range.split("-")[1] + "," + ( 1 ) + "," + curObj[range]["defLine"] +"\n"; ++iCnt;*/
                     }
-                    else { // strand = "-"
+                    else {
                         t += "" + iCnt + "," + objKeyArr[i] + "," + range.split("-")[0] + "," + range.split("-")[1] + "," + ( 1 ) + "," + curObj[range]["defLine"] +"\n"; ++iCnt;
-                        /*t += "" + iCnt + "," + objKeyArr[i] + "," + range.split("-")[0] + "," + range.split("-")[1] + "," + ( 2 ) + "," + curObj[range]["defLine"] +"\n"; ++iCnt;
-                        t += "" + iCnt + "," + objKeyArr[i] + "," + range.split("-")[0] + "," + range.split("-")[1] + "," + ( 3 ) + "," + curObj[range]["defLine"] +"\n"; ++iCnt;*/
                     }
                 } else {
                     t += "" + objKeyArr[i] + "," + range + "\n";
@@ -251,11 +224,11 @@ function vjAnnotListTableControl(viewer){
         var showCheckedNode = submitPanel.tree.findByName("showChecked");
         var removeNode = submitPanel.tree.findByName("removeSelected");
         
-        if (showCheckedNode.value.indexOf("Back")==-1) { // when select preview
+        if (showCheckedNode.value.indexOf("Back")==-1) {
             _mainControl_.anotTable.hidden=true;
             _mainControl_.anotTable.render();
             
-            var url = "static://" + _mainControl_.constructPreviewTableUrl(_mainControl_.objAdded);
+            var url = "static:
             _mainControl_.checkedTable.hidden=false;
             _mainControl_.checkTypeDS.reload(url,true);
             
@@ -263,7 +236,7 @@ function vjAnnotListTableControl(viewer){
             removeNode.hidden = false;
             submitPanel.refresh();
         }
-        else { // when select back
+        else {
             _mainControl_.anotTable.checkedCnt=0; _mainControl_.anotTable.checkedNodes=[];
             _mainControl_.anotTable.hidden = false;
             _mainControl_.annotTypeDS.reload(0,true);
@@ -296,7 +269,7 @@ function vjAnnotListTableControl(viewer){
                 delete objAdded[curNode.seqID];
             }
         }
-        var url =  "static://" + _mainControl_.constructPreviewTableUrl(_mainControl_.objAdded);
+        var url =  "static:
         _mainControl_.checkTypeDS.reload(url,true);
         checkedTbl.selectedCnt=0; checkedTbl.selectedNodes=[];
         _mainControl_.updateInfoForSubmitPanel();
@@ -326,9 +299,7 @@ function vjAnnotListTableControl(viewer){
         }
         this.anotSubmitPanel.refresh();
     }
-    // contruction Panel
     function openManualPanel (panel, treeNode, objNode){
-        //var aa=0;
         var mPanel = _mainControl_.manualPanel;
         if (!treeNode.value)
         {
@@ -377,10 +348,8 @@ function vjAnnotListTableControl(viewer){
         this.viewersArr.push(this.anotPanel);
     }
     
-    // contruction Table
     
     _mainControl_.constructTable = function () {
-        // annotation table
         var anotTable = new vjTableView({
             data: this.annotTypeDS.name
             ,formObject:this.formObject
@@ -390,7 +359,6 @@ function vjAnnotListTableControl(viewer){
             ,maxTxtLen: this.maxTxtLen
             ,treeColumn: "start"
             ,checkable:true
-            //,selectCallback: this.selectCallback 
             , appendCols :  [{header:{name:"path",title:'Annotation', type:"treenode",order:1,maxTxtLen:32},cell:""}]
             ,cols : [{ name: 'seqID', hidden:true }]
             ,treeColumn: "path"
@@ -403,7 +371,6 @@ function vjAnnotListTableControl(viewer){
             ,checkCallback: accumulateRows
             ,myName:"mainTable"
         });
-        // checked elements table
         var checkElementTable = new vjTableView({
             data: this.checkTypeDS.name
             ,formObject:this.formObject
@@ -420,7 +387,6 @@ function vjAnnotListTableControl(viewer){
         this.viewersArr.push(this.anotTable, this.checkedTable);
     }
     
-    // construct the submit panel at the bottom
     _mainControl_.constructSubmitPanel = function () {
         var rows=[{ name : 'info', type : 'text', title : 'Select range(s) to add', value : 'Select range(s) to add', align:'right', readonly:true, size:40, prefix:'Selected range(s):  ', order : 1},
                     { name : 'submit', type : 'button', value: this.submitButton['name'], align: 'right' , order : 2, url: returnRowsChecked, hidden: this.submitButton['hidden']},
@@ -448,10 +414,8 @@ function vjAnnotListTableControl(viewer){
         this.reload();
     }
     
-    // Construct All Viewers
     this.constructViewers();
     
     return [this.anotPanel, this.manualPanel,this.anotTable, this.checkedTable ,this.anotSubmitPanel];    
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjAnnotListTableView.js"

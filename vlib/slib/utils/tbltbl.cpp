@@ -117,7 +117,7 @@ bool sCatTabular::missing(idx irow, idx icol) const
     return sub.tbl->missing(irow - sub.row_offset, icol);
 }
 
-bool sCatTabular::val(sVariant & out, idx irow, idx icol, bool noReinterpret/*=false*/, bool blankIsNull/*=false*/) const
+bool sCatTabular::val(sVariant & out, idx irow, idx icol, bool noReinterpret, bool blankIsNull) const
 {
     DEFINE_S_CAT_TABULAR_ABSROW_SUB(false);
     idx abscol = icol + sub.tbl->dimLeftHeader();
@@ -269,7 +269,7 @@ sVariant::eType sEditedTabular::type(idx irow, idx icol) const
     }
 }
 
-idx sEditedTabular::colId(const char * colname, idx colname_len/* = 0*/, idx ic/* = 0*/) const
+idx sEditedTabular::colId(const char * colname, idx colname_len, idx ic) const
 {
     if( unlikely(_colIds.dim()) ) {
         const sVec<idx> * ids = _colIds.get(colname, colname_len);
@@ -282,7 +282,7 @@ idx sEditedTabular::colId(const char * colname, idx colname_len/* = 0*/, idx ic/
     }
 }
 
-idx sEditedTabular::colIdDim(const char * colname, idx colname_len/* = 0*/) const
+idx sEditedTabular::colIdDim(const char * colname, idx colname_len) const
 {
     if( unlikely(_colIds.dim()) ) {
         const sVec<idx> * ids = _colIds.get(colname, colname_len);
@@ -292,7 +292,7 @@ idx sEditedTabular::colIdDim(const char * colname, idx colname_len/* = 0*/) cons
     }
 }
 
-const char * sEditedTabular::printCell(sStr & out, idx irow, idx icol, idx maxLen/*=0*/, const char * defValue/*=0*/, idx flags/*=0*/) const
+const char * sEditedTabular::printCell(sStr & out, idx irow, idx icol, idx maxLen, const char * defValue, idx flags) const
 {
     idx ival = getIval(irow, icol);
     if( ival >= 0 ) {
@@ -323,7 +323,7 @@ const char * sEditedTabular::cell(idx irow, idx icol, idx * cellLen) const
     }
 }
 
-bool sEditedTabular::val(sVariant & out, idx irow, idx icol, bool noReinterpret/*=false*/, bool blankIsNull/*=false*/) const
+bool sEditedTabular::val(sVariant & out, idx irow, idx icol, bool noReinterpret, bool blankIsNull) const
 {
     idx ival = getIval(irow, icol);
     if( ival >= 0 ) {
@@ -361,7 +361,7 @@ bool sEditedTabular::val(sVariant & out, idx irow, idx icol, bool noReinterpret/
     }
 }
 
-void sEditedTabular::editCell(idx irow, idx icol, const char * decoded_value, idx val_len/* = 0 */)
+void sEditedTabular::editCell(idx irow, idx icol, const char * decoded_value, idx val_len)
 {
     if( !decoded_value ) {
         decoded_value = sStr::zero;

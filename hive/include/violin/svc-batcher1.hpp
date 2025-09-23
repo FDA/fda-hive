@@ -43,7 +43,7 @@ class SvcBatcher1 : public sQPrideProc
         {
             doCreateProcesses=true;
             selfService=true;
-            svcToSubmit=0;//"dna-hexagon";
+            svcToSubmit=0;
             svcToWaitFor=0;
         }
         virtual idx OnExecute(idx);

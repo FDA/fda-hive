@@ -1,6 +1,9 @@
 ==================================
 Special exceptions & utility types
 ==================================
+.. autoclass:: pyhive.RuntimeError
+    :members:
+
 .. autoclass:: pyhive.RequestKilledError
     :members:
 

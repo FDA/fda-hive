@@ -35,13 +35,13 @@ $(function () {
         options:{
             data: "dsVoid",
             dataCounter: 0,
-            colsForInput:[] //this should be an array in the format of either numbers of columns or column names
+            colsForInput:[]
         },
         _create: function () {
             oThis = this;
             
             oThis.options.container = "treeWidgetDiv" + parseInt(Math.random() * 100000);
-            oThis.element.append($(document.createElement("div")).attr("id", oThis.options.container)); // add random number generation to the end of this 
+            oThis.element.append($(document.createElement("div")).attr("id", oThis.options.container));
             
             oThis.options.data = verarr(oThis.options.data);
             $(oThis.options.data).each(function(i, dsName){
@@ -134,8 +134,6 @@ $(function () {
                 
                 var csvStr = editableTableContent.arrayToCSV();
                 var blob = new Blob ([csvStr], { type: 'text/csv;charset=utf-8;' });
-                //var fileFromBlob = new File ([blob],  $("#saveFileName")[0].value + ".csv");
-                //var form = window.document.createElement("form");
                 
                 
                 var formData = new FormData ();

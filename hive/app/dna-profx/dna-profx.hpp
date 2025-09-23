@@ -34,7 +34,7 @@
 #include <slib/std.hpp>
 #include <ssci/bio.hpp>
 #include <qlib/QPrideProc.hpp>
-#include <dmlib/dmlib.hpp>
+#include <xlib/dmlib.hpp>
 
 #include <violin/violin.hpp>
 #include <ssci/bio/viosam.hpp>
@@ -55,7 +55,7 @@ class DnaProfX
 
     const char * getGTFFilePath(sStr &path, const sHiveId & fileid)
     {
-        std::auto_ptr < sUsrObj > GTFObj(qp->user->objFactory(fileid));
+        std::unique_ptr < sUsrObj > GTFObj(qp->user->objFactory(fileid));
         if( GTFObj.get() && GTFObj->Id() ) {
             sUsrFile * GTFFileObj = dynamic_cast<sUsrFile*>(GTFObj.get());
             if( GTFFileObj ) {
@@ -95,8 +95,6 @@ class DnaProfXcuffdiff: public DnaProfX
 
     virtual idx Profile (sIO * log, sStr * outFile, const char * workDir, sUsr& user, const char * parentIDs, const char * additionalCommandLineParameters=0);
     virtual idx PrepareData ( sUsr& user, const char * parentIDs, const char * workDir, sStr &errMsg);
-    //virtual idx Finalize (sIO * log, sStr * outFile, const char * workDir, sUsr& user, const char * parentIDs, const char * additionalCommandLineParameters=0);
 };
 
-#endif // DnaProfX
-
+#endif 

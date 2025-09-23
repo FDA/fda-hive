@@ -30,17 +30,10 @@
 function vjImageView ( viewer )
 {
 
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
 
-//    if(this.iconHeight===undefined)this.iconHeight=100;
 
-//    if(this.iconWidth===undefined) this.iconWidth=100;
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ HTML viewer constructors
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.composerFunction=function( viewer , content)
     {
@@ -83,4 +76,3 @@ function vjImageView ( viewer )
     };
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjImageView.js"

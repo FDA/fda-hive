@@ -33,7 +33,7 @@ function vjSVG_HeatMap(source)
 
     vjSVG_Plot.call(this, source);
     if (!this.name) this.name = this.objID;
-    var plot = this; // for use in closures
+    var plot = this;
 
     if (!this.color) this.color = {min: "green", max: "red", mid: "yellow"};
     if (!this.color.min) this.color.min = "green";
@@ -46,55 +46,30 @@ function vjSVG_HeatMap(source)
     if (!this.color.missing) this.color.missing = "#eeeeee";
 
     if (!this.valueRange) this.valueRange = {min: 0, mid: 0.5, max: 1};
-    this.valueRange.min = parseFloat(this.valueRange.min);
-    this.valueRange.max = parseFloat(this.valueRange.max);
+    function ensureRangeVal(v) { return v === "tbl" || v === "row" || v === "col" ? v : parseFloat(v); }
+    this.valueRange.min = ensureRangeVal(this.valueRange.min);
+    this.valueRange.max = ensureRangeVal(this.valueRange.max);
     if (this.valueRange.mid === undefined) {
-        this.valueRange.mid = (this.valueRange.min + this.valueRange.max) / 2;
+        if (!isNaN(parseFloat(this.valueRange.max)) && !isNaN(parseFloat(this.valueRange.min))) {
+            this.valueRange.mid = (this.valueRange.min + this.valueRange.max) / 2;
+        }
     } else {
-        this.valueRange.mid = parseFloat(this.valueRange.mid);
+        this.valueRange.mid = ensureRangeVal(this.valueRange.mid);
     }
 
-    if (!this.legend_range) this.legend_range = cpyObj(this.valueRange);
-    if (this.legend_range.min === undefined) {
-        this.legend_range.min = this.valueRange.min;
-    } else {
-        this.legend_range.min = parseFloat(this.legend_range.min);
-    }
-    if (this.legend_range.min_text === undefined) {
-        this.legend_range.min_text = this.legend_range.min.toFixed(1);
-    }
-
-    if (this.legend_range.max === undefined) {
-        this.legend_range.max = this.valueRange.max;
-    } else {
-        this.legend_range.max = parseFloat(this.legend_range.max);
-    }
-    if (this.legend_range.max_text === undefined) {
-        this.legend_range.max_text = this.legend_range.max.toFixed(1);
-    }
-    
-    if (this.legend_range.mid === undefined) {
-        this.legend_range.mid = (this.legend_range.min + this.legend_range.max) / 2;
-    } else {
-        this.legend_range.mid = parseFloat(this.legend_range.mid);
-    }
-    if (this.legend_range.mid_text === undefined) {
-        this.legend_range.mid_text = this.legend_range.mid.toFixed(1);
-    }
-
-    if (!this.legend_stop_size) this.legend_stop_size = 0; // if non-0: size of a legend stop in terms of legend_range units
+    if (this.legend_range === undefined) { this.legend_range = {}; }
 
     if (!this.minCellSize) this.minCellSize = 10;
     if (this.squareCells === undefined) this.squareCells = true;
 
     if (!this.geometry)
         this.geometry = {
-            top_ratio: 0.5, // ratio of top tree height to heatmap height
-            left_ratio: 0.5, // ratio of left tree width to heatmap width
-            right_max: 200, // max width of right label in pixels
-            right_ratio: 0.5, // ratio of right label width to heatmap width if < right_max
-            bottom_max: 100, // max height of bottom label in pixels
-            bottom_ratio: 0.5 // ratio of bottom label height to heatmap height if < bottom_max
+            top_ratio: 0.5,
+            left_ratio: 0.5,
+            right_max: 200,
+            right_ratio: 0.5,
+            bottom_max: 100,
+            bottom_ratio: 0.5
         };
 
     this.heat = {
@@ -105,12 +80,9 @@ function vjSVG_HeatMap(source)
         }
     };
 
-    // determine this experimentally based on leaf label font size
     if (!this.glyphHeight) this.glyphHeight = 0.03;
 
-    // set if there is a png fallback for large heatmaps
     if (!this.heat_image_url) this.heat_image_url = null;
-    // if number of cells >= heat_image_min_cells, prefer png over svg heatmap
     if (!this.heat_image_min_cells) this.heat_image_min_cells = 500 * 500;
 
     this.construct = function(axis, chartarea, scene)
@@ -154,7 +126,6 @@ function vjSVG_HeatMap(source)
         this.heat.rows = [];
         this.heat.cols = [];
 
-        // chartarea may be in percent...
         if (chartarea && !(chartarea.width * 2 && chartarea.height * 2)) {
             chartarea = null;
         }
@@ -199,7 +170,7 @@ function vjSVG_HeatMap(source)
         var max_cols = this.heat_serie.tblArr.hdr.length ? this.heat_serie.tblArr.hdr.length - 1 : 0;
 
         this.use_heat_image = false;
-        if (this.heat_image_url && this.heat_image_url != "static://" && (max_rows * max_cols >= this.heat_image_min_cells)) {
+        if (this.heat_image_url && this.heat_image_url != "static:
             this.use_heat_image = true;
         }
 
@@ -210,7 +181,6 @@ function vjSVG_HeatMap(source)
         var left_max_depth = this.left_tree_serie && this.left_tree_serie.maxDepth ? this.left_tree_serie.maxDepth : 1;
 
         if (this.left_tree_serie && this.left_tree_serie.has_nontrivial_data()) {
-            // scale left ratio so left trees for short, wide heatmaps are not too wide
             var scaled_left_ratio = this.geometry.left_ratio * Math.max(0.01, left_max_depth / Math.max(top_max_depth, left_max_depth));
             var rat_sum = 1 + this.geometry.right_ratio + scaled_left_ratio;
             if (chartarea && chartarea.width * this.geometry.right_ratio / rat_sum > this.geometry.right_max) {
@@ -230,7 +200,6 @@ function vjSVG_HeatMap(source)
         }
 
         if (this.top_tree_serie && this.top_tree_serie.has_nontrivial_data()) {
-            // scale top ratio so top trees for tall, narrow heatmaps are not too tall
             var scaled_top_ratio = this.geometry.top_ratio * Math.max(0.01, top_max_depth / Math.max(top_max_depth, left_max_depth));
             var rat_sum = 1 + scaled_top_ratio + this.geometry.bottom_ratio;
             if (chartarea && chartarea.height * this.geometry.bottom_ratio / rat_sum > this.geometry.bottom_max) {
@@ -281,9 +250,6 @@ function vjSVG_HeatMap(source)
         if (this.heat.rows.length)
             this.heat.cellHeight = this.heat.height / this.heat.rows.length;
 
-//        if (chartarea) {
-//            console.log("Cells: " + chartarea.width * this.heat.cellWidth + " px X " + chartarea.height * this.heat.cellHeight + " px");
-//        }
     };
 
     this.constructLeftTree = function(chartarea, scene)
@@ -339,7 +305,6 @@ function vjSVG_HeatMap(source)
         var c0 = color0.chroma(); var c1 = color1.chroma(); var cM = colorM.chroma();
         var l0 = color0.lightness(); var l1 = color1.lightness(); var lM = colorM.lightness();
 
-        // special treatment for grayscale-to-color transition
         if (!c0)
             h0 = hM0;
         if (!c1)
@@ -349,19 +314,156 @@ function vjSVG_HeatMap(source)
             hM1 = h1;
         }
 
-        // setting a stroke width removes ugly white gaps between heatmap cells
         var heat_group = new vjSVG_group({
             pen: {"stroke-width": 1, "stroke-opacity": 1, "stroke-linecap": "square"}
         });
         var label_group = new vjSVG_group();
 
-        function makeColor(value) {
+        var dynamicRange;
+        if (this.valueRange.max === "tbl" || this.valueRange.min === "tbl" || this.valueRange.mid === "tbl" || this.legend_range.max === "tbl" || this.legend_range.min === "tbl" || this.legend_range.mid === "tbl") {
+            if (!dynamicRange) {
+                dynamicRange = { tbl: {} };
+            }
+        }
+        if (this.valueRange.max === "row" || this.valueRange.min === "row" || this.valueRange.mid === "row" || this.legend_range.max === "row" || this.legend_range.min === "row" || this.legend_range.mid === "row") {
+            if (!dynamicRange) {
+                dynamicRange = { tbl: {} };
+            }
+            dynamicRange.rows = [];
+        }
+        if (this.valueRange.max === "col" || this.valueRange.min === "col" || this.valueRange.mid === "col" || this.legend_range.max === "col" || this.legend_range.min === "col" || this.legend_range.mid === "col") {
+            if (!dynamicRange) {
+                dynamicRange = { tbl: {} };
+            }
+            dynamicRange.cols = [];
+        }
+
+        if (dynamicRange) {
+            function dynamicRange_acc_value(value, ir, ic) {
+                value = parseFloat(this.heat_serie.tblArr.rows[tbl_ir].cols[tbl_ic]);
+                if (!isNaN(value)) {
+                    if (dynamicRange.tbl.max === undefined) {
+                        dynamicRange.tbl.max = value;
+                    } else {
+                        dynamicRange.tbl.max = Math.max(value, dynamicRange.tbl.max);
+                    }
+                    if (dynamicRange.tbl.min === undefined) {
+                        dynamicRange.tbl.min = value;
+                    } else {
+                        dynamicRange.tbl.min = Math.min(value, dynamicRange.tbl.min);
+                    }
+
+                    if (dynamicRange.rows) {
+                        if (!dynamicRange.rows[ir]) {
+                            dynamicRange.rows[ir] = {};
+                        }
+                        if (dynamicRange.rows[ir].max === undefined) {
+                            dynamicRange.rows[ir].max = value;
+                        } else {
+                            dynamicRange.rows[ir].max = Math.max(value, dynamicRange.rows[ir].max);
+                        }
+                        if (dynamicRange.rows[ir].min === undefined) {
+                            dynamicRange.rows[ir].min = value;
+                        } else {
+                            dynamicRange.rows[ir].min = Math.min(value, dynamicRange.rows[ir].min);
+                        }
+                    }
+                    if (dynamicRange.cols) {
+                        if (!dynamicRange.cols[ic]) {
+                            dynamicRange.cols[ic] = {};
+                        }
+                        if (dynamicRange.cols[ic].max === undefined) {
+                            dynamicRange.cols[ic].max = value;
+                        } else {
+                            dynamicRange.cols[ic].max = Math.max(value, dynamicRange.cols[ic].max);
+                        }
+                        if (dynamicRange.cols[ic].min === undefined) {
+                            dynamicRange.cols[ic].min = value;
+                        } else {
+                            dynamicRange.cols[ic].min = Math.min(value, dynamicRange.cols[ic].min);
+                        }
+                    }
+                }
+            }
+
+            for (var ir=0; ir<this.heat.rows.length; ir++) {
+                for (var ic=0; ic<this.heat.cols.length; ic++) {
+                    var serie_row = this.heat.rows[this.heat.rows.length-1-ir];
+                    var serie_col = this.heat.cols[ic];
+
+                    if ((serie_row instanceof Array) || (serie_col instanceof Array)) {
+                        serie_row = (serie_row === 0) ? [0] : verarr(serie_row);
+                        serie_col = (serie_col === 0) ? [0] : verarr(serie_col);
+                        for (var jr=0; jr<serie_row.length; jr++) {
+                            for (var jc=0; jc<serie_col.length; jc++) {
+                                var tbl_ir = serie_row[jr];
+                                var tbl_ic = 1 + serie_col[jc];
+                                var value = this.heat_serie.tblArr.rows[tbl_ir].cols[tbl_ic];
+                                dynamicRange_acc_value.call(this, value, ir, ic);
+                            }
+                        }
+                    } else {
+                        var tbl_ir = serie_row;
+                        var tbl_ic = 1 + serie_col;
+                        var value = this.heat_serie.tblArr.rows[tbl_ir].cols[tbl_ic];
+                        dynamicRange_acc_value.call(this, value, ir, ic);
+                    }
+                }
+            }
+        }
+
+        function getValueRange(ir, ic, staticRange) {
+            if (dynamicRange) {
+                var range = {};
+
+                if (staticRange.max == "tbl") {
+                    range.max = dynamicRange.tbl.max;
+                } else if (staticRange.max == "row") {
+                    range.max = dynamicRange.rows[ir].max;
+                } else if (staticRange.max == "col") {
+                    range.max = dynamicRange.cols[ic].max;
+                } else {
+                    range.max = staticRange.max;
+                }
+
+                if (staticRange.min == "tbl") {
+                    range.min = dynamicRange.tbl.min;
+                } else if (staticRange.min == "row") {
+                    range.min = dynamicRange.rows[ir].min;
+                } else if (staticRange.min == "col") {
+                    range.min = dynamicRange.cols[ic].min;
+                } else {
+                    range.min = staticRange.min;
+                }
+
+                if (staticRange.mid == "tbl") {
+                    range.mid = (dynamicRange.tbl.min + dynamicRange.tbl.max) / 2;
+                } else if (staticRange.min == "row") {
+                    range.mid = (dynamicRange.rows[ir].min + dynamicRange.rows[ir].max) / 2;
+                } else if (staticRange.min == "col") {
+                    range.mid = (dynamicRange.cols[ic].min + dynamicRange.cols[ic].max) / 2;
+                } else if (staticRange.mid === undefined || staticRange.mid === null) {
+                    range.mid = (range.max + range.min) / 2;
+                } else {
+                    range.mid = staticRange.mid;
+                }
+
+                return range;
+            } else {
+                return staticRange;
+            }
+        }
+
+        function makeColor(value, ir, ic, valueRange) {
             value = parseFloat(value);
-            if (value < this.valueRange.mid) {
-                var scale = Math.max(0, (value - this.valueRange.min) / (this.valueRange.mid - this.valueRange.min));
+            if (!valueRange) {
+                 valueRange = getValueRange(ir, ic, this.valueRange);
+            }
+            if (value < valueRange.mid) {
+                var scale = Math.max(0, (value - valueRange.min) / (valueRange.mid - valueRange.min));
                 return vjHCL(h0 + (hM0 - h0) * scale, c0 + (cM - c0) * scale, l0 + (lM - l0) * scale);
             } else {
-                var scale = Math.min(1, (value - this.valueRange.mid) / (this.valueRange.max - this.valueRange.mid));
+                var scale = Math.min(1, (value - valueRange.mid) / (valueRange.max - valueRange.mid));
                 return vjHCL(hM1 + (h1 - hM1) * scale, cM + (c1 - cM) * scale, lM + (l1 - lM) * scale);
             }
         }
@@ -388,7 +490,9 @@ function vjSVG_HeatMap(source)
                         var value_list = [];
                         for (var jr=0; jr<serie_row.length; jr++) {
                             for (var jc=0; jc<serie_col.length; jc++) {
-                                var value = this.heat_serie.tblArr.rows[serie_row[jr]].cols[1 + serie_col[jc]];
+                                var tbl_ir = serie_row[jr];
+                                var tbl_ic = 1 + serie_col[jc];
+                                var value = this.heat_serie.tblArr.rows[tbl_ir].cols[tbl_ic];
                                 value_list.push(value);
                                 var value = parseFloat(value);
                                 if (!isNaN(value)) {
@@ -397,8 +501,8 @@ function vjSVG_HeatMap(source)
                                 }
                             }
                         }
-                        var color_min = (value_min == null) ? colorX : makeColor.call(this, value_min);
-                        var color_max = (value_max == null) ? colorX : makeColor.call(this, value_max);
+                        var color_min = (value_min == null) ? colorX : makeColor.call(this, value_min, ir, ic);
+                        var color_max = (value_max == null) ? colorX : makeColor.call(this, value_max, ir, ic);
 
                         var cellHandler = function(irows, icols, values) { return function() { return plot.callOnclickCallbacks(irows, icols, "map", values); } } (serie_row, serie_col, value_list);
 
@@ -423,12 +527,13 @@ function vjSVG_HeatMap(source)
                             handler: { onclick: cellHandler }
                         }));
                     } else {
-                        // non-collapsed case
-                        var value = this.heat_serie.tblArr.rows[serie_row].cols[1 + serie_col];
+                        var tbl_ir = serie_row;
+                        var tbl_ic = 1 + serie_col;
+                        var value = this.heat_serie.tblArr.rows[tbl_ir].cols[tbl_ic];
 
                         var color = colorX;
                         if (!isNaN(parseFloat(value))) {
-                            color = makeColor.call(this, value);
+                            color = makeColor.call(this, value, ir, ic);
                         }
 
                         var cellHandler = function(irows, icols, values) { return function() { return plot.callOnclickCallbacks(irows, icols, "map", values); } } (serie_row, serie_col, value);
@@ -501,13 +606,14 @@ function vjSVG_HeatMap(source)
         this.children.push(heat_group);
         this.children.push(label_group);
 
-        // legend
-        // setting a stroke width removes ugly white gaps between legend stops
         var legend_group = new vjSVG_group({pen: {"stroke-width": 1, "stroke-opacity": 1, "stroke-linecap": "square"}});
-        var legend_range_width = this.legend_range.max - this.legend_range.min;
-        var legend_range_width_to_mid = this.legend_range.mid - this.legend_range.min;
+        var legend_range_min = 0;
+        var legend_range_mid = 0.5;
+        var legend_range_max = 1;
+        var legend_range_width = legend_range_max - legend_range_min;
+        var legend_range_width_to_mid = legend_range_mid - legend_range_min;
 
-        var legend_stop_size = this.legend_stop_size ? this.legend_stop_size : legend_range_width / 14;
+        var legend_stop_size = legend_range_width / 14;
         var legend_stops_to_mid = Math.floor(legend_range_width_to_mid / legend_stop_size);
         var legend_stops = 1 + legend_stops_to_mid + Math.floor((legend_range_width - legend_range_width_to_mid) / legend_stop_size);
 
@@ -517,20 +623,18 @@ function vjSVG_HeatMap(source)
             legend_width = this.minCellSize / (2 * chartarea.width);
         }
         var legend_crd = {x: (this.heat.l + legend_width)/3, y: (this.heat.b - legend_height)/3};
-        //var legend_debug = [];
         for (var i=0; i<legend_stops; i++) {
-            var value;
+            var color;
             if (i < legend_stops_to_mid) {
                 var scale = i / legend_stops_to_mid;
-                value = this.valueRange.min + scale * (this.valueRange.mid - this.valueRange.min);
+                value = legend_range_min + scale * (legend_range_mid - legend_range_min);
             } else if (i == legend_stops_to_mid) {
-                value = this.valueRange.mid;
+                value = legend_range_mid;
             } else {
                 var scale = (i + 1 - legend_stops_to_mid) / (legend_stops - legend_stops_to_mid);
-                value = this.valueRange.mid + scale * (this.valueRange.max - this.valueRange.mid);
+                value = legend_range_mid + scale * (legend_range_max - legend_range_mid);
             }
-            var color = makeColor.call(this, value).hex();
-            //legend_debug.push({"stop #": i, type: i < legend_stops_to_mid ? "lower" : i > legend_stops_to_mid ? "upper" : "mid", value: value, color: color});
+            var color = makeColor.call(this, value, undefined, undefined, {min: legend_range_min, mid: legend_range_mid, max: legend_range_max}).hex();
             legend_group.children.push(new vjSVG_box({
                 crd: {x: legend_crd.x, y: legend_crd.y + i * (legend_height/legend_stops)},
                 width: legend_width,
@@ -538,25 +642,56 @@ function vjSVG_HeatMap(source)
                 brush: {"fill-opacity": 1, fill: color, stroke: color}
             }));
         }
-        //console.table(legend_debug);
+        var legend_min_text = this.legend_range.min_text;
+        if (legend_min_text === undefined) {
+            if (this.valueRange.min == "tbl") {
+                legend_min_text = dynamicRange.tbl.min.toFixed(1);
+            } else if (this.valueRange.min == "row") {
+                legend_min_text = "minimum in row";
+            } else if (this.valueRange.min == "col") {
+                legend_min_text = "minimum in column";
+            } else {
+                legend_min_text = this.valueRange.min.toFixed(1);
+            }
+        }
         legend_group.children.push(new vjSVG_text({
             crd: {x: legend_crd.x + legend_width, y: legend_crd.y},
             font: {"font-size": 9},
-            text: this.legend_range.min_text,
+            text: legend_min_text,
             dx: ".3em",
             dy: ".3em"
         }));
+        var legend_mid_text = this.legend_range.mid_text;
+        if (legend_mid_text === undefined) {
+            if (isNaN(parseFloat(this.valueRange.mid))) {
+                legend_mid_text = "";
+            } else {
+                legend_mid_text = this.valueRange.mid.toFixed(1);
+            }
+        }
         legend_group.children.push(new vjSVG_text({
             crd: {x: legend_crd.x + legend_width, y: legend_crd.y + legend_height * (legend_stops_to_mid + 0.5) / legend_stops},
             font: {"font-size": 9},
-            text: this.legend_range.mid_text,
+            text: legend_mid_text,
             dx: ".3em",
             dy: ".3em"
         }));
+        var legend_max_text = this.legend_range.max_text;
+        if (legend_max_text === undefined) {
+            if (this.valueRange.max == "tbl") {
+                legend_max_text = dynamicRange.tbl.max.toFixed(1);
+            } else if (this.valueRange.max == "row") {
+                legend_max_text = "maximum in row";
+            } else if (this.valueRange.max == "col") {
+                legend_max_text = "maximum in column";
+            } else {
+                legend_max_text = this.valueRange.max.toFixed(1);
+            }
+        }
         legend_group.children.push(new vjSVG_text({
             crd: {x: legend_crd.x + legend_width, y: legend_crd.y + legend_height},
             font: {"font-size": 9},
-            text: this.legend_range.max_text,
+            text: legend_max_text,
             dx: ".3em",
             dy: ".3em"
         }));

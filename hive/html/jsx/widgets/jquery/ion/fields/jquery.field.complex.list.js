@@ -27,7 +27,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.filed.complex.list.js
 
 $(function () {
     $.widget("ion.field_complex_list", $.ion.field_complex_base, {
@@ -81,14 +80,7 @@ $(function () {
                             $(controlPanel).detach();
                         }
                     })
-                    //.on('clean-undo', function () {
-                        //if ($('.undo', $(this).children('ul')).length == 0) {
-                        //    $('.undo, .save', $(this).children('label')).remove();
-                        //    oThis.element.trigger('clean-undo');
-                        //}
 
-                    //    return false;
-                    //});
 
                     if (this.options.collapsed) {
                         li.addClass('collapsed');

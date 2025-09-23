@@ -34,7 +34,7 @@ idx sVioDBseq::getLen (idx i)
 {
     udx sizetype;
     udx irel, relcnt, reltype;
-    const char *id;//, *seq;
+    const char *id;
     sVioseq2::Rec * rec;
 
     if (i < 0 || i >= length)
@@ -93,8 +93,6 @@ const char *sVioDBseq::getSeq(idx i)
     }
     else {
         rec = (sVioseq2::Rec *) db->Getbody (REC_TYPE, i+1, &sizetype);
-        //irel = *db->GetRelationPtr(2, i+1, 1, &relcnt, &reltype);
-        //id = (const char *) db->Getbody (reltype, irel, &sizetype);
         irel = *db->GetRelationPtr(2, i+1, 2, &relcnt, &reltype);
         seq= (const char *) db->Getbody (reltype, irel, &sizetype);
         return seq;
@@ -121,8 +119,6 @@ const char *sVioDBseq::getQua(idx i)
     }
     else {
         rec = (sVioseq2::Rec *) db->Getbody (REC_TYPE, i+1, &sizetype);
-        //irel = *db->GetRelationPtr(2, i+1, 1, &relcnt, &reltype);
-        //id = (const char *) db->Getbody (reltype, irel, &sizetype);
         irel = *db->GetRelationPtr(2, i+1, 3, &relcnt, &reltype);
         qua = (const char *) db->Getbody (reltype, irel, &sizetype);
         return qua;
@@ -134,7 +130,7 @@ const char *sVioDBseq::getID(idx i)
 {
     udx sizetype;
     udx irel, relcnt, reltype;
-    const char *id;//, *seq;
+    const char *id;
     sVioseq2::Rec * rec;
 
     if (i < 0 || i >= length)

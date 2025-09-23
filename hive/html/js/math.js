@@ -27,21 +27,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-/*colset[0]=[1,3,6];
-    colset[1]=[0,2,4,5];
-           
-    var  t=statTest(tblArr, colset);
-    t.probvals[ir]>0.95
-*/
 
-// STATISTIC TEST: Student or ANOVAR
-/**    actmat   : the table with rows and cols as the matrix: FORMAT [[],[]]
- *  colset   : groups of columns: FORMAT [[],[]]
- *  probvals : a float number
- *  tstatvals: a float number 
- */
 
-function statTest(actmat, colset, probvals/*float*/,tstatvals /*float*/) // (actmat, colset, real * probvals, real * tstatvals)
+function statTest(actmat, colset, probvals,tstatvals)
 {
     var sta=[{ss:0,average:0,n:0},{ss:0,average:0,n:0}];
     
@@ -53,22 +41,22 @@ function statTest(actmat, colset, probvals/*float*/,tstatvals /*float*/) // (act
 
     var result={probvals:[],tstatvals:[]};
     
-    for ( ir=0; ir < actmat.rows.length ; ++ir ) { // loop rows
+    for ( ir=0; ir < actmat.rows.length ; ++ir ) {
         var ssWAll=0, averageAll=0, ssBAll=0, prob, tval;
         var nAll=0;
 
-        for( is=0; is<grps; ++is ) { // Loop through group
-            var curGroup = colset[is]; // current group
-            var groupLen = curGroup.length; // number of columns from that group
+        for( is=0; is<grps; ++is ) {
+            var curGroup = colset[is];
+            var groupLen = curGroup.length;
 
             var  average=0 , ss, s ; 
-            for ( ic=0; ic<groupLen; ++ic) { // compute the AVERAGE of columns from the same group
+            for ( ic=0; ic<groupLen; ++ic) {
                 average += parseFloat(actmat.rows[ir].cols[curGroup[ic]]);
             }
             averageAll += average;
             average /= groupLen;
             ss=0;
-            for ( ic=0; ic<groupLen; ++ic) { // compute the STDDEV
+            for ( ic=0; ic<groupLen; ++ic) {
                 s = parseFloat(actmat.rows[ir].cols[curGroup[ic]]) - average;
                 ss += s*s;
             }
@@ -87,14 +75,14 @@ function statTest(actmat, colset, probvals/*float*/,tstatvals /*float*/) // (act
         averageAll/=nAll;
         ssBAll-=nAll*averageAll*averageAll;
 
-        if(isT) { // STUDENT
+        if(isT) {
             var df = sta[0].n + sta[1].n -2;
             var sJoint = ssWAll/df;
             var t = sJoint ? (sta[0].average - sta[1].average)/Math.sqrt(sJoint*(1./sta[0].n+1./sta[1].n)) : 0 ;
             t = Math.abs(t);
             prob = studentsT(t, df );
             tval=t;
-        }else { // ANOVA
+        }else {
             var dfb = grps-1;
             var dfw = nAll-grps;
             var MSB = ssBAll/dfb;
@@ -110,7 +98,7 @@ function statTest(actmat, colset, probvals/*float*/,tstatvals /*float*/) // (act
 }
 
 
-function studentsT(t /*float*/, df /*float*/)  
+function studentsT(t, df)  
 {
     return 1.0 - betaIncomplete(0.5*df, 0.5, df/(df+t*t));
 }
@@ -126,7 +114,6 @@ function studentsF(f, df1, df2)
 
 
 
-// Returns the value ln[Gamma(xx)] for xx > 0.
 function lnGamma(xx)
 {
     var x, y, tmp, ser;
@@ -151,16 +138,15 @@ var MAXIT = 1000;
 var EPS = 3.0e-13;
 var FPMIN = REAL_MIN;
 
-// Used by betai: Evaluates continued fraction for incomplete beta function by modified Lentz�s method (section 5.2).
 function betaContinuedFraction(a, b, x)
 {
     var m,m2;
     var aa,c,d,del,h,qab,qam,qap;
 
-    qab = a+b; // These q�s will be used in factors that occur in the coefcients (6.4.6). 
+    qab = a+b;
     qap = a + 1.0;
     qam = a - 1.0;
-    c = 1.0; // First step of Lentz�s method.
+    c = 1.0;
     d = 1.0 - (qab*x)/qap;
     if (Math.abs(d) < FPMIN) d=FPMIN;
     d=1.0/d;
@@ -168,43 +154,40 @@ function betaContinuedFraction(a, b, x)
     for (m=1; m<=MAXIT; m++) {
         m2 = 2*m;
         aa = m*(b-m)*x/((qam+m2)*(a+m2));
-        d = 1.0 + aa*d;  // One step (the even one) of the recurrence.
+        d = 1.0 + aa*d;
         if (Math.abs(d) < FPMIN) d=FPMIN;
         c = 1.0+aa/c;
         if (Math.abs(c) < FPMIN) c=FPMIN;
         d = 1.0/d;
         h *= d*c;
         aa = -(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
-        d = 1.0 + aa*d; // Next step of the recurrence (the odd one).
+        d = 1.0 + aa*d;
         if (Math.abs(d) < FPMIN) d=FPMIN;
         c = 1.0+aa/c;
         if (Math.abs(c) < FPMIN) c=FPMIN;
         d = 1.0/d;
         del = d*c;
         h *= del;
-        if (Math.abs(del-1.0) < EPS) break; // Are we done?
+        if (Math.abs(del-1.0) < EPS) break;
     }
-    // if (m > MAXIT) sFuncNRUtil::nrerror("a or b too big, or MAXIT too small in betacf");
     
     return h;
 }
 
-//Returns the incomplete beta function Ix(a, b).
-function betaIncomplete(a /*float*/, b /*float*/, x /*float*/)
+function betaIncomplete(a, b, x)
 {
     var bt;
     if (x == 0.0 || x == 1.0){ 
         bt = 0.0;
-    }else{ // Factors in front of the continued fraction.
+    }else{
         bt = Math.exp(lnGamma(a+b) - lnGamma(a) - lnGamma(b) + a*Math.log(x)+b*Math.log(1.0-x));
     }
     
-    if (x < ((a+1.0)/(a+b+2.0)) ){  //Use continued fraction directly.
+    if (x < ((a+1.0)/(a+b+2.0)) ){
         return bt*betaContinuedFraction(a,b,x)/a;
-    } else { // Use continued fraction after making the symmetry transformation. 
+    } else {
         return 1.0 - bt * (betaContinuedFraction(b,a,1.0-x))/b;
     }    
 }
 
 
-//# sourceURL = getBaseUrl() + "/js/math.js"

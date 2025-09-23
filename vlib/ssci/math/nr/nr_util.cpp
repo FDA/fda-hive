@@ -37,18 +37,12 @@ using namespace slib;
 char sMathNRUtil::lastErr[4096];
 
 void sMathNRUtil::nrerror(const char * error_text)
-/* Numerical Recipes standard error handler */
 {
-    strncpy(lastErr,error_text,sizeof(lastErr));
-    //fprintf(stderr,"Numerical Recipes run-time error...\n");
-    //fprintf(stderr,"%s\n",error_text);
-    //fprintf(stderr,"...now exiting to system...\n");
-    //exit(1);
+    strncpy(lastErr,error_text,sizeof(lastErr)-1);
 }
 
 
 real* sMathNRUtil::vector(idx nl, idx nh)
-/* allocate a sRealvector with subscript range v[nl..nh] */
 {
         real*v;
 
@@ -57,15 +51,13 @@ real* sMathNRUtil::vector(idx nl, idx nh)
         return v-nl+NR_END;
 }
 
-void sMathNRUtil::free_vector(real *v, idx nl, idx ) // nh
-/* free a real vector allocated with vector() */
+void sMathNRUtil::free_vector(real *v, idx nl, idx )
 {
         free((FREE_ARG) (v+nl-NR_END));
 }
 
 
 idx *sMathNRUtil::ivector(idx nl, idx nh)
-/* allocate an idx vector with subscript range v[nl..nh] */
 {
         idx *v;
 
@@ -73,8 +65,7 @@ idx *sMathNRUtil::ivector(idx nl, idx nh)
         if (!v) sMathNRUtil::nrerror("allocation failure in ivector()");
         return v-nl+NR_END;
 }
-void sMathNRUtil::free_ivector(idx *v, idx nl, idx ) // nh
-/* free an idx vector allocated with ivector() */
+void sMathNRUtil::free_ivector(idx *v, idx nl, idx )
 {
         free((FREE_ARG) (v+nl-NR_END));
 }
@@ -83,18 +74,15 @@ void sMathNRUtil::free_ivector(idx *v, idx nl, idx ) // nh
 
 
 real ** sMathNRUtil::matrix(idx nrl, idx nrh, idx ncl, idx nch)
-/* allocate a real matrix with subscript range m[nrl..nrh][ncl..nch] */
 {
         idx i, nrow=nrh-nrl+1,ncol=nch-ncl+1;
         real **m;
 
-        /* allocate pointers to rows */
         m=(real **) malloc((size_t)((nrow+NR_END)*sizeof(real*)));
         if (!m) sMathNRUtil::nrerror("allocation failure 1 in matrix()");
         m += NR_END;
         m -= nrl;
 
-        /* allocate rows and set pointers to them */
         m[nrl]=(real *) malloc((size_t)((nrow*ncol+NR_END)*sizeof(real)));
         if (!m[nrl]) sMathNRUtil::nrerror("allocation failure 2 in matrix()");
         m[nrl] += NR_END;
@@ -102,14 +90,11 @@ real ** sMathNRUtil::matrix(idx nrl, idx nrh, idx ncl, idx nch)
 
         for(i=nrl+1;i<=nrh;i++) m[i]=m[i-1]+ncol;
 
-        /* return pointer to array of pointers to rows */
         return m;
 }
 
-void sMathNRUtil::free_matrix(real **m, idx nrl, idx , idx ncl, idx ) // nrh, , nch
-/* free a float matrix allocated by matrix() */
+void sMathNRUtil::free_matrix(real **m, idx nrl, idx , idx ncl, idx )
 {
         free((FREE_ARG) (m[nrl]+ncl-NR_END));
         free((FREE_ARG) (m+nrl-NR_END));
 }
-

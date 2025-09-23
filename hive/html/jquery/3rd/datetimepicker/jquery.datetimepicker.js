@@ -27,31 +27,20 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//@ sourceURL=jquery.datetimepicker.js
 
-/* global DateFormatter */
-/**
- * @preserve jQuery DateTimePicker plugin v2.4.5
- * @homepage http://xdsoft.net/jqplugins/datetimepicker/
- * (c) 2014, Chupurnov Valeriy.
- */
-/*global document,window,jQuery,setTimeout,clearTimeout,HighlightedDate,getCurrentValue*/
 ;(function (factory) {
     if ( typeof define === 'function' && define.amd ) {
-        // AMD. Register as an anonymous module.
         define(['jquery', 'jquery-mousewheel', 'date-functions'], factory);
     } else if (typeof exports === 'object') {
-        // Node/CommonJS style for Browserify
         module.exports = factory;
     } else {
-        // Browser globals
         factory(jQuery);
     }
 }(function ($) {
     'use strict';
     var default_options  = {
         i18n: {
-            ar: { // Arabic
+            ar: {
                 months: [
                     "كانون الثاني", "شباط", "آذار", "نيسان", "مايو", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"
                 ],
@@ -60,7 +49,7 @@
                 ],
                 dayOfWeek: ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
             },
-            ro: { // Romanian
+            ro: {
                 months: [
                     "Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"
                 ],
@@ -69,7 +58,7 @@
                 ],
                 dayOfWeek: ["Duminică", "Luni", "Marţi", "Miercuri", "Joi", "Vineri", "Sâmbătă"]
             },
-            id: { // Indonesian
+            id: {
                 months: [
                     "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"
                 ],
@@ -78,7 +67,7 @@
                 ],
                 dayOfWeek: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
             },
-            is: { // Icelandic
+            is: {
                 months: [
                     "Janúar", "Febrúar", "Mars", "Apríl", "Maí", "Júní", "Júlí", "Ágúst", "September", "Október", "Nóvember", "Desember"
                 ],
@@ -87,7 +76,7 @@
                 ],
                 dayOfWeek: ["Sunnudagur", "Mánudagur", "Þriðjudagur", "Miðvikudagur", "Fimmtudagur", "Föstudagur", "Laugardagur"]
             },
-            bg: { // Bulgarian
+            bg: {
                 months: [
                     "Януари", "Февруари", "Март", "Април", "Май", "Юни", "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември"
                 ],
@@ -96,7 +85,7 @@
                 ],
                 dayOfWeek: ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"]
             },
-            fa: { // Persian/Farsi
+            fa: {
                 months: [
                     'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
                 ],
@@ -105,7 +94,7 @@
                 ],
                 dayOfWeek: ["یک‌شنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه", "یک‌شنبه"]
             },
-            ru: { // Russian
+            ru: {
                 months: [
                     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
                 ],
@@ -114,7 +103,7 @@
                 ],
                 dayOfWeek: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
             },
-            uk: { // Ukrainian
+            uk: {
                 months: [
                     'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
                 ],
@@ -123,7 +112,7 @@
                 ],
                 dayOfWeek: ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"]
             },
-            en: { // English
+            en: {
                 months: [
                     "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
                 ],
@@ -132,7 +121,7 @@
                 ],
                 dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
             },
-            el: { // Ελληνικά
+            el: {
                 months: [
                     "Ιανουάριος", "Φεβρουάριος", "Μάρτιος", "Απρίλιος", "Μάιος", "Ιούνιος", "Ιούλιος", "Αύγουστος", "Σεπτέμβριος", "Οκτώβριος", "Νοέμβριος", "Δεκέμβριος"
                 ],
@@ -141,7 +130,7 @@
                 ],
                 dayOfWeek: ["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"]
             },
-            de: { // German
+            de: {
                 months: [
                     'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
                 ],
@@ -150,7 +139,7 @@
                 ],
                 dayOfWeek: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
             },
-            nl: { // Dutch
+            nl: {
                 months: [
                     "januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"
                 ],
@@ -159,7 +148,7 @@
                 ],
                 dayOfWeek: ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"]
             },
-            tr: { // Turkish
+            tr: {
                 months: [
                     "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
                 ],
@@ -168,7 +157,7 @@
                 ],
                 dayOfWeek: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"]
             },
-            fr: { //French
+            fr: {
                 months: [
                     "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
                 ],
@@ -177,7 +166,7 @@
                 ],
                 dayOfWeek: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
             },
-            es: { // Spanish
+            es: {
                 months: [
                     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
                 ],
@@ -186,7 +175,7 @@
                 ],
                 dayOfWeek: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
             },
-            th: { // Thai
+            th: {
                 months: [
                     'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
                 ],
@@ -195,7 +184,7 @@
                 ],
                 dayOfWeek: ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์", "อาทิตย์"]
             },
-            pl: { // Polish
+            pl: {
                 months: [
                     "styczeń", "luty", "marzec", "kwiecień", "maj", "czerwiec", "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"
                 ],
@@ -204,7 +193,7 @@
                 ],
                 dayOfWeek: ["niedziela", "poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota"]
             },
-            pt: { // Portuguese
+            pt: {
                 months: [
                     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
                 ],
@@ -213,7 +202,7 @@
                 ],
                 dayOfWeek: ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
             },
-            ch: { // Simplified Chinese
+            ch: {
                 months: [
                     "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"
                 ],
@@ -221,7 +210,7 @@
                     "日", "一", "二", "三", "四", "五", "六"
                 ]
             },
-            se: { // Swedish
+            se: {
                 months: [
                     "Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September",  "Oktober", "November", "December"
                 ],
@@ -229,7 +218,7 @@
                     "Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"
                 ]
             },
-            kr: { // Korean
+            kr: {
                 months: [
                     "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"
                 ],
@@ -238,7 +227,7 @@
                 ],
                 dayOfWeek: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
             },
-            it: { // Italian
+            it: {
                 months: [
                     "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
                 ],
@@ -247,7 +236,7 @@
                 ],
                 dayOfWeek: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"]
             },
-            da: { // Dansk
+            da: {
                 months: [
                     "January", "Februar", "Marts", "April", "Maj", "Juni", "July", "August", "September", "Oktober", "November", "December"
                 ],
@@ -256,7 +245,7 @@
                 ],
                 dayOfWeek: ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"]
             },
-            no: { // Norwegian
+            no: {
                 months: [
                     "Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"
                 ],
@@ -265,7 +254,7 @@
                 ],
                 dayOfWeek: ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag']
             },
-            ja: { // Japanese
+            ja: {
                 months: [
                     "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"
                 ],
@@ -274,7 +263,7 @@
                 ],
                 dayOfWeek: ["日曜", "月曜", "火曜", "水曜", "木曜", "金曜", "土曜"]
             },
-            vi: { // Vietnamese
+            vi: {
                 months: [
                     "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
                 ],
@@ -283,7 +272,7 @@
                 ],
                 dayOfWeek: ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"]
             },
-            sl: { // Slovenščina
+            sl: {
                 months: [
                     "Januar", "Februar", "Marec", "April", "Maj", "Junij", "Julij", "Avgust", "September", "Oktober", "November", "December"
                 ],
@@ -292,7 +281,7 @@
                 ],
                 dayOfWeek: ["Nedelja", "Ponedeljek", "Torek", "Sreda", "Četrtek", "Petek", "Sobota"]
             },
-            cs: { // Čeština
+            cs: {
                 months: [
                     "Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"
                 ],
@@ -300,7 +289,7 @@
                     "Ne", "Po", "Út", "St", "Čt", "Pá", "So"
                 ]
             },
-            hu: { // Hungarian
+            hu: {
                 months: [
                     "Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"
                 ],
@@ -309,7 +298,7 @@
                 ],
                 dayOfWeek: ["vasárnap", "hétfő", "kedd", "szerda", "csütörtök", "péntek", "szombat"]
             },
-            az: { //Azerbaijanian (Azeri)
+            az: {
                 months: [
                     "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"
                 ],
@@ -318,7 +307,7 @@
                 ],
                 dayOfWeek: ["Bazar", "Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə"]
             },
-            bs: { //Bosanski
+            bs: {
                 months: [
                     "Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"
                 ],
@@ -327,7 +316,7 @@
                 ],
                 dayOfWeek: ["Nedjelja","Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota"]
             },
-            ca: { //Català
+            ca: {
                 months: [
                     "Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
                 ],
@@ -336,7 +325,7 @@
                 ],
                 dayOfWeek: ["Diumenge", "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres", "Dissabte"]
             },
-            'en-GB': { //English (British)
+            'en-GB': {
                 months: [
                     "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
                 ],
@@ -345,7 +334,7 @@
                 ],
                 dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
             },
-            et: { //"Eesti"
+            et: {
                 months: [
                     "Jaanuar", "Veebruar", "Märts", "Aprill", "Mai", "Juuni", "Juuli", "August", "September", "Oktoober", "November", "Detsember"
                 ],
@@ -354,7 +343,7 @@
                 ],
                 dayOfWeek: ["Pühapäev", "Esmaspäev", "Teisipäev", "Kolmapäev", "Neljapäev", "Reede", "Laupäev"]
             },
-            eu: { //Euskara
+            eu: {
                 months: [
                     "Urtarrila", "Otsaila", "Martxoa", "Apirila", "Maiatza", "Ekaina", "Uztaila", "Abuztua", "Iraila", "Urria", "Azaroa", "Abendua"
                 ],
@@ -363,7 +352,7 @@
                 ],
                 dayOfWeek: ['Igandea', 'Astelehena', 'Asteartea', 'Asteazkena', 'Osteguna', 'Ostirala', 'Larunbata']
             },
-            fi: { //Finnish (Suomi)
+            fi: {
                 months: [
                     "Tammikuu", "Helmikuu", "Maaliskuu", "Huhtikuu", "Toukokuu", "Kesäkuu", "Heinäkuu", "Elokuu", "Syyskuu", "Lokakuu", "Marraskuu", "Joulukuu"
                 ],
@@ -372,7 +361,7 @@
                 ],
                 dayOfWeek: ["sunnuntai", "maanantai", "tiistai", "keskiviikko", "torstai", "perjantai", "lauantai"]
             },
-            gl: { //Galego
+            gl: {
                 months: [
                     "Xan", "Feb", "Maz", "Abr", "Mai", "Xun", "Xul", "Ago", "Set", "Out", "Nov", "Dec"
                 ],
@@ -381,7 +370,7 @@
                 ],
                 dayOfWeek: ["Domingo", "Luns", "Martes", "Mércores", "Xoves", "Venres", "Sábado"]
             },
-            hr: { //Hrvatski
+            hr: {
                 months: [
                     "Siječanj", "Veljača", "Ožujak", "Travanj", "Svibanj", "Lipanj", "Srpanj", "Kolovoz", "Rujan", "Listopad", "Studeni", "Prosinac"
                 ],
@@ -390,7 +379,7 @@
                 ],
                 dayOfWeek: ["Nedjelja", "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota"]
             },
-            ko: { //Korean (한국어)
+            ko: {
                 months: [
                     "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"
                 ],
@@ -399,7 +388,7 @@
                 ],
                 dayOfWeek: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
             },
-            lt: { //Lithuanian (lietuvių)
+            lt: {
                 months: [
                     "Sausio", "Vasario", "Kovo", "Balandžio", "Gegužės", "Birželio", "Liepos", "Rugpjūčio", "Rugsėjo", "Spalio", "Lapkričio", "Gruodžio"
                 ],
@@ -408,7 +397,7 @@
                 ],
                 dayOfWeek: ["Sekmadienis", "Pirmadienis", "Antradienis", "Trečiadienis", "Ketvirtadienis", "Penktadienis", "Šeštadienis"]
             },
-            lv: { //Latvian (Latviešu)
+            lv: {
                 months: [
                     "Janvāris", "Februāris", "Marts", "Aprīlis ", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"
                 ],
@@ -417,7 +406,7 @@
                 ],
                 dayOfWeek: ["Svētdiena", "Pirmdiena", "Otrdiena", "Trešdiena", "Ceturtdiena", "Piektdiena", "Sestdiena"]
             },
-            mk: { //Macedonian (Македонски)
+            mk: {
                 months: [
                     "јануари", "февруари", "март", "април", "мај", "јуни", "јули", "август", "септември", "октомври", "ноември", "декември"
                 ],
@@ -426,7 +415,7 @@
                 ],
                 dayOfWeek: ["Недела", "Понеделник", "Вторник", "Среда", "Четврток", "Петок", "Сабота"]
             },
-            mn: { //Mongolian (Монгол)
+            mn: {
                 months: [
                     "1-р сар", "2-р сар", "3-р сар", "4-р сар", "5-р сар", "6-р сар", "7-р сар", "8-р сар", "9-р сар", "10-р сар", "11-р сар", "12-р сар"
                 ],
@@ -435,7 +424,7 @@
                 ],
                 dayOfWeek: ["Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба", "Ням"]
             },
-            'pt-BR': { //Português(Brasil)
+            'pt-BR': {
                 months: [
                     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
                 ],
@@ -444,7 +433,7 @@
                 ],
                 dayOfWeek: ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
             },
-            sk: { //Slovenčina
+            sk: {
                 months: [
                     "Január", "Február", "Marec", "Apríl", "Máj", "Jún", "Júl", "August", "September", "Október", "November", "December"
                 ],
@@ -453,7 +442,7 @@
                 ],
                 dayOfWeek: ["Nedeľa", "Pondelok", "Utorok", "Streda", "Štvrtok", "Piatok", "Sobota"]
             },
-            sq: { //Albanian (Shqip)
+            sq: {
                 months: [
                     "Janar", "Shkurt", "Mars", "Prill", "Maj", "Qershor", "Korrik", "Gusht", "Shtator", "Tetor", "Nëntor", "Dhjetor"
                 ],
@@ -462,7 +451,7 @@
                 ],
                 dayOfWeek: ["E Diel", "E Hënë", "E Martē", "E Mërkurë", "E Enjte", "E Premte", "E Shtunë"]
             },
-            'sr-YU': { //Serbian (Srpski)
+            'sr-YU': {
                 months: [
                     "Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"
                 ],
@@ -471,7 +460,7 @@
                 ],
                 dayOfWeek: ["Nedelja","Ponedeljak", "Utorak", "Sreda", "Četvrtak", "Petak", "Subota"]
             },
-            sr: { //Serbian Cyrillic (Српски)
+            sr: {
                 months: [
                     "јануар", "фебруар", "март", "април", "мај", "јун", "јул", "август", "септембар", "октобар", "новембар", "децембар"
                 ],
@@ -480,7 +469,7 @@
                 ],
                 dayOfWeek: ["Недеља","Понедељак", "Уторак", "Среда", "Четвртак", "Петак", "Субота"]
             },
-            sv: { //Svenska
+            sv: {
                 months: [
                     "Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December"
                 ],
@@ -489,7 +478,7 @@
                 ],
                 dayOfWeek: ["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"]
             },
-            'zh-TW': { //Traditional Chinese (繁體中文)
+            'zh-TW': {
                 months: [
                     "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"
                 ],
@@ -498,7 +487,7 @@
                 ],
                 dayOfWeek: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
             },
-            zh: { //Simplified Chinese (简体中文)
+            zh: {
                 months: [
                     "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"
                 ],
@@ -507,7 +496,7 @@
                 ],
                 dayOfWeek: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
             },
-            he: { //Hebrew (עברית)
+            he: {
                 months: [
                     'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
                 ],
@@ -516,7 +505,7 @@
                 ],
                 dayOfWeek: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת", "ראשון"]
             },
-            hy: { // Armenian
+            hy: {
                 months: [
                     "Հունվար", "Փետրվար", "Մարտ", "Ապրիլ", "Մայիս", "Հունիս", "Հուլիս", "Օգոստոս", "Սեպտեմբեր", "Հոկտեմբեր", "Նոյեմբեր", "Դեկտեմբեր"
                 ],
@@ -525,7 +514,7 @@
                 ],
                 dayOfWeek: ["Կիրակի", "Երկուշաբթի", "Երեքշաբթի", "Չորեքշաբթի", "Հինգշաբթի", "Ուրբաթ", "Շաբաթ"]
             },
-            kg: { // Kyrgyz
+            kg: {
                 months: [
                     'Үчтүн айы', 'Бирдин айы', 'Жалган Куран', 'Чын Куран', 'Бугу', 'Кулжа', 'Теке', 'Баш Оона', 'Аяк Оона', 'Тогуздун айы', 'Жетинин айы', 'Бештин айы'
                 ],
@@ -536,7 +525,7 @@
                     "Жекшемб", "Дүйшөмб", "Шейшемб", "Шаршемб", "Бейшемби", "Жума", "Ишенб"
                 ]
             },
-            rm: { // Romansh
+            rm: {
                 months: [
                     "Schaner", "Favrer", "Mars", "Avrigl", "Matg", "Zercladur", "Fanadur", "Avust", "Settember", "October", "November", "December"
                 ],
@@ -555,7 +544,7 @@
         formatTime:    'H:i',
         formatDate:    'Y/m/d',
 
-        startDate:    false, // new Date(), '1986/12/08', '-1970/01/05','-1970/01/05',
+        startDate:    false,
         step: 60,
         monthChangeSpinner: true,
 
@@ -568,8 +557,8 @@
         datepicker: true,
         weeks: false,
 
-        defaultTime: false,    // use formatTime format (ex. '10:00' for formatTime:    'H:i')
-        defaultDate: false,    // use formatDate format (ex new Date() or '1986/12/08' or '-1970/01/05' or '-1970/01/05')
+        defaultTime: false,
+        defaultDate: false,
 
         minDate: false,
         maxDate: false,
@@ -623,7 +612,7 @@
         style: '',
         id: '',
         fixed: false,
-        roundTime: 'round', // ceil, floor
+        roundTime: 'round',
         className: '',
         weekends: [],
         highlightedDates: [],
@@ -661,13 +650,11 @@
         });
     };
         
-    // for locale settings
     $.datetimepicker = {
         setLocale: function(locale){
             var newLocale = default_options.i18n[locale]?locale:globalLocaleDefault;
             if(globalLocale != newLocale){
                 globalLocale = newLocale;
-                // reinit date formatter
                 initDateFormatter();
             }
         },
@@ -682,10 +669,8 @@
         W3C: 'Y-m-d\TH:i:sP'
     };
     
-    // first init date formatter
     initDateFormatter();
 
-    // fix for ie8
     if (!window.getComputedStyle) {
         window.getComputedStyle = function (el, pseudo) {
             this.el = el;
@@ -922,7 +907,7 @@
 
         createDateTimePicker = function (input) {
             var datetimepicker = $('<div class="xdsoft_datetimepicker xdsoft_noselect"></div>'),
-                xdsoft_copyright = $('<div class="xdsoft_copyright"><a target="_blank" href="http://xdsoft.net/jqplugins/datetimepicker/">xdsoft.net</a></div>'),
+                xdsoft_copyright = $('<div class="xdsoft_copyright"><a target="_blank" href="http:
                 datepicker = $('<div class="xdsoft_datepicker active"></div>'),
                 mounth_picker = $('<div class="xdsoft_mounthpicker"><button type="button" class="xdsoft_prev"></button><button type="button" class="xdsoft_today_button"></button>' +
                     '<div class="xdsoft_label xdsoft_month"><span></span><i></i></div>' +
@@ -933,13 +918,10 @@
                 timeboxparent = timepicker.find('.xdsoft_time_box').eq(0),
                 timebox = $('<div class="xdsoft_time_variant"></div>'),
                 applyButton = $('<button type="button" class="xdsoft_save_selected blue-gradient-button">Save Selected</button>'),
-                /*scrollbar = $('<div class="xdsoft_scrollbar"></div>'),
-                scroller = $('<div class="xdsoft_scroller"></div>'),*/
                 monthselect = $('<div class="xdsoft_select xdsoft_monthselect"><div></div></div>'),
                 yearselect = $('<div class="xdsoft_select xdsoft_yearselect"><div></div></div>'),
                 triggerAfterOpen = false,
                 XDSoft_datetime,
-                //scroll_element,
                 xchangeTimer,
                 timerclick,
                 current_time_index,
@@ -1096,7 +1078,7 @@
                     $.each(_options.highlightedDates, function (index, value) {
                         var splitData = $.map(value.split(','), $.trim),
                             exDesc,
-                            hDate = new HighlightedDate(dateHelper.parseDate(splitData[0], options.formatDate), splitData[1], splitData[2]), // date, desc, style
+                            hDate = new HighlightedDate(dateHelper.parseDate(splitData[0], options.formatDate), splitData[1], splitData[2]),
                             keyDate = dateHelper.formatDate(hDate.date, options.formatDate);
                         if (highlightedDates[keyDate] !== undefined) {
                             exDesc = highlightedDates[keyDate].desc;
@@ -1114,7 +1096,7 @@
                 if (_options.highlightedPeriods && $.isArray(_options.highlightedPeriods) && _options.highlightedPeriods.length) {
                     highlightedDates = $.extend(true, [], options.highlightedDates);
                     $.each(_options.highlightedPeriods, function (index, value) {
-                        var dateTest, // start date
+                        var dateTest,
                             dateEnd,
                             desc,
                             hDate,
@@ -1311,7 +1293,6 @@
                                 var splittedHours   = +([$(this).val()[0], $(this).val()[1]].join('')),
                                     splittedMinutes = +([$(this).val()[2], $(this).val()[3]].join(''));
 
-                                // parse the numbers as 0312 => 03:12
                                 if (!options.datepicker && options.timepicker && splittedHours >= 0 && splittedHours < 24 && splittedMinutes >= 0 && splittedMinutes < 60) {
                                     $(this).val([splittedHours, splittedMinutes].map(function (item) {
                                         return item > 9 ? item : '0' + item;
@@ -1345,7 +1326,6 @@
                     return false;
                 });
 
-            //scroll_element = timepicker.find('.xdsoft_time_box');
             timeboxparent.append(timebox);
             timeboxparent.xdsoftScroller();
 
@@ -1484,7 +1464,6 @@
                         }
                     }
                     var onejan = new Date(datetime.getFullYear(), 0, 1);
-                    //First week of the year is th one with the first Thursday according to ISO8601
                     if(onejan.getDay()!=4)
                         onejan.setMonth(0, 1 + ((4 - onejan.getDay()+ 7) % 7));
                     return Math.ceil((((datetime - onejan) / 86400000) + onejan.getDay() + 1) / 7);
@@ -1546,7 +1525,7 @@
 
             _xdsoft_datetime = new XDSoft_datetime();
 
-            applyButton.on('touchend click', function (e) {//pathbrite
+            applyButton.on('touchend click', function (e) {
                 e.preventDefault();
                 datetimepicker.data('changed', true);
                 _xdsoft_datetime.setCurrentTime(getCurrentValue());
@@ -1634,7 +1613,6 @@
                 });
 
             xchangeTimer = 0;
-            // base handler - generating a calendar and timepicker
             datetimepicker
                 .on('xchange.xdsoft', function (event) {
                     clearTimeout(xchangeTimer);
@@ -1783,7 +1761,6 @@
                         mounth_picker.find('.xdsoft_label span').eq(0).text(options.i18n[globalLocale].months[_xdsoft_datetime.currentTime.getMonth()]);
                         mounth_picker.find('.xdsoft_label span').eq(1).text(_xdsoft_datetime.currentTime.getFullYear());
 
-                        // generate timebox
                         time = '';
                         h = '';
                         m = '';
@@ -1887,7 +1864,7 @@
             timerclick = 0;
             calendar
                 .on('touchend click.xdsoft', 'td', function (xdevent) {
-                    xdevent.stopPropagation();  // Prevents closing of Pop-ups, Modals and Flyouts in Bootstrap
+                    xdevent.stopPropagation();
                     timerclick += 1;
                     var $this = $(this),
                         currentTime = _xdsoft_datetime.currentTime;
@@ -2020,12 +1997,6 @@
             current_time_index = 0;
 
             setPos = function () {
-                /**
-                 * 修复输入框在window最右边，且输入框的宽度小于日期控件宽度情况下，日期控件显示不全的bug。
-                 * Bug fixed - The datetimepicker will overflow-y when the width of the date input less than its, which
-                 * could causes part of the datetimepicker being hidden.
-                 * by Soon start
-                 */
                 var offset = datetimepicker.data('input').offset(),
                     datetimepickerelement = datetimepicker.data('input')[0],
                     top = offset.top + datetimepickerelement.offsetHeight - 1,
@@ -2037,9 +2008,6 @@
                     var diff = datepicker.parent().outerWidth(true) - datetimepickerelement.offsetWidth;
                     left = left - diff;
                 }
-                /**
-                 * by Soon end
-                 */
                 if (datetimepicker.data('input').parent().css('direction') == 'rtl')
                     left -= (datetimepicker.outerWidth() - datetimepicker.data('input').outerWidth());
                 if (options.fixed) {

@@ -35,7 +35,6 @@ using namespace slib;
 
 char sString::encode64Char( unsigned char binary )
 {
-    // Determine Offsets
     static const idx  A_to_Z_offset = (idx)( 'A' );
     static const idx  a_to_z_offset = (idx)( 'a' ) - 26;
     static const idx  zero_to_nine_offset = (idx)( '0' ) - 52;
@@ -71,73 +70,69 @@ char sString::encode64Char( unsigned char binary )
 
 idx sString::encodeBase64( sMex * dst, const char * src, idx len, const bool RFC2045_compliant )
 {
-    if ( !len ) return  0;
+    if ( !len ) len=(idx)strlen(src);
     idx rlen=dst->pos();
-      idx mexflags = dst->flags; // remember the old flags 
-      dst->flags &= ~(sMex::fAlignInteger|sMex::fAlignParagraph|sMex::fAlignPage); // turn off alignment 
+      idx mexflags = dst->flags;
+      dst->flags &= ~(sMex::fAlignInteger|sMex::fAlignParagraph|sMex::fAlignPage);
 
-    // Encode the binary data
     int  byte = 0;
     idx  c, cc = 0;
     for ( idx i=0 ;  i<len ;  ++i ) {
-        // Encode the character
         c = src[i];
         switch ( byte )
         {
-        case 0:  // Encode byte 0 into two bytes
-            cc = ( ( c & 0xFC ) << 22 );  // Byte 0
-            cc |= ( ( c & 0x03 ) << 20 );  // Byte 1
+        case 0:
+            cc = ( ( c & 0xFC ) << 22 );
+            cc |= ( ( c & 0x03 ) << 20 );
             byte++;
             break;
-        case 1:  // Encode byte1 into two bytes
-            cc |= ( ( c & 0xF0 ) << 12 );  // Byte 1
-            cc |= ( ( c & 0x0F ) << 10 );  // Byte 2
+        case 1:
+            cc |= ( ( c & 0xF0 ) << 12 );
+            cc |= ( ( c & 0x0F ) << 10 );
             byte++;
             break;
         case 2:
-            cc |= ( ( c & 0xC0 ) << 2 );  // Byte 2
-            cc |= ( c & 0x3F );  // Byte 3
-            // Copy four bytes into encoded string
+            cc |= ( ( c & 0xC0 ) << 2 );
+            cc |= ( c & 0x3F );
             pushencode( ( cc & 0xFF000000 ) >> 24  );
             pushencode( ( cc & 0x00FF0000 ) >> 16  );
             pushencode( ( cc & 0x0000FF00 ) >>  8  );
             pushencode( ( cc & 0x000000FF ) );
-            byte = 0;  // Restart the cycle
+            byte = 0;
             break;
         default:
-                 dst->flags=mexflags; // restore the old flags 
+                 dst->flags=mexflags;
             return 0;
         }
     }
 
-    // Encode remaining non-byte aligned data
     switch ( byte )
     {
-    case 1:  // Affects byte 0 and 1 only
-        pushencode( ( cc & 0xFF000000 ) >> 24 ); 
-        pushencode( ( cc & 0x00FF0000 ) >> 16 ); 
+    case 1:
+        pushencode( ( cc & 0xFF000000 ) >> 24 );
+        pushencode( ( cc & 0x00FF0000 ) >> 16 );
 
-        if ( RFC2045_compliant ) {  // Align on four bytes
+        if ( RFC2045_compliant ) {
             pushdirect('=');
             pushdirect('=');
         }
         break;
-    case 2:    // Affects bytes 0, 1, and 2 only
-        pushencode( ( cc & 0xFF000000 ) >> 24 );  // Byte 0
-        pushencode( ( cc & 0x00FF0000 ) >> 16 );  // Byte 1
-        pushencode( ( cc & 0x0000FF00 ) >>  8 );  // Byte 2
-        if ( RFC2045_compliant ) {  // Align on four bytes
-            pushdirect( '=' );  // Terminator on Byte 3
+    case 2:
+        pushencode( ( cc & 0xFF000000 ) >> 24 );
+        pushencode( ( cc & 0x00FF0000 ) >> 16 );
+        pushencode( ( cc & 0x0000FF00 ) >>  8 );
+        if ( RFC2045_compliant ) {
+            pushdirect( '=' );
         }
         break;
-    case 0:  // 4-byte aligned... do nothing
+    case 0:
         break;
     default:
-        dst->flags=mexflags; // restore the old flags 
+        dst->flags=mexflags;
         return 0;
     }
 
-    dst->flags=mexflags; // restore the old flags 
+    dst->flags=mexflags;
     return  dst->pos()-rlen;
 }
 
@@ -145,29 +140,22 @@ idx sString::encodeBase64( sMex * dst, const char * src, idx len, const bool RFC
 
 
 
-/***
- *** Encode/Decode Base64 Binary Data
- ***   adapted from code provided by Wolf-Dietrich Ihlenfeldt
- ***/
 idx sString::decodeBase64( sMex * dst, const char * src, idx len )
 {
     if ( !len ) len=(idx)strlen(src);
     idx rlen=dst->pos();
-      idx mexflags = dst->flags; // remember the old flags 
-      dst->flags &= ~(sMex::fAlignInteger|sMex::fAlignParagraph|sMex::fAlignPage); // turn off alignment 
+      idx mexflags = dst->flags;
+      dst->flags &= ~(sMex::fAlignInteger|sMex::fAlignParagraph|sMex::fAlignPage);
 
-    // Determine Offsets
     static const int  A_to_Z_offset = (int)( 'A' ) * -1;
     static const int  a_to_z_offset = 26 - (int)( 'a' );
     static const int  zero_to_nine_offset = 52 - (int)( '0' );
 
-    // Decode the encoded data
     int  byte = 0;
     idx  c, cc = 0;
     for ( idx i=0; i<len;  ++i) {
-        if ( isspace( src[i]) )   // ignore spaces
+        if ( isspace( src[i]) )
             continue;
-        // Decode the character
         c = (int)src[i];
 
 
@@ -185,96 +173,86 @@ idx sString::decodeBase64( sMex * dst, const char * src, idx len )
             c = 64;
             break;
         default:
-            if ( 'A' <= c && c <= 'Z' ) {  // 0 - 25
+            if ( 'A' <= c && c <= 'Z' ) {
                 c += A_to_Z_offset;
-            } else if ( 'a' <= c && c <= 'z' ) {  // 26 - 51
+            } else if ( 'a' <= c && c <= 'z' ) {
                 c += a_to_z_offset;
-            } else if ( '0' <= c && c <= '9' ) {  // 52 - 61
+            } else if ( '0' <= c && c <= '9' ) {
                 c += zero_to_nine_offset;
             } else {
                 c = 64;
-                //okay = false;
             }
         }
 
-        // End of data?
-        if ( c == 64 ) 
+        if ( c == 64 )
             break;
-        
+
         switch ( byte )
         {
         case 0:
             cc = ( ( c & 0x3F ) << 18 );
-//            buf[0] = ( ( c & 0x3F ) << 2 );
             byte++;
             break;
         case 1:
             cc |= ( ( c & 0x3F ) << 12 );
-//            buf[0] |= ( ( c & 0x30 ) >> 4 );
-//            buf[1] = ( ( c & 0x0F ) << 4 );
             byte++;
             break;
         case 2:
             cc |= ( ( c & 0x3F ) << 6 );
-//            buf[1] |= ( ( c & 0x3C ) >> 2 );
-//            buf[2] = ( ( c & 0x03 ) << 6 );
             byte++;
             break;
         case 3:
             cc |= ( c & 0x3F );
-//            buf[2] |= ( c & 0x3F );
 
-            // Copy three bytes into decoded string
-            pushdirect( ( cc & 0x00FF0000 ) >> 16 );  // Byte 0
-            pushdirect( ( cc & 0x0000FF00 ) >> 8 );  // Byte 1
-            pushdirect( ( cc & 0x000000FF ) );  // Byte 2
+            pushdirect( ( cc & 0x00FF0000 ) >> 16 );
+            pushdirect( ( cc & 0x0000FF00 ) >> 8 );
+            pushdirect( ( cc & 0x000000FF ) );
 
-            byte = 0;  // Restart the cycle
+            byte = 0;
             break;
         default:
-            dst->flags=mexflags; // restore the old flags 
+            dst->flags=mexflags;
             return 0;
         }
     }
-    // Decode remaining non-3-byte aligned data
     switch ( byte )
     {
-    case 1:  // Affects byte 0 only
-        pushdirect( ( cc & 0x00FF0000 ) >> 16 );  // Byte 0
+    case 1:
+        pushdirect( ( cc & 0x00FF0000 ) >> 16 );
         break;
-    case 2:    // Affects bytes 0 and 1
-        pushdirect( ( cc & 0x00FF0000 ) >> 16 );  // Byte 0
+    case 2:
+        pushdirect( ( cc & 0x00FF0000 ) >> 16 );
         {
             char  last_char = (char)( ( cc & 0x0000FF00 ) >>  8 );
             if ( 0 != last_char ) {
-                pushdirect( last_char );  // Byte 1
+                pushdirect( last_char );
             }
         }
         break;
-    case 3:  // Affects bytes 0, 1, and 2
-        pushdirect( ( cc & 0x00FF0000 ) >> 16 );  // Byte 0
-        pushdirect( ( cc & 0x0000FF00 ) >>  8 );  // Byte 1
+    case 3:
+        pushdirect( ( cc & 0x00FF0000 ) >> 16 );
+        pushdirect( ( cc & 0x0000FF00 ) >>  8 );
         {
             char  last_char = (char)( cc & 0x000000FF );
             if ( 0 != last_char ) {
-                pushdirect( last_char );  // Byte 2
+                pushdirect( last_char );
             }
         }
         break;
-    case 0:  // 3-byte aligned... do nothing...
+    case 0:
         break;
     default:
-        dst->flags=mexflags; // restore the old flags 
+        dst->flags=mexflags;
         return 0;
     }
 
-    dst->flags=mexflags; // restore the old flags 
+    dst->flags=mexflags;
     return  dst->pos()-rlen;
 }
 
 
 idx sString::IPDigest(const char * ptr)
-{ 
+{
     idx cgiIP=0, byte;
     int shift=0;
     for ( const char * p=ptr-1; p; p=strchr(p,'.')){
@@ -296,7 +274,7 @@ idx sString::fuzzyStringCompareDynamat(const char * string1, idx str1Len, const 
     idx highestScore = -sIdxMax;
     idx cur_score;
     idx levelp = 0;
-    idx prevlevel;
+    idx prevlevel = 0;
 
     for (idx i=0; i< str1Len; ++i) {
 

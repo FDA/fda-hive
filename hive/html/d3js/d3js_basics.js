@@ -31,30 +31,34 @@
 function vjD3View ( viewer )
 {
     loadCSS("d3js/css/d3js_basics.css");
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
     
     if(!this.downloadSvgText)this.downloadSvgText="Download graph as SVG file";
-    var oThis = this;
 
     this.csvParserFunction=d3.csv.parse;
     this.composerFunction=function( viewer , content)
     {
-        this.txt=this.getData(0).data;//content;
+        this.txt=this.getData(0).data;
         this.refresh();
     };
 
     
     this.refresh = function ()
     {
-        if (!this.div) return; //this is for the case when refresh is called from the new layout manager, sometiemes refresh is called before the div is constructed
+        if (!this.div) return;
         
+        if(!this.txt && this.subInnerHTML){
+            this.div.innerHTML = this.subInnerHTML
+            return;
+        }
+
         this.div.innerHTML=this.composeText(this.txt);
-        //if need to use d3area.append("svg"), instead just used d3svg. not sure about this though?...
         this.d3area = d3.select("#d3js-"+this.objCls);
+        var height = this.height ? this.height : "100%";
         this.d3svg=this.d3area.append("svg")
-            .attr("style", "width='100%'; height='100%';")
-            .attr("xmlns", "http://www.w3.org/2000/svg")
-            .attr("xmlns:xmlns:xlink", "http://www.w3.org/1999/xlink"); // .append("svg")
+            .attr("style", "width='100%'; height='" + height + "';")
+            .attr("xmlns", "http:
+            .attr("xmlns:xmlns:xlink", "http:
 
         if (this.txt !== null && this.txt !== undefined) {
             if (this.newick)
@@ -66,14 +70,14 @@ function vjD3View ( viewer )
             else if(this.d3Compose) {
                 this.d3Compose(this.csvParserFunction(this.txt));
             }
-            //d3.csv("?cmd=file&f=iris.csv", vjObjFunc("d3Compose",this.objCls).func );
 
             var that = this;
             $("#d3js-"+this.objCls+"-svg-download").on("click", function (event){
                 var htmlElem = $("#"+this.id).parent().children("span").html();
-                //this.href = "data:image/svg+xml," + encodeURIComponent(htmlElem);
                 if (that.downloadSvg) {
                     var async = false;
+                    
+                    if (that.clearObjectUrl) that.objectUrl = '';
 
                     if (!that.objectUrl) {
                         that.svgdiv = this.parentElement.children[0];
@@ -81,15 +85,13 @@ function vjD3View ( viewer )
                         var images = that.svgdiv.getElementsByTagNameNS(vjSVGElementSource, "image");
                         var cnt_image_fixup_needed = 0;
                         for (var i = 0; i < images.length; i++) {
-                            var href = images[i].getAttributeNS("http://www.w3.org/1999/xlink", "href");
+                            var href = images[i].getAttributeNS("http:
                             if (href && !href.startsWith("data:")) {
                                 cnt_image_fixup_needed++;
                             }
                         }
 
                         if (cnt_image_fixup_needed) {
-                            // need to clone the div and replace image hrefs with data uris
-                            // async because chromer requires async-mode xhr for arraybuffer
                             async = true;
                             var download_text = gObject(that.container + "-downloadTextSVG");
                             if (download_text) {
@@ -102,7 +104,7 @@ function vjD3View ( viewer )
                             var images = svgdiv.getElementsByTagNameNS(vjSVGElementSource, "image");
 
                             for (var i = 0; i < images.length; i++) {
-                                var href = images[i].getAttributeNS("http://www.w3.org/1999/xlink", "href");
+                                var href = images[i].getAttributeNS("http:
                                 if (href && !href.startsWith("data:")) {
                                     (function (viewer, image, href) {
                                         var xhr = new XMLHttpRequest();
@@ -110,7 +112,6 @@ function vjD3View ( viewer )
                                         xhr.responseType = "arraybuffer";
                                         xhr.onload = function() {
                                             var content_type = xhr.getResponseHeader("Content-Type") || "image/png";
-                                            // ugly method to turn binary arraybuffer into base64 reasonably efficiently and avoid stack overflow
                                             var data = "data:" + content_type + ";base64," + btoa((function(u8ary) {
                                                 var accum = "";
                                                 for(var j = 0; j < u8ary.length; j++) {
@@ -118,7 +119,7 @@ function vjD3View ( viewer )
                                                 }
                                                 return accum;
                                             } (new Uint8Array(xhr.response))));
-                                            image.setAttributeNS("http://www.w3.org/1999/xlink", "href", data);
+                                            image.setAttributeNS("http:
                                             cnt_image_fixup_done++;
 
                                             if (cnt_image_fixup_done >= cnt_image_fixup_needed) {
@@ -145,16 +146,21 @@ function vjD3View ( viewer )
 
     this.composeText=function(content)
     {
-        var t="<div id='d3js-div-"+this.objCls+"'>";
-        t+="<span id='d3js-"+this.objCls+"'></span>";
+        let downloadLink = this.downloadSvg
+                            ? `<a id='d3js-${this.objCls}-svg-download' href='#' download='${sanitizeElementAttr((this.downloadFileName ? this.downloadFileName : "graphic") + ".svg") }' style='width=100%'>
+                                    <img width=16 height=16 src=./img/download.gif style='vertical-align:middle;'/>&nbsp;
+                                    <small id='downloadTextSVG'>${this.downloadSvgText}</small>
+                                </a>`
+                            : ''
+
+
+        let tabContent  = `<div id='d3js-div-${this.objCls}'>   
+                                <span id='d3js-${this.objCls}'></span>
+                                ${downloadLink}
+                            </div>
+                            `
         
-        if (this.downloadSvg){
-            t+="<a id='d3js-"+this.objCls+"-svg-download' href='#' download='" + sanitizeElementAttr((this.downloadFileName ? this.downloadFileName : "graphic") + ".svg") + "' style='width=100%'>" + "<img width=16 height=16 " +
-                "src=./img/download.gif style='vertical-align:middle;'/>&nbsp;<small id='downloadTextSVG'>" + this.downloadSvgText + "</small></a>";                
-        }
-        t+= "</div>";
-        
-        return t;
+        return tabContent;
     };
 
     this.setdownloadSvg = function(svgdiv) {
@@ -171,8 +177,6 @@ function vjD3View ( viewer )
         download_link.download = sanitizeElementAttr((this.downloadFileName ? this.downloadFileName : "graphic") + ".svg");
         download_link.href = this.objectUrl;
         if (__isIE && navigator.msSaveBlob) {
-            // IE10 doesn't support download from createObjectURL(); instead, it uses a completely non-standard msSaveBlob API
-            // https://msdn.microsoft.com/en-us/library/hh779016(v=vs.85).aspx
             var that = this;
             download_link.onclick = function() {
                 window.navigator.msSaveBlob(that.objectBlob, download_link.download);
@@ -190,9 +194,7 @@ function vjD3View ( viewer )
         return;
         
     this.d3Tooltip = d3.select('body')
-       .append('div');
-       //.attr('class', 'tooltip');
-    
+       .append('div');    
     
      this.tooltipOn = function(d, i) {
        this.d3Tooltip.html(this.id ? d[this.id] : d ).style('visibility', 'visible');
@@ -207,8 +209,6 @@ function vjD3View ( viewer )
 }
 
 
-//standard function for text wrapping
-//many graphs will need this
 function wrap (text, width, totalTextLength, fontOptions) {
     if (!totalTextLength)
         totalTextLength = Number.MAX_VALUE;
@@ -224,7 +224,7 @@ function wrap (text, width, totalTextLength, fontOptions) {
             word,
             line = [],
             lineNumber = 0,
-            lineHeight = 0.4, // ems
+            lineHeight = 0.4,
             y = text.attr("y"),
             dy = parseFloat(text.attr("dy")),
             tspan = text.text(null).append("tspan")
@@ -268,16 +268,15 @@ function wrap (text, width, totalTextLength, fontOptions) {
 
 function vjD3CategoryView ( viewer )
 {
-    vjD3View.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjD3View.call(this,viewer);
 
 
-    this.categoryColors=gClrTable;//["#800", "#080;", "#008"];
+    this.categoryColors=gClrTable;
     this.shapes = ['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'];
     this.colorshift=3;
     
     this.d3Compose=function(flowers) 
     {
-        // read species automatically
         if(!this.id) {
             var pos=this.txt.indexOf("\n");
             if(pos!=-1)
@@ -289,7 +288,6 @@ function vjD3CategoryView ( viewer )
                 this.species=this.txt.substring(0,pos).split(",")[1];
         }
         
-        // Autogenerate categories
         if(!this.categories) {
             this.categories=new Array();
             for( var k=0; k<flowers.length ; ++k){
@@ -326,31 +324,6 @@ function vjD3CategoryView ( viewer )
 
 
 
-//http://hsilomedus.me/wp-content/uploads/d3electricField/electricField.html
-//http://is.muni.cz/www/98951/43999399/51174297/data-visualization-with-d3-js-cookbook.pdf
-//http://www.nytimes.com/interactive/2012/10/15/us/politics/swing-history.html
-// http://bl.ocks.org/billierinaldi/raw/3779574/
-
-
-//Tooltips for d3.js SVG visualizations
-
-/*
-
-var tip = d3.tooltip()
-    .attr('class', 'd3-tip') // define the style through css
-    .offset([-10, 0])
-    .html(function(d) {
-        return "<strong> Blabla: </strong> <span style='color:red'>" + d + "</span><br>";
-    })
-    
-svg.call(tip);  // svg placeholder
-
-==> 
-
- YOURSVGELEMENT.on("mouseover",tip.show)
-               .on("mouseout", tip.hide);
-               
-*/
 
 d3.tooltip = function() {
       var direction = d3_tip_direction,
@@ -367,7 +340,6 @@ d3.tooltip = function() {
         document.body.appendChild(node);
       }
     
-      // show
       tooltip.show = function() {
         var args = Array.prototype.slice.call(arguments);
         if(args[args.length - 1] instanceof SVGElement) target = args.pop();
@@ -391,7 +363,6 @@ d3.tooltip = function() {
         return tooltip;
       }
     
-      // hide
       tooltip.hide = function() {
         nodel = d3.select(node);
         nodel.style({ opacity: 0, 'pointer-events': 'none' });
@@ -399,8 +370,6 @@ d3.tooltip = function() {
       }
     
     
-      // n - name of the attribute
-      // v - value of the attribute
       tooltip.attr = function(n, v) {
         if (arguments.length < 2 && typeof n === 'string') {
           return d3.select(node).attr(n);
@@ -413,8 +382,6 @@ d3.tooltip = function() {
       }
     
     
-      // n - name of the property
-      // v - value of the property
     
       tooltip.style = function(n, v) {
         if (arguments.length < 2 && typeof n === 'string') {
@@ -426,28 +393,18 @@ d3.tooltip = function() {
         return tooltip;
       }
     
-      // Set or get the direction of the tooltip
-      // v - One of n(north), s(south), e(east), or w(west), nw(northwest),
-      //     sw(southwest), ne(northeast) or se(southeast)
       tooltip.direction = function(v) {
         if (!arguments.length) return direction;
         direction = v == null ? v : d3.functor(v);
         return tooltip;
       }
     
-      // Sets or gets the offset of the tip
-      // v - Array of [x, y] offset
       tooltip.offset = function(v) {
         if (!arguments.length) return offset;
         offset = v == null ? v : d3.functor(v);
         return tooltip;
       }
     
-      // Public: sets or gets the html value of the tooltip
-      //
-      // v - String value of the tip
-      //
-      // Returns html value or tip
       tooltip.html = function(v) {
         if (!arguments.length) return html;
         html = v == null ? v : d3.functor(v);
@@ -556,19 +513,6 @@ d3.tooltip = function() {
         return el.ownerSVGElement;
       }
     
-      // gets the screen coordinates of a shape
-      //
-      // Given a shape on the screen, will return an SVGPoint for the directions
-      // n(north), s(south), e(east), w(west), ne(northeast), se(southeast), nw(northwest),
-      // sw(southwest).
-      //
-      //    +-+-+
-      //    |   |
-      //    +   +
-      //    |   |
-      //    +-+-+
-      //
-      // Returns an Object {n, s, e, w, nw, sw, ne, se}
       function getScreenBBox() {
         var targetel   = target || d3.event.target,
             bbox       = {},

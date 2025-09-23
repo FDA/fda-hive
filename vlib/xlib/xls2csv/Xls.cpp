@@ -36,6 +36,7 @@
 
 #include <slib/core/str.hpp>
 #include <slib/std/file.hpp>
+#include <slib/std/pipe2.hpp>
 
 #include <string.h>
 #include <alloca.h>
@@ -88,55 +89,17 @@ namespace Xls {
         return buf;
     }
 
-    int xls2csv(const char *xlsFile, const char *outDir, const char *reSheetNameFilter, slib::sStr * out_error)
-    {
-#ifdef HAS_LIBXLS
-        Workbook wb;
-        if ( !wb.Open(xlsFile) )
-            return -1;
-
-        struct stat st;
-        if ( stat(outDir, &st) != 0 )
-            mkdir(outDir, S_IRWXU);
-
-        return wb.ExportCsvs(outDir);
-#else // HAS_LIBXLS
-        if( out_error ) {
-            out_error->addString("This HIVE deployment was built without support for Excel 97/2000/2002/2003 .xls files.");
-        }
-        return 0;
-#endif // HAS_LIBXLS
-    }
-
-    int xlsx2csv(const char *xlsFile, const char *outDir, const char *reSheetNameFilter, slib::sStr * out_error)
+    static int analyzeDir(const char * outDir, const bool caller_made_outdir, slib::sStr * out_error)
     {
         using namespace slib;
-
-        bool caller_made_outdir = sDir::exists(outDir);
-
-        sStr cmdline00;
-        cmdline00.add("xlsx2csv.py");
-        cmdline00.add("-a");
-        cmdline00.add(xlsFile);
-        cmdline00.add(outDir);
-        if( sPS::execute00(cmdline00) != 0 ) {
-            if( !caller_made_outdir ) {
-                sDir::removeDir(outDir, false);
-            }
-            if( out_error ) {
-                out_error->addString("XLSX to CSV converter failed.");
-            }
-            return 0;
-        }
 
         sDir csv_list;
         csv_list.list(sFlag(sDir::bitFiles), outDir, "*.csv");
         int cnt = 0;
-        for(idx i=0; i<csv_list.dimEntries(); i++) {
+        for( idx i = 0; i < csv_list.dimEntries(); ++i ) {
             if( sFile::size(csv_list.getEntryPath(i)) ) {
-                cnt++;
+                ++cnt;
             } else {
-                // xlsx2csv.py generates 0-size files for unused sheets. Delete these.
                 sFile::remove(csv_list.getEntryPath(i));
             }
         }
@@ -149,15 +112,69 @@ namespace Xls {
         return cnt;
     }
 
-    int excel2csv(const char *xlsFile, const char *outDir, const char *reSheetNameFilter, slib::sStr * out_error)
+    int xls2csv(const char *xlsFile, const char *outDir, slib::sStr * out_error)
+    {
+#ifdef HAS_LIBXLS
+        using namespace slib;
+
+        const bool caller_made_outdir = sDir::exists(outDir);
+        Workbook wb;
+        if ( !wb.Open(xlsFile) ) {
+            return -1;
+        }
+        struct stat st;
+        if ( stat(outDir, &st) != 0 ) {
+            mkdir(outDir, S_IRWXU);
+        }
+        wb.ExportCsvs(outDir);
+        return analyzeDir(outDir, caller_made_outdir, out_error);
+#else         if( out_error ) {
+            out_error->addString("This HIVE deployment was built without support for Excel 97/2000/2002/2003 .xls files.");
+        }
+        return 0;
+#endif     }
+
+    int xlsx2csv(const char *xlsFile, const char *outDir, slib::sStr * out_error, slib::sIO * out_log)
+    {
+        using namespace slib;
+
+        const bool caller_made_outdir = sDir::exists(outDir);
+
+        slib::sPipe2 converter;
+        converter.cmdLine().exe("xlsx2csv.py").arg("-a").arg(xlsFile).arg(outDir);
+        if( out_log ) {
+            converter.setStdOutErr(out_log);
+        }
+        idx ret_code = 0;
+        sRC rc = converter.execute(&ret_code);
+        if( rc || ret_code ) {
+            if( !caller_made_outdir ) {
+                sDir::removeDir(outDir, false);
+            }
+            if( out_error ) {
+                out_error->addString("XLSX to CSV converter failed");
+                if( rc ) {
+                    out_error->addString(": ");
+                    rc.print(out_error);
+                }
+                if( ret_code ) {
+                    out_error->printf("; return code %" DEC, ret_code);
+                }
+            }
+            return 0;
+        }
+        return analyzeDir(outDir, caller_made_outdir, out_error);
+    }
+
+int excel2csv(const char *xlsFile, const char *outDir, slib::sStr * out_error, slib::sIO * out_log)
     {
         using namespace slib;
 
         const char * xls_ext = strrchr(xlsFile, '.');
         if( sIs(xls_ext, ".xls") ) {
-            return xls2csv(xlsFile, outDir, reSheetNameFilter, out_error);
+            return xls2csv(xlsFile, outDir, out_error);
         } else if( sIs(xls_ext, ".xlsx") ) {
-            return xlsx2csv(xlsFile, outDir, reSheetNameFilter, out_error);
+            return xlsx2csv(xlsFile, outDir, out_error, out_log);
         } else {
             if( out_error ) {
                 out_error->printf("Unrecognized file extension '%s'", xls_ext ? xls_ext : "");

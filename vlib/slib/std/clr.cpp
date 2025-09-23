@@ -35,8 +35,6 @@ using namespace slib;
 
 sClr sClr::none((idx)0,(idx)0,(idx)0,(idx)0);
 
-// Standard SVG list of color keywords, see
-// http://www.w3.org/TR/css3-color/#svg-color
 const sClr::Pigment sClr::clrTable[] = {
     { "aliceblue", 0xF0F8FF },
     { "antiquewhite", 0xFAEBD7 },
@@ -192,30 +190,23 @@ const idx sClr::clrTableDim = sizeof(sClr::clrTable) / sizeof(sClr::Pigment);
 real sClr::hue360(void) const
 {
     if (r() > g() && g() >= b()) {
-        // red domain: r max, b min, g ascending
         return 60 * (real)(g() - b()) / (r() - b());
     } else if (g() >= r() && r() > b()) {
-        // yellow domain: g max, b min, r descending
         return 60 * (1 + (real)(g() - r()) / (g() - b()));
     } else if (g() > b() && b() >= r()) {
-        // green domain: g max, r min, b ascending
         return 60 * (2 + (real)(b() - r()) / (g() - r()));
     } else if (b() >= g() && g() > r()) {
-        // cyan domain: b max, r min, g descending
         return 60 * (3 + (real)(b() - g()) / (b() - r()));
     } else if (b() > r() && r() >= g()) {
-        // blue domain": b max, g min, r ascending
         return 60 * (4 + (real)(r() - g()) / (b() - g()));
     } else if (r() >= b() && b() > g()) {
-        // magenta domain: r max, g min, b descending
         return 60 * (5 + (real)(r() - b()) / (r() - g()));
     }
 
-    // black, white, or grey
     return 0;
 }
 
-real sClr::luminance1(sClr::eLumaMode m /*= eRec709 */) const
+real sClr::luminance1(sClr::eLumaMode m) const
 {
     switch (m) {
     case sClr::eRec601 :
@@ -229,10 +220,8 @@ real sClr::luminance1(sClr::eLumaMode m /*= eRec709 */) const
 
 void sClr::setHCL(real hue360, real chroma1, real lightness1)
 {
-    // clamp lightness in [0, 1]
     lightness1 = sClamp<real>(lightness1, 0, 1);
 
-    // clamp chroma in valid range for HCL bicone
     if (lightness1 >= 0.5) {
         chroma1 = sMin<real>(chroma1, 2. - 2 * lightness1);
     } else {
@@ -247,32 +236,26 @@ void sClr::setHCL(real hue360, real chroma1, real lightness1)
 
     real red1 = 0, green1 = 0, blue1 = 0;
     if (domain < 1) {
-        // red domain: r max, g ascends */
         red1 = max_value;
         green1 = mid_value;
         blue1 = min_value;
     } else if (domain < 2) {
-        // yellow domain: g max, r descends
         red1 = mid_value;
         green1 = max_value;
         blue1 = min_value;
     } else if (domain < 3) {
-        // green domain: g max, b ascends
         red1 = min_value;
         green1 = max_value;
         blue1 = mid_value;
     } else if (domain < 4) {
-        // cyan domain: b max, g descends
         red1 = min_value;
         green1 = mid_value;
         blue1 = max_value;
     } else if (domain < 5) {
-        // blue domain: b max, r ascends
         red1 = mid_value;
         green1 = min_value;
         blue1 = max_value;
     } else if (domain < 6) {
-        // magenta domain: r max, b descends
         red1 = max_value;
         green1 = min_value;
         blue1 = mid_value;
@@ -281,7 +264,7 @@ void sClr::setHCL(real hue360, real chroma1, real lightness1)
     set(red1, green1, blue1, 1.0);
 }
 
-const char * sClr::printHex(sStr & out, bool forceAlpha/*=false*/) const
+const char * sClr::printHex(sStr & out, bool forceAlpha) const
 {
     idx start = out.length();
 
@@ -293,7 +276,6 @@ const char * sClr::printHex(sStr & out, bool forceAlpha/*=false*/) const
     return out.ptr(start);
 }
 
-// static
 int sClr::Pigment::compareName(const void * name, const void * pig)
 {
     return strcasecmp(static_cast<const char *>(name), static_cast<const Pigment *>(pig)->name);
@@ -307,7 +289,6 @@ void sClr::parse(const char * s)
     }
 
     if (s[0] == '#') {
-        // hex string
         s++;
         idx digit[8];
         idx len = 0;
@@ -326,22 +307,18 @@ void sClr::parse(const char * s)
 
         switch (len) {
         case 3:
-            // #RGB
             set((digit[0] << 4) + digit[0], (digit[1] << 4) + digit[1], (digit[2] << 4) + digit[2], (idx)255);
             break;
         case 6:
-            // #RRGGBB
             set((digit[0] << 4) + digit[1], (digit[2] << 4) + digit[3], (digit[4] << 4) + digit[5], (idx)255);
             break;
         case 8:
-            // #RRGGBBAA
             set((digit[0] << 4) + digit[1], (digit[2] << 4) + digit[3], (digit[4] << 4) + digit[5], (digit[6] << 4) + digit[7]);
             break;
         default:
             set((idx)0);
         }
     } else {
-        // color name
         const Pigment * pig = static_cast<const Pigment *>(bsearch(s, clrTable, clrTableDim, sizeof(Pigment), Pigment::compareName));
         set(pig ? pig->rgb : (idx)0);
     }
@@ -350,55 +327,55 @@ void sClr::parse(const char * s)
 void sClr::setHSB(real hue1, real saturation1, real brightness1)
 {
     real  red,green,blue;
-    real  domainOffset;         /* hue mod 1/6 */
+    real  domainOffset;
 
-    if (brightness1 == 0.0)/* safety short circuit again */
+    if (brightness1 == 0.0)
     {   
         set((idx)0,(idx)0,(idx)0);
     }
 
-    if (saturation1 == 0.0)      /* grey */
+    if (saturation1 == 0.0)
     {   
         set((idx)brightness1,(idx)brightness1,(idx)brightness1);
     }
 
     
-    if (hue1 < 1.0/6)        /* red domain; green ascends */
+    if (hue1 < 1.0/6)
     {   
         domainOffset = hue1;
-        red   = (brightness1); // (idx)
-        blue  = (brightness1 * (1.0 - saturation1)); //(idx)
-        green = (blue + (brightness1 - blue) * domainOffset * 6); // (idx)
+        red   = (brightness1);
+        blue  = (brightness1 * (1.0 - saturation1));
+        green = (blue + (brightness1 - blue) * domainOffset * 6);
     }
-    else if (hue1 < 2.0/6)       /* yellow domain; red descends */
+    else if (hue1 < 2.0/6)
     { 
         domainOffset = hue1 - 1.0/6;
         green = (brightness1);
         blue  = (brightness1 * (1.0 - saturation1));
         red   = (green - (brightness1 - blue) * domainOffset * 6);
     }
-    else if (hue1 < 3.0/6) /* green domain; blue ascends */
+    else if (hue1 < 3.0/6)
     { 
         domainOffset = hue1 - 2.0/6;
         green = (brightness1);
         red   = (brightness1 * (1.0 - saturation1));
         blue  = (red + (brightness1 - red) * domainOffset * 6);
     }
-    else if (hue1 < 4.0/6)   /* cyan domain; green descends */
+    else if (hue1 < 4.0/6)
     { 
         domainOffset = hue1 - 3.0/6;
         blue  = (brightness1);
         red   = (brightness1 * (1.0 - saturation1));
         green = (blue - (brightness1 - red) * domainOffset * 6);
     }
-    else if (hue1 < 5.0/6)/* blue domain; red ascends */
+    else if (hue1 < 5.0/6)
     { 
         domainOffset = hue1 - 4.0/6;
         blue  = (brightness1);
         green = (brightness1 * (1.0 - saturation1));
         red   = (green + (brightness1 - green) * domainOffset * 6);
     }
-    else    /* magenta domain; blue descends */
+    else
     { 
         domainOffset = hue1 - 5.0/6;
         red   = (brightness1);
@@ -406,9 +383,7 @@ void sClr::setHSB(real hue1, real saturation1, real brightness1)
         blue  = (red - (brightness1 - green) * domainOffset * 6);
     }
 
-    //set((idx)(red*255),(idx)(green*255),(idx)(255*blue), 0);
     set(red,green,blue, 1.);
-    //return rgb; 
 }
 
 
@@ -425,7 +400,7 @@ void sClr::getHSB(real * hue1,real * saturation1,real * brightness1) const
     bri = (real)sMax(red, green);
     bri= (real)sMax((idx)bri, blue);
 
-    if (bri == 0)/* short-circuit now and avoid division by zero problems later */
+    if (bri == 0)
     {   
         *brightness1 = 0.0;
         *saturation1 = 0.0;
@@ -437,7 +412,7 @@ void sClr::getHSB(real * hue1,real * saturation1,real * brightness1) const
     desaturator =sMin(red,green);
     desaturator =sMin(desaturator ,blue);
 
-    if (bri == desaturator)/* we're grey (and still have division by zero issues to bypass) */
+    if (bri == desaturator)
     {   
         *saturation1 = 0.0;
         *hue1        = 0.0;
@@ -447,45 +422,42 @@ void sClr::getHSB(real * hue1,real * saturation1,real * brightness1) const
     *saturation1 = ((*brightness1) - (desaturator / 255.0)) / (*brightness1);
     midigator = (red+green+blue)/3;
         
-    /* "domains" are 60 degrees of red, yellow, green, cyan, blue, or magenta */
-    /* compute how far we are from a domain base */
-    //domainBase;
     oneSixth = 1.0f / 6.0;
     domainOffset = (midigator - desaturator) /
                          (real)(bri - desaturator) / 6.0;
     if (red == bri)
     {
-        if (midigator == green) /* green is ascending */
+        if (midigator == green)
         {   
-            domainBase = 0 / 6.0;       /* red domain */
+            domainBase = 0 / 6.0;
         }
-        else    /* blue is descending */
+        else
         { 
-            domainBase = 5 / 6.0;       /* magenta domain */
+            domainBase = 5 / 6.0;
             domainOffset = oneSixth - domainOffset;
         }
     }
     else if (green == bri)
     {
-        if (midigator == blue)  /* blue is ascending */
+        if (midigator == blue)
         {   
-            domainBase = 2 / 6.0;       /* green domain */
+            domainBase = 2 / 6.0;
         }
-        else    /* red is descending */
+        else
         { 
-            domainBase = 1 / 6.0;       /* yellow domain */
+            domainBase = 1 / 6.0;
             domainOffset = oneSixth - domainOffset;
         }
     }
     else
     {
-        if (midigator == red)   /* red is ascending */
+        if (midigator == red)
         {   
-            domainBase = 4 / 6.0;       /* blue domain */
+            domainBase = 4 / 6.0;
         }
-        else    /* green is descending */
+        else
         { 
-            domainBase = 3 / 6.0;       /* cyan domain */
+            domainBase = 3 / 6.0;
             domainOffset = oneSixth - domainOffset;
         }
     }
@@ -494,8 +466,6 @@ void sClr::getHSB(real * hue1,real * saturation1,real * brightness1) const
     return;
 }
 
-///sClr::Pigment * sClr::rndPigment(void){return pigment(rand());};
-//
 sClr sClr::pigment(idx iclr, idx a ){
     if(iclr==-1)iclr=rand(); 
     iclr=clrTable[iclr % clrTableDim].rgb; 

@@ -89,11 +89,9 @@ namespace slib {
         idx namecmp(const char * s) const;
         const char * path() const { return _path.ptr(); }
         idx treeIndex() const { return _nav.self; }
-        //! depth from root (including array row virtual nodes)
         idx depth() const { return _nav.depth; }
         sUsrTypeField::EType type() const;
 
-        // value of a leaf node
         bool hasValue() const { return _tree && _row >= 0; }
         bool value(sVariant &var) const;
         const char * value(const char * fallback=0) const;
@@ -103,7 +101,6 @@ namespace slib {
         real rvalue(real fallback=0.) const;
         bool hiveidvalue(sHiveId & val) const;
 
-        // flat list of values in a container node
         idx values(const char * field_name, sVariant &out) const;
         const char * values00(const char * field_name, sStr &out00) const;
         idx ivalues(const char * field_name, sVec<idx> &out) const;
@@ -113,20 +110,11 @@ namespace slib {
         idx rvalues(const char * field_name, sVec<real> &out) const;
         idx hiveidvalues(const char * field_name, sVec<sHiveId> &out) const;
 
-        // structured representation of value(s) (as scalar, list, dic, whatever is more
-        // appropriate) in a container node, derived from flattened type field tree
         idx structured(const char * field_name, sVariant &out, const sUsrObjPropsNode ** out_outer_list = 0) const;
-        // retrieve a dictionary variant of all available structured values
         idx allStructured(sVariant &out) const;
 
-        // json output
-        /* ! \param into_object Print into an existing JSON object; do not open or close top-level braces
-             \param flatten Omit intermediate decorative nodes (ones which serve only for visual grouping of fields)\
-             \warning into_object can *only* be used on inner nodes that would normally print as an object of keys/values;
-                                  it is an error to use into_object on leaf nodes */
         bool printJSON(sJSONPrinter & out, bool into_object = false, bool flatten = false) const;
 
-        // navigation
         idx dim(const char * field_name=0) const;
         bool isRoot() const;
 
@@ -161,18 +149,18 @@ namespace slib {
         real findRValueOrDefault(const char * field_name) const;
         bool findHiveIdValueOrDefault(const char * field_name, sHiveId & val) const;
 
-        // modify data
         bool set(sVariant &val);
         bool set(const char * val=0, idx len=0);
         bool set(const sHiveId & val);
+        bool boolset(bool bval);
         bool iset(idx val);
         bool uset(udx val);
         bool rset(real val);
 
-        // append to containers. Creates intermediate container nodes automatically if needed.
         const sUsrObjPropsNode * push(const char * field_name, sVariant &val);
         const sUsrObjPropsNode * push(const char * field_name, const char * val=0);
         const sUsrObjPropsNode * push(const char * field_name, const sHiveId & val);
+        const sUsrObjPropsNode * boolpush(const char * field_name, bool bval);
         const sUsrObjPropsNode * ipush(const char * field_name, idx ival);
         const sUsrObjPropsNode * upush(const char * field_name, udx uval);
         const sUsrObjPropsNode * rpush(const char * field_name, real rval);
@@ -187,12 +175,12 @@ namespace slib {
     class sUsrObjPropsTree: public sUsrObjPropsNode {
     protected:
         const sUsr& _usr;
-        sHiveId _type_id; // guaranteed to be zero or a valid type id
+        sHiveId _type_id;
         sVarSet _table;
         sVarSet * _ptable;
         sVec<sUsrObjPropsNode> _nodes;
         sDic<char> _namesPrintable;
-        sDic<sDic<idx> > _pathMap; // path => name => node index
+        sDic<sDic<idx> > _pathMap;
 
         void init(const sUsrType2 * obj_type, const sHiveId * obj_type_id);
 
@@ -233,11 +221,6 @@ namespace slib {
         inline sUsrObjPropsNode * getNodeByIndex(idx i) { return const_cast<sUsrObjPropsNode*>(static_cast<const sUsrObjPropsTree&>(*this).getNodeByIndex(i)); }
         idx dimTree() const { return _nodes.dim(); }
 
-#if 0 // TODO
-        // set a value with a specific path
-        bool setValueAt(const char * path, const char * field_name, const sVariant &val);
-        bool setValueAt(const char * path, const char * field_name, const char * val=0);
-#endif
 
         bool valid(sStr * log = 0) const;
         bool complete(sStr * log = 0) const;

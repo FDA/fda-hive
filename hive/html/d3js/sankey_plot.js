@@ -32,7 +32,7 @@
 function vjD3JS_SankeyView ( viewer )
 {
     loadCSS("d3js/css/sankey_plot.css");
-    vjD3CategoryView.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjD3CategoryView.call(this,viewer);
 
     this.width=1200;
     this.height=740;
@@ -43,7 +43,7 @@ function vjD3JS_SankeyView ( viewer )
             
         this.d3Compose_prv(data);
         var thiSS=this;
-        var svg=this.d3svg;//area.append("svg");
+        var svg=this.d3svg;
         
         var units = "Widgets";
          
@@ -51,18 +51,16 @@ function vjD3JS_SankeyView ( viewer )
             width = this.width- margin.left - margin.right,
             height = this.height - margin.top - margin.bottom;
          
-        var formatNumber = d3.format(",.0f"),    // zero decimal places
+        var formatNumber = d3.format(",.0f"),
             format = function(d) { return formatNumber(d) + " " + units; },
             color = d3.scale.category20();
          
-        // append the svg canvas to the page
         svg.attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
           .append("g")
             .attr("transform", 
                   "translate(" + margin.left + "," + margin.top + ")");
          
-        // Set the sankey diagram properties
         var sankey = d3.sankey()
             .nodeWidth(36)
             .nodePadding(10)
@@ -88,7 +86,6 @@ function vjD3JS_SankeyView ( viewer )
               .links(graph.links)
               .layout(32);
          
-        // add in the links
           var link = svg.append("g").selectAll(".link")
               .data(graph.links)
             .enter().append("path")
@@ -97,13 +94,11 @@ function vjD3JS_SankeyView ( viewer )
               .style("stroke-width", function(d) { return Math.max(1, d.dy); })
               .sort(function(a, b) { return b.dy - a.dy; });
          
-        // add the link titles
           link.append("title")
                 .text(function(d) {
                   return d.source.name + " → " + 
                         d.target.name + "\n" + format(d.value); });
          
-        // add in the nodes
           var node = svg.append("g").selectAll(".node")
               .data(graph.nodes)
             .enter().append("g")
@@ -116,7 +111,6 @@ function vjD3JS_SankeyView ( viewer )
                   this.parentNode.appendChild(this); })
               .on("drag", dragmove));
          
-        // add the rectangles for the nodes
           node.append("rect")
               .attr("height", function(d) { return d.dy; })
               .attr("width", sankey.nodeWidth())
@@ -128,7 +122,6 @@ function vjD3JS_SankeyView ( viewer )
               .text(function(d) { 
                   return d.name + "\n" + format(d.value); });
          
-        // add in the title for the nodes
           node.append("text")
               .attr("x", -6)
               .attr("y", function(d) { return d.dy / 2; })
@@ -140,7 +133,6 @@ function vjD3JS_SankeyView ( viewer )
               .attr("x", 6 + sankey.nodeWidth())
               .attr("text-anchor", "start");
          
-        // the function for moving the nodes
           function dragmove(d) {
             d3.select(this).attr("transform", 
                 "translate(" + (

@@ -61,9 +61,6 @@ class QPSvcDnaAlignParser: public sQPSvc
                 setVar("sourceSequenceFilePath", "%s", s.ptr());
             }
         }
-        /**
-         * To be used for reporting error for the user
-         */
         void setUserFilename(const char * file, ...) __attribute__((format(printf, 2, 3)))
         {
             if( file && file[0] ) {
@@ -86,15 +83,9 @@ class QPSvcDnaAlignParser: public sQPSvc
         }
         void setSubId(const char * subId)
         {
-            setVar("sub", "%s", subId);
-        }
-        idx split()
-        {
-//            udx maxChunkSize = m_maxChunkSize ? m_maxChunkSize : m_fileSize;
-//            udx chunkCnt = (m_fileSize - 1) / maxChunkSize + 1;
-//            return chunkCnt ? chunkCnt : 1;
-            // it would be nice for this parser to support chunks
-            return 1;
+            if( subId) {
+                setVar("sub", "%s", subId);
+            }
         }
         virtual const char* getSvcName() const
         {

@@ -27,7 +27,7 @@ vim: set et ts=4 sts=4:
     $.loadCSS('css/tabs.css');
 </script>
 
-<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;" id="jumpNewPage">
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;visibility:hidden;" id="jumpNewPage">
     <a href = "#">
         Click to go to old Octagon webpage
     </a>
@@ -72,13 +72,13 @@ var algoProcess = new valgoProcess (dna_clust_ID, process_qpsvc, process_svc, "s
 algoProcess.visibleParameters = ["name", "referenceID", "subjects", "profileID", "algorithm", "distance"];
 algoProcess.help.push({name:"Subject Help", url:"http://help/hlp.page.svc-clust.html"});
 algoProcess.callbackLoaded = clustLoaded;
-algoProcess.callbackChanged = clustInputChanged;
+algoProcess.inputChanged = clustInputChanged;
 
 function clustInputChanged(viewer, node)
 {
     var recViewer = vjDV[algoProcess.recViewerName];
     if (node.fld.name == "referenceID") {
-        var referenceGenomes = recViewer.getElementValue("referenceID");
+        var referenceGenomes = recViewer.getElementValue("referenceID","join");
         var referencesElt = recViewer.getElement("subjects");
         var profilesElt = recViewer.getElement("profileID");
 
@@ -94,7 +94,7 @@ function clustInputChanged(viewer, node)
                         fetch: "id"
                     };
                 }
-                constraint.url = "alloftype('svc-profiler').filter({.parent_proc_ids&&(objlist)(.parent_proc_ids[0].subject)==(objlist)\"" + referenceGenomes + "\"&&('$(explorer_folder)'=='-'||'$(explorer_folder)'=='alloftype(\"*\")'||($(explorer_folder) has this))}).csv(['_type','_brief','created'],{info:true})";
+                constraint.url = "alloftype('svc-profiler').filter({.parent_proc_ids&&(.parent_proc_ids[0].subject)==(objlist)\"" + referenceGenomes + "\"&&('$(explorer_folder)'=='-'||'$(explorer_folder)'=='alloftype(\"*\")'||('$(explorer_folder)' has this))}).csv(['_type','_brief','created'],{info:true})";
                 profilesElt.fld.constraint = "search";
                 profilesElt.fld.constraint_data = JSON.stringify(constraint);
             } else {
@@ -138,11 +138,10 @@ function clustLoaded(viewer)
     }
 }
 
-
-$(document).ready(function() 
-{
+gInitList += "clustInit();";
+function clustInit () {
     var topVal = $("#header").height() + 45;
-    $(".content").attr("style", "top: "+ topVal +"px; ");
+    //$(".content").attr("style", "top: "+ topVal +"px; ");
     
     globalAlgo = $('#mainAlgoArea').algoview({
         algoObj: algoProcess,
@@ -160,7 +159,7 @@ $(document).ready(function()
         
         eventData.preventDefault();
     });
-});
+};
 </script>
 
 <div id="dvClustPhylogramOptions" style="display:none;">

@@ -28,15 +28,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "dna-profx.hpp"
+#include <qpsvc/qpsvc-dna-hexagon.hpp>
 
 idx DnaProfXsamtools::PrepareData ( sUsr& user, const char * parentIDs, const char * workDir, sStr &errMsg)
 {
 
-    //
-    // Check to make sure that the computation is based on an alignment
-    //
     if (!parentIDs) {
-        // Error: the aligner ID is missing from the pForm
         qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "No Alignment selected.");
         qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
         return 0;
@@ -45,20 +42,14 @@ idx DnaProfXsamtools::PrepareData ( sUsr& user, const char * parentIDs, const ch
     sHiveId parid(parentIDs);
     sUsrObj profile(user, parid);
     if ( !profile.Id() ) {
-        // Error: the profile ID is missing
         qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "No profile ID specified.");
         qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
         return 0;
     }
 
-    //
-    // Load the alignment data
-    // If missing then SAMtools cannot be run
-    //
     sStr path;
     profile.getFilePathname00(path, "alignment.hiveal" _ "alignment.vioal" __);
     if (!path || (sFile::size(path.ptr())==0) ) {
-        // Error: the alignment file appears to be empty
         qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "Alignments are missing or corrupted.");
         qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
         return 0;
@@ -66,33 +57,24 @@ idx DnaProfXsamtools::PrepareData ( sUsr& user, const char * parentIDs, const ch
     sHiveal hiveal(&user, path);
     sBioal * bioal = &hiveal;
     if (!bioal || (bioal->dimAl()==0) ) {
-        // Error: the alignment file is not empty but has no alignments in it.
         qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "Alignment object contains no alignments.");
         qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
         return 0;
     }
 
-    //
-    // Load the subject
-    // If not available SAMTools cannot be run
-    //
-    const char * subject=profile.propGet00("subject", 0, ";");
+    sStr sSubj;
+    const char * subject=QPSvcDnaHexagon::getSubject00(profile,sSubj);
     sHiveseq Sub(&user, subject, hiveal.getSubMode());
     if(Sub.dim()==0) {
-        // Error: the subject appears to be empty
         qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "References are missing or corrupted.");
         qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
         return 0;
     }
 
-    //
-    // Load the query/reads file(s).
-    // If not available then SAMTools cannot be run.
-    //
-    const char * query=profile.propGet00("query", 0, ";");
+    sStr sQry;
+    const char * query=QPSvcDnaHexagon::getQuery00(profile,sQry);
     sHiveseq Qry(&user, query, hiveal.getQryMode());
     if(Qry.dim()==0) {
-        // Error: there appears to be no query/reads
         qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "Queries are missing or corrupted.");
         qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
         return 0;
@@ -100,12 +82,6 @@ idx DnaProfXsamtools::PrepareData ( sUsr& user, const char * parentIDs, const ch
 
 
 
-    //
-    // Go through each alignment set by subject
-    // This allows us to produce one VCF file after another using
-    // SAMtools in order to decrease the resources required by each run.
-    // Ultimately this could be parallelized.
-    //
     sStr spath;
     sStr samAlignmentFile;
     for (idx ii = 0; ii < Sub.dim(); ii++) {
@@ -113,21 +89,14 @@ idx DnaProfXsamtools::PrepareData ( sUsr& user, const char * parentIDs, const ch
         samAlignmentFile.printf(0,"%s/alignment-%" DEC ".sam", workDir, ii);
         profile.getFilePathname(spath, "alignment-%" DEC ".sam", ii);
 
-        //
-        // Copy the alignment file into the work directory if the SAM file already exists
-        //
         if (spath && sFile::size(spath.ptr())>0) {
             sFile::copy(spath.ptr(), samAlignmentFile.ptr(), false);
         } else {
-            // SAM file doesn't exist in the object directory so
-            // convert .vioalt into .sam
-            sViosam::convertVioaltIntoSam(bioal, ii, &Qry, &Sub, true, samAlignmentFile);
+            sFil samHeader;
+            sFil samFooter;
+            sViosam::convertVioaltIntoSam(bioal, samHeader, samFooter, ii, &Qry, &Sub, true, samAlignmentFile);
         }
 
-        //
-        // Data should be written into the alignment-x.sam file
-        // Verify that the file is not empty otherwise there may be a writing
-        // error (at the minimum even with no alignments the header should be written into the file).
         if (!sFile::size(samAlignmentFile.ptr())) {
             qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "Could not access created SAM file.");
             qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
@@ -135,21 +104,11 @@ idx DnaProfXsamtools::PrepareData ( sUsr& user, const char * parentIDs, const ch
             return 0;
         }
 
-        //
-        // Dump reference into fasta file in working directory with full reference names
-        // References names are, however, truncated at the first space (if applicable)
-        // due to requirements in the SAM format specification.  SAMtools cannot properly
-        // work with reference IDs that contain spaces.
-        //
         sStr subjectFastaFile("%s/subject-%" DEC ".fa", workDir, ii);
         sFil subjectFastaFil(subjectFastaFile.ptr());
-        Sub.printFastXRow(&subjectFastaFil, false, ii, 0, 0, 0, true, false, 0, 0, 0, true, false, false, true);
+        Sub.printFastXRow(&subjectFastaFil, false, ii, 0, 0, 0, true, false, 0, 0, sBioseq::eSeqForward, true, false, false, true);
 
-        //
-        // Check to see if the reference successfully was created
-        //
         if (!subjectFastaFile || sFile::size(subjectFastaFile.ptr())==0) {
-            // Error: the reference file appears to not exist, or is empty
             qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "Could not access dumped reference file.");
             qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
             qp->logOut(qp->eQPLogType_Error, "Could not access created dumped reference file.");
@@ -160,9 +119,8 @@ idx DnaProfXsamtools::PrepareData ( sUsr& user, const char * parentIDs, const ch
 }
 
 
-idx DnaProfXsamtools::Profile (sIO * log, sStr * outFile, const char * workDir, sUsr& user, const char * parentIDs, const char * additionalCommandLineParameters/*=0*/)
+idx DnaProfXsamtools::Profile (sIO * log, sStr * outFile, const char * workDir, sUsr& user, const char * parentIDs, const char * additionalCommandLineParameters)
 {
-    // load the subject
     sHiveId parid(parentIDs);
     sUsrObj profile(user, parid);
     if ( !profile.Id() ) {
@@ -178,7 +136,7 @@ idx DnaProfXsamtools::Profile (sIO * log, sStr * outFile, const char * workDir, 
         qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "Subject missing or corrupted.");
         qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
         qp->logOut(qp->eQPLogType_Error, "Subject missing or corrupted.");
-        return 0; // error
+        return 0;
     }
 
     sStr vpath;
@@ -186,8 +144,6 @@ idx DnaProfXsamtools::Profile (sIO * log, sStr * outFile, const char * workDir, 
     for (idx i = 0; i < Sub.dim(); i++){
         sStr subjectFastaFile("%s/subject-%" DEC ".fa",workDir, i);
 
-        //sStr cmdLine("samtoolsVCF.os" SLIB_PLATFORM " \'%s\' \'%s\'", workDir, subjectFastaFile.ptr());
-        // Remove the OS; this is set at the script level (?)
         sStr cmdLine("\"%sdna-profx.sh.os%s\" %s run --workDir \'%s\' --subjectFastaFile \'%s\' --subID %" DEC "", resourceRoot.ptr(), SLIB_PLATFORM, algorithm.ptr() ,workDir, subjectFastaFile.ptr(), i);
 
         if(log)log->printf("RUNNING: %s\n",cmdLine.ptr());
@@ -198,7 +154,6 @@ idx DnaProfXsamtools::Profile (sIO * log, sStr * outFile, const char * workDir, 
         outFile->cut(0);
         outFile->printf("%s/SNP-%" DEC ".vcf", workDir, i);
 
-        // Copy output from working directory to object directory
         vpath.cut(0);
         qp->reqAddFile(vpath, "SNP-%" DEC ".vcf", i);
         if (vpath && sFile::exists( outFile->ptr() ) &&( sFile::size( outFile->ptr() ) > 0 ) ) {
@@ -211,36 +166,25 @@ idx DnaProfXsamtools::Profile (sIO * log, sStr * outFile, const char * workDir, 
             return 0;
         }
 
-        //convert .vcf into .csv file
         sStr SNPprofileFileTmplt;
         qp->reqAddFile(SNPprofileFileTmplt, "SNPprofile-%" DEC, i);
         sViosam viosam;
 
-        //
-        // Create the CSV file HIVE uses from the VCF file generated by SAMTOOLS
-        //
         idx ret = viosam.convertVCFintoCSV(vpath.ptr(), SNPprofileFileTmplt.ptr(), &Sub, skipHeader);
         if (ret==0) {
             qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "request %" DEC " could not convert VCF file into CSV format.", qp->reqId);
             qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
             return 0;
         }
-        //
-        // Set skip header flag to true for concatination in finalization
-        //
         skipHeader=true;
-        //
-        // TODO: Create the Frequency Profile and Noise profile here
-        //
 
 
     }
     return 1;
 }
 
-idx DnaProfXsamtools::Finalize (sIO * log, sStr * outFile, const char * workDir, sUsr& user, const char * parentIDs, const char * additionalCommandLineParameters/*=0*/)
+idx DnaProfXsamtools::Finalize (sIO * log, sStr * outFile, const char * workDir, sUsr& user, const char * parentIDs, const char * additionalCommandLineParameters)
 {
-    // load the subject
     sHiveId parid(parentIDs);
     sUsrObj profile(user, parid);
     if ( !profile.Id() ) {
@@ -256,10 +200,9 @@ idx DnaProfXsamtools::Finalize (sIO * log, sStr * outFile, const char * workDir,
         qp->reqSetInfo(qp->reqId, qp->eQPInfoLevel_Error, "Subject missing or corrupted.");
         qp->reqSetStatus(qp->reqId, qp->eQPReqStatus_SysError);
         qp->logOut(qp->eQPLogType_Error, "Subject missing or corrupted.");
-        return 0; // error
+        return 0;
     }
 
-    // Create parent Profile File
     sStr SNPprofileFileTmplt;
     qp->reqAddFile(SNPprofileFileTmplt, "SNPprofile.csv");
 
@@ -269,8 +212,6 @@ idx DnaProfXsamtools::Finalize (sIO * log, sStr * outFile, const char * workDir,
         qp->reqGetFile(ProfileChunk,"SNPprofile-%" DEC ".csv", i);
         sFile::copy( ProfileChunk.ptr(), SNPprofileFileTmplt.ptr() , true);
 
-        // Remove profile chunk here since everything is now concatinated into SNPprofile.csv
-        // Maintain VCFs for the time being
         sFile::remove(ProfileChunk);
     }
 

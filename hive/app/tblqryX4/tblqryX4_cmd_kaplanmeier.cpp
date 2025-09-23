@@ -45,7 +45,6 @@
 using namespace slib;
 using namespace slib::tblqryx4;
 
-// Need to find a good place for the helper functions...
 static idx dateDifference(char * inital, char * final);
 static sVec < idx > parseDate (char * date);
 
@@ -54,7 +53,7 @@ namespace slib {
         class KaplanMeierCommand : public Command
         {
             private:
-                sVec<idx> colSet; // values should be init, fin, cen column indices in that order
+                sVec<idx> colSet;
 
             public:
                 KaplanMeierCommand(ExecContext & ctx) : Command(ctx) {}
@@ -72,8 +71,6 @@ namespace slib {
 
 bool KaplanMeierCommand::init(const char * op_name, sVariant * arg)
 {
-    // Add the columns for the different events for the computation
-    // TODO: Make this robust to user error
     if (sVariant * colSetVal = arg->getDicElt("initEvents"))
     {
             if (colSetVal->isList())
@@ -114,31 +111,25 @@ bool KaplanMeierCommand::init(const char * op_name, sVariant * arg)
 
 bool KaplanMeierCommand::compute(sTabular * tbl)
 {
-    sVec < idx > dayCounts; // Days from initial to final or censored
-    sVec < idx > sortedCountsIndex; // Index for when we call the sort
-    sVec < idx > isFinal; // Final event indicators
+    sVec < idx > dayCounts;
+    sVec < idx > sortedCountsIndex;
+    sVec < idx > isFinal;
 
-    sVec < double > proportions; // Stores the KM scores for all the final events
-    sVec < idx > durations; // Stores the length in days
+    sVec < double > proportions;
+    sVec < idx > durations;
 
     proportions.vadd(1,(double) 1);
     durations.vadd(1,0);
 
-    // Set up the output file, which is also useful for debugging
-    // Note that if something crashes, tblqry will pick up the OLD output file
-    // Note that responses seem to be cached, so tblqry needs to be reloaded
     sStr t2;
     _ctx.qproc().reqSetData(_ctx.outReqID(),"file://" OUTFILE,0,0);
     _ctx.qproc().reqDataPath(_ctx.outReqID(),OUTFILE,&t2);
     sFile::remove(t2);
     sFil dateFile(t2);
 
-    // Iterate through all initial events, skip the blank fields
     for (idx i=0; i < tbl->rows(); i++) {
 
-        //TODO: Validate dates
 
-        // Initialize strings and character arrays for dates
         sStr s;
         sStr f;
         sStr c;
@@ -150,18 +141,12 @@ bool KaplanMeierCommand::compute(sTabular * tbl)
         char * cenDate = c.ptr();
 
         if (strcmp(finDate," ") == 0 || strcmp(finDate,"") == 0) {
-            //dateFile.printf("Tried to add censored...\n");
             if (strcmp(cenDate," ") != 0 && strcmp(cenDate,"") !=0) {
-                //dateFile.printf("Added censored data\n");
                 dayCounts.vadd(1,dateDifference(initDate,cenDate));
                 isFinal.vadd(1,0);
             }
         } else {
-            //dateFile.printf("Tried to add final...\n");
-            //dateFile.printf(finDate);
-            //dateFile.printf("\n");
             if (strcmp(cenDate," ") == 0 || strcmp(cenDate,"") == 0) {
-                //dateFile.printf("Added final data\n");
                 dayCounts.vadd(1,dateDifference(initDate,finDate));
                 isFinal.vadd(1,1);
             }
@@ -169,13 +154,11 @@ bool KaplanMeierCommand::compute(sTabular * tbl)
 
     }
 
-    // Sort the thing after specifying the size of the counts index
     sortedCountsIndex.add(dayCounts.dim());
     sSort::sort(dayCounts.dim(),dayCounts.ptr(),sortedCountsIndex.ptr());
 
-    // With the sorted indices, we now perform the proportions calculations
 
-    idx countDown = sortedCountsIndex.dim(); // Initialize the number still in
+    idx countDown = sortedCountsIndex.dim();
     idx durationIndex = 0;
     double lastProportion = 1.0;
 
@@ -184,7 +167,6 @@ bool KaplanMeierCommand::compute(sTabular * tbl)
         idx numFinal = 0;
         idx totalLost = 0;
 
-        // Check all events that occur at this particular time
         while ((durationIndex < sortedCountsIndex.dim()) && (currentDay == dayCounts[sortedCountsIndex[durationIndex]]))  {
             totalLost++;
             if (isFinal[sortedCountsIndex[durationIndex]])
@@ -194,30 +176,17 @@ bool KaplanMeierCommand::compute(sTabular * tbl)
         }
 
         if (numFinal > 0) {
-            // Add to proportions and durations
             double newProportion = lastProportion * ((double)(countDown - numFinal) / (double)countDown);
             proportions.vadd(1,newProportion);
             durations.vadd(1,currentDay);
             lastProportion = newProportion;
         }
 
-        //Update the current count
         countDown -= totalLost;
 
     }
 
-    /* Debug sorted counts and final events
-    for (idx i = 0; i < sortedCountsIndex.dim(); i++) {
 
-        dateFile.printf("%d",isFinal[sortedCountsIndex[i]]);
-        dateFile.printf(",");
-        dateFile.printf("%d",dayCounts[sortedCountsIndex[i]]);
-        dateFile.printf("\n");
-
-    }
-    */
-
-    // Debug proportions and durations
     for (idx i = 0; i < proportions.dim(); i++) {
 
         dateFile.printf("%" DEC,durations[i]);
@@ -232,8 +201,6 @@ bool KaplanMeierCommand::compute(sTabular * tbl)
 
 
 static idx dateDifference (char * initial, char * final) {
-    // A quick and dirty calculation for the difference between two dates in days
-    // TODO: Check that days are ordered
 
     sVec <idx> iInts = parseDate(initial);
     sVec <idx> fInts = parseDate(final);
@@ -243,7 +210,6 @@ static idx dateDifference (char * initial, char * final) {
     static const int monthLength[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
     if (iInts[1] < fInts[1]) {
-        // Add the final days of the initial m
         diff += monthLength[iInts[1]] - iInts[0];
         diff += fInts[0];
         for (idx i = iInts[1]+1; i< fInts[1]; i++) {
@@ -252,7 +218,6 @@ static idx dateDifference (char * initial, char * final) {
     } else if (iInts[1] == fInts[1]) {
         diff += fInts[0] - iInts[0];
     } else {
-        // Assuming the dates spill over to the next year
         diff += monthLength[iInts[1]] - iInts[0];
         diff += fInts[0];
         for (idx i = iInts[1] + 1; i<12; i++) {
@@ -267,8 +232,6 @@ static idx dateDifference (char * initial, char * final) {
 }
 
 static sVec < idx > parseDate (char * date) {
-    // A brittle, but straight forward way to parse dates of the form 10FEB2003
-    // This is a slight modification of code from stringdatetime
     sVec <idx> DayMonthYear;
 
     char * end = 0;
@@ -277,7 +240,7 @@ static sVec < idx > parseDate (char * date) {
     day[0] = date[0];
     day[1] = date[1];
     sStr dayStr;
-    dayStr.printf(day);
+    dayStr.printf("%s", day);
 
     DayMonthYear.vadd(1,strtoidx(dayStr, &end, 0));
 
@@ -299,10 +262,11 @@ static sVec < idx > parseDate (char * date) {
     year[2] = date[7];
     year[3] = date[8];
     sStr yearStr;
-    yearStr.printf(year);
+    yearStr.printf("%s", year);
 
     DayMonthYear.vadd(1,strtoidx(yearStr, &end, 0));
 
+    delete day;
     return DayMonthYear;
 }
 

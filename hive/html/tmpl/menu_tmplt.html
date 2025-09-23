@@ -1,233 +1,68 @@
-<!--
- $Id$
--->
-<script > 
-    gInitList+="menu_init();"
+<div class="content">
+    <div class="main-content" id='menuPortalInit' ></div>
+</div>
 
-    
-    function vjPortalTableView(viewer) {
-        vjTableView.call(this, viewer);
+<style>
+.panel-default {
+    border-color: #fff;
+}
+#footer{
+    position: absolute;  
+    text-align: center;
+    padding:5px 25px 5px 25px;
+/*    border-top: 1px solid #c0c0ff;*/
+    font-size: 12px;
+    height: 2em;
+    bottom: -35px;
+    background-color: #ddd;
+    width: 100%;
+    height: 35px;
+    display: inline-block;
+}
+</style>
 
-        this.cols = [
-            {name:'name', hidden:true },
-            {name:'icon', hidden:true},
-            {name:'mode', hidden:true},
-            {name:'aligner', hidden:true},
-            {name:'type', hidden:true},
-            {name:'description', wrap:true},
-            {name:'popup', hidden:true}
-        ];
+<script type="text/javascript">
+google.load("visualization", "1", {packages:["corechart"]});
 
-        this.iconSize = 48;
-        this.iconWidth = 48;
-        this.newSectionWord = '<!--section-->';
-        this.newSectionColumn = 4;
-        this.bgColors = ['#f2f2f2','#ffffff'];
+$.loadLayoutManager();
 
-        this.precompute = function(viewer, tbl, ir) {
-            var node = tbl.rows[ir];
-            if (node.popup) {
-                node.url = function(viewer, node) {
-                    this.constructPopupViewer(node.popup);
-                };
-                return;
+$.loadCSS('css/tabs.css');
+$.loadCSS('jsx/widgets/css/view.menuportal.css');
+$.loadCSS('jsx/widgets/css/font.css');
+$.loadScript('jsx/widgets/jquery/tmpltSet/jquery.menuportal.js');
+
+gInitList += "menuPortalInit();";
+function menuPortalInit () {
+
+    var config = {
+            layout: {
+                items:[{
+                    id: 'mainArea',
+                    top: '0',
+                    left: '0%',
+                    right: '100%',
+                    bottom: '100%',
+                    allowMaximize: false,
+                    view: {
+                        name: 'menuportal',
+                        options: {
+                            data: "dsMenu",
+                            //data: "dsTmp",
+                            selection: docLocValue("selected"),
+                            menuNodeName: docLocValue("root") ? docLocValue("root") : "Portal",
+                            usedParams: ["root", "selected"]      
+                        }
+                    }
+                }]
             }
-            var cmdUsed=node.name.replace(/"/g, '');
-            if (!node.url && node.name)
-                node.url='?cmd='+ cmdUsed;
-            if (isok(node.mode))
-                node.url+='&cmdMode='+node.mode;
-            //if (isok(node.aligner))
-            if(cmdUsed.indexOf("dna-hexagon-menu")!=-1)
-                node.url+='&menuMode=' +escape(JSON.stringify(node));
         };
+    
+    vjDSNew.addDS("", "dsMenu", vjDS.dsMenu.url);
+    vjDSNew.addDS("", "dsTmp", "innerHTML://demoData");
 
-        this.constructPopupViewer = function(name) {
-            // bad hack - how should we size popup containers?
-            gObject("dvPortalPopup-container").style.width = document.getElementsByClassName("HIVE_sect1")[0].offsetWidth + "px";
-
-            var popupviewer = new vjPortalTableView({
-                data: "ds" + name + "DV",
-                formObject: this.formObject,
-                isok: true
-            })
-            var popupdv = vjDV.add("dvPortalPopupViewer", 300, 300);
-            popupdv.add(name, "process", "tab", [popupviewer]);
-            popupdv.render();
-            popupdv.load();
-            vjVIS.winop("vjVisual", "dvPortalPopup", "open");
-        }
-    };
-
-    function menu_init()
-    {
-        setLocationTitle("portal:HIVE");
-        var selectedTab=docLocValue("selected");
-        
-
-        var width=parseInt(__getCurrentComputedStyle(gObject('element_toget_metrics_1'),'width'))-10;
-//         +parseInt(__getCurrentComputedStyle(gObject('element_toget_metrics_2'),'width'));
-
-        vjVIS.generate([
-            {
-                name: "dvPortalPopup",
-                onlyPopup: true,
-                popupCloser: true,
-                width:600,
-                cx: 600
-            }
-        ]);
-
-        var arr = new Array (
-            {name: 'General'}
-            ,{name: 'Alignment' }
-            ,{name: 'Assembler'}
-            ,{name: 'Annotations'}
-            ,{name: 'Classifications'}
-        );
-
-        var v= vjDV.add("dvPortalViewer",width ,-1);
-        v.selected=0;//v.maxtabs=6; 
-        for ( var iv=0, iiv=0; iv<arr.length; ++iv ) {
-            
-            var sections = arr[iv].sections ? arr[iv].sections : ['']; 
-            var sectionViewers=new Array ();
-            
-            for ( var is=0; is<sections.length; ++is ) {
-                
-                var dsName="ds"+arr[iv].name;
-                if(sections[is].length>0)
-                    dsName+=sections[is];
-                dsName+="DV";
-                
-                vjDS.add("Accumulating the Availale Algorithms", dsName, "innerText://"+dsName );
-                vjDS[dsName].parser = function (ds,txt) { 
-                    var arrObj = ["subject","query","ids"];
-                    var returnText = reportSubjectQuery(ds,txt,arrObj); 
-                    return returnText;
-                   };
-                if (arr[iv].isPopup)
-                    continue;
-
-                var viewer=new vjPortalTableView({
-                    data: dsName,
-                    formObject: document.forms["form-portal"],
-                    isok: true,
-                });
-
-                sectionViewers.push(viewer);
-                
-            }
-
-            if (arr[iv].isPopup)
-                continue;
-
-            vjDV.dvPortalViewer.add( arr[iv].name, "process", "tab", sectionViewers );
-            
-            
-            if(selectedTab==arr[iv].name) {
-                vjDV.dvPortalViewer.selected=iiv;
-                
-            }
-            ++iiv;    
-        }
-        vjDV.dvPortalViewer.render();
-        vjDV.dvPortalViewer.load();
-        
-   
-        var tabToSelect = docLocValue("tab");
-        if (tabToSelect.length > 0){
-            var tab = vjDV.dvPortalViewer.tabs[tabToSelect];
-            if (tab!=undefined && tab)
-                vjDV.dvPortalViewer.onClickTabSelect(tabToSelect,tab.num);
-        }
-    }
+    $('#menuPortalInit').layoutmanager({
+        saveState: false,
+        config: config
+    })
+};
 </script>
-
-
-
-<form name="menu" action="seq.cgi" method="GET" >
-    <div class="HIVE_section" style="text-align:center;margin:10px auto" id='element_toget_metrics_1'>
-        <table border=0  style="width:10%;margin:0 auto;">
-            <tr >
-                <td class="HIVE_section_title">
-                    <a name="files"></a>
-                    <table><tr><td><img src="img/file.gif" width=48 /></td><td>HIVE Portal</td></tr></table>
-                </td>
-            </tr>
-            <tr>
-                <td class="HIVE_sect1" valign=top align=center >
-                    <span id="dvPortalPopup-visual"></span>
-                    <span id="dvPortalViewer"></span>
-                </td>
-            </tr>
-        </table>    
-    </div>
-
-</form>
-
-
-<form name="form-portal">
-
-<span class="sectHid" id='dsGeneralDV'><pre>
-icon,name,mode,title,description
-img/rec.gif,tblqry-new,,Table Query, This tool takes you to the table query utility
-img/hiveseq.gif,dna-hiveseq,, Hive-Seq, Page that allows users to have access to all hive seq utilities
-img/random.png,dna-insilico,,Genome Randomizer,Next-Gen Sequence Randomizer (dna-insilico) 
-img/seqtrim.png,dna-hiveseq,seqtrim,Sequence Trimmer, Allows users to trim sequences based on specific parameters
-img/filter.png,dna-hiveseq,primersfilter, Primers Filter, Tool to generate sequences while taking primers into consideration
-img/dna.gif,dna-hiveseq,adaptersfilter, Adapters Filter, Tool to generate sequences while taking adapters into consideration
-img/length.png,dna-hiveseq,qualityandlengthfilter, Quality and Length Filter, Tool to filter results based on their quality and length
-img/hive-hexagon.gif,dna-multi-qc,,Multiple QC,Quality control across multiple short read files.
-img/graph.gif,dna-hiveseq,complexityfilter, Complexity Filter, Tool to filter low complexity regions
-img/graph.gif,dna-hiveseq,idfilter, Identification Filter, Tool to filter Identification lines from a file
-img-algo/genome.jpg,dna-hiveseq,seqfilter, Sequence Filter, Tool to filter sequences from a file
-img/graph.gif,dna-hiveseq,pairedEndCollapse, Paired End Collapser, Tool to collapse two paired end files into one
-img/random.png,dna-hiveseq,randomizer,Simulated Random Sequence Generation,Choose this to discover recombination sites in population of genomes    
-img/hiveseq.jpg,dna-hiveseq,vioseq, Sequence Combining Tool, Tool allowing creation of hive-seq virtual sequence files by combining the sequences and ranges from other sequence files.
-</pre></span>
-
-<span class="sectHid" id='dsAlignmentDV'><pre>
-icon,name,mode,aligner,&lt;!--section--&gt;type,Metagenomic-seq algorithms,description
-img/scope.png,dna-screening,,,dna,Censuscope,Choose this option to rapidly define the taxonomic composition in a metagenomic sequence dataset
-
-icon,name,mode,aligner,&lt;!--section--&gt;type,DNA-seq algorithms,description
-img/hive-hexagon.gif,dna-hexagon-menu,,HIVE-Hexagon,dna,HIVE-Hexagon Menu,Choose this option to view the general and subject specific HIVE hexagon pages used to align sequence reads to a reference genomes using the HIVE-Hexagon native engine
-img-algo/svc-align-blast.gif,dna-hexagon-menu,blast,Blast,dna,BLAST Alignment Menu,Choose this to align sequence reads to reference genomes using integrated NCBI BLAST
-img-algo/svc-align-blast.gif,dna-hexagon-menu,blastx,BlastX,dna,BLASTX Alignment Menu,Choose this to align sequence reads to protein reference genomes using integrated NCBI BLASTX
-img-algo/svc-align-blast.gif,dna-hexagon-menu,tblastx,TBlastX,dna,TBLASTX Alignment Menu,Choose this to align sequence reads to reference genomes using integrated NCBI TBLASTX
-img-algo/svc-align-bowtie.gif,dna-hexagon-menu,bowtie,Bowtie,dna,Bowtie Alignment Menu,Choose this to align sequence reads to a reference genomes using Bow-tie
-img-algo/svc-align-bwa.gif,dna-hexagon-menu,bwa,BWA,dna,BWA alignment Menu, Choose this to align sequence reads to a reference genomes using BWA
-img-algo/svc-align-blat.gif,dna-hexagon,blat,BLAT,,BLAT, Choose this to access BLAT alignment as development by UCSC
-img/dna.gif,dna-hexagon&cmdMode=batch,,HIVE-Hexagon,dna,DNA Batch,Batch mode for DNA hexagon
-,,,,&lt;!--section--&gt;,RNA-seq algorithms,description
-img-algo/svc-align-tophat.gif,dna-hexagon-menu,tophat,Tophat,rna,Tophat RNA alignment Menu, Choose this to align RNA sequence reads to reference genome using Tophat
-,,,,&lt;!--section--&gt;,multiple alignment algorithms,description
-img-algo/svc-align-mafft.gif,dna-hexagon-menu,mafft,MAFFT,dna,MAFFT multiple alignment Menu, Choose this to align multiple sequence reads to each other using MAFFT
-img-algo/svc-align-clustal.gif,dna-hexagon-menu,clustal,Clustal,dna,Clustal multiple alignment Menu, Choose this to align multiple sequence reads to each other using Clustal
-,,,,&lt;!--section--&gt;,post-alignment algorithms,description
-img/hive-hexagon.gif,dna-alignment-comparator,postal,Alignment Comparator,dna,Alignment comparison algorithm, Choose this to compare multiple alignments  
-img/table.gif,dna-tnseq,,,,Tn-Seq,Format alignments into unified Tn-Seq table  
-</pre></span>
-
-<span class="sectHid" id='dsAssemblerDV'><pre>
-icon,name,mode,title,description
-img/hiveseq.jpg,dna-hiveseq,hs-contigextension,Contig Extension, Tool used to build contigs from short Reads
-</pre></span>
-
-<span class="sectHid" id='dsAnnotationsDV'><pre>
-icon,name,mode,title,description
-img-algo/svc-annotation-converter.png,annotationConverter&cmdMode=iondb,,Annotation Converter,"This tool allows converts CSV, TSV, VCF, and GTF files into HIVE Annotation Objects for use with other HIVE tools."
-img-algo/svc-annotation-mapper.gif,annotationMapper&cmdMode=iondb,,Annotation Mapper, This tool allows you to crossmap two or more profiles or annotations to discover similarities and differences between them.
-</pre></span>
-
-
-<span class="sectHid" id='dsClassificationsDV'><pre>
-icon,name,mode,title,description
-img-algo/svc-clust.png,dna-clust,,Sequence Hierarchical Clustering,Hierarchical clustering analysis that classifies related profiling results by comparing their SNP frequencies
-img-algo/alignment_comparator.png,dna-alignment-comparator,,Alignment Comparator, This tool allows you to compare alignments
-img/hive-hexagon.gif,reg_virMut,,Viral Mutation Comparator,"Comparative viral substitution analysis tool."
-
-</pre></span>
-
-</form>

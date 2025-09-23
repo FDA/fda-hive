@@ -37,9 +37,6 @@ real *pcom,*xicom,(*nrfunc)(real [], void * );
 
 void sMathNR::linmin(real p[], real xi[], idx n, real *fret, callBackOptim func, void * usr)
 {
-    //real brent(real ax, real bx, real cx, real (*f)(real), real tol, real *xmin);
-    //real f1dim(real x);
-    //void mnbrak(real *ax, real *bx, real *cx, real *fa, real *fb, real *fc, real (*func)(real));
     idx j;
     real xx,xmin,fx,fb,fa,bx,ax;
 

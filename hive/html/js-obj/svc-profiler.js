@@ -35,8 +35,8 @@ javaScriptEngine.include("js/vjProfilerView.js");
 vjHO.register('svc-profiler').Constructor=function ()
 {
 
-    if(this.objCls)return;         //stupid chrome loads from both cached file and the one coming from server. 
-    this.dsQPBG = vjDS.add('preparing to download','ds'+this.objCls+'_QPBG','static://');
+    if(this.objCls)return;
+    this.dsQPBG = vjDS.add('preparing to download','ds'+this.objCls+'_QPBG','static:
     this.onArchiveSubmit = function (viewer,content){
         var icon;
         var txt = "";
@@ -55,8 +55,7 @@ vjHO.register('svc-profiler').Constructor=function ()
         }
         alertI(txt,undefined,{icon:icon});
     };
-    this.dsQPBG_digest = vjDS.add('preparing to archive','ds'+this.objCls+'_QPBG_digest','static://',{func :this.onArchiveSubmit,obj : this});
-    // two public functions which must be supported
+    this.dsQPBG_digest = vjDS.add('preparing to archive','ds'+this.objCls+'_QPBG_digest','static:
     this.fullview=function(node,dv)
     {
         this.load(dv,node.id);
@@ -107,7 +106,7 @@ vjHO.register('svc-profiler').Constructor=function ()
     this.typeName="svc-profiler";
     this.graphResolution = 200;
     this.graphResolutionZoom = 200;
-    if(document.all) { // IE Cannot show more than some little number of HTML5 s
+    if(document.all) {
         this.graphResolution/=2;
         this.graphResolutionZoom/=2;
     }
@@ -116,15 +115,12 @@ vjHO.register('svc-profiler').Constructor=function ()
     this.windowZoomStack = new Array({windwStart:0,windwEnd:0});
     this.urlStack = new Array();
 
-    // column 5 is Count Total; use it as main col (so Position will be output for Count Total's min/max values in each row group)
     this.seqalign_SNPprofile_cmd = "cols=0-2,7-18,21-26&hdr=1&minmaxCols=3-15&minmaxMainCol=5&resolution="+this.graphResolution;
 
     this.seqalign_SNPprofile_cmd_zoom = "cols=0-2,7-18,21-26&hdr=1";
 
     this.seqalign_SNPprofile_cmdX = "cols=0-12&hdr=1&minmaxCols=1-12" +
         "&resolution="+this.graphResolution;
-        //"out=0,1,2,3,4,5,6,7,8,9,10,11,12&hdr=1&reuse=1&jumpbase=0" +
-        //"&minmax=1,2,3,4,5,6,7,8,9,10,11,12&resolution="+this.graphResolution;
 
     this.seqalign_SNPprofile_cmdX_zoom = "cols=0-12&hdr=1";
 
@@ -136,24 +132,24 @@ vjHO.register('svc-profiler').Constructor=function ()
     vjObj.register(this.objCls,this);
     this.urlSet ={
             'hitlist': {
-                active_url: "http://?cmd=alCount&objLink=parent_proc_ids&start=0&cnt=50",
+                active_url: "http:
                 objs:'objs',
                 title: "Retrieving list of hits"
             },
             'zoom_alView':{
                 loadInactive:true,
-                active_url:"http://?cmd=alView&objLink=parent_proc_ids&start=0&cnt=50&info=1",
+                active_url:"http:
                 header:"Element #,#,Direction,Start,Alignment,End,Sequence,Repeats,Position,PosHigh,Motif Start,Motif End",
                 title: "Prepering alignments"
             },
             'zoom_alStack' :{
                 loadInactive:true,
-                active_url: "http://?cmd=alStack&objLink=parent_proc_ids&start=0&cnt=50&info=1",
+                active_url: "http:
                 title: "Visualizing alignments in stack"
             },
             'zoom_alMutBias' :{
                 loadInactive:true,
-                active_url: "http://?cmd=alStack&objLink=parent_proc_ids&start=0&cnt=50&info=1",
+                active_url: "http:
                 title: "Creating mutation bias diagram"
             },
             'zoom_profile' : {
@@ -164,35 +160,35 @@ vjHO.register('svc-profiler').Constructor=function ()
             'zoom_profileX' : {
                 loadInactive:true,
                 active_url:this.seqalign_SNPprofile_cmdX_zoom,
-                title: "infrastructure: Creating profilerX"    //it won't be displayed because is infrustructure
+                title: "infrastructure: Creating profilerX"
             },
             'zoom_orf' : {
                 loadInactive:true,
-                active_url:"http://?cmd=anotDefinition&dataName=CDS&whatToOutPut=locus|rangeStart|rangeEnd|id",
+                active_url:"http:
                 title: "Retrieving open reading frames",
             },
             'zoom_snp-calls-graph' :{
                 loadInactive:true,
-                active_url: "http://?cmd=profSNPcalls&start=0&isORF=1&resolution=300",
+                active_url: "http:
                 title: "Retrieving snps calls"
             },
             'summary' : {
                 loadInactive:true,
-                active_url:"http://?cmd=profSummary",
+                active_url:"http:
                 title: "Composing summary"
             },
             'full_summary' : {
                 loadInactive:true,
-                active_url:"http://?cmd=profSummary",
+                active_url:"http:
                 title: "Composing full summary"
             },
             'contigs' : {
                 loadInactive:true,
-                active_url:"http://?cmd=profContig",
+                active_url:"http:
                 title: "Constructing contigs"
             },
             'annot-files' : {
-                active_url:"http://?cmd=anotFiles",
+                active_url:"http:
                 title: "Finding relevant annotation files"
             },
             'profile' : {
@@ -203,7 +199,7 @@ vjHO.register('svc-profiler').Constructor=function ()
             'profileX' : {
                 loadInactive:true,
                 active_url:this.seqalign_SNPprofile_cmdX,
-                title: "infrastructure: Creating profilerX"    //it won't be displayed because is infrustructure
+                title: "infrastructure: Creating profilerX"
             },
             'profile_subrange_dl' : {
                 loadInactive: false,
@@ -212,74 +208,73 @@ vjHO.register('svc-profiler').Constructor=function ()
             },
             'noise' : {
                 loadInactive:true,
-                active_url:"http://?cmd=objFile",
+                active_url:"http:
                 title: "Creating noise profiles"
             },
             'noise_integral' : {
                 loadInactive:true,
-                active_url:"http://?cmd=objFile",
+                active_url:"http:
                 title: "Infrastructre: Computing noise integrals"
             },
             'freq_histogram' : {
                 loadInactive:true,
-                active_url:"http://?cmd=objFile",
+                active_url:"http:
                 title: "Infrastructre: Computing frequency histogram"
             },
             'freq_histogram_popup' :
             {
                 loadInactive:false,
-                active_url:"http://?cmd=objFile",
+                active_url:"http:
                 title: "Infrastructre: Computing coverage frequency histogram"
             },
             'freq_histogram_integral' : {
                 loadInactive:true,
-                active_url:"http://?cmd=objFile",
+                active_url:"http:
                 title: "Infrastructre: Computing frequency histogram integral"
             },
             'consensus' : {
                 loadInactive:true,
-                active_url:"http://?cmd=profConsensus&cnt=120000",
+                active_url:"http:
                 title: "Building consensus"
             },
             'snp-calls' : {
                 loadInactive:true,
-                active_url:"http://?cmd=profSNPcalls&start=0&cnt=20",
+                active_url:"http:
                 title: "Calling snps"
             },
             'snp-calls-graph' : {
                 loadInactive:true,
                 isSeries:true,
-                active_url:"http://?cmd=profSNPcalls&sub_start=0&isORF=1&resolution=300",
+                active_url:"http:
                 title: "Ploting snp calls"
             },
             'snp-calls-graph-zoom' : {
                 loadInactive:true,
                 isSeries:true,
-                active_url:"http://?cmd=profSNPcalls&sub_start=0&isORF=1&resolution=300",
+                active_url:"http:
                 title: "Ploting snp calls (zoom)"
             },
             'orf-zoom' : {
                 loadInactive:true,
                 isSeries:true,
-                active_url:"http://?cmd=anotSearch&isProfiler=1&whatToPrint=seqID|gi|rangeStart|rangeEnd|locus_tag|protein_id|product",
+                active_url:"http:
                 title: "Displaying open reading frames (zoom)"
             },
             'orf' : {
                 loadInactive:true,
                 isSeries:true,
-                //active_url:"http://?cmd=anotDefinition&dataName=CDS&whatToOutPut=locus|rangeStart|rangeEnd|id",
-                active_url:"http://?cmd=anotSearch&isProfiler=1&whatToPrint=seqID|gi|rangeStart|rangeEnd|locus_tag|protein_id|product",
+                active_url:"http:
                 title: "Displaying open reading frames"
-            }, // this.defaultFormat="posID|seqID|annotRange"; active_url:"http://?cmd=anotDumper&annot_format="+this.defaultFormat,
+            },
             'downloads' : {
                 loadInactive:true,
-                active_url:"static://",
-                inactive_url:"static://",
+                active_url:"static:
+                inactive_url:"static:
                 title: "infrastructure: creating list of downloadables"
             },
             'help' : {
-                active_url:"http://help/hlp.obj.svc-profiler.info.html",
-                inactive_url:"http://help/hlp.obj.svc-profiler.info.html",
+                active_url:"http:
+                inactive_url:"http:
                 doNotChangeMyUrl : true,
                 title: "infrastructure: building help page"
             }
@@ -306,7 +301,6 @@ vjHO.register('svc-profiler').Constructor=function ()
             this.dvname=dv.name;
             this.dvinfo=dv.name;
             dv.addTab("profile","table",[this.viewers['hitlist'],this.viewers['profile_coverage']]).columns=2;
-            //this.hit_list_location=2;
             dv.render(true);
             dv.load('rerender');
         }
@@ -316,7 +310,6 @@ vjHO.register('svc-profiler').Constructor=function ()
             this.dvname=dv.name;
             this.dvinfo=dv.name;
             dv.addTab("profile","table",[this.viewers['hitlist'],this.viewers['profile_coverage']]).columns=2;
-            //this.hit_list_location=2;
             dv.render(true);
             dv.load('rerender');
         }
@@ -387,10 +380,9 @@ vjHO.register('svc-profiler').Constructor=function ()
                 selectCallback: "function:vjObjFunc('onSelectReferenceID','" + this.objCls + "')",
                 isok:true}));
             this.viewers['hitlist'].callbackRendered = "function:vjObjFunc('onLoadedHitList','" + this.objCls + "')";
-//            this.viewers['hitlist'].rowspan=2;
 
             this.addviewer('profile_coverage', new vjProfilerSNPProfileCoverage({
-                data: 'profile',//{'profile':'profile', 'profileX': 'profileX'},
+                data: 'profile',
                 width:'80%',
                 height:240,
                 formName:this.formName,
@@ -398,8 +390,6 @@ vjHO.register('svc-profiler').Constructor=function ()
 
             this.addviewer('null', new vjHTMLView ({data:"dsVoid",width:"80%"}));
 
-            //this.addviewer('profile_acgt_qualities', this.viewersSNPprogile[7]);
-            //this.addviewer('profile_histograms', this.viewersSNPprogile[8]);
 
         }
         else{
@@ -459,26 +449,12 @@ vjHO.register('svc-profiler').Constructor=function ()
 
             var freqhistpop_flV=vjVIS.flVs[this.dvhistpopup_visual];
             var freqhistpopVIS=undefined;
-            //alerJ("",freqhistpop_flV);
             if (freqhistpop_flV)
             {
                 freqhistpopVIS=new Object();
                 freqhistpopVIS.obj=vjVIS;
                 freqhistpopVIS.flV=freqhistpop_flV;
             }
-           // this.getDS("annot-files").reload(this.urlSet["annot-files"].active_url,true);
-            //dv.name
-   /*         vjDS.add("loading Annotation Files","dsAnotFiles","static://");
-            var dd = vjDS["dsAnotFiles"];
-            dd.parser = function(ds, text){
-                var obj = new Object();
-                var tt = text.split("\n");
-                for (var i =1; i < tt.length; i++){
-                    customizeOptions.push([i-1,tt[i].split(",")[0],tt[i].split(",")[1]]);
-                }
-                return text;
-            }
-            dd.reload("http://?cmd=anotFiles",true);*/
 
             this.addviewer('summary',  new vjProfilerSummaryView ({
                 data: 'summary',
@@ -529,7 +505,6 @@ vjHO.register('svc-profiler').Constructor=function ()
 
             this.addviewer('freqHistPopup', new vjFreqHistPopUp ({
                 data:'freq_histogram_popup',
-               // selectCallback:{'snpcalls' : "function:vjObjFunc('onZoomAnnotOperation','" + this.objCls + "')",'orf' : "function:vjObjFunc('onZoomAnnotBox','" + this.objCls + "')"},
                 formName:this.formName[4],
                 parentVIS:freqhistpopVIS,
                 isok:true}));
@@ -548,8 +523,6 @@ vjHO.register('svc-profiler').Constructor=function ()
             this.addviewer('annot_panel,annot_orf_table,annot_snp_calls_graph,annot_orf_graph',new vjProfilerAnnotationControl ({
                 data:{'snpcalls':'snp-calls-graph','orf':'orf'},
                 annotFileData: "eval:vjHO['"+this.typeName+"'].getDS('annot-files').name",
-                //annotFileData: "function: constructAnotMenu()",
-               // options: customizeOptions,
                 selectCallback:{'snpcalls' : "function:vjObjFunc('onZoomAnnotOperation','" + this.objCls + "')",'orf' : "function:vjObjFunc('onZoomAnnotBox','" + this.objCls + "')"},
                 formName:this.formName[1],
                 isok:true}));
@@ -622,26 +595,22 @@ vjHO.register('svc-profiler').Constructor=function ()
         if(this.mode=='preview'){
             var viewer = vjDV.locate(this.dvinfo+ "._active.3");
             if(viewer)viewer.options.colors = colors;
-            this.getDS('profile').url="qpbg_tblqryx4://SNPprofile-" + this.referenceID + ".csv//"+urlExchangeParameter(this.urlSet['profile'].active_url, "objs",this.loadedID);
-            //alerJ('ffff',this.getdsName('profile') );
+            this.getDS('profile').url="qpbg_tblqryx4:
             vjDV.locate(this.dvinfo + "._active.").load(true);
         }
         else{
-            var this_ = this; // for closure
+            var this_ = this;
             this.getDS('summary').reload(urlExchangeParameter(urlExchangeParameter(this.urlSet['summary'].active_url, "objs",this.loadedID),"idSub",this.referenceID),false);
             this.getDS('contigs').reload(urlExchangeParameter(urlExchangeParameter(this.urlSet['contigs'].active_url, "objs",this.loadedID),"idSub",this.referenceID),false);
             this.getDS('consensus').reload(urlExchangeParameter(urlExchangeParameter(this.urlSet['consensus'].active_url, "objs",this.loadedID),"idSub",this.referenceID),false);
 
             var tt = urlExchangeParameter(urlExchangeParameter(this.urlSet['annot-files'].active_url, "objs",this.loadedID),"subID",this.referenceID);
-           // tt = urlExchangeParameter(tt,"idToSearch",node.Reference);
-           // tt = urlExchangeParameter(tt,"idTypeToSearch","seqID");
             this.getDS('annot-files').reload(tt,true);
 
             this.getDS('snp-calls').reload(urlExchangeParameter(urlExchangeParameter(this.urlSet['snp-calls'].active_url, "objs",this.loadedID),"idSub",this.referenceID),false);
-            this.getDS('profile').reload("qpbg_tblqryx4://"+SNPprofileFile+"//"+urlExchangeParameter(this.urlSet['profile'].active_url, "objs",this.loadedID),false);
-            // profile_subrange_dl doesn't have any viewers attached, so make it directly
-            this.makeDS('profile_subrange_dl').reload("qpbg_tblqryx4://" + SNPprofileRangeFile + "//"+urlExchangeParameter(this.urlSet['profile_subrange_dl'].active_url, "objs",this.loadedID),false);
-            this.getDS('profileX').reload("qpbg_tblqryx4://"+ProfileInfoFile + "//"+urlExchangeParameter(this.urlSet['profileX'].active_url, "objs",this.loadedID),false);
+            this.getDS('profile').reload("qpbg_tblqryx4:
+            this.makeDS('profile_subrange_dl').reload("qpbg_tblqryx4:
+            this.getDS('profileX').reload("qpbg_tblqryx4:
             this.getDS('noise').reload(urlExchangeParameter(urlExchangeParameter(this.urlSet['noise'].active_url, "ids",this.loadedID),"filename","Noise-"+this.referenceID+".csv"),false);
             this.getDS('noise_integral').reload(urlExchangeParameter(urlExchangeParameter(this.urlSet['noise_integral'].active_url, "ids",this.loadedID),"filename","NoiseIntegral-"+this.referenceID+".csv"),false);
             this.getDS('freq_histogram').reload(urlExchangeParameter(urlExchangeParameter(this.urlSet['freq_histogram'].active_url, "ids",this.loadedID),"filename","FreqProfile-"+this.referenceID+".csv"),false);
@@ -650,10 +619,9 @@ vjHO.register('svc-profiler').Constructor=function ()
 
             var uu = urlExchangeParameter(urlExchangeParameter(this.urlSet['orf'].active_url, "objs",this.loadedID),"subID",this.referenceID);
 
-            //var qryRange = "0-" + node.Length;
             var srchFd = "seqID";
             if (node.Reference.indexOf("gi|")==0) srchFd = "gi";
-            uu = urlExchangeParameter(uu,"searchField", srchFd); //
+            uu = urlExchangeParameter(uu,"searchField", srchFd);
             uu = urlExchangeParameter(uu,"search", node.Reference);
             this.getDS('orf').reload(uu,false);
 
@@ -675,8 +643,8 @@ vjHO.register('svc-profiler').Constructor=function ()
                     if (ds) {
                         url = ds.url;
                     }
-                    url = menuViewer.urlExchangeParameter(url, "start"); // fills current value
-                    url = menuViewer.urlExchangeParameter(url, "end"); // fills current value
+                    url = menuViewer.urlExchangeParameter(url, "start");
+                    url = menuViewer.urlExchangeParameter(url, "end");
 
                     if (ds) {
                         ds.reload(url, true, "download");
@@ -711,7 +679,7 @@ vjHO.register('svc-profiler').Constructor=function ()
                 "Consensus with gaps replaced by reference,download,dna,profConsensus&gaps=fill,\n" +
                 "Consensus where gaps are skipped,download,dna,profConsensus&gaps=skip,\n" +
                 "Consensus split on gaps,download,dna,profConsensus&gaps=split,";
-            this.getDS('downloads').reload("static://" + t, false);
+            this.getDS('downloads').reload("static:
 
             var viewer = this.viewers['profile_coverage'];
             if(viewer) viewer.options.colors = colors;
@@ -781,7 +749,7 @@ vjHO.register('svc-profiler').Constructor=function ()
             url = urlExchangeParameter(url, "down", '1');
             if( docLocValue("backend",0,url) ){
                 var saveAs = "o"+this.loadedID+"-Summary-All.csv";
-                this.dsQPBG.reload("qpbg_http://"+url,true,{loadmode:"download",saveas:saveAs});
+                this.dsQPBG.reload("qpbg_http:
             }
             else
                 document.location = url;
@@ -799,17 +767,13 @@ vjHO.register('svc-profiler').Constructor=function ()
                 ext = "fasta";
                 dstName += ".fasta";
                 break;
-            case "ico-file":
-                ext = "txt";
-                dstName += "."+ext;
-                break;
             default :
                 ext= "-";
             }
             
             url = urlExchangeParameter(url, "arch_dstname", dstName);
             url = urlExchangeParameter(url, "ext", ext);
-            this.dsQPBG_digest.reload("qpbg_http://"+url,true);
+            this.dsQPBG_digest.reload("qpbg_http:
         }
     };
 
@@ -825,18 +789,17 @@ vjHO.register('svc-profiler').Constructor=function ()
         Highlighted = parseInt(Highlighted);
         var panel = vjDV.locate(this.dvzoom + "." + "profile" + ".0");
         panel.graphResolutionZoom = this.graphResolutionZoom;
-        var url = "qpbg_tblqryx4://SNPprofile-" + this.referenceID + ".csv//objs=" + this.loadedID + "&" + this.seqalign_SNPprofile_cmd_zoom;
-        // alHigh does nothing in tblqry. It serves as flag for the panel to show the highlighted chosen position and generate the right tqs.
+        var url = "qpbg_tblqryx4:
         url = panel.urlExchangeParameter(url, "alHigh", Highlighted);
         this.getDS('zoom_profile').reload(url, true);
 
-        var url = "qpbg_tblqryx4://ProfileInfo-" + this.referenceID + ".csv//objs=" + this.loadedID + "&" + this.seqalign_SNPprofile_cmdX_zoom;
+        var url = "qpbg_tblqryx4:
         url = panel.urlExchangeParameter(url, "alHigh", Highlighted);
         this.getDS('zoom_profileX').reload(url, true);
 
-        this.getDS('zoom_alView').reload("http://?cmd=alView&objs=" + this.loadedID + "&req=" + this.reqID + "&objLink=parent_proc_ids&&mySubID=" + this.referenceID + "&alHigh=" + Highlighted + "&start=0&alTouch=1&alWinSize=" + this.graphResolution + "&cnt=20", true);
-        this.getDS('zoom_alStack').reload("http://?cmd=alStack&objs=" + this.loadedID + "&req=" + this.reqID + "&objLink=parent_proc_ids&mySubID=" + this.referenceID + "&alHigh=" + Highlighted + "&start=0&alTouch=1&alWinSize=" + this.graphResolution + "&cnt=20", true);
-        this.getDS('zoom_alMutBias').reload("http://?cmd=alMutBias&objs=" + this.loadedID + "&req=" + this.reqID + "&objLink=parent_proc_ids&mySubID=" + this.referenceID + "&alHigh=" + Highlighted + "&start=0&alTouch=1&alWinSize=" + this.graphResolution + "&cnt=50", true);
+        this.getDS('zoom_alView').reload("http:
+        this.getDS('zoom_alStack').reload("http:
+        this.getDS('zoom_alMutBias').reload("http:
 
         var viewer = vjDV.locate(this.dvzoom + "."+"profile"+".1");
         viewer.options.colors = new Array(valgoGenomeColors[this.referenceID % gClrTable.length], shadeColor(valgoGenomeColors[this.referenceID % gClrTable.length], 0.5));
@@ -855,14 +818,13 @@ vjHO.register('svc-profiler').Constructor=function ()
         var endPosition = Highlighted + quarterLengthRange;
         var resolution = endPosition - startPosition; if (resolution>200) resolution = 200;
         this.windowZoomStack.push({start:startPosition,end:endPosition});
-        url =  "http://?cmd=profSNPcalls" + "&objs=" + this.loadedID + "&idSub=" + this.referenceID + "&sub_start=" + startPosition +"&sub_end="+ endPosition +"&isORF=1&resolution="+resolution;
+        url =  "http:
 
         this.getDS('snp-calls-graph-zoom').reload(url, true);
 
         var url1 = this.getDS('orf').dataurl;
         url1 = urlExchangeParameter(url1,"start", startPosition);
         url1 = urlExchangeParameter(url1,"end", endPosition);
-     // orf-zoom
         this.getDS('orf-zoom').reload(url1, true);
 
         this.urlStack.push({snp:url,anot:url1});
@@ -914,13 +876,12 @@ vjHO.register('svc-profiler').Constructor=function ()
         ];
         var histo_tqs_quoted = vjDS.escapeQueryLanguage(JSON.stringify(histo_tqs));
         var url;
-        url = "qpbg_tblqryx4://HistProfile-"+this.referenceID+".csv//objs="+this.loadedID+"&tqs=" + histo_tqs_quoted + "&hdr=1";
+        url = "qpbg_tblqryx4:
 
 
         var dd = this.getDS("freq_histogram_popup");
-        dd.parser = function (ds,text) { text=parseHistProfileTableFromCell(text, 2, "Coverage,CountA,CountT,CountG,CountC", "true");  return text;}; // tblArr.rows[il].cols[1]=='C'
+        dd.parser = function (ds,text) { text=parseHistProfileTableFromCell(text, 2, "Coverage,CountA,CountT,CountG,CountC", "true");  return text;};
         this.getDS("freq_histogram_popup").reload(url,true);
-        //this.viewers["freqHistPopup"].options.hAxis.title = "Frequency = " + node.Frequency;
         gObject("DV_dvhistpopupViewer_"+"Coverage"+"_tabname").innerHTML="Frequency " + node.Frequency+" coverage histogram";
         vjVIS.winop("vjVisual", this.dvhistpopup_visual, "open", true);
     };
@@ -929,18 +890,16 @@ vjHO.register('svc-profiler').Constructor=function ()
     {
         this.windowZoomStack.push({start:node.min,end:node.max});
         var quarterLengthRange = Math.round((parseInt(node.max) - parseInt(node.min))/4);
-        var position = Math.round((parseInt(node.rangeEnd)-parseInt(node.rangeStart))/2) + parseInt(node.rangeStart); //alert("psoition " + position)
+        var position = Math.round((parseInt(node.rangeEnd)-parseInt(node.rangeStart))/2) + parseInt(node.rangeStart);
         var startPosition = position - quarterLengthRange; if (startPosition < 0 ) startPosition =0;
         var endPosition = position + quarterLengthRange;
-        //url = "http://?cmd=anotNumberOfRange&subID=" + this.referenceID + "&objs=" + this.loadedID + "&dataName=CDS" + "&whatToOutPut=locus|rangeStart|rangeEnd|id" + "&startPosition=" + startPosition + "&endPosition=" + endPosition; //LAM
         url = this.getDS('orf').dataurl;
         url = urlExchangeParameter(url,"start", startPosition);
         url = urlExchangeParameter(url,"end", endPosition);
 
         this.getDS('orf-zoom').reload(url, true);
-        //alerJ("",this.getDS("orf-zoom"));
         var resolution = endPosition - startPosition; if (resolution>200) resolution = 200;
-        var url1 =  "http://?cmd=profSNPcalls" + "&objs=" + this.loadedID + "&idSub=" + this.referenceID + "&sub_start=" + startPosition + "&sub_end=" + endPosition + "&isORF=1&resolution=" + resolution;
+        var url1 =  "http:
         this.urlStack.push({snp:url1,anot:url});
         this.getDS('snp-calls-graph-zoom').reload(url1, true);
         vjVIS.winop("vjVisual", this.dvzoomannot_visual, "open", true);

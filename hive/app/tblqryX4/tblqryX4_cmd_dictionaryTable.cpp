@@ -30,7 +30,6 @@
 
 #include <slib/utils.hpp>
 #include <ssci/math.hpp>
-//#include <ssci/math/stat/stat.hpp>
 #include "tblqryX4_cmd.hpp"
 
 using namespace slib;
@@ -42,12 +41,14 @@ namespace slib {
         {
             private:
                 sVec <idx> rowSet, colSet, valSet;
-                idx option; //0-ignore 2nd, 1-override 2nd, 2-concat;
+                idx option;
+                real defaultMissing ;
 
             public:
                 DicTestCommand(ExecContext & ctx) : Command(ctx)
                 {
                     option = 1;
+                    defaultMissing = (real)sIdxMax;
                 }
 
                 const char * getName() { return "dictionaryTable"; }
@@ -78,15 +79,17 @@ bool DicTestCommand::init(const char * op_name, sVariant * arg)
     if (sVariant * val = arg->getDicElt("option")){
         option = val->asInt();
     }
+    if (sVariant * val = arg->getDicElt("defaultMissing")){
+        defaultMissing = val->asReal();
+    }
 
     return true;
 }
 
-//build new table out of dictionary here
 bool DicTestCommand::compute(sTabular * tbl)
 {
     {
-        sDic < sVec <sStr> > rowsColsDic; // this will hold the row and col printed, and the value it points to.
+        sDic < sVec <sStr> > rowsColsDic;
         idx rowCol, colCol, valCol;
         sDic < idx > uniqueRows;
         sDic < idx > uniqueCols;
@@ -126,6 +129,14 @@ bool DicTestCommand::compute(sTabular * tbl)
                 keyVal.printf("%s:%s", rowCell, colCell);
 
                 if (rowsColsDic[keyVal.ptr()].dim()){
+                    if(defaultMissing != sIdxMax && ((option == 0 && rowsColsDic[keyVal.ptr()][0].length() < 1) ||
+                            (option == 1 && rowsColsDic[keyVal.ptr()][rowsColsDic[keyVal.ptr()].dim()-1].length() < 1))){
+                        sStr strToUse, dest;
+                        strToUse.printf("%f", defaultMissing);
+                        sString::escapeForCSV(dest, strToUse, strToUse.length());
+                        tempTbl->setVal(uniqueRows[rowCell]-2, uniqueCols[colCell], strToUse.ptr());
+                        continue;
+                    }
                     if (option == 1){
                         tempTbl->setVal(uniqueRows[rowCell]-2, uniqueCols[colCell], rowsColsDic[keyVal.ptr()][rowsColsDic[keyVal.ptr()].dim()-1].ptr());
                     }
@@ -155,6 +166,19 @@ bool DicTestCommand::compute(sTabular * tbl)
         for (idx r = 0; r < uniqueRows.dim(); r++){
             const char * rowCell = static_cast <const char *> (uniqueRows.id(r));
             tempTbl->setVal(r, 0, rowCell);
+        }
+
+        if(defaultMissing != sIdxMax){
+            sStr strToUse, dest;
+            strToUse.printf("%f", defaultMissing);
+            sString::escapeForCSV(dest, strToUse, strToUse.length());
+            for (idx r = 0; r < uniqueRows.dim(); r++){
+                for (idx c = 1; c < uniqueCols.dim()+1; c++){
+                    if(tempTbl->missing(r, c)){
+                        tempTbl->setVal(r, c, dest.ptr());
+                    }
+                }
+            }
         }
 
         setOutTable(tempTbl);

@@ -25,10 +25,10 @@
     var process_qpsvc="dna-differential-profiler";
 
   vjDS.add("Retrieving list of downloadable files", "dsAllDownloads", "http://?cmd=propget&files="+vjDS.escapeQueryLanguage("*.{out,csv,vcf,json,png,tsv,txt,fasta,fastq,fa}")+"&mode=csv&prop=none&ids="+thisProcessID, 0, "id,name,path,value");
-
+  vjDS.add("Loading annotation types ...","dsAnnotTypes","static://");
     var algoProcess=new valgoProcess(thisProcessID,  process_qpsvc, process_svc);
     //algoProcess.callbackLoaded = inputLoaded;
-    algoProcess.visibleParameters=["dip_profileID","dip_entryArray"];                                 
+    algoProcess.visibleParameters=["dip_profileID","dip_entryArray"];
     
     algoProcess.autoexpand= thisProcessID.length ? "all" : 1 ; 
     algoProcess.noResultViewers = true;
@@ -41,11 +41,58 @@
     var thisProcessID = 0;
 
 
-    algoProcess.inputLoaded = function(viewer) 
+    algoProcess.inputLoaded = function(viewer)
     {
+        algoProcess.inputChanged(viewer);
 
     }
     
+    vjDS["dsAnnotTypes"].parser = function (ds,text) {
+        console.log(text);
+        var recordV = vjDV[algoProcess.recViewerName];
+        var typeElement1 = recordV.getElement("dip_annotationType");
+        var typeElement2 = recordV.getElement("dip_annotationGeneType");
+        
+        if (text) {
+            var txtSplit = text.split("\n");
+            if (txtSplit.length) {
+                typeElement1.fld.constraint_data = txtSplit.join("|");
+                typeElement2.fld.constraint_data = txtSplit.join("|");
+            } else {
+                typeElement1.fld.constraint_data = text;
+                typeElement2.fld.constraint_data = txtSplit.join("|");
+            }
+        }
+        recordV.redraw();
+        return text;
+    };
+
+    algoProcess.inputChanged = function(viewer, elem)
+    {
+        var recordV = vjDV[algoProcess.recViewerName];
+        var typeElement1 = recordV.getElement("dip_annotationGeneType");
+        var geneTableBool = recordV.getElement("dip_outputGeneTable");
+        var typeElement2 = recordV.getElement("dip_annotationObjID");
+
+        if (typeElement2.value != "") {
+            var val1 = viewer.getElementValue("dip_annotationObjID","join");
+            if (val1){
+                vjDS["dsAnnotTypes"].reload("http://?cmd=ionAnnotTypes&fromComputation=0&cnt=-1&ionObjs=" + val1,true);
+            }
+            var val2 = viewer.getElementValue("dip_annotationGeneType","join");
+            if (val2){
+                vjDS["dsAnnotTypes"].reload("http://?cmd=ionAnnotTypes&fromComputation=0&cnt=-1&ionObjs=" + val2,true);
+            }
+        }
+        if (geneTableBool.value == 0 ){
+            typeElement1.fld.hidden=1;
+        }
+        else{
+            typeElement1.fld.hidden=0;
+        }
+        recordV.redraw();
+    }
+
     algoProcess.doneComputing = function (viewer, reqid, stat)
     {
         thisProcessID = docLocValue("id");
@@ -68,13 +115,13 @@
         }
     }
    
-    $(document).ready(function() 
-    {
+    gInitList += "diffProfInit();";
+    function diffProfInit () {
         globalAlgo = $('#mainAlgoArea').algoview({
             algoObj: algoProcess,
             svcType: "svc-differential-profiler",
             algoTitle: "Dna Differential Profiler"
         });
-    });
+    };
 </script>
 

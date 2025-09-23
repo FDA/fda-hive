@@ -41,7 +41,7 @@ $(function () {
                 handles: "n, e, s, w",
                 grid: [20, 20]
             },
-            toggler: null    //    east, west, north, south
+            toggler: null
         },
 
         _create: function () {
@@ -77,7 +77,6 @@ $(function () {
                         oThis.sendEvent('area-resize-start', ui);
                     },
                     stop: function (event, ui) {
-                        //    notify neighbours about resize stop action...
                         var neighbours = oThis.neighbours.north.concat(oThis.neighbours.south).concat(oThis.neighbours.west).concat(oThis.neighbours.east);
                         
                         $(neighbours).each(function(index, area) {
@@ -99,13 +98,14 @@ $(function () {
 
                 this.element.on('area-resize-stop', function (event, params) {
                     var newRect = oThis.getRect();
+                    var isGrid = this.classList.contains("grid-stack-item");
+                    
+                    if (params.rect) newRect = params.rect;
 
                     if(oThis.rect.top == newRect.top && oThis.rect.left == newRect.left && oThis.rect.right == newRect.right && oThis.rect.bottom == newRect.bottom) {
-                        //    area's size wasn't change so we should stop here...
                         event.stopImmediatePropagation();
                     }
                     else {
-                        //    ... otherwise we have to update current area size...
                         oThis.rect = newRect;
                     }
                 });
@@ -175,7 +175,6 @@ $(function () {
                             oThis.sendEvent('area-resize-move', { border: oThis.options.toggler });
                             oThis.sendEvent('area-resize-stop');
 
-                            //    notify neighbours about resize stop action...
                             var neighbours = oThis.neighbours.north.concat(oThis.neighbours.south).concat(oThis.neighbours.west).concat(oThis.neighbours.east);
                             
                             $(neighbours).each(function(index, area) {
@@ -217,28 +216,24 @@ $(function () {
                 var rect2 = $(area).area('getRect');
 
                 if(rect.top > 0) {
-                    //    find NORTH neighbours...
                     if (Math.abs(rect.top - rect2.bottom) < delta && rect.left < rect2.right && rect2.left < rect.right) {
                         oThis.neighbours.north.push(area);
                     }
                 }
 
                 if(rect.left > 0) {
-                    //    find WEST neighbours...
                     if(Math.abs(rect.left - rect2.right) < delta && rect.top < rect2.bottom && rect2.top < rect.bottom) {
                         oThis.neighbours.west.push(area);
                     }
                 }
 
                 if(rect.right < oThis.element.parent().width()) {
-                    //    find EAST neighbours...
                     if(Math.abs(rect.right - rect2.left) < delta && rect.top < rect2.bottom && rect2.top < rect.bottom) {
                         oThis.neighbours.east.push(area);
                     }
                 }
 
                 if(rect.bottom < oThis.element.parent().height()) {
-                    //    find SOUTH neighbours...
                     if(Math.abs(rect.bottom - rect2.top) < delta && rect.left < rect2.right && rect2.left < rect.right) {
                         oThis.neighbours.south.push(area);
                     }
@@ -249,8 +244,6 @@ $(function () {
         _refresh: function () {
         },
 
-        // events bound via _bind are removed automatically
-        // revert other modifications here
         _destroy: function () {
         },
 
@@ -263,14 +256,19 @@ $(function () {
         },
 
         sendEvent: function (name, params) {
+            var event = window.event || new Event(name);
             if (params == null)
                 params = {};
 
             $.extend(params, {
                 oThis: this,
                 infobox: this.element,
-                rect: this.getRect()
+                rect: this.getRect(),
+                position: {left: event.x, top: event.y},
+                positionPage: {left: event.pageX, top: event.pageY}
             });
+            
+            params.size = {width: params.rect.right - params.rect.left, height: params.rect.bottom - params.rect.top};
 
             if (name == 'area-resize-start') {
                 $(this.element).trigger('area-resize-start', params);
@@ -324,7 +322,6 @@ $(function () {
         },
 
         getRect: function () {
-            //var position = this.element.position();    //    Do NOT USE THIS CODE!!! IT DOESN'T RETURN PROPER POSITION WHEN THE AREA IS INVISIBLE
             var position = {
                 top: parseInt(this.element.css('top')),
                 left: parseInt(this.element.css('left')),
@@ -342,15 +339,14 @@ $(function () {
             return this.rect;
         },
         
-        setFocus: function () {
-            //$('div.layout-area.focus').removeClass('focus');
-            //$(this.element).addClass('focus');
+        setFocus: function (isMaximize) {
 
             var prevZIndex = parseInt($(this.element).css('z-index'));
             if(isNaN(prevZIndex))
                 prevZIndex = 20;
             
-            $(this.element).css({'z-index': 20});
+            if(isMaximize) $(this.element).css({'z-index': 100});
+            else $(this.element).css({'z-index': 18});
             
             $(this.element).siblings('.layout-area').each(function() {
                 var zIndex = parseInt($(this).css('z-index'));
@@ -361,17 +357,8 @@ $(function () {
                     }
                 }
             });
-/*
-            $(this.element).children('.layout-infobox').first().css({'z-index': 20});
             
-            $(this.element).siblings('.layout-area').each(function() {
-                var infobox = $(this).children('.layout-infobox').first();
-                
-                if(infobox.css('z-index') != null && parseInt(infobox.css('z-index')) != null) {
-                    infobox.css('z-index', parseInt(infobox.css('z-index')) - 1);
-                }
-            });
-*/
+            return prevZIndex;
         },
 
         save: function () {

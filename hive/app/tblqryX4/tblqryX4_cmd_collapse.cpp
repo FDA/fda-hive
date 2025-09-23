@@ -89,7 +89,6 @@ bool CollapseWithStatCommand::compute(sTabular * tbl)
 
     sBasicCollapse::collapse(&reordered, colSetImg, outTabular);
 
-    //write into the correct table
     for (idx c = 0; c < colSetImg.dim(); c++)
     {
         sStr out;
@@ -106,7 +105,7 @@ bool CollapseWithStatCommand::compute(sTabular * tbl)
         }
     }
 
-    sVec <idx> colsActual; //the are the columns on which the statistics will be accumulated
+    sVec <idx> colsActual;
 
     for (idx i = 0; i < tbl->cols(); i++)
     {

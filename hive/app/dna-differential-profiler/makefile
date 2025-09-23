@@ -35,12 +35,20 @@ PROGRAMS_XLIBS = $(MYSQL_LIB)
 
 dna-differential-profiler_SRCS = dna-differential-profiler.cpp
 
+OBJECT_TYPES = svc-dna-differential-profiler
+
+APPS = Differential-Profiler:1
+
+MENUITEMS = \
+/Portal/Other/Differential_Profiler
+
+
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist::
 	$(call dist-service-register,dna-differential-profiler,Differential Profiler,/Sequencing/)
 	$(call dist-app,dna-differential-profiler,dna-differential-profiler)

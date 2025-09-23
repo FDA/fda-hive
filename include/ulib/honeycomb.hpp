@@ -101,14 +101,7 @@ namespace slib
             bool propSet(idx objID, const char * name, const char * path, const char * value);
 
             const char * propGet(sIO * buf, idx objID, const char * name, const char * path=0);
-            //idx objList(sIO * buf, bool isMult, const char * name, const char * value, index arr);
             idx objListIterate(Locator * iterator, bool isMult, const char * type, const char * name, const char * value , sIO * buf=0);
-/*
-            virtual const idx * getObjId(Locator * locator, idx * pSize=0) {return (const idx * )ion->getRecordBody(objType, locator->indexObjId, pSize);}
-            virtual const char * getName(Locator * locator, idx * pSize=0) {return (const char * )ion->getRecordBody(nameType, locator->indexName, pSize);}
-            virtual const char * getPath(Locator * locator, idx * pSize=0) {return (const char * )ion->getRecordBody(pathType, locator->indexPath, pSize);}
-            virtual const char * getValue(Locator * locator, idx * pSize=0) {return (const char * )ion->getRecordBody(valueType, locator->indexValue, pSize);}
-*/
     };
 
 
@@ -140,4 +133,4 @@ namespace slib
 
 }
 
-#endif // sHoneyComb_hpp
+#endif 

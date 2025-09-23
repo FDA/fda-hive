@@ -41,6 +41,7 @@ BEGIN
  * DEALINGS IN THE SOFTWARE.
  */
 
+
     DECLARE ses_used BIGINT DEFAULT 0;
     DECLARE ses_max BIGINT DEFAULT 0;
     DECLARE ses_close BIGINT DEFAULT 0;
@@ -71,7 +72,8 @@ BEGIN
 
     SET v_oid = LAST_INSERT_ID();
     IF v_oid > 0 THEN
-        UPDATE UPUser SET loginTm = NOW(), logCount = IF(logCount > 0, logCount + 1, 0) WHERE userID = p_user_id;
+        UPDATE UPUser SET loginTm = NOW(), logCount = IF(logCount > 0, logCount + 1, 0), login_failed_count = 0
+            WHERE userID = p_user_id;
         SELECT IF(logCount > 0, logCount - 1, 0) FROM UPUser WHERE userID = p_user_id
         INTO v_logCount;
     END IF;

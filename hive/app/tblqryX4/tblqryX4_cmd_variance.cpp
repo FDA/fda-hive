@@ -88,15 +88,15 @@ bool VarianceCommand::compute(sTabular * tbl)
     if (!colSetA || colSetA.dim() == 0 || !colSetB || colSetB.dim() == 0)
         return false;
 
-    if (!rowSet || rowSet.dim() == 0){
-        char p[8];
-        ::sprintf(p, "0-%" DEC, tbl->rows()-1);
-        sString::scanRangeSet(p,0,&(rowSet),0ll,0ll,0ll);
+    if( !rowSet || rowSet.dim() == 0 ) {
+        char p[24];
+        ::sprintf(p, "0-%" DEC, tbl->rows() - 1);
+        sString::scanRangeSet(p, 0, &(rowSet), 0ll, 0ll, 0ll);
     }
 
-    sVec <real> meanA, meanB; //these will go in accordance to the rowSet indexes calculating the mean over group A and B
-    sVec <real> diff; //difference in the means;
-    sVec <real> variance; //the difference of the means divided by the mean of the differences of the means.
+    sVec <real> meanA, meanB;
+    sVec <real> diff;
+    sVec <real> variance;
     real totalDiff = 0;
 
     sSort::sort(rowSet.dim(), rowSet.ptr());

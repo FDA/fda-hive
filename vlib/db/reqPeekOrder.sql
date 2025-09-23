@@ -35,6 +35,8 @@ begin
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
+
   declare l_prior int default 1;
   declare l_id int default 0;
   declare l_queuenum int default 0;

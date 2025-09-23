@@ -28,7 +28,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 $(function () {
-    $.widget("recordviewer.record_text", $.recordviewer.record_base, {
+    $.widget("recordviewer.record_text", $.recordviewer.record_string, {
 
         options: {
         },
@@ -41,12 +41,13 @@ $(function () {
             var field = $(document.createElement('textarea'))
                             .addClass('field')
                             .addClass(this.options.spec.type)
+                            .data("spec", this.options.spec)
                             .attr({
-                                id: this.options.name,
-                                name: this.options.name,
+                                id: this.options.spec.path + "-field",
+                                name: this.options.spec.tmpObjName,
                                 rows: 3
                             });
-            
+
             return field;
         }
     });

@@ -44,7 +44,6 @@ namespace sviolin {
             {
                 return find(result, user, "ncbiTaxonomy", version_prefix ? version_prefix : default_taxdb_version_prefix);
             }
-            //! return taxonomy database ION path, without .ion extension
             static const char * findTaxDbIonPath(sStr & path, const sUsr & user, const char * version_prefix = 0, sHiveId * result_id = 0, sStr * log = 0);
     };
 };

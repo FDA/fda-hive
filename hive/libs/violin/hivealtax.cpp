@@ -29,7 +29,8 @@
  */
 #include <slib/std.hpp>
 #include <ulib/ulib.hpp>
-#include <violin/violin.hpp>
+#include <violin/hivealtax.hpp>
+
 #include "common.hpp"
 
 using namespace sviolin;
@@ -49,14 +50,11 @@ real sHivealtax::ShannonFunction(sDic<idx> * taxCnt, idx totalPopulation)
     for(idx i = 0; i < taxCnt->dim(); ++i) {
         real p = (*taxCnt)[i] / totCnt;
         if (p){
-            //this log is LN log by neper value so we divide logx,2= ln x/ln 2
             plogPSum += -p * log(p);
         }
     }
 
-    //plogPSum /= log(taxCnt->dim()); // TODO scale correctly
 
-    //plogPSum=plogPSum/log(taxCnt->dim);
     real a = log(totalPopulation);
     plogPSum = plogPSum / a;
     return plogPSum;
@@ -70,31 +68,25 @@ real sHivealtax::calculateShannonEntropy(sDic<idx> *taxCnt, idx rankdim, idx tot
     sStr outString;
     countRank.cut(0);
     countRank.vadd(rankdim, 0);
-    /// ttt is showing either to the new taxCnt or to the previous one
     sDic<idx> * ttt = taxCnt;
     if( totRankWeight == 0 ) {
         totRankWeight = 1;
     }
 
-    // from here beyond in these loops we are agnostic to what dictionary is used for our computations
-    // all we care that ttt has taxCnt
 
     sDic<idx> newTaxCntForThisRank;
     newTaxCntForThisRank.flagOn(sMex::fSetZero);
 
     outString.printf("%" DEC, iteration);
-    // this loop is going over all ranks from species to kingdom
     for(idx ir = 0; ir < rankdim; ++ir) {
 
-        if( rankList[ir].weight == 0 ) // for zeroed levels
+        if( rankList[ir].weight == 0 )
             continue;
 
         sDic<idx> * whichTaxCountToUse = ir == 0 ? ttt : &newTaxCntForThisRank;
 
-        // this computes shannon entropy for particular rank level
         real currentShannonForRank = ShannonFunction(whichTaxCountToUse, rankList[ir].totalPopulation);
         outString.printf(",%.3lf", currentShannonForRank);
-        //and accumulate weighted value
         shEntropy += currentShannonForRank * (rankList[ir].weight / totRankWeight);
 
         newTaxCntForThisRank.empty();
@@ -114,7 +106,7 @@ idx sHivealtax::RankedTaxCountFunction(sDic<idx> & dstTaxCnt, sDic<idx> * srcTax
 
     for(idx i = 0; i < srcTaxCnt->dim(); ++i) {
         taxCurrent.cut(0);
-        idx taxId = filterByRank (&taxCurrent, (const char *)srcTaxCnt->id(i), requiredRank);
+        idx taxId = taxion->filterByRank (&taxCurrent, (const char *)srcTaxCnt->id(i), requiredRank);
         if (taxId){
             idx * pCnt = dstTaxCnt.set(taxCurrent.ptr());
             *pCnt += (*srcTaxCnt)[i];
@@ -123,32 +115,7 @@ idx sHivealtax::RankedTaxCountFunction(sDic<idx> & dstTaxCnt, sDic<idx> * srcTax
     return dstTaxCnt.dim();
 }
 
-idx sHivealtax::filterByRank(sStr *dstTax, const char * srcTax, const char * requiredRank)
-{
-    if(strcmp(requiredRank, "leaf") == 0){
-        dstTax->addString(srcTax);
-        return atoidx((const char *)srcTax);;
-    }
-    sStr taxParent, taxRank, taxCurrent;
-    idx taxId;
-    taxCurrent.addString(srcTax);
-    do{
-        taxParent.cut(0);
-        taxRank.cut(0);
-        taxion->getParentTaxIds(taxCurrent, &taxParent, &taxRank);
-        taxId = atoidx((const char *)taxCurrent.ptr());
-        if (taxParent.length() && (strcmp (taxRank.ptr(), requiredRank) == 0)){
-            dstTax->addString(taxCurrent);
-            return taxId;
-        }
-        taxCurrent.printf(0,"%s", taxParent.ptr());
-    }while (taxId > 1);
-
-    dstTax->printf(0,"NO_INFO");
-    return 0;
-}
-
-idx sHivealtax::CurateResult(sDic<idx> *taxCnt, sHiveseq *Sub, sHiveal *hiveal, sDic<idx> *giCnt, const char *taxDepth, sTxtTbl *tbl, idx colNumber)
+idx sHivealtax::CurateResult(sDic<idx> *taxCnt, sHiveseq *Sub, sHiveal *hiveal, sDic<idx> *giCnt, const char *taxDepth, sTxtTbl *tbl, idx colNumber, bool useAlignments)
 {
     sStr dstTax, tid, gi, acclist;
     idx taxCount = 0;
@@ -159,35 +126,49 @@ idx sHivealtax::CurateResult(sDic<idx> *taxCnt, sHiveseq *Sub, sHiveal *hiveal, 
     if ( (!Sub && !hiveal) && tbl){
         useTblSource = true;
     }
-    idx numRows = useTblSource ? tbl->rows() : hiveal->dimAl();
+    idx numRows;
+    if (useTblSource){
+        numRows = tbl->rows();
+    }
+    else {
+        numRows = hiveal->dimAl();
+    }
 
-    for(idx i = 0; i < numRows; i++, ++taxCount) {
+    for(idx i = 0; i < numRows; i++) {
 
         if (PROGRESS(i, i, numRows)){
             return -1;
         }
-
         const char *seqId = 0;
         idx seqlen = 0;
-        if (!useTblSource){
-            sBioseqAlignment::Al * hdr = hiveal->getAl(i);
-            seqId = Sub->id(hdr->idSub());
+        if (useTblSource){
+            seqId = tbl->cell(i, colNumber, &seqlen);
         }
         else {
-            seqId = tbl->cell(i, colNumber, &seqlen);
-
+            sBioseqAlignment::Al * hdr = hiveal->getAl(i);
+            seqId = Sub->id(hdr->idSub());
+            if (useAlignments){
+                cntResult = hiveal->Qry->rpt(hdr->idQry());
+            }
         }
         tid.cut(0);
         gi.cut(0);
         acclist.cut(0);
-        const char * taxid = taxion->extractTaxIDfromSeqID(&tid, &gi, &acclist, seqId, seqlen, "-1");
+        const char *taxid = 0;
+        if( (strncmp(seqId, "taxon=", 6) == 0)) {
+            sString::copyUntil(&tid, seqId+6, 0, " ");
+            acclist.addString(tid.ptr(0),tid.length());
+            taxid = tid.ptr();
+        }
+        else{
+            taxid = taxion->extractTaxIDfromSeqID(&tid, &gi, &acclist, seqId, seqlen, "-1");
+        }
 
         if( taxid && *taxid) {
             dstTax.cut(0);
 
-            filterByRank(&dstTax, taxid, taxDepth);
+            taxion->filterByRank(&dstTax, taxid, taxDepth);
 
-            //new or old taxid after filtration
             const char *currTax = (dstTax) ? dstTax.ptr() : taxid;
 
             idx * GIbuf = taxCnt->get(currTax);
@@ -197,7 +178,6 @@ idx sHivealtax::CurateResult(sDic<idx> *taxCnt, sHiveseq *Sub, sHiveal *hiveal, 
             };
             (*GIbuf) = (*GIbuf) + cntResult;
 
-            // Add to the statistics
             stats * auxcensusStat = censusStats.set(currTax);
             auxcensusStat->localnum += cntResult;
             if( giCnt ) {
@@ -215,7 +195,6 @@ idx sHivealtax::CurateResult(sDic<idx> *taxCnt, sHiveseq *Sub, sHiveal *hiveal, 
             }
         }
         else if (giCnt){
-            // We have an accession Number that we couldn't recognize
             idx * GIbuf2 = giCnt->get(acclist.ptr(),acclist.length());
             if( !GIbuf2 ) {
                 GIbuf2 = giCnt->set(acclist.ptr(),acclist.length());
@@ -227,9 +206,7 @@ idx sHivealtax::CurateResult(sDic<idx> *taxCnt, sHiveseq *Sub, sHiveal *hiveal, 
             };
             (*GIbuf2) = (*GIbuf2) + cntResult;
         }
-//        else {
-//            ::printf("I'm losing this one: %s !!!", gi.ptr());
-//        }
+        taxCount += cntResult;
     }
     return taxCount;
 }
@@ -261,7 +238,7 @@ real sHivealtax::analyzeResults(sFil * outTaxCnt, sDic<idx> *taxCnt=0, sFil * ou
     }
 
     real howsignificantismychange = 0;
-    idx ir, totRankWeight = 0;                //totalWeightedShannon=0;
+    idx ir, totRankWeight = 0;
     for(ir = 0; ir < NUM_RANKS; ++ir) {
         totRankWeight += rankList[ir].weight;
         rankList[ir].totalPopulation = 0;
@@ -298,7 +275,6 @@ idx sHivealtax::reportResults(sFil * outTaxCnt, sDic<idx> *taxCnt, sFil * outGiC
 
     if( taxCnt->dim() ) {
         idx cntTaxid = taxCnt->dim();
-        //! filling an array to sort taxCnt
         sVec<idx> ind, array;
 
         ind.add(taxCnt->dim());
@@ -309,14 +285,14 @@ idx sHivealtax::reportResults(sFil * outTaxCnt, sDic<idx> *taxCnt, sFil * outGiC
         sSort::sort<idx>(taxCnt->dim(), array, ind.ptr(0));
 
         taxFile.printf(0, "taxid,cnt,pct,min,max,mean,std,intval\n");
-        //enough is a parameter to show thAT THE ITERATION IS ENOUGH
         idx countTotal = 0;
         for(idx i = 0; i < censusStats.dim(); ++i) {
             countTotal += censusStats.ptr(i)->sum;
         }
         for(idx i = cntTaxid - 1; i >= 0; --i) {
-
-            stats * auxcensusStat = censusStats.set(taxCnt->id(ind[i]));
+            idx taxIdLength = 0;
+            const char * taxId = (const char *) taxCnt->id(ind[i],&taxIdLength);
+            stats * auxcensusStat = censusStats.get(taxId, taxIdLength);
             sStr state_confidence_interval;
             real stderror;
             real confInterval;
@@ -327,21 +303,20 @@ idx sHivealtax::reportResults(sFil * outTaxCnt, sDic<idx> *taxCnt, sFil * outGiC
             real stdev = Stats_stddev(auxcensusStat);
             real mean = Stats_mean(auxcensusStat);
 
-            if( auxcensusStat->num > 1 ) { //lower than 30 sample it is not a distribution
+            if( auxcensusStat->num > 1 ) {
                 stderror = stdev / sqrt(auxcensusStat->num);
-                confInterval = 1.96 * stderror; //confidence interval of 95%
+                confInterval = 1.96 * stderror;
                 state_confidence_interval.printf("%0.3lf", confInterval);
             } else {
                 confInterval = 0.0;
                 state_confidence_interval.printf("%0.1lf", confInterval);
             }
-
-            taxFile.printf("%s,%" DEC ",%0.2lf,%" DEC ",%" DEC ",%0.2lf,%0.3lf,%s\n", (const char *) (taxCnt->id(ind[i])), (idx) auxcensusStat->sum, (real) (auxcensusStat->sum * 100) / countTotal, auxcensusStat->min,
+            taxFile.printf("%.*s,%" DEC ",%0.2lf,%" DEC ",%" DEC ",%0.2lf,%0.3lf,%s\n", (int)taxIdLength,taxId, (idx) auxcensusStat->sum, (real) (auxcensusStat->sum * 100) / countTotal, auxcensusStat->min,
                 auxcensusStat->max, mean, stdev, state_confidence_interval.ptr());
 
         }
     }
-    if( accCnt->dim() ) {
+    if( accCnt && accCnt->dim() ) {
         idx cntaccid = accCnt->dim();
 
         sVec<idx> ind2, array2;
@@ -351,11 +326,9 @@ idx sHivealtax::reportResults(sFil * outTaxCnt, sDic<idx> *taxCnt, sFil * outGiC
         for(idx i = 0; i < accCnt->dim(); ++i)
             array2[i] = *accCnt->ptr(i);
 
-        // sSort::sortCallback(sort_myCompare, 0, cntTaxid, &taxCnt, ind);
         sSort::sort<idx>(accCnt->dim(), array2, ind2.ptr(0));
 
         accFile.printf(0, "acclist,leaf_taxid,taxid,cnt,pct,min,max,mean,std,intval\n");
-        //enough is a parameter to show thAT THE ITERATION IS ENOUGH
         idx countTotal = 0;
         for(idx i = 0; i < accCentericStats.dim(); ++i) {
             countTotal += accCentericStats.ptr(i)->sum;
@@ -375,9 +348,9 @@ idx sHivealtax::reportResults(sFil * outTaxCnt, sDic<idx> *taxCnt, sFil * outGiC
             real mean = Stats_mean(centeric);
             real stderror;
             real confInterval;
-            if( centeric->num > 1 ) { //lower than 30 sample it is not a distribution
+            if( centeric->num > 1 ) {
                 stderror = stdev / sqrt(centeric->num);
-                confInterval = 1.96 * stderror; //confidence interval of 95%
+                confInterval = 1.96 * stderror;
 
                 state_confidence_interval.printf(0,"%0.3lf", confInterval);
             } else {

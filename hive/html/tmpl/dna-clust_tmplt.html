@@ -2,7 +2,6 @@
  $Id$
 vim: set et ts=4 sts=4:
 -->
-<script src="js-algo/algo.js"></script>
 <script src="js/vjTree.js"></script>
 <script src='js/vjSVGView.js'></script>
 <script src='js-graph/vjSVG_primitive.js'></script>
@@ -14,85 +13,72 @@ vim: set et ts=4 sts=4:
 <script src='js-graph/vjSVG_Defaults.js'></script>
 <script src='js-graph/vjSVG_General.js'></script>
 <script src='js-graph/vjSVG_Phylogram.js'></script>
-<script src="ui/default-object-ui.js"></script>
-<script src="js-obj/svc-clust.js"></script>
+<script src='js-obj-new/svc-clust.js'></script>
+
+<script type="text/javascript" src="d3js/core/d3.js"></script>
+<script type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/phylog_tree.js"></script>
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;visibility:hidden;" id="jumpNewPage">
+    <a href = "#">
+        Click to go to old Octagon webpage
+    </a>
+</div>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+
 <script type="application/javascript">
 
 
 google.load("visualization", "1", {packages:["corechart"]});
 
-gInitList += "dna_clust_init();";
-setLocationTitle("HIVE-Octagon: Sequence Hierarchical Clustering tool");
+var algoTitle = "Octagon: Sequence Hierarchical Clustering tool";
+setLocationTitle(algoTitle);
 
-var dna_clust_formName = "formClusterization";
+var dna_clust_formName = "algoForm";
 var dna_clust_ID = docLocValue("id");
-if (!dna_clust_ID) {
+if (!dna_clust_ID)
     dna_clust_ID=0;
-}
+
 var dna_clust_profileIDs = docLocValue("profileID");
-if (dna_clust_profileIDs) {
+if (dna_clust_profileIDs)
     dna_clust_profileIDs = dna_clust_profileIDs.split(",");
-} else {
+else
     dna_clust_profileIDs = [];
-}
+
 var dna_clust_referenceIDs = docLocValue("referenceID");
-if (dna_clust_referenceIDs) {
+if (dna_clust_referenceIDs)
     dna_clust_referenceIDs = dna_clust_referenceIDs.split(",");
-} else {
+else
     dna_clust_referenceIDs = [];
-}
-var dna_algoObject, dna_algoProcess, dna_algoProgress;
-var dna_algo_cansubmit = ( isok(dna_clust_ID) && dna_clust_ID[0]!='-' ) ? false : true;
-var dna_clust_defaults_ui = new default_object_ui(null, "svc-clust", "dna-clust");
-dna_clust_defaults_ui.visualElements = {referenceGenomeInput: true, profilesInput: true, referencesInput: true, parametersInput: true};
-dna_clust_defaults_ui.visibleProcParameters = ["name", "referenceID", "subjects", "profileID", "algorithm", "distance"];
-dna_clust_defaults_ui.init();
 
-function dna_clust_init()
+var process_qpsvc = "dna-clust";
+
+var algoProcess = new valgoProcess (dna_clust_ID, process_qpsvc, "svc-clust2", "svc-clust");
+algoProcess.visibleParameters = ["name", "referenceID", "subjects", "profileID", "algorithm", "distance"];
+algoProcess.help.push({name:"Subject Help", url:"http://help/hlp.page.svc-clust.html"});
+algoProcess.callbackLoaded = clustLoaded;
+algoProcess.inputChanged = clustInputChanged;
+
+function clustInputChanged(viewer, node)
 {
-    vjVIS.generate([
-        {
-            name: 'dvProcess',
-            passive: !dna_clust_defaults_ui.visualElements.parametersInput,
-            role: 'input',
-            title: "Algorithmic parameters",
-            align: 'left',
-            popupCloser: true,
-            brief: dna_clust_defaults_ui.visiProcParametersRaw
-        }
-    ]);
-
-    vjDS.add("HIVE-Octagon general help text", "dsClustGeneralHelp", "http://help/hlp.page.svc-clust.html");
-    vjDV.add("dvSubjectHelp", 400, 400);
-    vjDV["dvSubjectHelp"].add("help", "help", "tab", [new vjHelpView ( { data: "dsClustGeneralHelp"} )]);
-    vjDV["dvSubjectHelp"].render();
-    vjDV["dvSubjectHelp"].load();
-    
-    dna_algoObject = new valgoCore("clustering", dna_clust_ID, dna_clust_formName, "dvClust");
-    dna_clust_defaults_ui.qpsvcObject = dna_algoObject;
-    dna_algoProcess = new valgoProcess(dna_clust_ID, dna_clust_formName, "dvProcess", dna_clust_defaults_ui.qpservice, dna_clust_defaults_ui.proctype, "Compute");
-    dna_algoObject.algoProc = dna_algoProcess;
-    dna_clust_defaults_ui.procObject = dna_algoProcess;
-    dna_algoProcess.callbackLoaded = dna_clust_done;
-    dna_algoProcess.callbackChanged = dna_clust_inputChanged;
-    dna_algoProcess.generate();
-
-    dna_algoProgress = new valgoProgress(dna_clust_ID, dna_clust_formName, "Progress");
-    dna_algoProgress.callbackDoneComputing = dna_clust_doneComputing;
-
-    if(!dna_algo_cansubmit) {
-        dna_algoProgress.generate();
-        visibool("resultBlock", true);
-    }
-}
-
-function dna_clust_inputChanged(viewer, node)
-{
+    var recViewer = vjDV[algoProcess.recViewerName];
     if (node.fld.name == "referenceID") {
-        var referenceGenomes = dna_algoProcess.getValue("referenceID", "join");
-        var referencesElt = dna_algoProcess.viewer.getElement("subjects");
-        var profilesElt = dna_algoProcess.viewer.getElement("profileID");
-
+        var referenceGenomes = recViewer.getElementValue("referenceID","join");
+        var referencesElt = recViewer.getElement("subjects");
+        var profilesElt = recViewer.getElement("profileID");
+        
         var constraint;
         if (profilesElt) {
             if (referenceGenomes) {
@@ -105,7 +91,7 @@ function dna_clust_inputChanged(viewer, node)
                         fetch: "id"
                     };
                 }
-                constraint.url = "alloftype('svc-profiler').filter({.parent_proc_ids&&(objlist)(.parent_proc_ids[0].subject)==(objlist)\"" + referenceGenomes + "\"&&('$(explorer_folder)'=='-'||'$(explorer_folder)'=='alloftype(\"*\")'||($(explorer_folder) has this))}).csv(['_type','_brief','created'],{info:true})";
+                constraint.url = "alloftype('svc-profiler').filter({.parent_proc_ids&&(.parent_proc_ids[0].subject)==(objlist)\"" + referenceGenomes + "\"&&('$(explorer_folder)'=='-'||'$(explorer_folder)'=='alloftype(\"*\")'||('$(explorer_folder)' has this))}).csv(['_type','_brief','created'],{info:true})";
                 profilesElt.fld.constraint = "search";
                 profilesElt.fld.constraint_data = JSON.stringify(constraint);
             } else {
@@ -124,88 +110,54 @@ function dna_clust_inputChanged(viewer, node)
             referencesElt.fld.constraint_data = JSON.stringify(constraint);
         }
 
-        dna_algoProcess.viewer.redraw();
+        recViewer.redraw();
     }
 }
 
-function dna_clust_done(viewer)
+function clustLoaded(viewer)
 {
-    var referenceGenomeElt = dna_algoProcess.viewer.getElement("referenceID");
+    var recViewer = vjDV[algoProcess.recViewerName];
+    var referenceGenomeElt = recViewer.getElement("referenceID");
+    if (!referenceGenomeElt)
+        return;
     if (referenceGenomeElt.value) {
-        dna_clust_inputChanged(viewer, referenceGenomeElt);
+        clustInputChanged(viewer, referenceGenomeElt);
     } else {
         if (dna_clust_profileIDs) {
-            dna_algoProcess.setValue("profileID", dna_clust_profileIDs);
+            recViewer.changeElementValue("profileID", dna_clust_profileIDs);
         }
         if (dna_clust_referenceIDs.length) {
-            dna_algoProcess.setValue("referenceID", dna_clust_referenceIDs);
-            dna_clust_inputChanged(viewer, referenceGenomeElt);
+            recViewer.changeElementValue("referenceID", dna_clust_referenceIDs);
+            clustInputChanged(viewer, referenceGenomeElt);
         } else {
-            dna_algoProcess.viewer.redraw();
+            recViewer.redraw();
         }
     }
 }
 
-function dna_clust_doneComputing(viewer, reqid, stat)
-{
-    if (stat < 5) return;
-    visibool("dvProcessSubmitter", false);
-    vjPAGE.initToolbar("dna-clust", "innerHTML://dvToolbarClustSource", dna_clust_formName);
-
-    var dvResult = vjDV.add("dvClustResult",500, 500);
-    var dvResultRight = vjDV.add("dvClustResultRight", 500, 500);
-    var node = {_type: "svc-clust", id: dna_clust_ID, status: stat};
-    vjHO.fullview(node._type, node, {obj:[dvResult, dvResultRight],
-        reference_genome: dna_algoProcess.getValue("referenceID", "join")
-    });
-    visibool("resultBlock", true);
-}
-
-</script>
-<form name="formClusterization" method="GET" action="dna.cgi" enctype="multipart/form-data">
-<table width="100%" border="0">
-    <tr style="vertical-align:top">
-        <td width="48%" id="dvLeftPanel"></td>
-        <td width="2%" align=center>
-            <div style="width:100%">
-                <script>valgoSectionHeader("HIVE-Octagon input","img-algo/svc-clust.png","sectInput1","", true, {extraBarClasses:["HIVE_section_border_bottomless"]})</script>
-            </div>
-            <div id="sectInput1" class="HIVE_oneliner" style="width:100%">
-                <div style="HIVE_onelined">
-                    <span id="algoBlock">
-                        <div id="dvProcess-visual" ></div>
-                        <div id="dvProcessSubmitter"></div>
-                        <div id="dvProgressViewer"></div>
-                        <div class="centerer">
-                            <div class="centered">
-                                <img border=0 src="img/algoout.gif" width=48 />
-                            </div>
-                        </div>
-                    </span>
-                </div>
-                <div id="dvSubjectHelp" class="HIVE_onelined"></div>
-            </div>
-        </td>
-        <td width="48%"></td>
-    </tr>
-</table>
-
-<table width="100%" border="0"><tr><td width="48%"></td><td width="2%" align=center>
+gInitList += "clustInit();";
+function clustInit () {
+    var topVal = $("#header").height() + 45;
+    //$(".content").attr("style", "top: "+ topVal +"px; ");
     
-    <span id="resultBlock" class="sectHid">
-    <div class="HIVE_section" >
-        <script>valgoSectionHeader("Clustering results","img/results.gif","sectOutput1", "<span class='sectVis' id='dvToolbardna-clust'></span>", true)</script>
-        <table id="sectOutput1" class="HIVE_sect1">
-            <tr >
-                <td id="dvClustResult" valign=top></td>
-                <td id="dvClustResultRight" valign=top></td>
-            </tr>
-        </table>    
-    </div>
-    </span>
-</td><td width="48%"></td></tr>
-</table>
-</form>
+    globalAlgo = $('#mainAlgoArea').algoview({
+        algoObj: algoProcess,
+        algoTitle: algoTitle
+    });
+    
+   $("#jumpNewPage").on("click", function (eventData){
+        var url = window.location.href;
+        setCookie("jumpNewPageHexagon", "false", 7);
+        
+        if (url.indexOf("&") >= 0)
+            linkURL("?cmd=dna-clust" + url.substring(url.indexOf("&")));
+        else
+            linkURL("?cmd=dna-clust");
+        
+        eventData.preventDefault();
+    });
+};
+</script>
 
 <div id="dvClustPhylogramOptions" style="display:none;">
     <table>
@@ -229,6 +181,7 @@ function dna_clust_doneComputing(viewer, reqid, stat)
         </tr>
     </table>
 </div>
+
 <div id="dvToolbarClustSource" style="display:none;">
 type,align,order,name,title,icon,path,url,description
 html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next  

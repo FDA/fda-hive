@@ -33,17 +33,28 @@ PROGRAMS += dna-heptagon dna-heptagon-collect dna-heptagon-annotate profiler-con
 PROGRAMS_LIBS = -lviolib $(VLIB_LIB)
 PROGRAMS_XLIBS = $(MYSQL_LIB)
 
+OBJECT_TYPES = svc-profiler \
+    svc-profiler-heptagon
+
 dna-heptagon_SRCS = dna-heptagon.cpp
 dna-heptagon-collect_SRCS = dna-heptagon-collect.cpp
 dna-heptagon-annotate_SRCS = dna-heptagon-annotate.cpp
 profiler-concatenator_SRCS = profiler-concatenator.cpp
+
+APPS = Recombination-algorithm:1 \
+Heptagon-Profiler:1 \
+Heptagon-Profiler:2.1
+
+MENUITEMS = \
+/Portal/Post-Alignment/Heptagon_Profiler \
+/Portal/Post-Alignment/Recombination_algorithm
 
 ifeq ($(devdir),)
     devdir = $(abspath ../../..)
 endif
 include $(devdir)/build/makefile.meta
 
-PNOHY: dist
+PHONY: dist
 dist:: dist_hept dist_hept_collect dist_hept_annotate
 
 dist_hept:

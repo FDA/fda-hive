@@ -44,20 +44,16 @@ namespace slib
             struct Chromosome
             {
                 idx chromosomeID;
-                idx _tableOffset; //, nextChr;
+                idx _tableOffset;
                 idx startCompile, cntCompile;
-//                idx numOfSegs;
             };
 
             struct ChromInfo {
                     Chromosome * chr0;
-                    udx * pattern;  // contains the pattern and the cmask
-                    idx *bitsCountOffset; // points to the bitC container of results
-//                    udx * tablePos;
-//                    udx cmask[2];
+                    udx * pattern;
+                    idx *bitsCountOffset;
             };
 
-//            sVec <Chromosome> chromContainer;
             sVec <ChromInfo> chromList;
             sFil * cFl;
             sFil * c2Fl;
@@ -71,8 +67,6 @@ namespace slib
             sVec <idx> bitC;
             idx chrToSort, lenOfSegs, numOfSegs;
 
-//            sVec <Chromosome> *_chromList; // chromosome List index
-//            udx * container;  // container for all the chromosome
             ChromInfo * addChromosome (idx chrID, idx seqlen);
 
             idx initPopulation (ChromInfo *chr1, idx num);
@@ -90,26 +84,23 @@ namespace slib
             real getFitness (ChromInfo *chr, idx ind);
             idx printPopulation (sStr *buf, ChromInfo *chr, sVec <idx> *listPop = 0, idx start = 0, idx cnt = 0);
             idx printIndividual (sStr *dest, ChromInfo *chr, idx ind);
-            // GA methods
             idx selection (idx popNum, idx *listPop);
             idx generateNewPopulation(ChromInfo *chr, idx *listPop);
             idx recombination (udx *parent1, udx *parent2, udx *child1, udx *child2);
             idx mutate (udx *individual, real pmut);
 
             static idx bioFingerComparator(sBioFingerPrint * myThis, void * arr, udx i1, udx i2);
-//            straightComparator(FMObject * myThis, void * arr, udx i1, udx i2);
             inline static udx read32letters(idx position, const idx * binarysequence, idx len)
             {
                 if( position % 32 == 0 && (len - position + 1) > 31 )
                     return binarysequence[position / 32];
 
-                // In all other cases:
                 udx k = binarysequence[position / 32];
                 udx l = binarysequence[(position / 32) + 1];
                 udx shift_k = (position % 32) * 2;
 
-                k >>= shift_k; // Shift the k to the right by the position number (counting from the beginning of the memory block)
-                l <<= (64 - shift_k); // shift the l to the left by the position number - 32
+                k >>= shift_k;
+                l <<= (64 - shift_k);
 
                 k |= l;
 
@@ -134,9 +125,8 @@ namespace slib
                 idx sizeofPattern;
                 idx segmentSize;
                 idx numPatterns;
-                idx lenPatterns; // (length actual patterns +1 char ) in idx
+                idx lenPatterns;
                 idx cntbitmask;
-//                idx container;
             };
 
             Hdr *hdr;
@@ -179,7 +169,7 @@ namespace slib
                 hd->chromCnt = 0;
                 hd->numPatterns = numP;
                 hd->segmentSize = segSize;
-                hd->lenPatterns = 32; // by Default is an idx
+                hd->lenPatterns = 32;
                 hd->cntbitmask = 8;
                 hd->sizeofPattern = ((hdr->lenPatterns*2 - 1) / 64) + 1;
 
@@ -198,24 +188,20 @@ namespace slib
                 if (!c2Fl || !c2Fl->ok() ){ return 0; }
 
                 container.mex()->flags |= sMex::fSetZero;
-                if (readorwrite == 1){ // write mode
+                if (readorwrite == 1){
                     cFl->cut(0);
                     c2Fl->cut(0);
                     idx segSize = 10000;
                     hdr = (Hdr *)cFl->add(0, sizeof(Hdr));
                     initHdr(hdr, numP, segSize);
                     contPointer = container.ptr(0);
-//                    chromContainer.mex()->flags |= sMex::fSetZero;
-//                    chromContainer.cut(0); // set at the beginning
                 }
                 else {
                     hdr=(Hdr*)cFl->ptr(0);
                     contPointer=(udx*)c2Fl->ptr(0);
                     bitC.cut(0);
                     readChromosomes ();
-//                    _chromList = (sVec <Chromosome> *)cFl->ptr(sizeof(Hdr));
                 }
-//                container = (udx *)file->ptr(sizeof(Hdr)+hdr.chromCnt*sizeof(_chromList));
 
                 return this;
             }
@@ -235,9 +221,6 @@ namespace slib
 
             idx compileFingerPrint (idx ){
                 idx success = 0;
-                /*for (idx i = hdr.chromStart; i < hdr.chromCnt; ++i){
-                    success += compileChromosome (i);
-                }*/
                 return success;
             }
 
@@ -267,7 +250,6 @@ namespace slib
 
             udx * getRowTable (ChromInfo *chr, idx num)
             {
-//                return container.ptr(chr->chr0->_tableOffset + num * ((numOfSegs - 1) / 64 + 1));
                 return contPointer + (chr->chr0->_tableOffset + num * ((segsCount(chr->chr0) - 1) / 64 + 1));
             }
 
@@ -275,8 +257,6 @@ namespace slib
             idx finalize();
 
             idx getNumPatterns(idx i){
-//                ChromInfo *chr = getChromosome(i);
-//                return chr->chr0->numPatterns;
                 return hdr->numPatterns;
             }
 
@@ -292,7 +272,6 @@ namespace slib
                 ChromInfo *chr = getChromosome(num);
                 idx numP = getNumPatterns(0);
 
-                // compress the sequence s
                 char * dst = str->ptr();
                 idx seqlen = str->length();
                 if (!isStrCompress){
@@ -301,7 +280,6 @@ namespace slib
                     dst = buf.ptr();
                     sBioseq::compressATGC_2Bit(dst, str->ptr(), seqlen);
                 }
-//                ((sStr *) dst, s, seqlen, false, 0);
 
                 idx getsizePatterns = numP / 64 + 1;
 
@@ -313,18 +291,11 @@ namespace slib
                     udx *pat = getPattern(chr, ip);
                     if (findStringPattern(pat, dst, seqlen))
                         {
-                        // set the bit to 1
                         idx ibyte = ip / 64;
                         idx ishift = ip % 64;
                         result[ibyte] |= (udx) (0x1) << ishift;
                         ++(bitCount);
                     }
-//                    else {
-//                        // put it to 0
-//                        idx ibyte = ip / 64;
-//                        idx ishift = ip % 64;
-//                        result[ibyte] &= ~((udx)(0x1) << ishift);
-//                    }
                 }
                 return bitCount;
             }
@@ -334,14 +305,11 @@ namespace slib
                 ChromInfo *chr = getChromosome(num);
                 udx *segsTable = getRowTable (chr, num);
                 idx patLen = getLenPatterns(chr);
-                // Compare segsTable[seg] and result
                 idx option = 3;
                 real res;
                 if (option == 0){
-//                    res = compareCosine (segsTable, result, patLen);
                 }
                 else if(option == 1){
-//                    res = compareCosine (segsTable, result, patLen);
                 }
                 else {
                     for (idx i = 0; i < patLen; ++i){
@@ -352,27 +320,10 @@ namespace slib
                 return res;
             }
             bool getPosition (idx num, idx seg, idx *start, idx *cnt){
-//                ChromInfo *chr = getChromosome(num);
                 return true;
             }
     };
 
 }
 
-#endif // sLib_sBioFingerprint_hpp
-/*
-idx version;
-idx reserved[32];
-idx chromCnt;
-Chromosome {
-    idx chromsomeID;
-    udx _tableOffset;
-    udx numPatterns;
-    udx lenPatterns;
-    Pattern {
-        char bitCount;
-        idx _pattern[0-lenPatterns];
-    } [numPatterns];
-}
-
-*/
+#endif 

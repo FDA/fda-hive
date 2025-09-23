@@ -36,107 +36,55 @@
 #include <slib/std/varset.hpp>
 
 namespace slib {
-    //! sSql-like convenience wrapper for SQLite 3
     class sSqlite {
         public:
             sSqlite();
-            /*! \param readonly if true, opens file in readonly mode;
-                       if false, opens file in read-write mode (and creates the file if it does not exist) */
             sSqlite(const char * filepath, bool readonly = false);
             ~sSqlite();
 
-            //! open a database file (and close the currently opened one, if any)
-            /*! \param readonly if true, opens file in readonly mode;
-                       if false, opens file in read-write mode (and creates the file if it does not exist) */
             bool reset(const char * filepath, bool readonly = false);
 
-            //! check if the database has been successfully opened
             bool ok() const { return _db; }
-            //! execute a sql statement without retrieving its result
-            /*! \returns true if statement executed successfully */
             bool execute(const char * sqlfmt, ...) __attribute__((format(printf, 2, 3)));
-            //! execute a sql statement without retrieving its result
-            /*! \returns true if statement executed successfully */
             bool executeExact(const char * sql);
 
-            //! execute sql statement and retrieve its result into a varset table
-            /*! \param[out] out_tbl table to which results will be appended;
-                            column names will be set if out_tbl was initially empty
-                \returns number of rows retrieved (and appended to out_tbl) */
             idx getTable(sVarSet & out_tbl, const char * sqlfmt, ...) __attribute__((format(printf, 3, 4)));
-            //! execute sql statement and retrieve its result into a varset table
-            /*! \param[out] out_tbl table to which results will be appended;
-                            column names will be set if out_tbl was initially empty
-                \returns number of rows retrieved (and appended to out_tbl) */
             idx getTableExact(sVarSet & out_tbl, const char * sql);
 
-            //! prepare a sql statement for retrieving results row by row, using resultValue() and related methods
-            /*! \returns true if the sql statement compiled successfully */
+            const char * getValue(sStr & out, const char * defval, const char * sqlfmt, ...) __attribute__((format(printf, 4, 5)));
+            const char * getValueExact(sStr & out, const char * sql, const char * defval = 0);
+            idx getIValue(idx defval, const char * sqlfmt, ...) __attribute__((format(printf, 3, 4)));
+            idx getIValueExact(const char * sql, idx defval = 0);
+            udx getUValue(udx defval, const char * sqlfmt, ...) __attribute__((format(printf, 3, 4)));
+            udx getUValueExact(const char * sql, udx defval = 0);
+            real getRValue(real defval, const char * sqlfmt, ...) __attribute__((format(printf, 3, 4)));
+            real getRValueExact(const char * sql, real defval = 0);
+
             bool resultOpen(const char * sqlfmt, ...) __attribute__((format(printf, 2, 3)));
-            //! prepare a sql statement for retrieving results row by row, using resultValue() and related methods
-            /*! \returns true if the sql statement compiled successfully */
             bool resultOpenExact(const char * sql);
-            //! retrieve a row (including the first row!) from a statement prepared by resultOpen()
-            /*! \returns true if row was retrieved, false if there are no more rows to retrieve or if there was an error */
             bool resultNextRow(void);
-            //! number of columns in the result output of a prepared sql statement
-            /*! This method may be called any time between resultOpen() and resultClose() */
             idx resultColDim() const { return _res_ncols; }
-            //! name of a column in the result output of a prepared sql statement
-            /*! This method may be called any time between resultOpen() and resultClose() */
             const char * resultColName(idx icol) const;
-            //! string value of a column in a row that was loaded by resultNextRow()
-            /*! \param defval default return value if the column contains no data or on error
-                \param[out] plen if non-0, retrieves the length of the string value
-                \returns string value of the column, or defval on error
-                \warning the returned pointer is invalidated by *any* subsequent result*() call */
             const char * resultValue(idx icol, const char * defval = 0, idx * plen = 0);
-            //! integer value of a column in a row that was loaded by resultNextRow()
-            /*! \param defval default return value if the column contains no data or on error */
             idx resultIValue(idx icol, idx defval = 0);
-            //! unsigned value of a column in a row that was loaded by resultNextRow()
-            /*! \param defval default return value if the column contains no data or on error */
             udx resultUValue(idx icol, udx defval = 0);
-            //! real value of a column in a row that was loaded by resultNextRow()
-            /*! \param defval default return value if the column contains no data or on error */
             real resultRValue(idx icol, real defval = 0);
-            //! close the statement which was prepared by resultOpen()
             void resultClose(void);
 
-            //! start a transaction
-            /*! \note SQLite does not support nested transactions; calling this method twice increments
-                an emulated transaction level counter, but the inner transaction will not roll back
-                or commit independently of the outer.
-                \returns true on success, false on error */
             bool startTransaction();
-            //! commit a transaction
-            /*! \note SQLite does not support nested transactions; if startTransaction() was called twice,
-                calling commit() once will decrement an emulated transaction counter, but won't really
-                commit the inner transaction.
-                \returns true on success, false on error */
             bool commit();
-            //! roll back a transaction
-            /*! \note SQLite does not support nested transactions; if startTransaction() was called twice,
-                calling rollback() once will decrement an emulated transaction counter, but won't really
-                roll back the inner transaction.
-                \returns true on success, false on error */
             bool rollback();
-            //! current transaction level counter (0 if not in a transaction, 1 in the outermost transaction)
             udx inTransaction() const { return _in_transaction; }
-            //! check if the database encountered a deadlock
-            /*! Possible only if two processes opened the same database file in non-readonly mode */
             bool hadDeadlocked() const { return _had_deadlocked; }
-            //! number of times to retry an operation if the database deadlocked; 16 by default
-            static const idx max_deadlock_retries; // = 16;
+            static const idx max_deadlock_retries;
 
-            //! return true if an error occurred
             bool hasFailed() const { return _errno || _err_msg.length(); }
-            //! return most recent sqlite error string
             const char * getError() const { return _err_msg.length() ? _err_msg.ptr() : 0; }
-            //! return most recent sqlite error code, or 0 meaning success
             udx getErrno() const { return _errno; }
 
             idx getLastInsertRowid();
+
+            static char * protectValue(sStr & to, const char* from, udx length = 0);
 
         private:
             void * _db;
@@ -153,6 +101,8 @@ namespace slib {
             idx _res_ncols;
 
             void clearError();
+            udx saveError(sStr * out_err_msg) const;
+            void restoreError(udx saved_errno, const sStr * err_msg);
             void clearAll();
     };
 };

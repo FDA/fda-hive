@@ -34,9 +34,10 @@ CREATE TABLE `QPLog` (
   `reqID` bigint(20) unsigned DEFAULT NULL,
   `jobID` bigint(20) unsigned DEFAULT NULL,
   `level` smallint(6) NOT NULL,
-  `cdate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `txt` mediumtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-  KEY `req_idx` (`reqID`),
+  `cdate` timestamp(6) NOT NULL DEFAULT current_timestamp(),
+  `txt` mediumtext CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   KEY `job_idx` (`jobID`),
-  KEY `level_idx` (`level`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  KEY `level_idx` (`level`),
+  KEY `req_idx` (`reqID`),
+  KEY `lvl_req_idx` (`reqID`,`level`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

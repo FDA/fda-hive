@@ -32,7 +32,6 @@
 
 void sMathNR::realft(real data[], udx n, idx isign)
 {
-    //void four1(real data[], idx nn, idx isign);
     udx i,i1,i2,i3,i4,np3;
     real c1=0.5,c2,h1r,h1i,h2r,h2i;
     real wr,wi,wpr,wpi,wtemp,theta;

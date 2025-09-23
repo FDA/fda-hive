@@ -5,9 +5,9 @@ DELIMITER //
 
 CREATE PROCEDURE `sp_type_get_v6`(
     IN p_group_id BIGINT UNSIGNED,
-    IN p_member_sql VARCHAR(65535),
-    IN p_where_fetch_sql VARCHAR(65535),
-    IN p_where_full_fetch_sql VARCHAR(65535),
+    IN p_member_sql VARCHAR(21844),
+    IN p_where_fetch_sql VARCHAR(21844),
+    IN p_where_full_fetch_sql VARCHAR(21844),
     IN p_type_type_domain BIGINT UNSIGNED,
     IN p_type_type_id BIGINT UNSIGNED
 )

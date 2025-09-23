@@ -27,12 +27,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-//# sourceURL=jquery.filed.complex.base.js
 
 $(function () {
     $.widget("ion.field_complex_base", $.ion.field_base, {
         options: {
-            spec: {}    //  complex field specification
+            spec: {}
         },
 
         keywords: ["_type", "_field", "_abstr", "_limit", "_write", "_vital", "_default", "_plural", "_layout", "_public", "_hidden", "_inherit", "_infect", "descr", "__sub", "__dim", "__start", "__tot", "__cnt"],
@@ -48,7 +47,6 @@ $(function () {
 
             if (obj != null) {
                 if (obj.hasOwnProperty('_type') && $.ion.hasType(obj._type)) {
-                    //  we are in mode when 'obj' is a real object with type definition, so we should collect properties for that specific type instead
                     obj = $.ion.getType(obj._type);
                 }
 
@@ -166,7 +164,6 @@ $(function () {
                     }
                     else {
                         if (typeof spec === 'string' || typeof spec === 'number' || typeof spec === 'boolean') {
-                            //field.field_const({ value: spec });
                         }
                         else if (typeof spec === 'object') {
                             field.field_complex({
@@ -278,7 +275,6 @@ $(function () {
                                 fieldControl.field_complex('setValue', val[name]);
                             }
                             else {
-                                //fieldControl.text('Unknown type: ' + property._type);
                             }
                             break;
                     }
@@ -336,12 +332,7 @@ $(function () {
                         val[name] = fieldControl.field_keyval('getValue');
                         break;
                     default:
-                        //if ($.ion.hasType(field._type)) {
                             val[name] = fieldControl.field_complex('getValue');
-                        //}
-                        //else {
-                            //fieldControl.text('Unknown type: ' + property._type);
-                        //}
                         break;
                 }
             }
@@ -353,7 +344,6 @@ $(function () {
             var self = this;
 
             if (this.isPlural()) {
-                //  treat val as list of Ids or single Id...
 
                 this.container.empty();
 
@@ -399,7 +389,6 @@ $(function () {
                 }
             }
             else {
-                //  treat val as object with properties...
                 this._setItem(this.field, val);
             }
         },
@@ -427,10 +416,6 @@ $(function () {
             var control = this.generateControl();
 
             control.focusin(function() {
-                //    save initial value in case we will have to undo it...
-                //if(!$(this).data('initial-value')) {
-                //    self.setInitialValue();
-                //}
             })
             .change(function () {
                 if($('.changed', this).length == 0)

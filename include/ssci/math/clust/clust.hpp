@@ -46,13 +46,11 @@ namespace slib
         sClust_DISTANCE_CITIBLOCK,
         sClust_DISTANCE_MINIMAX,
         sClust_DISTANCE_MINKOVSKI,
-        //sClust_DISTANCE_QUADRATIC,
         sClust_DISTANCE_CANBERRA,
         sClust_DISTANCE_PEARSON,
         sClust_DISTANCE_PEARSONUNCENTERED,
         sClust_DISTANCE_PEARSONSQUARED,
         sClust_DISTANCE_SPEARMAN,
-        //sClust_DISTANCE_COSINE,
         sClust_DISTANCE_GIVEN
     };
 
@@ -79,7 +77,6 @@ namespace slib
     {
 
     public:
-        //static vLix lix;
         idx baseDim;
 
         typedef sVec< idx >  Queue;
@@ -105,14 +102,97 @@ namespace slib
         void printListed(sStr * out, NodePrintfCallback func, void * par, idx dodist);
         void positionTree(NodeLoc * loc,NodeLoc * limits);
 
-        //vClr * bitmap( idx cx, idx cy ) ;
 
-        ///void clusterKMeans(idx doBinary, idx iter, real convMax, idx cntclust, idx rows, idx cols, real * actmat );
+    };
+
+    class sRlda {
+    public:
+        sVec< real> ldaTransformVals;
+        sMatrix ldaTransformVecs;
+        real regulAlphaStart,regulAlphaEnd;
+        idx bootStrapCounter;
+        real bootStrapFraction;
+        real curShannon;
+        idx (*callbackProgress) (void * param, idx items, idx progress, idx progressMax);
+        void * callbackParam;
+        bool PCAMode;
+
+        sRlda(){
+            regulAlphaStart=0.01;
+            regulAlphaEnd=0.0001;
+            pFDAfuncList=0;
+            missingValuesTreatment=0;
+            bootStrapCounter=1;
+            bootStrapFraction=0.5;
+            curShannon=0;
+            PCAMode=0;
+            callbackProgress=0;
+            callbackParam=0;
+        }
+
+
+
+        static idx compute(sMatrix & ori , sDic < sVec < idx >  > & grpset, sVec< real> * ldaTransformVals, sMatrix * ldaTransformVecs, real regulAlpha, idx scaleType=1);
+        idx compute(sMatrix & ori , sDic < sVec < idx >  > & grpset, idx scaleType=1){return compute(ori , grpset, &ldaTransformVals, &ldaTransformVecs, regulAlphaStart,scaleType);}
+        sMatrix * remap(sMatrix & rsltMat, sMatrix & ori, sMatrix  * vecs=0) {
+            if(!vecs)vecs=&ldaTransformVecs;
+            rsltMat.resize(ori.rows(),ori.cols());
+            sAlgebra::matrix::pcaReMap(rsltMat.ptr(0,0),ori.ptr(0,0), ori.cols(), ori.rows(), vecs->ptr(0,0));
+            return &rsltMat;
+        }
+        void finalCompute(sMatrix & OriMat,  sDic < sVec < idx > > & rowsToUseDic, idx cntSample, idx topChoiceForFinal, bool onlyExtract=false);
+
+        void empty(void) {
+            ldaTransformVals.empty();
+            ldaTransformVecs.empty();
+        }
+        idx bootstrap(sMatrix & mat, idx maxIter, idx squeezeSize, real importantLDA, idx randSeed, sDic < sVec < idx > > & catSet, sDic < sVec < idx > > & checkSet, sIO * gLog, sStr * flda, sStr * cat , sStr * rslfCSV, sDic <idx > * rids, sDic < idx > * cids);
+
+
+
+        sMatrix SubMatrix,samplingLdaTransforVecCumulator;
+        sVec< real> distributionPerRow,distributionPerCol;
+        sVec < real > samplingLdaTransforValCumulator,totalVals,samplingLdaTransforValCumulatorOrder;
+        sVec < idx > samplingLdaTransforOccurence;
+        sVec < idx > samplingSet;
+
+        enum eSamplingStategy{
+            eSamplingUniform=0,
+            bSamplingMonteCarlo=0x01,
+            bSamplingRadioactive=0x02,
+        };
+        idx samplingStrategy;
+
+        class FDAStruc;
+        typedef real (*functionSpaceFunction) (sMatrix * orimat , idx irow, idx icol,FDAStruc * param, void * vars, sStr * out);
+        typedef void (*functionSpaceInitalizer) (FDAStruc * fp, idx icol, void * variables);
+        struct FDAStruc {
+            const char * name;
+            idx universe;
+            real universeScaling;
+            functionSpaceFunction funcCall;
+            functionSpaceInitalizer initCall;
+            idx varSize;
+            idx funcClass;
+            void * funcParam;
+
+
+            idx classVarOfs,universeBase;
+
+        };
+
+        sDic < FDAStruc > FDAfuncList;
+        FDAStruc * pFDAfuncList;
+        idx cntFDAList,samplingSetSize,samplingSetDimAvailable;
+        idx totalItersRun;
+        sMex FDAvariablePool;
+        idx missingValuesTreatment;
+        idx prepareComputeExtraLarge(sMatrix & OriMat, idx rowsToUseDicDim, idx cntNonZerosMinMax=0);
+        idx computeExtraLarge(sMatrix & OriMat,  sDic < sVec < idx > > & rowsToUseDic, idx cntSample, idx topChoiceForFinal, idx iterMax, idx iterMin,real shannonThreshold, idx goodShannonMaxThreshold, bool useEValScaling, real KTemperature=0, real radioactiveDecay=0, idx maxMissFire=0);
     };
 }
 
-#endif // sMath_clust_h
-
+#endif 
 
 
 

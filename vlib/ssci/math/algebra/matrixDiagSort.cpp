@@ -41,7 +41,6 @@ void sAlgebra::matrix::diagSort(idx n,real * evals,real   * evecs,idx  issort, b
     real tau;
 
     idx parity=0;
-    /* sorting */
     if(issort){
         for(i=1;i<=n;i++){
             for(imin=i,j=i+1;j<=n;j++){

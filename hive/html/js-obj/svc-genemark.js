@@ -31,7 +31,6 @@
 
 if (!javaScriptEngine) var javaScriptEngine = vjJS["undefined"];
 javaScriptEngine.include("js/vjAlignmentView.js");
-//javaScriptEngine.include("js/vjHiveseqView.js");
 
 vjHO.register('svc-genemark').Constructor=function ()
 {
@@ -45,7 +44,6 @@ vjHO.register('svc-genemark').Constructor=function ()
 
     this.resolution=200;
 
-    // two public functions which must be supported
     this.fullview=function(node,dv)
     {
         this.mode='fullview';
@@ -60,7 +58,6 @@ vjHO.register('svc-genemark').Constructor=function ()
 
     this.preview = function(node,dv)
     {
-//        this.parent.preview('svc',node,dv);
         this.parent.preview("svc", node, dv, "vjObj['"+this.objCls+"'].customizeSvcDownloads();");
         if(!node.status || parseInt(node.status)<5) return;
         this.mode='preview';
@@ -86,21 +83,20 @@ vjHO.register('svc-genemark').Constructor=function ()
     this.addUrlSet({
             'blast-table' :{
                 title: "Retrieving text from blast output file",
-                active_url: "static://",
+                active_url: "static:
                 objs:"ids"
             },
             'blastTextOutput' : {
                 title: "Retrieving text from blast output file",
-                active_url: "static://select sequence on the left to see blast output",
+                active_url: "static:
             },
             'sequence' :{
-                //active_url:"http://?cmd=seqList&out=num|id|len&ids=0",   //for both hitpie and hitlist
-                active_url: "static://select sequence in the left to see the sequence",
+                active_url: "static:
                 objs:"ids"
             },
             'help' : {
-                active_url:"http://help/hlp.view.results.dna-genemark.html",
-                inactive_url:"http://help/hlp.view.results.dna-genemark.html",
+                active_url:"http:
+                inactive_url:"http:
                 title: "Genemark: building help page"
             }
     });
@@ -135,7 +131,6 @@ vjHO.register('svc-genemark').Constructor=function ()
             return;
 
 
-        // fullview viewers
         var listcontrolviewer=new vjAlignmentHitListControl({
             data:'blast-table',
             formName: this.formName,
@@ -152,8 +147,6 @@ vjHO.register('svc-genemark').Constructor=function ()
                            { name: 'length_align', title: "length", hidden: false },
                            { name: 'offset', hidden: true }
                      ];
-//        listcontrolviewer[0].startArg = "startRow";
-        //listcontrolviewer[0].cntArg = "cntRows";
 
         this.addviewer('blast-pagoutput,blast-table',listcontrolviewer );
 
@@ -185,30 +178,14 @@ vjHO.register('svc-genemark').Constructor=function ()
             isok:true
         }));
 
-//        this.addviewer("sequenceTable", new vjTableView({
-//            data : "sequence",
-//            formObject : formName,// document.forms['formGenemark'],
-//            defaultEmptyText : 'select a row to show sequence',
-//            geometry : {
-//                width : '100%'
-//            },
-//            cols: [
-//                  { name: '#', title: 'row #', maxTxtLen: 32 },
-//                  { name: 'len', title: 'length', type: 'largenumber',  hidden: true },
-//                  { name: 'rpt', title: 'rpt', type: 'largenumber',  hidden: true },
-//                  { name: 'id', hidden: true },
-//                  { name: 'seq', title: "interval sequence selected"},
-//            ],
-//            isok : true
-//        }));
 
 
         this.addDownloadViewer(this.downloadViewerDescriptions);
         if (node.file) {
-            this.getDS('blast-table').reload("qpbg_tblqryx4://"+node.file+"//objs=" + this.loadedID + "&header=0&start=0&cnt=50", true);
+            this.getDS('blast-table').reload("qpbg_tblqryx4:
         }
         else
-            this.getDS('blast-table').reload("qpbg_tblqryx4://_.blastp.genemark.csv//objs=" + this.loadedID + "&header=0&start=0&cnt=50" , true);
+            this.getDS('blast-table').reload("qpbg_tblqryx4:
 
     };
 
@@ -221,21 +198,15 @@ vjHO.register('svc-genemark').Constructor=function ()
 
 
         if(this.mode=='preview'){
-//            this.dvresults=this.current_dvORtab[0].name;
-            //this.dvresults.addTab(this.tabs.names[1], this.tabs.icons[1], [this.viewers["download"]]);
-            //this.dvresults.render();
-            //this.dvresults.load('rerender');
 
         }
         else {
             this.dvresults.addTab(this.tabs.names[0], this.tabs.icons[0], [this.viewers['blast-pagoutput'],this.viewers['blast-table']]);
-//            this.current_dvORtab[0].addTab("list","list",[this.viewers['hitlist_panel'],this.viewers['hitlist']]);
             this.dvresults.addTab(this.tabs.names[1], this.tabs.icons[1], [this.viewers["download"]]);
 
             this.dvinforesults.addTab(this.tabs.names[2], this.tabs.icons[2], [this.viewers["blast-text"]]);
             this.dvinforesults.addTab(this.tabs.names[3], this.tabs.icons[3], [this.viewers["sequenceTable"]]);
             this.dvinforesults.addTab(this.tabs.names[4], this.tabs.icons[4], [this.viewers["help"]]);
-//            this.current_dvORtab[1].addTab(this.tabs.names[1], this.tabs.icons[1], [this.viewers["download"]]);
 
             this.dvresults.render();
             this.dvinforesults.render();
@@ -249,14 +220,14 @@ vjHO.register('svc-genemark').Constructor=function ()
 
         this.referenceNode = node;
         var blastOffset = node.offset;
-        var fileSizeView = 2500; // characters to display in vjHTMLview
+        var fileSizeView = 2500;
         
         if (node.file) {
-            this.getDS('blastTextOutput').reload("http://?cmd=objFile&filename=blastx.blast_out&maxSize="+fileSizeView+"&offset="+blastOffset+"&raw=1&ids=" + thisProcessID, true);
+            this.getDS('blastTextOutput').reload("http:
         } else {
-            this.getDS('blastTextOutput').reload("http://?cmd=objFile&filename=qp-blastp.out&maxSize="+fileSizeView+"&offset="+blastOffset+"&raw=1&ids=" + thisProcessID, true);
+            this.getDS('blastTextOutput').reload("http:
         }
-        this.getDS('sequence').reload("http://?cmd=seqList&out=num|len&long=1&header=0&fastaformat=1&start="+node.query_row+"&cnt=1&rangeStart="+node.query_start+"&rangeLen="+node.length_align+"&maxTxtLen="+node.length_align+"&ids=" + this.query, true);   //for both hitpie and hitlist
+        this.getDS('sequence').reload("http:
 
         this.dvinforesults.render();
         this.dvinforesults.load('rerender');

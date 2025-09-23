@@ -32,6 +32,7 @@
 
 #include <slib/utils.hpp>
 
+#include <qpsvc/qpsvc-dna-hexagon.hpp>
 #include <ssci/bio.hpp>
 #include <violin/violin.hpp>
 
@@ -47,20 +48,17 @@ class DnaAlignmentComparator: public sQPrideProc
             idx hitsRpt;
             real RPKM;
             real FPKM;
+            real num, min, max;
             Accum(){
                 sSet(this,0);
             }
         };
 };
 
+
 idx DnaAlignmentComparator::OnExecute(idx req)
 {
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ prepare parameters
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     sStr cbuf;
     bool doBreak = false;
 
@@ -77,7 +75,6 @@ idx DnaAlignmentComparator::OnExecute(idx req)
     real minFPKM=formIValue("minFPKM",0);
     real minHits=formIValue("minHits",0);
     idx valueToUse=formIValue("valueToUse");
-    //idx reportAlignedOnly=formIValue("alignedOnly",1);
 
     idx seqClassfy=formIValue("seqClassify",0);
 
@@ -87,25 +84,25 @@ idx DnaAlignmentComparator::OnExecute(idx req)
     sHiveIon hionAnnot(user,annotationToUse,0,"ion");
     const char * collapseBy=formValue("collapseBy",&cbuf);
     const char * collapseId=formValue("collapseId");
-    //sStr iql("a=find.annot(id=\"$id\",type=\"%s\");unique.1(a.record);b=find.annot(record=a.record,type=\"%s\");unique.1(b.type);print(b.id,b.type);)",collapseBy,collapseId);
 
     sIonWander * wander=0;
     if(collapseId && collapseBy)
         wander=hionAnnot.addIonWander("replacer","a=find.annot(id=\"$id\",type=\"%s\");unique.1(a.record);b=find.annot(seqID=a.seqID,record=a.record,type=\"%s\");unique.1(b.type);blob(b.id);",collapseBy,collapseId);
 
     cbuf.cut(0);
-    // ia -ionRead homoGTF -ionTraverse 'a=find.annot(id="ENST00000432301",type="transcript_id");unique.1(a.record);b=find.annot(record=a.record,type="gene_name");print(b.id,b.type);'
+    const char * mapregBy=formValue("mapRegBy",&cbuf);
+    const char * mapregId=formValue("mapRegId");
+    sHiveIon hionMapRegAnnot(user,annotationToUse,0,"ion");
+    if(mapregBy && mapregId)
+        hionMapRegAnnot.addIonWander("mapreg","a=find.annot(id=\"$id\",type=\"%s\");unique.1(a.record);b=find.annot(seqID=a.seqID,record=a.record,type=\"%s\");unique.1(b.type);blob(b.id);",collapseBy,collapseId);
+
+    cbuf.cut(0);
 
 
 
     idx cntFound = 0, totWork = alIds.dim(), curWork = 0;
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Compute
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     sDic < sDic < Accum > > accum;
     sDic < idx > subList;subList.flagOn(sMex::fSetZero);
     sVec < sBioal::Stat > statistics;
@@ -127,15 +124,15 @@ idx DnaAlignmentComparator::OnExecute(idx req)
 
         sUsrObj alo(*user, alIds[iAli]);if(!alo.Id())continue;
 
-        alo.propGet00("subject",&cbuf,";");
+        QPSvcDnaHexagon::getSubject00(alo,cbuf);
         sHiveseq sub(user,cbuf.ptr(), als.getSubMode()); cbuf.cut(0);
 
-        alo.propGet00("query",&cbuf,";");
+        QPSvcDnaHexagon::getQuery00(alo,cbuf);
         sHiveseq qry(user,cbuf.ptr(), als.getQryMode()); cbuf.cut(0);
 
         alIds[iAli].print(cbuf);
 
-        cbuf.add(" ",1);alo.propGet00("name",&cbuf," ");cbuf.shrink00();//cbuf.add("",1);
+        cbuf.add(" ",1);alo.propGet00("name",&cbuf," ");cbuf.shrink00();
         sDic < Accum > * pacc=accum.set(cbuf.ptr()); cbuf.cut(0);
         pacc->flagOn(sMex::fSetZero);
 
@@ -179,29 +176,43 @@ idx DnaAlignmentComparator::OnExecute(idx req)
             const char * seqid=sub.id(isub);
             idx lenId=sLen(seqid)+1;
 
-
-
             if(wander) {
-
-                for(lenId=0;(!strchr("." sString_symbolsSpace,seqid[lenId]));++lenId);
+                const char * pSpace = strchr(seqid,' ');
+                lenId = (pSpace) ? (pSpace - seqid) : lenId;
                 wander->setSearchTemplateVariable("$id",3,seqid,lenId);
                 wander->traverse();
                 idx *p=wander->traverseBuf.length() ? (idx * )wander->traverseBuf.ptr(0)  : 0 ;
-
+                if (!p) {
+                    for(lenId=0;(!strchr("." sString_symbolsSpace,seqid[lenId]));++lenId);
+                    wander->setSearchTemplateVariable("$id",3,seqid,lenId);
+                    wander->traverse();
+                    p=wander->traverseBuf.length() ? (idx * )wander->traverseBuf.ptr(0)  : 0 ;
+                }
                 if(p) {
                     lenId=p[0];
                     seqid=sConvInt2Ptr(p[1],const char );
                 }
             }
 
-
-
-            Accum * pAlSub=pacc->set(seqid,lenId); // for big table
+            Accum * pAlSub=pacc->set(seqid,lenId);
             pAlSub->hitsRpt+=ps->foundRpt;
+            if( pAlSub->num == 0 ) {
+                pAlSub->min = rpkm;
+                pAlSub->max = rpkm;
+            } else {
+                if( pAlSub->min > rpkm ){
+                    pAlSub->min = rpkm;
+                }
+                if( pAlSub->max < rpkm ){
+                    pAlSub->max = rpkm;
+                }
+            }
+            pAlSub->num += 1;
             pAlSub->RPKM+=rpkm;
             pAlSub->FPKM+=isPairedEnd?fpkm:0;
 
-            (*subList.set(seqid,lenId))++; // cumulative set of all subjects
+
+            (*subList.set(seqid,lenId))++;
 
             ++cntFound;
 
@@ -217,12 +228,11 @@ idx DnaAlignmentComparator::OnExecute(idx req)
                     
                 sBioseqAlignment::Al * hdr = als.getAl(ial);
                     
-                // get the list of subjects hit by this query in diffrtent alignments
                 idx * pofs=qryHitRefList.set( qry.id(hdr->idQry()) ); 
-                if(*pofs==0){*pofs=idQryOfs.dim();idQryOfs.add(cntAls);} // if this is the first time we encounter this read : add a space 
+                if(*pofs==0){*pofs=idQryOfs.dim();idQryOfs.add(cntAls);}
                 pofs=idQryOfs.ptr(*pofs);
                 const char * seqid=sub.id(hdr->idSub());
-                subList.find((const void*)seqid,sLen(seqid)+1,&(pofs[iAli])); // we remember the index of hit subject here
+                subList.find((const void*)seqid,sLen(seqid)+1,&(pofs[iAli]));
                 ++pofs[iAli];
 
                 if(ial%10000==0) {if( !reqProgress(cntFound, curWork, totWork) ) {doBreak = true;break;}}
@@ -231,21 +241,14 @@ idx DnaAlignmentComparator::OnExecute(idx req)
         }
 
 
-        //if( (curWork % 10000) == 0 ) {
             if( doBreak || !reqProgress(cntFound, curWork, totWork) ) {
                 doBreak = true;
                 break;
             }
-        //}
         ++curWork;
     }
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Output
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
     #define outCell() { \
         const char * seqid=(const char*)subList.id(isub); \
@@ -260,6 +263,28 @@ idx DnaAlignmentComparator::OnExecute(idx req)
     }
     const char * what[3]={"Hits","RPKM","FPKM"};
     sStr bufPath, failedPath00;
+    bool printStatsRPKM = ((valueToUse & 0x02) && wander) ? true : false;
+    sIO outStats, outMean;
+    if (printStatsRPKM){
+        const char * dstPath = reqAddFile(bufPath, "activity-statsRPKM.csv");
+        if( !dstPath ) {
+            failedPath00.printf("activity-statsRPKM.csv");
+            failedPath00.add0();
+        }
+        else {
+            outStats.init(dstPath, sMex::fMapRemoveFile);
+        }
+        bufPath.cut(0);
+        const char * meanPath = reqAddFile(bufPath, "activity-meanRPKM.csv");
+        bufPath.add0cut();
+        if( !meanPath ) {
+            failedPath00.printf("activity-statsRPKM.csv");
+            failedPath00.add0();
+        }
+        else {
+            outMean.init(meanPath, sMex::fMapRemoveFile);
+        }
+    }
 
     logOut(eQPLogType_Debug, "Analyzing results\n");
       {
@@ -275,10 +300,27 @@ idx DnaAlignmentComparator::OnExecute(idx req)
             }
             sIO out;out.init(dstPath,sMex::fMapRemoveFile);
             out.printf("reference");
+            printStatsRPKM = ((vU & 0x02) && wander);
+            if (printStatsRPKM){
+                outStats.addString("reference");
+                outMean.addString("reference");
+            }
             for(idx iac=0, cntAcc=accum.dim() ; iac<cntAcc; ++iac ) {
                 out.printf(",\"%s\"",(const char*)accum.id(iac));
+                if (printStatsRPKM){
+                    const char *printName = (const char*)accum.id(iac);
+                    outStats.printf(",\"%s-num\"",printName);
+                    outStats.printf(",\"%s-mean\"",printName);
+                    outStats.printf(",\"%s-min\"",printName);
+                    outStats.printf(",\"%s-max\"",printName);
+                    outMean.printf(",\"%s\"",printName);
+                }
             }
             out.printf("\n");
+            if( printStatsRPKM ) {
+                outStats.addString("\n");
+                outMean.addString("\n");
+            }
 
             for(idx isub=0, cntSub=subList.dim() ; isub<cntSub; ++isub ) {
                 if(!subList[isub])
@@ -287,26 +329,53 @@ idx DnaAlignmentComparator::OnExecute(idx req)
                 idx lenId;
                 const char * seqid=(const char*)subList.id(isub,&lenId);
                 out.printf("\"%.*s\"",(int)lenId,seqid);
-                //out.printf("\"%s\"",(const char * )subList.id(isub));
+                if( printStatsRPKM ) {
+                    outStats.printf("\"%.*s\"",(int)lenId,seqid);
+                    outMean.printf("\"%.*s\"",(int)lenId,seqid);
+                }
 
                 for(idx iac=0, cntAcc=accum.dim() ; iac<cntAcc; ++iac ) {
                     sDic < Accum > * pacc=accum.ptr(iac);
 
-                    //const char * seqid=(const char*)subList.id(isub);
                     Accum * pAlSub=pacc->get(seqid,lenId);
                     if( !pAlSub ){
                         out.add(",0",2);
+                        if (printStatsRPKM){
+                            outStats.add(",0,0,0,0",8);
+                            outMean.add(",0",2);
+                        }
                     } else {
-                        if(vU==1)out.printf(",%" DEC,pAlSub->hitsRpt);
-                        if(vU&0x02) {
-                            if( !isAllPairedEnd || vTU==1 )
-                                out.printf(",%.5lg",(real)pAlSub->RPKM);
-                            else
-                                out.printf(",%.5lg",(real)pAlSub->FPKM);
+                        if( vU == 1 ){
+                            out.printf(",%" DEC, pAlSub->hitsRpt);
+                        }
+                        if( vU & 0x02 ) {
+                            if( !isAllPairedEnd || vTU == 1 ){
+                                out.printf(",%.5lg", (real) pAlSub->RPKM);
+                                if (printStatsRPKM){
+                                    if (pAlSub->RPKM == 0){
+                                        outStats.add(",0,0,0,0",8);
+                                        outMean.add(",0",2);
+                                    }
+                                    else {
+                                        outStats.printf(",%" DEC, (idx)pAlSub->num);
+                                        outStats.printf(",%.5lg", (real) pAlSub->RPKM / pAlSub->num);
+                                        outStats.printf(",%.5lg", (real) pAlSub->min);
+                                        outStats.printf(",%.5lg", (real) pAlSub->max);
+                                        outMean.printf(",%.5lg", (real) pAlSub->RPKM / pAlSub->num);
+                                    }
+                                }
+                            }
+                            else{
+                                out.printf(",%.5lg", (real) pAlSub->FPKM);
+                            }
                         }
                     }
                 }
-                out.printf("\n"); // 174+2 + 81 +2+1+77+158
+                out.printf("\n");
+                if (printStatsRPKM){
+                    outStats.printf("\n");
+                    outMean.printf("\n");
+                }
             }
         }
 
@@ -439,7 +508,7 @@ int main(int argc, const char * argv[])
     sBioseq::initModule(sBioseq::eACGT);
 
     sStr tmp;
-    sApp::args(argc, argv); // remember arguments in global for future
+    sApp::args(argc, argv);
 
     DnaAlignmentComparator backend("config=qapp.cfg" __, sQPrideProc::QPrideSrvName(&tmp, "dna-alignment-comparator", argv[0]));
     return (int) backend.run(argc, argv);
@@ -447,37 +516,6 @@ int main(int argc, const char * argv[])
 
 
 
-/*  {
-
-        for( idx vTU=0; vTU<2; ++vTU) {
-            idx vU=(vTU+1)&valueToUse;
-
-            sIO out;out.init(destPath(&path,"activityTranspose-%s.csv",what[vTU]));
-            out.printf("alignerID");
-            for(idx isub=0, cntSub=subList.dim() ; isub<cntSub; ++isub ) {
-                if(!subList[isub])
-                    continue;
-                out.printf(",\"%s\"",(const char*)subList.id(isub));
-            }
-            out.printf("\n");
-
-            for(idx iac=0, cntAcc=accum.dim() ; iac<cntAcc; ++iac ) {
-                sDic < Accum > * pacc=accum.ptr(iac);
-
-                out.printf("\"%s\"",(const char * )accum.id(iac));
-
-                for(idx isub=0, cntSub=subList.dim() ; isub<cntSub; ++isub ) {
-                    if(!subList[isub])
-                        continue;
-
-                    outCell();
-
-                }
-                out.printf("\n");
-            }
-        }
-    }
-*/
 
 
 

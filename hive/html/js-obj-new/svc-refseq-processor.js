@@ -48,10 +48,11 @@ var finishedMultiGCCounter = 0;
 var finishedGCCounter = 0;
 var finishedCodonCounter = 0;
 var finishedTableCounter = 0;
+var finishedENcCounter = 0;
 var finishedConversions = 0;
 var finishedTaxCounter = 0;
 var cleanupCounter = 0;
-var submitCounter = 1;  // gets incremented during cleanup(), not when submit is pressed, so that it's consistent all the way through a search
+var submitCounter = 1;
 var assemblyPattern = /GCF_\d{9}\.{1}\d+/i;
 var typeLetters = {"genomic": "G", "mitochondrion": "M", "chloroplast": "C", "plastid": "P", "leucoplast": "L", "chromoplast": "O"}
 var oldTabsToClose = [];
@@ -63,36 +64,64 @@ var forceCleanup = false;
 
 var colorArray = new Array ("#1E90FF", "#228B22", "#4682B4", "#9ACD32", "#9370DB", "#D2B48C", "#FA8072", "#DAA520", "#4B0082", "#708090")
 
+var AminoAcids = ["A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y", "*"]
+var AllCodons = ["TTT", "TCT", "TAT", "TGT", "TTC", "TCC", "TAC", "TGC", "TTA", "TCA", "TAA", "TGA", "TTG", "TCG", "TAG", "TGG", "CTT", "CCT", "CAT", "CGT", "CTC", "CCC", "CAC", "CGC", "CTA", "CCA", "CAA", "CGA", "CTG", "CCG", "CAG", "CGG", "ATT", "ACT", "AAT", "AGT", "ATC", "ACC", "AAC", "AGC", "ATA", "ACA", "AAA", "AGA", "ATG", "ACG", "AAG", "AGG", "GTT", "GCT", "GAT", "GGT", "GTC", "GCC", "GAC", "GGC", "GTA", "GCA", "GAA", "GGA", "GTG", "GCG", "GAG", "GGG"]
+
+var translation = new Object();
+translation[1] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "*", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[2] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "W", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "M", "ACA": "T", "AAA": "K", "AGA": "*", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "*", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[3] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "W", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "T", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "T", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "T", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "T", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "M", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[4] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "W", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[5] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "W", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "M", "ACA": "T", "AAA": "K", "AGA": "S", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "S", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[6] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "Q", "TGA": "*", "TTG": "L", "TCG": "S", "TAG": "Q", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[9] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "W", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "N", "AGA": "S", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "S", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[10] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "C", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[11] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "*", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[12] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "*", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "S", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[13] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "W", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "M", "ACA": "T", "AAA": "K", "AGA": "G", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "G", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[14] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "Y", "TGA": "W", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "N", "AGA": "S", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "S", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[15] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "*", "TTG": "L", "TCG": "S", "TAG": "Q", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[16] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "*", "TTG": "L", "TCG": "S", "TAG": "L", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[21] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "W", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "M", "ACA": "T", "AAA": "N", "AGA": "S", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "S", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[22] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "*", "TAA": "*", "TGA": "*", "TTG": "L", "TCG": "S", "TAG": "L", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[23] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "*", "TCA": "S", "TAA": "*", "TGA": "*", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[24] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "W", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "S", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "K", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[25] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "G", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "L", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+translation[26] = {"TTT": "F", "TCT": "S", "TAT": "Y", "TGT": "C", "TTC": "F", "TCC": "S", "TAC": "Y", "TGC": "C", "TTA": "L", "TCA": "S", "TAA": "*", "TGA": "*", "TTG": "L", "TCG": "S", "TAG": "*", "TGG": "W", "CTT": "L", "CCT": "P", "CAT": "H", "CGT": "R", "CTC": "L", "CCC": "P", "CAC": "H", "CGC": "R", "CTA": "L", "CCA": "P", "CAA": "Q", "CGA": "R", "CTG": "A", "CCG": "P", "CAG": "Q", "CGG": "R", "ATT": "I", "ACT": "T", "AAT": "N", "AGT": "S", "ATC": "I", "ACC": "T", "AAC": "N", "AGC": "S", "ATA": "I", "ACA": "T", "AAA": "K", "AGA": "R", "ATG": "M", "ACG": "T", "AAG": "K", "AGG": "R", "GTT": "V", "GCT": "A", "GAT": "D", "GGT": "G", "GTC": "V", "GCC": "A", "GAC": "D", "GGC": "G", "GTA": "V", "GCA": "A", "GAA": "E", "GGA": "G", "GTG": "V", "GCG": "A", "GAG": "E", "GGG": "G"};
+
+var revtranslation = new Object();
+revtranslation[1] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TGA","TAG"]};
+revtranslation[2] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATA","ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGA","TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG","AGA","AGG"]};
+revtranslation[3] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC"], "K": ["AAA","AAG"], "L": ["TTA","TTG"], "M": ["ATA","ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["CTT","CTC","CTA","CTG","ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGA","TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG"]};
+revtranslation[4] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGA","TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG"]};
+revtranslation[5] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATA","ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC","AGA","AGG"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGA","TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG"]};
+revtranslation[6] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["TAA","TAG","CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TGA"]};
+revtranslation[9] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC","AAA"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC","AGA","AGG"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGA","TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG"]};
+revtranslation[10] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC","TGA"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG"]};
+revtranslation[11] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TGA","TAG"]};
+revtranslation[12] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","CTG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TGA","TAG"]};
+revtranslation[13] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["AGA","AGG","GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATA","ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGA","TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG"]};
+revtranslation[14] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC","AAA"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC","AGA","AGG"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGA","TGG"], "Y": ["TAT","TAC","TAA"], "*": ["TAG"]};
+revtranslation[15] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["TAG","CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TGA"]};
+revtranslation[16] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","TAG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TGA"]};
+revtranslation[21] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC"], "K": ["AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATA","ATG"], "N": ["AAT","AAC","AAA"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC","AGA","AGG"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGA","TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG"]};
+revtranslation[22] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","TAG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TCA","TAA","TGA"]};
+revtranslation[23] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TTA","TAA","TGA","TAG"]};
+revtranslation[24] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG","AGG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC","AGA"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGA","TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG"]};
+revtranslation[25] = {"A": ["GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["TGA","GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA","CTG"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TAG"]};
+revtranslation[26] = {"A": ["CTG","GCT","GCC","GCA","GCG"], "C": ["TGT","TGC"], "D": ["GAT","GAC"], "E": ["GAA","GAG"], "F": ["TTT","TTC"], "G": ["GGT","GGC","GGA","GGG"], "H": ["CAT","CAC"], "I": ["ATT","ATC","ATA"], "K": ["AAA","AAG"], "L": ["TTA","TTG","CTT","CTC","CTA"], "M": ["ATG"], "N": ["AAT","AAC"], "P": ["CCT","CCC","CCA","CCG"], "Q": ["CAA","CAG"], "R": ["CGT","CGC","CGA","CGG","AGA","AGG"], "S": ["TCT","TCC","TCA","TCG","AGT","AGC"], "T": ["ACT","ACC","ACA","ACG"], "V": ["GTT","GTC","GTA","GTG"], "W": ["TGG"], "Y": ["TAT","TAC"], "*": ["TAA","TGA","TAG"]};
+
+gencodeids = [1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 25, 26];
+gencodenames = {1: "Standard", 2: "Vertebrate Mitochondrial", 3: "Yeast Mitochondrial", 4: "Mold Mitochondrial, Protozoan Mitochondrial, Coelenterate Mitochondrial, Mycoplasma, Spiroplasma", 5: "Invertebrate Mitochondrial", 6: "Ciliate Nuclear, Dasycladacean Nuclear, Hexamita Nuclear", 9: "Echinoderm Mitochondrial, Flatworm Mitochondrial", 10: "Euplotid Nuclear", 11: "Bacterial, Archaeal, Plant Plastid", 12: "Alternative Yeast Nuclear", 13: "Ascidian Mitochondrial", 14: "Alternative Flatworm Mitochondrial", 15: "Blepharisma Macronuclear", 16: "Chlorophycean Mitochondrial", 21: "Trematode Mitochondrial", 22: "Scenedesmus obliquus Mitochondrial", 23: "Thraustochytrium Mitochondrial", 24: "Pterobranchia Mitochondrial", 25: "Candidate Division SR1, Gracilibacteria", 26: "Pachysolen tannophilus Nuclear Code"};
+
 
 vjHO.register('svc-refseq-processor').Constructor=function ()
 {
     var id;
-    vjDS.add("", "dsSearch0", "static://");
+    vjDS.add("", "dsSearch0", "static:
     
-    /*var collapser = $("[tab-id=searchTab" + submitCounter +"]");
-    collapser.on("click",
-            function(event) {
-                console.log("hello");
-                
-        }); */
-    /*function getBrowser() {
-          if( navigator.userAgent.indexOf("Chrome") != -1 ) {
-            return "Chrome";
-          } else if( navigator.userAgent.indexOf("Opera") != -1 ) {
-            return "Opera";
-          } else if( navigator.userAgent.indexOf("MSIE") != -1 ) {
-            return "IE";
-          } else if( navigator.userAgent.indexOf("Firefox") != -1 ) {
-            return "Firefox";
-          } else {
-            return "unknown";
-          }
-        }
 
-    browser = getBrowser();
-    if (browser == "IE"){
-        alert("This webpage is not compatible with Internet Explorer. Please use Chrome or Firefox for best results.");
-    } */
+    
 
 
     var taxIDPanel = new vjPanelView({
@@ -104,7 +133,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                 {name: 'depthFilter', type:"checkbox", title: "Deep Search", showTitle: true, align: 'left' , value: true, order : 4},
                 {name: 'newSearchBox', order:99, title:"Add Additional Search", icon:'Add_query', isSubmitable: true, url: onAddSearchBox},
                 {name:'apply', order:100, title: 'Submit All' , icon:'submit' , isSubmitable: true, url: onUpdate }
-                // This is where the dropdowns, checkboxes, etc are defined
                 ],
         formObject: document.forms[formName],
         onKeyPressCallback: smartSearchFunc,
@@ -116,35 +144,18 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
 
    
     var gencodes = new Object();
-    gencodes[0] = ["TTT", "TTC", "TTA", "TTG", "CTT", "CTC", "CTA", "CTG", "ATT", "ATC", "ATA", "ATG", "GTT", "GTC", "GTA", "GTG", "TAT", "TAC", "TAA", "TAG", "CAT", "CAC", "CAA", "CAG", "AAT", "AAC", "AAA", "AAG", "GAT", "GAC", "GAA", "GAG", "TCT", "TCC", "TCA", "TCG", "CCT", "CCC", "CCA", "CCG", "ACT", "ACC", "ACA", "ACG", "GCT", "GCC", "GCA", "GCG", "TGT", "TGC", "TGA", "TGG", "CGT", "CGC", "CGA", "CGG", "AGT", "AGC", "AGA", "AGG", "GGT", "GGC", "GGA", "GGG"];
-    gencodes[1] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TAA', 'TAG', 'TGA'];
-    gencodes[2] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATA', 'ATG', 'TGA', 'TGG', 'AGA', 'AGG', 'TAA', 'TAG'];
-    gencodes[3] = ['TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'CTA', 'CTC', 'CTG', 'CTT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATA', 'ATG', 'TGA', 'TGG', 'TAA', 'TAG'];
-    gencodes[4] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGA', 'TGG', 'TAA', 'TAG'];
-    gencodes[5] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGA', 'AGC', 'AGG', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATA', 'ATG', 'TGA', 'TGG', 'TAA', 'TAG'];
-    gencodes[6] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAA', 'TAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TGA'];
-    gencodes[9] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGA', 'AGC', 'AGG', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAG', 'AAA', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGA', 'TGG', 'TAA', 'TAG'];
-    gencodes[10] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGA', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TAA', 'TAG'];
-    gencodes[11] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TAA', 'TAG', 'TGA'];
-    gencodes[12] = ['CTA', 'CTC', 'CTT', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'CTG', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TAA', 'TAG', 'TGA'];
-    gencodes[13] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'AGA', 'AGG', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATA', 'ATG', 'TGA', 'TGG', 'TAA', 'TAG'];
-    gencodes[14] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGA', 'AGC', 'AGG', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAG', 'AAA', 'AAC', 'AAT', 'CAA', 'CAG', 'TAA', 'TAC', 'TAT', 'ATG', 'TGA', 'TGG', 'TAG'];
-    gencodes[16] = ['CTA', 'CTC', 'CTG', 'CTT', 'TAG', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TAA', 'TGA'];
-    gencodes[21] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGA', 'AGC', 'AGG', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAG', 'AAA', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATA', 'ATG', 'TGA', 'TGG', 'TAA', 'TAG'];
-    gencodes[22] = ['CTA', 'CTC', 'CTG', 'CTT', 'TAG', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TAA', 'TCA', 'TGA'];
-    gencodes[23] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TAA', 'TAG', 'TGA', 'TTA'];
-    gencodes[24] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGA', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AGG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGA', 'TGG', 'TAA', 'TAG'];
-    gencodes[25] = ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'TGA', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TAA', 'TAG'];
-    gencodes[26] = ['CTA', 'CTC', 'CTT', 'TTA', 'TTG', 'AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT', 'AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT', 'CTG', 'GCA', 'GCC', 'GCG', 'GCT', 'GGA', 'GGC', 'GGG', 'GGT', 'CCA', 'CCC', 'CCG', 'CCT', 'ACA', 'ACC', 'ACG', 'ACT', 'GTA', 'GTC', 'GTG', 'GTT', 'ATA', 'ATC', 'ATT', 'TGC', 'TGT', 'GAC', 'GAT', 'GAA', 'GAG', 'TTC', 'TTT', 'CAC', 'CAT', 'AAA', 'AAG', 'AAC', 'AAT', 'CAA', 'CAG', 'TAC', 'TAT', 'ATG', 'TGG', 'TAA', 'TAG', 'TGA'];
+    gencodes[0] = ["TTT", "TCT", "TAT", "TGT", "TTC", "TCC", "TAC", "TGC", "TTA", "TCA", "TAA", "TGA", "TTG", "TCG", "TAG", "TGG", "CTT", "CCT", "CAT", "CGT", "CTC", "CCC", "CAC", "CGC", "CTA", "CCA", "CAA", "CGA", "CTG", "CCG", "CAG", "CGG", "ATT", "ACT", "AAT", "AGT", "ATC", "ACC", "AAC", "AGC", "ATA", "ACA", "AAA", "AGA", "ATG", "ACG", "AAG", "AGG", "GTT", "GCT", "GAT", "GGT", "GTC", "GCC", "GAC", "GGC", "GTA", "GCA", "GAA", "GGA", "GTG", "GCG", "GAG", "GGG"];
 
 
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         id = docLocValue("id");
         
-        vjDS.add("", "dsSearch", "static://");
+        vjDS.add("", "dsSearch", "static:
         vjDS["dsSearch"].register_callback(onSearchResults);
+        
+        vjDS.add("", "dsSearchExplanation", "static:
+        vjDS["dsSearchExplanation"].register_callback(onSearchResults);
 
         var filesStructureToAdd = [{
             tabId: 'searchTab' + submitCounter,
@@ -154,11 +165,26 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                 closeOldTabs();
                 $("[data-id='right']").children("[title='Open']").click();
                 },
-            position: {posId: 'resultsTable', top:'0', bottom:'100%', left:'20%', right:'75%'},
+            position: {posId: 'resultsTable', top:'0', bottom:'80%', left:'20%', right:'75%'},
             viewerConstructor: {
                 views: [{instance:taxIDPanel, size: '45'}],
                 layoutType: "stack",
                 orientation: "vertical"
+            },
+            autoOpen: ["computed"]
+        },
+        {
+             tabId: "dsSearchExplanation0",
+             tabName: "Search Explanation",
+            position: {posId: 'SearchExplanation', top:'80%', bottom:'100%', left:'20%', right:'75%'},
+            viewerConstructor: {
+                dataViewer: "vjTextView",
+                dataViewerOptions:{
+                    data: "dsSearchExplanation",
+                   name: 'basicGraph',
+                   width: "100%",
+                   height: "10vh"
+                }
             },
             autoOpen: ["computed"]
         }];
@@ -169,7 +195,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         algoWidgetObj.moveTab("resultsTable", {top:"0%", left: "20%", right: "75%", bottom: "100%"}, 0);
         
         $("#parameters").closest("li").hide();
-        //$("#progress").closest("li").hide();
+        $("#progress").closest("li").hide();
         $("#whatNext").closest("li").hide();
     };
 
@@ -193,7 +219,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         
         var newdsname = "dsSearch" + submitCounter + allSearches.length.toString();
         
-        vjDS.add("", newdsname, "static://");
+        vjDS.add("", newdsname, "static:
         allSearches.push(newdsname);
         
         var shorttaxIdPanel = new vjPanelView({
@@ -203,7 +229,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                    {name: 'dnaType', type:'select', options: [["genomic", "genomic"], ["mitochondrion", "mitochondrion"], ["chloroplast", "chloroplast"], ["plastid", "plastid"],["leucoplast", "leucoplast"],["chromoplast", "chromoplast"]], value: "genomic", title: " ", align:'left', showTitle: false, readonly:false, order:2},
                    {name: 'valueForFilter', type:"text", title: "Query for search", showTitle: true, align: 'left' , order : 3, path: "/valueForFilter"},
                    {name: 'depthFilter', type:"checkbox", title: "Deep Search", showTitle: true, align: 'left' , value: true, order : 4}
-                   // This is where the dropdowns, checkboxes, etc are defined
                    ],
            formObject: document.forms[formName],
            onKeyPressCallback: smartSearchFunc,
@@ -230,7 +255,8 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         var emptyIndices = [];
         
         for (var index = 0; index<viewerContainer.length;index++){
-            inputVal = viewerContainer[index].tree.root.children[2].value;
+            inputVal = viewerContainer[index].tree.root.children[2].value.trim();
+            inputVal = unescape(inputVal);
             if (inputVal == null){
                 emptyIndices.push(index);
             }
@@ -259,7 +285,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         var id = docLocValue("id");
         
         clearEmptySearches();
-        //closeOldTabs();
         if (submitCounter > 1){
             algoWidgetObj.removeTabs("taxonomyTab" + (submitCounter-1), "results");
         }
@@ -268,19 +293,18 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             
             sourceVal = viewerContainer[index].tree.root.children[0].value ? "genbank" : "refseq";
             dnaTypeVal = viewerContainer[index].tree.root.children[1].value;
-            inputVal = viewerContainer[index].tree.root.children[2].value;
+            inputVal = viewerContainer[index].tree.root.children[2].value.trim();
+            inputVal = unescape(inputVal);
         
             var type = "t";
             if (sourceVal == "genbank"){
                 type += "G";
-                //converturl = "http://?cmd=ionCodonDB&ionCodon=ionCodon/ionCodon.ion&id=" + id + "&genbank=genbank";
-            } else { // sourceVal == "refseq"
+            } else {
                 type += "R";
-                //converturl = "http://?cmd=ionCodonDB&ionCodon=ionCodon/ionCodon.ion&id=" + id + "&genbank=refseq";
             }
             
             type += typeLetters[dnaTypeVal]
-            converturl = "http://?cmd=ionCodonDB&ionCodon=ionCodon/ionCodon.ion&id=" + id + "&type=" + type;
+            converturl = "http:
             
             if (!isNaN(inputVal)){
                 converturl = converturl + "&taxid=" + vjDS.escapeQueryLanguage(inputVal);
@@ -293,7 +317,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             }
                     
             convertdsName = "dsConvert" + submitCounter + index.toString();
-            converturl = converturl + "&raw=1" + "&regex=0";  // when submitting the query for real, don't use regex
+            converturl = converturl + "&raw=1" + "&regex=1"; 
             vjDS.add("", convertdsName, converturl);
             vjDS[convertdsName].reload(converturl, true);
             conversionContainer.push(convertdsName);
@@ -303,15 +327,12 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
     };
     
     function onUpdate2(viewer,node,irow) {
-        // viewer.rebuildTree();
-        //viewerContainer.unshift(viewer);
 
 
-        //var fileVal = viewer.tree.root.children[0].value ? "all_CDS.tab" : "all_species.tab";
         var sourceVal;
         var searchTypeVal;
         var deepSearch;
-        var organellar;
+        var organelle;
         var url;
         var filesStructureToAdd = [];
         var convertdsName;
@@ -322,23 +343,21 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         for(var index = 0; index<viewerContainer.length; index++){
             sourceVal = viewerContainer[index].tree.root.children[0].value ? "genbank" : "refseq";
             dnaTypeVal = viewerContainer[index].tree.root.children[1].value;
-            inputVal = viewerContainer[index].tree.root.children[2].value;
+            inputVal = viewerContainer[index].tree.root.children[2].value.trim();
+            inputVal = unescape(inputVal);
             deepSearch = viewerContainer[index].tree.root.children[3].value;
             
             
             if (sourceVal == "genbank"){
-                url = "http://?cmd=ionTaxidCollapse&svcType=svc-refseq-processor&objId=" + id + "&fileSource=genbank_species.tsv";
-            } else { // sourceVal == "refseq"
-                url = "http://?cmd=ionTaxidCollapse&svcType=svc-refseq-processor&objId=" + id + "&fileSource=refseq_species.tsv";
+                url = "http:
+            } else {
+                url = "http:
             }
                   
             
             url = url + "&taxid=" + vjDS.escapeQueryLanguage(converter[index].taxid);
             
-            /*if (searchTypeVal == 1){
-                url = url + "&filterInColName=Assembly&filterIn=" + inputVal;
-            } */
-            var filter_col_names = ["Organellar"];
+            var filter_col_names = ["Organelle"];
             var filter_col_values = [dnaTypeVal];
             
             if (assemblyPattern.test(inputVal)){
@@ -358,6 +377,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             allRetrieves.push(dsName);
             vjDS[dsName].register_callback(putTaxonomyTree);
             vjDS[dsName].register_callback(reformatText);
+            vjDS[dsName].register_callback(calculateENc);
             vjDS[dsName].register_callback(graphGC);
             vjDS[dsName].register_callback(graphMultipleGC);
             vjDS[dsName].register_callback(graphReorderedCodons);
@@ -367,9 +387,8 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         
         }  
         
-        //algoWidgetObj.addTabs(filesStructureToAdd, "results");
-        //algoWidgetObj.moveTab("resultsTable", {top:"0%", left: "20%", right: "75%", bottom: "100%"}, 0);
         algoWidgetObj.closeTab("searchTab" + submitCounter);
+        algoWidgetObj.closeTab("dsSearchExplanation0");
     };
 
     
@@ -386,21 +405,22 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         placeholder.name = "None";
         placeholder.display = "No Data Available";
         for (var index = 0; index < viewerContainer.length; index++){
-            converter[index] = placeholder; //initialize the array with something
+            converter[index] = placeholder;
         }
         
         for (var index = 0; index < viewerContainer.length; index++){
-            var inputVal = viewerContainer[index].tree.root.children[2].value;
+            var inputVal = viewerContainer[index].tree.root.children[2].value.trim();
+            inputVal = unescape(inputVal)
             var position;
 
             
-            if (!isNaN(inputVal)){  // if it's a number, it's the first spot
+            if (!isNaN(inputVal)){
                 position = 0;
             }
-            else if (assemblyPattern.test(inputVal)){  // if it's an assembly, it's the second spot
+            else if (assemblyPattern.test(inputVal)){
                 position = 1;
             }
-            else {  // if it's a string name, it's the last spot
+            else {
                 position = 2;
             }
             
@@ -411,9 +431,8 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             for (var i = 0; i < splitstring.length; i++){
                 var data = new Object();
                 s = splitstring[i].split(",");
-                //console.log(splitstring[i]);
-                if (s[position] == inputVal){
-                    if (isNaN(inputVal) && !assemblyPattern.test(inputVal)){  //user searches for name (isNaN and not assemb)
+                if (s[position].toLowerCase() == inputVal.toLowerCase()){
+                    if (isNaN(inputVal) && !assemblyPattern.test(inputVal)){
                         data.taxid = s[0];
                         data.assembly = s[1];
                         data.name = s[2];
@@ -425,11 +444,9 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                         }
                         
                         converter[index] = data;
-                        //converter.push(data);
-                        //console.log(data);
                         break;
                     }
-                    else if (assemblyPattern.test(inputVal)){ //user searches for assembly
+                    else if (assemblyPattern.test(inputVal)){
                         data.taxid = s[0];
                         data.assembly = s[1];
                         data.name = s[2];
@@ -440,11 +457,9 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                             data.display = s[2] + " (" + s[1] + ")";
                         }
                         converter[index] = data;
-                        //converter.push(data);
-                        //console.log(data);
                         break;
                     }
-                    else {  //user searches for taxID
+                    else {
                         data.taxid = s[0];
                         data.assembly = s[1];
                         data.name = s[2];
@@ -457,12 +472,12 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                         converter[index] = data;
                         break;    
                         
-                    } // end else (user searched for taxid)
-                }  //end if (s[position] == inputVal)
-            } //end for i<splitstring.length
+                    }
+                }
+            }
             
             
-        } //end for index<viewerContainer.length
+        }
         
         var displayNames = [];
         for (var index = 0; index<converter.length; index++){
@@ -503,9 +518,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             
             if (namePositions.length > 1){
                 for (var i = 0; i<namePositions.length; i++){
-                    /*if (converter[index].display == "No Data Available"){
-                        break;
-                    } */
                     var pos = namePositions[i];
                     var sourceVal = viewerContainer[pos].tree.root.children[0].value ? "genbank" : "refseq";
                     var deepSearch = viewerContainer[pos].tree.root.children[3].value;
@@ -525,8 +537,8 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                     
                     var newname = name.substring(0, name.length-1) + appendage + name.substring(name.length-1, name.length);
                     converter[pos].display = newname;
-                } // end for    
-            } // end if
+                }
+            }
         }
     };
     
@@ -549,7 +561,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             emptySearches.push(searchTerm);            
         }
         
-        for (var i = emptyIndices.length -1; i >= 0; i--){ //go backwards to not splice too early
+        for (var i = emptyIndices.length -1; i >= 0; i--){
             indexToRemove = emptyIndices[i];
             viewerContainer.splice(indexToRemove,1);
             converter.splice(indexToRemove,1);
@@ -557,11 +569,8 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         
         var failedString = "The following search(es) failed:\n";
         if (emptyIndices.length > 0){
-            //alert("The following searches failed:");
-            //console.log("The following searches failed:");
             for (var i = 0; i<emptyIndices.length; i++){
                 failedString += "  " + emptySearches[i] + "\n";
-                //console.log(emptySearches[i]);
             }
             
             failedString += "This could mean either there was no valid data for that search, or a technical problem occurred.\n";
@@ -585,12 +594,13 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             for (var i = 0; i < 4; i++){
                 viewerContainer[index].rows[i].value = viewerContainer[index].tree.root.children[i].value;
             }
-        } // need to do this to protect the values from being reset by rebuildTree()
+        }
 
         var inputVal, sourceVal, dnaTypeVal;
         for (var i = 0; i < viewerContainer.length; i++){
             if (viewerContainer[i].container == this.container){
                 inputVal = viewerContainer[i].tree.root.children[2].value;
+                inputVal = unescape(inputVal);
                 sourceVal = viewerContainer[i].tree.root.children[0].value ? "genbank" : "refseq";
                 dnaTypeVal = viewerContainer[i].tree.root.children[1].value;
                 if (!isNaN(inputVal)){
@@ -621,18 +631,15 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         }
         
         if (el.value && el.value.length >=3 && useDropdown == true && sourceVal && dnaTypeVal){
-            // var nUrl = "http://?cmd=ionTaxidByName&limit=20&name="+el.value + String.fromCharCode(e.which) +"&raw=1";
-            // var nUrl = "http://?cmd=ionCodonDB&ionCodon=ionCodon/ionCodon.ion&id=" + id + "&type=tGG" + ... ;
             var type = "t";
             if (sourceVal == "genbank"){
                 type += "G";
-                //converturl = "http://?cmd=ionCodonDB&ionCodon=ionCodon/ionCodon.ion&id=" + id + "&genbank=genbank";
-            } else { // sourceVal == "refseq"
+            } else {
                 type += "R";
             }
             
             type += typeLetters[dnaTypeVal]
-            var nUrl = "http://?cmd=ionCodonDB&ionCodon=ionCodon/ionCodon.ion&id=" + id + "&type=" + type + "&name=" + vjDS.escapeQueryLanguage(el.value) + "&regex=1";
+            var nUrl = "http:
             searchVal = vjDS.escapeQueryLanguage(el.value) + String.fromCharCode(e.which);
             lastContainer = this.container;
             vjDS["dsSearch"].reload(nUrl, true);
@@ -643,7 +650,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
     function onSearchResults (viewer, content, requestInfo){
         var table = new vjTable (content);
         
-        var containerId = lastContainer; //viewer.container;
+        var containerId = lastContainer;
         var index = null;
         for(var i = 0; i < viewerContainer.length; i++){
             if (viewerContainer[i].container == containerId){
@@ -667,37 +674,21 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             var taxID = table.rows[i].cols[0];
             var name = table.rows[i].cols[2];
             if (seenNames[name]) {
-                continue; // show only 1 dropdown entry per name - independent of assembly/taxid
+                continue;
             } else {
                 viewerContainer[index].rows.push({name: taxID, taxName: name, order:i ,title: name, isSubmitable: true, path: "/valueForFilter/"+taxID, taxID: taxID, url:onUpdateText});
                 seenNames[name] = true;
             }
         }
         
-        /*for (var i = 0; i < 5; i++){
-            viewerContainer[index].rows[i].value = viewerContainer[index].tree.root.children[i].value;
-        }*/
         
-        viewerContainer[index].rebuildTree();  //uncomment this later, but it's causing the searchTypeVal to get reset
-        //viewerContainer[index].refresh(); 
+        viewerContainer[index].rebuildTree();
         
-        /*taxIDPanel.rows.splice(7);
-        taxIDPanel.rows[1].value = searchVal;
-        
-        for(var i = 1; i < table.rows.length; i++){
-            taxIDPanel.rows.push({name:table.rows[i].cols[1], order:i ,title: table.rows[i].cols[1], isSubmitable: true, path: "/valueForFilter/"+table.rows[i].cols[1], taxID: table.rows[i].cols[0], url:onUpdateText});
-        }
-        
-        taxIDPanel.rebuildTree();
-        taxIDPanel.refresh(); */
     };
     
     function onUpdateText (viewer, node, irow){
-        //viewer.tree.root.children[1].value = node.taxID;
         viewer.tree.root.children[2].value = node.taxName;
-        viewer.refresh(); // display value is node.name
-        //viewer.tree.root.children[1].value = node.taxID; // actual searched value is taxID
-        //onUpdate(viewer, node, irow);  // needs to not start the search immediately, just autofill the values
+        viewer.refresh();
     };
     
     function putTaxonomyTree (viewer, content, requestInfo){
@@ -720,16 +711,17 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         filesStructureToAdd.push({
            tabId: "taxonomyTab" + submitCounter,
            tabName: "Taxonomy",
-           tabOrder: 1,
+           tabOrder: 3,
            position: {posId: 'taxonomy', top:'0%', bottom:'50%', left:'20%', right:'65%'},
            viewerConstructor: {
               instance: taxonomy[0]
           },
           autoOpen: ["closed"]
-      });  //adding this tab here breaks when there are multiple searches executed without reloading-- fix w/ Kate 
+      });
       
       algoWidgetObj.addTabs(filesStructureToAdd, "results");
       algoWidgetObj.closeTab("searchTab" + submitCounter);
+      algoWidgetObj.closeTab("dsSearchExplanation0");
     };
     
     
@@ -740,7 +732,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             return;
         }
         
-        var codons = ["TTT", "TTC", "TTA", "TTG", "CTT", "CTC", "CTA", "CTG", "ATT", "ATC", "ATA", "ATG", "GTT", "GTC", "GTA", "GTG", "TAT", "TAC", "TAA", "TAG", "CAT", "CAC", "CAA", "CAG", "AAT", "AAC", "AAA", "AAG", "GAT", "GAC", "GAA", "GAG", "TCT", "TCC", "TCA", "TCG", "CCT", "CCC", "CCA", "CCG", "ACT", "ACC", "ACA", "ACG", "GCT", "GCC", "GCA", "GCG", "TGT", "TGC", "TGA", "TGG", "CGT", "CGC", "CGA", "CGG", "AGT", "AGC", "AGA", "AGG", "GGT", "GGC", "GGA", "GGG"];
+        var codons = ["TTT", "TCT", "TAT", "TGT", "TTC", "TCC", "TAC", "TGC", "TTA", "TCA", "TAA", "TGA", "TTG", "TCG", "TAG", "TGG", "CTT", "CCT", "CAT", "CGT", "CTC", "CCC", "CAC", "CGC", "CTA", "CCA", "CAA", "CGA", "CTG", "CCG", "CAG", "CGG", "ATT", "ACT", "AAT", "AGT", "ATC", "ACC", "AAC", "AGC", "ATA", "ACA", "AAA", "AGA", "ATG", "ACG", "AAG", "AGG", "GTT", "GCT", "GAT", "GGT", "GTC", "GCC", "GAC", "GGC", "GTA", "GCA", "GAA", "GGA", "GTG", "GCG", "GAG", "GGG"];
         var filesStructureToAdd = [];
          
         
@@ -754,6 +746,9 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                 s = splitstring[i].split(",");
                 data[s[0]] = s[1];
             }
+            
+            
+            formattedString += "Table contains " + data["\"#CDS\""] + " CDSs (" + data["\"#codon\""] + " codons)\n\n";
     
             
             var maxes = new Object();
@@ -786,16 +781,15 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                     formattedString += "&nbsp;";
                 }
                 
-                if ((j+1) < codons.length){  // don't need extra space after the last line
+                if ((j+1) < codons.length){
                     if (column == 3){
                         formattedString += "\n";
                     } else { 
                         formattedString += "&nbsp;&nbsp;";
-                        //formattedString += "\n";  //only use when you want to get each one row by row, not in usual table format
                     }
                     
                     if ((j+1)%16 == 0){
-                        formattedString += "\n"; //comment out if you want there to not be an extra space after every 4 rows
+                        formattedString += "\n";
                     }
                 }
                 
@@ -804,7 +798,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             
             var tableDSName = "dsTable" + submitCounter + index.toString();
             
-            vjDS.add("", tableDSName, "static://" + formattedString);
+            vjDS.add("", tableDSName, "static:
             
             curTabs.push(tableDSName + '-cut');
             
@@ -826,6 +820,9 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         
          algoWidgetObj.addTabs(filesStructureToAdd, "results");
          algoWidgetObj.closeTab("searchTab" + submitCounter);
+         algoWidgetObj.closeTab("dsSearchExplanation0");
+         
+     cleanup();
     };
     
     
@@ -838,10 +835,11 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         }
         
         var filesStructureToAdd = [];
+        codonarr = ["TTT", "TTC", "TTA", "TTG", "TCT", "TCC", "TCA", "TCG", "TAT", "TAC", "TAA", "TAG", "TGT", "TGC", "TGA", "TGG", "CTT", "CTC", "CTA", "CTG", "CCT", "CCC", "CCA", "CCG", "CAT", "CAC", "CAA", "CAG", "CGT", "CGC", "CGA", "CGG", "ATT", "ATC", "ATA", "ATG", "ACT", "ACC", "ACA", "ACG", "AAT", "AAC", "AAA", "AAG", "AGT", "AGC", "AGA", "AGG", "GTT", "GTC", "GTA", "GTG", "GCT", "GCC", "GCA", "GCG", "GAT", "GAC", "GAA", "GAG", "GGT", "GGC", "GGA", "GGG"];
         
         for (var index = 0; index<viewerContainer.length; index++){
             var reorderedDataString = "id," + converter[index].display +"\n";
-            var translationTable = 0; //0 is the default order, same as the table; can get it as a variable once I have a function for it
+            var translationTable = 0;
             var data = new Object();
             var splitstring = vjDS[allRetrieves[index]].data.split(/\s+/);
             
@@ -852,14 +850,14 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             
     
             
-            for (var i = 0; i < gencodes[translationTable].length; i++){
-                reorderedDataString += gencodes[translationTable][i] + "," + data[gencodes[translationTable][i]] + "\n";
+            for (var i = 0; i < codonarr.length; i++){
+                reorderedDataString += codonarr[i] + "," + data[codonarr[i]] + "\n";
             }
     
             
             
             freqDSName = "dsFreq" + submitCounter + index.toString();
-            vjDS.add("Reordering codons", freqDSName, "static://" + reorderedDataString);
+            vjDS.add("Reordering codons", freqDSName, "static:
             
             curTabs.push(freqDSName + '-codon');
     
@@ -878,7 +876,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                        options:{
                                title: "graph graph",
                                curveType: 'function',
-                               //colors:vjPAGE.colorsACGT,
                                colors: colorArray,
                             chartArea :{height:'75%', width: '75%' },
                             vAxis: { viewWindow: {min: 0}},
@@ -895,6 +892,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
     
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
         algoWidgetObj.closeTab("searchTab" + submitCounter);
+        algoWidgetObj.closeTab("dsSearchExplanation0");
         
         cleanup();
     };
@@ -923,7 +921,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             newString += "Codon Position 3 GC%," + data["\"GC3%\""] + "\n";
             
             dsGCName = "dsGC" + submitCounter +  index.toString();
-            vjDS.add("Reordering codons", dsGCName, "static://" + newString);
+            vjDS.add("Reordering codons", dsGCName, "static:
             
             curTabs.push(dsGCName + '-gc');
             
@@ -941,7 +939,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                         options:{
                             title: "graph graph",
                             curveType: 'function',
-                            //colors:vjPAGE.colorsACGT,
                             colors: colorArray,
                             vAxis: { viewWindow: {min: 0}},
                             legend: {position: 'none'},
@@ -956,6 +953,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         }
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
         algoWidgetObj.closeTab("searchTab" + submitCounter);
+        algoWidgetObj.closeTab("dsSearchExplanation0");
         
         cleanup();
     };
@@ -967,21 +965,20 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         }
         if (viewerContainer.length == 1){
             cleanup();
-            return;  // don't plot a multiple graph if there's only one search
+            return;
         }
         
         var combinedString = 'id,';
         var dataContainer = [];
         var dataseries = [{name: "id", label: true}];
-        var translationTable = 0; //0 is default order, same as table; change when you have real values to fill in
+        var translationTable = 0;
         
-        /* initialize dataContainer for each search; prep the combinedString with the right headers; create entries in dataseries for each search */ 
         for (var index = 0; index<viewerContainer.length; index++){
             dataContainer[index] = new Object();
             combinedString += converter[index].display + ",";
             dataseries.push({name: converter[index].display, type: "number"});
         }
-        combinedString = combinedString.substring(0,combinedString.length-1) + "\n";  // remove trailing comma, add newline
+        combinedString = combinedString.substring(0,combinedString.length-1) + "\n";
         
         
         for (var index = 0; index<allRetrieves.length; index++){
@@ -993,20 +990,19 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
             }
             
         }
-        //console.log(dataContainer);
         
+        codonarr = ["TTT", "TTC", "TTA", "TTG", "TCT", "TCC", "TCA", "TCG", "TAT", "TAC", "TAA", "TAG", "TGT", "TGC", "TGA", "TGG", "CTT", "CTC", "CTA", "CTG", "CCT", "CCC", "CCA", "CCG", "CAT", "CAC", "CAA", "CAG", "CGT", "CGC", "CGA", "CGG", "ATT", "ATC", "ATA", "ATG", "ACT", "ACC", "ACA", "ACG", "AAT", "AAC", "AAA", "AAG", "AGT", "AGC", "AGA", "AGG", "GTT", "GTC", "GTA", "GTG", "GCT", "GCC", "GCA", "GCG", "GAT", "GAC", "GAA", "GAG", "GGT", "GGC", "GGA", "GGG"]
         
-        for (var i = 0; i < gencodes[translationTable].length; i++){
-            combinedString += gencodes[translationTable][i] + ",";
+        for (var i = 0; i < codonarr.length; i++){
+            combinedString += codonarr[i] + ",";
             for (var index = 0; index<allRetrieves.length; index++){
-                combinedString += ((1000*parseFloat(dataContainer[index][gencodes[translationTable][i]]))/parseFloat(dataContainer[index]["\"#codon\""])).toFixed(2).toString() + ",";
+                combinedString += ((1000*parseFloat(dataContainer[index][codonarr[i]]))/parseFloat(dataContainer[index]["\"#codon\""])).toFixed(2).toString() + ",";
             }
             combinedString = combinedString.substring(0,combinedString.length-1) + "\n";
         }
-        //console.log(combinedString);
         
         multiDSName = "multiDSTable" + submitCounter;
-        vjDS.add("Reordering codons", multiDSName, "static://" + combinedString);        
+        vjDS.add("Reordering codons", multiDSName, "static:
         
         curTabs.push(multiDSName + '-multiCUT');
 
@@ -1024,7 +1020,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                    options:{
                            title: "graph graph",
                            curveType: 'function',
-                           //colors:vjPAGE.colorsACGT,
                            colors: colorArray,
                         chartArea :{height:'75%', width: '75%' },
                         vAxis: { viewWindow: {min: 0}}
@@ -1038,7 +1033,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
     
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
         algoWidgetObj.closeTab("searchTab" + submitCounter);
-        //console.log(dataseries);
+        algoWidgetObj.closeTab("dsSearchExplanation0");
         cleanup();
     };
     
@@ -1049,20 +1044,19 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         }
         if (viewerContainer.length == 1){
             cleanup();
-            return;  // don't plot a multiple graph if there's only one search
+            return;
         }
         
         var combinedString = 'id,';
         var dataContainer = [];
         var dataseries = [{name: "id", label: true}];
         
-        /* initialize dataContainer for each search; prep the combinedString with the right headers; create entries in dataseries for each search */ 
         for (var index = 0; index<viewerContainer.length; index++){
             dataContainer[index] = new Object();
             combinedString += converter[index].display + ",";
             dataseries.push({name: converter[index].display, type: "number"});
         }
-        combinedString = combinedString.substring(0,combinedString.length-1) + "\n";  // remove trailing comma, add newline
+        combinedString = combinedString.substring(0,combinedString.length-1) + "\n";
         
         
         for (var index = 0; index<allRetrieves.length; index++){
@@ -1087,17 +1081,15 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         }
         
 
-        //console.log(combinedString);
         
         multiDSGCName = "multiDSGCTable" + submitCounter;
-        vjDS.add("Plotting multi GC", multiDSGCName, "static://" + combinedString);
+        vjDS.add("Plotting multi GC", multiDSGCName, "static:
         
         curTabs.push(multiDSGCName + '-multiGC');
 
         var filesStructureToAdd = [{
            tabId: multiDSGCName + '-multiGC',  
            tabName: "Combined GC%",
-           //position: {posId: 'codon', top:'10%', bottom:'55%', left:'20%', right:'100%'},
            position: {posId: 'topRightGraph', top:'0%', bottom:'50%', left:'65%', right:'99%'},
            viewerConstructor: {
                dataViewer: "vjGoogleGraphView",
@@ -1109,7 +1101,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                    options:{
                         title: "graph graph",
                         curveType: 'function',
-                        //colors:vjPAGE.colorsACGT,
                         colors: colorArray,
                         vAxis: { viewWindow: {min: 0}},
                         chartArea :{height:'75%', width: '75%' }
@@ -1123,15 +1114,145 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
     
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
         algoWidgetObj.closeTab("searchTab" + submitCounter);
-        //console.log(dataseries);
+        algoWidgetObj.closeTab("dsSearchExplanation0");
         
         cleanup();
     };
     
+    function calculateENc (viewer, content, requestInfo){
+        finishedENcCounter += 1;
+        if (finishedENcCounter < viewerContainer.length){
+            return;
+        }
+        
+               
+        var codons = ["TTT", "TCT", "TAT", "TGT", "TTC", "TCC", "TAC", "TGC", "TTA", "TCA", "TAA", "TGA", "TTG", "TCG", "TAG", "TGG", "CTT", "CCT", "CAT", "CGT", "CTC", "CCC", "CAC", "CGC", "CTA", "CCA", "CAA", "CGA", "CTG", "CCG", "CAG", "CGG", "ATT", "ACT", "AAT", "AGT", "ATC", "ACC", "AAC", "AGC", "ATA", "ACA", "AAA", "AGA", "ATG", "ACG", "AAG", "AGG", "GTT", "GCT", "GAT", "GGT", "GTC", "GCC", "GAC", "GGC", "GTA", "GCA", "GAA", "GGA", "GTG", "GCG", "GAG", "GGG"];
+        var filesStructureToAdd = [];
+        
+        
+        
+
+        
+         
+        
+        for (index = 0; index<viewerContainer.length; index++){
+            var data = new Object();
+            var formattedString = "Effective Number of Codons for each genetic code:\nFor more information about ENc, see the help toolbar at right.\n\n";
+    
+            var splitstring = vjDS[allRetrieves[index]].data.split(/\s+/);
+            
+            for (var i = 0; i < splitstring.length; i++){
+                s = splitstring[i].split(",");
+                data[s[0]] = parseInt(s[1]);
+            }
+    
+            for (gencodeindex = 0; gencodeindex<gencodeids.length; gencodeindex++){
+                gencode = gencodeids[gencodeindex]
+        
+                var n = new Object();
+                var p = new Object();
+                var f = new Object();
+                
+                for (i = 0; i<AminoAcids.length; i++){
+                    aminoacid = AminoAcids[i];
+                    n[aminoacid] = 0;
+                }
+                
+                for (i = 0; i<AminoAcids.length; i++){
+                    aminoacid = AminoAcids[i];
+                    for (j = 0; j<revtranslation[gencode][aminoacid].length; j++){
+                        codon = revtranslation[gencode][aminoacid][j];
+                        n[aminoacid] += data[codon];
+                    }
+                }
+                
+                for (i = 0; i<AllCodons.length; i++){
+                    codon = AllCodons[i];
+                    p[codon] = data[codon]/n[translation[gencode][codon]];
+                }
+                
+                for (i = 0; i<AminoAcids.length; i++){
+                    aminoacid = AminoAcids[i];
+                    psqsum = 0;
+                    for (j = 0; j<revtranslation[gencode][aminoacid].length; j++){
+                        codon = revtranslation[gencode][aminoacid][j];
+                        psqsum += (p[codon]*p[codon]);
+                    }
+                    f[aminoacid] = (n[aminoacid]*psqsum-1)/(n[aminoacid]-1);
+                }
+                
+                
+                var numerators = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0}
+                var denominators = {0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: []}
+                for (i = 0; i<AminoAcids.length; i++){
+                    aminoacid = AminoAcids[i]
+                    numcodons = revtranslation[gencode][aminoacid].length;
+                    numerators[numcodons] += 1;
+                    denominators[numcodons].push(f[aminoacid]);
+                }
+                
+                
+                var ENc = 0;
+                
+                for (i = 0; i<10; i++){
+                    if (numerators[i] == 0){
+                        continue;
+                    }
+                    
+                    sum = 0;
+                    for (j = 0; j<denominators[i].length; j++){
+                        sum += denominators[i][j];
+                    }
+                    
+                    ENc += (numerators[i]/(sum/denominators[i].length));
+                }
+                
+                
+                
+    
+                formattedString +=  gencode + ": " + ENc.toFixed(3) + " (" + gencodenames[gencode] + " code)\n";
+            
+            }
+            
+            var encDSName = "dsENc" + submitCounter + index.toString();
+            
+            vjDS.add("", encDSName, "static:
+            
+            curTabs.push(encDSName + '-enc');
+            
+            
+
+            filesStructureToAdd.push({
+                  tabId: encDSName + '-enc',
+                  tabName: converter[index].display + " Codon Bias",
+                 position: {posId: 'CodonBiasTab', top:'0%', bottom:'50%', left:'20%', right:'65%'},
+                 viewerConstructor: {
+                     dataViewer: "vjTextView",
+                     dataViewerOptions:{
+                         data: encDSName,
+                        name: 'basicGraph',
+                        width: "800px"
+                     }
+                 },
+                 autoOpen: ["closed"]
+             });
+        
+            
+        }
+         algoWidgetObj.addTabs(filesStructureToAdd, "results");
+         algoWidgetObj.closeTab("searchTab" + submitCounter);
+         algoWidgetObj.closeTab("dsSearchExplanation0");
+        
+        
+     cleanup();
+            
+    }; 
+        
+        
     function cleanup(){
         cleanupCounter += 1;
         if (forceCleanup == false){
-            if (cleanupCounter < 4){  // 4 because cleanup() is called by 4 callback functions- if you add another, change to 5
+            if (cleanupCounter < 6){
                 return;
             }
         }
@@ -1148,7 +1269,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                     {name: 'changeFile', type:'select', options: [[0,"RefSeq"], [1,"GenBank"]], value:0, title: " ", align:'left', showTitle: false, readonly:false, order:1, },
                     {name: 'dnaType', type:'select', options: [["genomic", "genomic"], ["mitochondrion", "mitochondrion"], ["chloroplast", "chloroplast"], ["plastid", "plastid"],["leucoplast", "leucoplast"],["chromoplast", "chromoplast"]], value: "genomic", title: " ", align:'left', showTitle: false, readonly:false, order:2},
                     {name: 'valueForFilter', type:"text", title: "Query for search", showTitle: true, align: 'left' , order : 3, path: "/valueForFilter"},
-                    //{name: 'searchType', type:'select', options: [[0,"Species"], [1,"Assembly"], [2,"Taxid"]], value:0, title: "Search Type", align:"left", showTitle: true, readonly:false, order:3, isSubmitable: true},
                     {name: 'depthFilter', type:"checkbox", title: "Deep Search", showTitle: true, align: 'left' , value: true, order : 4},
                     {name: 'newSearchBox', order:99, title:"Add Additional Search", icon:'Add_query', isSubmitable: true, url: onAddSearchBox},
                     {name:'apply', order:100, title: 'Submit All' , icon:'submit' , isSubmitable: true, url: onUpdate }
@@ -1162,7 +1282,7 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         
         id = docLocValue("id");
         
-        vjDS.add("", "dsSearch", "static://");
+        vjDS.add("", "dsSearch", "static:
         vjDS["dsSearch"].register_callback(onSearchResults);
         
         if (forceCleanup == true){
@@ -1170,12 +1290,12 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                 tabId: 'searchTab' + submitCounter,
                 tabName: "Search",
                 multiView: true,
-                tabOrder: 0,  // always insert at the first position
+                tabOrder: 0,
                 callback: function (){
                     closeOldTabs();
                     $("[data-id='right']").children("[title='Open']").click();
                     },
-                position: {posId: 'resultsTable', top:'0', bottom:'100%', left:'20%', right:'100%'},
+                position: {posId: 'resultsTable2', top:'0', bottom:'100%', left:'20%', right:'100%'},
                 viewerConstructor: {
                     views: [{instance:taxIDPanel, size: '45'}],
                     layoutType: "stack",
@@ -1188,12 +1308,12 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
                 tabId: 'searchTab' + submitCounter,
                 tabName: "Search",
                 multiView: true,
-                tabOrder: 0,  // always insert at the first position
+                tabOrder: 0,
                 callback: function (){
                     closeOldTabs();
                     $("[data-id='right']").children("[title='Open']").click();
                     },
-                position: {posId: 'resultsTable', top:'0', bottom:'100%', left:'20%', right:'100%'},
+                position: {posId: 'resultsTable2', top:'0', bottom:'100%', left:'20%', right:'100%'},
                 viewerConstructor: {
                     views: [{instance:taxIDPanel, size: '45'}],
                     layoutType: "stack",
@@ -1204,7 +1324,6 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         }
         
         algoWidgetObj.addTabs(filesStructureToAdd, "results");
-        //algoWidgetObj.moveTab("searchTab" + submitCounter, {top:"0%", left: "20%", right: "75%", bottom: "100%"}, 0);
         algoWidgetObj.moveTab("resultsTable", {top:"0%", left: "20%", right: "100%", bottom: "100%"}, 0);
         
         allSearches = ["dsSearch0"];
@@ -1216,16 +1335,19 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
         conversionContainer = [];
         converter = [];
         
-        //console.log(oldTabsToClose);
+        oldTabsToClose.push("advHelp");
+        oldTabsToClose.push("dsSearchExplanation0");
         closeOldTabs();
         oldTabsToClose = oldTabsToClose.concat(curTabs);
         curTabs = [];
+        
 
         finishedMultiCounter = 0;
         finishedMultiGCCounter = 0;
         finishedGCCounter = 0;
         finishedCodonCounter = 0;
         finishedTableCounter = 0;
+        finishedENcCounter = 0;
         finishedConversions = 0;
         cleanupCounter = 0;
         
@@ -1237,4 +1359,3 @@ vjHO.register('svc-refseq-processor').Constructor=function ()
     
 };
 
-//# sourceURL = getBaseUrl() + "/js-obj-new/svc-refseq-processor.js"

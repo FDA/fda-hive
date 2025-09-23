@@ -29,12 +29,12 @@
  */
 function vjJavaScript(jsobj, code, obj, dataSourceEngine)
 {
-    vjDataViewViewer.call(this, jsobj); // inherit default behaviours of the
+    vjDataViewViewer.call(this, jsobj);
 
     this.vjType='vjJavaScript';
     this.container='no_container';
     this.allowPartialLoad =true;
-    this.dataSourceEngine=dataSourceEngine; // ? dataSourceEngine :  vjDS ;
+    this.dataSourceEngine=dataSourceEngine;
     if(!this.dataSourceEngine)return;
 
     this.evalCode=verarr(this.execCode);
@@ -70,8 +70,6 @@ function vjJavaScript(jsobj, code, obj, dataSourceEngine)
     this.nodiv=true;
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/
-    // Renderer
 
     this.composerFunction=function( viewer , text )
     {
@@ -105,16 +103,6 @@ function vjJavaScript(jsobj, code, obj, dataSourceEngine)
         }
         obj;
     };
-    /*
-    var url=verarr(this.url);
-    if(!this.data)this.data = new Array();
-    for(var i=0 ; i < url.length ; ++i){
-        if(!vjDS["ds_"+url[i]]){
-            vjDS.add("loading scripts", "ds_"+url[i] , url[i]);
-            this.data.push("ds_"+url[i]);
-        }
-    }
-    */
     this.include=function(jsFileName)
     {
         var jsFileVersioned = jsFileName.replace(/^[^:]*:\/\/(hive\.cgi\?f=)?/, "");
@@ -125,14 +113,13 @@ function vjJavaScript(jsobj, code, obj, dataSourceEngine)
                 jsFileVersioned = jsFileBare;
             }
         }
-        var jsFileUrl ="http://" + jsFileVersioned;
+        var jsFileUrl ="http:
         var dsname="dsJavaScript_"+jsFileBare;
 
         if (this.data.indexOf(dsname)!=-1) {
             if( this.dataSourceEngine[dsname].executedAlready)
                 return false;
         } else {
-            // Do not reload the file if it was loaded via <script> in html
             var scripts = document.scripts;
             for (var isc=0; isc<scripts.length; isc++) {
                 var src = scripts[isc].getAttribute("src");
@@ -153,11 +140,6 @@ function vjJavaScript(jsobj, code, obj, dataSourceEngine)
 var vjJS = {};
 
 
-//_/_/_/_/_/_/_/_/_/_/_/
-//_/
-//_/
-//_/
-//_/_/_/_/_/_/_/_/_/_/_/
 
 function vjRegisterJavaScriptEngine(type, obj)
 {
@@ -176,7 +158,6 @@ function vjExecute(type, code, obj)
     js.load(true);
 }
 
-//var vjObjTypeFunctions=new Object();
 function vjHiveTypeExecute(type, code, obj, dir)
 {
     dir = dir || "js-obj";
@@ -190,4 +171,3 @@ function vjHiveTypeExecute(type, code, obj, dir)
     vjExecute(type, vc, obj);
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjJavaScript.js"

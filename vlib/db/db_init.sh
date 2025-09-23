@@ -28,6 +28,7 @@
 # * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # * DEALINGS IN THE SOFTWARE.
 # */
+
 # !!! THIS SCRIPT IS AUTOMATICALLY GENERATED !!!
 
 DB=$1
@@ -71,9 +72,28 @@ if [[ "${DBPORT}" = "" ]]; then
   fi
 fi
 
+# adjust DBHOST to be localhost if provided server name is local/sock
+if [[ "${DBHOST}" != "localhost" && "${DBHOST}" != "127.0.0.1" ]]; then
+   PING=`which ping 2>/dev/null`
+   IPAD=`which ip 2>/dev/null`
+   if [[ "x${IPAD}" == "x" ]]; then
+       IPAD=/sbin/ip
+   fi
+   if [[ "x${PING}" != "x" ]]; then
+       if [[ "x${IPAD}" != "x" ]]; then
+           IP4=`ping -c 1 ${DBHOST} | head -2 | tail -1 | gawk '{print substr($5,2,length($5)-3)}'`
+           if [[ "x${IP4}" != "x" ]]; then
+               ${IPAD} ad | grep "${IP4}" 1>/dev/null 2>&1
+               if [[ $? -eq 0 ]]; then
+                   DBHOST=localhost
+               fi
+fi
+fi
+fi
+fi
 echo "Initializing database '${DB}' on host ${DBHOST}:${DBPORT} for user '${DBUSER}':'${MYSQL_PWD}'"
 
-./db_init_sp.sh ${DB} ${DBUSER} ${MYSQL_PWD} ${DBHOST} ${DBPORT}
+./db_init_sp.sh ${DB} ${DBUSER} ${MYSQL_PWD} ${DBHOST} ${DBPORT} || exit 1
 echo "Initializing database '${DB}' tables on host ${DBHOST}:${DBPORT} for user '${DBUSER}':'${MYSQL_PWD}'"
 
 cat db_init_tbl.sql | mysql -h ${DBHOST} -P${DBPORT} -u ${DBUSER} -p${MYSQL_PWD} --comments ${DB}
@@ -83,7 +103,7 @@ if [[ $? != 0 ]]; then
 fi
 echo "Initializing database '${DB}' data on host ${DBHOST}:${DBPORT} for user '${DBUSER}':'${MYSQL_PWD}'"
 
-cat db_init_data.sql | mysql -h ${DBHOST} -P${DBPORT} -u ${DBUSER} -p${MYSQL_PWD} --comments ${DB} >/dev/null
+cat db_init_data.sql | mysql -h ${DBHOST} -P${DBPORT} -u ${DBUSER} -p${MYSQL_PWD} --comments ${DB}
 if [[ $? != 0 ]]; then
     echo "Database data initialization failed"
     exit 5

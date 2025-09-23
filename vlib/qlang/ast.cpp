@@ -36,10 +36,10 @@ using namespace slib;
 using namespace slib::qlang;
 using namespace slib::qlang::ast;
 
-// keep in sync with qlang::ast::Node::eType
 static const char *NodeNames[] = {
     "uninitialized syntax node",
     "null literal",
+    "bool literal",
     "int literal",
     "real literal",
     "string literal",
@@ -115,7 +115,6 @@ enum checkCtxModeFlags {
     flag_IGNORE_BREAK_CONTINUE = 1 << 2,
 };
 
-// returns -1 on error, 0 on break, 1 on normal
 static idx checkCtxMode(Node *node, Context &ctx, idx flags=0)
 {
     switch (ctx.getMode()) {
@@ -248,6 +247,12 @@ void ScalarLiteral::print(sStr &s) const
     s.printf(" @ %p\n", this);
 }
 
+BoolLiteral::BoolLiteral(bool b, idx line, idx col): ScalarLiteral(line, col)
+{
+    this->_type = node_BOOL_LITERAL;
+    this->_val.setBool(b);
+}
+
 IntLiteral::IntLiteral(idx i, idx line, idx col): ScalarLiteral(line, col)
 {
     this->_type = node_INT_LITERAL;
@@ -299,7 +304,7 @@ bool BoolCast::eval(sVariant &result, Context &ctx) const
 {
     sVariant val;
     CHECK_EVAL(this->_arg, val, 0);
-    result.setInt(val.asBool());
+    result.setBool(val.asBool());
     return true;
 }
 
@@ -324,9 +329,6 @@ bool IntlistCast::eval(sVariant &result, Context &ctx) const
     sVariant val, elt;
     CHECK_EVAL(this->_arg, val, 0);
     result.setList();
-    // cast lists per-element
-    // cast string scalars as comma-, semicolon-, or whitespace-separated lists
-    // cast non-string scalars as one-element lists
     if (val.isList()) {
         for (idx i=0; i<val.dim(); i++) {
             val.getElt(i, elt);
@@ -351,9 +353,6 @@ bool ObjlistCast::eval(sVariant &result, Context &ctx) const
     sVariant val, elt;
     CHECK_EVAL(this->_arg, val, 0);
     result.setList();
-    // cast lists per-element
-    // cast string scalars as comma-, semicolon-, or whitespace-separated lists
-    // cast non-string scalars as one-element lists
     if (val.isList()) {
         for (idx i=0; i<val.dim(); i++) {
             val.getElt(i, elt);
@@ -457,7 +456,6 @@ bool Assign::assign(Node *lhs, sVariant &val, Context &ctx) const
     Node *topic_node = NULL;
     const char *name = NULL;
 
-    // We can assign to variables, properties, or list subscripts
     switch (lhs->getType()) {
     case node_VARIABLE:
         name = dynamic_cast<Variable*>(lhs)->getName();
@@ -469,7 +467,6 @@ bool Assign::assign(Node *lhs, sVariant &val, Context &ctx) const
 
     case node_PROPERTY:
         prop_node = dynamic_cast<Property*>(lhs);
-        // Is the property node applied to an object?
         topic_node = prop_node->getTopic();
         if (topic_node) {
             sVariant topic_val;
@@ -500,7 +497,7 @@ bool Assign::assign(Node *lhs, sVariant &val, Context &ctx) const
         }
         return true;
 
-    default: // fall through
+    default:
         break;
     }
 
@@ -736,22 +733,19 @@ bool Equality::eval(sVariant &result, Context &ctx) const
     Junction *junc_node = dynamic_cast<Junction*>(_rhs);
     CHECK_EVAL(_lhs, lval, 0);
 
-    // for equality operation, rhs can be a junction
     if (junc_node) {
-        // x == a|b means "x == a || x == b"
-        // x != a|b means "x != a && x != b"
         for (idx i=0; i<junc_node->dim(); i++) {
             CHECK_EVAL(junc_node->getElement(i), rval, 0);
             if (ctx.evalEquality(lval, rval)) {
-                result.setInt(_type == node_OP_EQ);
+                result.setBool(_type == node_OP_EQ);
                 return true;
             }
         }
-        result.setInt(_type != node_OP_EQ);
+        result.setBool(_type != node_OP_EQ);
     } else {
         CHECK_EVAL(_rhs, rval, 0);
         bool match = ctx.evalEquality(lval, rval);
-        result.setInt(_type == node_OP_EQ ? match : !match);
+        result.setBool(_type == node_OP_EQ ? match : !match);
     }
     return true;
 }
@@ -779,16 +773,16 @@ bool Comparison::eval(sVariant &result, Context &ctx) const
 
     switch (_type) {
     case node_OP_LT:
-        result.setInt(ctx.evalLess(lval, rval));
+        result.setBool(ctx.evalLess(lval, rval));
         break;
     case node_OP_LE:
-        result.setInt(ctx.evalLessOrEqual(lval, rval));
+        result.setBool(ctx.evalLessOrEqual(lval, rval));
         break;
     case node_OP_GT:
-        result.setInt(ctx.evalGreater(lval, rval));
+        result.setBool(ctx.evalGreater(lval, rval));
         break;
     case node_OP_GE:
-        result.setInt(ctx.evalGreaterOrEqual(lval, rval));
+        result.setBool(ctx.evalGreaterOrEqual(lval, rval));
         break;
     case node_OP_CMP:
         if (ctx.evalEquality(lval, rval))
@@ -811,7 +805,6 @@ bool Has::eval(sVariant &result, Context &ctx) const
     CHECK_EVAL(_lhs, lval, 0);
     Junction *junc_node = dynamic_cast<Junction*>(_rhs);
 
-    // for has operation, rhs can be a junction
     if (junc_node) {
         dim = junc_node->dim();
         rvals.resize(dim);
@@ -836,7 +829,6 @@ Match::Match(Node *lhs, char op, regex_t *re, const char * re_string, idx line, 
     _type = (op == '=') ? node_OP_MATCH : node_OP_NMATCH;
     if (re_string) {
         idx nmatch = 0;
-        // estimate number of substitutions
         for (idx i=0; re_string[i]; i++) {
             if (re_string[i] == '(' && (i == 0 || re_string[i-1] != '\\')) {
                 nmatch++;
@@ -871,21 +863,20 @@ bool BinaryLogic::eval(sVariant &result, Context &ctx) const
     sVariant lval, rval;
     CHECK_EVAL(_lhs, lval, 0);
 
-    // short-circuit semantics: don't evaluate rhs unless needed
     switch(this->_type) {
     case node_OP_AND:
         if (lval.asBool()) {
             CHECK_EVAL(_rhs, rval, 0);
-            result.setInt(rval.asBool());
+            result.setBool(rval.asBool());
         } else
-            result.setInt(0);
+            result.setBool(false);
         break;
     case node_OP_OR:
         if (lval.asBool())
-            result.setInt(1);
+            result.setBool(true);
         else {
             CHECK_EVAL(_rhs, rval, 0);
-            result.setInt(rval.asBool());
+            result.setBool(rval.asBool());
         }
         break;
     default:
@@ -901,7 +892,7 @@ bool Not::eval(sVariant &result, Context &ctx) const
     sVariant val;
     CHECK_EVAL(_arg, val, 0);
 
-    result.setInt(!val.asBool());
+    result.setBool(!val.asBool());
     return true;
 }
 
@@ -1013,7 +1004,6 @@ void FunctionCall::print(sStr &s) const
 MethodCall::MethodCall(Node *topic, Node *verb, idx line, idx col): FunctionCall(verb, line, col), _topic(topic)
 {
     _type = node_METHOD_CALL;
-    // Empty topic means "this"
     if (!_topic)
         _topic = new Variable("this", line, col);
 }
@@ -1051,8 +1041,6 @@ bool Block::eval(sVariant &result, Context &ctx) const
 {
     bool ret = true;
 
-    // a block introduces a new scope, evaluates its expressions
-    // one after another, and returns the last one evaluated
     if (_addsScope)
         ctx.pushScope();
 
@@ -1136,7 +1124,7 @@ bool UnbreakableBlock::eval(sVariant &result, Context &ctx) const
 Lambda::Lambda(const char *arglist00, Block *block, idx line, idx col): Node(line, col)
 {
     _block = block;
-    _block->setAddsScope(false); // make sure we don't delete local variables before returning them
+    _block->setAddsScope(false);
 
     const char *argname;
     for (argname = arglist00; argname && *argname; argname = sString::next00(argname)) {
@@ -1152,7 +1140,6 @@ Lambda::~Lambda()
     delete _block;
 }
 
-// This returns a callable value; use call() to actually call execute the lambda
 bool Lambda::eval(sVariant &result, Context &ctx) const
 {
     CallableWrapper callable(this, ctx.getScope());
@@ -1162,7 +1149,6 @@ bool Lambda::eval(sVariant &result, Context &ctx) const
 
 bool Lambda::call(sVariant &result, Context &ctx, sVariant *topic, sVariant *args, idx nargs) const
 {
-    // assume that context sanity has been checked by the caller...
     if (nargs != _arglist.dim()) {
         ctx.setError(getLocation(), EVAL_BAD_ARGS_NUMBER, "expected %" DEC " arguments, not %" DEC, _arglist.dim(), nargs);
         return false;
@@ -1182,7 +1168,6 @@ bool Lambda::call(sVariant &result, Context &ctx, sVariant *topic, sVariant *arg
 
     sVariant blockResult;
     CHECK_EVAL(_block, blockResult, flag_POP_SCOPE|flag_IGNORE_RETURN);
-    // did we explicitly call return?
     if (ctx.getMode() == Context::MODE_RETURN) {
         result = ctx.getReturnValue();
         ctx.clearReturn();

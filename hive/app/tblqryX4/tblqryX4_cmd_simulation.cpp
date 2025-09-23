@@ -84,8 +84,6 @@ bool SimulationCommand::compute(sTabular * tbl)
 {
     _ctx.logDebug("Running the simulation command...\n");
 
-    // The MFA
-    //sStat::MixtureFactorAnalyzers(idx _numComp, idx _numVar, idx * _numVal, idx ** observations, idx numObs, real stopThresh, idx maxIter);
     idx numComp = 2;
     idx numVar = tbl->cols();
     idx * numVal = new idx[numVar];
@@ -94,13 +92,11 @@ bool SimulationCommand::compute(sTabular * tbl)
     real stopThresh = 1e-3;
     idx maxIter = 10;
 
-    // Populate numVal for the iteration
     for (idx i=0; i<numVar; i++) {
         numVal[i] = 0;
     }
 
 
-    // Iterate through the rows of the table to populate numVal and observations
     for (idx i=0; i < tbl->rows(); i++) {
         observations[i] = new idx[numVar];
         for (idx j=0; j < tbl->cols(); j++) {
@@ -111,19 +107,15 @@ bool SimulationCommand::compute(sTabular * tbl)
         }
     }
 
-    // Construct the mfa
     sStat::MixtureFactorAnalyzers mfa = sStat::MixtureFactorAnalyzers(numComp, numVar, numVal, observations, numObs, stopThresh, maxIter);
 
-    // Storage for the new samples
     idx ** obs = new idx*[numSamples];
     for (idx i=0; i<numSamples; i++) {
         obs[i] = new idx[numVar];
     }
 
-    // Sample
     mfa.sample(obs,numSamples);
 
-   // Now append the table with the samples...
 
     sTxtTbl * toReturn = new sTxtTbl();
 

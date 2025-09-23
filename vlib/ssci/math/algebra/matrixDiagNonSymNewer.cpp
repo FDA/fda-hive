@@ -35,34 +35,17 @@
 
 using namespace slib;
 
-//http://people.sc.fsu.edu/~burkardt/f77_src/toms343/toms343.html
 
-/* diag.f -- translated by f2c (version 20100827).
-   You must link the resulting object file with libf2c:
-    on Microsoft Windows system, link with libf2c.lib;
-    on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-    or, if you install libf2c.a in a standard place, with -lf2c -lm
-    -- in that order, at the end of the command line, as in
-        cc *.o -lf2c -lm
-    Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-        http://www.netlib.org/f2c/libf2c.zip
-*/
 
-//#include "f2c.h"
-
-// /* Subroutine */ int eigenp_(idx *n, idx *nm, real *a, real *t, real * evr, real *evi, real *vecr, real *veci, idx *indic)
 idx sAlgebra::matrix::diagNonSym(idx *n, idx *nm, real *a, real *t, real * evr, real *evi, real *vecr, real *veci, idx *indic)
 {
-    /* System generated locals */
     idx a_dim1, a_offset, veci_dim1, veci_offset, vecr_dim1, vecr_offset,
         i__1, i__2, i__3;
     real r__1, r__2;
 
-    /* Builtin functions */
     double log(real), exp(real), sqrt(real);
 
-    /* Local variables */
     static idx i__, j, k, l, m;
     static real r__;
     static real d1, d2, d3;
@@ -70,106 +53,37 @@ idx sAlgebra::matrix::diagNonSym(idx *n, idx *nm, real *a, real *t, real * evr, 
     static real r1, ex, eps;
     static idx kon, ivec;
     static real work[100], work1[100], work2[100];
-    extern /* Subroutine */ int scale_(idx *, idx *, real *, real *,
+    extern int scale_(idx *, idx *, real *, real *,
         real *, real *);
     static idx local[100];
     static real enorm;
-    extern /* Subroutine */ int hesqr_(idx *, idx *, real *, real *,
+    extern int hesqr_(idx *, idx *, real *, real *,
         real *, real *, real *, idx *, real *, real *);
     static idx iwork[100];
     static real subdia[100];
-    extern /* Subroutine */ int realve_(idx *, idx *, idx *,
+    extern int realve_(idx *, idx *, idx *,
         idx *, real *, real *, real *, real *, idx *, real *,
         idx *, real *, real *);
     static real prfact[100];
-    extern /* Subroutine */ int compve_(idx *, idx *, idx *,
+    extern int compve_(idx *, idx *, idx *,
         idx *, real *, real *, real *, real *, real *, idx *,
         idx *, real *, real *, real *, real *, real *, real *);
 
-/* *********************************************************************72 */
 
-/*  THIS SUBROUTINE FINDS ALL THE EIGENVALULES AND THE */
-/*  EIGENVECTORS OF A REAL GENERAL MATRIX OF ORDER N. */
 
-/*  FIRST IN THE SUBROUTINE SCALE THE MATRIX IS SCALED SO THAT */
-/*  THE CORRESPONDING ROWS AND COLUMNS ARE APPROXIMATELY */
-/*  BALANCED, AND THEN THE MATRIX IS NORMALIZED SO THAT THE */
-/*  VALUE OF THE EUCLIDEAN NORM OF THE MATRIX IS EQUAL TO ONE. */
 
-/*  THE EIGENVALUES ARE COMPUTED BY THE QR DOUBLE-STEP METHOD */
-/*  IN THE SUBROUTINE HESQR. */
 
-/*  THE EIGENVECTORS ARE COMPUTED BY INVERSE ITERATION IN */
-/*  THE SUBROUTINE REALVE, FOR THE REAL EIGENVALUES, OR IN THE */
-/*  SUBROUTINE COMPVE, FOR THE COMPLEX EIGENVALUES. */
 
-/*  THE ELEMENTS OF THE MATRIX ARE TO BE STORED IN THE FIRST N */
-/*  ROWS AND COLUMNS OF THE TWO DIMENSIONAL ARRAY A.  THE */
-/*  ORIGINAL MATRIX IS DESTROYED BY THE SUBROUTINE. */
 
-/*  N IS THE ORDER OF THE MATRIX. */
 
-/*  NM DEFINES THE FIRST DIMENSION OF THE TWO DIMENSIONAL */
-/*  ARRAYS A, VECR, VECI, AND THE DIMENSION OF THE ONE */
-/*  DIMENSIONAL ARRAYS EVR, EVI AND INDIC.  THEREFORE, THE */
-/*  CALLING PROGRAM SHOULD CONTAIN THE FOLLOWING DECLARATIONS: */
-/*    REAL A(NM,NN) */
-/*    REAL EVI(NM) */
-/*    REAL EVR(NM) */
-/*    idx INDIC(NM) */
-/*    REAL VECI(NM,NN) */
-/*    REAL VECR(NM,NN) */
-/*  WHERE NM AND NN ARE ANY NUMBERS EQUAL TO OR GREATER THAN N. */
-/*  THE UPPER LIMIT FOR NM IS EQUAL TO 100, BUT MAY BE */
-/*  INCREASED TO THE VALUE MAX BY REPLACING THE DIMENSION */
-/*  STATEMENTS: */
-/*    idx IWORK(100) */
-/*    idx LOCAL(100) */
-/*    DOUBLE PRECISION PRFACT(100) */
-/*    REAL SUBDIA(100) */
-/*    REAL WORK(100) */
-/*    REAL WORK1(100) */
-/*    REAL WORK2(100) */
-/*  IN THE SUBROUTINE EIGENP BY */
-/*    idx IWORK(MAX) */
-/*    idx LOCAL(MAX) */
-/*    DOUBLE PRECISION PRFACT(MAX) */
-/*    REAL SUBDIA(MAX) */
-/*    REAL WORK(MAX) */
-/*    REAL WORK1(MAX) */
-/*    REAL WORK2(MAX) */
-/*  NM AND NN ARE OF COURSE BOUNDED BY THE SIZE OF THE STORE. */
 
-/*  THE REAL PARAMETER T MUST BE SET EQUAL TO THE NUMBER OF */
-/*  BINARY DIGITS IN THE MANTISSA OF A SINGLE PRECISION */
-/*  FLOATING-POINT NUMBER. */
 
-/*  THE REAL PARTS OF THE N COMPUTED EIGENVALUES WILL BE FOUND */
-/*  IN THE FIRST N PLACES OF THE ARRAY EVI. */
-/*  THE REAL COMPONENTS OF THE NORMALIZED EIGENVECTOR I */
-/*  (I=1,2,...,N) CORRESPONDING TO THE EIGENVALUE STORED IN */
-/*  EVR(I) AND EVI(I) WILL BE FOUND IN THE FIRST N PLACES OF */
-/*  THE COLUMN I OF THE TWO DIMENSIONAL ARRAY VECR AND THE */
-/*  IMAGINARY COMPONENTS IN THE FIRST N PLACES OF THE COLUMN I */
-/*  OF THE TWO DIMENSIONAL ARRAY VECI. */
 
-/*  THE REAL EIGENVECTOR IS NORMALIZED SO THAT THE SUM OF THE */
-/*  SQUARES OF THE COMPONENTS IS EQUAL TO ONE. */
 
-/*  THE COMPLEX EIGENVECTOR IS NORMALIZED SO THAT THE */
-/*  COMPONENT WITH THE LARGEST VALUE IN MODULUS HAS ITS REAL */
-/*  PART EQUAL TO ONE AND THE IMAGINARY PART EQUAL TO ZERO. */
 
-/*  THE ARRAY INDIC INDICATES THE SUCCESS OF THE SUBROUTINE */
-/*  EIGENP AS FOLLOWS: */
 
-/*    VALUE OF INDIC(I)    EIGENVALUE I    EIGENVECTOR I */
 
-/*           0             NOT FOUND       NOT FOUND */
-/*           1                 FOUND       NOT FOUND */
-/*           2                 FOUND           FOUND */
 
-    /* Parameter adjustments */
     --indic;
     veci_dim1 = *nm;
     veci_offset = 1 + veci_dim1;
@@ -183,7 +97,6 @@ idx sAlgebra::matrix::diagNonSym(idx *n, idx *nm, real *a, real *t, real * evr, 
     a_offset = 1 + a_dim1;
     a -= a_offset;
 
-    /* Function Body */
     if (*n != 1) {
     goto L1;
     }
@@ -196,20 +109,11 @@ idx sAlgebra::matrix::diagNonSym(idx *n, idx *nm, real *a, real *t, real * evr, 
 L1:
     scale_(n, nm, &a[a_offset], &veci[veci_offset], prfact, &enorm);
 
-/*  THE COMPUTATION OF THE EIGENVALUES OF THE NORMALIZED */
-/*  MATRIX. */
 
     ex = exp(-(*t) * log(2.f));
     hesqr_(n, nm, &a[a_offset], &veci[veci_offset], &evr[1], &evi[1], subdia,
         &indic[1], &eps, &ex);
 
-/*  THE POSSIBLE DECOMPOSITION OF THE UPPER-HESSENBERG MATRIX */
-/*  INTO THE SUBMATRICESS OF LOWER ORDER IS INDICATED IN THE */
-/*  ARRAY LOCAL.  THE DECOMPOSITION OCCURS WHEN SOME */
-/*  SUBDIAGONAL ELEMENTS ARE IN MODULUS LESS THAN A SMALL */
-/*  POSITIVE NUMBER EPS DEFINED IN THE SUBROUTINE HESQR.  THE */
-/*  AMOUNT OF WORK IN THE EIGENVECTOR PROBLEM MAY BE */
-/*  DIMINISHED IN THIS WAY. */
 
     j = *n;
     i__ = 1;
@@ -230,7 +134,6 @@ L3:
     goto L2;
     }
 
-/*  THE EIGENVECTOR PROBLEM. */
 
 L4:
     k = 1;
@@ -254,14 +157,11 @@ L5:
         goto L8;
     }
 
-/*  TRANSFER OF AN UPPER-HESSENBERG MATRIX OF ORDER M FROM */
-/*  THE ARRAYS VECI AND SUBDIA INTO THE ARRAY A. */
 
     i__2 = m;
     for (k1 = 1; k1 <= i__2; ++k1) {
         i__3 = m;
         for (l1 = k1; l1 <= i__3; ++l1) {
-/* L6: */
         a[k1 + l1 * a_dim1] = veci[k1 + l1 * veci_dim1];
         }
         if (k1 == 1) {
@@ -272,19 +172,11 @@ L7:
         ;
     }
 
-/*  THE COMPUTATION OF THE REAL EIGENVECTOR IVEC OF THE UPPER- */
-/*  HESSENBERG MATRIX CORRESPONDING TO THE REAL EIGENVALUE */
-/*  EVR(IVEC). */
 
     realve_(n, nm, &m, &ivec, &a[a_offset], &vecr[vecr_offset], &evr[1], &
         evi[1], iwork, work, &indic[1], &eps, &ex);
     goto L10;
 
-/*  THE COMPUTATION OF THE COMPLEX EIGENVECTOR IVEC OF THE */
-/*  UPPER-HESSENBERG MATRIX CORRESPONDING TO THE COMPLEX */
-/*  EIGENVALUE EVR(IVEC)+I*EVI(IVEC).  IF THE VALUE OF KON IS */
-/*  NOT EQUAL TO ZERO, THEN THIS COMPLEX EIGENVECTOR HAS */
-/*  ALREADY BEEN FOUND FROM ITS CONJUGATE. */
 
 L8:
     if (kon != 0) {
@@ -301,18 +193,14 @@ L10:
     ;
     }
 
-/*  THE RECONSTRUCTION OF THE MATRIX USED IN THE REDUCTION OF */
-/*  MATRIX A TO AN UPPER-HESSENBERG FORM BY HOUSEHOLDER METHOD. */
 
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
     i__2 = *n;
     for (j = i__; j <= i__2; ++j) {
         a[i__ + j * a_dim1] = 0.f;
-/* L11: */
         a[j + i__ * a_dim1] = 0.f;
     }
-/* L12: */
     a[i__ + i__ * a_dim1] = 1.f;
     }
     if (*n <= 2) {
@@ -328,19 +216,15 @@ L10:
         i__3 = *n;
         for (i__ = l; i__ <= i__3; ++i__) {
         d2 = veci[i__ + k * veci_dim1];
-/* L13: */
         d1 += d2 * a[j + i__ * a_dim1];
         }
         i__3 = *n;
         for (i__ = l; i__ <= i__3; ++i__) {
-/* L14: */
         a[j + i__ * a_dim1] -= veci[i__ + k * veci_dim1] * d1;
         }
     }
     }
 
-/*  THE COMPUTATION OF THE EIGENVECTORS OF THE ORIGINAL NON- */
-/*  SCALED MATRIX. */
 
 L15:
     kon = 1;
@@ -381,8 +265,6 @@ L18:
         ;
     }
 
-/*  THE NORMALIZATION OF THE EIGENVECTORS AND THE COMPUTATION */
-/*  OF THE EIGENVALUES OF THE ORIGINAL NON-NORMALIZED MATRIX. */
 
     if (l == 1) {
         goto L21;
@@ -390,8 +272,6 @@ L18:
     d1 = 0.f;
     i__2 = *n;
     for (m = 1; m <= i__2; ++m) {
-/* L19: */
-/* Computing 2nd power */
         r__1 = work[m - 1];
         d1 += r__1 * r__1;
     }
@@ -399,7 +279,6 @@ L18:
     i__2 = *n;
     for (m = 1; m <= i__2; ++m) {
         veci[m + i__ * veci_dim1] = 0.f;
-/* L20: */
         vecr[m + i__ * vecr_dim1] = work[m - 1] / d1;
     }
     evr[i__] *= enorm;
@@ -413,9 +292,7 @@ L21:
     r__ = 0.f;
     i__2 = *n;
     for (j = 1; j <= i__2; ++j) {
-/* Computing 2nd power */
         r__1 = work[j - 1];
-/* Computing 2nd power */
         r__2 = subdia[j - 1];
         r1 = r__1 * r__1 + r__2 * r__2;
         if (r__ >= r1) {
@@ -435,7 +312,6 @@ L22:
         vecr[j + i__ * vecr_dim1] = (d1 * d3 + d2 * r1) / r__;
         veci[j + i__ * veci_dim1] = (d2 * d3 - d1 * r1) / r__;
         vecr[j + (i__ - 1) * vecr_dim1] = vecr[j + i__ * vecr_dim1];
-/* L23: */
         veci[j + (i__ - 1) * veci_dim1] = -veci[j + i__ * veci_dim1];
     }
 L24:
@@ -443,19 +319,16 @@ L24:
     }
 L25:
     return 0;
-} /* eigenp_ */
+}
 
-/* Subroutine */ int scale_(idx *n, idx *nm, real *a, real *h__,
+int scale_(idx *n, idx *nm, real *a, real *h__,
     real *prfact, real *enorm)
 {
-    /* System generated locals */
     idx a_dim1, a_offset, h_dim1, h_offset, i__1, i__2;
     real r__1;
 
-    /* Builtin functions */
     double sqrt(real);
 
-    /* Local variables */
     static idx i__, j;
     static real q, row;
     static idx iter;
@@ -464,34 +337,12 @@ L25:
     static real factor, column;
     static idx ncount;
 
-/* *********************************************************************72 */
 
-/*  THIS SUBROUTINE STORES THE MATRIX OF THE ORDER N FROM THE */
-/*  ARRAY A INTO THE ARRAY H.  AFTERWARD, THE MATRIX IN THE */
-/*  ARRAY A IS SCALED SO THAT THE QUOTIENT OF THE ABSOLUTE SUM */
-/*  OF THE OFF-DIAGONAL ELEMENTS OF COLUMN I AND THE ABSOLUTE */
-/*  SUM OF THE OFF-DIAGONAL ELEMENTS OF ROW I LIES WITHIN THE */
-/*  VALUES OF BOUND1 AND BOUND2. */
 
-/*  THE COMPONENT I OF THE EIGENVECTOR OBTAINED BY USING THE */
-/*  SCALED MATRIX MUST BE DIVIDED BY THE VALUE FOUND IN THE */
-/*  PRFACT(I) OF THE ARRAY PRFACT.  IN THIS WAY, THE EIGENVECTOR */
-/*  OF THE NON-SCALED MATRIX IS OBTAINED. */
 
-/*  AFTER THE MATRIX IS SCALED, IT IS NORMALIZED SO THAT THE */
-/*  VALUE OF THE EUCLIDEAN NORM IS EQUAL TO ONE. */
-/*  IF THE PROCESS OF SCALING WAS NOT SUCCESSFUL, THE ORIGINAL */
-/*  MATRIX FROM THE ARRAY H WOULD BE STORED BAK INTO A AND */
-/*  THE EIGENPROBLEM WOULD BE SOLVED BY USING THIS MATRIX. */
 
-/*  NM DEFINES THE FIRST DIMENSION OF THE ARRAYS A AND H.  NM */
-/*  MUST BE GREATER OR EQUAL TO N. */
 
-/*  THE EIGENVALUES OF THE NORMALIZED MATRIX MUST BE */
-/*  MULTIPLIED BY THE SCALAR ENORM IN ORDER THAT THEY BECOME */
-/*  THE EIGENVALUES OF THE NON-NORMALIZED MATRIX. */
 
-    /* Parameter adjustments */
     --prfact;
     h_dim1 = *nm;
     h_offset = 1 + h_dim1;
@@ -500,15 +351,12 @@ L25:
     a_offset = 1 + a_dim1;
     a -= a_offset;
 
-    /* Function Body */
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
     i__2 = *n;
     for (j = 1; j <= i__2; ++j) {
-/* L1: */
         h__[i__ + j * h_dim1] = a[i__ + j * a_dim1];
     }
-/* L2: */
     prfact[i__] = 1.f;
     }
     bound1 = .75f;
@@ -575,7 +423,6 @@ L8:
     i__2 = *n;
     for (j = 1; j <= i__2; ++j) {
         q = a[i__ + j * a_dim1];
-/* L9: */
         fnorm += q * q;
     }
     }
@@ -584,7 +431,6 @@ L8:
     for (i__ = 1; i__ <= i__2; ++i__) {
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
-/* L10: */
         a[i__ + j * a_dim1] /= fnorm;
     }
     }
@@ -595,26 +441,22 @@ L11:
     for (i__ = 1; i__ <= i__1; ++i__) {
     i__2 = *n;
     for (j = 1; j <= i__2; ++j) {
-/* L12: */
         a[i__ + j * a_dim1] = h__[i__ + j * h_dim1];
     }
     }
     *enorm = 1.f;
 L13:
     return 0;
-} /* scale_ */
+}
 
-/* Subroutine */ int hesqr_(idx *n, idx *nm, real *a, real *h__, real
+int hesqr_(idx *n, idx *nm, real *a, real *h__, real
     *evr, real *evi, real *subdia, idx *indic, real *eps, real *ex)
 {
-    /* System generated locals */
     idx a_dim1, a_offset, h_dim1, h_offset, i__1, i__2, i__3;
     real r__1;
 
-    /* Builtin functions */
     double sqrt(real);
 
-    /* Local variables */
     static idx i__, j, k, l, m;
     static real r__;
     static real s;
@@ -625,40 +467,14 @@ L13:
     static real shift;
     static idx maxst;
 
-/* *********************************************************************72 */
 
-/*  THIS SUBROUTINE FINDS ALL THE EIGENVALUES OF A REAL */
-/*  GENERAL MATRIX.  THE ORIGINAL MATRIX A OF ORDER N IS */
-/*  REDUCED TO THE UPPER-HESSENBERG FORM H BY MEANS OF */
-/*  SIMILARITY TRANSFORMATIONS (HOUSEHOLDER METHOD).  THE MATRIX */
-/*  H IS PRESERVED IN THE UPPER HALF OF THE ARRAY H AND IN THE */
-/*  ARRAY SUBDIA.  THE SPECIAL VECTORS USED IN THE DEFINITION */
-/*  OF THE HOUSEHOLDER TRANSFORMATION MATRICES ARE STORED IN */
-/*  THE LOWER PART OF THE ARRAY H. */
 
-/*  NM IS THE FIRST DIMENSION OF THE ARRAYS A AND H.  NM MUST */
-/*  BE EQUAL TO OR GREATER THAN N. */
 
-/*  THE REAL PARTS OF THE N EIGENVALUES WILL BE FOUND IN THE */
-/*  FIRST N PLACES OF THE ARRAY EVR, AND */
-/*  THE IMAGINARY PARTS IN THE FIRST N PLACES OF THE ARRAY EVI. */
 
-/*  THE ARRAY INDIC INDICATES THE SUCCESS OF THE ROUTINE AS */
-/*  FOLLOWS: */
 
-/*    VALUE OF INDIC(I)  EIGENVALUE I */
-/*           0             NOT FOUND */
-/*           1                 FOUND */
 
-/*  EPS IS A SMALL POSITIVE NUMBER THAT NUMERICALLY REPRESENTS */
-/*  ZERO IN THE PROGRAM.  EPS = (EUCLIDEAN NORM OF H)*EX, WHERE */
-/*  EX = 2**(-T).  T IS THE NUMBER OF BINARY DIGITS IN THE */
-/*  MANTISSA OF A FLOATING POINT NUMBER. */
 
-/*  REDUCTION OF THE MATRIX A TO AN UPPER-HESSENBERG FORM H. */
-/*  THERE ARE N-2 STEPS. */
 
-    /* Parameter adjustments */
     --indic;
     --subdia;
     --evi;
@@ -670,7 +486,6 @@ L13:
     a_offset = 1 + a_dim1;
     a -= a_offset;
 
-    /* Function Body */
     if ((i__1 = *n - 2) < 0) {
     goto L14;
     } else if (i__1 == 0) {
@@ -690,7 +505,6 @@ L2:
     i__2 = *n;
     for (i__ = l; i__ <= i__2; ++i__) {
         h__[i__ + k * h_dim1] = a[i__ + k * a_dim1];
-/* L3: */
         s += (r__1 = a[i__ + k * a_dim1], dabs(r__1));
     }
     if (s != (r__1 = a[k + 1 + k * a_dim1], dabs(r__1))) {
@@ -706,7 +520,6 @@ L4:
         sr = a[i__ + k * a_dim1];
         sr /= s;
         a[i__ + k * a_dim1] = sr;
-/* L5: */
         sr2 += sr * sr;
     }
     sr = sqrt(sr2);
@@ -723,40 +536,33 @@ L6:
     i__2 = *n;
     for (i__ = l; i__ <= i__2; ++i__) {
         h__[i__ + k * h_dim1] /= x;
-/* L7: */
         subdia[i__] = a[i__ + k * a_dim1] / sr2;
     }
 
-/*  PREMULTIPLICATION BY THE MATRIX PR. */
 
     i__2 = *n;
     for (j = l; j <= i__2; ++j) {
         sr = 0.f;
         i__3 = *n;
         for (i__ = l; i__ <= i__3; ++i__) {
-/* L8: */
         sr += a[i__ + k * a_dim1] * a[i__ + j * a_dim1];
         }
         i__3 = *n;
         for (i__ = l; i__ <= i__3; ++i__) {
-/* L9: */
         a[i__ + j * a_dim1] -= subdia[i__] * sr;
         }
     }
 
-/*  POSTMULTIPLICATION BY THE MATRIX PR. */
 
     i__3 = *n;
     for (j = 1; j <= i__3; ++j) {
         sr = 0.f;
         i__2 = *n;
         for (i__ = l; i__ <= i__2; ++i__) {
-/* L10: */
         sr += a[j + i__ * a_dim1] * a[i__ + k * a_dim1];
         }
         i__2 = *n;
         for (i__ = l; i__ <= i__2; ++i__) {
-/* L11: */
         a[j + i__ * a_dim1] -= subdia[i__] * sr;
         }
     }
@@ -765,12 +571,9 @@ L12:
     }
     i__1 = m;
     for (k = 1; k <= i__1; ++k) {
-/* L13: */
     a[k + 1 + k * a_dim1] = subdia[k];
     }
 
-/*  TRANSFER OF THE UPPER HALF OF THE MATRIX A INTO THE */
-/*  ARRAY H, AND THE CALCULATION OF THE SMALL POSITIVE NUMBER EPS. */
 
     subdia[*n - 1] = a[*n + (*n - 1) * a_dim1];
 L14:
@@ -779,26 +582,19 @@ L14:
     for (k = 1; k <= i__1; ++k) {
     indic[k] = 0;
     if (k != *n) {
-/* Computing 2nd power */
         r__1 = subdia[k];
         *eps += r__1 * r__1;
     }
     i__2 = *n;
     for (i__ = k; i__ <= i__2; ++i__) {
         h__[k + i__ * h_dim1] = a[k + i__ * a_dim1];
-/* L15: */
-/* Computing 2nd power */
         r__1 = a[k + i__ * a_dim1];
         *eps += r__1 * r__1;
     }
     }
     *eps = *ex * sqrt(*eps);
 
-/*  THE QR ITERATIVE PROCESS.  THE UPPER-HESSENBERG MATRIX H IS */
-/*  REDUCED TO THE UPPER-MODIFIED TRIANGULAR FORM. */
 
-/*  DETERMINATION OF THE SHIFT OF ORIGIN FOR THE FIRST STEP OF */
-/*  THE QR ITERATIVE PROCESS. */
 
     shift = a[*n + (*n - 1) * a_dim1];
     if (*n <= 2) {
@@ -817,8 +613,6 @@ L14:
     ns = 0;
     maxst = *n * 10;
 
-/*  TESTING IF THE UPPER HALF OF THE MATRIX IS EQUAL TO ZERO. */
-/*  IF IT IS EQUAL TO ZERO, THE QR PROCESS IS NOT NECESSARY. */
 
     i__2 = *n;
     for (i__ = 2; i__ <= i__2; ++i__) {
@@ -827,30 +621,22 @@ L14:
         if (a[i__ - 1 + k * a_dim1] != 0.f) {
         goto L18;
         }
-/* L16: */
     }
     }
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
     indic[i__] = 1;
     evr[i__] = a[i__ + i__ * a_dim1];
-/* L17: */
     evi[i__] = 0.f;
     }
     goto L37;
 
-/*  START THE MAIN LOOP OF THE QR PROCESS. */
 
 L18:
     k = m - 1;
     m1 = k;
     i__ = k;
 
-/*  FIND ANY DECOMPOSITIONS OF THE MATRIX. */
-/*  JUMP TO 34 IF THE LAST SUBMATRIX OF THE DECOMPOSITION IS */
-/*  OF THE ORDER ONE. */
-/*  JUMP TO 35 IF THE LAST SUBMATRIX OF THE DECOMPOSITION IS */
-/*  OF THE ORDER TWO. */
 
     if (k < 0) {
     goto L37;
@@ -880,17 +666,13 @@ L21:
     goto L35;
     }
 
-/*  TRANSFORMATION OF THE MATRIX OF THE ORDER GREATER THAN TWO. */
 
     s = a[m + m * a_dim1] + a[m1 + m1 * a_dim1] + shift;
-/* Computing 2nd power */
     r__1 = shift;
     sr = a[m + m * a_dim1] * a[m1 + m1 * a_dim1] - a[m + m1 * a_dim1] * a[m1
         + m * a_dim1] + r__1 * r__1 * .25f;
     a[k + 2 + k * a_dim1] = 0.f;
 
-/*  CALCULATE X1, Y1, Z1 FOR THE SUBMATRIX OBTAINED BY THE */
-/*  DECOMPOSITION. */
 
     x = a[k + k * a_dim1] * (a[k + k * a_dim1] - s) + a[k + (k + 1) * a_dim1]
         * a[k + 1 + k * a_dim1] + sr;
@@ -907,7 +689,6 @@ L21:
     shift = 0.f;
     ++ns;
 
-/*  THE LOOP FOR ONE STEP OF THE QR PROCESS. */
 
     i__1 = m1;
     for (i__ = k; i__ <= i__1; ++i__) {
@@ -915,7 +696,6 @@ L21:
         goto L22;
     }
 
-/*  CALCULATE XR, YR, ZR. */
 
     x = a[i__ + (i__ - 1) * a_dim1];
     y = a[i__ + 1 + (i__ - 1) * a_dim1];
@@ -957,7 +737,6 @@ L26:
     x = y / s;
     y = z__ / s;
 
-/*  PREMULTIPLICATION BY THE MATRIX PR. */
 
     i__2 = m;
     for (j = i__; j <= i__2; ++j) {
@@ -978,7 +757,6 @@ L28:
         ;
     }
 
-/*  POSTMULTIPLICATION BY THE MATRIX PR. */
 
     l = i__ + 2;
     if (i__ < m1) {
@@ -1021,7 +799,6 @@ L33:
     }
     goto L18;
 
-/*  COMPUTE THE LAST EIGENVALUE. */
 
 L34:
     evr[m] = a[m + m * a_dim1];
@@ -1030,8 +807,6 @@ L34:
     m = k;
     goto L18;
 
-/*  COMPUTE THE EIGENVALUES OF THE LAST 2X2 MATRIX OBTAINED BY */
-/*  THE DECOMPOSITION. */
 
 L35:
     r__ = (a[k + k * a_dim1] + a[m + m * a_dim1]) * .5f;
@@ -1059,17 +834,15 @@ L36:
     goto L18;
 L37:
     return 0;
-} /* hesqr_ */
+}
 
-/* Subroutine */ int realve_(idx *n, idx *nm, idx *m, idx *
+int realve_(idx *n, idx *nm, idx *m, idx *
     ivec, real *a, real *vecr, real *evr, real *evi, idx *iwork, real
     *work, idx *indic, real *eps, real *ex)
 {
-    /* System generated locals */
     idx a_dim1, a_offset, vecr_dim1, vecr_offset, i__1, i__2;
     real r__1, r__2;
 
-    /* Local variables */
     static idx i__, j, k, l;
     static real r__;
     static real s;
@@ -1079,51 +852,18 @@ L37:
     static idx iter;
     static real bound, evalue, previs;
 
-/* *********************************************************************72 */
 
-/*  THIS SUBROUTINE FINDS THE REAL EIGENVECTOR OF THE REAL */
-/*  UPPER-HESSENBERG MATRIX IN THE ARRAY A, CORRESPONDING TO */
-/*  THE REAL EIGENVALUE STORED IN EVR(IVEC).  THE INVERSE */
-/*  ITERATION METHOD IS USED. */
 
-/*  NOTE THE MATRIX IN A IS DESTROYED BY THE SUBROUTINE. */
 
-/*  N IS THE ORDER OF THE UPPER HESSENBERG MATRIX. */
 
-/*  NM DEFINES THE FIRST DIMENSION OF THE TWO DIMENSIONAL */
-/*  ARRAYS A AND VECR.  NM MUST BE EQUAL TO OR GREATER THAN N. */
 
-/*  M IS THE ORDER OF THE SUBMATRIX OBTAINED BY A SUITABLE */
-/*  DECOMPOSITION OF THE UPPER-HESSENBERG MATRIX IF SOME */
-/*  SUBDIAGONAL ELEMENTS ARE EQUAL TO ZERO.  THE VALUE OF M IS */
-/*  CHOSEN SO THAT THE LAST N-M COMPONENTS OF THE EIGENVECTOR */
-/*  ARE ZERO. */
 
-/*  IVEC GIVES THE POSITION OF THE EIGENVALUE IN THE ARRAY EVR */
-/*  FOR WHICH THE CORRESPONDING EIGENVECTOR IS COMPUTED. */
 
-/*  THE ARRAY EVI WOULD CONTAIN THE IMAGINARY PARTS OF THE N */
-/*  EIGENVALUES IF THEY EXISTED. */
 
-/*  THE M COMPONENTS OF THE COMPUTED REAL EIGENVECTOR WILL BE */
-/*  FOUND IN THE FIRST M PLACES OF THE COLUMN IVEC OF THE TWO */
-/*  DIMENSIONAL ARRAY VECR. */
 
-/*  IWORK AND WORK ARE THE WORKING STORES USED DURING THE */
-/*  GAUSSIAN ELIMINATION AND BACKSUBSTITUTION PROCESS. */
 
-/*  THE ARRAY INDIC INDICATES THE SUCCESS OF THE ROUTINE AS */
-/*  FOLLOWS: */
-/*    VALUE OF INDIC(I)  EIGENVECTOR I */
-/*           1             NOT FOUND */
-/*           2                 FOUND */
 
-/*  EPS IS A SMALL POSITIVE NUMBER THAT NUMERICALLY REPRESENTS */
-/*  ZERO IN THE PROGRAM.  EPS = (EUCLIDEAN NORM OF A)*EX, WHERE */
-/*  EX = 2**(-T), T IS THE NUMBER OF BINARY DIGITS IN THE */
-/*  MANTISSA OF A FLOATING POINT NUMBER. */
 
-    /* Parameter adjustments */
     --indic;
     --work;
     --iwork;
@@ -1136,14 +876,11 @@ L37:
     a_offset = 1 + a_dim1;
     a -= a_offset;
 
-    /* Function Body */
     vecr[*ivec * vecr_dim1 + 1] = 1.f;
     if (*m == 1) {
     goto L24;
     }
 
-/*  SMALL PERTURBATION OF EQUAL EIGENVALUES TO OBTAIN A FULL */
-/*  SET OF EIGENVECTORS. */
 
     evalue = evr[*ivec];
     if (*ivec == *m) {
@@ -1167,13 +904,9 @@ L1:
 L2:
     i__1 = *m;
     for (k = 1; k <= i__1; ++k) {
-/* L3: */
     a[k + k * a_dim1] -= evalue;
     }
 
-/*  GAUSSIAN ELIMINATION OF THE UPPER-HESSENBERG MATRIX A.  ALL */
-/*  ROW INTERCHANGES ARE INDICATED IN THE ARRAY IWORK.  ALL THE */
-/*  MULTIPLIERS ARE STORED AS THE SUBDIAGONAL ELEMENTS OF A. */
 
     k = *m - 1;
     i__1 = k;
@@ -1198,7 +931,6 @@ L4:
     for (j = i__; j <= i__2; ++j) {
         r__ = a[i__ + j * a_dim1];
         a[i__ + j * a_dim1] = a[i__ + 1 + j * a_dim1];
-/* L5: */
         a[i__ + 1 + j * a_dim1] = r__;
     }
 L6:
@@ -1206,7 +938,6 @@ L6:
     a[i__ + 1 + i__ * a_dim1] = r__;
     i__2 = *m;
     for (j = l; j <= i__2; ++j) {
-/* L7: */
         a[i__ + 1 + j * a_dim1] += r__ * a[i__ + j * a_dim1];
     }
 L8:
@@ -1217,8 +948,6 @@ L8:
     }
     a[*m + *m * a_dim1] = *eps;
 
-/*  THE VECTOR (1,1,...,1) IS STORED IN THE PLACE OF THE RIGHT */
-/*  HAND SIDE COLUMN VECTOR. */
 
 L9:
     i__1 = *n;
@@ -1234,15 +963,11 @@ L11:
     ;
     }
 
-/*  THE INVERSE ITERATION IS PERFORMED ON THE MATRIX UNTIL THE */
-/*  INFINITY NORM OF THE RIGHT-HAND SIDE VECTOR IS GREATER */
-/*  THAN THE BOUND DEFINED AS 0.01 / ( N * EX ). */
 
     bound = .01f / (*ex * (real) (*n));
     ns = 0;
     iter = 1;
 
-/*  THE BACKSUBSTITUTION. */
 
 L12:
     r__ = 0.f;
@@ -1257,7 +982,6 @@ L12:
     i__2 = *m;
     for (k = l; k <= i__2; ++k) {
         sr = work[k];
-/* L13: */
         s -= sr * a[j + k * a_dim1];
     }
 L14:
@@ -1271,21 +995,12 @@ L15:
     ;
     }
 
-/*  THE COMPUTATION OF THE RIGHT-HAND SIDE VECTOR FOR THE NEW */
-/*  ITERATION STEP. */
 
     i__1 = *m;
     for (i__ = 1; i__ <= i__1; ++i__) {
-/* L16: */
     work[i__] /= r__;
     }
 
-/*  THE COMPUTATION OF THE RESIDUALS AND COMPARISON OF THE */
-/*  RESIDUALS OF THE TWO SUCCESSIVE STEPS OF THE INVERSE */
-/*  ITERATION.  IF THE INFINITY NORM OF THE RESIDUAL VECTOR */
-/*  IS GREATER THAN THE INFINITY NORM OF THE PREVIOUS RESIDUAL */
-/*  VECTOR, THE COMPUTED EIGENVECTOR OF THE PREVIOUS STEP IS */
-/*  TAKEN AS THE FINAL EIGENVECTOR. */
 
     r1 = 0.f;
     i__1 = *m;
@@ -1293,7 +1008,6 @@ L15:
     t = 0.f;
     i__2 = *m;
     for (j = i__; j <= i__2; ++j) {
-/* L17: */
         t += a[i__ + j * a_dim1] * work[j];
     }
     t = dabs(t);
@@ -1313,7 +1027,6 @@ L18:
 L19:
     i__1 = *m;
     for (i__ = 1; i__ <= i__1; ++i__) {
-/* L20: */
     vecr[i__ + *ivec * vecr_dim1] = work[i__];
     }
     previs = r1;
@@ -1329,7 +1042,6 @@ L19:
     }
     ns = 1;
 
-/*  GAUSSIAN ELIMINATION OF THE RIGHT HAND SIDE VECTOR. */
 
 L21:
     k = *m - 1;
@@ -1357,27 +1069,23 @@ L25:
     j = *m + 1;
     i__1 = *n;
     for (i__ = j; i__ <= i__1; ++i__) {
-/* L26: */
     vecr[i__ + *ivec * vecr_dim1] = 0.f;
     }
 L27:
     return 0;
-} /* realve_ */
+}
 
-/* Subroutine */ int compve_(idx *n, idx *nm, idx *m, idx *
+int compve_(idx *n, idx *nm, idx *m, idx *
     ivec, real *a, real *vecr, real *h__, real *evr, real *evi, idx *
     indic, idx *iwork, real *subdia, real *work1, real *work2, real *
     work, real *eps, real *ex)
 {
-    /* System generated locals */
     idx a_dim1, a_offset, h_dim1, h_offset, vecr_dim1, vecr_offset, i__1,
         i__2, i__3;
     real r__1, r__2;
 
-    /* Builtin functions */
     double sqrt(real);
 
-    /* Local variables */
     static real b;
     static real d__;
     static idx i__, j, k, l;
@@ -1388,52 +1096,15 @@ L27:
     static idx iter;
     static real bound, previs;
 
-/* *********************************************************************72 */
 
-/*  THIS SUBROUTINE FINDS THE COMPLEX EIGENVECTOR OF THE REAL */
-/*  UPPER-HESSENBERG MATRIX OF ORDER N CORRESPONDING TO THE */
-/*  COMPLEX EIGENVALUE WITH THE REAL PART IN EVR(IVEC) AND THE */
-/*  CORRESPONDING IMAGINARY PART IN EVI(IVEC).  THE INVERSE */
-/*  ITERATION METHOD IS USED, MODIFIED TO AVOID THE USE OF */
-/*  COMPLEX ARITHMETIC. */
 
-/*  THE MATRIX ON WHICH THE INVERSE ITERATION IS PERFORMED IS */
-/*  BUILT UP INTO THE ARRAY A BY USING THE UPPER-HESSENBERG */
-/*  MATRIX PRESERVED IN THE UPPER HALF OF THE ARRAY H AND IN */
-/*  THE ARRAY SUBDIA. */
 
-/*  NM DEFINES THE FIRST DIMENSION OF THE TWO DIMENSIONAL */
-/*  ARRAYS A, VECR, AND H.  NM MUST BE EQUAL TO OR GREATER */
-/*  THAN N. */
 
-/*  M IS THE ORDER OF THE SUBMATRIX OBTAINED BY A SUITABLE */
-/*  DECOMPOSITION OF THE UPPER-HESSENBERG MATRIX IF SOME */
-/*  SUBDIAGONAL ELEMENTS ARE EQUAL TO ZERO.  THE VALUE OF M IS */
-/*  CHOSEN SO THAT THE LAST N-M COMPONENTS OF THE COMPLEX */
-/*  EIGENVECTOR ARE ZERO. */
 
-/*  THE REAL PARTS OF THE FIRST M COMPONENTS OF THE COMPUTED */
-/*  COMPLEX EIGENVECTOR WILL BE FOUND IN THE FIRST M PLACES OF */
-/*  THE COLUMN WHOSE TOP ELEMENT IS VECR(1,IVEC), AND THE */
-/*  CORRESPONDING IMAGINARY PARTS OF THE FIRST M COMPONENTS OF */
-/*  THE COMPLEX EIGENVECTOR WILL BE FOUND IN THE FIRST M */
-/*  PLACES OF THE COLUMN WHOSE TOP ELEMENT IS VECR(1,IVEC-1). */
 
-/*  THE ARRAY INDIC INDICATES THE SUCCESS OF THE ROUTINE AS */
-/*  FOLLOWS: */
-/*    VALUE OF INDIC(I)  EIGENVECTOR I */
-/*           1             NOT FOUND */
-/*           2                 FOUND */
 
-/*  THE ARRAYS IWORK, WORK1, WORK2 AND WORK ARE THE WORKING */
-/*  STORES USED DURING THE INVERSE ITERATION PROCESS. */
 
-/*  EPS IS A SMALL POSITIVE NUMBER THAT NUMERICALLY REPRESENTS */
-/*  ZERO IN THE PROGRAM.  EPS = (EUCLIDEAN NORM OF H)*EX, WHERE */
-/*  EX = 2**(-T).  T IS THE NUMBER OF BINARY DIGITS IN THE */
-/*  MANTISSA OF A FLOATING POINT NUMBER. */
 
-    /* Parameter adjustments */
     --work;
     --work2;
     --work1;
@@ -1452,12 +1123,9 @@ L27:
     a_offset = 1 + a_dim1;
     a -= a_offset;
 
-    /* Function Body */
     fksi = evr[*ivec];
     eta = evi[*ivec];
 
-/*  THE MODIFICATION OF THE EIGENVALUE ( FKSI + I * ETA ) IF MORE */
-/*  EIGENVALUES ARE EQUAL. */
 
     if (*ivec == *m) {
     goto L2;
@@ -1480,8 +1148,6 @@ L1:
     fksi += r__;
     eta += r__;
 
-/*  THE MATRIX ((H-FKSI*I)*(H-FKSI*I)+(ETA*ETA)*I) IS */
-/*  STORED INTO THE ARRAY A. */
 
 L2:
     r__ = fksi * fksi + eta * eta;
@@ -1495,13 +1161,10 @@ L2:
         a[j + i__ * a_dim1] = 0.f;
         i__3 = j;
         for (k = i__; k <= i__3; ++k) {
-/* L3: */
         d__ += h__[i__ + k * h_dim1] * h__[k + j * h_dim1];
         }
-/* L4: */
         a[i__ + j * a_dim1] = d__ - s * h__[i__ + j * h_dim1];
     }
-/* L5: */
     a[i__ + i__ * a_dim1] += r__;
     }
     i__1 = l;
@@ -1511,7 +1174,6 @@ L2:
     i1 = i__ + 1;
     i__2 = i1;
     for (j = 1; j <= i__2; ++j) {
-/* L6: */
         a[j + i__ * a_dim1] += r__ * h__[j + (i__ + 1) * h_dim1];
     }
     if (i__ == 1) {
@@ -1521,17 +1183,10 @@ L2:
 L7:
     i__2 = *m;
     for (j = i__; j <= i__2; ++j) {
-/* L8: */
         a[i__ + 1 + j * a_dim1] += r__ * h__[i__ + j * h_dim1];
     }
-/* L9: */
     }
 
-/*  THE GAUSSIAN ELIMINATION OF THE MATRIX */
-/*  ((H-FKSI*I)*(H-FKSI*I)+(ETA*ETA)*I) IN THE ARRAY A.  THE */
-/*  ROW INTERCHANGES THAT OCCUR ARE INDICATED IN THE ARRAY */
-/*  IWORK.  ALL THE MULTIPLIERS ARE STORED IN THE FIRST AND IN */
-/*  THE SECOND SUBDIAGONAL OF THE ARRAY A. */
 
     k = *m - 1;
     i__1 = k;
@@ -1581,7 +1236,6 @@ L13:
     for (j = i__; j <= i__2; ++j) {
         r__ = a[i__ + j * a_dim1];
         a[i__ + j * a_dim1] = a[l + j * a_dim1];
-/* L14: */
         a[l + j * a_dim1] = r__;
     }
 L15:
@@ -1596,7 +1250,6 @@ L16:
         a[l + i__ * a_dim1] = r__;
         i__3 = *m;
         for (j = i1; j <= i__3; ++j) {
-/* L17: */
         a[l + j * a_dim1] += r__ * a[i__ + j * a_dim1];
         }
     }
@@ -1608,9 +1261,6 @@ L18:
     }
     a[*m + *m * a_dim1] = *eps;
 
-/*  THE VECTOR (1,1,...,1) IS STORED INTO THE RIGHT-HAND SIDE */
-/*  VECTORS VECR(*,IVEC) AND VECR(*,IVEC-1), REPRESENTING THE */
-/*  COMPLEX RIGHT HAND SIDE VECTOR. */
 
 L19:
     i__1 = *n;
@@ -1628,27 +1278,16 @@ L21:
     ;
     }
 
-/*  THE INVERSE ITERATION IS PERFORMED ON THE MATRIX UNTIL THE */
-/*  INFINITY NORM OF THE RIGHT-HAND SIDE IS GREATER */
-/*  THAN THE BOUND DEFINED AS 0.01/(N*EX). */
 
     bound = .01f / (*ex * (real) (*n));
     ns = 0;
     iter = 1;
     i__1 = *m;
     for (i__ = 1; i__ <= i__1; ++i__) {
-/* L22: */
     work[i__] = h__[i__ + i__ * h_dim1] - fksi;
     }
 
-/*  THE SEQUENCE OF THE COMPLEX VECTORS Z(S) = P(S) + I * Q(S) AND */
-/*  W(S+1) = U(S+1)+I*V(S+1) IS GIVEN BY THE RELATIONS */
-/*  (A-FKSI-I*ETA)*I)*W(S+1) = Z(S) AND */
-/*  Z(S+1) = W(S+1)/MAX(W(S+1)). */
-/*  THE FINAL W(S) IS TAKEN AS THE COMPUTED EIGENVECTOR. */
 
-/*  THE COMPUTATION OF THE RIGHT-HAND SIDE VECTOR */
-/*  (A-FKSI*I)*P(S)-ETA*Q(S).  A IS AN UPPER-HESSENBERG MATRIX. */
 
 L23:
     i__1 = *m;
@@ -1665,16 +1304,13 @@ L24:
     }
     i__3 = *m;
     for (k = l; k <= i__3; ++k) {
-/* L25: */
         d__ += h__[i__ + k * h_dim1] * vecr[k + *ivec * vecr_dim1];
     }
 L26:
     vecr[i__ + (*ivec - 1) * vecr_dim1] = d__ - eta * vecr[i__ + (*ivec -
         1) * vecr_dim1];
-/* L27: */
     }
 
-/*  GAUSSIAN ELIMINATION OF THE RIGHT-HAND SIDE VECTOR. */
 
     k = *m - 1;
     i__1 = k;
@@ -1695,9 +1331,6 @@ L28:
     ;
     }
 
-/*  THE COMPUTATION OF THE REAL PART U(S+1) OF THE COMPLEX */
-/*  VECTOR W(S+1).  THE VECTOR U(S+1) IS OBTAINED AFTER THE */
-/*  BACKSUBSTITUTION. */
 
     i__1 = *m;
     for (i__ = 1; i__ <= i__1; ++i__) {
@@ -1710,16 +1343,12 @@ L28:
     i__3 = *m;
     for (k = l; k <= i__3; ++k) {
         d1 = a[j + k * a_dim1];
-/* L29: */
         d__ -= d1 * vecr[k + (*ivec - 1) * vecr_dim1];
     }
 L30:
     vecr[j + (*ivec - 1) * vecr_dim1] = d__ / a[j + j * a_dim1];
-/* L31: */
     }
 
-/*  THE COMPUTATION OF THE IMAGINARY PART V(S+1) OF THE VECTOR */
-/*  W(S+1), WHERE V(S+1) = (P(S)-(A-FKSI*I)*U(S+1))/ETA. */
 
     i__1 = *m;
     for (i__ = 1; i__ <= i__1; ++i__) {
@@ -1735,24 +1364,19 @@ L32:
     }
     i__3 = *m;
     for (k = l; k <= i__3; ++k) {
-/* L33: */
         d__ += h__[i__ + k * h_dim1] * vecr[k + (*ivec - 1) * vecr_dim1];
     }
 L34:
     vecr[i__ + *ivec * vecr_dim1] = (vecr[i__ + *ivec * vecr_dim1] - d__)
         / eta;
-/* L35: */
     }
 
-/*  THE COMPUTATION OF (INFINITY NORM OF W(S+1))**2. */
 
     l = 1;
     s = 0.f;
     i__1 = *m;
     for (i__ = 1; i__ <= i__1; ++i__) {
-/* Computing 2nd power */
     r__1 = vecr[i__ + *ivec * vecr_dim1];
-/* Computing 2nd power */
     r__2 = vecr[i__ + (*ivec - 1) * vecr_dim1];
     r__ = r__1 * r__1 + r__2 * r__2;
     if (r__ <= s) {
@@ -1764,8 +1388,6 @@ L36:
     ;
     }
 
-/*  THE COMPUTATION OF THE VECTOR Z(S+1), WHERE Z(S+1) = W(S+1)/ */
-/*  (COMPONENT OF W(S+1) WITH THE LARGEST ABSOLUTE VALUE). */
 
     u = vecr[l + (*ivec - 1) * vecr_dim1];
     v = vecr[l + *ivec * vecr_dim1];
@@ -1774,16 +1396,9 @@ L36:
     b = vecr[i__ + *ivec * vecr_dim1];
     r__ = vecr[i__ + (*ivec - 1) * vecr_dim1];
     vecr[i__ + *ivec * vecr_dim1] = (r__ * u + b * v) / s;
-/* L37: */
     vecr[i__ + (*ivec - 1) * vecr_dim1] = (b * u - r__ * v) / s;
     }
 
-/*  THE COMPUTATION OF THE RESIDUALS AND COMPARISON OF THE */
-/*  RESIDUALS OF THE TWO SUCCESSIVE STEPS OF THE INVERSE */
-/*  ITERATION.  IF THE INFINITY NORM OF THE RESIDUAL VECTOR IS */
-/*  GREATER THAN THE INFINITY NORM OF THE PREVIOUS RESIDUAL */
-/*  VECTOR, THE COMPUTED VECTOR OF THE PREVIOUS STEP IS TAKEN */
-/*  AS THE COMPUTED APPROXIMATION TO THE EIGENVECTOR. */
 
     b = 0.f;
     i__1 = *m;
@@ -1805,7 +1420,6 @@ L38:
     i__3 = *m;
     for (j = l; j <= i__3; ++j) {
         r__ += h__[i__ + j * h_dim1] * vecr[j + (*ivec - 1) * vecr_dim1];
-/* L39: */
         u += h__[i__ + j * h_dim1] * vecr[j + *ivec * vecr_dim1];
     }
 L40:
@@ -1827,7 +1441,6 @@ L42:
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
     work1[i__] = vecr[i__ + *ivec * vecr_dim1];
-/* L43: */
     work2[i__] = vecr[i__ + (*ivec - 1) * vecr_dim1];
     }
     previs = b;
@@ -1847,7 +1460,6 @@ L44:
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
     vecr[i__ + *ivec * vecr_dim1] = work1[i__];
-/* L45: */
     vecr[i__ + (*ivec - 1) * vecr_dim1] = work2[i__];
     }
 L46:
@@ -1855,7 +1467,7 @@ L46:
     indic[*ivec] = 2;
 L47:
     return 0;
-} /* compve_ */
+}
 
 
 

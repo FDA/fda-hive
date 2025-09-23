@@ -28,11 +28,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/******************************************************
-*
-* Table bar graph implementation
-*
-******************************************************/
     
     
     
@@ -52,27 +47,20 @@ var gTbl_CollSelect=new Array();
 var gTbl_CollColorShift=new Array();
 var gTbl_CollColor=new Array();
 var gTbl_CollDoScroll=new Array();
-//var gTbl_CollMinMax=new Array();
 
-//var gTbl_CollSparseIdx=new Array();
 var gTbl_CollLabelSteps=new Array ();
 
 
 var gTbl_LabelCallback;
-//var gList_ClickCallback;
-//var gList_SelCallback;
 
 
-// generate list of indexes to be shown
 function TblChart_arrIdx(arr, cols,  icol, frmstart, frmend, maxrowcnt)
 {
     
     var irstart=0, irend=parseInt( (arr.length/cols)-1);
     while( arr[cols*irstart+0]<frmstart && irstart<irend)++irstart;
     while ( arr[cols*irend+0]>frmend && irend>irstart) --irend;
-    //alert(frmstart + "-"+frmend+"     " + irstart  + "-" + irend)
         
-    // we show only so many rows
     var jumpRow=parseInt((irend-irstart)/maxrowcnt); 
     if(jumpRow<1)jumpRow=1;
     jumpRow=parseInt(jumpRow);
@@ -95,19 +83,15 @@ function TblChart_arrIdx(arr, cols,  icol, frmstart, frmend, maxrowcnt)
         }
         
         if(imin<imax){
-            //gArrIdx.push(imin);
             gArrIdx.push(imax);
         }
         else if(imin>imax){
-            //gArrIdx.push(imax);
             gArrIdx.push(imin);
         }
-        else {// if(imin==imax) 
+        else {
             gArrIdx.push(imax);
         }
     }
-    //if(irend-1!=imax)
-    //    gArrIdx.push(irend-1);
 
 
     return gArrIdx;
@@ -146,11 +130,8 @@ var gTblChart_callbackZoom;
 
 function TblChart_mouseWheel (nm,area)
 {
-    //if(!e)e=event;
     
-//    var elem=event.srcElement.parentElement.parentElement.parentElement;
     var delta=event.wheelDelta;
-//    if(gKeyShift) {
         var oper="0";
         if(area=="x") {
             if( delta < 0 ) oper="+0.1";
@@ -166,7 +147,6 @@ function TblChart_mouseWheel (nm,area)
             event.preventDefault();
 
         return true;
-//    }
 
 }
 
@@ -179,8 +159,8 @@ function TblChart_zoomShift(nm, oper, what )
     if(oper.substring(0,1)=='%'){
         if(gTbl_CollSelect[nm][0]!=-1 && gTbl_CollSelect[nm][1]!=-1){
             
-            gTbl_CollFrames[nm][0]=parseInt(gTbl_CollArr[nm][gTbl_CollSelect[nm][0]*gTbl_CollDimensions[nm][0]+0]);// gTbl_CollSelect[nm][0];
-            gTbl_CollFrames[nm][1]=parseInt(gTbl_CollArr[nm][gTbl_CollSelect[nm][1]*gTbl_CollDimensions[nm][0]+0]);//gTbl_CollSelect[nm][1];
+            gTbl_CollFrames[nm][0]=parseInt(gTbl_CollArr[nm][gTbl_CollSelect[nm][0]*gTbl_CollDimensions[nm][0]+0]);
+            gTbl_CollFrames[nm][1]=parseInt(gTbl_CollArr[nm][gTbl_CollSelect[nm][1]*gTbl_CollDimensions[nm][0]+0]);
             if(gTbl_CollFrames[nm][0] > gTbl_CollFrames[nm][1] ){
                 t=gTbl_CollFrames[nm][0];
                 gTbl_CollFrames[nm][0]=gTbl_CollFrames[nm][1];
@@ -206,7 +186,6 @@ function TblChart_zoomShift(nm, oper, what )
         zoomfactor=docZoomShift(zoomfactor,  oper ,gZoomMin);
         gTbl_CollFrames[nm][0]=gTbl_CollFrames[nm][2]+parseInt( frm*zoomfactor[0] );
         gTbl_CollFrames[nm][1]=gTbl_CollFrames[nm][2]+parseInt( frm*zoomfactor[1] ) ;
-        //alert("zzzz  "+ zoomfactor + "\n"+gTbl_CollFrames[nm])
     }
     if(gTblChart_callbackZoom && gTblChart_callbackZoom!=""){
         if( gTblChart_callbackZoom(nm)) return;
@@ -236,7 +215,6 @@ function TblChar_changeRange (nm, xst, xed )
         ret=gTblChart_callbackZoom(nm);
     if(!ret)
         TblChart_showGraph(nm,1);
-    //gChangeRangeBusy=0;
     
 }
 
@@ -266,11 +244,10 @@ function TblChart_addGraph(formName, nm, container, header, arr, cols, rows, win
     gTbl_CollArr[nm]=arr;
     gTbl_CollHeaders[nm]=header;
     gTbl_CollDimensions[nm]=new Array (cols,rows) ;
-    //gTbl_CollMinMax[nm]=new Array(0,0);
     gTbl_CollGabarites[nm]=new Array(graphWidth, graphHeight);
     gTbl_CollContainers[nm]=container;
     gTbl_CollZooms[nm]=new Array(0.,1.);
-    if(!gTbl_CollFrames[nm])gTbl_CollFrames[nm]=new Array(winframeS,winframeE,winframeS,winframeE); // current pair and original pair
+    if(!gTbl_CollFrames[nm])gTbl_CollFrames[nm]=new Array(winframeS,winframeE,winframeS,winframeE);
     gTbl_CollDensities[nm]=density;
     gTbl_CollLabelSteps[nm]=new Array (5,5);
     gTbl_CollYFrame[nm]=new Array (0,1);
@@ -278,7 +255,6 @@ function TblChart_addGraph(formName, nm, container, header, arr, cols, rows, win
     if(!gTbl_CollDoScroll[nm])gTbl_CollDoScroll[nm]=false;
     gTbl_CollColorShift[nm]=2;
     gTbl_CollMinMax[nm]=new Array(-1000000,-1000000,-1000000,-1000000);
-    //gTbl_CollSparseIdx[nm]=new Array();
 }
 
 function TblChart_showGraph(nm,noResetCtrl)
@@ -290,10 +266,8 @@ function TblChart_showGraph(nm,noResetCtrl)
     var arridx = new Array();
 
 
-    // prepare array of visible columns 
     for ( icol=0;  icol<gTbl_CollDimensions[nm][0]; ++icol ) { if( gTbl_CollVisibles[nm+"_"+gTbl_CollHeaders[nm][icol]]!=1) continue;
                 
-        // get the sparse index for this column
         arridx=TblChart_arrIdx(gTbl_CollArr[nm],gTbl_CollDimensions[nm][0],icol,gTbl_CollFrames[nm][0],gTbl_CollFrames[nm][1],gTbl_CollDensities[nm]);
         if(arrList.length<=icol || arrList[icol].length==0) 
             arrList[icol]=TblChart_colVarArr(gTbl_CollArr[nm],gTbl_CollDimensions[nm][0],icol,arridx);
@@ -301,7 +275,6 @@ function TblChart_showGraph(nm,noResetCtrl)
     }
     visrows=arridx.length;
     
-   // get the minimax
     var rMin=10000000; rMax=-10000000;
     for( ir=0; ir<visrows; ++ ir) {
         var sumY=0;
@@ -327,7 +300,6 @@ function TblChart_showGraph(nm,noResetCtrl)
         return ;
     }
 
-//    var vl=0;
     var width=Math.round(totWidth/visrows);if(width<3) width=3;
     var boxStart="<span style='font-size : 0pt; margin:0px; padding:0px; display:-moz-inline-block; display:-moz-inline-box; display:inline-block; ";
     var boxStop="</span><br />";
@@ -374,14 +346,12 @@ function TblChart_showGraph(nm,noResetCtrl)
     vTbl+="</tr></table>";
     
     
-    //arridx = TblChart_arrIdx(0, gTbl_CollDimensions[nm][0],0,gTbl_CollFrames[nm][0],gTbl_CollFrames[nm][1],gTbl_CollLabelSteps[nm][0]);
     arridx = TblChart_arrIdx(gTbl_CollArr[nm], gTbl_CollDimensions[nm][0],0,gTbl_CollFrames[nm][0],gTbl_CollFrames[nm][1],gTbl_CollLabelSteps[nm][0]);
     arrX=TblChart_colVarArr(gTbl_CollArr[nm],gTbl_CollDimensions[nm][0],0,arridx);
     width=parseInt(100/(arridx.length-1)); if(width<1)width=1;
     
       var vX="<table class='tb_chart' width=100% onmousewheel='TblChart_mouseWheel(\""+nm+"\",\"x\")' ><tr>";
     for ( ir=0;  ir<arridx.length-1; ++ir ) { 
-        //var vl=gTbl_LabelCallback ? gTbl_LabelCallback(nm,"x", ir, parseFloat(arrList[0][arridx[ir]]) ) : (arrX[ir]);
         var vl=gTbl_LabelCallback ? gTbl_LabelCallback(nm,"x", arridx[ir], parseFloat(arrX[ir]) ) : "";
         if(vl=="") vl=arrX[ir];
         vX+="<td width="+width+"% align=left valign=top><small><small>"+vl+"</small></small></td>";
@@ -426,10 +396,8 @@ function TblChart_showGraph(nm,noResetCtrl)
     }
 
     var vCtrl="";
-    //vCtrl+="<tr>";
     if(!noResetCtrl){
         vCtrl+="<table width=100% border=0><tr>";
-        //vCtrl+="<td align=left><input class='inputEditable' type=text name='"+nm+"_xLeft' value="+gTbl_CollFrames[nm][0]+" oninput='TblChar_changeRange(\""+nm+"\")'  onchange='TblChar_changeRange(\""+nm+"\")'  size=4 /></td>";
         vCtrl+="<td align=left><input class='inputEditable' type=text name='"+nm+"_xLeft' value="+gTbl_CollFrames[nm][0]+" onchange='TblChar_changeRange(\""+nm+"\")'  size=4 /></td>";
         vCtrl+="<td align=center>";
         vCtrl+="<small><small>Zoom:&nbsp;";
@@ -437,16 +405,13 @@ function TblChart_showGraph(nm,noResetCtrl)
                 vCtrl+="<a href=\"javascript:TblChart_zoomShift('"+nm+"','*1.3')\">out &divide;</a>&nbsp;|&nbsp;";
                 vCtrl+="<a href=\"javascript:TblChart_zoomShift('"+nm+"','0')\">reset &times;</a>&nbsp;|&nbsp;";
                 vCtrl+="<a href=\"javascript:TblChart_zoomShift('"+nm+"','%0')\">scale &harr;</a>&nbsp;|&nbsp;";
-                //vCtrl+="<br />";
                 vCtrl +="Shift:&nbsp;";
                 vCtrl+="<a href=\"javascript:TblChart_zoomShift('"+nm+"','-0.5')\">left &laquo;</a>&nbsp;|&nbsp;";
                 vCtrl+="<a href=\"javascript:TblChart_zoomShift('"+nm+"','+0.5')\">right &raquo;</a>";
             vCtrl+="</small></small>";
         vCtrl+="</td>";
-        //vCtrl+="<td align=right><input class='inputEditable' type=text name='"+nm+"_xRight' value="+gTbl_CollFrames[nm][1]+" oninput='TblChar_changeRange(\""+nm+"\")' onchange='TblChar_changeRange(\""+nm+"\")' size=4 /></td>";
         vCtrl+="<td align=right><input class='inputEditable' type=text name='"+nm+"_xRight' value="+gTbl_CollFrames[nm][1]+" onchange='TblChar_changeRange(\""+nm+"\")' size=4 /></td>";
         vCtrl+="</tr></table>";
-        //vCtrl+="</tr>";
     }
       
     
@@ -462,8 +427,6 @@ function TblChart_showGraph(nm,noResetCtrl)
 
     
 
-    //alert(rMin + ":::: " + rMax);
-    //        return ;
                     
     gTblChart_ChangeRangeBusy=0;
     return vTbl;    
@@ -491,11 +454,6 @@ function TblChart_hideInfoPopup(idnum)
 
 
 
-/******************************************************
-*
-* virtual list implementation
-*
-******************************************************/
 
 
 var gListList=new Array () ;
@@ -544,7 +502,7 @@ function VList_onSel(e )
     if(!e)e=event;
     var elem=event.srcElement;
     var nm=elem.name;
-    var ipos=elem.value;//+gListStart[nm];
+    var ipos=elem.value;
     gList_ElemSelCallback(nm,gListList[nm][ipos],ipos );
 }
 
@@ -591,25 +549,17 @@ function VList_update(elem , isscrll )
                 
             var vl=gList_ElemNameCallback ? gList_ElemNameCallback(nm,gListList[nm][ipos], ipos) : gListList[nm][ipos];
             if(vl=="")continue;
-            //alert(vl + ":" + nm +":"+ipos);
             var opt=new Option(vl,ipos);
-            //opt.onSelect="VList_onOptionSel("+vl+","+ic+")"; 
             elem.add(opt);
             elem.value=ipos;
             ++ishown;
         }
         elem.scrollTop=scrl*onelemsize;
-        //elem.selectedIndex=realIndex-gListStart[nm];
     }    
 }
 
 
 
-/******************************************************
-*
-* virtual dirlist implementation
-*
-******************************************************/
 var gVDir_listCallbackClick;
 var gVDir_listCallbackText;
 var gVDir_formName;
@@ -624,7 +574,6 @@ function vDir_listPath( container, dirlist, concat , isdir)
     
     var dirarr=dirlist.split(",");
     if(!isdir && gVDir_listCallbackClick){
-        //gVDir_concatMode=true;
         for(var id=0; id<dirarr.length; ++id) { 
             var dir=dirarr[id];
             gVDir_listCallbackClick(document.forms[gVDir_formName].elements[container].value+dir,container,vDir_listDirContent,isdir );
@@ -639,8 +588,6 @@ function vDir_listPath( container, dirlist, concat , isdir)
             document.forms[gVDir_formName].elements[container].value+=dirarr[id];
     }
 
-    //if(concat)document.forms[gVDir_formName].elements[container].value+=dir;
-    //else document.forms[gVDir_formName].elements[container].value=dir;
     dir=document.forms[gVDir_formName].elements[container].value;
     if(gVDir_listCallbackClick)gVDir_listCallbackClick(dir,container,vDir_listDirContent,isdir);
     else {
@@ -697,11 +644,6 @@ function  vDir_listDirContent(container, txt)
 
 
 
-/******************************************************
-*
-* table tree implementation
-*
-******************************************************/
 
 var gVTree_callbackName;
 
@@ -719,7 +661,6 @@ function  vTree_nexusSplit(txt, scl)
     var clr="#000000";
     var issubtree=false;
     for ( i=0 ; i < txt.length; ++i) {
-        //alert(txt[i] + " : " + txt.charAt(i))
         cha=txt.charAt(i);
         
         if(cha=='(') {
@@ -800,7 +741,6 @@ function  vTree_nexusSplit(txt, scl)
     tr+="</td>";
 
     tr+="<td>";
-    //alert(issubtree+nam)
     var tnam=(gVTree_callbackName && !issubtree) ? gVTree_callbackName(nam) : "-";
     if(tnam=="-")tnam=nam;
     tr+=tnam;
@@ -813,8 +753,7 @@ function  vTree_nexusSplit(txt, scl)
 function  vTree_nexusTree(container, txt, scl)
 {
     var tt=vTree_nexusSplit(txt,scl);
-    //alert(txt+"\n\n\n\n"+tt);
     var v=gObject(container);
-    if(v)v.innerHTML=tt;//txt+"<br><br>"+tt;
+    if(v)v.innerHTML=tt;
 }
 

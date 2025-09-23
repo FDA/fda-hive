@@ -119,7 +119,6 @@ static bool contains (sVec <idx> vector, idx toCheck)
 
 bool BStatCommand::compute(sTabular * tbl)
 {
-    //checking whether colSet has anything in it, and if not taking in all of the columns that are not in categories vector
     if (!colSet && colSet.dim() < 1)
     {
         for (idx i = 0; i < tbl->cols(); i++)
@@ -128,7 +127,6 @@ bool BStatCommand::compute(sTabular * tbl)
                 colSet.vadd(1, i);
         }
     }
-    //checking whether rowSet has anything in it, and if not taking in all of the rows that are not a control row
     if (!rowSet && rowSet.dim() < 1)
     {
         for (idx i = 0; i < tbl->rows(); i++)
@@ -149,10 +147,8 @@ bool BStatCommand::compute(sTabular * tbl)
     sFil bayesian(t1);
     bayesian.printf ("Column,Category,Statistic\n");
 
-    //for every column iterate through all of the categories
     for (idx c = 0; c < colSet.dim(); c++)
     {
-        //iterate through each column name in the categories
         for (idx h = 0; h < rowsToUseDicDic.dim(); h++)
         {
             real proFreSum = 0;
@@ -170,7 +166,6 @@ bool BStatCommand::compute(sTabular * tbl)
                 controlVal /= rowSet.dim();
             }
 
-            //iterate through every different entry in the column and the rows associated with it
             for (idx v = 0; v < rowsToUseDicDic[header].dim(); v++)
             {
                 const char * value = static_cast <const char *> (rowsToUseDicDic[header].id(v));

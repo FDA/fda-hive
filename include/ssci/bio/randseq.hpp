@@ -99,7 +99,7 @@ namespace slib
                     idx mutationOffset;
                     char refBase;
                     idx refNumSeq;
-                    idx refLength; // (default =1 ) The length of the reference that the mutation is pointing to.
+                    idx refLength;
                     idx position, frequency;
                     idx quality, allele;
                     idx mutBiasStart, mutBiasEnd;
@@ -119,7 +119,6 @@ namespace slib
                     bool loadRange(RangeSeq range){
                         memcpy(this, &range, sizeof(RangeSeq));
                         return true;
-//                        return true;
                         hiveseqListOffset = range.hiveseqListOffset;
                         sourceSeqnum = range.sourceSeqnum;
                         sourceStartRange = range.sourceStartRange;
@@ -132,12 +131,12 @@ namespace slib
                         destPosition = range.destPosition;
                         return true;
                     }
-                    idx hiveseqListOffset;  // pathfilename or object ID number
-                    idx sourceSeqnum;  // row in the bioseq
+                    idx hiveseqListOffset;
+                    idx sourceSeqnum;
                     idx sourceStartRange, sourceEndRange;
-                    idx orientation;  // look at translateRevComp (0, 1, 2 or 3)
-                    idx coverage;   //
-                    idx tandem;     // repeated sequence, use for copy number variant
+                    idx orientation;
+                    idx coverage;
+                    idx tandem;
                     bool deleteRange;
                     idx destSeqnum;
                     idx destPosition;
@@ -145,15 +144,11 @@ namespace slib
             };
             struct RefInfo
             {
-    //            idx fileID, seqID;
                     idx rangeseqsOffset;
                     idx rangecnt;
-    //            sHiveseq *refhiveseq;
                     idx coverage;
-    //                idx minLength, maxLength;
                     idx mutInfoOffset, mutcnt;
                     idx diploidicity;
-    //                idx quaType, numOfSegs;
             };
             struct AnnotQuery
             {
@@ -177,7 +172,6 @@ namespace slib
             }
             ~sRandomSeq()
             {
-//                destroy();
             }
 
         public:
@@ -196,8 +190,8 @@ namespace slib
             sTxtTbl *qualityTable;
             sTxtTbl *rangeExtraction;
             real noisePercentage;
-            real noiseOriginalTable[5][6]; // 5 (ACGTN) and 6 (ACGT, insertion, deletion)
-            real noiseAccumTable[5][6]; // 5 (ACGTN)
+            real noiseOriginalTable[5][6];
+            real noiseAccumTable[5][6];
             idx qryFileCnt;
             idx filterNperc;
             char prefixID[100];
@@ -208,21 +202,20 @@ namespace slib
             sVec <AnnotQuery> cnvRanges;
             sStr annotStringBuf;
 
-            // Variables to generate random Mutations
             idx randMutNumber, randMutStringLen, randMutFreq;
             idx randseed0, idum;
 
             idx quaMinValue, quaMaxValue;
-            sVec<RefInfo> refSeqs;  // Container for the references to create recombinants
-            sVec<RangeSeq> rangeContainer;  // Container of ranges in targeting sequencing
-            sVec<RefMutation> mutContainer; // Container for all the mutations to include
-            sVec<idx> mutSortList;  // List of sorted mutations
-            sDic<idx> idlist;       // Dictionary of id's of sBioseq object
+            sVec<RefInfo> refSeqs;
+            sVec<RangeSeq> rangeContainer;
+            sVec<RefMutation> mutContainer;
+            sVec<idx> mutSortList;
+            sDic<idx> idlist;
 
-            sStr mutationStringContainer;   // buffer to store mutations
-            sStr hiveseqListContainer;  // buffer to store hiveseq string associated to refSeqs
+            sStr mutationStringContainer;
+            sStr hiveseqListContainer;
 
-            sBioseq *Sub;   // sBioseq object
+            sBioseq *Sub;
             sIO auxbuf;
 
         public:
@@ -264,7 +257,6 @@ namespace slib
             bool mutationVCFoutput(sFil *out, const char *refID, sBioseq &sub, sStr &err);
             bool normalizeTable();
             bool noiseDefaults();
-//            idx parseAnnotation(sBioseq &sub, sStr &err);
             bool generateRecombination(sFil &out, sStr &err);
             bool generateQualities(const char *seq, sStr &qua, idx seqlen);
             void mutationFillandFix(sBioseq &sub);
@@ -275,7 +267,6 @@ namespace slib
             idx randomize(sFil *out, sBioseq &sub, sStr &err, sFil *out2 = 0, const char * lazyLenPath = 0, sDic<idx> * cntProbabilityInfo = 0);
 
             static idx ionWanderCallback(sIon * ion, sIonWander *ts, sIonWander::StatementHeader * traverserStatement, sIon::RecordResult * curResults);
-    //        idx traverserCallback(sIon * ion, sIonWander *ts, sIonWander::StatementHeader * traverserStatement, sIon::RecordResult * curResults);
 
             void translateRevComp(idx orientation, bool *isrev, bool *iscomp);
             idx preparePrimers();
@@ -291,18 +282,13 @@ namespace slib
             sTxtTbl * tableParser(const char * tblDataPath, const char * colsep, bool header, idx parseCnt);
 
 
-//            idx getrownum(const char *id);
             void addMutation (RefMutation *dst, RefMutation *src, idx pos);
             bool readTableMutations(const char * tblDataPath, sBioseq *sub, sStr *errmsg);
 
-            // Ascendent Order:
-            // 1, if i1 is better than i2
-            // -1, if i2 is better than i1
             static idx mutationComparator(sRandomSeq * myThis, void * arr, udx i1, udx i2);
             idx binarySearch(real * array, idx num, real target, bool returnIndexbeforeTarget = false);
             idx binarySearchMutation(idx target);
 
-//            bool loadGeneralAttributes(const sUsrObjPropsTree *propsTree, sStr *err, const char *quaMimicTable = 0, sBioseq *qryPreloadedGenome = 0, bool useMutFile = false, const char *flnmTargetFile = 0, bool useIonAnnot = false);
             bool loadParticularAttributes (sVar &options, sStr *err, sBioseq &qry, bool useMutFile = false, bool useIonAnnot = false);
             bool addAnnotRange (AnnotQuery * annot, sStr &stringContainer, const char *seqid, const char *id, const char *type, idx tandem = 0, idx before = 0, idx after = 0, void *ptr = 0);
             bool addRefs(sStr *err);
@@ -349,7 +335,7 @@ namespace slib
                     cnt = *cntRowProb->ptr(icnt);
                     idx *key = (idx *) (cntRowProb->id(icnt));
                     RangeSeq *range = rangeContainer.ptr(*key);
-                    idx irow = range->sourceSeqnum; // use the real irow from sBioseq
+                    idx irow = range->sourceSeqnum;
                     seqLen = range->sourceEndRange - range->sourceStartRange;
                     out->printf("%s, %" DEC ", %" DEC "\n", Sub->id(irow), seqLen, cnt);
                 }
@@ -357,4 +343,4 @@ namespace slib
             }
     };
 }
-#endif // sLib_utils_randseq_hpp
+#endif 

@@ -42,7 +42,6 @@ namespace slib {
     namespace tblqryx4 {
         class ExecContext;
 
-        // TODO : replace with shared_ptr<ast::Node> once we switch to C++11
         struct SharedFmla
         {
             public:
@@ -77,8 +76,7 @@ namespace slib {
                     return f;
                 }
         };
-        /* Possibilities: range of rows (start to end), possibly split into groups;
-         sparse list of rows, possibly split into groups by resolution or collapse */
+
         struct OutputColSource
         {
                 idx input_col;
@@ -86,7 +84,7 @@ namespace slib {
 
                 OutputColSource()
                 {
-                    sSet(this, 0); // zero any padding bytes, allows using OutputColSource as sDic key
+                    sSet(this, 0);
                     input_col = -sIdxMax;
                 }
                 OutputColSource & operator=(const OutputColSource & rhs)
@@ -127,7 +125,7 @@ namespace slib {
                         OutputColSource src;
                         idx prev_homonym;
                         idx next_homonym;
-                        mutable idx next_synonym; // only updated by getOutputCols
+                        mutable idx next_synonym;
                         sVariant::eType itype;
                         sVariant::eType ifmt_type;
                         idx fmt_offset;
@@ -140,7 +138,7 @@ namespace slib {
 
                         OutputCol()
                         {
-                            sSet(this, 0); // zero any padding bytes, allows using OutputCol as sDic key
+                            sSet(this, 0);
                             reset();
                         }
                         OutputCol & swap(OutputCol & rhs)
@@ -169,9 +167,9 @@ namespace slib {
                 };
 
                 sVec<OutputCol> _cols;
-                mutable sVec<idx> _in2out; // maps input column to first output column
-                sDic<idx> _savedCols; // preserve state of a column's source at a particular point in time
-                sDic<idx> _colNames; // maps name to first _cols index with such name
+                mutable sVec<idx> _in2out;
+                sDic<idx> _savedCols;
+                sDic<idx> _colNames;
                 sStr _formats;
                 mutable bool _need_update_in2out;
                 idx _src_start;
@@ -346,9 +344,6 @@ namespace slib {
 
                 sStr _buf;
                 sVec<Cell> _cells;
-                //sVec<sMex::Pos> _offsets;
-                //sVec<sVariant> _values;
-                //sVec<idx> _in_rows;
                 sVec<OutputColumns::saveHandle> _icol2saved;
                 idx _cols;
                 idx _saved;

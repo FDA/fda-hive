@@ -42,12 +42,12 @@ begin
 
   set l_grabRand =  (FLOOR( 1 + RAND( ) *4000000000 ));
   if linParallel = 0 then
-    select min(priority) into l_minpriority from QPReq where svcID = l_id and stat=lstat and act = lact ;
+    select IFNULL(min(priority), 0) from QPReq where svcID = l_id and stat=lstat and act = lact
+    into l_minpriority;
     update QPReq set grabRand=l_grabRand, jobId = ljob, stat = 2, takenCnt = takenCnt+1, takenTm = NOW(), aliveTm=NOW()
         where svcID = l_id and stat=lstat and act = lact and priority=l_minpriority
         limit 1;
   else
-    select min(priority) into l_minpriority from QPReq where svcID = l_id and stat=lstat and act = lact and inParallel=linParallel ;
     update QPReq set grabRand=l_grabRand, jobId = ljob, stat = 2, takenCnt = takenCnt+1, takenTm = NOW(), aliveTm=NOW()
         where svcID = l_id and stat=lstat and act = lact and inParallel=linParallel
         limit 1;

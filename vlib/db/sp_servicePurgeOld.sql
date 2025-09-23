@@ -125,8 +125,6 @@ BEGIN
             -- here we are missing deletion of props with invalid names
             -- it is difficult to do it using SQL because of type inheritance
 
-            -- tmp: drop orphan fields from types
-            DELETE FROM UPTypeField WHERE type_id NOT IN (SELECT type_id FROM UPType);
             -- clean resource of unknown services
             DELETE FROM QPResource WHERE svcName NOT IN (SELECT name FROM QPSvc);
 

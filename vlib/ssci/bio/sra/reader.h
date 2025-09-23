@@ -38,7 +38,6 @@ enum TRunReaderColumn_Array {
     ercol_Skip = 0x02
 };
 
-/* use ercol_Ignore to skip optional column when cursor is created */
 typedef struct TRunReaderColumn_struct {
     uint32_t idx;
     const char* name;
@@ -77,4 +76,4 @@ rc_t CC TRunReader_IdRange(const TRunReader* cself, int64_t* first, uint64_t* co
 
 rc_t CC TRunReader_ReadCell(const TRunReader* cself, int64_t rowid, int64_t colid);
 
-#endif /* _h_hive_reader_ */
+#endif 

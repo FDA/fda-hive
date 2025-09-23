@@ -46,26 +46,25 @@ namespace slib
     {
     public:
         real x,y,z;
-        sPnt(){} // default construction 
-        sPnt(real lx, real ly, real lz){x=lx;y=ly;z=lz;} // construction 
-        void set(real lx, real ly, real lz){x=lx;y=ly;z=lz;} // construction 
-        real modsqr(void) const // square of the module 
+        sPnt(){}
+        sPnt(real lx, real ly, real lz){x=lx;y=ly;z=lz;}
+        void set(real lx, real ly, real lz){x=lx;y=ly;z=lz;}
+        real modsqr(void) const
             {return x*x+y*y+z*z;}
-        real normalize(real scale=1.){ // normalize the vectore (module = 1 ) 
+        real normalize(real scale=1.){
             real module=sqrt(modsqr());
             if(module){x*=scale/module;y*=scale/module;z*=scale/module;}
             return module;
         }
-        static real torsion(sPnt * p1,sPnt * p2,sPnt * p3,sPnt * p4); // compute the torsion angle between 4 points
-        real reflect(sSurf * pSurf); // reflect the point on a given surface
-        real rotate(sAxis * pAxis,real AngleRad); // rotate around given axis so many radians
-        void projectRotate(sCrdSys * Old,sCrdSys * New); // perform rotational transformations between coordinate systems
+        static real torsion(sPnt * p1,sPnt * p2,sPnt * p3,sPnt * p4);
+        real reflect(sSurf * pSurf);
+        real rotate(sAxis * pAxis,real AngleRad);
+        void projectRotate(sCrdSys * Old,sCrdSys * New);
     };
 
     class sVect  : public sPnt
     {
     public:
-        // construction
         sVect(){}
         sVect(real lx, real ly, real lz):sPnt(lx,ly,lz){}
     };
@@ -75,17 +74,17 @@ namespace slib
 
     class sSurf{
     public:
-        sVect N; // the normal 
-        real D; // the free coefficient
+        sVect N;
+        real D;
         sSurf(sPnt * Pt0,sPnt * Pt1,sPnt * Pt2);
     };
 
     class sAxis{
     public:
-        sVect N; // the direction vector
-        sPnt O; // the origin 
-        sAxis(){} // default constructor
-        sAxis(sPnt * Pt0,sPnt * Pt) // constructor by two points
+        sVect N;
+        sPnt O;
+        sAxis(){}
+        sAxis(sPnt * Pt0,sPnt * Pt)
         {
             O=*Pt0;
             N.x=Pt->x-Pt0->x;
@@ -93,7 +92,7 @@ namespace slib
             N.z=Pt->z-Pt0->z;
             N.normalize();
         }
-        sAxis(sPnt * Pt0,sSurf * Sf) // constructor by a point and surface normal
+        sAxis(sPnt * Pt0,sSurf * Sf)
         {
             O=*Pt0;
             N=Sf->N;
@@ -105,20 +104,18 @@ namespace slib
     class sCrdSys
     {
     public:
-        sPnt O;         // origin
-        sVect X,Y,Z; // basis vectors
-        //static sCrdSys * gloSys; // global orthonormal system of coordinates 
-        static sCrdSys * glo; // global single instance 
+        sPnt O;
+        sVect X,Y,Z;
+        static sCrdSys * glo;
 
-        sCrdSys(real ox, real oy, real oz, // constructor
+        sCrdSys(real ox, real oy, real oz,
                 real xx, real xy, real xz,
                 real yx, real yy, real yz,
                 real zx, real zy, real zz)
                 : O(ox,oy,oz),X(xx,xy,xz),Y(yx,yy,yz),Z(zx,zy,zz){}
         sCrdSys(){}
-        void rotate(sAxis * pAxis,real angl); // rotate around an axis
-        //void rotate(sCrdSys * Rel,char axs, real angl); // rotate around another system of coordinates
-        real scaleGamma(real  z,int perspmode) // returns the scaling factor the distant object at <z> by focal distance at the this->Z
+        void rotate(sAxis * pAxis,real angl);
+        real scaleGamma(real  z,int perspmode)
             {if(!perspmode)return 1.;real foc=Z.modsqr();return (z+foc)/foc;}
 
     };
@@ -180,7 +177,7 @@ namespace slib
         bool isComputed;
         bool doNormals;
         
-        typedef real (* callbackFieldValue)(void * param,real x,real y,real z); // param is a user defined value for callback
+        typedef real (* callbackFieldValue)(void * param,real x,real y,real z);
         
         public:    
             sMesh (callbackFieldValue func=0, void * param=0, real cutoff=0.) {set(func, param,cutoff);}
@@ -193,32 +190,30 @@ namespace slib
                 return this;
             }
             virtual ~sMesh() {}
-            // default zero center sphere implementation of the callback
             virtual real computeField(real x,real y,real z){
                 return (x*x+y*y+z*z) ; 
             }
 
-            // the marching algorithm
             idx build( const sPnt & bmin, const sPnt & bmax, idx lstpx, idx lstpy, idx lstpz, idx cntseed=1, const real * seeds=0);
 
     private:
-        real computeCutoff; // the values smaller than cutoff returned by callbackFunc are considered inside points, larger - outside, if equal - on the surface
+        real computeCutoff;
         void * computeParam;
         callbackFieldValue computeFunc;
 
         real compute(real x,real y,real z) {
-            if(computeFunc)return computeFunc(computeParam, x,y,z); // this way we use callback 
-            else return computeField(x,y,z); // this way we use overloaded computeFunc
+            if(computeFunc)return computeFunc(computeParam, x,y,z);
+            else return computeField(x,y,z);
         }
 
         void fix_triangle( Polygon & po, sPnt & ou );
 
-        sPnt d;//real dx,dy,dz;
-        sPnt bmin;//real xmin, ymin, zmin;
+        sPnt d;
+        sPnt bmin;
         idx stpx,stpy,stpz,stpyz;
 
         struct Cube{
-            idx vrt[9]; // indexes of th verticies in vlist array for each one of the nine edges
+            idx vrt[9];
             real val[8];
             idx situation;
         };
@@ -255,39 +250,6 @@ namespace slib
 
 
 
-/*
-real sVect::rotate(sCrdSys * Rel,char axs, real angl)
-{
-    sAxis Axis;Axis.O=Rel->O;
-    Axis.N = (axs=='X') ? (Rel->X) : ( (axs=='Y') ? (Rel->Y) : (Rel->Z) );
-    return rotate(&Axis,angl);
-}
-
-void sVect::intersectSphereAxis(sPnt * pctr,real rad,sAxis * pAxis)
-{
-    x=pctr->x+rad*pAxis->N.x;
-    y=pctr->y+rad*pAxis->N.y;
-    z=pctr->z+rad*pAxis->N.z;
-}
-
-void sVect::projectMove(sCrdSys * Old,sCrdSys * New)
-{
-    x+=Old->O.x-New->O.x;
-    y+=Old->O.y-New->O.y;
-    z+=Old->O.z-New->O.z;
-}
-
-        void sCrdSys::move(sVect * vec,real step=1.)
-        {
-            O.x+=vec->x*step;
-            O.y+=vec->y*step;
-            O.z+=vec->z*step;
-        }
-        void sCrdSys::move(sCrdSys * Rel,char axs, real step)
-        {
-            move( (axs=='X') ? &(Rel->X) : ( (axs=='Y') ? &(Rel->Y) : &(Rel->Z) )  ,step);
-        }
-*/
 
 
 

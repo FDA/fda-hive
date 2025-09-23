@@ -33,9 +33,9 @@ DROP TABLE IF EXISTS `UPGroup`;
 CREATE TABLE `UPGroup` (
   `groupID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `userID` bigint(20) unsigned NOT NULL,
-  `flags` int(11) NOT NULL DEFAULT '0',
-  `is_active_fg` tinyint(1) NOT NULL DEFAULT '0',
+  `flags` int(11) NOT NULL DEFAULT 0,
+  `is_active_fg` tinyint(1) NOT NULL DEFAULT 0,
   `groupPath` varchar(1024) NOT NULL,
-  `createTm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `createTm` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`groupID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

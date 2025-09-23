@@ -36,4 +36,4 @@ CREATE TABLE `QPLock` (
   `purgeTm` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT 'if purgeTm < NOW(), lock has expired',
   PRIMARY KEY (`key`),
   KEY `qplock_reqid` (`reqID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;

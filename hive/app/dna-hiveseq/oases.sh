@@ -38,10 +38,19 @@ if [ "$QPRIDE_BIN" = "" ]; then
     QPRIDE_BIN='.'
 fi
 
-hpar=`echo "$inputParams" | awk '{print $1}'`
-gpar=`echo "$inputParams" | awk '{print $2 " " $3 " " $4 " " $5}'`
-echo "gpar=$gpar"
-echo "hpar=$hpar"
+    hpar=`echo "$inputParams" | awk '{print $1}'`
+    gpar=`echo "$inputParams" | awk '{print $2 " " $3 " " $4 " " $5}'`
+     echo "gpar=$gpar"
+     echo "hpar=$hpar"
+
+for tool in `echo -n 'velvet.2013_05_02/'`; do
+    PATH=$QPRIDE_BIN/$tool:$PATH
+done
+for tool in `echo -n 'oases_0.2.08/'`; do
+    PATH=$QPRIDE_BIN/$tool:$PATH
+done
+
+echo "PATH '$PATH'"
 
 if [ "$hpar" == "" ]; then
     echo "no kmerSize is given, using kmerSize=19"
@@ -51,11 +60,11 @@ fi
 cd "$workDir" || exit 10;
 echo "cd $workDir"
 
-echo "velveth $workDir $hpar -fasta -short $inputFile"
-velveth "$workDir" $hpar -fasta -short "$inputFile"
+    echo "velveth $workDir $hpar -fasta -short $inputFile"
+    velveth "$workDir" $hpar -fasta -short "$inputFile"
 
-echo "velvetg $workDir $gpar -read_trkg yes"
-velvetg "$workDir" $gpar -read_trkg yes
+    echo "velvetg $workDir $gpar -read_trkg yes"
+    velvetg "$workDir" $gpar -read_trkg yes
 
-echo "oases $workDir"
-oases "$workDir"
+    echo "oases $workDir"
+    oases "$workDir"

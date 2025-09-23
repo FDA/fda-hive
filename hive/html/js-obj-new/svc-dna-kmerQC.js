@@ -34,51 +34,16 @@ google.load("visualization", "1", {packages:["corechart"]});
 vjHO.register('svc-dna-kmerQC').Constructor=function ()
 {
     
-    //for example here, we will get an empty results sub object
     this.fullview=function(node, whereToAdd)
     {
         console.log("Constructing Full view from svc-dna-kmerQC.js");
-        // This is how to get the an argument from URL
-        // In this case, we want to know about the 'id'
         var id = docLocValue("id");
         
-        /***********************************
-         *  Create a datasource 
-         *  @param1: the title which is shown in the loading box
-         *  @param2: the name of the datasource
-         *  @param3: the url
-         *  @param4: refresh call back (optional)
-         *  @param5: add the header (optional) => use when you when you that the returned data from the server does not have the header  
-         */
-        vjDS.add("Loading...", "dsResult", "qpbg_tblqryx4://dna-kmerQC-result.csv//raw=1&cols=0-200&objs="+thisProcessID);
-        vjDS.add("Loading...", "dsResult2", "qpbg_tblqryx4://dna-kmerQC-filtered-result.csv//raw=1&cols=0-200&objs="+thisProcessID);
+        vjDS.add("Loading...", "dsResult", "qpbg_tblqryx4:
+        vjDS.add("Loading...", "dsResult2", "qpbg_tblqryx4:
 
         
-        /*********************************** 
-         * Create a Table View from a datasource
-         * Mandatory:
-         *         data: datasourcename
-         */
         
-//        var tbl = new vjTableView({
-//            data: "kmer-result"
-//        });
-//                
-//        var graph=new vjGoogleGraphView({
-//            data: 'kmer-result',
-//            type: "column",
-//            series:[ 
-//                    {col:"0", lable:true},  // it can be defined by the column header name or column number
-//                    {col:"1"},
-//            ],
-//              options:{
-////                  title: "K-mer Frequency",
-////                  hAxis: { title: 'K-mer'},
-////                  vAxis: {title: 'Appearance'},
-////                  legend: { position: 'top', alignment:'end' }
-//                            
-//               }
-//        });
 
         var tbl = new vjTableView({
             data: "dsResult"
@@ -88,7 +53,7 @@ vjHO.register('svc-dna-kmerQC').Constructor=function ()
               data: 'dsResult'
              ,type: "line"
              ,series:[ 
-                  {col:"0",label:true}  // it can be defined by the column header name or column number
+                  {col:"0",label:true}
                   ,{col:"1"}
               ]
            ,options:{
@@ -104,7 +69,7 @@ vjHO.register('svc-dna-kmerQC').Constructor=function ()
               data: 'dsResult2'
              ,type: "line"
              ,series:[ 
-                  {col:"0",label:true}  // it can be defined by the column header name or column number
+                  {col:"0",label:true}
                  ,{col:"1"}
              ]
          ,options:{

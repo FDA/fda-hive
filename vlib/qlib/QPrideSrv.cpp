@@ -33,13 +33,6 @@
 
 using namespace slib;
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/
- _/  Initialization
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- */
 
 static const char * replaceCommandLineVars(sStr * dst, const char * src, idx len, const sQPrideSrv::Service& svc, const char * resourceRoot)
 {
@@ -61,7 +54,7 @@ const char * replaceCommandLineArgs(sStr& proc, sStr* args, const sQPrideSrv::Se
         if( user ) {
             sUsrObj obj(*user, objId);
             if( obj.Id() && obj.getFilePathname(objPath, "any") ) {
-                objPath.cut(-3); // hack to make a path while implementation here is undecided
+                objPath.cut(-3);
             }
         }
         sStr b1;
@@ -74,7 +67,7 @@ const char * replaceCommandLineArgs(sStr& proc, sStr* args, const sQPrideSrv::Se
     proc.cut(0);
     const char * cl = buf.ptr();
     if( *cl != '\\' && *cl != '/' ) {
-        proc.printf("%s", resourceRoot); // if not an absolute path - start from resource root
+        proc.printf("%s", resourceRoot);
     }
     sStr exe;
     cl += sString::copyUntil(&exe, cl, 0, sString_symbolsBlank);
@@ -96,14 +89,16 @@ sQPrideSrv::sQPrideSrv(const char * defline00, const char * service)
     }
     ps.setMode(sPS::eExec_BG);
     m_secsToPurge = cfgInt(0, "qm.PurgeFrequency", 300);
-    //doStdin = 0;
 }
 
 bool sQPrideSrv::init(void)
 {
     sStr rootPath;
-    sUsrObj::initStorage(cfgStr(&rootPath, 0, "user.rootStoreManager"), cfgInt(0, "user.storageMinKeepFree", (udx)20 * 1024 * 1024 * 1024));
-    return true;
+    sRC rc = sUsrObj::initStorage(cfgStr(&rootPath, 0, "user.rootStoreManager"), cfgInt(0, "user.storageMinKeepFree", (udx)20 * 1024 * 1024 * 1024), this);
+    if( rc ) {
+        logOut(eQPLogType_Error, "Object storage: %s", rc.print());
+    }
+    return rc == sRC::zero;
 }
 
 bool sQPrideSrv::OnInit(void)
@@ -122,12 +117,12 @@ void sQPrideSrv::OnQuit(void)
                 break;
             }
         }
-        logOut(eQPLogType_Info, "onQuit node manager there %s alive jobs\n", haveJobsRunning ? "are" : "is no");
+        logOut(eQPLogType_Info, "onQuit node manager there %s alive jobs", haveJobsRunning ? "are" : "is no");
         if( !haveJobsRunning ) {
             sStr cmd("%s -stop", m_nodeMan.ptr());
             const idx ret = sPS::execute(cmd);
             if( ret != 0 ) {
-                logOut(eQPLogType_Error, "Node man call '%s' returned %" DEC "\n", cmd.ptr(), ret);
+                logOut(eQPLogType_Error, "Node man call '%s' returned %" DEC, cmd.ptr(), ret);
             }
         }
     }
@@ -146,7 +141,6 @@ bool sQPrideSrv::OnCommand(const char * command, const char * value)
         m_isMaintainer = x != 0;
     } else if( jobIsCmd("broadcast:")) {
         sleepMS(rand()*200/RAND_MAX);
-        // wait some random time 1/5 of a second
         messageSubmit("broadcast", command + ll, false, "%s", value);
     } else if( jobIsCmd("broadcast")) {
         m_isBroadcaster = true;
@@ -189,7 +183,7 @@ bool sQPrideSrv::OnCommand(const char * command, const char * value)
             if( sFile::exists(fullp) ) {
                 m_nodeMan.printf(0, "%s", fullp.ptr());
             } else {
-                logOut(eQPLogType_Error, "Script '%s' not found\n", m_nodeMan.ptr());
+                logOut(eQPLogType_Error, "Script '%s' not found", m_nodeMan.ptr());
             }
         }
     } else if( jobIsCmd("capacity") ) {
@@ -204,7 +198,6 @@ idx sQPrideSrv::OnGrab(idx)
 {
     makeVar00();
 
-    // prepare the list of services running on this host
     svcList.cut(0);
     sysPeekOnHost(&svcList);
     svcIDs.cut(0);
@@ -215,22 +208,19 @@ idx sQPrideSrv::OnGrab(idx)
         svcIDs.vadd(1, svcList[is].svcID);
     }
 
-    // prepare the lists of all processes running per service on this host
     sVec<sPS::Stat> all_ps;
-    // grab all processes for current user
 #if _DEBUG
-    logOut(eQPLogType_Info, "ps mode: %u '%s'\n", ps.getMode(), ps.getScript() ? ps.getScript() : "");
+    logOut(eQPLogType_Info, "ps mode: %u '%s'", ps.getMode(), ps.getScript() ? ps.getScript() : "");
 #endif
     idx psRes = ps.getProcList(&all_ps, 0, true);
 #if _DEBUG
-    logOut(eQPLogType_Info, "ps qty: %" DEC "\n", all_ps.dim());
+    logOut(eQPLogType_Info, "ps qty: %" DEC, all_ps.dim());
 #endif
     if( psRes >= 0 && ps.getMode() == sPS::eExec_Extern ) {
-        // this is to pickup qsrv or any other local jobs in case when we run in external mode
         sPS lcl;
         psRes = lcl.getProcList(&all_ps, 0, true);
 #if _DEBUG
-        logOut(eQPLogType_Info, "ps += local qty: %" DEC "\n", all_ps.dim());
+        logOut(eQPLogType_Info, "ps += local qty: %" DEC, all_ps.dim());
 #endif
     }
     if( psRes >= 0 ) {
@@ -241,18 +231,17 @@ idx sQPrideSrv::OnGrab(idx)
         const real usedCapacityPrev = usedCapacity;
         usedCapacity = 0;
 #if _DEBUG
-        logOut(eQPLogType_Info, "Host capacity used %f\n", usedCapacity);
+        logOut(eQPLogType_Info, "Host capacity used %f", usedCapacity);
         if( all_ps.dim() ) {
             sStr pslog("ps[%" DEC "]:", all_ps.dim());
             for(idx i = 0; i < all_ps.dim(); ++i) {
                 pslog.printf(" %" DEC " %s,", all_ps.ptr(i)->pid, all_ps.ptr(i)->cmd);
             }
-            logOut(eQPLogType_Info, "%s\n", pslog.ptr());
+            logOut(eQPLogType_Info, "%s", pslog.ptr());
         }
 #endif
         for(idx is = 0; is < svcList.dim(); ++is) {
-            svcJobsAlive.vadd(1, 0); // reserve space for count
-            // Get the process name
+            svcJobsAlive.vadd(1, 0);
             Proc.cut(0);
             const char * proc = replaceCommandLineArgs(tmp, 0, svcList[is], resourceRoot, user);
             tmp.cut(0);
@@ -273,19 +262,18 @@ idx sQPrideSrv::OnGrab(idx)
                 for(idx i = 0; i < psProc->dim(); ++i) {
                     pslog.printf(" %" DEC " %s,",psProc->ptr(i)->pid, psProc->ptr(i)->cmd);
                 }
-                logOut(eQPLogType_Info, "%s\n", pslog.ptr());
+                logOut(eQPLogType_Info, "%s", pslog.ptr());
             }
 #endif
         }
         if( usedCapacity != usedCapacityPrev ) {
-            logOut(eQPLogType_Info, "Host capacity used %f of %f\n", usedCapacity, getHostCapacity());
+            logOut(eQPLogType_Info, "Host capacity used %f of %f", usedCapacity, getHostCapacity());
         }
     } else {
-        logOut(eQPLogType_Info, "ps FAILED: %" DEC "\n", psRes);
+        logOut(eQPLogType_Info, "ps FAILED: %" DEC, psRes);
     }
 
     OnCommand("soundwake", 0);
-    // cleanup
     OnCommand("terminated", 0);
     if( m_isMaintainer ) {
         OnMaintain();
@@ -318,13 +306,6 @@ idx sQPrideSrv::OnMaintain(void)
 }
 
 
-/*
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- _/
- _/  Operations
- _/
- _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
- */
 
 idx sQPrideSrv::__findServiceForJob(Job * job)
 {
@@ -334,8 +315,8 @@ idx sQPrideSrv::__findServiceForJob(Job * job)
     if( ia >= svcList.dim() )
         return -1;
 
-    idx cntHosts, numHost = hostNumInPool(svcList.ptr(ia), &cntHosts);  // get the host numeral in the pool of hosts
-    if( svcList[ia].parallelJobs > 1 && (int) (numHost % (svcList[ia].parallelJobs)) != (int) (((job->inParallel - 1)) % cntHosts) ) // check if this host is carrying this parralel job
+    idx cntHosts, numHost = hostNumInPool(svcList.ptr(ia), &cntHosts);
+    if( svcList[ia].parallelJobs > 1 && (int) (numHost % (svcList[ia].parallelJobs)) != (int) (((job->inParallel - 1)) % cntHosts) )
         return -1;
     return ia;
 }
@@ -350,18 +331,14 @@ bool sQPrideSrv::OnCommandKnockout(const char *, const char *)
     sVec<idx> pidsToKill, jobsKilledBefore, reqsToKill;
     sStr sJob, sReq, sKnock;
 
-    //
-    // Loop through all jobs that should be knocked out
-    //
     for(idx ij = 0, ia, ip; ij < jobs.dim(); ++ij) {
 
-        // find the service (ia) under consideration and find the process in the list of running processes (ip)
         if( (ia = __findServiceForJob(&jobs[ij])) == -1 )
             continue;
         for(ip = 0; ip < svcPSList[ia].dim() && (jobs[ij].pid != svcPSList[ia][ip].pid); ip++)
-            ; // find if this process is still running
+            ;
 
-        if( ip == svcPSList[ia].dim() ) {  // this knockout candidate has been killed before
+        if( ip == svcPSList[ia].dim() ) {
             jobsKilledBefore.vadd(1, jobs[ij].jobID);
             sKnock.printf("\t%s[%" DEC "]\n", svcList[ia].name, jobs[ij].jobID);
         } else {
@@ -372,26 +349,20 @@ bool sQPrideSrv::OnCommandKnockout(const char *, const char *)
                 reqsToKill.vadd(1, jobs[ij].reqID);
                 sReq.printf("\t%s[%" DEC "]\n", svcList[ia].name, jobs[ij].reqID);
             }
-            //jobs[ij].killCnt++;
         }
 
     }
-
     if( pidsToKill.dim() ) {
-        logOut(eQPLogType_Info, " knocking out (killing) process(es):\n%s\n", sJob.ptr());
+        logOut(eQPLogType_Info, " knocking out (killing) process(es):\n%s", sJob.ptr());
         doKillProcesses(pidsToKill.ptr(), pidsToKill.dim());
         jobSetStatus(&jobsKilledBefore, eQPJobStatus_Knockouted);
     }
-
     if( reqsToKill.dim() ) {
-        logOut(eQPLogType_Info, " requests from knock-outed jobs(s) will be available for recovery:\n%s\n", sReq.ptr());
-        //reqSetStatus(&reqsToKill, eQPReqStatus_Killed);
+        logOut(eQPLogType_Info, " requests from knock-outed jobs(s) will be available for recovery:\n%s", sReq.ptr());
     }
-
     if( jobsKilledBefore.dim() ) {
-        logOut(eQPLogType_Info, " marking knocked out job(s) as such:\n%s\n", sKnock.ptr());
+        logOut(eQPLogType_Info, " marking knocked out job(s) as such:\n%s", sKnock.ptr());
         jobSetStatus(&jobsKilledBefore, eQPJobStatus_Knockouted);
-
     }
     return true;
 }
@@ -408,15 +379,14 @@ bool sQPrideSrv::OnCommandKillImpolites(const char *, const char *)
 
     for(idx ij = 0, ia, ip; ij < jobs.dim(); ++ij) {
         if( jobs[ij].pid == getpid() )
-            continue; // never kill self
+            continue;
 
-        // find the service (ia) under consideration and find the process in the list of running processes (ip)
         if( (ia = __findServiceForJob(&jobs[ij])) == -1 )
             continue;
         for(ip = 0; ip < svcPSList[ia].dim() && (jobs[ij].pid != svcPSList[ia][ip].pid); ip++)
-            ; // find if this process is still running
+            ;
         if( ip == svcPSList[ia].dim() )
-            continue; // no running process corresponds to this impolite
+            continue;
 
         sJob.printf("\t%s[%" DEC "/%" DEC "/%" DEC "]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
         pidsToKill.vadd(1, jobs[ij].pid);
@@ -429,14 +399,13 @@ bool sQPrideSrv::OnCommandKillImpolites(const char *, const char *)
     }
 
     if( pidsToKill.dim() ) {
-        logOut(eQPLogType_Info, " killing process(es):\n%s\n", sJob.ptr());
+        logOut(eQPLogType_Info, " killing process(es):\n%s", sJob.ptr());
         doKillProcesses(pidsToKill.ptr(), pidsToKill.dim());
         jobSetStatus(&jobsToKill, eQPJobStatus_Killed);
     }
 
     if( reqsToKill.dim() ) {
-        logOut(eQPLogType_Info, " requests from killed impolite jobs are ready for recovery:\n%s\n", sReq.ptr());
-        //reqSetStatus(&reqsToKill, eQPReqStatus_Killed);
+        logOut(eQPLogType_Info, " requests from killed impolite jobs are ready for recovery:\n%s", sReq.ptr());
     }
     return true;
 }
@@ -450,15 +419,13 @@ bool sQPrideSrv::OnCommandCleanTerminated(const char *, const char *)
     sStr sJob, sReq;
 
     for(idx ij = 0, ia, ip; ij < jobs.dim(); ++ij) {
-        // find the service (ia) under consideration and find the process in the list of running processes (ip)
         if( (ia = __findServiceForJob(&jobs[ij])) == -1 )
             continue;
         for(ip = 0; ip < svcPSList[ia].dim() && (jobs[ij].pid != svcPSList[ia][ip].pid); ip++)
-            ; // find if this process is still running
+            ;
         if( ip < svcPSList[ia].dim() ) {
             ++svcJobsAlive[ia];
-            //lastTimeSomethingWasAliveOnThisMchine=time();
-            continue;  // this job is still running , we do not touch it
+            continue;
         }
 
         sJob.printf("\t%s[%" DEC "/%" DEC "/%" DEC "]\n", svcList[ia].name, jobs[ij].jobID, jobs[ij].pid, jobs[ij].reqID);
@@ -477,7 +444,6 @@ bool sQPrideSrv::OnCommandCleanTerminated(const char *, const char *)
 
     if( reqsToMarkAsKilled.dim() ) {
         logOut(eQPLogType_Info, " the following requests(s) from terminated jobs will be dangling until recovery:\n%s\n", sJob.ptr());
-        //reqSetStatus(&reqsToMarkAsKilled, eQPReqStatus_Killed);
     }
 
     return true;
@@ -493,16 +459,18 @@ bool sQPrideSrv::OnCommandStopJobs(const char *, const char *)
     sDic<idx> svcToStop;
 
     for(idx ij = 0, ia; ij < jobs.dim(); ++ij) {
-        if( jobs[ij].svcID < 2  ||(svcList[ij].name && (strcmp(svcList[ij].name,"qm")==0)))
-            continue; // never stop ourselves
-        // find the service (ia) under consideration and find the process in the list of running processes (ip)
-        if( (ia = __findServiceForJob(&jobs[ij])) == -1 )
+        if( jobs[ij].svcID < 2 ) {
             continue;
-
-        // check if this service is still up
+        }
+        if( (ia = __findServiceForJob(&jobs[ij])) == -1 ) {
+            continue;
+        }
+        if( ia >= 0 && ia < svcList.dim() && svcList[ia].name && strcmp(svcList[ia].name, "qm") == 0 ) {
+            continue;
+        }
         if( svcList[ia].parallelJobs > 1 ) {
-            if( ((svcList[ia].isUp) & (((idx) 1) << ((jobs[ij].inParallel - 1)))) )  // this particular parallel job is up ?
-                continue;  // if this thread is Up
+            if( ((svcList[ia].isUp) & (((idx) 1) << ((jobs[ij].inParallel - 1)))) )
+                continue;
         } else if( svcList[ia].isUp != 0 )
             continue;
 
@@ -536,14 +504,12 @@ bool sQPrideSrv::OnCommandSoundWake(const char *, const char *)
 
     for(is = 0, somout = 0; is < svcList.dim(); ++is) {
 
-        //if( strcmp(cmd,"wake")!=0 ){
-        if( svcList[is].hasReqToGrab == 0 ) // nothing to be executed for this service
+        if( svcList[is].hasReqToGrab == 0 )
             continue;
-        if( svcList[is].isUp == 0 ) // we do not send trigger if the service is down: there should be nobody to respond anyway
+        if( svcList[is].isUp == 0 )
             continue;
-        if( svcList[is].svcID == 1 || (svcList[is].name && (strcmp(svcList[is].name,"qm")==0)) ) // we never wake up daemon service itself
+        if( svcList[is].svcID == 1 || (svcList[is].name && (strcmp(svcList[is].name,"qm")==0)) )
             continue;
-        //}
 
         if( !somout )
             logOut(eQPLogType_Info, " messaging services(s) to wake up:\n");
@@ -588,7 +554,7 @@ void sQPrideSrv::purge(TPurgeData & data)
 {
     sVec<idx> reqListToSync;
     idx limit = cfgInt(0, "qm.purgeReqLimit", 1000);
-    servicePurgeOld(&reqListToSync, 0, limit, true ); // service name is null here  means we delete from all services
+    servicePurgeOld(&reqListToSync, 0, limit, true );
     sStr pr, reqs;
     if( reqListToSync.dim() ) {
         for(idx i = 0; i < reqListToSync.dim(); ++i) {
@@ -614,14 +580,14 @@ void sQPrideSrv::purge(TPurgeData & data)
         }
     }
     sVec<idx> reqListToDelete;
-    servicePurgeOld(&reqListToDelete, 0, limit, false); // service name is null here  means we delete from all services
+    servicePurgeOld(&reqListToDelete, 0, limit, false);
     if( reqListToDelete.dim() ) {
         sStr purged("\t");
         for(idx i = 0; i < reqListToDelete.dim(); ++i) {
             if( !synced.get(&reqListToDelete[i], sizeof(reqListToDelete[i])) ) {
                 logOut(eQPLogType_Info, "Request %" DEC " deleted w/o properties sync\n", reqListToDelete[i]);
             }
-            data.reqs.set(&reqListToDelete[i], sizeof(reqListToDelete[i])); //save for file cleanup in usrv
+            data.reqs.set(&reqListToDelete[i], sizeof(reqListToDelete[i]));
             purged.printf("%" DEC "%s", reqListToDelete[i], ((i + 1) % 5) ? ", " : "\n\t");
         }
         logOut(eQPLogType_Info, "following %" DEC " requests have been purged:\n%s\n", reqListToDelete.dim(), purged.ptr());
@@ -631,7 +597,7 @@ void sQPrideSrv::purge(TPurgeData & data)
 bool sQPrideSrv::OnCommandPurge(const char *, const char *)
 {
     TPurgeData data;
-    purge(data); // accumulate req and obj ids
+    purge(data);
     sVarSet res;
     servicePath2Clean(res);
     for(idx r = 0; r < res.rows; ++r) {
@@ -667,56 +633,46 @@ bool sQPrideSrv::OnCommandLaunch(const char *, const char *)
     for(idx is = 0, ip; is < svcList.dim(); ++is) {
 
         if( hostCapacity && (svcList[is].capacity + currCapacity) > hostCapacity ) {
-            // host has no available capacity for this service
             continue;
         }
 
         idx cntThisKindOnAllMachines=svcJobsAlive[is];
 
         if( svcList[is].svcID < 2 || (svcList[is].name && (strcmp(svcList[is].name,"qm")==0)) )
-            continue; // we do not launch ourselves
+            continue;
         if( svcList[is].isUp == 0 )
-            continue; // if the service is down we do not launch it
+            continue;
         if( svcList[is].maxJobs == 0 )
-            continue; // never launch place-holder services
+            continue;
 
-        if( svcList[is].hasReqToGrab == 0 && (cntThisKindOnAllMachines>=svcList[is].activeJobReserve) ) // nothing to be executed for this service, no reason to launch a working daemon
+        if( svcList[is].hasReqToGrab == 0 && (cntThisKindOnAllMachines>=svcList[is].activeJobReserve) )
             continue;
 
         idx maxJobOnThisMachine = svcList[is].maxJobs;
 
-        //
-        // count the number of jobs of each kind running on this host
-        //
         sVec<idx> cntKinds;
-        cntKinds.vadd(1, svcPSList[is].dim()); // the zero-th element has the total number for all parallel jobs
-        for(idx ib = 1, cntThi=0; ib <= svcList[is].parallelJobs; ++ib) { // now for all parallel jobs
-            cmdline.printf(0, "jobarr %" DEC, ib - 1 + 1); // which are specified like this on a command line
-            for(ip = 0, cntThi = 0; ip < svcPSList[is].dim(); ++ip) { // count how many are there of this kind
+        cntKinds.vadd(1, svcPSList[is].dim());
+        for(idx ib = 1, cntThi=0; ib <= svcList[is].parallelJobs; ++ib) {
+            cmdline.printf(0, "jobarr %" DEC, ib - 1 + 1);
+            for(ip = 0, cntThi = 0; ip < svcPSList[is].dim(); ++ip) {
                 if( strstr(svcPSList[is][ip].cmd + svcPSList[is][ip].args, cmdline) )
                     ++cntThi;
             }
             cntKinds.vadd(1, cntThi);
         }
-        numHost = hostNumInPool(&svcList[is], &cntHosts, &maxJobOnThisMachine);  // get the host numeral in the pool of hosts
+        numHost = hostNumInPool(&svcList[is], &cntHosts, &maxJobOnThisMachine);
 
-        // TODO: implement limited launch attempts for broken jobs and emailing
-        //idx maxAllowedAttemtps=svcAttribs[is].maxJobs*(60000/sleepTime) *(cntKinds.dim()>1 ? cntKinds.dim()-1 : 1 );
 
-        //
-        // at this point we need to check if there are enough jobs running for this particular service
-        //
         for(idx ib = 0, ifrst = 1; ib < (int) cntKinds.dim(); ++ib) {
-            // make sure this job needs to be launched
             if( cntKinds[ib] >= maxJobOnThisMachine )
                 continue;
             if( ib == 0 && svcList[is].parallelJobs > 1 )
-                continue; // 0-th element is read only for non parallel jobs
+                continue;
             if( ib > 0 ) {
                 if( !((svcList[is].isUp) & (((idx) 1) << (ib - 1))) )
-                    continue; // this particular parallel job is down
+                    continue;
                 if( (int) (numHost % (svcList[is].parallelJobs)) != (int) ((ib - 1) % cntHosts) )
-                    continue; // check if this host is not carrying this parallel job
+                    continue;
             }
 
             if( ifrst ) {
@@ -724,28 +680,16 @@ bool sQPrideSrv::OnCommandLaunch(const char *, const char *)
                 ifrst = 0;
             }
 
-            //
-            // prepare the command line
-            //
             replaceCommandLineArgs(cmdline, &tmp, svcList[is], resourceRoot, user);
-            /*{
-                // check if the os specific resource exists
-                idx pos = cmdline.length();
-                cmdline.printf(".os%s", vars.value("os"));
-                sFil fl(cmdline.ptr(), sMex::fReadonly);
-                if( fl.length() == 0 )
-                    cmdline.cut(pos); // the file doesn't exist , cut it back to non-os specific
-            }*/
             if( ib > 0 ) {
                 cmdline.printf(" jobarr %" DEC " ", ib - 1 + 1);
             }
             if( ps.getMode() == sPS::eExec_Extern ) {
                 cmdline.printf(" psman \"%s\" ", ps.getScript());
             }
-            // add extra spaces to enlarge argv buffer for psMessage function
             static char psMessagePlaceHolder[64];
             static const char * dummy = sSet(psMessagePlaceHolder, ' ', sizeof(psMessagePlaceHolder));
-            cmdline.printf("%s stdin \"0%.*s\" ", tmp.ptr(), (int)(sizeof(psMessagePlaceHolder)), dummy); // dummy used to avert warning
+            cmdline.printf("%s stdin \"0%.*s\" ", tmp.ptr(), (int)(sizeof(psMessagePlaceHolder)), dummy);
             if( loggingOn ) {
                 cmdline.printf(" > $(/tmp/)qp-%s-", svcList[is].name);
             }
@@ -761,12 +705,12 @@ bool sQPrideSrv::OnCommandLaunch(const char *, const char *)
                                ( (svcList[is].hasReqToGrab && cntKinds[ib] < svcList[is].hasReqToGrab )
                                    ||
                                   (cntThisKindOnAllMachines < svcList[is].activeJobReserve && cntKinds[ib] < svcList[is].activeJobReserve)
-                                  ) ; ++cntKinds[ib], ++cntThisKindOnAllMachines, ++il) { //
+                                  ) ; ++cntKinds[ib], ++cntThisKindOnAllMachines, ++il) {
                 if( il ) {
-                    if( svcList[is].delayLaunchSec < 0 ) { // if negative the next job of this kind will be launched during the next sync
+                    if( svcList[is].delayLaunchSec < 0 ) {
                         break;
                     }
-                    if( svcList[is].delayLaunchSec != 0 ) { // sleep between launches
+                    if( svcList[is].delayLaunchSec != 0 ) {
                         sleepMS(svcList[is].delayLaunchSec * 1000);
                     }
                 }
@@ -779,7 +723,6 @@ bool sQPrideSrv::OnCommandLaunch(const char *, const char *)
                 currCapacity += svcList[is].capacity;
 
                 if( hostCapacity && (svcList[is].capacity + currCapacity) >= hostCapacity ) {
-                    // host has no more capacity left for this service
                     break;
                 }
             }
@@ -807,7 +750,7 @@ bool sQPrideSrv::OnCommandEmail(const char *, const char *)
     cfgStr(&smtpSrv, 0, "smtpSrv");
     cfgStr(&emailFrom, 0, "emailAddr");
     if( !smtpSrv || !emailFrom ) {
-        logOut(eQPLogType_Info, "smtpSrv and/or emailAddr not found in db table QPCfg\n");
+        logOut(eQPLogType_Info, "smtpSrv and/or emailAddr not found in db table QPCfg");
         return (-1);
     }
 
@@ -817,8 +760,7 @@ bool sQPrideSrv::OnCommandEmail(const char *, const char *)
 
     for(sUsrObjRes::IdIter it = emails.first(); emails.has(it); emails.next(it)) {
         sUsrEmail email(usr, *emails.id(it));
-        /* TODO check here if last failed attempt was more than a day ago in case something was down somewhere */
-        if( !email.isSent() && email.retries() < 2 ) {
+        if( !email.draft() && !email.isSent() && email.retries() < 2 ) {
             sStr subj("%s", email.subject());
             sStr body("%s", email.body());
             sStr rcpt, to, cc;
@@ -852,12 +794,11 @@ bool sQPrideSrv::OnCommandEmail(const char *, const char *)
         }
     }
     if( sent || failed ) {
-        logOut(eQPLogType_Info, " emails: %" UDEC " sent, %" UDEC " failed\n", sent, failed);
+        logOut(eQPLogType_Info, " emails: %" UDEC " sent, %" UDEC " failed", sent, failed);
     }
     return true;
 }
 
-// most probably this function should be in storage manager
 void sQPrideSrv::purgeDir(TPurgeData & data)
 {
     if( data.cleanUpDays || (data.masks00 && data.masks00[0]) ) {
@@ -894,7 +835,6 @@ void sQPrideSrv::purgeDir(TPurgeData & data)
                                 }
                             }
                             if( !remove && data.objs.dim() ) {
-                                // TODO : allow purging non-domain-0 object storage
                                 sStr fobj;
                                 sString::searchAndReplaceStrings(&fobj, mask, 0, "@objID@" __, "%" UDEC "" __, 0, true);
                                 udx obj = 0;
@@ -918,13 +858,13 @@ void sQPrideSrv::purgeDir(TPurgeData & data)
                     bool done = sFile::remove(pnm) || sDir::removeDir(pnm, true);
 #endif
                     if( done ) {
-                        logOut(eQPLogType_Info, "removed by %s '%s'\n", remove.ptr(), pnm);
+                        logOut(eQPLogType_Info, "removed by %s '%s'", remove.ptr(), pnm);
                         data.size += sDir::exists(pnm) ? sDir::size(pnm) : sFile::size(pnm);
                     }
                 }
             }
         }
-        logOut(eQPLogType_Info, "purging '%s': %" DEC " days, masks: '%s%s'\n", plog ? plog.ptr(1) : "", data.cleanUpDays, mlog ? mlog.ptr() : "", mlog ? "/" : "");
+        logOut(eQPLogType_Info, "purging '%s': %" DEC " days, masks: '%s%s'", plog ? plog.ptr(1) : "", data.cleanUpDays, mlog ? mlog.ptr() : "", mlog ? "/" : "");
     }
 }
 
@@ -945,7 +885,7 @@ bool sQPrideSrv::OnCommandCapacity(const char *, const char *)
             sStr cmd("%s -add %" DEC, m_nodeMan.ptr(), need - total);
             const idx ret = sPS::execute(cmd);
             if( ret != 0 ) {
-                logOut(eQPLogType_Error, "Node man call '%s' returned %" DEC "\n", cmd.ptr(), ret);
+                logOut(eQPLogType_Error, "Node man call '%s' returned %" DEC, cmd.ptr(), ret);
             }
         }
     }

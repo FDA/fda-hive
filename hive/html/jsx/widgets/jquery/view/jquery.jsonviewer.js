@@ -1,5 +1,3 @@
-//# sourceURL=jquery.jsonviewer.js
-
 /*
  *  ::718604!
  * 
@@ -29,6 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+
 ﻿$(function () {
     $.widget("view.jsonviewer", {
         options: {

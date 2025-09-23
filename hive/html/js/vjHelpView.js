@@ -42,14 +42,9 @@ function vjHelpView ( viewer )
     if(!this.tblClass) this.tblClass="TABLEVIEW_table";
 
 
-    vjDataViewViewer.call(this,viewer); // inherit default behaviours of the DataViewer
+    vjDataViewViewer.call(this,viewer);
 
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ HTML viewer constructors
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
     this.composerFunction=function( viewer , content)
     {
@@ -57,8 +52,8 @@ function vjHelpView ( viewer )
             this.history.push(this.getData(0).url);
             this.historyCurrent++;
         }
-        else if(!this.selfReload ){ // loading more content externally ? put it into history
-            this.history.splice(this.historyCurrent + 1, this.history.length - this.historyCurrent+ 1); // cut to the end
+        else if(!this.selfReload ){
+            this.history.splice(this.historyCurrent + 1, this.history.length - this.historyCurrent+ 1);
             this.history.push(this.getData(0).url);
             this.historyCurrent++;
             this.selfReload=false;
@@ -81,8 +76,6 @@ function vjHelpView ( viewer )
     this.composeText=function(content)
     {
         if (!content) return;
-        // parse here
-        //digest the content
         var element;
         if(this.userInfoView){
             this.elemArr = new vjTable(content, 0, vjTable_hasHeader);
@@ -160,10 +153,8 @@ function vjHelpView ( viewer )
 
         var t = "";
 
-        //t += "<table border=0 style='width:100%'>";
         t += "<table border=0 >";
 
-            //pic and title
             t+="<tr>";
                 t+="<td width='1' valign=top >";
                     t+="<table border=0 width='1'><tr><td colspan=2>";
@@ -183,11 +174,9 @@ function vjHelpView ( viewer )
                     }
                     t+="</td></tr></table>";
                 t+="</td>";
-                //t+="<td valign=top  colspan=2 class='"+this.styleBase+"_title' width='99%' >";
                 t+="<td valign=top  colspan=2 class='"+this.styleBase+"_title'  >";
-                    t += title;
-                    t+="<br/>";
-                    t += "<span class='"+this.styleBase+"_definition'>"+ definition+"</span >" ; // and definition
+                    t += "<h2>" + title + "</h2>";
+                    t += "<p class='"+this.styleBase+"_definition'>"+ definition+"</p>" ;
                 t+="</td>";
             t += "</tr>";
 
@@ -196,11 +185,9 @@ function vjHelpView ( viewer )
                 for(var item in element){
                     if(excludeArray.indexOf(item)==-1){
                         t+="<tr >";
-                            //t += "<td valign=left class='"+this.tblClass+"' colspan=1 width='20%' >";
                             t += "<td valign=left class='"+this.tblClass+"' colspan=1 >";
                                 t += item;
                             t+="</td>";
-                            //t += "<td valign=left class='"+this.tblClass+"' colspan=2 width='80%' >";
                             t += "<td valign=left class='"+this.tblClass+"' colspan=2  >";
                             t += element[item];
                             t+="</td>";
@@ -209,7 +196,6 @@ function vjHelpView ( viewer )
                 }
 
                 if(element["education_entry_degree"].length){
-                    //t += "<tr><td colspan = '2'><table border=0  class ='"+this.tblClass+"' style='width:95%'>";
                     t += "<tr><td colspan = '2'><table border=0  class ='"+this.tblClass+"' >";
                     t += "  <tr>"
                         +"   <th>education_degree</th>"
@@ -230,16 +216,10 @@ function vjHelpView ( viewer )
 
 
 
-            //body description
             t+="<tr >";
-                //t += "<td valign=top class='"+this.styleBase+"_body' colspan=3 width='100%' >";
-            //var height = (this.tab.parent.height)-this.iconSize-this.navigationWidth*2;
             t += "<td valign=top class='"+this.styleBase+"_body' colspan=3 ";
-            //t+=" width='10%' "
             t+= ">";
 
-                    //t += "<div style='overflow:auto;margin:0px;padding: 0px; max-height:" + height + "px;max-width:"+ (this.tab.parent.width)+"px;' >" + contentP + "</div>"; // height: "+height+";
-                //t += "<div style='overflow:auto;margin:0px;padding: 0px;' >" + contentP + "</div>"; // height: "+height+";
                 t+=contentP;
                 t+="</td>";
             t+="</tr>";
@@ -253,7 +233,6 @@ function vjHelpView ( viewer )
     this.moveBack=function()
     {
         if (this.historyCurrent == 0) {
-        //    alert("we cannot go back");
         } else {
             this.historyCurrent--;
             this.reloadhistoryCurrent();
@@ -263,7 +242,6 @@ function vjHelpView ( viewer )
     this.moveForward = function()
     {
         if (this.history.length-this.historyCurrent <= 1){
-            //alert("we can not go up");
         } else {
             ++this.historyCurrent;
             this.reloadhistoryCurrent();
@@ -278,13 +256,12 @@ function vjHelpView ( viewer )
 
     this.refreshContent = function (objID, urlContent)
     {
-        //alert(urlContent.substring(7))
         if(urlContent.indexOf("select:")==0){
             this.dataViewEngine.select(urlContent.substring(7),true);
             return ;
         }
-        urlContent = "http://help/" + urlContent;
-        this.history.splice(this.historyCurrent + 1, this.history.length - this.historyCurrent+ 1); // cut to the end
+        urlContent = "http:
+        this.history.splice(this.historyCurrent + 1, this.history.length - this.historyCurrent+ 1);
         this.history.push(urlContent);
         this.historyCurrent++;
         this.selfReload=true;
@@ -294,4 +271,3 @@ function vjHelpView ( viewer )
 
 }
 
-//# sourceURL = getBaseUrl() + "/js/vjHelpView.js"

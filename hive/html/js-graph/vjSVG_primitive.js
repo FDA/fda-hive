@@ -27,24 +27,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-    //_/
-    //_/ Visualize-able objects
-    //_/
-    //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
 
 
 
-        //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-        //_/
-        //_/ base object which is the base class of all other visualizeable objects
-        //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 
-//TODO: Create default property objects for required properties of primitives (eg box: vjPropSVG_box = new Object({x:0,y:0,z:0,height:1,width:1});)and ensure properties.
 function vjSVG_primitive(source)
 {
-    //if (!this.objID || !this.objID.length )
     this.objID="svg"+Math.random();
     vjObj.register(this.objID,this);
 
@@ -52,7 +41,7 @@ function vjSVG_primitive(source)
 
     this.clone=function (source)
     {
-         var i=0;  // copy all the features from base object
+         var i=0;
          for (i in source) {
             this[i] = source[i];
          }
@@ -84,8 +73,7 @@ function vjSVG_primitive(source)
                 svg.setTitle(this.title);
             if(this.desc)
                 svg.setDesc(this.desc);
-            if(this.attribute) // object Attribute ==> attribute={"tagName":value}
-                //alerJ("new attribute ", this.attribute)
+            if(this.attribute)
                 svg.setNewAttribute(this.attribute);
         }
         this.renderChildren(svg);
@@ -96,13 +84,9 @@ function vjSVG_primitive(source)
     {
         if (this.pen)  svg.setPen(this.pen);
         if (this.brush) svg.setBrush(this.brush);
-//        if (this.svgID) svg.setSVGID(this.svgID);
         if (this.font) svg.setFont(this.font);
         if (this.link) svg.setLink(this.font);
         if (this.handler) {
-//            for (ii in this.handler){
-//                this.handler[ii]='vjSVG_GIhandler(\"'+this.handler[ii]+'\",\"'+this.objID+'\",\"'+this.coordinates[0].irow+'\");'; //call whatever function from the wrapper
-//            }
             svg.setHandler(this.handler);
         }
 
@@ -128,7 +112,6 @@ function vjSVG_primitive(source)
 
         if (this.pen)   svg.popPen();
         if (this.brush) svg.popBrush();
-//        if (this.svgID) svg.popSVGID();
         if (this.font)  svg.popFont();
         if (this.link)  svg.popLink();
         if (this.handler) svg.popHandler();
@@ -148,10 +131,6 @@ function vjSVG_primitive(source)
     };
 }
 
-//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-//_/
-//_/ other simple objects
-//_/
 
 function vjSVG_trajectory(source)
 {
@@ -171,7 +150,7 @@ function vjSVG_regularpolygon(source)
     };
 }
 
-function vjSVG_box(source) // width, height
+function vjSVG_box(source)
 {
     vjSVG_primitive.call(this, source,this.objID);
     var crdList=new Array();
@@ -180,8 +159,6 @@ function vjSVG_box(source) // width, height
     var point3={x:this.crd.x+this.width,y:this.crd.y+this.height,z:this.z};
     var point4={x:this.crd.x+this.width,y:this.crd.y,z:this.z};
     crdList.push(point1,point2,point3,point4);
-    //if (this.crd.y=="NaN") alert("thi y " + this.crd.y)
-    //alerJ("PrimitivePoint3",point3)
     this.draw=function(svg)
     {
         return svg.trajectory(crdList,1,"",this.objID);
@@ -231,13 +208,11 @@ function vjSVG_text(source)
 {
     vjSVG_primitive.call(this, source);
 
-    // Use sensible pen/brush settings by default
     if (!this.pen) this.pen = DefaultTextPen;
     if (!this.brush) this.brush = DefaultTextBrush;
 
     this.draw=function(svg)
     {
-        //svg.text(this.x,this.y,this.text,this.isVertical,this.angle);
         var objAttr = {text:this.text,isVertical:this.isVertical,angle:this.angle,"text-anchor":this.anchor,dx:this.dx,dy:this.dy};
         if (this.ellipsizeWidth)
             objAttr.ellipsizeWidth = this.ellipsizeWidth;
@@ -264,7 +239,6 @@ function vjSVG_group(source)
         var g = svg.group(this.objID + "_group");
         this.popMyAttributes(svg);
         var old_svg_grpobj = svg.curGroupNode;
-        //g.svgID = svg.curGroupNode.id;
         g.id = this.objID + "_group";
         svg.curGroupNode = g;
         this.primitiveRender(svg);
@@ -273,11 +247,6 @@ function vjSVG_group(source)
     };
 }
 
-    // _/_/_/_/_/_/_/_/_/_/_/_/
-    // _/
-    // _/ Composite primitives
-    // _/
-    // _/_/_/_/_/_/_/_/_/_/_/_/
 
 function vjSVG_Arrow(source){
     vjSVG_primitive.call(this,source);

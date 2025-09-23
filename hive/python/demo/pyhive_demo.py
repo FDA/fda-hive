@@ -38,6 +38,9 @@ import pyhive
 # we will use CSV format for output
 import csv
 
+# for math.max/min
+import math
+
 # The on_execute() function from your module will be called when the
 # backend grabs a new request for your service.
 def on_execute(req_id):
@@ -181,3 +184,7 @@ def on_execute(req_id):
     pyhive.proc.req_set_status(pyhive.req_status.DONE)
     return
 
+# Returns number of requests to split into if running in non-splitOnFrontEnd mode
+def on_split(req_id):
+    num_lists = len(pyhive.proc.obj.prop_get("list"))
+    return max(num_lists, 1)

@@ -44,30 +44,6 @@ idx sBioseq::mapComplementATGC[5];
 sVec<idx> sBioseq::mapCodeAA;
 idx sBioseq::atgcModel=-1;
 
-//sBioseq::ProtAA sBioseq::listAA[]={
-//    {"Alanine","Ala","A","GCT" _ "GCC" _ "GCA" _ "GCG" __},
-//    {"Arginine","Arg","R","CGT" _ "CGC" _ "CGA" _ "CGG" _ "AGA" _ "AGG" __},
-//    {"Asparagine","Asn","N","AAT" _ "AAC" __},
-//    {"Aspartic","Asp","D","GAT" _ "GAC" __},
-//    {"Cysteine","Cys","C","TGT" _ "TGC" __},
-//    {"Glutamic","Glu","E","GAG" _ "GAA" __},
-//    {"Glutamine","Gln","Q","CAA" _ "CAG" __},
-//    {"Glycine","Gly","G","GGT" _ "GGC" _ "GGA" _ "GGG" __},
-//    {"Histidine","His","H","CAT" _ "CAC" __},
-//    {"Isoleucine","Ile","I","ATT" _ "ATC" _ "ATA" __},
-//    {"Leucine","Leu","L","TTA" _ "TTG" _ "CTT" _ "CTC" _ "CTA" _ "CTG" __},
-//    {"Lysine","Lys","K","AAA" _ "AAG" __},
-//    {"Methionine","Met","M","ATG" __},
-//    {"Phenylalanine","Phe","F","TTT" _ "TTC" __},
-//    {"Proline","Pro","P","CCT" _ "CCC" _ "CCA" _ "CCG" __},
-//    {"Serine","Ser","S","TCT" _ "TCC" _ "TCA" _ "TCG" _ "AGT" _ "AGC "__},
-//    {"Threonine","Thr","T","ACT" _ "ACC" _ "ACA" _ "ACG" __},
-//    {"Tryptophan","Trp","W","TGG" __},
-//    {"Tyrosine","Tyr","Y","TAT" _ "TAC" __},
-//    {"Valine","Val","V","GTT" _ "GTC" _ "GTA" _ "GTG" __},
-//    {"STOP","Stp","*","TAA" _ "TGA" _ "TAG" __},
-//    {0},
-//};
 
 static sStr meta_AAcodons_buf;
 static const char * Asx_AACodons[sDim(sBioGenCode::AACodons[0])] = {0};
@@ -141,10 +117,8 @@ sBioseq::ProtAA sBioseq::listAA[]={
     {"STOP",            "Stp","*",sBioGenCode::AACodons[20]},
     {"Absent",          "Abs","-",sBioGenCode::AACodons[21]},
     {0},
-    // AA not in the basic 20 (coded by stop codons in some contexts)
     {"Pyrrolysine",     "Pyl", "O", Pyl_AACodons},
     {"Selenocysteine",  "Sec", "U", Sec_AACodons},
-    // ambiguity AA codes
     {"Aspartate or asparagine", "Asx", "B", Asx_AACodons},
     {"Glutamate or glutamine",  "Glx", "Z", Glx_AACodons},
     {"Any",                     "Any", "X", Any_AACodons},
@@ -184,7 +158,7 @@ sBioseq::ProtAA * sBioseq::AAFindByLet3(const char * three)
 void sBioseq::initModule(idx modelnumber)
 {
 
-    if(modelnumber!=atgcModel) {  // mapATGC[(idx)'t']!=1
+    if(modelnumber!=atgcModel) {
         for(idx i = 0; i < sDim(mapATGC); ++i) {
             mapATGC[i] = (unsigned char) 0xFF;
             iupacCodes[i] = (sICodes){0, 0, 0};
@@ -224,9 +198,8 @@ void sBioseq::initModule(idx modelnumber)
         mapATGC[(idx)'R']=4;mapATGC[(idx)'r']=4; mapATGC[(idx)'Y']=4;mapATGC[(idx)'y']=4; mapATGC[(idx)'S']=4;mapATGC[(idx)'s']=4;
         mapATGC[(idx)'W']=4;mapATGC[(idx)'w']=4; mapATGC[(idx)'K']=4;mapATGC[(idx)'k']=4; mapATGC[(idx)'M']=4;mapATGC[(idx)'m']=4;
         mapATGC[(idx)'B']=4;mapATGC[(idx)'b']=4; mapATGC[(idx)'D']=4;mapATGC[(idx)'d']=4; mapATGC[(idx)'H']=4;mapATGC[(idx)'h']=4;
-        mapATGC[(idx)'V']=4;mapATGC[(idx)'v']=4; mapATGC[(idx)'.']=4;//mapATGC[(idx)'-']=4;
+        mapATGC[(idx)'V']=4;mapATGC[(idx)'v']=4; mapATGC[(idx)'.']=4;
 
-        // iupacCodes['A'] etc. needed for matchIUPAC
         iupacCodes[(idx)'A']=iupacCodes[(idx)'a']=(sICodes){1,(char *)"A",0};
         mapIUPAC[(idx)'A']=mapIUPAC[(idx)'a']=0; mapRevIUPAC[0]='A';
         iupacCodes[(idx)'T']=iupacCodes[(idx)'t']=(sICodes){1,(char *)"T",0};
@@ -262,28 +235,23 @@ void sBioseq::initModule(idx modelnumber)
         mapRevIUPAC[16]=0;
 
 
-        // make a codon map to AA
         for(idx j=0; listAA[0].codon00[j];++j){
             for( idx i=0; listAA[i].nm; ++i) {
                 for ( const char * p=listAA[i].codon00[j]; p ; p=sString::next00(p) ){
                     char byt=0;
                     if(sLen(p))compressATGC_2Bit (&byt, p, sLen(p) );
                     else continue;
-//                    if((j*64+byt)>=sDim(mapCodeAA) )
-//                        continue; // should never happen
                     *mapCodeAA.ptrx(j*64+(idx)byt)=i;
                 }
             }
         }
 
-        // create meta AA codons
         sVec<idx> asx_offsets(sMex::fExactSize), glx_offsets(sMex::fExactSize), any_offsets(sMex::fExactSize);
         asx_offsets.resize(sDim(sBioGenCode::AACodons[0]));
         glx_offsets.resize(sDim(sBioGenCode::AACodons[0]));
         any_offsets.resize(sDim(sBioGenCode::AACodons[0]));
         for(idx i = 0; i < sDim(sBioGenCode::AACodons[0]); i++) {
             asx_offsets[i] = meta_AAcodons_buf.length();
-            // D = aspartate, N = asparagine
             for(const char * codon = AAFindByLet('D')->codon00[i]; codon && *codon; codon = sString::next00(codon) ) {
                 meta_AAcodons_buf.add(codon);
             }
@@ -293,7 +261,6 @@ void sBioseq::initModule(idx modelnumber)
             meta_AAcodons_buf.add0(2);
 
             glx_offsets[i] = meta_AAcodons_buf.length();
-            // E = glutamate, Q = glutamine
             for(const char * codon = AAFindByLet('E')->codon00[i]; codon && *codon; codon = sString::next00(codon) ) {
                 meta_AAcodons_buf.add(codon);
             }
@@ -303,7 +270,6 @@ void sBioseq::initModule(idx modelnumber)
             meta_AAcodons_buf.add0(2);
 
             any_offsets[i] = meta_AAcodons_buf.length();
-            // iterate over all non-meta AA codes (which terminate at the row with NULL letter)
             for(idx j = 0; listAA[j].let; j++) {
                 if( isalpha(listAA[j].let[0]) ) {
                     for(const char * codon = listAA[j].codon00[i]; codon && *codon; codon = sString::next00(codon) ) {
@@ -328,7 +294,6 @@ idx sBioseq::compressATGC_2Bit (sStr * buf, const char * seq, idx len, idx isext
     idx Npos= (isextensiblebuf) ? Nbuf->length() : 0 ;
 
     char * b=(char *)buf;
-    //char * Nb= (Nbuf) ? (isextensiblebuf ? (char *)Nbuf->ptr(0) : (char *)Nbuf ) : 0;
     char * Nb= (Nbuf) ? (char *)Nbuf->ptr(0)  : 0;
     const char * nxt=seq+len;
     unsigned char let;
@@ -336,10 +301,9 @@ idx sBioseq::compressATGC_2Bit (sStr * buf, const char * seq, idx len, idx isext
     idx Nib=0, Nim;
     idx seed = 0;
 
-//    iupacCodes['N'].seed=iupacCodes['n'].seed=0;  // Reset seed only for letter 'N'
     idx newseed = 0;
 
-    for ( is=0; seq<nxt  ;  ++seq) { // && *seq!='#'
+    for ( is=0; seq<nxt  ;  ++seq) {
         let = mapATGC[(idx)(*seq)];
         if(let == 0xFF) continue;
 
@@ -349,7 +313,6 @@ idx sBioseq::compressATGC_2Bit (sStr * buf, const char * seq, idx len, idx isext
         if(let==4) {
             if (Nbuf && (Nbuf->length() == 0)){
                 Nbuf->add(0,(len-1) / 8 + 1);
-//                Nbuf->resize();
                 Nb = (char *)Nbuf->ptr(Npos);
             }
             if (seed == 0){
@@ -358,12 +321,10 @@ idx sBioseq::compressATGC_2Bit (sStr * buf, const char * seq, idx len, idx isext
             sICodes *iupac = &iupacCodes[(idx)*seq];
             if (iupac->code != 0){
                 let = mapATGC[(idx)iupac->code[(idx)(seed % iupac->len)]];
-//                iupac->seed = (iupac->seed + 1) % iupac->len;
             }
             else {
                 let = seed % 4;
             }
-//            seed = (seed * 1103515245 + 12345) & 0x7fffffff;
             seed = ((seed * 279470273UL) % 4294967291UL) & 0x7fffffff;
             if (Nbuf != 0){
                 Nb[Nib]|=(0x01<<Nim);
@@ -373,7 +334,7 @@ idx sBioseq::compressATGC_2Bit (sStr * buf, const char * seq, idx len, idx isext
 
 
         if( isextensiblebuf ){
-            buf->resize(pos+ib+1); // make sure buffer is big enough
+            buf->resize(pos+ib+1);
             b=buf->ptr(pos);
 
             if (Nbuf){
@@ -382,15 +343,9 @@ idx sBioseq::compressATGC_2Bit (sStr * buf, const char * seq, idx len, idx isext
             }
         }
 
-//        if (Nbuf != 0){
-//            if (Nim == 0)
-//                Nb[Nib] = 0;
-//            if (let == 4)
-//                Nb[Nib]|=(0x01<<Nim);
-//        }
 
         if(im==0){
-            b[ib]=0; // zero the if the first residue goes into our mask
+            b[ib]=0;
         }
         b[ib]|=(let<<im);
         ++is;
@@ -398,43 +353,24 @@ idx sBioseq::compressATGC_2Bit (sStr * buf, const char * seq, idx len, idx isext
     return is;
 }
 
-//idx sBioseq::compressATGC_2Bit (sStr * buf, const char * seq, idx len, idx isextensiblebuf)
-//{
-//    idx pos=isextensiblebuf ? buf->length() : 0 ;
-//
-//    char * b=(char *)buf;
-//    const char * nxt=seq+len;
-//    unsigned char let;
-//    idx is, ib=0, im;
-//    idx seed = 0;
-//
-//    for ( is=0; seq<nxt  ;  ++seq) { // && *seq!='#'
-//        // if( *seq=='\n' || *seq=='\r' || *seq=='\t' || *seq==' ' )continue;
-//        if(strchr("1234567890/" sString_symbolsBlank,*seq))continue;
-//
-//        let = mapATGC[(idx)(idx)(*seq)];
-//        if(let == 0xFF) continue;
-//
-//        ib=is/4, im=(is%4)*2;
-//
-//        if( isextensiblebuf ){
-//            buf->resize(pos+ib+1); // make sure buffer is big enough
-//            b=buf->ptr(pos);
-//
-//        }
-//
-//        if (let == 4)
-//            let = seed % 4;
-//        seed += let;
-//
-//        if(im==0) b[ib]=0; // zero the if the first residue goes into our mask
-//        //if(mapATGC[(idx)(idx)(*seq)]!=0xFF) {
-//            b[ib]|=(let<<im);
-//        //}
-//        ++is;
-//    }
-//    return is;
-//}
+idx sBioseq::seqstr_2Bit(sStr * buf, idx num, idx start, idx lenseq, idx isrev, idx iscomp)
+{
+    idx seqlen = len(num, 0);
+    if( start < 0 ) {
+        start = seqlen + start;
+    }
+    if( start > seqlen ) {
+        return 0;
+    }
+    idx end = lenseq ? start + lenseq : seqlen;
+    if( end > seqlen ) {
+        end = seqlen;
+    }
+    seqlen = end - start;
+
+    const char *seq1 = seq(num, 0);
+    return uncompressATGC_2Bit(buf, seq1, start, seqlen, true, 0, isrev, iscomp);
+}
 
 
 
@@ -443,14 +379,13 @@ idx sBioseq::uncompressATGC_2Bit(sStr * buf, const char * seq, idx start, idx le
     idx pos = 0;
     char * b = (char *) buf;
     if( isextensiblebuf ) {
-        // make sure buffer is big enough
         pos = buf->length();
-        buf->resize(pos + (isbrk ? len + ((len - 1) / isbrk) : len) + 1 /* for \0 at the end */);
+        buf->resize(pos + (isbrk ? len + ((len - 1) / isbrk) : len) + 1);
         b = buf->ptr(pos);
         if( !b ) {
             return start;
         }
-        buf->cut(-1); // to hide \0 at the end
+        buf->cut(-1);
     }
     idx is, ia = 0;
     if( !isrev ) {
@@ -481,7 +416,7 @@ idx sBioseq::uncompressATGC_2Bit(sStr * buf, const char * seq, idx start, idx le
         }
         is = start + len;
     }
-    b[is - start + ia] = 0; // add \0 at the end
+    b[is - start + ia] = 0;
     return is;
 }
 
@@ -490,15 +425,13 @@ idx sBioseq::compressATGC_1Byte (sStr * buf, const char * seq, idx len, idx isex
     idx pos=isextensiblebuf ? buf->length() : 0 ;
     char * b=(char *)buf;
     const char * nxt=seq+len;
-    idx is;//, ib=0, im;
-    for ( is=0; seq<nxt  ;  ++seq) { // && *seq!='#'
-        // if( *seq=='\n' || *seq=='\r' || *seq=='\t' || *seq==' ' )continue;
+    idx is;
+    for ( is=0; seq<nxt  ;  ++seq) {
         if(strchr("1234567890/" sString_symbolsBlank,*seq))continue;
 
-        //ib=is/4, im=(is%4)*2;
 
         if( isextensiblebuf ){
-            buf->resize(pos+is+1); // make sure buffer is big enough
+            buf->resize(pos+is+1);
             b=buf->ptr(pos);
         }
 
@@ -518,16 +451,15 @@ idx sBioseq::compressIUPAC (sStr * buf, const char * seq, idx len, idx isextensi
     unsigned char let;
     idx is, ib=0, im;
     bool compress = true;
-    for ( is=0; seq<nxt  ;  ++seq) { // && *seq!='#'
-        // if( *seq=='\n' || *seq=='\r' || *seq=='\t' || *seq==' ' )continue;
+    for ( is=0; seq<nxt  ;  ++seq) {
         if(strchr("1234567890/" sString_symbolsBlank,*seq))continue;
 
         ib=is/2, im=(is%2)*4;
         if(im==0){
-            b[ib]=0; // zero the if the first residue goes into our mask
+            b[ib]=0;
         }
         if( isextensiblebuf ){
-            buf->resize(pos+is+1); // make sure buffer is big enough
+            buf->resize(pos+is+1);
             b=buf->ptr(pos);
         }
 
@@ -552,15 +484,15 @@ idx sBioseq::uncompressATGC_1Byte(sStr * buf, const char * seq, idx start, idx l
 
     idx pos=isextensiblebuf ? buf->length() : 0 ;
     char * b=(char *)buf;
-    idx is,ia=0;//, ib, im;
+    idx is,ia=0;
     for ( is=start; is<start+len; ++is ) {
 
         if( isextensiblebuf ){
-            buf->resize(pos+is-start+1+ia); // make sure buffer is big enough
+            buf->resize(pos+is-start+1+ia);
             b=buf->ptr(pos);
         }
 
-        b[is-start+ia]=mapRevATGC[(idx)seq[is]];//mapRevATGC[ ((seq[ib]>>im)&0x3) ];
+        b[is-start+ia]=mapRevATGC[(idx)seq[is]];
 
         if(isbrk && isextensiblebuf && is>start && ((is-start)%isbrk)==0 ){
             buf->add("\n");
@@ -569,7 +501,7 @@ idx sBioseq::uncompressATGC_1Byte(sStr * buf, const char * seq, idx start, idx l
     }
 
     if(isextensiblebuf){
-        buf->resize(pos+is-start+1+ia); // make sure buffer is big enough
+        buf->resize(pos+is-start+1+ia);
         b=buf->ptr(pos);
     }
     b[is-start+ia]=0;
@@ -589,7 +521,7 @@ idx sBioseq::uncompressIUPAC(sStr * buf, const char * seq, idx start, idx len , 
             ib=is/2; im=(is%2)*4;
 
             if( isextensiblebuf ){
-                buf->resize(pos+is-start+1+ia); // make sure buffer is big enough
+                buf->resize(pos+is-start+1+ia);
                 b=buf->ptr(pos);
             }
 
@@ -612,7 +544,7 @@ idx sBioseq::uncompressIUPAC(sStr * buf, const char * seq, idx start, idx len , 
 
             ib=is/2; im=(is%2)*4;
             if( isextensiblebuf ){
-                buf->resize(pos+len-is-1-start+1+ia); // make sure buffer is big enough
+                buf->resize(pos+len-is-1-start+1+ia);
                 b=buf->ptr(pos);
             }
 
@@ -631,38 +563,13 @@ idx sBioseq::uncompressIUPAC(sStr * buf, const char * seq, idx start, idx len , 
     }
 
     if(isextensiblebuf){
-        buf->resize(pos+is-start+1+ia); // make sure buffer is big enough
+        buf->resize(pos+is-start+1+ia);
         b=buf->ptr(pos);
     }
     b[is-start+ia]=0;
     return is;
 }
 
-/*idx sBioseq::compressATGCAllele(const char * seq)
-{
-
-    idx alleles=0;
-    for( idx is=0; seq[is]; ++is) {
-        if(mapATGC[(idx)seq[is]]>sizeof(idx)*8-1)continue;
-        alleles|=1<<mapATGC[(idx)seq[is]];
-    }
-    return alleles;
-}
-idx sBioseq::uncompressATGCAllele(char * seq0, idx allele)
-{
-    char * seq=seq0;
-    for( idx i=0; i<sizeof(idx)*8 ; ++i ) {
-        if( ((allele>>i)&0x1) ==0 ) continue;
-
-        if(seq!=seq0) *seq++='/';
-        *seq=mapRevATGC[i];
-        ++seq;
-    }
-    *seq=0;
-
-    return allele;
-}
-*/
 
 
 idx sBioseq::proteinDecode( char * prot, const char * dna, idx len, bool nozero)
@@ -683,20 +590,19 @@ idx sBioseq::proteinVariantsFromSNP(char * pro, char * dna, idx dlen, idx pos, c
 {
     char * pro0=pro;
     idx cntVar=0;
-    idx contpos=pos+1, lentail=dlen-pos; // the position if the substitution, the position to move from and the length to move
+    idx contpos=pos+1, lentail=dlen-pos;
     for( idx i=0 ; ale[i]!=0; ++i) {
         idx ia;
-        for (ia=0; ale[ia+i] && ale[i+ia]!='/' && ale[i+ia]!='-'; ++ia ) ; // determine the length of the insert/snp/delete
+        for (ia=0; ale[ia+i] && ale[i+ia]!='/' && ale[i+ia]!='-'; ++ia ) ;
         if(pos+ia != contpos )
-            memmove(dna+pos+ia,dna+contpos,lentail+1); // make place for it
+            memmove(dna+pos+ia,dna+contpos,lentail+1);
         for( idx ii=0; ii<ia; ++ii) dna[pos+ii]=ale[i+ii];
-        contpos=pos+ia; // next time we move the tail from here
-        while(ale[i+ia] && ale[i+ia]!='/') ++ia; // determine the length of the insert/snp/delete
+        contpos=pos+ia;
+        while(ale[i+ia] && ale[i+ia]!='/') ++ia;
         i+=ia;
 
         if(variants)variants[cntVar++]=pro;
         pro=pro+1+sBioseq::proteinDecode( pro, dna, dlen+ia-1 );
-        //printf("%s\n",pro);
         if(!ale[i])break;
     }
     if(pcntVariants)*pcntVariants=cntVar;
@@ -733,7 +639,6 @@ void sBioseq::ProteinNmerIter::init(idx nmer_len, const char * prot, idx prot_le
 sBioseq::ProteinNmerIter & sBioseq::ProteinNmerIter::operator++()
 {
     if( _state == eOK ) {
-        // scroll bufer 1 letter down
         if( idx blen = _buf.length() ) {
             memmove(_buf.ptr(), _buf.ptr() + 1, blen - 1);
             memmove(_prot_pos.ptr(), _prot_pos.ptr() + 1, sizeof(idx) * (blen - 1));
@@ -742,15 +647,12 @@ sBioseq::ProteinNmerIter & sBioseq::ProteinNmerIter::operator++()
         }
 
         while( _buf.length() < _nmer_len ) {
-            // scroll past any newlines
             while( _pos < _prot_len && (_prot[_pos] == '\r' || _prot[_pos] == '\n') ) {
                 if( _prot[_pos] == '\r' || _pos == 0 || _prot[_pos - 1] != '\r' ) {
-                    // increment line count on \r or \r\n or \n not preceded by \r
                     _line++;
                 }
                 _pos++;
             }
-            // on ID line, terminate current nmer and skip to start of next protein sequence
             while( _pos < _prot_len && _prot[_pos] == '>' ) {
                 _buf.cut0cut();
                 _pos++;
@@ -759,14 +661,12 @@ sBioseq::ProteinNmerIter & sBioseq::ProteinNmerIter::operator++()
                 }
                 while( _pos < _prot_len && (_prot[_pos] == '\r' || _prot[_pos] == '\n') ) {
                     if( _prot[_pos] == '\r' || _pos == 0 || _prot[_pos - 1] != '\r' ) {
-                        // increment line count on \r or \r\n or \n not preceded by \r
                         _line++;
                     }
                     _pos++;
                 }
             }
 
-            // always record protein position (even in case of error, useful for tracking which letter failed)
             *_prot_pos.add(1) = _pos;
 
             ProtAA * p = 0;
@@ -775,7 +675,6 @@ sBioseq::ProteinNmerIter & sBioseq::ProteinNmerIter::operator++()
                 _pos++;
             } else {
                 if( _pos < _prot_len && _prot[_pos] ) {
-                    // unknown AA letter!
                     _state = eError;
                 } else {
                     _state = eEOF;
@@ -819,13 +718,44 @@ bool sBioseq::matchIUPAC(char atgc, char iupac)
         return strchr(iupac_code, 'C');
     case 'n':
     case 'N':
-        return strchr(iupac_code, 'N');//*iupac_code;
+        return strchr(iupac_code, 'N');
     }
 
     return false;
 }
 
-idx sBioseq::printFastX(sStr * outFile, bool isFastq, idx start /* = 0 */, idx end /* = 0 */,  idx shift /* = 0 */, bool keepOriginalId /* = false */,  bool appendLength /* = false*/, idx iread /* = 0 */, sVec <idx> * randomIdQueries /*=0*/, bool restoreNs /* = true */, idx filterNs/* = 0*/)
+
+sRC printQualitiesHelper(sStr & outBuf, const char * seqqua, idx start, idx seqlen, bool isRev)
+{
+    char * outbuf = outBuf.add(0, seqlen);
+    if (!outbuf) {
+        return RC(sRC::eAppending, sRC::eBuffer, sRC::ePointer, sRC::eNull);
+    }
+    idx ipos = 0;
+    if( !isRev ) {
+        for(idx i = start; i < (start + seqlen); ++i, ++ipos) {
+            outbuf[ipos] = seqqua[i] + 33;
+        }
+    } else {
+        for(idx i = start; i < (start + seqlen); ++i, ++ipos) {
+            outbuf[seqlen - ipos - 1] = seqqua[i] + 33;
+        }
+    }
+    return sRC::zero;
+}
+
+sRC sBioseq::printQualities(sStr & outBuf, idx row, idx iread, bool isRev)
+{
+    const char * seqqua = qua(row, iread);
+    if (!seqqua) {
+        return RC(sRC::eReading, sRC::eString, sRC::ePointer, sRC::eNull);
+    }
+    const idx seqlen = len(row, iread);
+    return printQualitiesHelper(outBuf, seqqua, 0, seqlen, isRev);
+}
+
+
+idx sBioseq::printFastX(sStr * outFile, bool isFastq, idx start, idx end,  idx shift, bool keepOriginalId,  bool appendLength, idx iread, sVec <idx> * randomIdQueries, bool restoreNs, idx filterNs)
 {
     idx q = 0;
 
@@ -835,19 +765,19 @@ idx sBioseq::printFastX(sStr * outFile, bool isFastq, idx start /* = 0 */, idx e
     if (randomIdQueries && randomIdQueries->dim()>0) {
         for(idx k = 0; k < randomIdQueries->dim(); ++k)  {
             idx i = randomIdQueries->ptr()[k];
-            q += printFastXRow(outFile, isFastq, i, 0, 0, shift, keepOriginalId, appendLength, 0, iread, 0, restoreNs, filterNs);
+            q += printFastXRow(outFile, isFastq, i, 0, 0, shift, keepOriginalId, appendLength, 0, iread, eSeqForward, restoreNs, filterNs);
         }
     }
     else {
         for(idx i = start; i < end; ++i) {
-            q += printFastXRow(outFile, isFastq, i, 0, 0, shift, keepOriginalId, appendLength, 0, iread, 0, restoreNs, filterNs);
+            q += printFastXRow(outFile, isFastq, i, 0, 0, shift, keepOriginalId, appendLength, 0, iread, eSeqForward, restoreNs, filterNs);
         }
     }
 
     return q;
 }
 
-idx sBioseq::printFastXRow(sStr * outFile, bool isFastq, idx row, idx start /* = 0 */, udx length /* = 0 */, idx shift /* = 0 */, bool keepOriginalId /* = false */, bool appendLength /* = false*/, const char *appendID /* = 0 */, idx iread /* = 0 */, idx isRevCmp /* = 0 */, bool restoreNs /* = true */, idx filterNs/* = 0*/, bool appendRptCount /*= true */, bool SAMCompatible /* = 0*/)
+idx sBioseq::printFastXRow(sStr * outFile, bool isFastq, idx row, idx start, udx length, idx shift, bool keepOriginalId, bool appendLength, const char *appendID, idx iread, ESeqDirection isRevCmp, bool restoreNs, idx filterNs, bool appendRptCount, bool SAMCompatible, bool printRepeats)
 {
     sStr *out;
     if (outFile){
@@ -875,116 +805,134 @@ idx sBioseq::printFastXRow(sStr * outFile, bool isFastq, idx row, idx start /* =
     }
     seqlen = end - start;
     char initId = isFastq ? '@' : '>';
-    out->add(&initId, 1);//printf("%s", isFastq ? "@" : ">");//!checking is fastq or FASTA
-    bool quaBit = getQuaBit(row);//! check the quality of FASTQ sequence , it will return zero if given is FASTA
 
-    const char * seqid = id(row, iread);
-    if( seqid[0] == '>' || seqid[0] == '@' ) {
-        ++seqid;
-    }
     idx subrpt = 1;
-    if (appendRptCount && getmode() == 0){
-        // short mode, rpt count is printed
+
+    if ( printRepeats && getmode() == eBioModeShort){
         subrpt = rpt(row, iread);
     }
-    if( keepOriginalId == false) {
-        // short mode, a number is going to be printed
-        out->addNum(row + shift);
-    } else {
-        if (SAMCompatible) {
-            sString::searchAndReplaceSymbols(out, seqid, 0, " ", "_", 0, true, true, false, true);
-            out->shrink00();
+    idx repeatsToAppend = ( appendRptCount && getmode() == eBioModeShort)? rpt(row, iread):1;
+
+
+    for ( idx i_rpt = 0 ; i_rpt < subrpt ; ++i_rpt) {
+        out->add(&initId, 1);
+        bool quaBit = getQuaBit(row);
+
+        const char * seqid = id(row, iread);
+        if( seqid[0] == '>' || seqid[0] == '@' ) {
+            ++seqid;
+        }
+
+        if( keepOriginalId == false) {
+            out->addNum(row + shift);
         } else {
-            out->addString(seqid);
-        }
-    }
-
-    if (appendLength){
-        out->add(" len=", 5);
-        out->addNum(seqlen);
-    }
-    bool isRev = false;
-    bool isComp = false;
-    if (isRevCmp == 1){
-        out->add(" rev.", 5);
-        isRev = true;
-    }
-    else if (isRevCmp == 2){
-        out->add(" comp.", 6);
-        isComp = true;
-    }
-    else if (isRevCmp == 3){
-        out->add(" rev.comp.", 10);
-        isRev = true;
-        isComp = true;
-    }
-    if (appendID){
-        out->addString(appendID);
-    }
-
-    if( subrpt > 1 ) {
-        out->add(" H#=", 4);
-        out->addNum(subrpt);
-    }
-
-    out->add("\n", 1);
-    idx initseq = out->length() - initpos;
-    const char * seqs = seq(row, iread);
-    idx seqposition = out->length();
-    uncompressATGC(out, seqs, start, seqlen, true, 0, isRev, isComp);
-    // restore N based on quality 0
-    const char * seqqua = qua(row, iread);
-
-    if( seqqua && restoreNs) {
-        idx NCount=0;// count all Ns in one read if it is bigger than filterNs reject the sequence
-        char * seqpos = out->ptr(seqposition);
-        for(idx i = start, pos = 0; i < start + seqlen; ++i, ++pos) {
-            if( Qua(seqqua, i, quaBit) == 0 ) {
-                seqpos[pos] = 'N';
-                NCount++;
+            if (SAMCompatible) {
+                sString::searchAndReplaceSymbols(out, seqid, 0, " ", "_", 0, true, true, false, true);
+                out->shrink00();
+            } else {
+                out->addString(seqid);
             }
         }
-        if( filterNs && (NCount > (seqlen * filterNs / 100)) ) {
-            out->cut0cut(initpos);
-            return 0;
+
+        if (appendLength){
+            out->add(" len=", 5);
+            out->addNum(seqlen);
         }
-    }
+        bool isRev = false;
+        bool isComp = false;
+        if (isRevCmp == eSeqReverse){
+            out->add(" rev.", 5);
+            isRev = true;
+        }
+        else if (isRevCmp == eSeqForwardComplement){
+            out->add(" comp.", 6);
+            isComp = true;
+        }
+        else if (isRevCmp == eSeqReverseComplement){
+            out->add(" rev.comp.", 10);
+            isRev = true;
+            isComp = true;
+        }
+        if (appendID){
+            out->addString(appendID);
+        }
 
-    idx initqua = 0;
-
-    if( isFastq ) {
-        out->add("\n+\n", 3);
-        initqua = out->length() - initpos;
-        char *outbuf = out->add(0, seqlen);
-        idx ipos = 0;
-        if(seqqua && !quaBit) {
-            for(idx i = start; i < (start+seqlen); ++i, ++ipos) {
-                outbuf[ipos] = seqqua[i] + 33;
+        if( repeatsToAppend > 1 ) {
+            if ( printRepeats ) {
+                out->add(" R#=", 4);
+                out->addNum(i_rpt+1);
+            } else {
+                out->add(" H#=", 4);
+                out->addNum(repeatsToAppend);
             }
-        } else {
-            // fake qualities
-            for(idx i = start; i < (start+seqlen); ++i, ++ipos) {
-                outbuf[ipos] = 30 + 33;
+        }
+
+        out->add("\n", 1);
+        idx initseq = out->length() - initpos;
+        const char * seqs = seq(row, iread);
+        idx seqposition = out->length();
+        uncompressATGC(out, seqs, start, seqlen, true, 0, isRev, isComp);
+        const char * seqqua = qua(row, iread);
+
+        if( seqqua && restoreNs ) {
+            idx NCount = 0;
+            char * seqpos = out->ptr(seqposition);
+            if( !isRev ) {
+                for(idx i = start, pos = 0; i < start + seqlen; ++i, ++pos) {
+                    if( Qua(seqqua, i, quaBit) == 0 ) {
+                        seqpos[pos] = 'N';
+                        NCount++;
+                    }
+                }
+            } else {
+                for(idx i = start, pos = 0; i < start + seqlen; ++i, ++pos) {
+                    if( Qua(seqqua, i, quaBit) == 0 ) {
+                        seqpos[seqlen - pos - 1] = 'N';
+                        NCount++;
+                    }
+                }
+            }
+
+            if( filterNs && (NCount > (seqlen * filterNs / 100)) ) {
+                out->cut0cut(initpos);
+                return 0;
             }
         }
-    }
 
-    if (print_callback){
-        // Use the callback function
-        idx isValid = print_callback(print_callbackParam, out, initpos, initseq, initqua, seqlen);
-        if (!isValid){
-            out->cut0cut(initpos);
-            return 0;
+        idx initqua = 0;
+
+        if( isFastq ) {
+            out->add("\n+\n", 3);
+            initqua = out->length() - initpos;
+            if( seqqua && !quaBit ) {
+                if (sRC rc = printQualitiesHelper(*out, seqqua, start, seqlen, isRev)) {
+                    return 0;
+                }
+            } else {
+                char *outbuf = out->add(0, seqlen);
+                idx ipos = 0;
+                for(idx i = start; i < (start + seqlen); ++i, ++ipos) {
+                    outbuf[ipos] = 30 + 33;
+                }
+            }
         }
-    }
-    out->addString("\n", 1);
-    if( !outFile ) {
-        ::printf("%s", outstr.ptr());
+
+        if (print_callback){
+            idx isValid = print_callback(print_callbackParam, out, initpos, initseq, initqua, seqlen);
+            if (!isValid){
+                out->cut0cut(initpos);
+                return 0;
+            }
+        }
+        out->addString("\n", 1);
+        if( !outFile ) {
+            ::printf("%s", outstr.ptr());
+        }
     }
     return 1;
 }
 
-idx sBioseq::printFastXData(sStr * outFile, idx seqlen, const char *seqid, const char *seq, const char *seqqua, idx subrpt, idx iread /* = 0 */)
+idx sBioseq::printFastXData(sStr * outFile, idx seqlen, const char *seqid, const char *seq, const char *seqqua, idx subrpt, idx iread)
 {
     sStr *out;
     if (outFile){
@@ -994,15 +942,14 @@ idx sBioseq::printFastXData(sStr * outFile, idx seqlen, const char *seqid, const
         outstr.cut(0);
         out = &outstr;
     }
-    out->add(seqid);
+    out->addString(seqid);
     if( subrpt > 1 ) {
         out->add(" H#=", 4);
         out->addNum(subrpt);
     }
-    out->add("\n");
+    out->add("\n", 1);
     out->add(seq, seqlen);
-    out->add("\n");
-//    outstr.printf("\n%.*s\n", (int)seqlen, seq);
+    out->add("\n", 1);
     if( seqqua ) {
         out->add("+\n", 2);
         out->add(seqqua, seqlen);
@@ -1015,8 +962,83 @@ idx sBioseq::printFastXData(sStr * outFile, idx seqlen, const char *seqid, const
     return 1;
 }
 
+idx sBioseq::printSAMRow(sStr & out, idx row, idx iread, idx flag, bool keepOriginalId, bool printQuals)
+{
+    if ( keepOriginalId ) {
+        const char * seqid = id(row, iread);
+        sString::searchAndReplaceSymbols(&out, seqid, 0, " ", "_", 0, true, true, false, true);
+        out.shrink00();
+    } else {
+        out.addNum(row);
+    }
+    out.addString("\t");
+    out.addNum(flag);
+    out.addString("\t*\t0\t255\t*\t*\t0\t0\t");
+    printSequence(&out, row, 0, 0, eSeqForward, true);
+    out.addString("\t");
+    if ( printQuals && qua(row, iread) ) {
+        printQualities(out, row, iread, false);
+    } else {
+        out.addString("*");
+    }
+    out.addString("\n");
 
+    return 1;
+}
 
+idx sBioseq::printSequence(sStr *outFile, idx row, idx start, idx length, ESeqDirection isRevCmp, bool restoreNs)
+{
+    bool quaBit = getQuaBit(row);
 
+    idx seqlen = len(row);
+    if( start < 0 ) {
+        start = seqlen + start;
+    }
+    if( start > seqlen ) {
+        return 0;
+    }
+    idx end = length ? start + length : seqlen;
+    if( end > seqlen ) {
+        end = seqlen;
+    }
+    seqlen = end - start;
+
+    bool isRev = false;
+    bool isComp = false;
+    if (isRevCmp == eSeqReverse){
+        isRev = true;
+    }
+    else if (isRevCmp == eSeqForwardComplement){
+        isComp = true;
+    }
+    else if (isRevCmp == eSeqReverseComplement){
+        isRev = true;
+        isComp = true;
+    }
+
+    const char * seqs = seq(row);
+    idx seqposition = outFile->length();
+    uncompressATGC(outFile, seqs, start, seqlen, true, 0, isRev, isComp);
+    const char * seqqua = qua(row);
+
+    if( seqqua && restoreNs ) {
+        char * seqpos = outFile->ptr(seqposition);
+        if( !isRev ) {
+            for(idx i = start, pos = 0; i < start + seqlen; ++i, ++pos) {
+                if( Qua(seqqua, i, quaBit) == 0 ) {
+                    seqpos[pos] = 'N';
+                }
+            }
+        } else {
+            for(idx i = start, pos = 0; i < start + seqlen; ++i, ++pos) {
+                if( Qua(seqqua, i, quaBit) == 0 ) {
+                    seqpos[seqlen - pos - 1] = 'N';
+                }
+            }
+        }
+    }
+    outFile->add0cut();
+    return (outFile->length() - seqposition);
+}
 
 

@@ -36,7 +36,7 @@ idx sText::categoryListParseCsv(sTabular * tbl, sVec < idx > * rowSet, sDic < sD
 {
 
     if(rowSet && !rowSet->dim())rowSet=0;
-    idx irow=0, icol=0;//, ic=0, ir=0;
+    idx irow=0, icol=0;
     idx spcnum=sNotIdx;
     sVec < sVec < idx >  > numCatVec;
 
@@ -69,9 +69,9 @@ idx sText::categoryListParseCsv(sTabular * tbl, sVec < idx > * rowSet, sDic < sD
             t.cut(0);tbl->printLeftHeader(t,iRow);
             ppcl=t.ptr();
 
-            if( !ids->get(ppcl,0,&spcnum)){ // retrieve numeral of the sample from provided ID array
+            if( !ids->get(ppcl,0,&spcnum)){
                 spcnum=sNotIdx;
-                continue; // we must then have this id in id list
+                continue;
             }
         }
 
@@ -85,7 +85,7 @@ idx sText::categoryListParseCsv(sTabular * tbl, sVec < idx > * rowSet, sDic < sD
             if(!empty || strcmp(ppcl,empty)!=0 ) {
                 sVec <idx > * cur=0;
 
-                if(numCatVec[iCol].dim()>0){ // numerical vector needs to determine the range
+                if(numCatVec[iCol].dim()>0){
                     idx irg;
                     real val=0;sscanf(ppcl,"%lf",&val);
                     for( irg=0; irg<numCatVec[iCol].dim() && val>(real)numCatVec[iCol][irg] ; ++irg) ;
@@ -110,33 +110,49 @@ idx sText::categoryListParseCsv(sTabular * tbl, sVec < idx > * rowSet, sDic < sD
     return lcolset->dim();
 }
 
-idx sText::categoryListParseCsv(sStr * flbuf , const char * src, idx , sDic < sDic < sVec < idx > >  > * lcolset , sDic < idx > * ids, const char * empty, bool totalset, bool supportQuote) // len
+idx sText::categoryListParseCsv(sStr * flbuf , const char * src, idx len, sDic < sDic < sVec < idx > >  > * lcolset , sDic < idx > * ids, const char * empty, bool totalset, bool supportQuote)
 {
-    //if(!src || !len)return 0;
     if(!src)return 0;
 
-    sString::searchAndReplaceSymbols(flbuf,src, sLen(src), sString_symbolsEndline,",,",0,true,true,false);
-    flbuf->add0(4);
-    sString::searchAndReplaceSymbols(flbuf->ptr(),flbuf->length(), ",;",0,0,true,false,true);
-    const char* fp0=flbuf->ptr();
     
+
     const char * prow, * pcol;
-    idx irow=0, icol=0;//, ic=0, ir=0;
+    idx irow=0, icol=0;
     idx spcnum=sNotIdx;
     sVec < sVec < idx >  > numCatVec;
-                
-    for ( irow=0, prow=fp0; prow; prow=sString::next00(prow) , ++irow) { 
+    const char * nxtcol, *end=src+len,* nxtrow;
+
+    sStr t;
+    for ( irow=0, prow=src; prow<end; prow=nxtrow , ++irow) {
         spcnum=sNotIdx;
-                
-        for ( icol=0, pcol=prow; pcol; pcol=sString::next00(pcol) , ++icol) { 
-            sStr t;
-            if( icol > 0 ) {
-                // columns 1+ are numeric, strip whitespace
-                sString::cleanEnds(&t,pcol,0,sString_symbolsBlank,true);
-            } else {
-                // column 0 is sample name, whitespace is significant (must exactly match name in measurables matrix)
-                t.addString(pcol);
+
+        char quote=0;
+        for(nxtrow=prow ; nxtrow<end; ++nxtrow)
+        {
+            if(supportQuote && (*nxtrow=='\'' || *nxtrow=='\"')  && !quote){quote=*nxtrow;continue;}
+            if(quote && *nxtrow==quote){quote=0; continue;}
+            if(*nxtrow=='\n')break;
+        }
+
+
+        for ( icol=0, pcol=prow; pcol<nxtrow; pcol=nxtcol , ++icol) {
+            idx qquote=0;
+            for(nxtcol=pcol; nxtcol<nxtrow; ++nxtcol){
+                if(supportQuote && (*nxtcol=='\'' || *nxtcol=='\"')  && !qquote){qquote=*nxtcol;continue;}
+                if(qquote && *nxtcol==qquote){qquote=0; continue;}
+                if(!qquote && *nxtcol==',')break;
             }
+
+            if(nxtcol-pcol<1)
+                {++nxtcol;continue;}
+
+               t.cut(0);
+            if( icol > 0 ) {
+                sString::cleanEnds(&t,pcol,nxtcol-pcol,sString_symbolsBlank,true);
+            } else {
+                t.addString(pcol,nxtcol-pcol);
+            }
+            nxtcol++;
             char * ppcl=t.ptr();
             idx ppclen=sLen(ppcl);
             if(supportQuote) {
@@ -144,6 +160,8 @@ idx sText::categoryListParseCsv(sStr * flbuf , const char * src, idx , sDic < sD
                 if((quote=='\"' || quote=='\'' ) && ppcl[ppclen-1]==quote)
                     {++ppcl;ppclen-=2;}
             }
+            if(ppclen<1)
+                continue;
             
             if(irow==0 ){ 
                 numCatVec.add(); 
@@ -160,9 +178,9 @@ idx sText::categoryListParseCsv(sStr * flbuf , const char * src, idx , sDic < sD
                 if( icol==0 ) {
                     spcnum=irow-1;
                     if(irow>0 && ids) {
-                        if( !ids->get(ppcl,ppclen,&spcnum)){ // retrieve numeral of the sample from provided ID array
+                        if( !ids->get(ppcl,ppclen,&spcnum)){
                             spcnum=sNotIdx;
-                            continue; // we must then have this id in id list
+                            continue;
                         }
                     }
                 }
@@ -171,7 +189,7 @@ idx sText::categoryListParseCsv(sStr * flbuf , const char * src, idx , sDic < sD
                     if(!empty || strncmp(ppcl,empty,ppclen)!=0 ) {
                         sVec <idx > * cur=0;
 
-                        if(numCatVec[icol].dim()>0){ // numerical vector needs to determine the range
+                        if(numCatVec[icol].dim()>0){
                             idx irg;
                             real val=0;sscanf(ppcl,"%lf",&val);
                             for( irg=0; irg<numCatVec[icol].dim() && val>(real)numCatVec[icol][irg] ; ++irg) ;
@@ -188,8 +206,8 @@ idx sText::categoryListParseCsv(sStr * flbuf , const char * src, idx , sDic < sD
                 }
             }
 
-            prow=pcol+sLen(pcol)+1;
         }
+        ++nxtrow;
     }
     if(totalset && ids){
         sDic < sVec < idx > > * pcolset=lcolset->set("_all_");
@@ -203,7 +221,6 @@ idx sText::categoryListInverse(sDic < sVec < idx > >  * lcolset , sVec <idx> * n
 {
     if(ids)maxRows=ids->dim();
 
-    // now choose all the roows which are not present in any colset 
     for( idx ir=0, il=0, ic=0 ; ir<maxRows; ++ir )  { 
         idx lookFor=ids ? (*ids)[ir] : ir;
 
@@ -220,7 +237,6 @@ idx sText::categoryListInverse(sDic < sVec < idx > >  * lcolset , sVec <idx> * n
     }
                 
     return nocolset->dim();
-    //return learnRows.dim();
 }
 
 
@@ -230,7 +246,6 @@ void sText::categoryListToDic( sDic < sVec < idx > >  * pcolset, sDic < idx > * 
         sVec < idx > * curset=pcolset->ptr(ic);
     
         for( idx is=0; is<curset->dim() ; ++is) {
-            //idx aa=(*curset)[is];
             *ids->ptr((*curset)[is])=ic;
         }
     }
@@ -255,5 +270,4 @@ void sText::categoryListOut(sStr * str, sDic < sDic < sVec < idx > >  > * lcolse
         }
         str->printf("\n");
     }
-    //return learnRows.dim();
 }

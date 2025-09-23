@@ -53,10 +53,9 @@ class sQPSvc
         virtual void setobjDefaultParameters(){ }
         void getReqIds(sVec<idx>& vec) const;
 
-        void setForm(sVar * form);
+        void setForm(sVar * form, const bool overwrite);
 
-        // returns reqID
-        idx launch(sUsr& user, idx grpID = 0, sHiveId * out_uprocID = 0, idx priority = 0);
+        idx launch(sUsr& user, idx grpID = 0, sHiveId * out_uprocID = 0, idx priority = 0, idx sliceId = 0);
 
         void setVar(const char* name, const char * value, ...) __attribute__((format(printf, 3, 4)));
         void setVar(const char* name, const sMex & data);
@@ -69,19 +68,16 @@ class sQPSvc
         bool setData(const char* name, sMex * value);
         char * getData(sMex & buf, const char* name) const;
 
-        // returns number of chunk to split request into
-        virtual udx split() const
-        {
-            return 1;
-        }
-
-        virtual sUsrProc * makeObj(sUsr& user) const
+        virtual sUsrProc * makeObj(sUsr& user, sUsrProc * p = 0) const
         {
             return 0;
         }
 
 
     private:
+
+        friend class svcHMI;
+
         sVar m_form;
         sQPride & m_qp;
         sVec<idx> m_reqs;
@@ -89,4 +85,4 @@ class sQPSvc
         sQPSvc(const sQPSvc& );
 };
 
-#endif // sQPSvc_hpp
+#endif 

@@ -117,14 +117,14 @@ google.load("visualization", "1", {packages:["corechart"]});
          service:"dna-tnseq"
     };
     
-    $(document).ready(function() 
-    {
+    gInitList += "tnseqInit();";
+    function tnseqInit () {
         globalAlgo = $('#mainAlgoArea').algoview({
             algoObj: algoProcess,
             svcType: "svc-tnseq",
             algoTitle: "TNSequencing analyzer"
         });
-     });
+     };
   
   
 </script>

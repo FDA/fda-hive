@@ -42,37 +42,34 @@ namespace slib {
         
     public:
 
-        // initialization
-        sCmdLine ()//constructor
+        sCmdLine ()
             {isError=0;exeFunCallBack=0;}
-        void parse(const char * cmdLine, idx len=0,const char * separ=0); // parses the single string to fetch arguments
+        void parse(const char * cmdLine, idx len=0,const char * separ=0);
 
-        void init(idx argc, const char ** argv,const char ** envp=0); // init from argc,argv pair
-        void initCgi(const char * src) // init from CGI string
+        void init(idx argc, const char ** argv,const char ** envp=0);
+        void initCgi(const char * src)
             {if(src)parse(src, 0, "&=" );}
         void initV( const char * fmt, va_list marker )
             {sStr str;str.vprintf( fmt, marker );parse(str.ptr(),str.length());}
         void init(const char * fmt, ... ) __attribute__((format(printf, 2, 3)))
             {sCallVarg(initV,fmt);}
-        void empty(void) // empty the class instance
+        void empty(void)
             {sDic<idx>::empty();}
         
-        const char * get(idx argnum, idx * pLen=0) const // get the id of the argument with the given number 
+        const char * get(idx argnum, idx * pLen=0) const
             {return static_cast<const char*>(sDic<idx>::id( *ptr(argnum), pLen));}
         char * get(idx argnum, idx * pLen=0) { return static_cast<char*>(sDic<idx>::id(*ptr(argnum), pLen)); }
-            //{return (char *)sDic<idx>::id(argnum, pLen);}
 
-        bool is(const char * name) const // the next argument
+        bool is(const char * name) const
         {
             idx iFnd=sDic<idx>::find(name)-1;
             return (iFnd!=sNotIdx) ? true : false;
         }
-        const char * next(const char * name) const// the next argument
+        const char * next(const char * name) const
         {
-            idx iFnd=sDic<idx>::find(name)-1; // this will be 0xFFFFFFFF in case of not success and cnt-1 for the last one 
+            idx iFnd=sDic<idx>::find(name)-1;
             return (iFnd>=0 && iFnd<dim()-1) ? get(iFnd+1) : 0;
         }
-        //! scanf the argument's next value
         template < class Tobj > Tobj * scanf(const char * name, const char * frmt, Tobj * valPtr) const
         {
             const char * val=next(name);
@@ -95,7 +92,7 @@ namespace slib {
         struct exeCommand{
             void * param;
             exeFunType cmdFun;
-            idx kind;  // can be 0 - no arguments needed , 1 call handler for each argument, 2 accumulate arguments and call once 
+            idx kind;
             const char * cmd ;
             const char * descr;
         } ;
@@ -116,7 +113,6 @@ namespace slib {
 
 
 }
-#endif // sLib_std_cmdline_hpp
-
+#endif 
 
 

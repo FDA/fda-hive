@@ -45,21 +45,55 @@ namespace slib
             sIO * gLog, * gDbg;
 
             typedef idx (* SimulOperationActorFunction)(sPhysicalEnsemble * ensemble, void * params);
-            struct SimulOperation {
-                SimulOperationActorFunction func,state;
-                real weight;
-                void * params;
-            };
-            struct OperationCategory {
-                sDic < SimulOperation > operations;
+
+            enum eSignal {eContinue,eGlobalError};
+
+        public:
+
+            class OperationCategory {
+                friend class sPhysicalEnsemble;
+
+                class Operation {
+                    SimulOperationActorFunction func,state;
+                    real weight;
+                    void * params;
+                    eSignal signal;
+                    eSignal runIteration(void) {
+                        signal=eContinue;
+                        if(state)state( 0, params );
+                        if(func && signal==eContinue)func( 0, params );
+                        return signal;
+                    }
+                    friend class OperationCategory;
+                };
+                sDic < Operation > operations;
                 idx loops;
+                real weight;
+
+                void addOperation(const char * operationName, real weight, SimulOperationActorFunction func, SimulOperationActorFunction state)
+                {
+                    Operation * oper=operations.set(operationName);
+                    oper->func=func;
+                    oper->state=state;
+                    oper->weight=weight;
+                }
+                void frameOperations(void);
+                Operation * selectOperation(real randNum);
+
             };
             sDic < OperationCategory > operationCategories;
 
-            OperationCategory * addSimulCategory(const char * categoryName, idx loops=1);
-            void addSimulOperation(OperationCategory * categ,const char * operationName, real weight, SimulOperationActorFunction func, SimulOperationActorFunction state);
-            void finalizeCategory(OperationCategory * categ);
-            SimulOperation * selectWeightedOperationRandomly(OperationCategory * categ);
+            OperationCategory * addCategory(const char * categoryName, idx loops=1)
+            {
+                OperationCategory * ocat=operationCategories.set(categoryName);
+                ocat->loops=loops;
+                return ocat;
+            }
+            void frameCategories(void);
+
+
+
+
 
 
             idx computeSystemState(void);
@@ -70,6 +104,5 @@ namespace slib
     };
 }
 
-#endif // sPhys_simul_h
-
+#endif 
 

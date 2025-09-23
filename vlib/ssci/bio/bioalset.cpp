@@ -35,30 +35,24 @@ using namespace slib;
 
 void sBioalSet::attach(sBioal * bioal, idx alNum, idx alCnt)
 {
-    // adjust the number of alignments being pushed here
     if(!alCnt || alCnt>bioal->dimAl() )alCnt=bioal->dimAl();
 
-    // attach a new sBioseq to our sBioseqSet
-    // we do it in reverse because the last element
-    // will frequently be the one which is adding more sequences
     idx ib=0;
     for ( ib=biosR.dim()-1; ib>=0 && biosR[ib]!=bioal; --ib)
         ;
-    if(ib<0){ // couldn't find this sBioal ... a new one, perhaps
+    if(ib<0){
         biosR.vadd(1,bioal);
         ib=biosR.dim()-1;
 
 
         idx cntSubs;
-        // accumulate all statistics and counts from the newly added bioals
         for( idx it=0, ct=bioal->dimStat(); it<ct; ++it ){
             Stat * pS=bioal->getStat(it,0,&cntSubs);
 
-            // adjust statistics
             if(allStat.dim()<cntSubs)
                 allStat.resize(cntSubs);
 
-            for(idx is=0; is<cntSubs; ++is ) { //Sub->dim()+1
+            for(idx is=0; is<cntSubs; ++is ) {
                 if(pS[is].found) {
                     allStat[is].found+=pS[is].found;
                     allStat[is].foundRpt+=pS[is].foundRpt;
@@ -67,42 +61,36 @@ void sBioalSet::attach(sBioal * bioal, idx alNum, idx alCnt)
 
         }
 
-        // adjust subject specific counts
-        //idx dimS=bioal->dimSub();
         --cntSubs;
         if( dimSubCnt.dim()*2 < cntSubs ) {
             dimSubCnt.resize(2*cntSubs);
         }
-        for(idx is=0; is<cntSubs; ++is ) { //Sub->dim()+1
+        for(idx is=0; is<cntSubs; ++is ) {
             idx subCnt=0;
-            //idx plst=bioal->listSubAl(is, &subCnt,0);
             idx plst=bioal->listSubAlIndex(is, &subCnt);
-            //if(!plst)continue;
             if(subCnt ) {
                 dimSubCnt[2*is]+=subCnt;
                 if(dimSubCnt[2*is+1]==0)
-                    dimSubCnt[2*is+1]=totDim+1+plst-1; // the first reference  to this subject +1
+                    dimSubCnt[2*is+1]=totDim+1+plst-1;
             }
         }
 
 
     }
 
-    // for select its last element
     RefAl * rs=0;
 
     if( refs.dim()>0 ){
-        // compare if we can just concatenate this with the last element
         rs=refs.ptr(refs.dim()-1);
-        if( rs->bioNum==ib &&  // same alignment
-            rs->alNum+rs->alCnt==alNum // the next alignment is in range is being added  ?
+        if( rs->bioNum==ib &&
+            rs->alNum+rs->alCnt==alNum
             ){
             rs->alCnt+=alCnt;
         }
         else rs=0;
     }
 
-    if( !rs ){ // otherwise we add the value
+    if( !rs ){
         rs=refs.add();
         rs->bioNum=ib;
         rs->alNum=alNum;
@@ -119,13 +107,13 @@ sBioal * sBioalSet::ref(idx * inum, idx iSub)
 {
     idx ir;
     RefAl * rs;
-    if( alInd.dim()) { // if it has been indexed
+    if( alInd.dim()) {
         ir=alInd[(*inum)];
         (*inum)=(ir&0xFFFFFFFF);
         rs=refs.ptr( (ir>>32)&0xFFFFFFFF );
         return biosR[rs->bioNum];
     }
-    else { // if it has not been indexed
+    else {
         idx tDim=0;
         for(ir=0; ir<refs.dim(); ++ir ) {
             rs=refs.ptr(ir);

@@ -42,7 +42,6 @@ using namespace slib;
 
 idx sAlgebra::matrix::diagJacoby(idx n ,real * arr,real   * evals,real * evecs,real * B,real jactol,idx  maxiter)
 {
-    //return sMathNR::jacobi(arr, n, evecs, evals,jactol, maxiter);
     idx p,q,i,j,rot;
     real    sm,c,s,t,h,g,tau,theta,tresh;
     real * Z=B+n;
@@ -62,7 +61,6 @@ idx sAlgebra::matrix::diagJacoby(idx n ,real * arr,real   * evals,real * evecs,r
     rot=0;
 
     for(i=1;i<maxiter;i++){
-//        swp:;
         sm=0;
         for(p=1;p<=n-1;p++){
             for(q=p+1;q<=n;q++){
@@ -76,8 +74,7 @@ idx sAlgebra::matrix::diagJacoby(idx n ,real * arr,real   * evals,real * evecs,r
                 g=fabs(a(p,q));
                 if((i>4) && fabs(d(p))+g==fabs(d(p)) && fabs(d(q))+g==fabs(d(q)))
                     a(p,q)=0;
-                else if(fabs(a(p,q))>tresh){ /* need rotation */
-//                    rotate:
+                else if(fabs(a(p,q))>tresh){
                     h=d(q)-d(p);
                     if(fabs(h)+g==fabs(h)){
                         t=a(p,q)/h;
@@ -115,16 +112,16 @@ idx sAlgebra::matrix::diagJacoby(idx n ,real * arr,real   * evals,real * evecs,r
                             v(j,p)=g-s*(h+g*tau);
                             v(j,q)=h+s*(g-h*tau);
                         }
-                    } /* end if eivec */
+                    }
                     rot++;
-                } /* end if need rotation */
-            }       /* end q */
-        }       /* end p */
+                }
+            }
+        }
         for(p=1;p<=n;p++){
             d(p)=b(p)=b(p)+z(p);
             z(p)=0;
-        }       /* end p */
-    }       /* end Iter */
+        }
+    }
     out:
     return rot;
 }
